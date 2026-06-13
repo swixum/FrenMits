@@ -122,7 +122,8 @@ public sealed class Plugin : IDalamudPlugin
         _phaseTwo = false;
         _trackedBossEntity = 0;
         _trackedBossLastHp = 0;
-        AutoLoadForTerritory(territory);
+        try { AutoLoadForTerritory(territory); }
+        catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
     }
 
     public void AutoLoadForTerritory(uint territory)
@@ -153,13 +154,24 @@ public sealed class Plugin : IDalamudPlugin
     public static Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter? LocalPlayer
         => Service.ObjectTable[0] as Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter;
 
+    private bool _frameErrorLogged;
+
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework _)
     {
-        Timer.Update();
-        UpdatePhase();
-        Sync.Update();
-        Cues.Update();
-        UpdateDtr();
+        // Never let a per-frame hiccup (e.g. a stale game object) escape into
+        // Dalamud's tick loop. Log the first one, then stay quiet.
+        try
+        {
+            Timer.Update();
+            UpdatePhase();
+            Sync.Update();
+            Cues.Update();
+            UpdateDtr();
+        }
+        catch (Exception ex)
+        {
+            if (!_frameErrorLogged) { Service.Log.Error(ex, "FrenMits: framework update error"); _frameErrorLogged = true; }
+        }
     }
 
     // ---- Door-boss phase tracking ----------------------------------------
@@ -235,7 +247,16 @@ public sealed class Plugin : IDalamudPlugin
         _dtr.Shown = true;
     }
 
-    private void DrawUi() => Windows.Draw();
+    private bool _drawErrorLogged;
+
+    private void DrawUi()
+    {
+        try { Windows.Draw(); }
+        catch (Exception ex)
+        {
+            if (!_drawErrorLogged) { Service.Log.Error(ex, "FrenMits: draw error"); _drawErrorLogged = true; }
+        }
+    }
 
     private void OpenConfig() => ConfigWindow.IsOpen = true;
 

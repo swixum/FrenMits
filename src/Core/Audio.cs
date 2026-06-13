@@ -65,25 +65,32 @@ public class Audio : IDisposable
         {
             var t = text;
             var v = voice;
-            Task.Run(() =>
+            // Fire-and-forget: an OUTER catch-all guarantees the task can never
+            // fault unobserved (which, with ThrowUnobservedTaskExceptions on, would
+            // crash the game).
+            _ = Task.Run(() =>
             {
                 try
                 {
-                    var mp3 = GetEdgeWav(t, v, rate, volume);
-                    if (mp3 is { Length: > 64 })
+                    try
                     {
-                        LastTtsStatus = $"Online OK — {v}";
-                        PlayMp3(mp3);
-                        return;
+                        var mp3 = GetEdgeWav(t, v, rate, volume);
+                        if (mp3 is { Length: > 64 })
+                        {
+                            LastTtsStatus = $"Online OK — {v}";
+                            PlayMp3(mp3);
+                            return;
+                        }
+                        LastTtsStatus = $"Online: no audio [{_edgeDiag}] — using Windows voice";
                     }
-                    LastTtsStatus = $"Online: no audio [{_edgeDiag}] — using Windows voice";
+                    catch (Exception ex)
+                    {
+                        LastTtsStatus = $"Online failed: {ex.Message} — using Windows voice";
+                        Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
+                    }
+                    SpeakSapi(t, rate, volume, "");   // fallback
                 }
-                catch (Exception ex)
-                {
-                    LastTtsStatus = $"Online failed: {ex.Message} — using Windows voice";
-                    Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
-                }
-                SpeakSapi(t, rate, volume, "");   // fallback
+                catch { /* never let the background task throw */ }
             });
             return;
         }
