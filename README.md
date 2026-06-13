@@ -16,9 +16,9 @@ fires in the fight's territory and syncs to combat start. Every line is editable
 - **Center-screen countdown** with a configurable warning lead, crisp scalable font,
   custom text template, colors, optional background, drop shadow, a countdown bar,
   a last-second pulse, and free placement.
-- **Audio cues (optional)** — text-to-speech (built-in Windows voice, no extra
-  installs) and/or a tunable beep, fired once per pull when a call comes up, even if
-  the overlay is hidden.
+- **Audio cues (optional)** — text-to-speech using any installed Windows voice
+  (male or female), fired once per pull when a call comes up, even if the overlay
+  is hidden.
 - **Sheet importer** — paste rows straight from Google Sheets / Excel, map the time /
   mechanic / action columns, and assign the lines to a job, role, or everyone.
 - **Ability icons** — each call shows the real action icon, matched automatically from

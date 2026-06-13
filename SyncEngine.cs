@@ -4,11 +4,11 @@ using Dalamud.Game.ClientState.Objects.Types;
 
 namespace FrenMits;
 
-// cactbot-style timeline resync, the safe way: instead of hooking the game we
-// watch boss cast bars. When a known ability begins casting, we know exactly
-// when it will resolve, so we snap the pull-clock to make the timeline line up
-// with the ability's scripted time. This corrects the DPS-dependent drift
-// between phases without ever counting on a fixed phase length.
+// Timeline resync, the safe way: instead of hooking the game we watch boss cast
+// bars. When a known ability begins casting, we know exactly when it will
+// resolve, so we snap the pull-clock to make the timeline line up with the
+// ability's scripted time. This corrects the DPS-dependent drift between phases
+// without ever counting on a fixed phase length.
 public class SyncEngine
 {
     private readonly Plugin _plugin;
@@ -19,7 +19,7 @@ public class SyncEngine
 
     // Capture mode: record every boss cast / first boss appearance (with the
     // time it lands on the current clock) so anchors for phases with no public
-    // timeline can be built from a real pull, the way cactbot timelines are made.
+    // timeline can be built from a real pull.
     public bool Recording { get; set; }
     public readonly List<Capture> Captured = new();
     public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss);

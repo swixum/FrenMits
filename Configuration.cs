@@ -57,11 +57,13 @@ public class Configuration : IPluginConfiguration
     public bool ShowProgressBar { get; set; } = true;
     public bool PulseWhenImminent { get; set; } = true;
     public bool ShowAbilityIcon { get; set; } = true;
+    // Icon size relative to the call text height (1.0 = same height as the text).
+    public float IconScale { get; set; } = 0.8f;
 
     // Server-info (DTR) bar entry showing the next mit.
     public bool ShowDtrBar { get; set; } = true;
 
-    // cactbot-style resync: snap the clock when known boss casts happen.
+    // Resync: snap the pull-clock when known boss casts happen.
     public bool EnableSync { get; set; } = true;
     public float SyncWindowSeconds { get; set; } = 8f;       // mechanic anchors (fine drift)
     public float SyncPhaseWindowSeconds { get; set; } = 60f; // phase anchors (re-base on phase start)
@@ -70,15 +72,12 @@ public class Configuration : IPluginConfiguration
     // timeline was last loaded for, for display.
     public string DmuSlot { get; set; } = "";
 
-    // Audio cues.
+    // Audio cues (text-to-speech).
     public bool AudioEnabled { get; set; }
     public bool TtsEnabled { get; set; } = true;
     public int TtsRate { get; set; } = 1;     // -10..10
     public int TtsVolume { get; set; } = 90;  // 0..100
-    public bool BeepEnabled { get; set; } = true;
-    public int BeepVolume { get; set; } = 55; // 0..100
-    public float BeepFrequency { get; set; } = 880f;
-    public int BeepMs { get; set; } = 160;
+    public string TtsVoice { get; set; } = ""; // empty = system default voice
 
     // Overlay placement. When not locked it can be dragged.
     public bool OverlayLocked { get; set; }

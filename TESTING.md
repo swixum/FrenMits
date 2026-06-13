@@ -30,7 +30,7 @@ the plugin off/on in `/xlplugins`, or use the reload button on the dev-plugins l
 
 - **Overlay look/placement:** `/fm test` (or the **Test** checkbox). A sample call
   appears so you can size/colour/drag it. Unlock on the Display tab to move it.
-- **Audio:** Audio tab → **Test voice** / **Test beep**.
+- **Audio:** Audio tab → pick a **Voice** (any installed Windows voice) → **Test voice**.
 - **Built-in mits:** Fights tab → pick the ultimate → **Your slot** → **Load mits**.
   Open the line table to confirm the timeline + icons populated.
 - **Timeline + resync without going in:** use the in-game **Duty Recorder**
@@ -50,7 +50,7 @@ Edit code → `dotnet build` → Dalamud reloads → re-test. The config persist
 
 - [ ] `/fm` opens, status header shows job/zone/timer.
 - [ ] Test mode shows the sample call with an icon; dragging + lock work.
-- [ ] Test voice + test beep produce sound.
+- [ ] Test voice produces sound (try a female voice if installed).
 - [ ] Load mits for your slot fills the line table (icons resolve).
 - [ ] In a replay: timer starts on combat, calls fire ~3s early, "Last sync" updates,
       DTR bar shows the next mit, it all resets on wipe.

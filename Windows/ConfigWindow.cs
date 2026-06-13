@@ -36,20 +36,56 @@ public class ConfigWindow : Window, IDisposable
 
     public void Dispose() { }
 
+    private DateTime _savedAt = DateTime.MinValue;
+
     public override void Draw()
     {
+        // Fatter scrollbars (easier to grab) + softer rounded controls.
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 18f);
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 9f);
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f);
+        ImGui.PushStyleVar(ImGuiStyleVar.GrabRounding, 4f);
+
         DrawStatusHeader();
         DrawJobSelector();
         ImGui.Separator();
 
-        if (ImGui.BeginTabBar("##frenmits-tabs"))
+        // Tab content lives in a scroll region above a pinned footer, so the
+        // Save bar is always visible no matter how long the lines list gets.
+        var footerH = ImGui.GetFrameHeightWithSpacing() + ImGui.GetStyle().ItemSpacing.Y + 4f;
+        if (ImGui.BeginChild("##tabs-region", new Vector2(0, -footerH), false))
         {
-            if (ImGui.BeginTabItem("Fights")) { DrawFightsTab(); ImGui.EndTabItem(); }
-            if (ImGui.BeginTabItem("Timer")) { DrawTimerTab(); ImGui.EndTabItem(); }
-            if (ImGui.BeginTabItem("Display")) { DrawDisplayTab(); ImGui.EndTabItem(); }
-            if (ImGui.BeginTabItem("Audio")) { DrawAudioTab(); ImGui.EndTabItem(); }
-            ImGui.EndTabBar();
+            if (ImGui.BeginTabBar("##frenmits-tabs"))
+            {
+                if (ImGui.BeginTabItem("Fights")) { DrawFightsTab(); ImGui.EndTabItem(); }
+                if (ImGui.BeginTabItem("Timer")) { DrawTimerTab(); ImGui.EndTabItem(); }
+                if (ImGui.BeginTabItem("Display")) { DrawDisplayTab(); ImGui.EndTabItem(); }
+                if (ImGui.BeginTabItem("Audio")) { DrawAudioTab(); ImGui.EndTabItem(); }
+                ImGui.EndTabBar();
+            }
         }
+        ImGui.EndChild();
+
+        DrawFooter();
+        ImGui.PopStyleVar(4);
+    }
+
+    private void DrawFooter()
+    {
+        ImGui.Separator();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2E7D32);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF388E3C);
+        if (ImGui.Button("Save changes", new Vector2(150, 0)))
+        {
+            C.Save();
+            _savedAt = DateTime.Now;
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.SameLine();
+        if ((DateTime.Now - _savedAt).TotalSeconds < 2)
+            ImGui.TextColored(ImGuiColors.ParsedGreen, "Saved ✓");
+        else
+            ImGui.TextDisabled("Edits also save automatically as you make them.");
     }
 
     // Config-bound checkbox: edits a local copy, saves on change, returns the new value.
@@ -175,16 +211,37 @@ public class ConfigWindow : Window, IDisposable
 
     private int _builtinSlot;
 
+    // "PhysicalRanged" -> "Phys Ranged" for the role headers.
+    private static string RoleLabel(JobRole role) => role switch
+    {
+        JobRole.PhysicalRanged => "Phys Ranged",
+        _ => role.ToString(),
+    };
+
+    // Friendly names for the raw sheet-slot codes shown in the slot picker.
+    private static string SlotLabel(string code) => code switch
+    {
+        "D1" or "M1" => "Melee 1",
+        "D2" or "M2" => "Melee 2",
+        "D3" or "R" => "Phys Ranged",
+        "D4" => "Caster",
+        "MT" => "Main Tank",
+        "OT" => "Off Tank",
+        "T1" => "Tank 1",
+        "T2" => "Tank 2",
+        _ => code,
+    };
+
     private void DrawBuiltinLoad(FightProfile fight)
     {
         var slots = Builtin.Slots(fight.TerritoryId);
         SeparatorText($"Built-in mits — {Builtin.Name(fight.TerritoryId)}");
-        ImGui.TextWrapped("One-click load of the baked timeline for your slot — every phase, matched to cactbot's "
-                          + "timeline for accurate times + resync anchors. Tanks pick a tank slot, DPS your role slot, "
-                          + "healers your job.");
+        ImGui.TextWrapped("One-click load of the baked timeline for your slot — every phase, with accurate times + "
+                          + "resync anchors. Tanks pick a tank slot, DPS your role slot, healers your job.");
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
-        ImGui.SetNextItemWidth(120f);
-        ImGui.Combo("Your slot##builtin", ref _builtinSlot, slots, slots.Length);
+        var slotLabels = slots.Select(SlotLabel).ToArray();
+        ImGui.SetNextItemWidth(160f);
+        ImGui.Combo("Your slot##builtin", ref _builtinSlot, slotLabels, slotLabels.Length);
         ImGui.SameLine();
         if (ImGui.Button("Load mits"))
         {
@@ -199,7 +256,7 @@ public class ConfigWindow : Window, IDisposable
         if (!string.IsNullOrEmpty(C.DmuSlot))
         {
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.ParsedGreen, $"loaded: {C.DmuSlot}");
+            ImGui.TextColored(ImGuiColors.ParsedGreen, $"loaded: {SlotLabel(C.DmuSlot)}");
         }
         ImGui.SameLine();
         if (ImGui.Button("Sync anchors only"))
@@ -333,8 +390,13 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.SmallButton("Sort by time")) { fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList(); C.Save(); }
 
+        // Grow the table to fill what's left, leaving room for the import header
+        // underneath, so a freshly loaded sheet isn't cut off.
+        var avail = ImGui.GetContentRegionAvail().Y;
+        var tableH = MathF.Max(200f, avail - ImGui.GetFrameHeightWithSpacing() - 8f);
+
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY;
-        if (!ImGui.BeginTable("##lines", 7, flags, new Vector2(0, 280)))
+        if (!ImGui.BeginTable("##lines", 7, flags, new Vector2(0, tableH)))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
@@ -413,7 +475,7 @@ public class ConfigWindow : Window, IDisposable
 
             foreach (var role in Enum.GetValues<JobRole>())
             {
-                SeparatorText(role.ToString());
+                SeparatorText(RoleLabel(role));
                 var first = true;
                 foreach (var abbr in Jobs.AbbreviationsForRole(role))
                 {
@@ -487,7 +549,7 @@ public class ConfigWindow : Window, IDisposable
         {
             foreach (var role in Enum.GetValues<JobRole>())
             {
-                ImGui.TextDisabled(role + ":");
+                ImGui.TextDisabled(RoleLabel(role) + ":");
                 foreach (var abbr in Jobs.AbbreviationsForRole(role))
                 {
                     ImGui.SameLine();
@@ -565,11 +627,11 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Button("Reset timer")) _plugin.Timer.Reset();
         ImGui.TextDisabled("Auto-starts on combat. Sync aligns it to a known mechanic (also /fm sync).");
 
-        SeparatorText("Resync (cactbot-style)");
+        SeparatorText("Resync");
         C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
         HelpMarker("When a known boss ability begins casting, the timer snaps so that ability resolves on its scripted "
-                   + "time. This corrects the drift between phases caused by kill speed, the same way cactbot keeps its "
-                   + "timeline accurate. Only abilities with a cast bar can be caught; the continuous clock covers the rest.");
+                   + "time. This corrects the drift between phases caused by kill speed. Only abilities with a cast bar "
+                   + "can be caught; the continuous clock covers the rest.");
         var win = C.SyncWindowSeconds;
         ImGui.SetNextItemWidth(160f);
         if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
@@ -599,7 +661,7 @@ public class ConfigWindow : Window, IDisposable
         SeparatorText("Build anchors from a pull (advanced)");
         ImGui.TextWrapped("Public timelines only cover DMU through phase 3. To make phases 4-5 self-correct, record a clean "
                           + "pull: every boss cast is logged with the time it lands, then promote the phase-start casts to "
-                          + "anchors. This is exactly how cactbot timelines are authored.");
+                          + "anchors.");
 
         var rec = _plugin.Sync.Recording;
         if (ImGui.Checkbox("Record boss casts this pull", ref rec)) _plugin.Sync.Recording = rec;
@@ -707,6 +769,12 @@ public class ConfigWindow : Window, IDisposable
         C.ShowMechanicLine = CfgCheck("Show mechanic name on a second line", C.ShowMechanicLine);
         C.ShowAbilityIcon = CfgCheck("Show the ability icon next to the call", C.ShowAbilityIcon);
         HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
+        if (C.ShowAbilityIcon)
+        {
+            var iconScale = C.IconScale;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
+        }
         C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
 
         SeparatorText("Colors");
@@ -764,26 +832,30 @@ public class ConfigWindow : Window, IDisposable
 
         SeparatorText("Text-to-speech");
         C.TtsEnabled = CfgCheck("Speak the action (Windows TTS)", C.TtsEnabled);
+
+        // Voice picker: every installed SAPI voice, default first. Female voices
+        // (e.g. Zira, Hazel) show up here when installed on the system.
+        var voices = new List<string> { "System default" };
+        voices.AddRange(_plugin.Audio.VoiceNames());
+        var voiceIndex = string.IsNullOrEmpty(C.TtsVoice)
+            ? 0
+            : Math.Max(0, voices.IndexOf(C.TtsVoice));
+        ImGui.SetNextItemWidth(280f);
+        if (ImGui.Combo("Voice", ref voiceIndex, voices.ToArray(), voices.Count))
+        {
+            C.TtsVoice = voiceIndex == 0 ? "" : voices[voiceIndex];
+            C.Save();
+        }
+        if (voices.Count <= 1)
+            ImGui.TextDisabled("No extra voices found. Add more in Windows → Time & language → Speech.");
+
         var rate = C.TtsRate;
         ImGui.SetNextItemWidth(200f);
         if (ImGui.SliderInt("Speech rate", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
         var vol = C.TtsVolume;
         ImGui.SetNextItemWidth(200f);
         if (ImGui.SliderInt("Speech volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
-        if (ImGui.Button("Test voice")) _plugin.Audio.Speak("Reprisal", C.TtsRate, C.TtsVolume);
-
-        SeparatorText("Beep");
-        C.BeepEnabled = CfgCheck("Play a beep", C.BeepEnabled);
-        var freq = C.BeepFrequency;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderFloat("Frequency (Hz)", ref freq, 200f, 2000f, "%.0f")) { C.BeepFrequency = freq; C.Save(); }
-        var ms = C.BeepMs;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderInt("Length (ms)", ref ms, 40, 600)) { C.BeepMs = ms; C.Save(); }
-        var bvol = C.BeepVolume;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderInt("Beep volume", ref bvol, 0, 100)) { C.BeepVolume = bvol; C.Save(); }
-        if (ImGui.Button("Test beep")) _plugin.Audio.Beep(C.BeepFrequency, C.BeepMs, C.BeepVolume);
+        if (ImGui.Button("Test voice")) _plugin.Audio.Speak("Reprisal", C.TtsRate, C.TtsVolume, C.TtsVoice);
 
         ImGui.Separator();
         ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"…\" button on each line).");

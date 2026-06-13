@@ -224,15 +224,21 @@ public class OverlayWindow : Window
         }
 
         var lineH = ImGui.GetTextLineHeight();
+        var iconH = MathF.Round(lineH * Math.Clamp(C.IconScale, 0.4f, 1.5f));
         var spacing = ImGui.GetStyle().ItemSpacing.X;
         var textWidth = ImGui.CalcTextSize(text).X;
-        var total = lineH + spacing + textWidth;
+        var total = iconH + spacing + textWidth;
         var avail = ImGui.GetContentRegionAvail().X;
         var offset = (avail - total) * 0.5f;
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
-        Icons.Draw(iconId, new Vector2(lineH, lineH));
+        // Vertically centre the (smaller) icon against the text line, then restore
+        // the baseline so the text itself isn't nudged down.
+        var baseY = ImGui.GetCursorPosY();
+        ImGui.SetCursorPosY(MathF.Round(baseY + (lineH - iconH) * 0.5f));
+        Icons.Draw(iconId, new Vector2(iconH, iconH));
         ImGui.SameLine(0, spacing);
+        ImGui.SetCursorPosY(baseY);
 
         if (C.TextShadow)
         {

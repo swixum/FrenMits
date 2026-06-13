@@ -1,5 +1,5 @@
 // AUTO-GENERATED from the Ikuya "Dancing Mad (Ultimate)" mit sheet
-// (Ikuya Kirishima) cross-referenced with cactbot's dancing_mad timeline
+// (Ikuya Kirishima) cross-referenced with a community dancing_mad timeline
 // for resync ability ids. Times are seconds from the pull (continuous).
 using System;
 using System.Collections.Generic;
@@ -92,7 +92,7 @@ public static class DmuData
         return list;
     }
 
-    // Resync anchors (ability id -> expected resolve time) from cactbot.
+    // Resync anchors (ability id -> expected resolve time).
     // The earliest synced cast in each phase is flagged as a phase anchor: it
     // gets a wide match window and re-bases the whole clock, so a phase that
     // starts far from the sheet's "standard" time (faster/slower kill) still

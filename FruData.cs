@@ -1,5 +1,5 @@
 // AUTO-GENERATED: Futures Rewritten (Ultimate) mit sheet matched to
-// cactbot's futures_rewritten timeline (continuous times + ability ids).
+// Community futures_rewritten timeline (continuous times + ability ids).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,7 +75,7 @@ public static class FruData
         return points;
     }
 
-    // Phase bosses resolved by name (cactbot phase times). Unresolved names are
+    // Phase bosses resolved by name (phase times). Unresolved names are
     // skipped; capture them from a pull on the Timer tab.
     public static List<BossAnchor> BossAnchors()
     {

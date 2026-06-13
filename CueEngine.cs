@@ -51,15 +51,12 @@ public class CueEngine
 
     private void Fire(Configuration c, MitLine line)
     {
-        if (c.BeepEnabled)
-            _audio.Beep(c.BeepFrequency, c.BeepMs, c.BeepVolume);
-
         if (c.TtsEnabled)
         {
             var text = string.IsNullOrWhiteSpace(line.Tts)
                 ? (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : line.Action)
                 : line.Tts;
-            _audio.Speak(text, c.TtsRate, c.TtsVolume);
+            _audio.Speak(text, c.TtsRate, c.TtsVolume, c.TtsVoice);
         }
     }
 }

@@ -20,8 +20,8 @@ public class FightProfile
 
     public List<MitLine> Lines { get; set; } = new();
 
-    // cactbot-style resync anchors: when one of these abilities is cast, the
-    // timer snaps so the ability resolves at Time, correcting phase drift.
+    // Resync anchors: when one of these abilities is cast, the timer snaps so
+    // the ability resolves at Time, correcting phase drift.
     public List<SyncPoint> SyncPoints { get; set; } = new();
 
     // Cast-free safety net: when a boss with this NameId first appears, the
