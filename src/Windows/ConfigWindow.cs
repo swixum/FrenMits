@@ -163,6 +163,14 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
+    // Collapsible section. Returns true when expanded; wrap the body in the if.
+    private static bool Section(string text, bool open = false)
+    {
+        ImGui.Spacing();
+        return ImGui.CollapsingHeader(text.ToUpperInvariant(),
+            open ? ImGuiTreeNodeFlags.DefaultOpen : ImGuiTreeNodeFlags.None);
+    }
+
     private static void Dot(bool on, string label)
     {
         ImGui.TextColored(on ? ImGuiColors.HealerGreen : ImGuiColors.DalamudGrey, "●");
@@ -944,55 +952,59 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawTimerTab()
     {
-        var warn = C.WarningSeconds;
-        ImGui.SetNextItemWidth(160f);
-        if (ImGui.SliderFloat("Warning lead (s)", ref warn, 1f, 10f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
-        ImGui.TextDisabled("How early the call appears before the mit time (default 3s).");
-
-        var hold = C.HoldSeconds;
-        ImGui.SetNextItemWidth(160f);
-        if (ImGui.SliderFloat("Hold on screen (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
-        ImGui.TextDisabled("How long the call stays up after its time passes.");
-
-        ImGui.Separator();
-        ImGui.TextUnformatted($"Timer: {(_plugin.Timer.Running ? _plugin.Timer.Elapsed.ToString("0.0") + "s" : "not running")}");
-        if (ImGui.Button("Sync now (zero timer)")) _plugin.Timer.SyncNow();
-        ImGui.SameLine();
-        if (ImGui.Button("Reset timer")) _plugin.Timer.Reset();
-        ImGui.TextDisabled("Auto-starts on combat. Sync aligns it to a known mechanic (also /fm sync).");
-
-        SeparatorText("Resync");
-        C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
-        HelpMarker("When a known boss ability begins casting, the timer snaps so that ability resolves on its scripted "
-                   + "time. This corrects the drift between phases caused by kill speed. Only abilities with a cast bar "
-                   + "can be caught; the continuous clock covers the rest.");
-        var win = C.SyncWindowSeconds;
-        ImGui.SetNextItemWidth(160f);
-        if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
-        var pwin = C.SyncPhaseWindowSeconds;
-        ImGui.SetNextItemWidth(160f);
-        if (ImGui.SliderFloat("Phase window (s)", ref pwin, 15f, 120f, "%.0f")) { C.SyncPhaseWindowSeconds = pwin; C.Save(); }
-        HelpMarker("Phase anchors (the first known cast of each phase) re-base the whole clock with this wider window, so "
-                   + "a phase that starts well off the sheet's nominal time still locks on. Mechanic anchors only nudge "
-                   + "within the tighter window.");
-        ImGui.TextDisabled($"Last sync: {(_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-")}");
-
         var fight = _plugin.ActiveFight();
-        if (fight is { SyncPoints.Count: > 0 })
+
+        if (Section("Timer", true))
         {
-            var phases = fight.SyncPoints.Count(s => s.IsPhase);
-            ImGui.TextDisabled($"This fight: {fight.SyncPoints.Count} anchors ({phases} phase).");
+            var warn = C.WarningSeconds;
+            ImGui.SetNextItemWidth(160f);
+            if (ImGui.SliderFloat("Warning lead (s)", ref warn, 1f, 10f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
+            ImGui.TextDisabled("How early the call appears before the mit time (default 3s).");
+
+            var hold = C.HoldSeconds;
+            ImGui.SetNextItemWidth(160f);
+            if (ImGui.SliderFloat("Hold on screen (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
+            ImGui.TextDisabled("How long the call stays up after its time passes.");
+
+            ImGui.Spacing();
+            ImGui.TextUnformatted($"Timer: {(_plugin.Timer.Running ? _plugin.Timer.Elapsed.ToString("0.0") + "s" : "not running")}");
+            if (ImGui.Button("Sync now (zero timer)")) _plugin.Timer.SyncNow();
+            ImGui.SameLine();
+            if (ImGui.Button("Reset timer")) _plugin.Timer.Reset();
+            ImGui.TextDisabled("Auto-starts on combat. Sync aligns it to a known mechanic (also /fm sync).");
+
+            C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
+        }
+
+        if (Section("Resync"))
+        {
+            C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
+            HelpMarker("When a known boss ability begins casting, the timer snaps so that ability resolves on its scripted "
+                       + "time. This corrects the drift between phases caused by kill speed. Only abilities with a cast bar "
+                       + "can be caught; the continuous clock covers the rest.");
+            var win = C.SyncWindowSeconds;
+            ImGui.SetNextItemWidth(160f);
+            if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
+            var pwin = C.SyncPhaseWindowSeconds;
+            ImGui.SetNextItemWidth(160f);
+            if (ImGui.SliderFloat("Phase window (s)", ref pwin, 15f, 120f, "%.0f")) { C.SyncPhaseWindowSeconds = pwin; C.Save(); }
+            HelpMarker("Phase anchors (the first known cast of each phase) re-base the whole clock with this wider window, so "
+                       + "a phase that starts well off the sheet's nominal time still locks on. Mechanic anchors only nudge "
+                       + "within the tighter window.");
+            ImGui.TextDisabled($"Last sync: {(_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-")}");
+            if (fight is { SyncPoints.Count: > 0 })
+            {
+                var phases = fight.SyncPoints.Count(s => s.IsPhase);
+                ImGui.TextDisabled($"This fight: {fight.SyncPoints.Count} anchors ({phases} phase).");
+            }
         }
 
         DrawCaptureSection(fight);
-
-        ImGui.Separator();
-        C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
     }
 
     private void DrawCaptureSection(FightProfile? fight)
     {
-        SeparatorText("Build anchors from a pull (advanced)");
+        if (!Section("Build anchors from a pull (advanced)")) return;
         ImGui.TextWrapped("Public timelines only cover DMU through phase 3. To make phases 4-5 self-correct, record a clean "
                           + "pull: every boss cast is logged with the time it lands, then promote the phase-start casts to "
                           + "anchors.");
@@ -1093,141 +1105,156 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Button("Reset display", new Vector2(140, 0))) ResetDisplayDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this tab to defaults.");
 
-        SeparatorText("Placement");
-        C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
-        ImGui.SameLine();
-        ImGui.TextDisabled(C.OverlayLocked ? "locked — unlock to drag" : "drag the title bar, or use the sliders");
-
-        var pos = C.OverlayPosition;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
-        { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
-        { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
-        if (ImGui.Button("Center"))
+        if (Section("Placement", true))
         {
-            C.OverlayPosition = new Vector2(0.5f, 0.35f);
-            C.Save();
-            _plugin.OverlayWindow.RequestReposition();
-        }
-
-        SeparatorText("Timing");
-        var warn = C.WarningSeconds;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderFloat("Show ahead by (s)", ref warn, 1f, 12f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
-        HelpMarker("How early the call appears before the mit time. Per-line leads override this.");
-        var hold = C.HoldSeconds;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderFloat("Hold after (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
-        HelpMarker("How long the call stays up after its time passes.");
-
-        SeparatorText("Font");
-        var fonts = FontManager.FamilyNames;
-        var fIdx = Math.Max(0, Array.IndexOf(fonts, C.OverlayFontFamily));
-        ImGui.SetNextItemWidth(220f);
-        if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.OverlayFontFamily = fonts[fIdx]; C.Save(); }
-        var bold = C.OverlayFontBold;
-        if (ImGui.Checkbox("Bold", ref bold)) { C.OverlayFontBold = bold; C.Save(); }
-        ImGui.SameLine();
-        var italic = C.OverlayFontItalic;
-        if (ImGui.Checkbox("Italic", ref italic)) { C.OverlayFontItalic = italic; C.Save(); }
-        if (C.OverlayFontFamily == "Default" && (C.OverlayFontBold || C.OverlayFontItalic))
-        {
+            C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
             ImGui.SameLine();
-            ImGui.TextDisabled("(pick a font for bold/italic)");
-        }
-        var align = C.OverlayTextAlign;
-        ImGui.SetNextItemWidth(140f);
-        if (ImGui.Combo("Alignment", ref align, new[] { "Left", "Center", "Right" }, 3))
-        { C.OverlayTextAlign = align; C.Save(); }
+            ImGui.TextDisabled(C.OverlayLocked ? "locked, unlock to drag" : "drag the title bar, or use the sliders");
 
-        SeparatorText("Size (crisp font, in pixels)");
-        var callPx = C.OverlayFontSizePx;
-        ImGui.SetNextItemWidth(220f);
-        if (ImGui.SliderFloat("Call text size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
-        var upPx = C.UpcomingFontSizePx;
-        ImGui.SetNextItemWidth(220f);
-        if (ImGui.SliderFloat("Timeline text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
-        if (C.ShowAbilityIcon)
-        {
-            var iconScale = C.IconScale;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
-        }
-
-        SeparatorText("Text");
-        var fmt = C.HeadlineFormat;
-        ImGui.SetNextItemWidth(280f);
-        if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.Save(); }
-        ImGui.TextDisabled("Placeholders: {action} {mechanic} {time} {count} {remaining}");
-        var suffix = C.ActiveSuffix;
-        ImGui.SetNextItemWidth(280f);
-        if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.Save(); }
-        C.ShowCountdownNumber = CfgCheck("Append countdown number while counting down", C.ShowCountdownNumber);
-        C.ShowMechanicLine = CfgCheck("Show mechanic name on a second line", C.ShowMechanicLine);
-        C.ShowAbilityIcon = CfgCheck("Show the ability icon next to the call", C.ShowAbilityIcon);
-        HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
-        C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
-        C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
-
-        SeparatorText("Colors");
-        var imminent = ColorToVec4(C.OverlayColorImminent);
-        if (ImGui.ColorEdit4("Counting down", ref imminent)) { C.OverlayColorImminent = Vec4ToColor(imminent); C.Save(); }
-        var active = ColorToVec4(C.OverlayColorActive);
-        if (ImGui.ColorEdit4("Active (NOW)", ref active)) { C.OverlayColorActive = Vec4ToColor(active); C.Save(); }
-        var mechCol = ColorToVec4(C.OverlayColorMechanic);
-        if (ImGui.ColorEdit4("Mechanic line", ref mechCol)) { C.OverlayColorMechanic = Vec4ToColor(mechCol); C.Save(); }
-        var upCol = ColorToVec4(C.OverlayColorUpcoming);
-        if (ImGui.ColorEdit4("Timeline list", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
-        if (ImGui.SmallButton("Reset colors"))
-        {
-            C.OverlayColorImminent = 0xFF55FFFF; C.OverlayColorActive = 0xFF55FF55;
-            C.OverlayColorMechanic = 0xC0FFFFFF; C.OverlayColorUpcoming = 0xB0FFFFFF;
-            C.Save();
-        }
-
-        SeparatorText("Countdown bar");
-        C.ShowProgressBar = CfgCheck("Show countdown bar under the call", C.ShowProgressBar);
-        if (C.ShowProgressBar)
-        {
-            var barH = C.ProgressBarHeight;
+            var pos = C.OverlayPosition;
             ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Bar height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
-        }
-        C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);
-
-        SeparatorText("Background");
-        C.ShowBackground = CfgCheck("Draw a background box", C.ShowBackground);
-        if (C.ShowBackground)
-        {
-            var bg = ColorToVec4(C.BackgroundColor);
-            if (ImGui.ColorEdit4("Background color", ref bg)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
-            ImGui.TextDisabled("Drag the alpha channel down for a translucent box.");
-        }
-
-        SeparatorText("Next-mits timeline (separate window)");
-        C.ShowUpcoming = CfgCheck("Show the next-mits timeline window", C.ShowUpcoming);
-        ImGui.TextDisabled("The main call only shows the imminent mit; everything still coming up lists here.");
-        if (C.ShowUpcoming)
-        {
-            C.TimelineLocked = CfgCheck("Lock timeline (click-through)", C.TimelineLocked);
-            ImGui.SameLine();
-            if (ImGui.Button("Reset position"))
+            if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
+            { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
+            { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
+            if (ImGui.Button("Center"))
             {
-                C.TimelinePosition = new Vector2(0.5f, 0.62f);
+                C.OverlayPosition = new Vector2(0.5f, 0.35f);
                 C.Save();
-                _plugin.TimelineWindow.RequestReposition();
+                _plugin.OverlayWindow.RequestReposition();
             }
-            ImGui.SameLine();
-            ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag the title bar to move)");
+        }
 
-            var count = C.UpcomingCount;
-            ImGui.SetNextItemWidth(120f);
-            if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
-            var look = C.UpcomingLookaheadSeconds;
-            ImGui.SetNextItemWidth(160f);
-            if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
+        if (Section("Font & size", true))
+        {
+            var fonts = FontManager.FamilyNames;
+            var fIdx = Math.Max(0, Array.IndexOf(fonts, C.OverlayFontFamily));
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.OverlayFontFamily = fonts[fIdx]; C.Save(); }
+            var bold = C.OverlayFontBold;
+            if (ImGui.Checkbox("Bold", ref bold)) { C.OverlayFontBold = bold; C.Save(); }
+            ImGui.SameLine();
+            var italic = C.OverlayFontItalic;
+            if (ImGui.Checkbox("Italic", ref italic)) { C.OverlayFontItalic = italic; C.Save(); }
+            if (C.OverlayFontFamily == "Default" && (C.OverlayFontBold || C.OverlayFontItalic))
+            {
+                ImGui.SameLine();
+                ImGui.TextDisabled("(pick a font for bold/italic)");
+            }
+            var align = C.OverlayTextAlign;
+            ImGui.SetNextItemWidth(140f);
+            if (ImGui.Combo("Alignment", ref align, new[] { "Left", "Center", "Right" }, 3))
+            { C.OverlayTextAlign = align; C.Save(); }
+
+            var callPx = C.OverlayFontSizePx;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderFloat("Call text size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
+            var upPx = C.UpcomingFontSizePx;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderFloat("Timeline text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+            if (C.ShowAbilityIcon)
+            {
+                var iconScale = C.IconScale;
+                ImGui.SetNextItemWidth(220f);
+                if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
+            }
+        }
+
+        if (Section("Text & content"))
+        {
+            var fmt = C.HeadlineFormat;
+            ImGui.SetNextItemWidth(280f);
+            if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.Save(); }
+            ImGui.TextDisabled("Placeholders: {action} {mechanic} {time} {count} {remaining}");
+            var suffix = C.ActiveSuffix;
+            ImGui.SetNextItemWidth(280f);
+            if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.Save(); }
+            C.ShowCountdownNumber = CfgCheck("Append countdown number while counting down", C.ShowCountdownNumber);
+            C.ShowMechanicLine = CfgCheck("Show mechanic name on a second line", C.ShowMechanicLine);
+            C.ShowAbilityIcon = CfgCheck("Show the ability icon next to the call", C.ShowAbilityIcon);
+            HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
+            C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
+            C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
+        }
+
+        if (Section("Timing"))
+        {
+            var warn = C.WarningSeconds;
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("Show ahead by (s)", ref warn, 1f, 12f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
+            HelpMarker("How early the call appears before the mit time. Per-line leads override this.");
+            var hold = C.HoldSeconds;
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("Hold after (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
+            HelpMarker("How long the call stays up after its time passes.");
+        }
+
+        if (Section("Colors"))
+        {
+            var imminent = ColorToVec4(C.OverlayColorImminent);
+            if (ImGui.ColorEdit4("Counting down", ref imminent)) { C.OverlayColorImminent = Vec4ToColor(imminent); C.Save(); }
+            var active = ColorToVec4(C.OverlayColorActive);
+            if (ImGui.ColorEdit4("Active (NOW)", ref active)) { C.OverlayColorActive = Vec4ToColor(active); C.Save(); }
+            var mechCol = ColorToVec4(C.OverlayColorMechanic);
+            if (ImGui.ColorEdit4("Mechanic line", ref mechCol)) { C.OverlayColorMechanic = Vec4ToColor(mechCol); C.Save(); }
+            var upCol = ColorToVec4(C.OverlayColorUpcoming);
+            if (ImGui.ColorEdit4("Timeline list", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
+            if (ImGui.SmallButton("Reset colors"))
+            {
+                C.OverlayColorImminent = 0xFF55FFFF; C.OverlayColorActive = 0xFF55FF55;
+                C.OverlayColorMechanic = 0xC0FFFFFF; C.OverlayColorUpcoming = 0xB0FFFFFF;
+                C.Save();
+            }
+        }
+
+        if (Section("Countdown bar"))
+        {
+            C.ShowProgressBar = CfgCheck("Show countdown bar under the call", C.ShowProgressBar);
+            if (C.ShowProgressBar)
+            {
+                var barH = C.ProgressBarHeight;
+                ImGui.SetNextItemWidth(200f);
+                if (ImGui.SliderFloat("Bar height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
+            }
+            C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);
+        }
+
+        if (Section("Background"))
+        {
+            C.ShowBackground = CfgCheck("Draw a background box", C.ShowBackground);
+            if (C.ShowBackground)
+            {
+                var bg = ColorToVec4(C.BackgroundColor);
+                if (ImGui.ColorEdit4("Background color", ref bg)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
+                ImGui.TextDisabled("Drag the alpha channel down for a translucent box.");
+            }
+        }
+
+        if (Section("Next-mits timeline (separate window)"))
+        {
+            C.ShowUpcoming = CfgCheck("Show the next-mits timeline window", C.ShowUpcoming);
+            ImGui.TextDisabled("The main call only shows the imminent mit; everything still coming up lists here.");
+            if (C.ShowUpcoming)
+            {
+                C.TimelineLocked = CfgCheck("Lock timeline (click-through)", C.TimelineLocked);
+                ImGui.SameLine();
+                if (ImGui.Button("Reset position"))
+                {
+                    C.TimelinePosition = new Vector2(0.5f, 0.62f);
+                    C.Save();
+                    _plugin.TimelineWindow.RequestReposition();
+                }
+                ImGui.SameLine();
+                ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag the title bar to move)");
+
+                var count = C.UpcomingCount;
+                ImGui.SetNextItemWidth(120f);
+                if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
+                var look = C.UpcomingLookaheadSeconds;
+                ImGui.SetNextItemWidth(160f);
+                if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
+            }
         }
     }
 
@@ -1236,117 +1263,121 @@ public class ConfigWindow : Window, IDisposable
         C.AudioEnabled = CfgCheck("Enable audio cues", C.AudioEnabled);
         ImGui.TextDisabled("Plays when a call enters its warning window, once per pull, even if the overlay is hidden.");
 
-        SeparatorText("Text-to-speech");
-        C.TtsEnabled = CfgCheck("Speak the action", C.TtsEnabled);
-
-        // Engine: online neural (Edge) for the nice custom voices, or offline Windows.
-        var online = C.TtsUseEdge;
-        if (ImGui.RadioButton("Online neural voices", online)) { C.TtsUseEdge = true; C.Save(); }
-        ImGui.SameLine();
-        if (ImGui.RadioButton("Windows voices (offline)", !online)) { C.TtsUseEdge = false; C.Save(); }
-        HelpMarker("Online uses Microsoft Edge's free Read-Aloud voices (Aria, Guy, Jenny, …) — no key, "
-                   + "no install, needs internet; falls back to a Windows voice if offline. Windows uses the "
-                   + "voices installed on your PC.");
-
-        if (C.TtsUseEdge)
+        if (Section("Voice", true))
         {
-            // Snap any unknown/old saved voice (e.g. the removed child voice) to a valid one.
-            var cur = Array.Find(Audio.EdgeVoices, v => v.Id == C.TtsEdgeVoice);
-            if (cur.Id == null) { cur = Audio.EdgeVoices[0]; C.TtsEdgeVoice = cur.Id; C.Save(); }
-            var female = cur.Female;
+            C.TtsEnabled = CfgCheck("Speak the action", C.TtsEnabled);
 
-            if (ImGui.RadioButton("Female", female) && !female)
-            { C.TtsEdgeVoice = Audio.EdgeVoices.First(v => v.Female).Id; C.Save(); female = true; }
+            // Engine: online neural (Edge) for the nice custom voices, or offline Windows.
+            var online = C.TtsUseEdge;
+            if (ImGui.RadioButton("Online neural voices", online)) { C.TtsUseEdge = true; C.Save(); }
             ImGui.SameLine();
-            if (ImGui.RadioButton("Male", !female) && female)
-            { C.TtsEdgeVoice = Audio.EdgeVoices.First(v => !v.Female).Id; C.Save(); female = false; }
+            if (ImGui.RadioButton("Windows voices (offline)", !online)) { C.TtsUseEdge = false; C.Save(); }
+            HelpMarker("Online uses Microsoft Edge's free Read-Aloud voices (Aria, Guy, Jenny, ...). No key, "
+                       + "no install, needs internet; falls back to a Windows voice if offline. Windows uses the "
+                       + "voices installed on your PC.");
 
-            var list = Audio.EdgeVoices.Where(v => v.Female == female).ToArray();
-            var names = list.Select(v => v.Name).ToArray();
-            var idx = Math.Max(0, Array.FindIndex(list, v => v.Id == C.TtsEdgeVoice));
+            if (C.TtsUseEdge)
+            {
+                // Snap any unknown/old saved voice (e.g. the removed child voice) to a valid one.
+                var cur = Array.Find(Audio.EdgeVoices, v => v.Id == C.TtsEdgeVoice);
+                if (cur.Id == null) { cur = Audio.EdgeVoices[0]; C.TtsEdgeVoice = cur.Id; C.Save(); }
+                var female = cur.Female;
+
+                if (ImGui.RadioButton("Female", female) && !female)
+                { C.TtsEdgeVoice = Audio.EdgeVoices.First(v => v.Female).Id; C.Save(); female = true; }
+                ImGui.SameLine();
+                if (ImGui.RadioButton("Male", !female) && female)
+                { C.TtsEdgeVoice = Audio.EdgeVoices.First(v => !v.Female).Id; C.Save(); female = false; }
+
+                var list = Audio.EdgeVoices.Where(v => v.Female == female).ToArray();
+                var names = list.Select(v => v.Name).ToArray();
+                var idx = Math.Max(0, Array.FindIndex(list, v => v.Id == C.TtsEdgeVoice));
+                ImGui.SetNextItemWidth(220f);
+                if (ImGui.Combo("Voice##edge", ref idx, names, names.Length))
+                {
+                    C.TtsEdgeVoice = list[idx].Id;
+                    C.Save();
+                }
+            }
+            else
+            {
+                // Every installed SAPI voice; female voices (Zira, Hazel) appear if installed.
+                var voices = new List<string> { "System default" };
+                voices.AddRange(_plugin.Audio.VoiceNames());
+                var voiceIndex = string.IsNullOrEmpty(C.TtsVoice) ? 0 : Math.Max(0, voices.IndexOf(C.TtsVoice));
+                ImGui.SetNextItemWidth(280f);
+                if (ImGui.Combo("Voice##sapi", ref voiceIndex, voices.ToArray(), voices.Count))
+                {
+                    C.TtsVoice = voiceIndex == 0 ? "" : voices[voiceIndex];
+                    C.Save();
+                }
+                if (voices.Count <= 1)
+                    ImGui.TextDisabled("No extra voices found. Add more in Windows, Time & language, Speech.");
+            }
+
+            // Advanced: paste any Edge voice id to use one outside the list.
+            if (C.TtsUseEdge && ImGui.TreeNode("More voices (advanced)"))
+            {
+                var custom = C.TtsCustomVoice;
+                ImGui.SetNextItemWidth(280f);
+                if (ImGui.InputTextWithHint("##customvoice", "e.g. en-US-AvaMultilingualNeural", ref custom, 64))
+                { C.TtsCustomVoice = custom; C.Save(); }
+                ImGui.TextDisabled("Overrides the picker above. Full list: the Edge / Azure neural voice catalog.");
+                if (!string.IsNullOrWhiteSpace(C.TtsCustomVoice) && ImGui.SmallButton("Use the picker instead"))
+                { C.TtsCustomVoice = ""; C.Save(); }
+                ImGui.TreePop();
+            }
+
+            var rate = C.TtsRate;
             ImGui.SetNextItemWidth(220f);
-            if (ImGui.Combo("Voice##edge", ref idx, names, names.Length))
-            {
-                C.TtsEdgeVoice = list[idx].Id;
-                C.Save();
-            }
-        }
-        else
-        {
-            // Every installed SAPI voice; female voices (Zira, Hazel) appear if installed.
-            var voices = new List<string> { "System default" };
-            voices.AddRange(_plugin.Audio.VoiceNames());
-            var voiceIndex = string.IsNullOrEmpty(C.TtsVoice) ? 0 : Math.Max(0, voices.IndexOf(C.TtsVoice));
-            ImGui.SetNextItemWidth(280f);
-            if (ImGui.Combo("Voice##sapi", ref voiceIndex, voices.ToArray(), voices.Count))
-            {
-                C.TtsVoice = voiceIndex == 0 ? "" : voices[voiceIndex];
-                C.Save();
-            }
-            if (voices.Count <= 1)
-                ImGui.TextDisabled("No extra voices found. Add more in Windows → Time & language → Speech.");
+            if (ImGui.SliderInt("Speed", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
+            var vol = C.TtsVolume;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderInt("Volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
         }
 
-        // Advanced: paste any Edge voice id to use one outside the list.
-        if (C.TtsUseEdge && ImGui.TreeNode("More voices (advanced)"))
+        if (Section("What it says"))
         {
-            var custom = C.TtsCustomVoice;
-            ImGui.SetNextItemWidth(280f);
-            if (ImGui.InputTextWithHint("##customvoice", "e.g. en-US-AvaMultilingualNeural", ref custom, 64))
-            { C.TtsCustomVoice = custom; C.Save(); }
-            ImGui.TextDisabled("Overrides the picker above. Full list: the Edge / Azure neural voice catalog.");
-            if (!string.IsNullOrWhiteSpace(C.TtsCustomVoice) && ImGui.SmallButton("Use the picker instead"))
-            { C.TtsCustomVoice = ""; C.Save(); }
-            ImGui.TreePop();
-        }
-
-        var rate = C.TtsRate;
-        ImGui.SetNextItemWidth(220f);
-        if (ImGui.SliderInt("Speed", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
-        var vol = C.TtsVolume;
-        ImGui.SetNextItemWidth(220f);
-        if (ImGui.SliderInt("Volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
-
-        SeparatorText("What it says");
-        var mech = C.TtsSpeakMechanic;
-        if (ImGui.RadioButton("Speak the mit/action", !mech)) { C.TtsSpeakMechanic = false; C.Save(); }
-        ImGui.SameLine();
-        if (ImGui.RadioButton("Speak the mechanic", mech)) { C.TtsSpeakMechanic = true; C.Save(); }
-        HelpMarker("Default reads the action you press (e.g. \"Reprisal\"). Per-line you can override the exact "
-                   + "spoken text with the \"…\" button.");
-
-        var gap = C.TtsMinGapSeconds;
-        ImGui.SetNextItemWidth(220f);
-        if (ImGui.SliderFloat("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f")) { C.TtsMinGapSeconds = gap; C.Save(); }
-        HelpMarker("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
-
-        SeparatorText("Test");
-        ImGui.SetNextItemWidth(220f);
-        ImGui.InputTextWithHint("##testtext", "text to test…", ref _ttsTestText, 128);
-        ImGui.SameLine();
-        if (ImGui.Button("Speak"))
-        {
-            var t = string.IsNullOrWhiteSpace(_ttsTestText) ? "Reprisal" : _ttsTestText;
-            var voice = C.TtsUseEdge
-                ? (string.IsNullOrWhiteSpace(C.TtsCustomVoice) ? C.TtsEdgeVoice : C.TtsCustomVoice)
-                : C.TtsVoice;
-            _plugin.Audio.Speak(t, C.TtsRate, C.TtsVolume, C.TtsUseEdge, voice);
-        }
-        if (C.TtsUseEdge)
-        {
+            var mech = C.TtsSpeakMechanic;
+            if (ImGui.RadioButton("Speak the mit/action", !mech)) { C.TtsSpeakMechanic = false; C.Save(); }
             ImGui.SameLine();
-            ImGui.TextDisabled("(first use of a voice fetches it, then it's instant)");
+            if (ImGui.RadioButton("Speak the mechanic", mech)) { C.TtsSpeakMechanic = true; C.Save(); }
+            HelpMarker("Default reads the action you press (e.g. \"Reprisal\"). Per-line you can override the exact "
+                       + "spoken text with the \"…\" button.");
+
+            var gap = C.TtsMinGapSeconds;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderFloat("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f")) { C.TtsMinGapSeconds = gap; C.Save(); }
+            HelpMarker("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
         }
 
-        var status = _plugin.Audio.LastTtsStatus;
-        if (!string.IsNullOrEmpty(status))
+        if (Section("Test", true))
         {
-            var ok = status.StartsWith("Online OK") || status == "Windows voice";
-            ImGui.TextColored(ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, "Status: " + status);
-        }
+            ImGui.SetNextItemWidth(220f);
+            ImGui.InputTextWithHint("##testtext", "text to test…", ref _ttsTestText, 128);
+            ImGui.SameLine();
+            if (ImGui.Button("Speak"))
+            {
+                var t = string.IsNullOrWhiteSpace(_ttsTestText) ? "Reprisal" : _ttsTestText;
+                var voice = C.TtsUseEdge
+                    ? (string.IsNullOrWhiteSpace(C.TtsCustomVoice) ? C.TtsEdgeVoice : C.TtsCustomVoice)
+                    : C.TtsVoice;
+                _plugin.Audio.Speak(t, C.TtsRate, C.TtsVolume, C.TtsUseEdge, voice);
+            }
+            if (C.TtsUseEdge)
+            {
+                ImGui.SameLine();
+                ImGui.TextDisabled("(first use of a voice fetches it, then it's instant)");
+            }
 
-        ImGui.Spacing();
-        ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"…\" button on each line).");
+            var status = _plugin.Audio.LastTtsStatus;
+            if (!string.IsNullOrEmpty(status))
+            {
+                var ok = status.StartsWith("Online OK") || status == "Windows voice";
+                ImGui.TextColored(ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, "Status: " + status);
+            }
+            ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"…\" button).");
+        }
     }
 
     private string _ttsTestText = "";
