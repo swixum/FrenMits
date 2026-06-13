@@ -252,28 +252,21 @@ public class ConfigWindow : Window, IDisposable
         return false;
     }
 
-    // Additive load: append only the baked lines you don't already have, leaving
-    // every existing (possibly edited) line untouched. Anchors are always refreshed.
-    private void MergeBuiltin(FightProfile fight, string slot)
+    // Switch the active slot and load only that slot's mits (keeping its own edits).
+    private void SelectBuiltinSlot(FightProfile fight, string slot)
     {
-        var added = Builtin.MergeInto(fight, slot);
-        fight.Slot = slot;
-        fight.AutoLoaded = true;
-        C.DmuSlot = slot;
+        Builtin.ApplySlot(fight, slot);
+        C.DmuSlot = fight.Slot;
         C.Save();
-        FlashBuiltin(added == 0 ? "Already up to date — no new lines." : $"Added {added} new line(s); your edits kept.");
+        FlashBuiltin($"Loaded {SlotLabel(fight.Slot)} mits.");
     }
 
-    private void ReplaceBuiltin(FightProfile fight, string slot)
+    private void ResetBuiltinSlot(FightProfile fight, string slot)
     {
-        fight.Lines = Builtin.BuildLines(fight.TerritoryId, slot);
-        fight.SyncPoints = Builtin.SyncPoints(fight.TerritoryId);
-        fight.BossAnchors = Builtin.BossAnchors(fight.TerritoryId);
-        fight.Slot = slot;
-        fight.AutoLoaded = true;
-        C.DmuSlot = slot;
+        Builtin.ResetSlot(fight, slot);
+        C.DmuSlot = fight.Slot;
         C.Save();
-        FlashBuiltin($"Replaced all lines with the {SlotLabel(slot)} sheet.");
+        FlashBuiltin($"Reset {SlotLabel(slot)} to the baked sheet.");
     }
 
     private void FlashBuiltin(string msg) { _builtinMsg = msg; _builtinMsgAt = DateTime.Now; }
@@ -282,9 +275,11 @@ public class ConfigWindow : Window, IDisposable
     {
         var slots = Builtin.Slots(fight.TerritoryId);
         SeparatorText($"Built-in mits — {Builtin.Name(fight.TerritoryId)}");
-        ImGui.TextWrapped("Load the baked timeline for your slot — every phase, with accurate times + resync anchors. "
+        ImGui.TextWrapped("Pick your slot and its mits load automatically (and again when you enter the zone). "
+                          + "Each slot keeps its own edits, and switching slots loads that slot fresh. "
                           + "Tanks pick a tank slot, DPS your role slot, healers your job.");
-        // Reflect the fight's saved slot so the picker matches what auto-loads.
+
+        // Reflect the fight's active slot in the picker.
         var savedIdx = Array.IndexOf(slots, fight.Slot);
         if (savedIdx >= 0) _builtinSlot = savedIdx;
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
@@ -292,48 +287,21 @@ public class ConfigWindow : Window, IDisposable
         var slotLabels = slots.Select(SlotLabel).ToArray();
         ImGui.SetNextItemWidth(160f);
         if (ImGui.Combo("Your slot##builtin", ref _builtinSlot, slotLabels, slotLabels.Length))
-        {
-            // Persist immediately so entering the zone auto-loads this slot.
-            fight.Slot = slots[_builtinSlot];
-            C.Save();
-        }
-        ImGui.SameLine();
-        ImGui.TextDisabled("auto-loads when you enter the zone");
+            SelectBuiltinSlot(fight, slots[_builtinSlot]);  // load that slot now
         var slot = slots[_builtinSlot];
 
-        // Primary, non-destructive action: only add timeline lines you don't have.
         ImGui.SameLine();
-        if (ImGui.Button("Add / update mits")) MergeBuiltin(fight, slot);
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Adds any new timeline lines for this slot and refreshes resync anchors.\n"
-                             + "Keeps every line you've already got — your edits are safe.");
+        if (!string.IsNullOrEmpty(C.DmuSlot))
+            ImGui.TextColored(ImGuiColors.ParsedGreen, $"loaded: {SlotLabel(C.DmuSlot)}");
 
-        // Destructive: confirm first if you've customized anything.
-        ImGui.SameLine();
-        if (ImGui.Button("Replace all"))
+        // Reset only this slot back to the sheet (confirm if it's been edited).
+        if (ImGui.Button("Reset this slot to sheet"))
         {
             if (HasBuiltinEdits(fight, slot)) ImGui.OpenPopup("##confirm-replace");
-            else ReplaceBuiltin(fight, slot);
+            else ResetBuiltinSlot(fight, slot);
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Overwrites every line with the baked sheet for this slot (prompts if you have edits).");
-
-        ImGui.SameLine();
-        if (ImGui.Button("Sync anchors only"))
-        {
-            fight.SyncPoints = Builtin.SyncPoints(fight.TerritoryId);
-            fight.BossAnchors = Builtin.BossAnchors(fight.TerritoryId);
-            C.Save();
-            FlashBuiltin("Resync anchors refreshed (lines untouched).");
-        }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Add the resync anchors without touching your lines (e.g. if you imported the sheet yourself).");
-
-        if (!string.IsNullOrEmpty(C.DmuSlot))
-        {
-            ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.ParsedGreen, $"loaded: {SlotLabel(C.DmuSlot)}");
-        }
+            ImGui.SetTooltip("Reloads this slot from the baked sheet, discarding only this slot's edits.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
             ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
@@ -348,17 +316,15 @@ public class ConfigWindow : Window, IDisposable
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
             return;
 
-        ImGui.TextUnformatted($"You've customized this timeline.");
-        ImGui.TextDisabled("Replacing will discard your changes and load the baked sheet fresh.");
-        ImGui.Spacing();
-        ImGui.TextWrapped("Tip: use \"Add / update mits\" instead to pull in new lines while keeping your edits.");
+        ImGui.TextUnformatted($"You've customized the {SlotLabel(slot)} slot.");
+        ImGui.TextDisabled("Resetting will discard this slot's changes and load the baked sheet fresh.");
         ImGui.Separator();
 
         ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
-        if (ImGui.Button("Replace and lose my edits", new Vector2(220, 0)))
+        if (ImGui.Button("Reset and lose my edits", new Vector2(220, 0)))
         {
-            ReplaceBuiltin(fight, slot);
+            ResetBuiltinSlot(fight, slot);
             ImGui.CloseCurrentPopup();
         }
         ImGui.PopStyleColor(2);
@@ -482,13 +448,23 @@ public class ConfigWindow : Window, IDisposable
                    + "t=0 with your pull.");
     }
 
+    // Reassign a fight's lines while keeping the active slot's saved copy in sync,
+    // so per-slot storage never goes stale after a sort / import.
+    private void SetFightLines(FightProfile fight, List<MitLine> lines)
+    {
+        fight.Lines = lines;
+        if (!string.IsNullOrEmpty(fight.Slot))
+            fight.SavedSlots[fight.Slot] = lines;
+        C.Save();
+    }
+
     private void DrawLineTable(FightProfile fight)
     {
         ImGui.TextUnformatted($"Lines ({fight.Lines.Count})");
         ImGui.SameLine();
         if (ImGui.SmallButton("Add line")) { fight.Lines.Add(new MitLine()); C.Save(); }
         ImGui.SameLine();
-        if (ImGui.SmallButton("Sort by time")) { fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList(); C.Save(); }
+        if (ImGui.SmallButton("Sort by time")) SetFightLines(fight, fight.Lines.OrderBy(l => l.Time).ToList());
 
         // Grow the table to fill what's left, leaving room for the import header
         // underneath, so a freshly loaded sheet isn't cut off.
@@ -685,18 +661,18 @@ public class ConfigWindow : Window, IDisposable
             Jobs = pickedJobs
         };
 
-        if (ImGui.Button("Append to lines"))
+        if (ImGui.Button("Add to current mits"))
         {
-            fight.Lines.AddRange(SheetImport.BuildLines(_importGrid, opt));
-            fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
-            C.Save();
+            // Always additive: imported lines are appended onto whatever this slot
+            // already has, then sorted. Nothing is replaced.
+            var imported = SheetImport.BuildLines(_importGrid, opt);
+            var merged = new List<MitLine>(fight.Lines);
+            merged.AddRange(imported);
+            SetFightLines(fight, merged.OrderBy(l => l.Time).ToList());
+            FlashBuiltin($"Added {imported.Count} imported line(s).");
         }
         ImGui.SameLine();
-        if (ImGui.Button("Replace all lines"))
-        {
-            fight.Lines = SheetImport.BuildLines(_importGrid, opt).OrderBy(l => l.Time).ToList();
-            C.Save();
-        }
+        ImGui.TextDisabled("Imported lines are added onto your current slot.");
     }
 
     private string HeaderHint(int col)

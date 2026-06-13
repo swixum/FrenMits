@@ -18,14 +18,18 @@ public class FightProfile
     // earlier/later if your sheet's t=0 differs from combat start.
     public float TimerOffset { get; set; }
 
+    // The active slot's lines (what the overlay reads + the line table edits).
     public List<MitLine> Lines { get; set; } = new();
 
-    // The built-in sheet slot last used for this fight (e.g. "D1", "WHM"). Drives
-    // the seamless auto-load when you enter the zone. Empty = infer from your job.
+    // The built-in sheet slot currently selected for this fight (e.g. "D1", "WHM").
+    // Drives the seamless auto-load when you enter the zone. Empty = infer from job.
     public string Slot { get; set; } = "";
 
-    // Set once the built-in timeline has been auto-loaded for this profile, so we
-    // only seed lines automatically the first time (later entries just top-up).
+    // Per-slot saved line sets, so each slot keeps its own edits. Switching the
+    // slot picker swaps Lines to that slot's set (never mixes two slots together).
+    public Dictionary<string, List<MitLine>> SavedSlots { get; set; } = new();
+
+    // Set once the built-in timeline has been auto-loaded for this profile.
     public bool AutoLoaded { get; set; }
 
     // Resync anchors: when one of these abilities is cast, the timer snaps so

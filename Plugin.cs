@@ -106,13 +106,11 @@ public sealed class Plugin : IDalamudPlugin
             ? fight.Slot
             : Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
 
-        var added = Builtin.MergeInto(fight, slot);
-        fight.Slot = slot;
-        fight.AutoLoaded = true;
-        Config.DmuSlot = slot;
+        var added = Builtin.ApplySlot(fight, slot);
+        Config.DmuSlot = fight.Slot;
         Config.Save();
 
-        Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {slot}, +{added} lines.");
+        Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {fight.Slot}, +{added} lines.");
     }
 
     // Local player via the object table (index 0); IClientState.LocalPlayer was

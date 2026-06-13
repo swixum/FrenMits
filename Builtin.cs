@@ -41,20 +41,65 @@ public static class Builtin
         => MathF.Abs(a.Time - b.Time) < 0.75f
            && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
-    // Additive load: append only the baked lines the fight doesn't already have,
-    // leaving every existing (possibly edited) line untouched, and refresh the
-    // resync/boss anchors to the latest. Returns how many new lines were added.
-    public static int MergeInto(FightProfile fight, string slot)
+    // Make `slot` the fight's active slot and load its mits — and ONLY its mits.
+    //  - Switching to a different slot stashes the slot you're leaving and swaps in
+    //    the target slot's own set (your saved edits for it, or a fresh bake).
+    //  - Staying on the same slot just tops up any newly-baked lines (keeps edits).
+    // Never mixes one slot's lines into another. Returns how many lines were added.
+    public static int ApplySlot(FightProfile fight, string slot)
     {
-        var baked = BuildLines(fight.TerritoryId, slot);
+        if (string.IsNullOrEmpty(slot))
+            slot = Slots(fight.TerritoryId).FirstOrDefault() ?? "";
+
+        var topUp = true;
+
+        if (string.IsNullOrEmpty(fight.Slot))
+        {
+            // First use / migrating an older profile: adopt this slot. Keep any
+            // existing lines as-is (don't top up — we can't assume they're this
+            // slot's), otherwise bake the slot fresh.
+            fight.Slot = slot;
+            if (fight.Lines.Count == 0) fight.Lines = BuildLines(fight.TerritoryId, slot);
+            else topUp = false;
+        }
+        else if (!string.Equals(fight.Slot, slot, StringComparison.OrdinalIgnoreCase))
+        {
+            fight.SavedSlots[fight.Slot] = fight.Lines;   // stash what we're leaving
+            fight.Slot = slot;
+            fight.Lines = fight.SavedSlots.TryGetValue(slot, out var saved) && saved.Count > 0
+                ? saved                                    // your saved edits for this slot
+                : BuildLines(fight.TerritoryId, slot);     // or a clean bake
+        }
+        else if (fight.Lines.Count == 0)
+        {
+            fight.Lines = BuildLines(fight.TerritoryId, slot);
+        }
+
         var added = 0;
-        foreach (var b in baked)
-            if (!fight.Lines.Any(l => SameCall(l, b))) { fight.Lines.Add(b); added++; }
+        if (topUp)
+        {
+            var baked = BuildLines(fight.TerritoryId, slot);
+            foreach (var b in baked)
+                if (!fight.Lines.Any(l => SameCall(l, b))) { fight.Lines.Add(b); added++; }
+        }
 
         fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
+        fight.SavedSlots[slot] = fight.Lines;
         fight.SyncPoints = SyncPoints(fight.TerritoryId);
         fight.BossAnchors = BossAnchors(fight.TerritoryId);
+        fight.AutoLoaded = true;
         return added;
+    }
+
+    // Discard this slot's edits and reload it straight from the baked sheet.
+    public static void ResetSlot(FightProfile fight, string slot)
+    {
+        fight.Slot = slot;
+        fight.Lines = BuildLines(fight.TerritoryId, slot);
+        fight.SavedSlots[slot] = fight.Lines;
+        fight.SyncPoints = SyncPoints(fight.TerritoryId);
+        fight.BossAnchors = BossAnchors(fight.TerritoryId);
+        fight.AutoLoaded = true;
     }
 
     // Best-guess sheet slot for a job, used for the first auto-load before the

@@ -10,8 +10,9 @@ fires in the fight's territory and syncs to combat start. Every line is editable
 - **Per-fight timelines** gated to a specific territory (zone). Only the fight you
   are currently in fires.
 - **Seamless auto-load** — walk into a supported boss room and the latest baked
-  timeline loads for your slot automatically. Re-entering only tops up new lines;
-  any edits you've made are always kept, no prompts.
+  timeline loads for your slot automatically. Each slot keeps its own edits;
+  switching slots loads that slot fresh, and imports add onto the current slot.
+  Re-entering only tops up new lines — your edits are always kept, no prompts.
 - **Job / role select** at the top (Auto-follows your current job, or override).
   Each line can target specific jobs/roles, so you only see your mits.
 - **Combat-synced timer** — auto-starts on the pull. `/fm sync` zeroes it to a known
