@@ -103,17 +103,23 @@ public static class Icons
     }
 
     // A clickable icon (image button). Returns true when clicked. Falls back to an
-    // empty same-size button for ids with no icon.
+    // empty same-size button for ids with no icon. PushID keeps each unique even
+    // when the texture (and thus ImGui's derived id) repeats.
     public static bool Button(uint iconId, Vector2 size, string id)
     {
+        ImGui.PushID(id);
         try
         {
             var tex = Service.TextureProvider.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrEmpty();
-            return ImGui.ImageButton(id, tex.Handle, size);
+            return ImGui.ImageButton(tex.Handle, size);
         }
         catch
         {
-            return ImGui.Button(id, size + new Vector2(8, 8));
+            return ImGui.Button("##empty", size + new Vector2(8, 8));
+        }
+        finally
+        {
+            ImGui.PopID();
         }
     }
 }
