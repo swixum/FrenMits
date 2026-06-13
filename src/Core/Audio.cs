@@ -204,8 +204,10 @@ public class Audio : IDisposable
     }
 
     // Microsoft Edge "Read Aloud" voice service. Free, no key, no install.
+    // EdgeVersion tracks the current Chromium release — Microsoft 403s stale ones,
+    // so bump this (and the User-Agent below) to match edge-tts when it breaks.
     private const string EdgeToken = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
-    private const string EdgeVersion = "1-130.0.2849.68";
+    private const string EdgeVersion = "1-143.0.3650.75";
 
     private static byte[]? FetchEdge(string text, string voice, int rate, int volume)
     {
@@ -215,7 +217,7 @@ public class Audio : IDisposable
         try
         {
             ws.Options.SetRequestHeader("User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0");
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0");
             ws.Options.SetRequestHeader("Origin", "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold");
         }
         catch { /* some runtimes restrict these headers; the endpoint still accepts the request */ }
