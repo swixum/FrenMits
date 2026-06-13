@@ -14,6 +14,9 @@ public class FightProfile
     public uint TerritoryId { get; set; }
     public bool Enabled { get; set; } = true;
 
+    // Sidebar group: "Ultimate", "Savage", "Extreme", "Raids", "Other".
+    public string Category { get; set; } = "";
+
     // Added to the combat-synced elapsed time. Use it to nudge the whole sheet
     // earlier/later if your sheet's t=0 differs from combat start.
     public float TimerOffset { get; set; }

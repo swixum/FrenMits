@@ -17,6 +17,18 @@ public class ConfigWindow : Window, IDisposable
 
     private int _selectedFight;
 
+    // Left-sidebar navigation.
+    private enum NavKind { Fights, Timer, Display, Audio }
+    private NavKind _nav = NavKind.Fights;
+    private string _navCategory = "Ultimate";
+
+    private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
+
+    // The sidebar group a fight belongs to (built-ins default to Ultimate).
+    private static string CategoryOf(FightProfile f)
+        => !string.IsNullOrEmpty(f.Category) ? f.Category
+           : (Builtin.Has(f.TerritoryId) ? "Ultimate" : "Other");
+
     // Import state.
     private string _importBuffer = "";
     private List<string[]>? _importGrid;
@@ -68,19 +80,25 @@ public class ConfigWindow : Window, IDisposable
         DrawJobSelector();
         ImGui.Separator();
 
-        // Tab content lives in a scroll region above a pinned footer, so the
-        // Save bar is always visible no matter how long the lines list gets.
+        // Content sits above a pinned footer: a left nav sidebar + the active page.
         var footerH = ImGui.GetFrameHeightWithSpacing() + ImGui.GetStyle().ItemSpacing.Y + 4f;
-        if (ImGui.BeginChild("##tabs-region", new Vector2(0, -footerH), false))
+        if (ImGui.BeginChild("##content", new Vector2(0, -footerH), false))
         {
-            if (ImGui.BeginTabBar("##frenmits-tabs"))
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
+            if (ImGui.BeginChild("##sidebar", new Vector2(186, 0), true))
+                DrawSidebar();
+            ImGui.EndChild();
+            ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+            if (ImGui.BeginChild("##page", new Vector2(0, 0), false))
             {
-                if (ImGui.BeginTabItem("Fights")) { DrawFightsTab(); ImGui.EndTabItem(); }
-                if (ImGui.BeginTabItem("Timer")) { DrawTimerTab(); ImGui.EndTabItem(); }
-                if (ImGui.BeginTabItem("Display")) { DrawDisplayTab(); ImGui.EndTabItem(); }
-                if (ImGui.BeginTabItem("Audio")) { DrawAudioTab(); ImGui.EndTabItem(); }
-                ImGui.EndTabBar();
+                ImGui.Spacing();
+                ImGui.Indent(4f);
+                DrawSelectedPage();
+                ImGui.Unindent(4f);
             }
+            ImGui.EndChild();
         }
         ImGui.EndChild();
 
@@ -230,30 +248,158 @@ public class ConfigWindow : Window, IDisposable
                    + "Use this to preview another job's calls.");
     }
 
-    // ---- Fights ----------------------------------------------------------
+    // ---- Left sidebar nav -------------------------------------------------
 
-    private void DrawFightsTab()
+    private void DrawSidebar()
     {
-        DrawFightListBar();
-
-        if (_selectedFight < 0 || _selectedFight >= C.Fights.Count)
+        SidebarHeading("FIGHTS");
+        foreach (var cat in Categories)
         {
-            ImGui.TextDisabled("Add a fight to begin, or import a sheet.");
-            return;
+            var count = C.Fights.Count(f => CategoryOf(f) == cat);
+            if (NavItem(cat, count, _nav == NavKind.Fights && _navCategory == cat))
+            {
+                _nav = NavKind.Fights;
+                _navCategory = cat;
+            }
         }
 
-        var fight = C.Fights[_selectedFight];
-        ImGui.Separator();
-        DrawFightHeader(fight);
-        if (Builtin.Has(fight.TerritoryId))
+        ImGui.Spacing();
+        SidebarHeading("SETTINGS");
+        if (NavItem("Timer", null, _nav == NavKind.Timer)) _nav = NavKind.Timer;
+        if (NavItem("Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
+        if (NavItem("Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
+    }
+
+    private static void SidebarHeading(string text)
+    {
+        ImGui.Spacing();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6);
+        ImGui.TextColored(new Vector4(0.45f, 0.48f, 0.54f, 1f), text);
+        ImGui.Spacing();
+    }
+
+    private bool NavItem(string label, int? count, bool selected)
+    {
+        if (selected)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Header, 0x66F6823B);
+            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0x88F6823B);
+        }
+        var clicked = ImGui.Selectable($"   {label}##nav-{label}", selected,
+            ImGuiSelectableFlags.None, new Vector2(0, 26));
+        if (selected) ImGui.PopStyleColor(2);
+
+        if (count is { } n)
+        {
+            ImGui.SameLine();
+            var txt = n.ToString();
+            ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10);
+            ImGui.TextDisabled(txt);
+        }
+        return clicked;
+    }
+
+    private void DrawSelectedPage()
+    {
+        switch (_nav)
+        {
+            case NavKind.Timer: DrawTimerTab(); break;
+            case NavKind.Display: DrawDisplayTab(); break;
+            case NavKind.Audio: DrawAudioTab(); break;
+            default: DrawFightCategoryPage(_navCategory); break;
+        }
+    }
+
+    // ---- Fights page ------------------------------------------------------
+
+    private void DrawFightCategoryPage(string category)
+    {
+        var indexed = C.Fights.Select((f, i) => (f, i)).Where(x => CategoryOf(x.f) == category).ToList();
+
+        SeparatorText($"{category} — {indexed.Count} fight{(indexed.Count == 1 ? "" : "s")}");
+        DrawCategoryToolbar(category);
+        ImGui.Spacing();
+
+        if (indexed.Count == 0)
+            ImGui.TextDisabled("No fights here yet. Add one above, or load a preset.");
+
+        foreach (var (f, i) in indexed)
+            DrawFightRow(f, i);
+
+        if (_selectedFight >= 0 && _selectedFight < C.Fights.Count
+            && CategoryOf(C.Fights[_selectedFight]) == category)
+        {
+            var fight = C.Fights[_selectedFight];
+            ImGui.Separator();
+            if (DrawFightHeader(fight))
+            {
+                if (Builtin.Has(fight.TerritoryId)) { ImGui.Separator(); DrawBuiltinLoad(fight); }
+                ImGui.Separator();
+                DrawLineTable(fight);
+                ImGui.Separator();
+                DrawImportSection(fight);
+            }
+        }
+        else if (indexed.Count > 0)
         {
             ImGui.Separator();
-            DrawBuiltinLoad(fight);
+            ImGui.TextDisabled("Select a fight above to edit it.");
         }
-        ImGui.Separator();
-        DrawLineTable(fight);
-        ImGui.Separator();
-        DrawImportSection(fight);
+    }
+
+    private void DrawCategoryToolbar(string category)
+    {
+        if (ImGui.Button("+ Add fight"))
+        {
+            C.Fights.Add(new FightProfile
+            {
+                Name = "New fight",
+                TerritoryId = Service.ClientState.TerritoryType,
+                Category = category,
+            });
+            _selectedFight = C.Fights.Count - 1;
+            C.Save();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Paste fight")) ImportFightFromClipboard();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Import a fight shared via clipboard into this category.");
+
+        // Quick presets for any built-in not added yet (they live under Ultimate).
+        if (category == "Ultimate")
+        {
+            foreach (var (territory, name) in Builtin.Fights)
+            {
+                if (C.Fights.Any(f => f.TerritoryId == territory)) continue;
+                ImGui.SameLine();
+                if (ImGui.Button($"+ {name}"))
+                {
+                    C.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = "Ultimate" });
+                    _selectedFight = C.Fights.Count - 1;
+                    C.Save();
+                }
+            }
+        }
+    }
+
+    private void DrawFightRow(FightProfile f, int index)
+    {
+        ImGui.PushID(index);
+
+        var enabled = f.Enabled;
+        if (ImGui.Checkbox("##en", ref enabled)) { f.Enabled = enabled; C.Save(); }
+        ImGui.SameLine();
+
+        var selected = _selectedFight == index;
+        if (ImGui.Selectable($"{f.Name}##row", selected, ImGuiSelectableFlags.None,
+                new Vector2(ImGui.GetContentRegionAvail().X - 44, 0)))
+            _selectedFight = index;
+
+        ImGui.SameLine();
+        var badge = $"{f.Lines.Count}";
+        ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(badge).X - 8);
+        ImGui.TextDisabled(badge);
+
+        ImGui.PopID();
     }
 
     private int _builtinSlot;
@@ -382,78 +528,59 @@ public class ConfigWindow : Window, IDisposable
         ImGui.EndPopup();
     }
 
-    private void DrawFightListBar()
-    {
-        ImGui.SetNextItemWidth(300f);
-        var names = C.Fights.Select(f => f.Enabled ? f.Name : f.Name + " (off)").ToArray();
-        if (names.Length == 0) names = new[] { "<no fights>" };
-        ImGui.Combo("##fightlist", ref _selectedFight, names, names.Length);
-
-        ImGui.SameLine();
-        ImGui.BeginGroup();
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
-        {
-            C.Fights.Add(new FightProfile { Name = "New fight", TerritoryId = Service.ClientState.TerritoryType });
-            _selectedFight = C.Fights.Count - 1;
-            C.Save();
-        }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Add a fight");
-
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Copy)
-            && _selectedFight >= 0 && _selectedFight < C.Fights.Count)
-        {
-            var src = C.Fights[_selectedFight];
-            C.Fights.Add(new FightProfile
-            {
-                Name = src.Name + " copy",
-                TerritoryId = src.TerritoryId,
-                TimerOffset = src.TimerOffset,
-                Enabled = src.Enabled,
-                Lines = src.Lines.Select(CloneLine).ToList()
-            });
-            _selectedFight = C.Fights.Count - 1;
-            C.Save();
-        }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Duplicate the selected fight");
-
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash)
-            && _selectedFight >= 0 && _selectedFight < C.Fights.Count)
-        {
-            C.Fights.RemoveAt(_selectedFight);
-            _selectedFight = Math.Clamp(_selectedFight, 0, Math.Max(0, C.Fights.Count - 1));
-            C.Save();
-        }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Delete the selected fight");
-
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.FileImport)) ImportFightFromClipboard();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Import a fight from the clipboard");
-
-        foreach (var (territory, name) in Builtin.Fights)
-        {
-            if (C.Fights.Any(f => f.TerritoryId == territory)) continue;
-            if (ImGui.Button($"+ {name} preset"))
-            {
-                C.Fights.Add(new FightProfile { Name = name, TerritoryId = territory });
-                _selectedFight = C.Fights.Count - 1;
-                C.Save();
-            }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip($"Add a fight pre-set to territory {territory}.");
-        }
-        ImGui.EndGroup();
-    }
-
-    private void DrawFightHeader(FightProfile fight)
+    // Returns false if the fight was deleted this frame (caller must stop drawing it).
+    private bool DrawFightHeader(FightProfile fight)
     {
         var name = fight.Name;
-        ImGui.SetNextItemWidth(260f);
+        ImGui.SetNextItemWidth(240f);
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
 
         ImGui.SameLine();
         var enabled = fight.Enabled;
         if (ImGui.Checkbox("Enabled", ref enabled)) { fight.Enabled = enabled; C.Save(); }
+
+        ImGui.SameLine();
+        var catIdx = Math.Max(0, Array.IndexOf(Categories, CategoryOf(fight)));
+        ImGui.SetNextItemWidth(120f);
+        if (ImGui.Combo("Category", ref catIdx, Categories, Categories.Length))
+        {
+            fight.Category = Categories[catIdx];
+            _navCategory = fight.Category; // follow the fight to its new group
+            C.Save();
+        }
+
+        // Duplicate / delete this fight.
+        if (ImGui.Button("Duplicate"))
+        {
+            C.Fights.Add(new FightProfile
+            {
+                Name = fight.Name + " copy",
+                TerritoryId = fight.TerritoryId,
+                Category = fight.Category,
+                TimerOffset = fight.TimerOffset,
+                Enabled = fight.Enabled,
+                Slot = fight.Slot,
+                Lines = fight.Lines.Select(CloneLine).ToList(),
+            });
+            _selectedFight = C.Fights.Count - 1;
+            C.Save();
+        }
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3A3AC8);
+        if (ImGui.Button("Delete fight"))
+        {
+            var idx = C.Fights.IndexOf(fight);
+            if (idx >= 0)
+            {
+                C.Fights.RemoveAt(idx);
+                _selectedFight = -1;
+                C.Save();
+            }
+            ImGui.PopStyleColor(2);
+            return false;
+        }
+        ImGui.PopStyleColor(2);
 
         var territory = (int)fight.TerritoryId;
         ImGui.SetNextItemWidth(120f);
@@ -493,6 +620,7 @@ public class ConfigWindow : Window, IDisposable
         HelpMarker("The timer starts at combat and resets automatically on a wipe or when the duty ends, "
                    + "so it is ready for the next pull. Use a per-fight offset or /fm sync to align the sheet's "
                    + "t=0 with your pull.");
+        return true;
     }
 
     // Reassign a fight's lines while keeping the active slot's saved copy in sync,
@@ -1094,6 +1222,8 @@ public class ConfigWindow : Window, IDisposable
             var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
             if (fight == null) return;
             fight.Id = Guid.NewGuid().ToString("N");
+            // Drop it into the category you're currently viewing.
+            if (_nav == NavKind.Fights) fight.Category = _navCategory;
             C.Fights.Add(fight);
             _selectedFight = C.Fights.Count - 1;
             C.Save();

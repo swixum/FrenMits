@@ -52,7 +52,18 @@ public sealed class Plugin : IDalamudPlugin
         // their slot and loads the baked mits.
         if (Config.Fights.Count == 0)
             foreach (var (territory, name) in Builtin.Fights)
-                Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory });
+                Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = "Ultimate" });
+
+        // v3: assign sidebar categories. Built-ins are ultimates; everything else
+        // starts in "Other" and can be moved with the per-fight Category picker.
+        if (Config.Version < 3)
+        {
+            foreach (var f in Config.Fights)
+                if (string.IsNullOrEmpty(f.Category))
+                    f.Category = Builtin.Has(f.TerritoryId) ? "Ultimate" : "Other";
+            Config.Version = 3;
+            Config.Save();
+        }
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
