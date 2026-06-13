@@ -33,7 +33,7 @@ public class CueEngine
         if (c.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 
         var job = _plugin.ActiveJobAbbreviation();
-        var elapsed = _plugin.Timer.Elapsed + fight.TimerOffset;
+        var elapsed = _plugin.ElapsedFor(fight);
 
         foreach (var line in fight.Lines)
         {

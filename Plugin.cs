@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Windowing;
@@ -99,7 +100,14 @@ public sealed class Plugin : IDalamudPlugin
     // Seamless auto-load: on entering a boss room we support, top up the fight's
     // lines with the latest baked timeline (adding only what's missing) and refresh
     // the resync anchors — keeping every edit the user has made. Silent, no prompts.
-    private void OnTerritoryChanged(uint territory) => AutoLoadForTerritory(territory);
+    private void OnTerritoryChanged(uint territory)
+    {
+        // Leaving / re-entering the instance resets the door-boss phase to 1.
+        _phaseTwo = false;
+        _trackedBossEntity = 0;
+        _trackedBossLastHp = 0;
+        AutoLoadForTerritory(territory);
+    }
 
     public void AutoLoadForTerritory(uint territory)
     {
@@ -132,10 +140,55 @@ public sealed class Plugin : IDalamudPlugin
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework _)
     {
         Timer.Update();
+        UpdatePhase();
         Sync.Update();
         Cues.Update();
         UpdateDtr();
     }
+
+    // ---- Door-boss phase tracking ----------------------------------------
+    // A door boss (e.g. M12S) is one instance with two phases, each its own combat
+    // from 0. Once Phase 1 is killed you stay on Phase 2 until you leave the duty.
+    // We watch the primary boss: when it dies, Phase 2 is locked on for this zone,
+    // and ElapsedFor() shifts that fight's clock onto its Phase 2 segment.
+    private bool _phaseTwo;
+    private uint _trackedBossEntity;
+    private uint _trackedBossLastHp;
+
+    private void UpdatePhase()
+    {
+        // Only relevant for the door-boss territory; cheap no-op elsewhere.
+        if (Service.ClientState.TerritoryType != Builtin.M12sTerritory)
+            return;
+
+        IBattleNpc? boss = null;
+        foreach (var o in Service.ObjectTable)
+            if (o is IBattleNpc n && n.MaxHp > 1_000_000
+                && (boss is null || n.MaxHp > boss.MaxHp))
+                boss = n;
+
+        if (boss is null) { _trackedBossEntity = 0; return; }
+
+        if (boss.EntityId != _trackedBossEntity)
+        {
+            _trackedBossEntity = boss.EntityId;
+            _trackedBossLastHp = boss.CurrentHp;
+            return;
+        }
+
+        // Boss HP fell to zero => Phase 1 cleared. Latches until the zone changes.
+        if (_trackedBossLastHp > 0 && boss.CurrentHp == 0)
+            _phaseTwo = true;
+        _trackedBossLastHp = boss.CurrentHp;
+    }
+
+    // Extra seconds added to a fight's clock for the current phase (door bosses).
+    public float PhaseOffsetFor(FightProfile fight)
+        => _phaseTwo && fight.TerritoryId == Builtin.M12sTerritory ? M12sData.Phase2Offset : 0f;
+
+    // The fight clock the overlay/cues read: pull time + per-fight offset + phase.
+    public float ElapsedFor(FightProfile fight)
+        => Timer.Elapsed + fight.TimerOffset + PhaseOffsetFor(fight);
 
     // Next-up mit on the server-info bar.
     private void UpdateDtr()
@@ -148,7 +201,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         var job = ActiveJobAbbreviation();
-        var elapsed = Timer.Elapsed + fight.TimerOffset;
+        var elapsed = ElapsedFor(fight);
         var next = fight.OrderedLines
             .Where(l => l.Enabled && l.AppliesTo(job) && l.Time - elapsed > 0)
             .Select(l => (l, remaining: l.Time - elapsed))
