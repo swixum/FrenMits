@@ -677,7 +677,14 @@ public class ConfigWindow : Window, IDisposable
         C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
         ImGui.TextDisabled("Unlock to drag the call text anywhere, then lock it. Turn on Test mode to see it.");
         ImGui.SameLine();
-        if (ImGui.Button("Reset to centre")) { C.OverlayPosition = new Vector2(0.5f, 0.35f); C.Save(); }
+        if (ImGui.Button("Reset to centre"))
+        {
+            C.OverlayPosition = new Vector2(0.5f, 0.35f);
+            C.Save();
+            _plugin.OverlayWindow.RequestReposition();
+        }
+        ImGui.SameLine();
+        ImGui.TextDisabled(C.OverlayLocked ? "(unlock to drag)" : "(drag the title bar to move)");
         C.TestMode = CfgCheck("Test mode (show a sample call so you can place/size it)", C.TestMode);
 
         SeparatorText("Size (crisp font, in pixels)");
