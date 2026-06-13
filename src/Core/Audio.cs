@@ -283,14 +283,15 @@ public class Audio : IDisposable
         return wav.Length > 44 ? wav : null;
     }
 
-    // Rolling security token Microsoft now requires: SHA-256 of (winticks rounded to
-    // 5 min) + the client token.
+    // Rolling security token Microsoft requires: SHA-256 of (Windows file-time ticks
+    // rounded down to 5 minutes) + the client token. Must be EXACT integer math —
+    // doubles lose precision at ~1.3e17 and produce a 403.
     private static string EdgeSecToken()
     {
-        double ticks = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 11644473600d;
-        ticks -= ticks % 300d;
-        ticks *= 1e7;
-        var s = ticks.ToString("F0", CultureInfo.InvariantCulture) + EdgeToken;
+        long seconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 11644473600L; // -> Windows epoch
+        seconds -= seconds % 300L;                                               // round to 5 min
+        long winTicks = seconds * 10_000_000L;                                   // 100-ns units (fits in long)
+        var s = winTicks.ToString(CultureInfo.InvariantCulture) + EdgeToken;
         var hash = SHA256.HashData(Encoding.ASCII.GetBytes(s));
         var sb = new StringBuilder(64);
         foreach (var b in hash) sb.Append(b.ToString("X2"));
