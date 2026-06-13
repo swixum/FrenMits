@@ -1151,13 +1151,24 @@ public class ConfigWindow : Window, IDisposable
 
         if (C.TtsUseEdge)
         {
-            var ids = Audio.EdgeVoices.Select(v => v.Id).ToArray();
-            var labels = Audio.EdgeVoices.Select(v => v.Label).ToArray();
-            var idx = Math.Max(0, Array.IndexOf(ids, C.TtsEdgeVoice));
-            ImGui.SetNextItemWidth(280f);
-            if (ImGui.Combo("Voice##edge", ref idx, labels, labels.Length))
+            // Snap any unknown/old saved voice (e.g. the removed child voice) to a valid one.
+            var cur = Array.Find(Audio.EdgeVoices, v => v.Id == C.TtsEdgeVoice);
+            if (cur.Id == null) { cur = Audio.EdgeVoices[0]; C.TtsEdgeVoice = cur.Id; C.Save(); }
+            var female = cur.Female;
+
+            if (ImGui.RadioButton("Female", female) && !female)
+            { C.TtsEdgeVoice = Audio.EdgeVoices.First(v => v.Female).Id; C.Save(); female = true; }
+            ImGui.SameLine();
+            if (ImGui.RadioButton("Male", !female) && female)
+            { C.TtsEdgeVoice = Audio.EdgeVoices.First(v => !v.Female).Id; C.Save(); female = false; }
+
+            var list = Audio.EdgeVoices.Where(v => v.Female == female).ToArray();
+            var names = list.Select(v => v.Name).ToArray();
+            var idx = Math.Max(0, Array.FindIndex(list, v => v.Id == C.TtsEdgeVoice));
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.Combo("Voice##edge", ref idx, names, names.Length))
             {
-                C.TtsEdgeVoice = ids[idx];
+                C.TtsEdgeVoice = list[idx].Id;
                 C.Save();
             }
         }

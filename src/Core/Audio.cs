@@ -19,27 +19,26 @@ namespace FrenMits;
 // Everything is best-effort and fails silently if the platform refuses.
 public class Audio : IDisposable
 {
-    // Curated English Edge neural voices (the full catalog is hundreds across
-    // languages; these are the useful ones for call-outs).
-    public static readonly (string Id, string Label)[] EdgeVoices =
+    // Curated English Edge neural voices, tagged by gender so the UI can show a
+    // short Female/Male list instead of one long mixed dropdown.
+    public static readonly (string Id, string Name, bool Female)[] EdgeVoices =
     {
-        ("en-US-AriaNeural",        "Aria — US, female"),
-        ("en-US-JennyNeural",       "Jenny — US, female"),
-        ("en-US-MichelleNeural",    "Michelle — US, female"),
-        ("en-US-AnaNeural",         "Ana — US, female (child)"),
-        ("en-US-GuyNeural",         "Guy — US, male"),
-        ("en-US-ChristopherNeural", "Christopher — US, male"),
-        ("en-US-EricNeural",        "Eric — US, male"),
-        ("en-US-RogerNeural",       "Roger — US, male"),
-        ("en-US-SteffanNeural",     "Steffan — US, male"),
-        ("en-GB-SoniaNeural",       "Sonia — UK, female"),
-        ("en-GB-LibbyNeural",       "Libby — UK, female"),
-        ("en-GB-RyanNeural",        "Ryan — UK, male"),
-        ("en-AU-NatashaNeural",     "Natasha — AU, female"),
-        ("en-AU-WilliamNeural",     "William — AU, male"),
-        ("en-CA-ClaraNeural",       "Clara — CA, female"),
-        ("en-IE-EmilyNeural",       "Emily — IE, female"),
-        ("en-IN-NeerjaNeural",      "Neerja — IN, female"),
+        ("en-US-AriaNeural",        "Aria (US)",        true),
+        ("en-US-JennyNeural",       "Jenny (US)",       true),
+        ("en-US-MichelleNeural",    "Michelle (US)",    true),
+        ("en-GB-SoniaNeural",       "Sonia (UK)",       true),
+        ("en-GB-LibbyNeural",       "Libby (UK)",       true),
+        ("en-AU-NatashaNeural",     "Natasha (AU)",     true),
+        ("en-CA-ClaraNeural",       "Clara (CA)",       true),
+        ("en-IE-EmilyNeural",       "Emily (IE)",       true),
+        ("en-IN-NeerjaNeural",      "Neerja (IN)",      true),
+        ("en-US-GuyNeural",         "Guy (US)",         false),
+        ("en-US-ChristopherNeural", "Christopher (US)", false),
+        ("en-US-EricNeural",        "Eric (US)",        false),
+        ("en-US-RogerNeural",       "Roger (US)",       false),
+        ("en-US-SteffanNeural",     "Steffan (US)",     false),
+        ("en-GB-RyanNeural",        "Ryan (UK)",        false),
+        ("en-AU-WilliamNeural",     "William (AU)",     false),
     };
 
     private object? _voice;       // SAPI.SpVoice COM object
