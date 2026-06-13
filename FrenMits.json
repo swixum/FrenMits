@@ -1,0 +1,15 @@
+{
+  "Author": "swix",
+  "Name": "Fren Mits",
+  "InternalName": "FrenMits",
+  "Punchline": "Fight-specific mitigation timeline with on-screen call-outs.",
+  "Description": "Import a mitigation sheet per encounter, pick your job or role, and get a configurable center-screen warning telling you exactly which mitigation to press. Only fires in the fight's territory, syncs to combat start, and every line is editable per fight.",
+  "ApplicableVersion": "any",
+  "Tags": ["mitigation", "mit", "timeline", "raid", "ultimate", "savage", "cooldown"],
+  "CategoryTags": ["jobs", "utility"],
+  "DalamudApiLevel": 15,
+  "LoadRequiredState": 0,
+  "LoadSync": false,
+  "CanUnloadAsync": false,
+  "IconUrl": ""
+}

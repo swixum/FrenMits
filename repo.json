@@ -1,0 +1,20 @@
+[
+  {
+    "Author": "swix",
+    "Name": "Fren Mits",
+    "InternalName": "FrenMits",
+    "Punchline": "Fight-specific mitigation timeline with on-screen call-outs.",
+    "Description": "Import or use the baked mit timelines (DMU, FRU), pick your slot, and get a center-screen call telling you which mitigation to press, with icons, audio, and cactbot-style resync.",
+    "Tags": ["mitigation", "mit", "timeline", "ultimate", "savage"],
+    "DalamudApiLevel": 15,
+    "AssemblyVersion": "1.0.0.0",
+    "TestingAssemblyVersion": "1.0.0.0",
+    "RepoUrl": "https://github.com/YOUR_USERNAME/FrenMits",
+    "ApplicableVersion": "any",
+    "IconUrl": "",
+    "DownloadLinkInstall": "https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip",
+    "DownloadLinkUpdate": "https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip",
+    "DownloadLinkTesting": "https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip",
+    "DownloadCount": 0
+  }
+]

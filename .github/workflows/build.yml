@@ -1,0 +1,64 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Dalamud reference assemblies for the CI build. If your in-game Dalamud is
+      # on staging, swap to https://goatcorp.github.io/dalamud-distrib/stg/latest.zip
+      - name: Download Dalamud
+        shell: pwsh
+        run: |
+          $dev = "$env:AppData\XIVLauncher\addon\Hooks\dev"
+          New-Item -ItemType Directory -Force -Path $dev | Out-Null
+          Invoke-WebRequest -Uri "https://goatcorp.github.io/dalamud-distrib/latest.zip" -OutFile dalamud.zip
+          Expand-Archive -Path dalamud.zip -DestinationPath $dev -Force
+
+      - name: Build
+        run: dotnet build -c Release --nologo
+
+      # Assemble the public Pages site: the plugin zip + the custom-repo manifest.
+      - name: Assemble Pages site
+        shell: pwsh
+        run: |
+          $out = "bin\x64\Release"
+          if (-not (Test-Path "$out\FrenMits.dll")) { $out = "bin\Release" }
+          New-Item -ItemType Directory -Force -Path "site" | Out-Null
+          Compress-Archive -Path "$out\FrenMits.dll","$out\FrenMits.json" -DestinationPath "site\FrenMits.zip" -Force
+          Copy-Item "repo.json" "site\repo.json" -Force
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

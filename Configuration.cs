@@ -1,0 +1,84 @@
+using System;
+using System.Collections.Generic;
+using System.Numerics;
+using Dalamud.Configuration;
+
+namespace FrenMits;
+
+[Serializable]
+public class Configuration : IPluginConfiguration
+{
+    public int Version { get; set; } = 1;
+
+    public List<FightProfile> Fights { get; set; } = new();
+
+    // "Auto" follows your current job; otherwise a job abbreviation override.
+    public string JobSelection { get; set; } = "Auto";
+
+    // Seconds of lead time the warning appears before the mit time.
+    public float WarningSeconds { get; set; } = 3f;
+    // How long the call stays on screen after its time passes.
+    public float HoldSeconds { get; set; } = 2f;
+
+    // Only run the overlay while in the fight's territory.
+    public bool OnlyInTargetTerritory { get; set; } = true;
+    // Show the overlay even out of combat / out of duty for placement + testing.
+    public bool TestMode { get; set; }
+
+    // Overlay appearance.
+    public float OverlayFontSizePx { get; set; } = 40f;     // crisp font size for the call
+    public float UpcomingFontSizePx { get; set; } = 20f;    // crisp font size for upcoming list
+    public float OverlayFontScale { get; set; } = 2.4f;     // fallback scale if font build is unavailable
+    public uint OverlayColorImminent { get; set; } = 0xFF55FFFF; // ABGR (yellow)
+    public uint OverlayColorActive { get; set; } = 0xFF55FF55;   // ABGR (green)
+    public uint OverlayColorMechanic { get; set; } = 0xC0FFFFFF; // ABGR (white)
+    public uint OverlayColorUpcoming { get; set; } = 0xB0FFFFFF;
+    public bool ShowCountdownNumber { get; set; } = true;
+    public bool ShowUpcoming { get; set; } = true;
+    public int UpcomingCount { get; set; } = 3;
+    public float UpcomingLookaheadSeconds { get; set; } = 30f;
+
+    // Text templates. Placeholders: {action} {mechanic} {time} {count} {remaining}
+    public string HeadlineFormat { get; set; } = "{action}";
+    public string ActiveSuffix { get; set; } = "  NOW";
+    public bool ShowMechanicLine { get; set; } = true;
+
+    // Background + outline for readability over the game.
+    public bool ShowBackground { get; set; }
+    public uint BackgroundColor { get; set; } = 0xB0000000; // ABGR (dim black)
+    public bool TextShadow { get; set; } = true;
+
+    // Countdown bar under the call.
+    public bool ShowProgressBar { get; set; } = true;
+    public bool PulseWhenImminent { get; set; } = true;
+    public bool ShowAbilityIcon { get; set; } = true;
+
+    // Server-info (DTR) bar entry showing the next mit.
+    public bool ShowDtrBar { get; set; } = true;
+
+    // cactbot-style resync: snap the clock when known boss casts happen.
+    public bool EnableSync { get; set; } = true;
+    public float SyncWindowSeconds { get; set; } = 8f;       // mechanic anchors (fine drift)
+    public float SyncPhaseWindowSeconds { get; set; } = 60f; // phase anchors (re-base on phase start)
+
+    // Which sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras) the baked DMU
+    // timeline was last loaded for, for display.
+    public string DmuSlot { get; set; } = "";
+
+    // Audio cues.
+    public bool AudioEnabled { get; set; }
+    public bool TtsEnabled { get; set; } = true;
+    public int TtsRate { get; set; } = 1;     // -10..10
+    public int TtsVolume { get; set; } = 90;  // 0..100
+    public bool BeepEnabled { get; set; } = true;
+    public int BeepVolume { get; set; } = 55; // 0..100
+    public float BeepFrequency { get; set; } = 880f;
+    public int BeepMs { get; set; } = 160;
+
+    // Overlay placement. When not locked it can be dragged.
+    public bool OverlayLocked { get; set; }
+    public bool UseCustomPosition { get; set; }
+    public Vector2 OverlayPosition { get; set; } = new(0.5f, 0.35f); // fractions of the screen
+
+    public void Save() => Service.PluginInterface.SavePluginConfig(this);
+}
