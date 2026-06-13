@@ -4,7 +4,7 @@ namespace FrenMits.Windows;
 
 // A cohesive dark theme for the config window, inspired by clean panel-based
 // plugin UIs: near-black backgrounds, soft borders, rounded controls and a single
-// blue accent for anything interactive. Colours are packed ABGR (0xAABBGGRR).
+// blue accent for anything interactive. Colors are packed ABGR (0xAABBGGRR).
 internal static class Theme
 {
     public const uint Accent = 0xFFF6823B;       // #3B82F6 blue
@@ -14,7 +14,7 @@ internal static class Theme
     public const uint Good = 0xFF4FB45A;          // saved / on (green)
     public const uint Warn = 0xFF3BC0F0;          // amber-ish notice
 
-    // Window-scope colours — must be pushed before ImGui.Begin (in PreDraw).
+    // Window-scope colors — must be pushed before ImGui.Begin (in PreDraw).
     private static readonly (ImGuiCol Col, uint Val)[] WindowColors =
     {
         (ImGuiCol.WindowBg,           0xFF120E0D),
@@ -26,7 +26,7 @@ internal static class Theme
         (ImGuiCol.ScrollbarBg,        0xFF120E0D),
     };
 
-    // Widget-scope colours — fine to push inside Draw().
+    // Widget-scope colors — fine to push inside Draw().
     private static readonly (ImGuiCol Col, uint Val)[] WidgetColors =
     {
         (ImGuiCol.Text,               0xFFECE8E6),

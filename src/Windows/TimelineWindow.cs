@@ -183,8 +183,8 @@ public class TimelineWindow : Window
         if (C.TimelineLocked) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
-        var centre = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);
-        var frac = (centre - viewport.WorkPos) / viewport.WorkSize;
+        var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);
+        var frac = (center - viewport.WorkPos) / viewport.WorkSize;
         if ((frac - C.TimelinePosition).LengthSquared() > 0.0000001f)
         {
             C.TimelinePosition = frac;

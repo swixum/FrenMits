@@ -80,7 +80,7 @@ public class MitLine
     public float LeadOverride { get; set; }   // warning lead seconds; 0 = global
     public string Tts { get; set; } = "";      // custom spoken text; empty = Action
     public bool Sound { get; set; } = true;    // play the audio cue for this line
-    public uint Color { get; set; }            // ABGR text colour; 0 = default
+    public uint Color { get; set; }            // ABGR text color; 0 = default
     public uint IconId { get; set; }           // pinned game icon id; 0 = infer from action
 
     public bool AppliesTo(string? jobAbbr)

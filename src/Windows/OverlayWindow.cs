@@ -145,7 +145,7 @@ public class OverlayWindow : Window
     {
         var width = ImGui.GetContentRegionAvail().X;
         if (width < 4f) width = 200f;
-        const float height = 6f;
+        var height = MathF.Max(1f, C.ProgressBarHeight);
         var origin = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
         dl.AddRectFilled(origin, origin + new Vector2(width, height), 0x80202020, 2f);
@@ -232,7 +232,7 @@ public class OverlayWindow : Window
         var offset = (avail - total) * 0.5f;
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
-        // Vertically centre the (smaller) icon against the text line, then restore
+        // Vertically center the (smaller) icon against the text line, then restore
         // the baseline so the text itself isn't nudged down.
         var baseY = ImGui.GetCursorPosY();
         ImGui.SetCursorPosY(MathF.Round(baseY + (lineH - iconH) * 0.5f));
@@ -273,8 +273,8 @@ public class OverlayWindow : Window
         if (C.OverlayLocked) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
-        var centre = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);
-        var frac = (centre - viewport.WorkPos) / viewport.WorkSize;
+        var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);
+        var frac = (center - viewport.WorkPos) / viewport.WorkSize;
         if ((frac - C.OverlayPosition).LengthSquared() > 0.0000001f)
         {
             C.OverlayPosition = frac;

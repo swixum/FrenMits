@@ -703,7 +703,7 @@ public class ConfigWindow : Window, IDisposable
 
             ImGui.TableNextColumn();
             if (ImGui.SmallButton("…")) ImGui.OpenPopup("lineopt");
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Per-line lead / speech / colour / mute");
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Per-line lead / speech / color / mute");
             DrawLineOptionsPopup(line);
 
             ImGui.TableNextColumn();
@@ -988,21 +988,60 @@ public class ConfigWindow : Window, IDisposable
         C.Save();
     }
 
+    private void ResetDisplayDefaults()
+    {
+        C.OverlayFontSizePx = 40f; C.UpcomingFontSizePx = 20f; C.IconScale = 0.8f;
+        C.OverlayColorImminent = 0xFF55FFFF; C.OverlayColorActive = 0xFF55FF55;
+        C.OverlayColorMechanic = 0xC0FFFFFF; C.OverlayColorUpcoming = 0xB0FFFFFF;
+        C.HeadlineFormat = "{action} ({remaining})"; C.ActiveSuffix = "  NOW";
+        C.ShowCountdownNumber = false; C.ShowMechanicLine = true; C.ShowAbilityIcon = true;
+        C.TextShadow = true; C.ShowProgressBar = true; C.ProgressBarHeight = 6f;
+        C.PulseWhenImminent = true; C.ShowBackground = false; C.BackgroundColor = 0xB0000000;
+        C.WarningSeconds = 3f; C.HoldSeconds = 2f;
+        C.OverlayPosition = new Vector2(0.5f, 0.35f);
+        C.Save();
+        _plugin.OverlayWindow.RequestReposition();
+    }
+
     private void DrawDisplayTab()
     {
-        SeparatorText("Position");
-        C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
-        ImGui.TextDisabled("Unlock to drag the call text anywhere, then lock it. Turn on Test mode to see it.");
+        // Quick controls: live preview + one-click reset of everything on this tab.
+        var preview = C.TestMode;
+        if (ImGui.Checkbox("Live preview", ref preview)) { C.TestMode = preview; C.Save(); }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Show a sample call so you can place, size and color it.");
         ImGui.SameLine();
-        if (ImGui.Button("Reset to centre"))
+        ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - 150);
+        if (ImGui.Button("Reset display", new Vector2(140, 0))) ResetDisplayDefaults();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this tab to defaults.");
+
+        SeparatorText("Placement");
+        C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
+        ImGui.SameLine();
+        ImGui.TextDisabled(C.OverlayLocked ? "locked — unlock to drag" : "drag the title bar, or use the sliders");
+
+        var pos = C.OverlayPosition;
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
+        { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
+        { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
+        if (ImGui.Button("Center"))
         {
             C.OverlayPosition = new Vector2(0.5f, 0.35f);
             C.Save();
             _plugin.OverlayWindow.RequestReposition();
         }
-        ImGui.SameLine();
-        ImGui.TextDisabled(C.OverlayLocked ? "(unlock to drag)" : "(drag the title bar to move)");
-        C.TestMode = CfgCheck("Test mode (show a sample call so you can place/size it)", C.TestMode);
+
+        SeparatorText("Timing");
+        var warn = C.WarningSeconds;
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderFloat("Show ahead by (s)", ref warn, 1f, 12f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
+        HelpMarker("How early the call appears before the mit time. Per-line leads override this.");
+        var hold = C.HoldSeconds;
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderFloat("Hold after (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
+        HelpMarker("How long the call stays up after its time passes.");
 
         SeparatorText("Size (crisp font, in pixels)");
         var callPx = C.OverlayFontSizePx;
@@ -1010,7 +1049,13 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.SliderFloat("Call text size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
         var upPx = C.UpcomingFontSizePx;
         ImGui.SetNextItemWidth(220f);
-        if (ImGui.SliderFloat("Upcoming text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+        if (ImGui.SliderFloat("Timeline text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+        if (C.ShowAbilityIcon)
+        {
+            var iconScale = C.IconScale;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
+        }
 
         SeparatorText("Text");
         var fmt = C.HeadlineFormat;
@@ -1024,12 +1069,7 @@ public class ConfigWindow : Window, IDisposable
         C.ShowMechanicLine = CfgCheck("Show mechanic name on a second line", C.ShowMechanicLine);
         C.ShowAbilityIcon = CfgCheck("Show the ability icon next to the call", C.ShowAbilityIcon);
         HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
-        if (C.ShowAbilityIcon)
-        {
-            var iconScale = C.IconScale;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
-        }
+        C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
         C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
 
         SeparatorText("Colors");
@@ -1040,11 +1080,22 @@ public class ConfigWindow : Window, IDisposable
         var mechCol = ColorToVec4(C.OverlayColorMechanic);
         if (ImGui.ColorEdit4("Mechanic line", ref mechCol)) { C.OverlayColorMechanic = Vec4ToColor(mechCol); C.Save(); }
         var upCol = ColorToVec4(C.OverlayColorUpcoming);
-        if (ImGui.ColorEdit4("Upcoming list", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
-        C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
+        if (ImGui.ColorEdit4("Timeline list", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
+        if (ImGui.SmallButton("Reset colors"))
+        {
+            C.OverlayColorImminent = 0xFF55FFFF; C.OverlayColorActive = 0xFF55FF55;
+            C.OverlayColorMechanic = 0xC0FFFFFF; C.OverlayColorUpcoming = 0xB0FFFFFF;
+            C.Save();
+        }
 
         SeparatorText("Countdown bar");
         C.ShowProgressBar = CfgCheck("Show countdown bar under the call", C.ShowProgressBar);
+        if (C.ShowProgressBar)
+        {
+            var barH = C.ProgressBarHeight;
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("Bar height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
+        }
         C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);
 
         SeparatorText("Background");
@@ -1053,6 +1104,7 @@ public class ConfigWindow : Window, IDisposable
         {
             var bg = ColorToVec4(C.BackgroundColor);
             if (ImGui.ColorEdit4("Background color", ref bg)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
+            ImGui.TextDisabled("Drag the alpha channel down for a translucent box.");
         }
 
         SeparatorText("Next-mits timeline (separate window)");
@@ -1125,24 +1177,62 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.TextDisabled("No extra voices found. Add more in Windows → Time & language → Speech.");
         }
 
+        // Advanced: paste any Edge voice id to use one outside the list.
+        if (C.TtsUseEdge && ImGui.TreeNode("More voices (advanced)"))
+        {
+            var custom = C.TtsCustomVoice;
+            ImGui.SetNextItemWidth(280f);
+            if (ImGui.InputTextWithHint("##customvoice", "e.g. en-US-AvaMultilingualNeural", ref custom, 64))
+            { C.TtsCustomVoice = custom; C.Save(); }
+            ImGui.TextDisabled("Overrides the picker above. Full list: the Edge / Azure neural voice catalog.");
+            if (!string.IsNullOrWhiteSpace(C.TtsCustomVoice) && ImGui.SmallButton("Use the picker instead"))
+            { C.TtsCustomVoice = ""; C.Save(); }
+            ImGui.TreePop();
+        }
+
         var rate = C.TtsRate;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderInt("Speech rate", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
+        ImGui.SetNextItemWidth(220f);
+        if (ImGui.SliderInt("Speed", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
         var vol = C.TtsVolume;
-        ImGui.SetNextItemWidth(200f);
-        if (ImGui.SliderInt("Speech volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
-        if (ImGui.Button("Test voice"))
-            _plugin.Audio.Speak("Reprisal", C.TtsRate, C.TtsVolume, C.TtsUseEdge,
-                C.TtsUseEdge ? C.TtsEdgeVoice : C.TtsVoice);
+        ImGui.SetNextItemWidth(220f);
+        if (ImGui.SliderInt("Volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
+
+        SeparatorText("What it says");
+        var mech = C.TtsSpeakMechanic;
+        if (ImGui.RadioButton("Speak the mit/action", !mech)) { C.TtsSpeakMechanic = false; C.Save(); }
+        ImGui.SameLine();
+        if (ImGui.RadioButton("Speak the mechanic", mech)) { C.TtsSpeakMechanic = true; C.Save(); }
+        HelpMarker("Default reads the action you press (e.g. \"Reprisal\"). Per-line you can override the exact "
+                   + "spoken text with the \"…\" button.");
+
+        var gap = C.TtsMinGapSeconds;
+        ImGui.SetNextItemWidth(220f);
+        if (ImGui.SliderFloat("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f")) { C.TtsMinGapSeconds = gap; C.Save(); }
+        HelpMarker("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
+
+        SeparatorText("Test");
+        ImGui.SetNextItemWidth(220f);
+        ImGui.InputTextWithHint("##testtext", "text to test…", ref _ttsTestText, 128);
+        ImGui.SameLine();
+        if (ImGui.Button("Speak"))
+        {
+            var t = string.IsNullOrWhiteSpace(_ttsTestText) ? "Reprisal" : _ttsTestText;
+            var voice = C.TtsUseEdge
+                ? (string.IsNullOrWhiteSpace(C.TtsCustomVoice) ? C.TtsEdgeVoice : C.TtsCustomVoice)
+                : C.TtsVoice;
+            _plugin.Audio.Speak(t, C.TtsRate, C.TtsVolume, C.TtsUseEdge, voice);
+        }
         if (C.TtsUseEdge)
         {
             ImGui.SameLine();
-            ImGui.TextDisabled("(first use of a voice downloads it; then it's instant)");
+            ImGui.TextDisabled("(first use of a voice fetches it, then it's instant)");
         }
 
-        ImGui.Separator();
+        ImGui.Spacing();
         ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"…\" button on each line).");
     }
+
+    private string _ttsTestText = "";
 
     // ---- per-line overrides popup ---------------------------------------
 
@@ -1213,7 +1303,7 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Checkbox("Play audio cue for this line", ref sound)) { line.Sound = sound; C.Save(); }
 
         var useColor = line.Color != 0;
-        if (ImGui.Checkbox("Custom text colour", ref useColor))
+        if (ImGui.Checkbox("Custom text color", ref useColor))
         {
             line.Color = useColor ? 0xFF55FFFF : 0u;
             C.Save();
@@ -1221,7 +1311,7 @@ public class ConfigWindow : Window, IDisposable
         if (line.Color != 0)
         {
             var col = ColorToVec4(line.Color);
-            if (ImGui.ColorEdit4("Colour", ref col)) { line.Color = Vec4ToColor(col); C.Save(); }
+            if (ImGui.ColorEdit4("Color", ref col)) { line.Color = Vec4ToColor(col); C.Save(); }
         }
 
         ImGui.EndPopup();

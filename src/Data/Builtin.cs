@@ -64,7 +64,7 @@ public static class Builtin
     };
 
     // Two baked lines are "the same call" when they share a time + mechanic, so a
-    // re-load recognises lines you already have (and may have edited).
+    // re-load recognizes lines you already have (and may have edited).
     public static bool SameCall(MitLine a, MitLine b)
         => MathF.Abs(a.Time - b.Time) < 0.75f
            && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);

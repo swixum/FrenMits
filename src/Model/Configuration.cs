@@ -59,6 +59,7 @@ public class Configuration : IPluginConfiguration
 
     // Countdown bar under the call.
     public bool ShowProgressBar { get; set; } = true;
+    public float ProgressBarHeight { get; set; } = 6f;
     public bool PulseWhenImminent { get; set; } = true;
     public bool ShowAbilityIcon { get; set; } = true;
     // Icon size relative to the call text height (1.0 = same height as the text).
@@ -86,6 +87,13 @@ public class Configuration : IPluginConfiguration
     // to a Windows voice if offline.
     public bool TtsUseEdge { get; set; } = true;
     public string TtsEdgeVoice { get; set; } = "en-US-AriaNeural";
+    // Optional override: any Edge voice id (e.g. "en-US-AvaMultilingualNeural").
+    // When set, used instead of the picker selection.
+    public string TtsCustomVoice { get; set; } = "";
+    // Speak the mechanic name instead of the action (unless a per-line override is set).
+    public bool TtsSpeakMechanic { get; set; }
+    // Minimum seconds between any two spoken cues (0 = no limit). Prevents pile-ups.
+    public float TtsMinGapSeconds { get; set; }
 
     // Overlay placement. When not locked it can be dragged.
     public bool OverlayLocked { get; set; }

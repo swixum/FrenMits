@@ -19,7 +19,7 @@ namespace FrenMits;
 // Everything is best-effort and fails silently if the platform refuses.
 public class Audio : IDisposable
 {
-    // Curated English Edge neural voices (the full catalogue is hundreds across
+    // Curated English Edge neural voices (the full catalog is hundreds across
     // languages; these are the useful ones for call-outs).
     public static readonly (string Id, string Label)[] EdgeVoices =
     {

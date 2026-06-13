@@ -29,7 +29,7 @@ the plugin off/on in `/xlplugins`, or use the reload button on the dev-plugins l
 ## 3. Test without a real pull
 
 - **Overlay look/placement:** `/fm test` (or the **Test** checkbox). A sample call
-  appears so you can size/colour/drag it. Unlock on the Display tab to move it.
+  appears so you can size/color/drag it. Unlock on the Display tab to move it.
 - **Audio:** Audio tab → pick a **Voice** (any installed Windows voice) → **Test voice**.
 - **Built-in mits:** Fights tab → pick the ultimate → **Your slot** → **Load mits**.
   Open the line table to confirm the timeline + icons populated.

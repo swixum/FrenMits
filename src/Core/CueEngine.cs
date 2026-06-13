@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace FrenMits;
@@ -10,6 +11,7 @@ public class CueEngine
     private readonly Audio _audio;
     private readonly HashSet<MitLine> _fired = new();
     private int _generation = -1;
+    private DateTime _lastSpoke = DateTime.MinValue;
 
     public CueEngine(Plugin plugin, Audio audio)
     {
@@ -51,13 +53,22 @@ public class CueEngine
 
     private void Fire(Configuration c, MitLine line)
     {
-        if (c.TtsEnabled)
-        {
-            var text = string.IsNullOrWhiteSpace(line.Tts)
-                ? (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : line.Action)
-                : line.Tts;
-            _audio.Speak(text, c.TtsRate, c.TtsVolume, c.TtsUseEdge,
-                c.TtsUseEdge ? c.TtsEdgeVoice : c.TtsVoice);
-        }
+        if (!c.TtsEnabled) return;
+
+        // Respect a minimum gap between spoken cues, if set.
+        if (c.TtsMinGapSeconds > 0f && (DateTime.UtcNow - _lastSpoke).TotalSeconds < c.TtsMinGapSeconds)
+            return;
+        _lastSpoke = DateTime.UtcNow;
+
+        // Per-line override wins; otherwise speak the action (or mechanic if chosen).
+        var fallback = c.TtsSpeakMechanic
+            ? (string.IsNullOrWhiteSpace(line.Mechanic) ? line.Action : line.Mechanic)
+            : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : line.Action);
+        var text = string.IsNullOrWhiteSpace(line.Tts) ? fallback : line.Tts;
+
+        var voice = c.TtsUseEdge
+            ? (string.IsNullOrWhiteSpace(c.TtsCustomVoice) ? c.TtsEdgeVoice : c.TtsCustomVoice)
+            : c.TtsVoice;
+        _audio.Speak(text, c.TtsRate, c.TtsVolume, c.TtsUseEdge, voice);
     }
 }
