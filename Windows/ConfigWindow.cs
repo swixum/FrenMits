@@ -59,6 +59,14 @@ public class ConfigWindow : Window, IDisposable
         return value;
     }
 
+    // This Dalamud ImGui binding has no SeparatorText; emulate it.
+    private static void SeparatorText(string text)
+    {
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextDisabled(text);
+    }
+
     private static void Dot(bool on, string label)
     {
         ImGui.TextColored(on ? ImGuiColors.HealerGreen : ImGuiColors.DalamudGrey, "●");
@@ -170,7 +178,7 @@ public class ConfigWindow : Window, IDisposable
     private void DrawBuiltinLoad(FightProfile fight)
     {
         var slots = Builtin.Slots(fight.TerritoryId);
-        ImGui.SeparatorText($"Built-in mits — {Builtin.Name(fight.TerritoryId)}");
+        SeparatorText($"Built-in mits — {Builtin.Name(fight.TerritoryId)}");
         ImGui.TextWrapped("One-click load of the baked timeline for your slot — every phase, matched to cactbot's "
                           + "timeline for accurate times + resync anchors. Tanks pick a tank slot, DPS your role slot, "
                           + "healers your job.");
@@ -209,7 +217,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SetNextItemWidth(300f);
         var names = C.Fights.Select(f => f.Enabled ? f.Name : f.Name + " (off)").ToArray();
         if (names.Length == 0) names = new[] { "<no fights>" };
-        ImGui.ListBox("##fightlist", ref _selectedFight, names, names.Length, 4);
+        ImGui.Combo("##fightlist", ref _selectedFight, names, names.Length);
 
         ImGui.SameLine();
         ImGui.BeginGroup();
@@ -405,7 +413,7 @@ public class ConfigWindow : Window, IDisposable
 
             foreach (var role in Enum.GetValues<JobRole>())
             {
-                ImGui.SeparatorText(role.ToString());
+                SeparatorText(role.ToString());
                 var first = true;
                 foreach (var abbr in Jobs.AbbreviationsForRole(role))
                 {
@@ -557,7 +565,7 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Button("Reset timer")) _plugin.Timer.Reset();
         ImGui.TextDisabled("Auto-starts on combat. Sync aligns it to a known mechanic (also /fm sync).");
 
-        ImGui.SeparatorText("Resync (cactbot-style)");
+        SeparatorText("Resync (cactbot-style)");
         C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
         HelpMarker("When a known boss ability begins casting, the timer snaps so that ability resolves on its scripted "
                    + "time. This corrects the drift between phases caused by kill speed, the same way cactbot keeps its "
@@ -588,7 +596,7 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawCaptureSection(FightProfile? fight)
     {
-        ImGui.SeparatorText("Build anchors from a pull (advanced)");
+        SeparatorText("Build anchors from a pull (advanced)");
         ImGui.TextWrapped("Public timelines only cover DMU through phase 3. To make phases 4-5 self-correct, record a clean "
                           + "pull: every boss cast is logged with the time it lands, then promote the phase-start casts to "
                           + "anchors. This is exactly how cactbot timelines are authored.");
@@ -665,14 +673,14 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawDisplayTab()
     {
-        ImGui.SeparatorText("Position");
+        SeparatorText("Position");
         C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
         ImGui.TextDisabled("Unlock to drag the call text anywhere, then lock it. Turn on Test mode to see it.");
         ImGui.SameLine();
         if (ImGui.Button("Reset to centre")) { C.OverlayPosition = new Vector2(0.5f, 0.35f); C.Save(); }
         C.TestMode = CfgCheck("Test mode (show a sample call so you can place/size it)", C.TestMode);
 
-        ImGui.SeparatorText("Size (crisp font, in pixels)");
+        SeparatorText("Size (crisp font, in pixels)");
         var callPx = C.OverlayFontSizePx;
         ImGui.SetNextItemWidth(220f);
         if (ImGui.SliderFloat("Call text size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
@@ -680,7 +688,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SetNextItemWidth(220f);
         if (ImGui.SliderFloat("Upcoming text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
 
-        ImGui.SeparatorText("Text");
+        SeparatorText("Text");
         var fmt = C.HeadlineFormat;
         ImGui.SetNextItemWidth(280f);
         if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.Save(); }
@@ -694,7 +702,7 @@ public class ConfigWindow : Window, IDisposable
         HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
         C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
 
-        ImGui.SeparatorText("Colors");
+        SeparatorText("Colors");
         var imminent = ColorToVec4(C.OverlayColorImminent);
         if (ImGui.ColorEdit4("Counting down", ref imminent)) { C.OverlayColorImminent = Vec4ToColor(imminent); C.Save(); }
         var active = ColorToVec4(C.OverlayColorActive);
@@ -705,11 +713,11 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.ColorEdit4("Upcoming list", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
         C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
 
-        ImGui.SeparatorText("Countdown bar");
+        SeparatorText("Countdown bar");
         C.ShowProgressBar = CfgCheck("Show countdown bar under the call", C.ShowProgressBar);
         C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);
 
-        ImGui.SeparatorText("Background");
+        SeparatorText("Background");
         C.ShowBackground = CfgCheck("Draw a background box", C.ShowBackground);
         if (C.ShowBackground)
         {
@@ -717,7 +725,7 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.ColorEdit4("Background color", ref bg)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
         }
 
-        ImGui.SeparatorText("Upcoming list");
+        SeparatorText("Upcoming list");
         C.ShowUpcoming = CfgCheck("Show upcoming list", C.ShowUpcoming);
         if (C.ShowUpcoming)
         {
@@ -735,7 +743,7 @@ public class ConfigWindow : Window, IDisposable
         C.AudioEnabled = CfgCheck("Enable audio cues", C.AudioEnabled);
         ImGui.TextDisabled("Plays when a call enters its warning window, once per pull, even if the overlay is hidden.");
 
-        ImGui.SeparatorText("Text-to-speech");
+        SeparatorText("Text-to-speech");
         C.TtsEnabled = CfgCheck("Speak the action (Windows TTS)", C.TtsEnabled);
         var rate = C.TtsRate;
         ImGui.SetNextItemWidth(200f);
@@ -745,7 +753,7 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.SliderInt("Speech volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
         if (ImGui.Button("Test voice")) _plugin.Audio.Speak("Reprisal", C.TtsRate, C.TtsVolume);
 
-        ImGui.SeparatorText("Beep");
+        SeparatorText("Beep");
         C.BeepEnabled = CfgCheck("Play a beep", C.BeepEnabled);
         var freq = C.BeepFrequency;
         ImGui.SetNextItemWidth(200f);
@@ -790,7 +798,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.Separator();
         }
 
-        ImGui.SeparatorText("Icon");
+        SeparatorText("Icon");
         var resolved = Icons.For(line);
         Icons.Draw(resolved, new Vector2(32, 32));
         ImGui.SameLine();
@@ -812,7 +820,7 @@ public class ConfigWindow : Window, IDisposable
             }
         }
 
-        ImGui.SeparatorText("Overrides (0 / empty = global)");
+        SeparatorText("Overrides (0 / empty = global)");
 
         var lead = line.LeadOverride;
         ImGui.SetNextItemWidth(120f);

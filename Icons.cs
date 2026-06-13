@@ -94,7 +94,7 @@ public static class Icons
         try
         {
             var tex = Service.TextureProvider.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrEmpty();
-            ImGui.Image(tex.ImGuiHandle, size);
+            ImGui.Image(tex.Handle, size);
         }
         catch
         {

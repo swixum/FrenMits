@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 
 namespace FrenMits;
@@ -38,8 +37,7 @@ public class SyncEngine
         foreach (var obj in Service.ObjectTable)
         {
             // Boss-presence anchor + capture (cast-free safety net).
-            if (obj is IBattleNpc npc && npc.NameId != 0 && npc.MaxHp > 0
-                && npc.BattleNpcKind == BattleNpcSubKind.Enemy && _seenBoss.Add(npc.NameId))
+            if (obj is IBattleNpc npc && npc.NameId != 0 && npc.MaxHp > 0 && _seenBoss.Add(npc.NameId))
             {
                 if (Recording)
                 {

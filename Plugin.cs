@@ -54,15 +54,10 @@ public sealed class Plugin : IDalamudPlugin
         {
             HelpMessage = "Open Fren Mits. /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer."
         });
-        Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand) { ShowInCommandListing = false });
+        Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand));
 
         try { _dtr = Service.DtrBar.Get("Fren Mits"); }
         catch (Exception ex) { Service.Log.Warning(ex, "FrenMits: DTR entry failed"); }
-
-        // Reset cleanly on a wipe (and when the duty ends) so the timeline is
-        // re-armed for the next pull without leaving the instance.
-        Service.DutyState.DutyWiped += OnDutyReset;
-        Service.DutyState.DutyCompleted += OnDutyReset;
 
         Service.PluginInterface.UiBuilder.Draw += DrawUi;
         Service.PluginInterface.UiBuilder.OpenConfigUi += OpenConfig;
@@ -70,11 +65,10 @@ public sealed class Plugin : IDalamudPlugin
         Service.Framework.Update += OnFrameworkUpdate;
     }
 
-    private void OnDutyReset(object? sender, ushort territory)
-    {
-        Timer.Reset();
-        Sync.Forget();
-    }
+    // Local player via the object table (index 0); IClientState.LocalPlayer was
+    // removed in this Dalamud build.
+    public static Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter? LocalPlayer
+        => Service.ObjectTable[0] as Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter;
 
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework _)
     {
@@ -143,7 +137,7 @@ public sealed class Plugin : IDalamudPlugin
         if (!string.Equals(Config.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase))
             return Config.JobSelection;
 
-        var job = Service.ClientState.LocalPlayer?.ClassJob.RowId;
+        var job = LocalPlayer?.ClassJob.RowId;
         return job is { } rowId ? Jobs.ByRowId(rowId)?.Abbreviation : null;
     }
 
@@ -159,8 +153,6 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        Service.DutyState.DutyWiped -= OnDutyReset;
-        Service.DutyState.DutyCompleted -= OnDutyReset;
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;
         Service.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfig;
