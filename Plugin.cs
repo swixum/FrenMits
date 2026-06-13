@@ -48,13 +48,6 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // Ship ready-to-fill profiles for the built-in ultimates on first launch
-        // so the plugin already targets the right encounters; the user just picks
-        // their slot and loads the baked mits.
-        if (Config.Fights.Count == 0)
-            foreach (var (territory, name, category) in Builtin.Fights)
-                Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = category });
-
         // v3: assign sidebar categories. Built-ins are ultimates; everything else
         // starts in "Other" and can be moved with the per-fight Category picker.
         if (Config.Version < 3)
@@ -65,6 +58,29 @@ public sealed class Plugin : IDalamudPlugin
             Config.Version = 3;
             Config.Save();
         }
+
+        // Migrate the old M12S placeholder zone (1320) to the real one (1327).
+        foreach (var f in Config.Fights)
+            if (f.TerritoryId == 1320)
+            {
+                f.TerritoryId = Builtin.M12sTerritory;
+                f.Category = "Savage";
+            }
+
+        // Auto-add any built-in fight the user hasn't been shown yet, so a newly
+        // shipped fight (e.g. a fresh savage) appears directly on its tab with no
+        // button to click. Tracked per-territory so a deleted built-in stays gone.
+        Config.SeededTerritories ??= new();
+        var seeded = false;
+        foreach (var (territory, name, category) in Builtin.Fights)
+        {
+            if (Config.SeededTerritories.Contains(territory)) continue;
+            Config.SeededTerritories.Add(territory);
+            if (Config.Fights.All(f => f.TerritoryId != territory))
+                Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = category });
+            seeded = true;
+        }
+        if (seeded) Config.Save();
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);

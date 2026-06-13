@@ -12,6 +12,10 @@ public class Configuration : IPluginConfiguration
 
     public List<FightProfile> Fights { get; set; } = new();
 
+    // Built-in fight territories already auto-added to the list, so a newly
+    // shipped built-in shows up directly (no button) while a deleted one stays gone.
+    public List<uint> SeededTerritories { get; set; } = new();
+
     // "Auto" follows your current job; otherwise a job abbreviation override.
     public string JobSelection { get; set; } = "Auto";
 
