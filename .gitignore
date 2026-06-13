@@ -4,3 +4,6 @@ obj/
 .vs/
 .idea/
 *.suo
+
+# Local-only authorship policy (never published)
+AUTHORSHIP.md

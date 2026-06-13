@@ -64,19 +64,3 @@ by hand from a sheet.
 | --- | --- |
 | Ultimate | Dancing Mad, Futures Rewritten |
 | Savage | M12S (Lindwurm) |
-
-## Project layout
-
-```text
-src/
-  Plugin.cs, Service.cs   plugin entry point + Dalamud service container
-  Core/                   combat timer, resync engine, audio cues, fonts
-  Data/                   baked fight timelines + registry, jobs, icons, importer
-  Model/                  configuration + data models
-  Windows/                config / overlay / timeline windows + theme
-docs/                     setup & testing notes
-scripts/                  one-shot GitHub setup helper
-repo.json                 Dalamud custom-repo manifest (served via GitHub Pages)
-```
-
-See [AUTHORSHIP.md](AUTHORSHIP.md) for the authorship policy.
