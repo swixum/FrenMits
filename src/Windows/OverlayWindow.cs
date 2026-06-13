@@ -200,7 +200,7 @@ public class OverlayWindow : Window
     // SetWindowFontScale if the handle is not ready yet. Returns an IDisposable.
     private IDisposable PushFont(float sizePx)
     {
-        var handle = _plugin.Fonts.Get(sizePx);
+        var handle = _plugin.Fonts.Get(sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
         if (handle is { Available: true })
             return handle.Push();
 
@@ -228,8 +228,7 @@ public class OverlayWindow : Window
         var spacing = ImGui.GetStyle().ItemSpacing.X;
         var textWidth = ImGui.CalcTextSize(text).X;
         var total = iconH + spacing + textWidth;
-        var avail = ImGui.GetContentRegionAvail().X;
-        var offset = (avail - total) * 0.5f;
+        var offset = AlignOffset(ImGui.GetContentRegionAvail().X, total);
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
         // Vertically center the (smaller) icon against the text line, then restore
@@ -250,11 +249,18 @@ public class OverlayWindow : Window
         ImGui.PopStyleColor();
     }
 
+    // Horizontal offset for the configured alignment (0 left, 1 center, 2 right).
+    private float AlignOffset(float avail, float contentWidth) => C.OverlayTextAlign switch
+    {
+        0 => 0f,
+        2 => MathF.Max(0f, avail - contentWidth),
+        _ => MathF.Max(0f, (avail - contentWidth) * 0.5f),
+    };
+
     private void CenteredText(string text, uint color)
     {
-        var avail = ImGui.GetContentRegionAvail().X;
         var textWidth = ImGui.CalcTextSize(text).X;
-        var offset = (avail - textWidth) * 0.5f;
+        var offset = AlignOffset(ImGui.GetContentRegionAvail().X, textWidth);
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
         if (C.TextShadow)

@@ -33,6 +33,10 @@ public class Configuration : IPluginConfiguration
     public float OverlayFontSizePx { get; set; } = 40f;     // crisp font size for the call
     public float UpcomingFontSizePx { get; set; } = 20f;    // crisp font size for upcoming list
     public float OverlayFontScale { get; set; } = 2.4f;     // fallback scale if font build is unavailable
+    public string OverlayFontFamily { get; set; } = "Default"; // "Default" or a Windows font name
+    public bool OverlayFontBold { get; set; }
+    public bool OverlayFontItalic { get; set; }
+    public int OverlayTextAlign { get; set; } = 1;          // 0 = left, 1 = center, 2 = right
     public uint OverlayColorImminent { get; set; } = 0xFF55FFFF; // ABGR (yellow)
     public uint OverlayColorActive { get; set; } = 0xFF55FF55;   // ABGR (green)
     public uint OverlayColorMechanic { get; set; } = 0xC0FFFFFF; // ABGR (white)

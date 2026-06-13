@@ -1122,6 +1122,26 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.SliderFloat("Hold after (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
         HelpMarker("How long the call stays up after its time passes.");
 
+        SeparatorText("Font");
+        var fonts = FontManager.FamilyNames;
+        var fIdx = Math.Max(0, Array.IndexOf(fonts, C.OverlayFontFamily));
+        ImGui.SetNextItemWidth(220f);
+        if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.OverlayFontFamily = fonts[fIdx]; C.Save(); }
+        var bold = C.OverlayFontBold;
+        if (ImGui.Checkbox("Bold", ref bold)) { C.OverlayFontBold = bold; C.Save(); }
+        ImGui.SameLine();
+        var italic = C.OverlayFontItalic;
+        if (ImGui.Checkbox("Italic", ref italic)) { C.OverlayFontItalic = italic; C.Save(); }
+        if (C.OverlayFontFamily == "Default" && (C.OverlayFontBold || C.OverlayFontItalic))
+        {
+            ImGui.SameLine();
+            ImGui.TextDisabled("(pick a font for bold/italic)");
+        }
+        var align = C.OverlayTextAlign;
+        ImGui.SetNextItemWidth(140f);
+        if (ImGui.Combo("Alignment", ref align, new[] { "Left", "Center", "Right" }, 3))
+        { C.OverlayTextAlign = align; C.Save(); }
+
         SeparatorText("Size (crisp font, in pixels)");
         var callPx = C.OverlayFontSizePx;
         ImGui.SetNextItemWidth(220f);

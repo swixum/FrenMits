@@ -166,7 +166,7 @@ public class TimelineWindow : Window
 
     private IDisposable PushFont(float sizePx)
     {
-        var handle = _plugin.Fonts.Get(sizePx);
+        var handle = _plugin.Fonts.Get(sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
         if (handle is { Available: true })
             return handle.Push();
         ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
