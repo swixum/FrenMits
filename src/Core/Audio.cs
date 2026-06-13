@@ -70,11 +70,11 @@ public class Audio : IDisposable
             {
                 try
                 {
-                    var wav = GetEdgeWav(t, v, rate, volume);
-                    if (wav is { Length: > 44 })
+                    var mp3 = GetEdgeWav(t, v, rate, volume);
+                    if (mp3 is { Length: > 64 })
                     {
                         LastTtsStatus = $"Online OK — {v}";
-                        PlayWav(wav);
+                        PlayMp3(mp3);
                         return;
                     }
                     LastTtsStatus = $"Online: no audio [{_edgeDiag}] — using Windows voice";
@@ -242,7 +242,7 @@ public class Audio : IDisposable
         var configMsg =
             "X-Timestamp:" + ts + "\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n" +
             "{\"context\":{\"synthesis\":{\"audio\":{\"metadataoptions\":{\"sentenceBoundaryEnabled\":\"false\"," +
-            "\"wordBoundaryEnabled\":\"false\"},\"outputFormat\":\"riff-24khz-16bit-mono-pcm\"}}}}";
+            "\"wordBoundaryEnabled\":\"false\"},\"outputFormat\":\"audio-24khz-48kbitrate-mono-mp3\"}}}}";
         SendText(ws, configMsg, cts.Token);
 
         var ssml =
@@ -340,22 +340,29 @@ public class Audio : IDisposable
         .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
         .Replace("\"", "&quot;").Replace("'", "&apos;");
 
-    // ---- WAV playback (winmm) ---------------------------------------------
+    // ---- MP3 playback (Windows MCI) ---------------------------------------
 
-    private const uint SndMemory = 0x0004; // SND_MEMORY (synchronous without SND_ASYNC)
+    [DllImport("winmm.dll", CharSet = CharSet.Unicode)]
+    private static extern int mciSendString(string command, StringBuilder? returnValue, int returnLength, IntPtr callback);
 
-    [DllImport("winmm.dll", SetLastError = true)]
-    private static extern bool PlaySound(byte[] data, IntPtr hModule, uint flags);
-
-    // Plays a WAV buffer. Synchronous PlaySound on a worker task so the buffer stays
-    // alive for the call and the game thread isn't blocked.
-    private static void PlayWav(byte[] wav)
+    // Plays MP3 bytes by writing a temp file and driving the MCI mpegvideo device.
+    // Called from the background fetch task; "play ... wait" blocks for the clip's
+    // length only (off the game thread), then the temp file is cleaned up.
+    private static void PlayMp3(byte[] mp3)
     {
-        Task.Run(() =>
+        var alias = "fm" + Guid.NewGuid().ToString("N");
+        var path = Path.Combine(Path.GetTempPath(), alias + ".mp3");
+        try
         {
-            try { PlaySound(wav, IntPtr.Zero, SndMemory); }
-            catch { /* ignore */ }
-        });
+            File.WriteAllBytes(path, mp3);
+            if (mciSendString($"open \"{path}\" type mpegvideo alias {alias}", null, 0, IntPtr.Zero) == 0)
+            {
+                mciSendString($"play {alias} wait", null, 0, IntPtr.Zero);
+                mciSendString($"close {alias}", null, 0, IntPtr.Zero);
+            }
+        }
+        catch (Exception ex) { Service.Log.Warning(ex, "FrenMits: MP3 playback failed"); }
+        finally { try { File.Delete(path); } catch { /* ignore */ } }
     }
 
     public void Dispose()
