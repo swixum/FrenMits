@@ -5,6 +5,17 @@ mit sheet per encounter, pick your job/role, and get a center-screen warning (wi
 a 3-second lead by default) telling you exactly which mitigation to press. It only
 fires in the fight's territory and syncs to combat start. Every line is editable.
 
+## Install
+
+Add the custom plugin repository to Dalamud, then install **Fren Mits** from the
+plugin installer:
+
+```
+https://swixum.github.io/FrenMits/repo.json
+```
+
+(Dalamud → Settings → Experimental → Custom Plugin Repositories → paste → save.)
+
 ## Features
 
 - **Per-fight timelines** gated to a specific territory (zone). Only the fight you
@@ -42,3 +53,30 @@ fires in the fight's territory and syncs to combat start. Every line is editable
 - `/fm sync` — zero the timer to right now (align to a known mechanic).
 - `/fm reset` — clear the timer.
 - `/fm test` — toggle test mode (shows a sample call so you can place/size the overlay).
+
+## Supported fights
+
+Baked timelines (with resync anchors where available) ship for these encounters
+and auto-load when you enter the zone. Any other fight can be added and imported
+by hand from a sheet.
+
+| Category | Fight |
+| --- | --- |
+| Ultimate | Dancing Mad, Futures Rewritten |
+| Savage | M12S (Lindwurm) |
+
+## Project layout
+
+```text
+src/
+  Plugin.cs, Service.cs   plugin entry point + Dalamud service container
+  Core/                   combat timer, resync engine, audio cues, fonts
+  Data/                   baked fight timelines + registry, jobs, icons, importer
+  Model/                  configuration + data models
+  Windows/                config / overlay / timeline windows + theme
+docs/                     setup & testing notes
+scripts/                  one-shot GitHub setup helper
+repo.json                 Dalamud custom-repo manifest (served via GitHub Pages)
+```
+
+See [AUTHORSHIP.md](AUTHORSHIP.md) for the authorship policy.

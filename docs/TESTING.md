@@ -6,20 +6,20 @@ You need the **.NET 10 SDK** (your Dalamud runs on net10) and a Dalamud install 
 the default path. From the project folder:
 
 ```powershell
-dotnet build -c Debug
+dotnet build src -c Debug
 ```
 
-Output: `bin\x64\Debug\FrenMits.dll` with `FrenMits.json` next to it. If the build
-can't find Dalamud refs, pass the path explicitly:
+Output: `src\bin\x64\Debug\FrenMits.dll` with `FrenMits.json` next to it. If the
+build can't find Dalamud refs, pass the path explicitly:
 
 ```powershell
-dotnet build -c Debug -p:DalamudLibPath="$env:AppData\XIVLauncher\addon\Hooks\dev\"
+dotnet build src -c Debug -p:DalamudLibPath="$env:AppData\XIVLauncher\addon\Hooks\dev\"
 ```
 
 ## 2. Load it as a dev plugin
 
 1. In game: `/xlsettings` → **Experimental** → **Dev Plugin Locations** → **+** →
-   add the folder `...\FrenMits\bin\x64\Debug` (the folder, not the dll). Save.
+   add the folder `...\FrenMits\src\bin\x64\Debug` (the folder, not the dll). Save.
 2. `/xlplugins` → **Dev Tools** (or scroll the list) → enable **Fren Mits**.
 3. `/fm` opens the config.
 

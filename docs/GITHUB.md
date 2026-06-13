@@ -65,7 +65,7 @@ download URL in the workflow to `.../dalamud-distrib/stg/latest.zip`.
 ## 5. Personal updates without Pages (simplest)
 
 For solo use you don't even need Pages — point Dalamud **Dev Plugin Locations** at your
-local `bin\x64\Release`, `git pull` + `dotnet build`, and Dalamud hot-reloads. Repo
+local `src\bin\x64\Release`, `git pull` + `dotnet build src`, and Dalamud hot-reloads. Repo
 stays fully private, nothing published.
 
 ## Release checklist

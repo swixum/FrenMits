@@ -35,14 +35,14 @@ jobs:
           Expand-Archive -Path dalamud.zip -DestinationPath $dev -Force
 
       - name: Build
-        run: dotnet build -c Release --nologo
+        run: dotnet build src/FrenMits.csproj -c Release --nologo
 
       # Public Pages site: the plugin zip + the custom-repo manifest.
       - name: Assemble Pages site
         shell: pwsh
         run: |
-          $out = "bin\x64\Release"
-          if (-not (Test-Path "$out\FrenMits.dll")) { $out = "bin\Release" }
+          $out = "src\bin\x64\Release"
+          if (-not (Test-Path "$out\FrenMits.dll")) { $out = "src\bin\Release" }
           New-Item -ItemType Directory -Force -Path "site" | Out-Null
           Compress-Archive -Path "$out\FrenMits.dll","$out\FrenMits.json" -DestinationPath "site\FrenMits.zip" -Force
           Copy-Item "repo.json" "site\repo.json" -Force
