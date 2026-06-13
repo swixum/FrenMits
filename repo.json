@@ -9,12 +9,12 @@
     "DalamudApiLevel": 15,
     "AssemblyVersion": "1.0.0.0",
     "TestingAssemblyVersion": "1.0.0.0",
-    "RepoUrl": "https://github.com/YOUR_USERNAME/FrenMits",
+    "RepoUrl": "https://github.com/swixum/FrenMits",
     "ApplicableVersion": "any",
     "IconUrl": "",
-    "DownloadLinkInstall": "https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip",
-    "DownloadLinkUpdate": "https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip",
-    "DownloadLinkTesting": "https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip",
+    "DownloadLinkInstall": "https://swixum.github.io/FrenMits/FrenMits.zip",
+    "DownloadLinkUpdate": "https://swixum.github.io/FrenMits/FrenMits.zip",
+    "DownloadLinkTesting": "https://swixum.github.io/FrenMits/FrenMits.zip",
     "DownloadCount": 0
   }
 ]
