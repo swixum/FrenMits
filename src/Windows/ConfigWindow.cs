@@ -17,6 +17,10 @@ public class ConfigWindow : Window, IDisposable
 
     private int _selectedFight;
 
+    // In-progress m:ss edit for the line table (one row at a time).
+    private MitLine? _editTimeLine;
+    private string _editTimeBuf = "";
+
     // Left-sidebar navigation.
     private enum NavKind { Fights, Timer, Display, Audio }
     private NavKind _nav = NavKind.Fights;
@@ -676,10 +680,17 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.Checkbox("##on", ref on)) { line.Enabled = on; C.Save(); }
 
             ImGui.TableNextColumn();
-            var time = line.Time;
+            // Edit time as m:ss. Use a per-edit buffer so partial typing isn't lost.
+            var timeBuf = _editTimeLine == line ? _editTimeBuf : line.TimeText;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.InputFloat("##time", ref time, 0, 0, "%.1f")) { line.Time = time; C.Save(); }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip(line.TimeText);
+            if (ImGui.InputText("##time", ref timeBuf, 12)) _editTimeBuf = timeBuf;
+            if (ImGui.IsItemActivated()) { _editTimeLine = line; _editTimeBuf = line.TimeText; }
+            if (ImGui.IsItemDeactivatedAfterEdit())
+            {
+                if (SheetImport.TryParseTime(_editTimeBuf, out var sec)) { line.Time = sec; C.Save(); }
+                _editTimeLine = null;
+            }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds");
 
             ImGui.TableNextColumn();
             var mech = line.Mechanic;
