@@ -44,7 +44,10 @@ jobs:
           $out = "src\bin\x64\Release"
           if (-not (Test-Path "$out\FrenMits.dll")) { $out = "src\bin\Release" }
           New-Item -ItemType Directory -Force -Path "site" | Out-Null
-          Compress-Archive -Path "$out\FrenMits.dll","$out\FrenMits.json" -DestinationPath "site\FrenMits.zip" -Force
+          # Plugin + manifest + bundled NAudio assemblies (for online-voice playback).
+          $files = @("$out\FrenMits.dll", "$out\FrenMits.json")
+          $files += (Get-ChildItem "$out\NAudio*.dll" | ForEach-Object { $_.FullName })
+          Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
           Copy-Item "repo.json" "site\repo.json" -Force
 
       - name: Upload Pages artifact

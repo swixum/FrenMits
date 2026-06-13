@@ -12,18 +12,25 @@
     <OutputType>Library</OutputType>
     <!-- Bump these on each release; keep them equal to AssemblyVersion in
          repo.json AND FrenMits.json. -->
-    <Version>1.0.0.22</Version>
-    <AssemblyVersion>1.0.0.22</AssemblyVersion>
-    <FileVersion>1.0.0.22</FileVersion>
+    <Version>1.0.0.23</Version>
+    <AssemblyVersion>1.0.0.23</AssemblyVersion>
+    <FileVersion>1.0.0.23</FileVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <!-- true so the bundled NAudio assemblies land in the output (Dalamud refs
+         below use Private=false, so they stay out). -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <!-- Dalamud dev reference libraries. Override with -p:DalamudLibPath=... if your install differs. -->
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="FrenMits.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MP3 decode + playback for the online neural voices. Bundled into the zip. -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>

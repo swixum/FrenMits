@@ -340,51 +340,28 @@ public class Audio : IDisposable
         .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
         .Replace("\"", "&quot;").Replace("'", "&apos;");
 
-    // ---- MP3 playback (Windows MCI) ---------------------------------------
+    // ---- MP3 playback (NAudio) --------------------------------------------
 
-    [DllImport("winmm.dll", CharSet = CharSet.Unicode)]
-    private static extern int mciSendString(string command, StringBuilder? returnValue, int returnLength, IntPtr callback);
-
-    [DllImport("winmm.dll", CharSet = CharSet.Unicode)]
-    private static extern bool mciGetErrorString(int errorCode, StringBuilder errorText, int errorTextSize);
-
-    private static string MciError(int code)
-    {
-        var sb = new StringBuilder(256);
-        return mciGetErrorString(code, sb, sb.Capacity) && sb.Length > 0 ? sb.ToString() : $"code {code}";
-    }
-
-    // Plays MP3 bytes by writing a temp file and driving MCI. Tries the mpegvideo
-    // device, then the extension-inferred device. "play ... wait" blocks for the
-    // clip's length only (we're on the background fetch task), then cleans up.
+    // Decodes the MP3 (Windows ACM codec) and plays it through WaveOut. Runs on the
+    // background fetch task and blocks only for the clip's length, off the game
+    // thread. NAudio is bundled with the plugin.
     private void PlayMp3(byte[] mp3)
     {
-        var alias = "fm" + Guid.NewGuid().ToString("N");
-        var path = Path.Combine(Path.GetTempPath(), alias + ".mp3");
         try
         {
-            File.WriteAllBytes(path, mp3);
-
-            var open = mciSendString($"open \"{path}\" type mpegvideo alias {alias}", null, 0, IntPtr.Zero);
-            if (open != 0)
-                open = mciSendString($"open \"{path}\" alias {alias}", null, 0, IntPtr.Zero);
-            if (open != 0)
-            {
-                LastTtsStatus = $"Online OK but playback couldn't open MP3: {MciError(open)}";
-                return;
-            }
-
-            var play = mciSendString($"play {alias} wait", null, 0, IntPtr.Zero);
-            mciSendString($"close {alias}", null, 0, IntPtr.Zero);
-            if (play != 0)
-                LastTtsStatus = $"Online OK but playback failed: {MciError(play)}";
+            using var ms = new MemoryStream(mp3);
+            using var reader = new NAudio.Wave.Mp3FileReader(ms);
+            using var output = new NAudio.Wave.WaveOutEvent();
+            output.Init(reader);
+            output.Play();
+            while (output.PlaybackState == NAudio.Wave.PlaybackState.Playing)
+                Thread.Sleep(40);
         }
         catch (Exception ex)
         {
             LastTtsStatus = $"Online OK but playback error: {ex.Message}";
             Service.Log.Warning(ex, "FrenMits: MP3 playback failed");
         }
-        finally { try { File.Delete(path); } catch { /* ignore */ } }
     }
 
     public void Dispose()
