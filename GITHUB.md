@@ -70,6 +70,9 @@ stays fully private, nothing published.
 
 ## Release checklist
 
-- [ ] Bump `<Version>` in `FrenMits.csproj` **and** `AssemblyVersion` in `repo.json`
-      (they must match, or Dalamud won't see the update).
+Bump the version in **all three** places to the same value (Dalamud rejects the
+install if the zip manifest and repo manifest disagree):
+- [ ] `FrenMits.csproj` → `<Version>` / `<AssemblyVersion>` / `<FileVersion>`
+- [ ] `FrenMits.json` → `AssemblyVersion`
+- [ ] `repo.json` → `AssemblyVersion` (and `TestingAssemblyVersion`)
 - [ ] `git commit && git push` — the Pages deploy publishes the new build automatically.

@@ -10,8 +10,11 @@
     <AssemblyName>FrenMits</AssemblyName>
     <RootNamespace>FrenMits</RootNamespace>
     <OutputType>Library</OutputType>
-    <!-- Bump this on each release; it must match AssemblyVersion in repo.json. -->
+    <!-- Bump these on each release; keep them equal to AssemblyVersion in
+         repo.json AND FrenMits.json. -->
     <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
