@@ -20,6 +20,14 @@ public class FightProfile
 
     public List<MitLine> Lines { get; set; } = new();
 
+    // The built-in sheet slot last used for this fight (e.g. "D1", "WHM"). Drives
+    // the seamless auto-load when you enter the zone. Empty = infer from your job.
+    public string Slot { get; set; } = "";
+
+    // Set once the built-in timeline has been auto-loaded for this profile, so we
+    // only seed lines automatically the first time (later entries just top-up).
+    public bool AutoLoaded { get; set; }
+
     // Resync anchors: when one of these abilities is cast, the timer snaps so
     // the ability resolves at Time, correcting phase drift.
     public List<SyncPoint> SyncPoints { get; set; } = new();

@@ -235,12 +235,6 @@ public class ConfigWindow : Window, IDisposable
     private string _builtinMsg = "";
     private DateTime _builtinMsgAt = DateTime.MinValue;
 
-    // Two baked lines are "the same call" when they share a time + mechanic, so a
-    // re-load can recognise lines you've already got (and may have edited).
-    private static bool SameCall(MitLine a, MitLine b)
-        => MathF.Abs(a.Time - b.Time) < 0.75f
-           && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
-
     // True if your current lines differ from a fresh bake of this slot (added,
     // removed, or a changed action) — i.e. a Replace would throw away your work.
     private bool HasBuiltinEdits(FightProfile fight, string slot)
@@ -250,7 +244,7 @@ public class ConfigWindow : Window, IDisposable
         if (fight.Lines.Count != baked.Count) return true;
         foreach (var b in baked)
         {
-            var m = fight.Lines.FirstOrDefault(l => SameCall(l, b));
+            var m = fight.Lines.FirstOrDefault(l => Builtin.SameCall(l, b));
             if (m == null) return true;
             if (!string.Equals((m.Action ?? "").Trim(), (b.Action ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
                 return true;
@@ -262,14 +256,9 @@ public class ConfigWindow : Window, IDisposable
     // every existing (possibly edited) line untouched. Anchors are always refreshed.
     private void MergeBuiltin(FightProfile fight, string slot)
     {
-        var baked = Builtin.BuildLines(fight.TerritoryId, slot);
-        var added = 0;
-        foreach (var b in baked)
-            if (!fight.Lines.Any(l => SameCall(l, b))) { fight.Lines.Add(b); added++; }
-
-        fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
-        fight.SyncPoints = Builtin.SyncPoints(fight.TerritoryId);
-        fight.BossAnchors = Builtin.BossAnchors(fight.TerritoryId);
+        var added = Builtin.MergeInto(fight, slot);
+        fight.Slot = slot;
+        fight.AutoLoaded = true;
         C.DmuSlot = slot;
         C.Save();
         FlashBuiltin(added == 0 ? "Already up to date — no new lines." : $"Added {added} new line(s); your edits kept.");
@@ -280,6 +269,8 @@ public class ConfigWindow : Window, IDisposable
         fight.Lines = Builtin.BuildLines(fight.TerritoryId, slot);
         fight.SyncPoints = Builtin.SyncPoints(fight.TerritoryId);
         fight.BossAnchors = Builtin.BossAnchors(fight.TerritoryId);
+        fight.Slot = slot;
+        fight.AutoLoaded = true;
         C.DmuSlot = slot;
         C.Save();
         FlashBuiltin($"Replaced all lines with the {SlotLabel(slot)} sheet.");
@@ -293,10 +284,21 @@ public class ConfigWindow : Window, IDisposable
         SeparatorText($"Built-in mits — {Builtin.Name(fight.TerritoryId)}");
         ImGui.TextWrapped("Load the baked timeline for your slot — every phase, with accurate times + resync anchors. "
                           + "Tanks pick a tank slot, DPS your role slot, healers your job.");
+        // Reflect the fight's saved slot so the picker matches what auto-loads.
+        var savedIdx = Array.IndexOf(slots, fight.Slot);
+        if (savedIdx >= 0) _builtinSlot = savedIdx;
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
+
         var slotLabels = slots.Select(SlotLabel).ToArray();
         ImGui.SetNextItemWidth(160f);
-        ImGui.Combo("Your slot##builtin", ref _builtinSlot, slotLabels, slotLabels.Length);
+        if (ImGui.Combo("Your slot##builtin", ref _builtinSlot, slotLabels, slotLabels.Length))
+        {
+            // Persist immediately so entering the zone auto-loads this slot.
+            fight.Slot = slots[_builtinSlot];
+            C.Save();
+        }
+        ImGui.SameLine();
+        ImGui.TextDisabled("auto-loads when you enter the zone");
         var slot = slots[_builtinSlot];
 
         // Primary, non-destructive action: only add timeline lines you don't have.
