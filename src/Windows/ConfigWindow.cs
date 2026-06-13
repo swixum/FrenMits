@@ -1228,6 +1228,13 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled("(first use of a voice fetches it, then it's instant)");
         }
 
+        var status = _plugin.Audio.LastTtsStatus;
+        if (!string.IsNullOrEmpty(status))
+        {
+            var ok = status.StartsWith("Online OK") || status == "Windows voice";
+            ImGui.TextColored(ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, "Status: " + status);
+        }
+
         ImGui.Spacing();
         ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"…\" button on each line).");
     }

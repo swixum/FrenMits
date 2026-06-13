@@ -47,6 +47,10 @@ public class Audio : IDisposable
     private string _currentVoice = "";
     private List<string>? _voiceNames;
 
+    // Last TTS result, shown in the Audio tab so you can see if the online voice
+    // worked or fell back to Windows (and why).
+    public string LastTtsStatus { get; private set; } = "";
+
     // Small in-memory WAV cache so a repeated call-out (e.g. "Reprisal") is instant.
     private readonly Dictionary<string, byte[]> _edgeCache = new();
     private readonly LinkedList<string> _edgeOrder = new();
@@ -61,19 +65,31 @@ public class Audio : IDisposable
         if (useEdge)
         {
             var t = text;
+            var v = voice;
             Task.Run(() =>
             {
                 try
                 {
-                    var wav = GetEdgeWav(t, voice, rate, volume);
-                    if (wav != null) { PlayWav(wav); return; }
+                    var wav = GetEdgeWav(t, v, rate, volume);
+                    if (wav is { Length: > 44 })
+                    {
+                        LastTtsStatus = $"Online OK — {v}";
+                        PlayWav(wav);
+                        return;
+                    }
+                    LastTtsStatus = $"Online returned no audio — using Windows voice";
                 }
-                catch (Exception ex) { Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice"); }
+                catch (Exception ex)
+                {
+                    LastTtsStatus = $"Online failed: {ex.Message} — using Windows voice";
+                    Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
+                }
                 SpeakSapi(t, rate, volume, "");   // fallback
             });
             return;
         }
 
+        LastTtsStatus = "Windows voice";
         SpeakSapi(text, rate, volume, voice);
     }
 
@@ -196,9 +212,13 @@ public class Audio : IDisposable
         if (string.IsNullOrWhiteSpace(voice)) voice = "en-US-AriaNeural";
 
         using var ws = new ClientWebSocket();
-        ws.Options.SetRequestHeader("User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0");
-        ws.Options.SetRequestHeader("Origin", "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold");
+        try
+        {
+            ws.Options.SetRequestHeader("User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0");
+            ws.Options.SetRequestHeader("Origin", "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold");
+        }
+        catch { /* some runtimes restrict these headers; the endpoint still accepts the request */ }
 
         var url =
             "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1" +
