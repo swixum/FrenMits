@@ -1,9 +1,18 @@
-name: Build
+name: Build and deploy
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -28,18 +37,27 @@ jobs:
       - name: Build
         run: dotnet build -c Release --nologo
 
-      - name: Package
+      # Public Pages site: the plugin zip + the custom-repo manifest.
+      - name: Assemble Pages site
         shell: pwsh
         run: |
           $out = "bin\x64\Release"
           if (-not (Test-Path "$out\FrenMits.dll")) { $out = "bin\Release" }
-          New-Item -ItemType Directory -Force -Path "dist\FrenMits" | Out-Null
-          Copy-Item "$out\FrenMits.dll","$out\FrenMits.json" "dist\FrenMits" -Force
+          New-Item -ItemType Directory -Force -Path "site" | Out-Null
+          Compress-Archive -Path "$out\FrenMits.dll","$out\FrenMits.json" -DestinationPath "site\FrenMits.zip" -Force
+          Copy-Item "repo.json" "site\repo.json" -Force
 
-      # Download this from the run's Artifacts, unzip, and point Dalamud's
-      # Dev Plugin Locations at the FrenMits folder inside it.
-      - name: Upload plugin
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: FrenMits-plugin
-          path: dist/FrenMits
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
