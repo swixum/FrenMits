@@ -44,8 +44,27 @@ public class OverlayWindow : Window
 
         var viewport = ImGui.GetMainViewport();
         var pos = viewport.WorkPos + C.OverlayPosition * viewport.WorkSize;
-        ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
+        pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y)); // whole pixels = sharp text
+
+        // Locked: pin to the saved spot every frame (click-through HUD).
+        // Unlocked: place it once, then let you drag it freely; the drag is saved
+        // in Draw(). Forcing the position every frame is what blocked dragging.
+        if (C.OverlayLocked)
+        {
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
+            _applyPos = true; // re-apply once the moment we unlock / on reset
+        }
+        else if (_applyPos)
+        {
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
+            _applyPos = false;
+        }
     }
+
+    private bool _applyPos = true;
+
+    // Snap the overlay back to the saved position next frame (used by Reset).
+    public void RequestReposition() => _applyPos = true;
 
     public override void PostDraw()
     {
@@ -228,7 +247,7 @@ public class OverlayWindow : Window
         var total = lineH + spacing + textWidth;
         var avail = ImGui.GetContentRegionAvail().X;
         var offset = (avail - total) * 0.5f;
-        if (offset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + offset);
+        if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
         Icons.Draw(iconId, new Vector2(lineH, lineH));
         ImGui.SameLine(0, spacing);
@@ -248,7 +267,7 @@ public class OverlayWindow : Window
         var avail = ImGui.GetContentRegionAvail().X;
         var textWidth = ImGui.CalcTextSize(text).X;
         var offset = (avail - textWidth) * 0.5f;
-        if (offset > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + offset);
+        if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
         if (C.TextShadow)
         {

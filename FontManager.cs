@@ -1,40 +1,50 @@
 using System;
+using System.Collections.Generic;
 using Dalamud.Interface.ManagedFontAtlas;
 
 namespace FrenMits;
 
-// Builds crisp Dalamud font handles at arbitrary pixel sizes (SetWindowFontScale
-// just stretches the base font and looks soft when large). Rebuilds lazily when
-// a requested size changes.
+// Builds crisp Dalamud font handles at specific pixel sizes. Each size is built
+// once and cached, so the overlay's call / mechanic / upcoming text are all
+// sharp instead of being stretched from one base font (which looks blurry).
 public class FontManager : IDisposable
 {
-    private IFontHandle? _handle;
-    private float _builtSize = -1f;
+    private readonly Dictionary<int, IFontHandle> _handles = new();
 
     public IFontHandle? Get(float sizePx)
     {
-        sizePx = Math.Clamp(sizePx, 8f, 200f);
-        if (_handle == null || Math.Abs(_builtSize - sizePx) > 0.5f)
+        // Snap to a 2px grid so tiny size changes (and the 0.55x mechanic line)
+        // reuse a handle instead of building a new atlas for every fraction.
+        var key = (int)MathF.Round(Math.Clamp(sizePx, 8f, 160f) / 2f) * 2;
+        if (_handles.TryGetValue(key, out var existing))
+            return existing;
+
+        // Guard against runaway growth (e.g. dragging the size slider): once we
+        // have a lot of cached sizes, drop them and rebuild what's in use. Safe
+        // here because Get() runs before any handle is pushed for this frame.
+        if (_handles.Count >= 16)
         {
-            _handle?.Dispose();
-            _builtSize = sizePx;
-            try
-            {
-                _handle = Service.PluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(
-                    e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(sizePx)));
-            }
-            catch (Exception ex)
-            {
-                Service.Log.Warning(ex, "FrenMits: failed to build font handle");
-                _handle = null;
-            }
+            foreach (var h in _handles.Values) h.Dispose();
+            _handles.Clear();
         }
-        return _handle;
+
+        try
+        {
+            var handle = Service.PluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(key)));
+            _handles[key] = handle;
+            return handle;
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: failed to build font handle");
+            return null;
+        }
     }
 
     public void Dispose()
     {
-        _handle?.Dispose();
-        _handle = null;
+        foreach (var h in _handles.Values) h.Dispose();
+        _handles.Clear();
     }
 }
