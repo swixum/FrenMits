@@ -12,8 +12,9 @@ public class CombatTimer
 
     public bool Running => _startUtc.HasValue;
 
-    // Increments whenever the timeline restarts (pull / sync / reset) so cue
-    // tracking can tell one run from the next.
+    // Increments only on a genuine new run (pull / wipe / reset / manual sync) so
+    // cue tracking can tell one run from the next. Automatic resync does NOT bump
+    // it — otherwise an already-spoken cue would replay when the clock snaps.
     public int Generation { get; private set; }
 
     public float Elapsed => _startUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds : 0f;
@@ -37,8 +38,9 @@ public class CombatTimer
     // Zero the timer to the current moment (e.g. on the first mechanic).
     public void SyncNow() { _startUtc = DateTime.UtcNow; Generation++; }
 
-    // Force the timer to a specific elapsed value.
-    public void SetElapsed(float seconds) { _startUtc = DateTime.UtcNow.AddSeconds(-seconds); Generation++; }
+    // Force the timer to a specific elapsed value (automatic resync). Same run, so
+    // do NOT bump Generation — that would re-arm and replay recently-spoken cues.
+    public void SetElapsed(float seconds) { _startUtc = DateTime.UtcNow.AddSeconds(-seconds); }
 
     public void Reset()
     {
