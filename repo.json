@@ -4,7 +4,7 @@
     "Name": "Fren Mits",
     "InternalName": "FrenMits",
     "Punchline": "Fight-specific mitigation timeline with on-screen call-outs.",
-    "Description": "Import or use the baked mit timelines (DMU, FRU), pick your slot, and get a center-screen call telling you which mitigation to press, with icons, audio, and cactbot-style resync.",
+    "Description": "It's mits with frens.",
     "Tags": ["mitigation", "mit", "timeline", "ultimate", "savage"],
     "DalamudApiLevel": 15,
     "AssemblyVersion": "1.0.0.0",
