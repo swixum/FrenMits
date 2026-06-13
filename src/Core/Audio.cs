@@ -77,7 +77,7 @@ public class Audio : IDisposable
                         PlayWav(wav);
                         return;
                     }
-                    LastTtsStatus = $"Online returned no audio — using Windows voice";
+                    LastTtsStatus = $"Online: no audio [{_edgeDiag}] — using Windows voice";
                 }
                 catch (Exception ex)
                 {
@@ -209,9 +209,15 @@ public class Audio : IDisposable
     private const string EdgeToken = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
     private const string EdgeVersion = "1-143.0.3650.75";
 
-    private static byte[]? FetchEdge(string text, string voice, int rate, int volume)
+    // Diagnostic from the last fetch (server paths / close reason), shown when no
+    // audio comes back so we can see what the endpoint actually said.
+    private string _edgeDiag = "";
+
+    private byte[]? FetchEdge(string text, string voice, int rate, int volume)
     {
         if (string.IsNullOrWhiteSpace(voice)) voice = "en-US-AriaNeural";
+        var paths = new StringBuilder();
+        var lastText = "";
 
         using var ws = new ClientWebSocket();
         try
@@ -258,7 +264,12 @@ public class Audio : IDisposable
             do
             {
                 r = ws.ReceiveAsync(new ArraySegment<byte>(buf), cts.Token).GetAwaiter().GetResult();
-                if (r.MessageType == WebSocketMessageType.Close) { done = true; break; }
+                if (r.MessageType == WebSocketMessageType.Close)
+                {
+                    paths.Append($"close({r.CloseStatus}:{r.CloseStatusDescription}) ");
+                    done = true;
+                    break;
+                }
                 msgStream.Write(buf, 0, r.Count);
             }
             while (!r.EndOfMessage);
@@ -267,7 +278,12 @@ public class Audio : IDisposable
             var msg = msgStream.ToArray();
             if (r.MessageType == WebSocketMessageType.Text)
             {
-                if (Encoding.UTF8.GetString(msg).Contains("Path:turn.end")) done = true;
+                var s = Encoding.UTF8.GetString(msg);
+                var pi = s.IndexOf("Path:", StringComparison.Ordinal);
+                if (pi >= 0) paths.Append(s.Substring(pi + 5, Math.Min(20, s.Length - pi - 5)).Split('\r')[0]).Append(' ');
+                var bi = s.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+                if (bi >= 0 && bi + 4 < s.Length) lastText = s[(bi + 4)..];
+                if (s.Contains("Path:turn.end")) done = true;
             }
             else if (msg.Length > 2)
             {
@@ -282,6 +298,8 @@ public class Audio : IDisposable
         catch { /* ignore */ }
 
         var wav = audio.ToArray();
+        _edgeDiag = $"paths=[{paths.ToString().Trim()}] audio={wav.Length}B"
+                    + (lastText.Length > 0 ? $" msg={lastText[..Math.Min(120, lastText.Length)]}" : "");
         return wav.Length > 44 ? wav : null;
     }
 
