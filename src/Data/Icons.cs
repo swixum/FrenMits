@@ -101,4 +101,19 @@ public static class Icons
             ImGui.Dummy(size);
         }
     }
+
+    // A clickable icon (image button). Returns true when clicked. Falls back to an
+    // empty same-size button for ids with no icon.
+    public static bool Button(uint iconId, Vector2 size, string id)
+    {
+        try
+        {
+            var tex = Service.TextureProvider.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrEmpty();
+            return ImGui.ImageButton(id, tex.Handle, size);
+        }
+        catch
+        {
+            return ImGui.Button(id, size + new Vector2(8, 8));
+        }
+    }
 }

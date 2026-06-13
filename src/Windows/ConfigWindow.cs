@@ -1255,6 +1255,8 @@ public class ConfigWindow : Window, IDisposable
     // ---- per-line overrides popup ---------------------------------------
 
     private string _iconSearch = "";
+    private int _iconBrowseStart = 405; // action icons start around here
+    private const int IconPage = 64;
 
     private void DrawLineOptionsPopup(MitLine line)
     {
@@ -1282,24 +1284,60 @@ public class ConfigWindow : Window, IDisposable
 
         SeparatorText("Icon");
         var resolved = Icons.For(line);
-        Icons.Draw(resolved, new Vector2(32, 32));
+        Icons.Draw(resolved, new Vector2(40, 40));
         ImGui.SameLine();
-        ImGui.TextUnformatted(line.IconId != 0 ? "pinned" : (resolved != 0 ? "auto" : "none"));
+        ImGui.BeginGroup();
+        ImGui.TextUnformatted(line.IconId != 0 ? $"pinned (#{line.IconId})"
+            : (resolved != 0 ? "auto from action" : "none"));
+        if (ImGui.SmallButton("Use auto")) { line.IconId = 0; C.Save(); }
         ImGui.SameLine();
-        if (ImGui.SmallButton("Auto##icon")) { line.IconId = 0; C.Save(); }
         var iconId = (int)line.IconId;
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputInt("Icon id", ref iconId)) { line.IconId = (uint)Math.Max(0, iconId); C.Save(); }
-        ImGui.SetNextItemWidth(220f);
-        ImGui.InputTextWithHint("##iconsearch", "search action…", ref _iconSearch, 64);
+        ImGui.SetNextItemWidth(110f);
+        if (ImGui.InputInt("##iconid", ref iconId)) { line.IconId = (uint)Math.Max(0, iconId); C.Save(); }
+        ImGui.SameLine();
+        ImGui.TextDisabled("id");
+        ImGui.EndGroup();
+
+        // Search by action name -> clickable icon grid.
+        ImGui.SetNextItemWidth(240f);
+        ImGui.InputTextWithHint("##iconsearch", "search by action name…", ref _iconSearch, 64);
         if (!string.IsNullOrWhiteSpace(_iconSearch))
         {
-            foreach (var (name, ic) in Icons.Search(_iconSearch, 10))
+            var n = 0;
+            foreach (var (name, ic) in Icons.Search(_iconSearch, 40))
             {
-                Icons.Draw(ic, new Vector2(20, 20));
-                ImGui.SameLine();
-                if (ImGui.Selectable($"{name}##pick{ic}")) { line.IconId = ic; C.Save(); _iconSearch = ""; }
+                if (Icons.Button(ic, new Vector2(32, 32), $"##s{ic}_{n}")) { line.IconId = ic; C.Save(); }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{name}  (#{ic})");
+                if (++n % 8 != 0) ImGui.SameLine();
             }
+            ImGui.NewLine();
+        }
+
+        // Browse any icon by id (paged grid) — pick literally anything.
+        if (ImGui.TreeNode("Browse all icons"))
+        {
+            ImGui.SetNextItemWidth(120f);
+            ImGui.InputInt("Start id", ref _iconBrowseStart, 8, 64);
+            _iconBrowseStart = Math.Clamp(_iconBrowseStart, 0, 250000);
+            ImGui.SameLine();
+            if (ImGui.ArrowButton("##icoprev", ImGuiDir.Left)) _iconBrowseStart = Math.Max(0, _iconBrowseStart - IconPage);
+            ImGui.SameLine();
+            if (ImGui.ArrowButton("##iconext", ImGuiDir.Right)) _iconBrowseStart += IconPage;
+            ImGui.SameLine();
+            ImGui.TextDisabled($"{_iconBrowseStart}–{_iconBrowseStart + IconPage - 1}");
+
+            if (ImGui.BeginChild("##iconbrowse", new Vector2(0, 220), true))
+            {
+                for (var k = 0; k < IconPage; k++)
+                {
+                    var id = (uint)(_iconBrowseStart + k);
+                    if (Icons.Button(id, new Vector2(32, 32), $"##b{id}")) { line.IconId = id; C.Save(); }
+                    if (ImGui.IsItemHovered()) ImGui.SetTooltip($"#{id}");
+                    if ((k + 1) % 8 != 0) ImGui.SameLine();
+                }
+            }
+            ImGui.EndChild();
+            ImGui.TreePop();
         }
 
         SeparatorText("Overrides (0 / empty = global)");
