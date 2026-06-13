@@ -21,6 +21,10 @@ public class ConfigWindow : Window, IDisposable
     private MitLine? _editTimeLine;
     private string _editTimeBuf = "";
 
+    // Potion-timing fetch (top logs).
+    private System.Threading.Tasks.Task<PotionTimings.Result>? _potTask;
+    private PotionTimings.Result? _potResult;
+
     // Left-sidebar navigation.
     private enum NavKind { Fights, Timer, Display, Audio }
     private NavKind _nav = NavKind.Fights;
@@ -383,6 +387,8 @@ public class ConfigWindow : Window, IDisposable
                     ImGui.Separator();
                     DrawImportSection(fight);
                     ImGui.Spacing();
+                    DrawPotionsSection(fight);
+                    ImGui.Spacing();
                     DrawAdvancedFightSettings(fight);
                 }
                 ImGui.Unindent(10f);
@@ -600,6 +606,68 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled("Line times are seconds from the pull (one continuous timeline across all phases).");
         }
         return true;
+    }
+
+    // Fetch potion timings for the current job from top logs, then (only if you
+    // click Add) drop them in as lines for that job. Never automatic.
+    private void DrawPotionsSection(FightProfile fight)
+    {
+        SeparatorText("Potions (from top logs)");
+
+        var job = _plugin.ActiveJobAbbreviation();
+        var stat = PotionTimings.Stat(job);
+        if (string.IsNullOrEmpty(job) || string.IsNullOrEmpty(stat))
+        {
+            ImGui.TextDisabled("Pick your job (top of the sidebar) to fetch its potion timings.");
+            return;
+        }
+        if (PotionTimings.BossSlug(fight.TerritoryId) == null)
+        {
+            ImGui.TextDisabled("No top-log potion data for this fight.");
+            return;
+        }
+
+        ImGui.TextDisabled($"Pulls {stat} potion windows for {job} from top logs (raalm.com / Lorrgs).");
+
+        var fetching = _potTask is { IsCompleted: false };
+        if (fetching)
+        {
+            ImGui.TextDisabled("Fetching…");
+        }
+        else if (ImGui.Button("Fetch potion timings"))
+        {
+            _potResult = null;
+            _potTask = PotionTimings.FetchAsync(fight.TerritoryId, job);
+        }
+
+        if (_potTask is { IsCompleted: true } && _potResult == null)
+            _potResult = _potTask.Result;
+
+        if (_potResult is { } res)
+        {
+            ImGui.TextColored(res.Ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, res.Message);
+            if (res.Ok && res.Times.Count > 0)
+            {
+                ImGui.TextDisabled("Windows: " + string.Join(", ",
+                    res.Times.Select(t => $"{(int)t / 60}:{(int)t % 60:00}")));
+                if (ImGui.Button($"Add {res.Times.Count} potion line(s) for {job}"))
+                {
+                    var lines = new List<MitLine>(fight.Lines);
+                    foreach (var t in res.Times)
+                        lines.Add(new MitLine
+                        {
+                            Time = t,
+                            Mechanic = $"Potion ({stat})",
+                            Action = "Potion",
+                            Jobs = new List<string> { job },
+                            Enabled = true,
+                        });
+                    SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
+                    _potResult = null;
+                    _potTask = null;
+                }
+            }
+        }
     }
 
     // Rarely-touched zone + timing knobs, hidden behind a collapsing header.
