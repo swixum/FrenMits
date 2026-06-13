@@ -32,7 +32,10 @@ public class SyncEngine
         if ((!c.EnableSync && !Recording) || !_plugin.Timer.Running) return;
         if (_plugin.ActiveFight() is not { } fight) return;
 
-        var elapsed = _plugin.Timer.Elapsed + fight.TimerOffset;
+        // Work in the same clock the overlay reads (includes any door-boss phase
+        // offset), so anchors line up in both phases.
+        var elapsed = _plugin.ElapsedFor(fight);
+        var phaseOffset = _plugin.PhaseOffsetFor(fight);
 
         foreach (var obj in Service.ObjectTable)
         {
@@ -48,7 +51,7 @@ public class SyncEngine
                     foreach (var ba in fight.BossAnchors)
                         if (ba.NameId == npc.NameId)
                         {
-                            _plugin.Timer.SetElapsed(ba.Time - fight.TimerOffset);
+                            _plugin.Timer.SetElapsed(ba.Time - fight.TimerOffset - phaseOffset);
                             LastSync = $"[boss] {npc.Name} -> {ba.Time:0.0}s (was {elapsed:0.0})";
                             break;
                         }
@@ -81,7 +84,7 @@ public class SyncEngine
     {
         // Time until this cast resolves, straight from the cast bar.
         var timeToResolve = MathF.Max(0f, caster.TotalCastTime - caster.CurrentCastTime);
-        var elapsed = _plugin.Timer.Elapsed + fight.TimerOffset;
+        var elapsed = _plugin.ElapsedFor(fight);
 
         var predictedElapsed = elapsed + timeToResolve; // where the clock will be at resolve
 
@@ -108,8 +111,9 @@ public class SyncEngine
 
         if (best == null) return;
 
-        // Snap so that, timeToResolve from now, elapsed == best.Time.
-        var desiredElapsedNow = best.Time - timeToResolve - fight.TimerOffset;
+        // Snap so that, timeToResolve from now, ElapsedFor == best.Time. SetElapsed
+        // sets the raw timer, so subtract the per-fight + phase offsets back out.
+        var desiredElapsedNow = best.Time - timeToResolve - fight.TimerOffset - _plugin.PhaseOffsetFor(fight);
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
     }

@@ -9,9 +9,8 @@ public static class Builtin
 {
     public const ushort DmuTerritory = 1363;
     public const ushort FruTerritory = 1238;
-    // PLACEHOLDER zone id for M12S — confirm the real one (the Advanced section's
-    // "Use current zone (####)" shows it while you're in the instance) and swap it.
-    public const ushort M12sTerritory = 1320;
+    // M12S (AAC Heavyweight M4 Savage), per the cactbot r12s timeline.
+    public const ushort M12sTerritory = 1327;
 
     public static readonly (ushort Territory, string Name, string Category)[] Fights =
     {

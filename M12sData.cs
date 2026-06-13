@@ -71,9 +71,34 @@ public static class M12sData
         return list;
     }
 
-    // No public ability ids yet — the clock free-runs. Capture anchors from a pull
-    // (Timer tab) to make the phases self-correct.
-    public static List<SyncPoint> SyncPoints() => new();
+    // Resync anchors from the cactbot r12s timeline (Lindwurm casts). Phase 2 times
+    // are shifted by Phase2Offset to match the baked Phase 2 segment. When one of
+    // these abilities casts, the clock snaps so it resolves on time.
+    public static List<SyncPoint> SyncPoints() => new()
+    {
+        // ---- Phase 1 ----
+        new() { Ability = 0xB4D7, Time = 15.6f,  IsPhase = true,  Label = "P1 The Fixer" },
+        new() { Ability = 0xB49D, Time = 87.7f,  Label = "P1 Ravenous Reach" },
+        new() { Ability = 0xB4D7, Time = 107.3f, Label = "P1 The Fixer" },
+        new() { Ability = 0xB4C2, Time = 176.7f, Label = "P1 Constrictor" },
+        new() { Ability = 0xB9C6, Time = 188.2f, Label = "P1 Splattershed" },
+        new() { Ability = 0xB4A8, Time = 230.4f, Label = "P1 Venomous Scourge" },
+        new() { Ability = 0xB4D7, Time = 239.6f, Label = "P1 The Fixer" },
+        new() { Ability = 0xB49D, Time = 266.5f, Label = "P1 Ravenous Reach" },
+        new() { Ability = 0xB9C6, Time = 288.5f, Label = "P1 Splattershed" },
+        new() { Ability = 0xADC9, Time = 340.9f, Label = "P1 Slaughtershed" },
+
+        // ---- Phase 2 (cactbot time - 3000 + Phase2Offset) ----
+        new() { Ability = 0xB528, Time = 435.7f, IsPhase = true,  Label = "P2 Arcadia Aflame" },
+        new() { Ability = 0xB527, Time = 465.3f, Label = "P2 Snaking Kick" },
+        new() { Ability = 0xB4E4, Time = 547.8f, Label = "P2 Firefall Splash" },
+        new() { Ability = 0xB4EC, Time = 571.3f, Label = "P2 Reenactment" },
+        new() { Ability = 0xB4FB, Time = 610.0f, Label = "P2 Blood Mana" },
+        new() { Ability = 0xB528, Time = 655.8f, Label = "P2 Arcadia Aflame" },
+        new() { Ability = 0xB509, Time = 688.8f, Label = "P2 Idyllic Dream" },
+        new() { Ability = 0xB4F2, Time = 762.8f, Label = "P2 Lindwurm's Meteor" },
+        new() { Ability = 0xB4EC, Time = 855.7f, Label = "P2 Reenactment" },
+    };
 
     public static List<BossAnchor> BossAnchors() => new();
 }
