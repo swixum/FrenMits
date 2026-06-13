@@ -38,8 +38,26 @@ public class ConfigWindow : Window, IDisposable
 
     private DateTime _savedAt = DateTime.MinValue;
 
+    // Window-level theming (background, title, border) must be applied before the
+    // window begins, so it lives in PreDraw/PostDraw.
+    public override void PreDraw()
+    {
+        Theme.PushWindow();
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8f);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 1f);
+        ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 6f);
+        ImGui.PushStyleVar(ImGuiStyleVar.PopupRounding, 6f);
+    }
+
+    public override void PostDraw()
+    {
+        ImGui.PopStyleVar(4);
+        Theme.PopWindow();
+    }
+
     public override void Draw()
     {
+        Theme.PushWidgets();
         // Fatter scrollbars (easier to grab) + softer rounded controls.
         ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 18f);
         ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 9f);
@@ -68,24 +86,35 @@ public class ConfigWindow : Window, IDisposable
 
         DrawFooter();
         ImGui.PopStyleVar(4);
+        Theme.PopWidgets();
     }
 
     private void DrawFooter()
     {
         ImGui.Separator();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2E7D32);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF388E3C);
+        var justSaved = (DateTime.Now - _savedAt).TotalSeconds < 2;
+
+        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Good);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF5FC46A);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0xFF3FA44A);
         if (ImGui.Button("Save changes", new Vector2(150, 0)))
         {
             C.Save();
             _savedAt = DateTime.Now;
         }
-        ImGui.PopStyleColor(2);
+        ImGui.PopStyleColor(3);
+
         ImGui.SameLine();
-        if ((DateTime.Now - _savedAt).TotalSeconds < 2)
-            ImGui.TextColored(ImGuiColors.ParsedGreen, "Saved ✓");
+        if (justSaved)
+        {
+            ImGui.TextColored(ImGuiColors.ParsedGreen, "● saved");
+        }
         else
-            ImGui.TextDisabled("Edits also save automatically as you make them.");
+        {
+            ImGui.TextColored(ImGuiColors.DalamudYellow, "●");
+            ImGui.SameLine(0, 5);
+            ImGui.TextDisabled("autosaves as you edit");
+        }
     }
 
     // Config-bound checkbox: edits a local copy, saves on change, returns the new value.
@@ -95,12 +124,18 @@ public class ConfigWindow : Window, IDisposable
         return value;
     }
 
-    // This Dalamud ImGui binding has no SeparatorText; emulate it.
+    // Section header with a blue accent bar + uppercase label, matching the
+    // panel-based look of the reference UI.
     private static void SeparatorText(string text)
     {
         ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.TextDisabled(text);
+        var dl = ImGui.GetWindowDrawList();
+        var p = ImGui.GetCursorScreenPos();
+        var h = ImGui.GetTextLineHeight();
+        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(3, h), Theme.Accent, 2f);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
+        ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), text.ToUpperInvariant());
+        ImGui.Spacing();
     }
 
     private static void Dot(bool on, string label)
@@ -130,27 +165,39 @@ public class ConfigWindow : Window, IDisposable
         var job = _plugin.ActiveJobAbbreviation();
         var running = _plugin.Timer.Running;
 
-        ImGui.PushStyleColor(ImGuiCol.ChildBg, 0x22FFFFFF);
-        if (ImGui.BeginChild("##status", new Vector2(0, ImGui.GetTextLineHeightWithSpacing() + 12), true,
-                ImGuiWindowFlags.NoScrollbar))
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
+        var height = ImGui.GetTextLineHeightWithSpacing() * 2 + 16;
+        if (ImGui.BeginChild("##status", new Vector2(0, height), true, ImGuiWindowFlags.NoScrollbar))
         {
-            Dot(fight != null, fight != null ? $"In fight: {fight.Name}" : "No fight here");
-            ImGui.SameLine(0, 18);
-            Dot(job != null, $"Job: {job ?? "?"}");
-            ImGui.SameLine(0, 18);
-            Dot(running, running ? $"Timer: {_plugin.Timer.Elapsed:0.0}s" : "Timer: idle");
-            ImGui.SameLine(0, 18);
-            Dot(C.AudioEnabled, "Audio");
+            // Accent bar down the left edge of the panel.
+            var dl = ImGui.GetWindowDrawList();
+            var wp = ImGui.GetWindowPos();
+            dl.AddRectFilled(wp, wp + new Vector2(3, ImGui.GetWindowHeight()), Theme.Accent);
 
-            ImGui.SameLine();
-            var right = ImGui.GetWindowWidth() - 170;
-            if (right > 0) ImGui.SameLine(right);
+            // Title + the zone's fight (or a hint when there isn't one).
+            ImGui.TextUnformatted("Fren Mits");
+            ImGui.SameLine(0, 10);
+            ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f),
+                fight != null ? fight.Name : "no supported fight in this zone");
+
+            // Right-aligned quick actions.
+            var right = ImGui.GetWindowWidth() - 150;
+            if (right > 0) { ImGui.SameLine(); ImGui.SetCursorPosX(right); }
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Stopwatch)) _plugin.Timer.SyncNow();
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Sync timer to now (/fm sync)");
             ImGui.SameLine();
             var test = C.TestMode;
             if (ImGui.Checkbox("Test", ref test)) { C.TestMode = test; C.Save(); }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Show a sample call so you can place / size the overlay");
+
+            // Status dots on the second line.
+            Dot(job != null, $"Job: {job ?? "?"}");
+            ImGui.SameLine(0, 18);
+            Dot(running, running ? $"Timer: {_plugin.Timer.Elapsed:0.0}s" : "Timer: idle");
+            ImGui.SameLine(0, 18);
+            Dot(C.AudioEnabled, "Audio");
+            ImGui.SameLine(0, 18);
+            Dot(C.EnableSync, "Resync");
         }
         ImGui.EndChild();
         ImGui.PopStyleColor();
