@@ -77,7 +77,6 @@ public class ConfigWindow : Window, IDisposable
         ImGui.PushStyleVar(ImGuiStyleVar.GrabRounding, 4f);
 
         DrawStatusHeader();
-        DrawJobSelector();
         ImGui.Separator();
 
         // Content sits above a pinned footer: a left nav sidebar + the active page.
@@ -221,34 +220,18 @@ public class ConfigWindow : Window, IDisposable
         ImGui.PopStyleColor();
     }
 
-    // ---- Top: job / role selection ---------------------------------------
-
-    private void DrawJobSelector()
-    {
-        ImGui.TextUnformatted("Your job:");
-        ImGui.SameLine();
-
-        var options = new List<string> { "Auto (follow current job)" };
-        options.AddRange(Jobs.Abbreviations);
-        var currentIndex = C.JobSelection == "Auto"
-            ? 0
-            : Math.Max(0, Array.IndexOf(Jobs.Abbreviations, C.JobSelection) + 1);
-
-        ImGui.SetNextItemWidth(240f);
-        if (ImGui.Combo("##jobsel", ref currentIndex, options.ToArray(), options.Count))
-        {
-            C.JobSelection = currentIndex == 0 ? "Auto" : Jobs.Abbreviations[currentIndex - 1];
-            C.Save();
-        }
-
-        ImGui.SameLine();
-        var resolved = _plugin.ActiveJobAbbreviation();
-        ImGui.TextDisabled($"(active: {resolved ?? "?"})");
-        HelpMarker("Auto follows your current job. Lines only show for the jobs they target (or all). "
-                   + "Use this to preview another job's calls.");
-    }
-
     // ---- Left sidebar nav -------------------------------------------------
+
+    private string _expandFightId = "";
+
+    private static FontAwesomeIcon CategoryIcon(string cat) => cat switch
+    {
+        "Ultimate" => FontAwesomeIcon.Crown,
+        "Savage" => FontAwesomeIcon.Skull,
+        "Extreme" => FontAwesomeIcon.Fire,
+        "Raids" => FontAwesomeIcon.Users,
+        _ => FontAwesomeIcon.LayerGroup,
+    };
 
     private void DrawSidebar()
     {
@@ -256,7 +239,7 @@ public class ConfigWindow : Window, IDisposable
         foreach (var cat in Categories)
         {
             var count = C.Fights.Count(f => CategoryOf(f) == cat);
-            if (NavItem(cat, count, _nav == NavKind.Fights && _navCategory == cat))
+            if (NavItem(CategoryIcon(cat), cat, count, _nav == NavKind.Fights && _navCategory == cat))
             {
                 _nav = NavKind.Fights;
                 _navCategory = cat;
@@ -265,38 +248,79 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
-        if (NavItem("Timer", null, _nav == NavKind.Timer)) _nav = NavKind.Timer;
-        if (NavItem("Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
-        if (NavItem("Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
+        if (NavItem(FontAwesomeIcon.Stopwatch, "Timer", null, _nav == NavKind.Timer)) _nav = NavKind.Timer;
+        if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
+        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
+
+        DrawSidebarJob();
     }
 
     private static void SidebarHeading(string text)
     {
         ImGui.Spacing();
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextColored(new Vector4(0.45f, 0.48f, 0.54f, 1f), text);
         ImGui.Spacing();
     }
 
-    private bool NavItem(string label, int? count, bool selected)
+    private bool NavItem(FontAwesomeIcon icon, string label, int? count, bool selected)
     {
+        var startX = ImGui.GetCursorPosX();
+        var startY = ImGui.GetCursorPosY();
+
         if (selected)
         {
             ImGui.PushStyleColor(ImGuiCol.Header, 0x66F6823B);
             ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0x88F6823B);
         }
-        var clicked = ImGui.Selectable($"   {label}##nav-{label}", selected,
-            ImGuiSelectableFlags.None, new Vector2(0, 26));
+        var clicked = ImGui.Selectable($"##nav-{label}", selected, ImGuiSelectableFlags.None, new Vector2(0, 27));
         if (selected) ImGui.PopStyleColor(2);
+
+        var endX = ImGui.GetCursorPosX();
+        var endY = ImGui.GetCursorPosY();
+        var col = selected ? new Vector4(1f, 1f, 1f, 1f) : new Vector4(0.74f, 0.77f, 0.82f, 1f);
+
+        // Icon (icon font) + label drawn over the selectable row.
+        ImGui.SameLine();
+        ImGui.SetCursorPos(new Vector2(startX + 10, startY + 6));
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.TextColored(col, icon.ToIconString());
+        ImGui.SameLine();
+        ImGui.SetCursorPos(new Vector2(startX + 36, startY + 6));
+        ImGui.TextColored(col, label);
 
         if (count is { } n)
         {
-            ImGui.SameLine();
             var txt = n.ToString();
-            ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10);
+            ImGui.SameLine();
+            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10, startY + 6));
             ImGui.TextDisabled(txt);
         }
+
+        ImGui.SetCursorPos(new Vector2(endX, endY)); // resume normal flow below the row
         return clicked;
+    }
+
+    private void DrawSidebarJob()
+    {
+        ImGui.Spacing();
+        SidebarHeading("YOUR JOB");
+
+        var options = new List<string> { "Auto (current job)" };
+        options.AddRange(Jobs.Abbreviations);
+        var idx = C.JobSelection == "Auto"
+            ? 0
+            : Math.Max(0, Array.IndexOf(Jobs.Abbreviations, C.JobSelection) + 1);
+
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 12);
+        if (ImGui.Combo("##sbjob", ref idx, options.ToArray(), options.Count))
+        {
+            C.JobSelection = idx == 0 ? "Auto" : Jobs.Abbreviations[idx - 1];
+            C.Save();
+        }
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.TextDisabled($"active: {_plugin.ActiveJobAbbreviation() ?? "?"}");
     }
 
     private void DrawSelectedPage()
@@ -314,52 +338,67 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawFightCategoryPage(string category)
     {
-        var indexed = C.Fights.Select((f, i) => (f, i)).Where(x => CategoryOf(x.f) == category).ToList();
+        var fights = C.Fights.Where(f => CategoryOf(f) == category).ToList();
 
-        SeparatorText($"{category} — {indexed.Count} fight{(indexed.Count == 1 ? "" : "s")}");
+        SeparatorText($"{category} — {fights.Count} fight{(fights.Count == 1 ? "" : "s")}");
         DrawCategoryToolbar(category);
         ImGui.Spacing();
 
-        if (indexed.Count == 0)
+        if (fights.Count == 0)
+        {
             ImGui.TextDisabled("No fights here yet. Add one above, or load a preset.");
+            return;
+        }
 
-        foreach (var (f, i) in indexed)
-            DrawFightRow(f, i);
-
-        if (_selectedFight >= 0 && _selectedFight < C.Fights.Count
-            && CategoryOf(C.Fights[_selectedFight]) == category)
+        FightProfile? toDelete = null;
+        foreach (var fight in fights)
         {
-            var fight = C.Fights[_selectedFight];
-            ImGui.Separator();
-            if (DrawFightHeader(fight))
+            ImGui.PushID(fight.Id);
+
+            // Enable toggle + an expandable dropdown per fight.
+            var enabled = fight.Enabled;
+            if (ImGui.Checkbox("##en", ref enabled)) { fight.Enabled = enabled; C.Save(); }
+            ImGui.SameLine();
+
+            if (fight.Id == _expandFightId) { ImGui.SetNextItemOpen(true); _expandFightId = ""; }
+            var open = ImGui.CollapsingHeader($"{fight.Name}   ({fight.Lines.Count})###fh-{fight.Id}");
+
+            if (open)
             {
-                if (Builtin.Has(fight.TerritoryId)) { ImGui.Separator(); DrawBuiltinLoad(fight); }
-                ImGui.Separator();
-                DrawLineTable(fight);
-                ImGui.Separator();
-                DrawImportSection(fight);
+                ImGui.Indent(10f);
+                _selectedFight = C.Fights.IndexOf(fight); // drives the per-line options popup
+                if (!DrawFightEditor(fight))
+                {
+                    toDelete = fight;
+                }
+                else
+                {
+                    if (Builtin.Has(fight.TerritoryId)) { ImGui.Separator(); DrawBuiltinLoad(fight); }
+                    ImGui.Separator();
+                    DrawLineTable(fight);
+                    ImGui.Separator();
+                    DrawImportSection(fight);
+                    ImGui.Spacing();
+                    DrawAdvancedFightSettings(fight);
+                }
+                ImGui.Unindent(10f);
             }
+
+            ImGui.PopID();
         }
-        else if (indexed.Count > 0)
-        {
-            ImGui.Separator();
-            ImGui.TextDisabled("Select a fight above to edit it.");
-        }
+
+        if (toDelete != null) { C.Fights.Remove(toDelete); C.Save(); }
     }
 
     private void DrawCategoryToolbar(string category)
     {
         if (ImGui.Button("+ Add fight"))
-        {
-            C.Fights.Add(new FightProfile
+            AddFight(new FightProfile
             {
                 Name = "New fight",
                 TerritoryId = Service.ClientState.TerritoryType,
                 Category = category,
             });
-            _selectedFight = C.Fights.Count - 1;
-            C.Save();
-        }
         ImGui.SameLine();
         if (ImGui.Button("Paste fight")) ImportFightFromClipboard();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Import a fight shared via clipboard into this category.");
@@ -372,34 +411,18 @@ public class ConfigWindow : Window, IDisposable
                 if (C.Fights.Any(f => f.TerritoryId == territory)) continue;
                 ImGui.SameLine();
                 if (ImGui.Button($"+ {name}"))
-                {
-                    C.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = "Ultimate" });
-                    _selectedFight = C.Fights.Count - 1;
-                    C.Save();
-                }
+                    AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = "Ultimate" });
             }
         }
     }
 
-    private void DrawFightRow(FightProfile f, int index)
+    // Adds a fight and auto-expands its dropdown.
+    private void AddFight(FightProfile fight)
     {
-        ImGui.PushID(index);
-
-        var enabled = f.Enabled;
-        if (ImGui.Checkbox("##en", ref enabled)) { f.Enabled = enabled; C.Save(); }
-        ImGui.SameLine();
-
-        var selected = _selectedFight == index;
-        if (ImGui.Selectable($"{f.Name}##row", selected, ImGuiSelectableFlags.None,
-                new Vector2(ImGui.GetContentRegionAvail().X - 44, 0)))
-            _selectedFight = index;
-
-        ImGui.SameLine();
-        var badge = $"{f.Lines.Count}";
-        ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(badge).X - 8);
-        ImGui.TextDisabled(badge);
-
-        ImGui.PopID();
+        C.Fights.Add(fight);
+        _selectedFight = C.Fights.Count - 1;
+        _expandFightId = fight.Id;
+        C.Save();
     }
 
     private int _builtinSlot;
@@ -528,31 +551,19 @@ public class ConfigWindow : Window, IDisposable
         ImGui.EndPopup();
     }
 
-    // Returns false if the fight was deleted this frame (caller must stop drawing it).
-    private bool DrawFightHeader(FightProfile fight)
+    // The expanded editor for one fight. Returns false if it was deleted this
+    // frame (caller removes it and stops drawing). Category lives in the sidebar
+    // now; the rare zone/timing fields are tucked into an Advanced sub-section.
+    private bool DrawFightEditor(FightProfile fight)
     {
         var name = fight.Name;
-        ImGui.SetNextItemWidth(240f);
+        ImGui.SetNextItemWidth(260f);
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
 
         ImGui.SameLine();
-        var enabled = fight.Enabled;
-        if (ImGui.Checkbox("Enabled", ref enabled)) { fight.Enabled = enabled; C.Save(); }
-
-        ImGui.SameLine();
-        var catIdx = Math.Max(0, Array.IndexOf(Categories, CategoryOf(fight)));
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.Combo("Category", ref catIdx, Categories, Categories.Length))
-        {
-            fight.Category = Categories[catIdx];
-            _navCategory = fight.Category; // follow the fight to its new group
-            C.Save();
-        }
-
-        // Duplicate / delete this fight.
         if (ImGui.Button("Duplicate"))
         {
-            C.Fights.Add(new FightProfile
+            AddFight(new FightProfile
             {
                 Name = fight.Name + " copy",
                 TerritoryId = fight.TerritoryId,
@@ -562,44 +573,13 @@ public class ConfigWindow : Window, IDisposable
                 Slot = fight.Slot,
                 Lines = fight.Lines.Select(CloneLine).ToList(),
             });
-            _selectedFight = C.Fights.Count - 1;
-            C.Save();
         }
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3A3AC8);
-        if (ImGui.Button("Delete fight"))
-        {
-            var idx = C.Fights.IndexOf(fight);
-            if (idx >= 0)
-            {
-                C.Fights.RemoveAt(idx);
-                _selectedFight = -1;
-                C.Save();
-            }
-            ImGui.PopStyleColor(2);
-            return false;
-        }
+        var deleted = ImGui.Button("Delete fight");
         ImGui.PopStyleColor(2);
-
-        var territory = (int)fight.TerritoryId;
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputInt("Territory id", ref territory)) { fight.TerritoryId = (uint)Math.Max(0, territory); C.Save(); }
-
-        ImGui.SameLine();
-        if (ImGui.Button($"Use current zone ({Service.ClientState.TerritoryType})"))
-        {
-            fight.TerritoryId = Service.ClientState.TerritoryType;
-            C.Save();
-        }
-        var zoneName = TerritoryName(fight.TerritoryId);
-        if (!string.IsNullOrEmpty(zoneName)) { ImGui.SameLine(); ImGui.TextDisabled(zoneName); }
-
-        var offset = fight.TimerOffset;
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f")) { fight.TimerOffset = offset; C.Save(); }
-        ImGui.SameLine();
-        ImGui.TextDisabled("+ shifts every call earlier. /fm sync zeroes the live timer.");
+        if (deleted) return false;
 
         if (ImGui.Button("Export to clipboard")) ExportFight(fight);
         ImGui.SameLine();
@@ -617,10 +597,36 @@ public class ConfigWindow : Window, IDisposable
         {
             ImGui.TextDisabled("Line times are seconds from the pull (one continuous timeline across all phases).");
         }
-        HelpMarker("The timer starts at combat and resets automatically on a wipe or when the duty ends, "
-                   + "so it is ready for the next pull. Use a per-fight offset or /fm sync to align the sheet's "
-                   + "t=0 with your pull.");
         return true;
+    }
+
+    // Rarely-touched zone + timing knobs, hidden behind a collapsing header.
+    private void DrawAdvancedFightSettings(FightProfile fight)
+    {
+        if (!ImGui.CollapsingHeader("Advanced — zone & timing")) return;
+        ImGui.Indent(10f);
+
+        var territory = (int)fight.TerritoryId;
+        ImGui.SetNextItemWidth(120f);
+        if (ImGui.InputInt("Territory id", ref territory)) { fight.TerritoryId = (uint)Math.Max(0, territory); C.Save(); }
+        ImGui.SameLine();
+        if (ImGui.Button($"Use current zone ({Service.ClientState.TerritoryType})"))
+        {
+            fight.TerritoryId = Service.ClientState.TerritoryType;
+            C.Save();
+        }
+        var zoneName = TerritoryName(fight.TerritoryId);
+        if (!string.IsNullOrEmpty(zoneName)) { ImGui.SameLine(); ImGui.TextDisabled(zoneName); }
+
+        var offset = fight.TimerOffset;
+        ImGui.SetNextItemWidth(120f);
+        if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f")) { fight.TimerOffset = offset; C.Save(); }
+        ImGui.SameLine();
+        ImGui.TextDisabled("+ shifts every call earlier. /fm sync zeroes the live timer.");
+        HelpMarker("The timer auto-starts on combat and resets on a wipe / when the duty ends. Use the offset "
+                   + "or /fm sync to align the sheet's t=0 with your pull.");
+
+        ImGui.Unindent(10f);
     }
 
     // Reassign a fight's lines while keeping the active slot's saved copy in sync,
@@ -1222,11 +1228,9 @@ public class ConfigWindow : Window, IDisposable
             var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
             if (fight == null) return;
             fight.Id = Guid.NewGuid().ToString("N");
-            // Drop it into the category you're currently viewing.
+            // Drop it into the category you're currently viewing and expand it.
             if (_nav == NavKind.Fights) fight.Category = _navCategory;
-            C.Fights.Add(fight);
-            _selectedFight = C.Fights.Count - 1;
-            C.Save();
+            AddFight(fight);
         }
         catch (Exception ex)
         {
