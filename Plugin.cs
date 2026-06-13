@@ -87,8 +87,8 @@ public sealed class Plugin : IDalamudPlugin
 
     // Seamless auto-load: on entering a boss room we support, top up the fight's
     // lines with the latest baked timeline (adding only what's missing) and refresh
-    // the resync anchors — keeping every edit the user has made. No prompts.
-    private void OnTerritoryChanged(ushort territory) => AutoLoadForTerritory(territory);
+    // the resync anchors — keeping every edit the user has made. Silent, no prompts.
+    private void OnTerritoryChanged(uint territory) => AutoLoadForTerritory(territory);
 
     public void AutoLoadForTerritory(uint territory)
     {
@@ -102,7 +102,6 @@ public sealed class Plugin : IDalamudPlugin
         }
         if (!fight.Enabled) return;
 
-        var firstTime = !fight.AutoLoaded;
         var slot = !string.IsNullOrEmpty(fight.Slot)
             ? fight.Slot
             : Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
@@ -113,32 +112,8 @@ public sealed class Plugin : IDalamudPlugin
         Config.DmuSlot = slot;
         Config.Save();
 
-        // Tell the user once (first seed, or whenever new lines actually arrive).
-        if (firstTime || added > 0)
-        {
-            try
-            {
-                Service.ChatGui.Print($"[Fren Mits] {fight.Name}: loaded mits for "
-                    + $"{SlotDisplay(slot)}{(added > 0 && !firstTime ? $" (+{added} new)" : "")}.");
-            }
-            catch (Exception ex) { Service.Log.Warning(ex, "FrenMits: auto-load notice failed"); }
-        }
         Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {slot}, +{added} lines.");
     }
-
-    // Friendly slot name for chat (mirrors the config picker labels).
-    private static string SlotDisplay(string code) => code switch
-    {
-        "D1" or "M1" => "Melee 1",
-        "D2" or "M2" => "Melee 2",
-        "D3" or "R" => "Phys Ranged",
-        "D4" => "Caster",
-        "MT" => "Main Tank",
-        "OT" => "Off Tank",
-        "T1" => "Tank 1",
-        "T2" => "Tank 2",
-        _ => code,
-    };
 
     // Local player via the object table (index 0); IClientState.LocalPlayer was
     // removed in this Dalamud build.
