@@ -1,0 +1,79 @@
+// AUTO-GENERATED from the M12S (Lindwurm) mitigation sheet.
+// Tabs used: "Phase 1: Lindwurm" + "Phase 2: Lindwurm". The "Credits", "Dancing
+// Mad" and "Tank Mitigation (All Comps)" tabs are intentionally not baked in.
+//
+// M12S is a door boss: one instance, two sequential phases. The sheet times each
+// phase from its own start, so Phase 2 here is shifted by Phase2Offset to sit on
+// the single continuous clock the plugin runs from the pull. There are no public
+// ability ids for resync yet, so the clock free-runs; tune Phase2Offset (or use
+// /fm sync at the phase change) if Phase 2 drifts.
+using System;
+using System.Collections.Generic;
+
+namespace FrenMits;
+
+public static class M12sData
+{
+    public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4", "Extras" };
+
+    // Seconds from pull that Phase 2's 0:00 lands on (estimate — adjust to taste).
+    public const int Phase2Offset = 420;
+
+    public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions);
+
+    public static readonly Entry[] Timeline =
+    {
+        // ---- Phase 1: Lindwurm ----
+        new(16, "P1", "The Fixer", 0, new[]{"Reprisal","Party Mit","Plenary Indulgence","Collective Unconsious","Sacred Soil + Spreadlo","Zoe Shields + Kerachole","Feint","","Party Mit","Addle",""}),
+        new(44, "P1", "Mortal Slayer", 0, new[]{"","","","","Sacred Soil + Fey Illumination","Kerachole","","","","",""}),
+        new(88, "P1", "Ravenous Reach", 0, new[]{"Party Mit","Reprisal","Temperance + Divine Caress","Neutral Sect + Sun Sign","Expedient + Seraph + Seraphism","Holos + Panhaima + Philosophia","","Feint","","","Use Here!"}),
+        new(97, "P1", "Fourth-wall Fusion", 0, new[]{"Reprisal","Party Mit (DRK/GNB)","Liturgy of the Bell","Macrocosmos","Sacred Soil + Spreadlo (The Fixer)","Zoe Shields (The Fixer) + Kerachole","Feint","","Party Mit","Addle",""}),
+        new(108, "P1", "The Fixer", 0, new[]{"","Party Mit (WAR/PLD)","Plenary Indulgence","Collective Unconsious","","","","","","",""}),
+        new(188, "P1", "Splattershed", 0, new[]{"","Reprisal","","","Sacred Soil","Kerachole","","Feint","","",""}),
+        new(231, "P1", "Venomous Scourge", 0, new[]{"Reprisal","Party Mit (DRK/GNB)","","","Sacred Soil + Fey Illumination+ Spreadlo (The Fixer)","Panhaima + Kerachole + Zoe Shields (The Fixer)","Feint","","Party Mit","Addle",""}),
+        new(241, "P1", "The Fixer", 0, new[]{"","Party Mit (WAR/PLD)","Plenary Indulgence","Collective Unconsious","","","","","","",""}),
+        new(268, "P1", "Ravenous Reach", 0, new[]{"Party Mit","Reprisal","Temperance + Divine Caress","Neutral Sect + Sun Sign","Expedient + Seraph","Holos","","","","","Use Here!"}),
+        new(290, "P1", "Splattershed", 0, new[]{"Reprisal","","","","Sacred Soil","Kerachole","","Feint","","",""}),
+        new(315, "P1", "Mortal Slayer", 0, new[]{"","","","","Succor","Eukrasian Prognosis","","","","",""}),
+        new(342, "P1", "Slaughtershed I", 0, new[]{"","Reprisal","Plenary Indulgence","Collective Unconsious","Sacred Soil + Fey Illumination + Seraphism","Kerachole + Philosophia","Feint","","","Addle",""}),
+        new(371, "P1", "Slaughtershed II", 0, new[]{"Reprisal","Party Mit","Liturgy of the Bell","Macrocosmos","Sacred Soil + Spreadlo","Kerachole + Panhaima + Zoe Shields","","","Party Mit","",""}),
+        new(400, "P1", "Slaughtershed III", 0, new[]{"Party Mit","Reprisal","Plenary Indulgence + Temperance + Divine Caress","Collective Unconsious + Neutral Sect + Sun Sign","Sacred Soil + Expediant + Seraph","Kerachole + Holos","","Feint","","","Use Here!"}),
+
+        // ---- Phase 2: Lindwurm (+Phase2Offset) ----
+        new(437, "P2", "Arcadia Aflame", 0, new[]{"Reprisal","Party Mit","Plenary Indulgence","Collective Unconsious","Spreadlo + Sacred Soil","Holos + Kerachole","Feint","","Party Mit","Addle",""}),
+        new(460, "P2", "Mighty Magic / Top-tier Slam I", 0, new[]{"","","Temperance","Neutral Sect","Seraph + Expedient","Panhaima + Zoe Shields","","","","",""}),
+        new(481, "P2", "Mighty Magic / Top-tier Slam II", 0, new[]{"Party Mit","Reprisal","Divine Caress","Sun Sign","Fey Illumination + Seraph + Sacred Soil","Kerachole","","Feint","","","Use Here!"}),
+        new(548, "P2", "Firefall Splash", 0, new[]{"Reprisal","Party Mit","Liturgy of the Bell","Macrocosmos","Seraphism + Sacred Soil + Spreadlo","Philosophia + Holos + Kerachole","Feint","","Party Mit","Addle",""}),
+        new(581, "P2", "Reenactment", 0, new[]{"Party Mit","Reprisal","Plenary Indulgence + Temperance + Divine Caress","Collective Unconsious + Neutral Sect + Sun Sign","Expedient + Seraph + Sacred Soil","Zoe Shields + Panhaima + Kerachole","","Feint","","",""}),
+        new(622, "P2", "Blood Mana", 0, new[]{"","","","","Sacred Soil","Kerachole","","","","","Use Here!"}),
+        new(650, "P2", "Netherworld Near/Far", 0, new[]{"Reprisal","Party Mit (DRK/GNB)","Plenary Indulgence","Collective Unconsious","Sacred Soil","Kerachole","Feint","","Party Mit","Addle",""}),
+        new(658, "P2", "Arcadia Aflame", 0, new[]{"","Party Mit (WAR/PLD)","","","","","","","","",""}),
+        new(690, "P2", "Idyllic Dream", 0, new[]{"Party Mit","Reprisal","","","Fey Illumination (Use Early) + Spreadlo + Sacred Soil","Holos (Use Early) + Zoe Shields + Kerachole","","Feint","","",""}),
+        new(765, "P2", "Lindwurm's Meteor", 0, new[]{"Reprisal","Party Mit","Plenary Indulgence","Collective Unconsious","Sacred Soil","Kerachole","Feint","","Party Mit","Addle","MCH"}),
+        new(792, "P2", "Twisted Vision", 0, new[]{"Party Mit","","Everything","","","","Use Personals!","","","","RDM"}),
+        new(860, "P2", "Reenactment + Twisted Vision", 0, new[]{"Reprisal","Party Mit","","","Sacred Soil","Kerachole","","Feint","Party Mit","",""}),
+        new(893, "P2", "Idyllic Dream", 0, new[]{"Party Mit","Reprisal","Plenary Indulgence","Collective Unconsious","Sacred Soil","Kerachole","Feint","","","Addle","MCH"}),
+        new(936, "P2", "Arcadian Hell I", 0, new[]{"Reprisal","","Temperance","Neutral Sect","Expedient + Seraph + Fey Illumination + Sacred Soil","Holos","","","","","RDM"}),
+        new(952, "P2", "Arcadian Hell II", 0, new[]{"","Reprisal + Party Mit","Plenary Indulgence + Divine Caress","Collective Unconsious + Sun Sign","Spreadlo + Seraph + Sacred Soil","Zoe Shields + Panhaima + Kerachole","","Feint","Party Mit","",""}),
+    };
+
+    public static List<MitLine> BuildLines(string slot)
+    {
+        var idx = Array.IndexOf(Slots, slot);
+        var list = new List<MitLine>();
+        if (idx < 0) return list;
+        foreach (var e in Timeline)
+        {
+            var action = e.Actions[idx];
+            if (string.IsNullOrWhiteSpace(action)) continue;
+            list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action, Enabled = true });
+        }
+        return list;
+    }
+
+    // No public ability ids yet — the clock free-runs. Capture anchors from a pull
+    // (Timer tab) to make the phases self-correct.
+    public static List<SyncPoint> SyncPoints() => new();
+
+    public static List<BossAnchor> BossAnchors() => new();
+}

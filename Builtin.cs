@@ -9,31 +9,60 @@ public static class Builtin
 {
     public const ushort DmuTerritory = 1363;
     public const ushort FruTerritory = 1238;
+    // PLACEHOLDER zone id for M12S — confirm the real one (the Advanced section's
+    // "Use current zone (####)" shows it while you're in the instance) and swap it.
+    public const ushort M12sTerritory = 1320;
 
-    public static readonly (ushort Territory, string Name)[] Fights =
+    public static readonly (ushort Territory, string Name, string Category)[] Fights =
     {
-        (DmuTerritory, "Dancing Mad (Ultimate)"),
-        (FruTerritory, "Futures Rewritten (Ultimate)"),
+        (DmuTerritory, "Dancing Mad (Ultimate)", "Ultimate"),
+        (FruTerritory, "Futures Rewritten (Ultimate)", "Ultimate"),
+        (M12sTerritory, "M12S — Lindwurm", "Savage"),
     };
 
-    public static bool Has(uint territory) => territory is DmuTerritory or FruTerritory;
+    public static bool Has(uint territory) => territory is DmuTerritory or FruTerritory or M12sTerritory;
 
     public static string Name(uint territory) => territory switch
     {
         FruTerritory => "Futures Rewritten (Ultimate)",
+        M12sTerritory => "M12S — Lindwurm",
         _ => "Dancing Mad (Ultimate)"
     };
 
-    public static string[] Slots(uint territory) => territory == FruTerritory ? FruData.Slots : DmuData.Slots;
+    public static string Category(uint territory)
+    {
+        foreach (var f in Fights)
+            if (f.Territory == territory) return f.Category;
+        return "Other";
+    }
 
-    public static List<MitLine> BuildLines(uint territory, string slot) =>
-        territory == FruTerritory ? FruData.BuildLines(slot) : DmuData.BuildLines(slot);
+    public static string[] Slots(uint territory) => territory switch
+    {
+        FruTerritory => FruData.Slots,
+        M12sTerritory => M12sData.Slots,
+        _ => DmuData.Slots,
+    };
 
-    public static List<SyncPoint> SyncPoints(uint territory) =>
-        territory == FruTerritory ? FruData.SyncPoints() : DmuData.SyncPoints();
+    public static List<MitLine> BuildLines(uint territory, string slot) => territory switch
+    {
+        FruTerritory => FruData.BuildLines(slot),
+        M12sTerritory => M12sData.BuildLines(slot),
+        _ => DmuData.BuildLines(slot),
+    };
 
-    public static List<BossAnchor> BossAnchors(uint territory) =>
-        territory == FruTerritory ? FruData.BossAnchors() : DmuData.BossAnchors();
+    public static List<SyncPoint> SyncPoints(uint territory) => territory switch
+    {
+        FruTerritory => FruData.SyncPoints(),
+        M12sTerritory => M12sData.SyncPoints(),
+        _ => DmuData.SyncPoints(),
+    };
+
+    public static List<BossAnchor> BossAnchors(uint territory) => territory switch
+    {
+        FruTerritory => FruData.BossAnchors(),
+        M12sTerritory => M12sData.BossAnchors(),
+        _ => DmuData.BossAnchors(),
+    };
 
     // Two baked lines are "the same call" when they share a time + mechanic, so a
     // re-load recognises lines you already have (and may have edited).

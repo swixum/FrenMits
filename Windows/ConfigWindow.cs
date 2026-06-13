@@ -403,16 +403,14 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Button("Paste fight")) ImportFightFromClipboard();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Import a fight shared via clipboard into this category.");
 
-        // Quick presets for any built-in not added yet (they live under Ultimate).
-        if (category == "Ultimate")
+        // Quick presets: any built-in for THIS category that isn't added yet.
+        foreach (var (territory, name, cat) in Builtin.Fights)
         {
-            foreach (var (territory, name) in Builtin.Fights)
-            {
-                if (C.Fights.Any(f => f.TerritoryId == territory)) continue;
-                ImGui.SameLine();
-                if (ImGui.Button($"+ {name}"))
-                    AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = "Ultimate" });
-            }
+            if (cat != category) continue;
+            if (C.Fights.Any(f => f.TerritoryId == territory)) continue;
+            ImGui.SameLine();
+            if (ImGui.Button($"+ {name}"))
+                AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
         }
     }
 

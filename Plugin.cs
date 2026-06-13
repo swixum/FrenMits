@@ -51,8 +51,8 @@ public sealed class Plugin : IDalamudPlugin
         // so the plugin already targets the right encounters; the user just picks
         // their slot and loads the baked mits.
         if (Config.Fights.Count == 0)
-            foreach (var (territory, name) in Builtin.Fights)
-                Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = "Ultimate" });
+            foreach (var (territory, name, category) in Builtin.Fights)
+                Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = category });
 
         // v3: assign sidebar categories. Built-ins are ultimates; everything else
         // starts in "Other" and can be moved with the per-fight Category picker.
