@@ -732,13 +732,25 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.ColorEdit4("Background color", ref bg)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
         }
 
-        SeparatorText("Upcoming list");
-        C.ShowUpcoming = CfgCheck("Show upcoming list", C.ShowUpcoming);
+        SeparatorText("Next-mits timeline (separate window)");
+        C.ShowUpcoming = CfgCheck("Show the next-mits timeline window", C.ShowUpcoming);
+        ImGui.TextDisabled("The main call only shows the imminent mit; everything still coming up lists here.");
         if (C.ShowUpcoming)
         {
+            C.TimelineLocked = CfgCheck("Lock timeline (click-through)", C.TimelineLocked);
+            ImGui.SameLine();
+            if (ImGui.Button("Reset position"))
+            {
+                C.TimelinePosition = new Vector2(0.5f, 0.62f);
+                C.Save();
+                _plugin.TimelineWindow.RequestReposition();
+            }
+            ImGui.SameLine();
+            ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag the title bar to move)");
+
             var count = C.UpcomingCount;
             ImGui.SetNextItemWidth(120f);
-            if (ImGui.SliderInt("Upcoming lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
+            if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
             var look = C.UpcomingLookaheadSeconds;
             ImGui.SetNextItemWidth(160f);
             if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }

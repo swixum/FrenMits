@@ -33,13 +33,18 @@ public class Configuration : IPluginConfiguration
     public uint OverlayColorActive { get; set; } = 0xFF55FF55;   // ABGR (green)
     public uint OverlayColorMechanic { get; set; } = 0xC0FFFFFF; // ABGR (white)
     public uint OverlayColorUpcoming { get; set; } = 0xB0FFFFFF;
-    public bool ShowCountdownNumber { get; set; } = true;
+    public bool ShowCountdownNumber { get; set; } = false;
     public bool ShowUpcoming { get; set; } = true;
     public int UpcomingCount { get; set; } = 3;
     public float UpcomingLookaheadSeconds { get; set; } = 30f;
 
+    // The next-mits timeline lives in its own window with its own placement.
+    public bool TimelineLocked { get; set; }
+    public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);
+
     // Text templates. Placeholders: {action} {mechanic} {time} {count} {remaining}
-    public string HeadlineFormat { get; set; } = "{action}";
+    // Default mirrors the "Raidwide (3.3)" style: name + a one-decimal countdown.
+    public string HeadlineFormat { get; set; } = "{action} ({remaining})";
     public string ActiveSuffix { get; set; } = "  NOW";
     public bool ShowMechanicLine { get; set; } = true;
 

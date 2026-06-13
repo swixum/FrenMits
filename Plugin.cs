@@ -25,6 +25,7 @@ public sealed class Plugin : IDalamudPlugin
     public readonly WindowSystem Windows = new("FrenMits");
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
+    public TimelineWindow TimelineWindow { get; }
 
     private readonly IDtrBarEntry? _dtr;
 
@@ -34,6 +35,17 @@ public sealed class Plugin : IDalamudPlugin
 
         Config = Service.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Config.Fights ??= new();
+
+        // v2: split the upcoming list into its own timeline window and switch the
+        // main call to the clean "Raidwide (3.3)" countdown shown 3s ahead.
+        if (Config.Version < 2)
+        {
+            Config.HeadlineFormat = "{action} ({remaining})";
+            Config.ShowCountdownNumber = false;
+            Config.WarningSeconds = 3f;
+            Config.Version = 2;
+            Config.Save();
+        }
 
         // Ship ready-to-fill profiles for the built-in ultimates on first launch
         // so the plugin already targets the right encounters; the user just picks
@@ -46,9 +58,12 @@ public sealed class Plugin : IDalamudPlugin
         Sync = new SyncEngine(this);
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
+        TimelineWindow = new TimelineWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
+        Windows.AddWindow(TimelineWindow);
         OverlayWindow.IsOpen = true;
+        TimelineWindow.IsOpen = true;
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {

@@ -88,7 +88,6 @@ public class OverlayWindow : Window
         {
             DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds,
                 Icons.ResolveFromText("Reprisal"));
-            DrawUpcoming(new[] { "0:32  (+12s)  Addle", "0:48  (+28s)  Rampart" });
             return;
         }
 
@@ -117,23 +116,6 @@ public class OverlayWindow : Window
             var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
             var icon = C.ShowAbilityIcon ? Icons.For(call) : 0u;
             DrawCurrent(call.Mechanic, call.Action, MathF.Max(0f, remaining), remaining > 0f, call.Color, lead, icon);
-        }
-
-        if (C.ShowUpcoming)
-        {
-            var upcoming = lines
-                .Where(l => l.Time - elapsed > C.WarningSeconds
-                            && l.Time - elapsed <= C.UpcomingLookaheadSeconds
-                            && (current == null || l != current))
-                .OrderBy(l => l.Time)
-                .Take(Math.Max(0, C.UpcomingCount))
-                .Select(l =>
-                {
-                    var inSec = (int)MathF.Round(l.Time - elapsed);
-                    var label = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : l.Action;
-                    return $"{l.TimeText}  (+{inSec}s)  {label}";
-                });
-            DrawUpcoming(upcoming);
         }
     }
 
@@ -183,28 +165,28 @@ public class OverlayWindow : Window
         return a | (b << 16) | (g << 8) | r;
     }
 
-    private void DrawUpcoming(IEnumerable<string> entries)
-    {
-        using (PushFont(C.UpcomingFontSizePx))
-            foreach (var e in entries)
-                CenteredText(e, C.OverlayColorUpcoming);
-    }
-
     private string FormatHeadline(string mechanic, string action, float remaining, bool imminent)
     {
-        var time = TimeText(remaining);
+        var label = string.IsNullOrWhiteSpace(action) ? mechanic : action;
+
+        // Once we're at/after the call time, drop the countdown and show "NOW".
+        if (!imminent)
+            return label + C.ActiveSuffix;
+
+        // Counting down: clean "Raidwide (3.3)" style from the format template.
         var count = MathF.Ceiling(remaining).ToString("0");
         var text = C.HeadlineFormat
-            .Replace("{action}", string.IsNullOrWhiteSpace(action) ? mechanic : action)
+            .Replace("{action}", label)
             .Replace("{mechanic}", mechanic)
-            .Replace("{time}", time)
+            .Replace("{time}", TimeText(remaining))
             .Replace("{remaining}", remaining.ToString("0.0"))
             .Replace("{count}", count);
 
-        if (imminent && C.ShowCountdownNumber)
+        // Optional legacy append, only if the format itself has no number in it.
+        if (C.ShowCountdownNumber
+            && !C.HeadlineFormat.Contains("{remaining}")
+            && !C.HeadlineFormat.Contains("{count}"))
             text = $"{text}   {count}";
-        if (!imminent)
-            text += C.ActiveSuffix;
         return text;
     }
 
