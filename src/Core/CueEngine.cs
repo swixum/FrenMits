@@ -56,7 +56,8 @@ public class CueEngine
             var text = string.IsNullOrWhiteSpace(line.Tts)
                 ? (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : line.Action)
                 : line.Tts;
-            _audio.Speak(text, c.TtsRate, c.TtsVolume, c.TtsVoice);
+            _audio.Speak(text, c.TtsRate, c.TtsVolume, c.TtsUseEdge,
+                c.TtsUseEdge ? c.TtsEdgeVoice : c.TtsVoice);
         }
     }
 }

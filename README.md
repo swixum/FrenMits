@@ -12,7 +12,7 @@ synced to combat, fully editable.
 - 🔄 **Smart sync** — clock starts on the pull and resyncs on boss casts; your edits stay.
 - 👤 **Job/role aware** — each line targets specific jobs, so you only see your mits.
 - ⏱️ **Center countdown** — crisp font, custom colors & text, drop shadow, free placement.
-- 🔊 **Voice cues** — optional text-to-speech in any installed Windows voice.
+- 🔊 **Voice cues** — optional TTS with free online neural voices (Aria, Guy, Jenny…) or any Windows voice.
 - 📋 **Sheet import** — paste rows from Google Sheets / Excel and map the columns.
 - 🖼️ **Ability icons** — every call shows the real action icon.
 - 📤 **Share fights** — export/import a whole fight via the clipboard.

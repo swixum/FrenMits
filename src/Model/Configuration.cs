@@ -81,7 +81,11 @@ public class Configuration : IPluginConfiguration
     public bool TtsEnabled { get; set; } = true;
     public int TtsRate { get; set; } = 1;     // -10..10
     public int TtsVolume { get; set; } = 90;  // 0..100
-    public string TtsVoice { get; set; } = ""; // empty = system default voice
+    public string TtsVoice { get; set; } = ""; // SAPI voice (empty = system default)
+    // Online neural voices (Microsoft Edge "Read Aloud" — free, no key). Falls back
+    // to a Windows voice if offline.
+    public bool TtsUseEdge { get; set; } = true;
+    public string TtsEdgeVoice { get; set; } = "en-US-AriaNeural";
 
     // Overlay placement. When not locked it can be dragged.
     public bool OverlayLocked { get; set; }

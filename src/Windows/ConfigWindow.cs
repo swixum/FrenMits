@@ -1086,23 +1086,44 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("Plays when a call enters its warning window, once per pull, even if the overlay is hidden.");
 
         SeparatorText("Text-to-speech");
-        C.TtsEnabled = CfgCheck("Speak the action (Windows TTS)", C.TtsEnabled);
+        C.TtsEnabled = CfgCheck("Speak the action", C.TtsEnabled);
 
-        // Voice picker: every installed SAPI voice, default first. Female voices
-        // (e.g. Zira, Hazel) show up here when installed on the system.
-        var voices = new List<string> { "System default" };
-        voices.AddRange(_plugin.Audio.VoiceNames());
-        var voiceIndex = string.IsNullOrEmpty(C.TtsVoice)
-            ? 0
-            : Math.Max(0, voices.IndexOf(C.TtsVoice));
-        ImGui.SetNextItemWidth(280f);
-        if (ImGui.Combo("Voice", ref voiceIndex, voices.ToArray(), voices.Count))
+        // Engine: online neural (Edge) for the nice custom voices, or offline Windows.
+        var online = C.TtsUseEdge;
+        if (ImGui.RadioButton("Online neural voices", online)) { C.TtsUseEdge = true; C.Save(); }
+        ImGui.SameLine();
+        if (ImGui.RadioButton("Windows voices (offline)", !online)) { C.TtsUseEdge = false; C.Save(); }
+        HelpMarker("Online uses Microsoft Edge's free Read-Aloud voices (Aria, Guy, Jenny, …) — no key, "
+                   + "no install, needs internet; falls back to a Windows voice if offline. Windows uses the "
+                   + "voices installed on your PC.");
+
+        if (C.TtsUseEdge)
         {
-            C.TtsVoice = voiceIndex == 0 ? "" : voices[voiceIndex];
-            C.Save();
+            var ids = Audio.EdgeVoices.Select(v => v.Id).ToArray();
+            var labels = Audio.EdgeVoices.Select(v => v.Label).ToArray();
+            var idx = Math.Max(0, Array.IndexOf(ids, C.TtsEdgeVoice));
+            ImGui.SetNextItemWidth(280f);
+            if (ImGui.Combo("Voice##edge", ref idx, labels, labels.Length))
+            {
+                C.TtsEdgeVoice = ids[idx];
+                C.Save();
+            }
         }
-        if (voices.Count <= 1)
-            ImGui.TextDisabled("No extra voices found. Add more in Windows → Time & language → Speech.");
+        else
+        {
+            // Every installed SAPI voice; female voices (Zira, Hazel) appear if installed.
+            var voices = new List<string> { "System default" };
+            voices.AddRange(_plugin.Audio.VoiceNames());
+            var voiceIndex = string.IsNullOrEmpty(C.TtsVoice) ? 0 : Math.Max(0, voices.IndexOf(C.TtsVoice));
+            ImGui.SetNextItemWidth(280f);
+            if (ImGui.Combo("Voice##sapi", ref voiceIndex, voices.ToArray(), voices.Count))
+            {
+                C.TtsVoice = voiceIndex == 0 ? "" : voices[voiceIndex];
+                C.Save();
+            }
+            if (voices.Count <= 1)
+                ImGui.TextDisabled("No extra voices found. Add more in Windows → Time & language → Speech.");
+        }
 
         var rate = C.TtsRate;
         ImGui.SetNextItemWidth(200f);
@@ -1110,7 +1131,14 @@ public class ConfigWindow : Window, IDisposable
         var vol = C.TtsVolume;
         ImGui.SetNextItemWidth(200f);
         if (ImGui.SliderInt("Speech volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
-        if (ImGui.Button("Test voice")) _plugin.Audio.Speak("Reprisal", C.TtsRate, C.TtsVolume, C.TtsVoice);
+        if (ImGui.Button("Test voice"))
+            _plugin.Audio.Speak("Reprisal", C.TtsRate, C.TtsVolume, C.TtsUseEdge,
+                C.TtsUseEdge ? C.TtsEdgeVoice : C.TtsVoice);
+        if (C.TtsUseEdge)
+        {
+            ImGui.SameLine();
+            ImGui.TextDisabled("(first use of a voice downloads it; then it's instant)");
+        }
 
         ImGui.Separator();
         ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"…\" button on each line).");
