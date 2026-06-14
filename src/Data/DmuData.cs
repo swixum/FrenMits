@@ -112,6 +112,32 @@ public static class DmuData
                 Label = $"{e.Phase} {e.Mechanic}"
             });
         }
+
+        // Phase 4 anchors captured from a real replay (no public timeline covers
+        // P4, so the sheet ships it un-synced). Times are pull-relative on the
+        // same clock as the timeline above — confirmed by the sheet's Grand Cross
+        // (789s) matching the captured 0xBB14 cast at 789.4s. The first is a phase
+        // anchor (wide window) to re-base the clock entering P4 after the cutscene;
+        // the rest fine-tune drift through the phase. 0xBB14 (Grand Cross) recurs,
+        // so it appears at each of its cast times and the nearest one matches.
+        points.AddRange(new[]
+        {
+            new SyncPoint { Ability = 0xC2DC, Time = 775f, IsPhase = true, Label = "P4 start (Kefka)" },
+            new SyncPoint { Ability = 0xBA9E, Time = 785f, Label = "P4 Kefka" },
+            new SyncPoint { Ability = 0xBB14, Time = 789f, Label = "P4 Grand Cross (Neo Exdeath)" },
+            new SyncPoint { Ability = 0xBB1F, Time = 794f, Label = "P4 Chaos" },
+            new SyncPoint { Ability = 0xBB14, Time = 804f, Label = "P4 Grand Cross (Neo Exdeath)" },
+            new SyncPoint { Ability = 0xBB1E, Time = 809f, Label = "P4 Chaos" },
+            new SyncPoint { Ability = 0xBB14, Time = 819f, Label = "P4 Grand Cross (Neo Exdeath)" },
+            new SyncPoint { Ability = 0xC554, Time = 821f, Label = "P4 Kefka" },
+            new SyncPoint { Ability = 0xC3A1, Time = 832f, Label = "P4 Ultima (Neo Exdeath)" },
+            new SyncPoint { Ability = 0xBAA4, Time = 840f, Label = "P4 Kefka" },
+            new SyncPoint { Ability = 0xC24A, Time = 858f, Label = "P4 Kefka" },
+            new SyncPoint { Ability = 0xBB22, Time = 861f, Label = "P4 Chaos" },
+            new SyncPoint { Ability = 0xBB25, Time = 884f, Label = "P4->P5 Chaos" },
+            new SyncPoint { Ability = 0xBABB, Time = 894f, Label = "P4->P5 Kefka" },
+        });
+
         return points;
     }
 
