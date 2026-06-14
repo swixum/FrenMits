@@ -21,6 +21,15 @@ public class CombatTimer
 
     public void Update()
     {
+        // Freeze the state machine during a cutscene. Phase-transition cutscenes
+        // (e.g. DMU) briefly drop combat; without this, the combat flicker would
+        // null the clock and the next phase would be mistaken for a fresh pull,
+        // replaying early-phase calls. We keep _wasInCombat untouched so resuming
+        // combat afterwards isn't seen as a new pull; the clock keeps running and
+        // resync re-aligns it. (Door bosses transition out of combat WITHOUT a
+        // cutscene, so they still reset correctly.)
+        if (Plugin.InCutscene) return;
+
         var inCombat = Service.Condition[ConditionFlag.InCombat];
         if (inCombat && !_wasInCombat)
         {
