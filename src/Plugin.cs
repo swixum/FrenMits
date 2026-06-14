@@ -83,6 +83,21 @@ public sealed class Plugin : IDalamudPlugin
         }
         if (seeded) Config.Save();
 
+        // Bake a default slot for any built-in that's still empty (freshly seeded,
+        // or seeded empty by an older version that only baked on zone-in), so its
+        // mits show up front instead of reading "(0)". Your own edits and any slot
+        // you've already loaded are left untouched.
+        var prebaked = false;
+        foreach (var fight in Config.Fights)
+        {
+            if (fight.Lines.Count == 0 && Builtin.Has(fight.TerritoryId))
+            {
+                Builtin.ApplySlot(fight, Builtin.DefaultSlotForJob(fight.TerritoryId, null));
+                prebaked = true;
+            }
+        }
+        if (prebaked) Config.Save();
+
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
         Replay = new ReplayEngine(this);
