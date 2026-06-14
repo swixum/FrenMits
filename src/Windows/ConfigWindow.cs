@@ -24,6 +24,7 @@ public class ConfigWindow : Window, IDisposable
     // Potion-timing fetch (top logs).
     private System.Threading.Tasks.Task<PotionTimings.Result>? _potTask;
     private PotionTimings.Result? _potResult;
+    private int _tankComp;
 
     // Left-sidebar navigation.
     private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors }
@@ -554,6 +555,8 @@ public class ConfigWindow : Window, IDisposable
                     ImGui.Spacing();
                     DrawPotionsSection(fight);
                     ImGui.Spacing();
+                    DrawTankSection(fight);
+                    ImGui.Spacing();
                     DrawAdvancedFightSettings(fight);
                 }
                 ImGui.Unindent(10f);
@@ -775,6 +778,48 @@ public class ConfigWindow : Window, IDisposable
 
     // Fetch potion timings for the current job from top logs, then (only if you
     // click Add) drop them in as lines for that job. Never automatic.
+    // Tank-buster mit plan from the Ikuya sheet: pick your pairing, add your job's
+    // lines. Shown only for fights that have tank-combo data (DMU).
+    private void DrawTankSection(FightProfile fight)
+    {
+        if (!TankMits.Has(fight.TerritoryId)) return;
+
+        SeparatorText("Tank busters (from Ikuya)");
+        ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
+
+        _tankComp = Math.Clamp(_tankComp, 0, TankMits.Comps.Length - 1);
+        ImGui.SetNextItemWidth(140f);
+        ImGui.Combo("Tank pairing", ref _tankComp, TankMits.Comps, TankMits.Comps.Length);
+
+        var comp = TankMits.Comps[_tankComp];
+        var myJob = _plugin.ActiveJobAbbreviation();
+        foreach (var j in TankMits.Jobs(comp))
+        {
+            var entries = TankMits.For(comp, j);
+            ImGui.SameLine();
+            var label = j == myJob ? $"Add {j} (yours)" : $"Add {j}";
+            if (ImGui.Button($"{label}##tank{j}"))
+            {
+                var merged = new List<MitLine>(fight.Lines);
+                // Replace any existing tank lines for this job, then add fresh.
+                merged.RemoveAll(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
+                                      && l.Jobs.Contains(j, StringComparer.OrdinalIgnoreCase));
+                foreach (var e in entries)
+                    merged.Add(new MitLine
+                    {
+                        Time = e.Time,
+                        Mechanic = $"Tank: {e.Mechanic}",
+                        Action = e.Action,
+                        Jobs = new List<string> { j },
+                        Enabled = true,
+                    });
+                SetFightLines(fight, merged.OrderBy(l => l.Time).ToList());
+                FlashBuiltin($"Added {entries.Length} {j} tank-buster line(s).");
+            }
+        }
+        ImGui.TextDisabled("Lines are tagged to the job, so they only show when you're on it.");
+    }
+
     private void DrawPotionsSection(FightProfile fight)
     {
         SeparatorText("Potions (from top logs)");
