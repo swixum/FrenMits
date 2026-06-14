@@ -48,7 +48,13 @@ jobs:
           $files = @("$out\FrenMits.dll", "$out\FrenMits.json")
           $files += (Get-ChildItem "$out\NAudio*.dll" | ForEach-Object { $_.FullName })
           Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
-          Copy-Item "repo.json" "site\repo.json" -Force
+          # Publish the manifest with the version stamped straight from the built
+          # plugin, so the in-game installer always sees the version it just got
+          # (repo.json's committed version can never go stale and block updates).
+          $ver = (Get-Content "$out\FrenMits.json" -Raw | ConvertFrom-Json).AssemblyVersion
+          (Get-Content "repo.json" -Raw) -replace '("(?:Testing)?AssemblyVersion"\s*:\s*")[\d.]+(")', "`${1}$ver`${2}" |
+            Set-Content "site\repo.json"
+          Write-Host "Published manifest version: $ver"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
