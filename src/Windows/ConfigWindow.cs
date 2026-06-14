@@ -736,11 +736,18 @@ public class ConfigWindow : Window, IDisposable
 
     // Fetch potion timings for the current job from top logs, then (only if you
     // click Add) drop them in as lines for that job. Never automatic.
+    // Tank slots across every fight's slot list (MT/OT, or FRU's T1/T2).
+    private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2" };
+    private static bool IsTankSlot(string? slot)
+        => slot != null && TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase);
+
     // Tank-buster mit plan from the Ikuya sheet: pick your pairing, add your job's
-    // lines. Shown only for fights that have tank-combo data (DMU).
+    // lines. Shown only for fights that have tank-combo data AND when you're set to
+    // a tank slot (MT/OT/T1/T2) — it's irrelevant on any other role.
     private void DrawTankSection(FightProfile fight)
     {
         if (!TankMits.Has(fight.TerritoryId)) return;
+        if (!IsTankSlot(fight.Slot)) return;
 
         SeparatorText("Tank busters (from Ikuya)");
         ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
