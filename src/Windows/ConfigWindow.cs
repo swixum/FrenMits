@@ -368,6 +368,7 @@ public class ConfigWindow : Window, IDisposable
     private static readonly string[] WhatsNew =
     {
         "Record & replay: capture a pull (Anchors tab), save it, and replay it at your desk to watch the overlay, cues and cutscene handling line up — no instance needed.",
+        "Dancing Mad: resync anchors now cover all five phases (cross-referenced from the cactbot timeline), so P3-P5 stop drifting and firing early.",
         "Cutscenes: the clock now re-arms and snaps to the new phase on the way out, and calls stay quiet until it lines up (no more stale mits right after a cutscene).",
         "Five more ultimates baked in: UCOB, UWU, TEA, DSR and TOP (timed from the Ikuya sheets against the cactbot timelines, with resync anchors).",
         "Tank-buster plans for DSR, TOP, UCOB and UWU under each fight's tank section.",

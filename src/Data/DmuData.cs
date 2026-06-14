@@ -1,6 +1,13 @@
 // AUTO-GENERATED from the Ikuya "Dancing Mad (Ultimate)" mit sheet
-// (Ikuya Kirishima) cross-referenced with a community dancing_mad timeline
-// for resync ability ids. Times are seconds from the pull (continuous).
+// (Ikuya Kirishima). Resync ability ids are cross-referenced from the cactbot
+// dancing_mad timeline (07-dt/ultimate): every sheet mechanic is matched to its
+// cactbot cast in fight order, gated to its phase's timeline offset, and stamped
+// with that cast's id at the sheet's (real, pull-relative) time. Mit times are
+// left as authored — the anchors snap the clock onto each cast, so the calls
+// stay aligned to the real timeline through all five phases. cactbot's absolute
+// times are NOT used directly (its phase transitions use forcejumps that inflate
+// later-phase times by 110s/225s/390s vs the live clock). Times = seconds from
+// the pull (continuous).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,11 +47,11 @@ public static class DmuData
         new(342, "P2", "Light of Judgement", 0xBABD, new[]{"","Reprisal + Party Mit","","","Spreadlo + Sacred Soil","Zoe Shields + Kerachole","Feint","","Party Mit","Addle",""}),
         new(371, "P2", "Wings of Destruction", 0xC24C, new[]{"Reprisal + Party Mit","","Plenary Indulgence","Collective Unconscious","Expedient + Fey Illumination + Sacred Soil","Panhaima + Kerachole","","Feint","","",""}),
         new(378, "P2", "Ultimate Embrace", 0xC24C, new[]{"","","","","","Holos","","","","",""}),
-        new(451, "P3", "Bowels of Agony (Chaos)", 0, new[]{"Reprisal","","","","Sacred Soil","Kerachole","Feint","","","Addle (Autos Before Raidwide)",""}),
-        new(470, "P3", "Stray Flames/Tsumani + Cyclone", 0, new[]{"Party Mit","Reprisal","Plenary Indulgence","Collective Unconscious","Spreadlo","Kerachole + Zoe Shields","","","","","✔"}),
+        new(451, "P3", "Bowels of Agony (Chaos)", 0xBAF2, new[]{"Reprisal","","","","Sacred Soil","Kerachole","Feint","","","Addle (Autos Before Raidwide)",""}),
+        new(470, "P3", "Stray Flames/Tsumani + Cyclone", 0xBAF8, new[]{"Party Mit","Reprisal","Plenary Indulgence","Collective Unconscious","Spreadlo","Kerachole + Zoe Shields","","","","","✔"}),
         new(496, "P3", "Stray Flames/Tsumani + Cyclone", 0xC3F7, new[]{"","Party Mit","","","Expediant + Seraph","Holos","","","","",""}),
-        new(508, "P3", "Ultima Blaster + Umbra Smash", 0, new[]{"Reprisal","","Temperance","Neutral Sect","Sacred Soil + Fey Illumination + Seraph","Kerachole + Panhaima","","Feint","Party Mit","",""}),
-        new(519, "P3", "Cyclone", 0, new[]{"","","Divine Caress","Sun Sign","","","","","","",""}),
+        new(508, "P3", "Ultima Blaster + Umbra Smash", 0xBB00, new[]{"Reprisal","","Temperance","Neutral Sect","Sacred Soil + Fey Illumination + Seraph","Kerachole + Panhaima","","Feint","Party Mit","",""}),
+        new(519, "P3", "Cyclone", 0xBAF8, new[]{"","","Divine Caress","Sun Sign","","","","","","",""}),
         new(530, "P3", "Ultima Blaster", 0, new[]{"","","","","","","","","","",""}),
         new(535, "P3", "Thunder III (Exdeath)", 0xBAE2, new[]{"","Reprisal","Assist Tanks","","","","Feint","","","Addle",""}),
         new(579, "P3", "Shocking Impact", 0xBAF4, new[]{"Reprisal + Party Mit","","Plenary Indulgence","Collective Unconscious","Spreadlo + Sacred Soil","Zoe Shields + Kerachole","","","","",""}),
@@ -53,28 +60,28 @@ public static class DmuData
         new(623, "P3", "Earthquakes", 0, new[]{"","","Temperance + Divine Caress","Neutral Sect + Sun Sign","Seraph + Fey Illumination","Panhaima","Feint","","","Addle",""}),
         new(657, "P3", "Earthquakes", 0, new[]{"","Reprisal","","","","","","","","",""}),
         new(677, "P3", "Shockwave", 0, new[]{"","","Plenary Indulgence","Collective Unconscious","Sacred Soil","Kerachole","","Feint","","",""}),
-        new(709, "P3", "Stomp-a-Mole", 0, new[]{"Reprisal","Party Mit","","","Expedient + Sacred Soil","Zoe Shields + Kerachole","Feint","","","Addle",""}),
-        new(759, "P4", "Grand Cross + Inferno/Tsunami", 0, new[]{"Party Mit","","Temperance + Plenary Indulgence","Neutral Sect + Collective Unconscious","Spreadlo + Sacred Soil","Kerachole + Holos","","","Party Mit","",""}),
-        new(774, "P4", "Grand Cross + Inferno/Tsunami", 0, new[]{"Reprisal","","Divine Caress","Sun Sign","Seraph + Fey Illumination","Zoe Shields + Panhaima","","Feint","","","✔"}),
-        new(789, "P4", "Grand Cross", 0, new[]{"","Reprisal","Plenary Indulgence","Collective Unconscious","Seraph","Kerachole","","","","",""}),
-        new(803, "P4", "Flood of Naught", 0, new[]{"","","Liturgy of the Bell","Macrocosmos","Sacred Soil + Seraphism","Kerachole + Philosophia","","","","",""}),
+        new(709, "P3", "Stomp-a-Mole", 0xBAF0, new[]{"Reprisal","Party Mit","","","Expedient + Sacred Soil","Zoe Shields + Kerachole","Feint","","","Addle",""}),
+        new(759, "P4", "Grand Cross + Inferno/Tsunami", 0xBB14, new[]{"Party Mit","","Temperance + Plenary Indulgence","Neutral Sect + Collective Unconscious","Spreadlo + Sacred Soil","Kerachole + Holos","","","Party Mit","",""}),
+        new(774, "P4", "Grand Cross + Inferno/Tsunami", 0xBB14, new[]{"Reprisal","","Divine Caress","Sun Sign","Seraph + Fey Illumination","Zoe Shields + Panhaima","","Feint","","","✔"}),
+        new(789, "P4", "Grand Cross", 0xBB14, new[]{"","Reprisal","Plenary Indulgence","Collective Unconscious","Seraph","Kerachole","","","","",""}),
+        new(803, "P4", "Flood of Naught", 0xC393, new[]{"","","Liturgy of the Bell","Macrocosmos","Sacred Soil + Seraphism","Kerachole + Philosophia","","","","",""}),
         new(807, "P4", "Death Bolt/Wave", 0, new[]{"","Party Mit","","","","","","","","",""}),
-        new(827, "P4", "Ultima Upsurge", 0, new[]{"Reprisal","","Plenary Indulgence","Collective Unconscious","Sacred Soil","Kerachole","Feint","","","Addle",""}),
-        new(833, "P4", "Death Bolt/Wave", 0, new[]{"","","","","","","","","","",""}),
-        new(867, "P4", "Ultima Upsurge", 0, new[]{"Party Mit","Reprisal","","","Sacred Soil","Kerachole","","","","",""}),
-        new(905, "P5", "Ultima Repeater + Fell Forces (3x)", 0, new[]{"Reprisal","Party Mit","Plenary Indulgence","Collective Unconscious","Spreadlo + Seraph + Sacred Soil","Zoe Shields + Holos + Kerachole","","","Party Mit","","✔"}),
-        new(922, "P5", "Chaotic Flood", 0, new[]{"","","Temperance","Neutral Sect","Expedient","Panhaima","","","","",""}),
-        new(935, "P5", "Maddening Orchestra", 0, new[]{"","Reprisal","Divine Caress","Sun Sign","Sacred Soil + Fey Illumination","Kerachole","","Feint","","",""}),
-        new(946, "P5", "Fell Forces (2x)", 0, new[]{"","","","","","","","","","",""}),
-        new(966, "P5", "Celestriad", 0, new[]{"Party Mit","","","","Sacred Soil","Kerachole","","","","",""}),
-        new(996, "P5", "Ultima Repeater + Fell Forces (2x)", 0, new[]{"Reprisal","Party Mit","Plenary Indulgence","Collective Unconscious","Sacred Soil","Kerachole","Feint","","Party Mit","Addle",""}),
-        new(1026, "P5", "Stray Entropy", 0, new[]{"","Reprisal","","","","","","","","",""}),
-        new(1036, "P5", "Maddening Orchestra", 0, new[]{"","","","","Sacred Soil","Kerachole","","","","",""}),
-        new(1046, "P5", "Fell Forces (3x)", 0, new[]{"","","","","","","","","","",""}),
-        new(1064, "P5", "Forsaken + Forsaken Bonds", 0, new[]{"Reprisal + Party Mit (GNB/DRK)","","Temperance","Neutral Sect","Spreadlo + Fey Illumination + Sacred Soil","Zoe Shields + Holos + Philosophia + Kerachole","","Feint","","","✔"}),
-        new(1072, "P5", "Forsaken + Forsaken Bonds", 0, new[]{"Party Mit (WAR/PLD)","","Liturgy of the Bell","Macrocosmos","Seraph + Expedient + Seraphism","Panhaima","","","","",""}),
-        new(1080, "P5", "Forsaken + Forsaken Bonds", 0, new[]{"","Reprisal + Party Mit (GNB/DRK)","Divine Caress + Plenary Indulgence","Sun Sign + Collective Unconscious","Seraph","","Feint","","Party Mit","Addle",""}),
-        new(1088, "P5", "Forsaken + Forsaken Bonds", 0, new[]{"","Party Mit (WAR/PLD)","","","Sacred Soil","Kerachole","","","","",""}),
+        new(827, "P4", "Ultima Upsurge", 0xC24A, new[]{"Reprisal","","Plenary Indulgence","Collective Unconscious","Sacred Soil","Kerachole","Feint","","","Addle",""}),
+        new(833, "P4", "Death Bolt/Wave", 0xBB1B, new[]{"","","","","","","","","","",""}),
+        new(867, "P4", "Ultima Upsurge", 0xC24A, new[]{"Party Mit","Reprisal","","","Sacred Soil","Kerachole","","","","",""}),
+        new(905, "P5", "Ultima Repeater + Fell Forces (3x)", 0xC654, new[]{"Reprisal","Party Mit","Plenary Indulgence","Collective Unconscious","Spreadlo + Seraph + Sacred Soil","Zoe Shields + Holos + Kerachole","","","Party Mit","","✔"}),
+        new(922, "P5", "Chaotic Flood", 0xC13F, new[]{"","","Temperance","Neutral Sect","Expedient","Panhaima","","","","",""}),
+        new(935, "P5", "Maddening Orchestra", 0xBB50, new[]{"","Reprisal","Divine Caress","Sun Sign","Sacred Soil + Fey Illumination","Kerachole","","Feint","","",""}),
+        new(946, "P5", "Fell Forces (2x)", 0xC654, new[]{"","","","","","","","","","",""}),
+        new(966, "P5", "Celestriad", 0xBB42, new[]{"Party Mit","","","","Sacred Soil","Kerachole","","","","",""}),
+        new(996, "P5", "Ultima Repeater + Fell Forces (2x)", 0xC654, new[]{"Reprisal","Party Mit","Plenary Indulgence","Collective Unconscious","Sacred Soil","Kerachole","Feint","","Party Mit","Addle",""}),
+        new(1026, "P5", "Stray Entropy", 0xBB3F, new[]{"","Reprisal","","","","","","","","",""}),
+        new(1036, "P5", "Maddening Orchestra", 0xBB51, new[]{"","","","","Sacred Soil","Kerachole","","","","",""}),
+        new(1046, "P5", "Fell Forces (3x)", 0xC654, new[]{"","","","","","","","","","",""}),
+        new(1064, "P5", "Forsaken + Forsaken Bonds", 0xBB35, new[]{"Reprisal + Party Mit (GNB/DRK)","","Temperance","Neutral Sect","Spreadlo + Fey Illumination + Sacred Soil","Zoe Shields + Holos + Philosophia + Kerachole","","Feint","","","✔"}),
+        new(1072, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"Party Mit (WAR/PLD)","","Liturgy of the Bell","Macrocosmos","Seraph + Expedient + Seraphism","Panhaima","","","","",""}),
+        new(1080, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"","Reprisal + Party Mit (GNB/DRK)","Divine Caress + Plenary Indulgence","Sun Sign + Collective Unconscious","Seraph","","Feint","","Party Mit","Addle",""}),
+        new(1088, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"","Party Mit (WAR/PLD)","","","Sacred Soil","Kerachole","","","","",""}),
     };
 
     // Build mit lines for a sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras).
@@ -112,31 +119,6 @@ public static class DmuData
                 Label = $"{e.Phase} {e.Mechanic}"
             });
         }
-
-        // Phase 4 anchors captured from a real replay (no public timeline covers
-        // P4, so the sheet ships it un-synced). Times are pull-relative on the
-        // same clock as the timeline above — confirmed by the sheet's Grand Cross
-        // (789s) matching the captured 0xBB14 cast at 789.4s. The first is a phase
-        // anchor (wide window) to re-base the clock entering P4 after the cutscene;
-        // the rest fine-tune drift through the phase. 0xBB14 (Grand Cross) recurs,
-        // so it appears at each of its cast times and the nearest one matches.
-        points.AddRange(new[]
-        {
-            new SyncPoint { Ability = 0xC2DC, Time = 775f, IsPhase = true, Label = "P4 start (Kefka)" },
-            new SyncPoint { Ability = 0xBA9E, Time = 785f, Label = "P4 Kefka" },
-            new SyncPoint { Ability = 0xBB14, Time = 789f, Label = "P4 Grand Cross (Neo Exdeath)" },
-            new SyncPoint { Ability = 0xBB1F, Time = 794f, Label = "P4 Chaos" },
-            new SyncPoint { Ability = 0xBB14, Time = 804f, Label = "P4 Grand Cross (Neo Exdeath)" },
-            new SyncPoint { Ability = 0xBB1E, Time = 809f, Label = "P4 Chaos" },
-            new SyncPoint { Ability = 0xBB14, Time = 819f, Label = "P4 Grand Cross (Neo Exdeath)" },
-            new SyncPoint { Ability = 0xC554, Time = 821f, Label = "P4 Kefka" },
-            new SyncPoint { Ability = 0xC3A1, Time = 832f, Label = "P4 Ultima (Neo Exdeath)" },
-            new SyncPoint { Ability = 0xBAA4, Time = 840f, Label = "P4 Kefka" },
-            new SyncPoint { Ability = 0xC24A, Time = 858f, Label = "P4 Kefka" },
-            new SyncPoint { Ability = 0xBB22, Time = 861f, Label = "P4 Chaos" },
-            new SyncPoint { Ability = 0xBB25, Time = 884f, Label = "P4->P5 Chaos" },
-            new SyncPoint { Ability = 0xBABB, Time = 894f, Label = "P4->P5 Kefka" },
-        });
 
         return points;
     }
