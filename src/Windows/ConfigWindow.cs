@@ -26,9 +26,10 @@ public class ConfigWindow : Window, IDisposable
     private PotionTimings.Result? _potResult;
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Timer, Display, Audio }
+    private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors }
     private NavKind _nav = NavKind.Home;
     private bool _openWhatsNew;
+    private int _anchorFight = -1; // target fight for anchor building
     private string _navCategory = "Ultimate";
 
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
@@ -272,6 +273,10 @@ public class ConfigWindow : Window, IDisposable
         if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
+        ImGui.Spacing();
+        SidebarHeading("TOOLS");
+        if (NavItem(FontAwesomeIcon.Anchor, "Anchors", null, _nav == NavKind.Anchors)) _nav = NavKind.Anchors;
+
         DrawSidebarJob();
     }
 
@@ -351,6 +356,7 @@ public class ConfigWindow : Window, IDisposable
             case NavKind.Timer: DrawTimerTab(); break;
             case NavKind.Display: DrawDisplayTab(); break;
             case NavKind.Audio: DrawAudioTab(); break;
+            case NavKind.Anchors: DrawAnchorsPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }
@@ -1146,78 +1152,156 @@ public class ConfigWindow : Window, IDisposable
             if (fight is { SyncPoints.Count: > 0 })
             {
                 var phases = fight.SyncPoints.Count(s => s.IsPhase);
-                ImGui.TextDisabled($"This fight: {fight.SyncPoints.Count} anchors ({phases} phase).");
+                ImGui.TextDisabled($"This fight: {fight.SyncPoints.Count} anchors ({phases} phase). Build more in the Anchors tab.");
             }
         }
-
-        DrawCaptureSection(fight);
     }
 
-    private void DrawCaptureSection(FightProfile? fight)
+    // ---- Anchors tool -----------------------------------------------------
+
+    private void DrawAnchorsPage()
     {
-        if (!Section("Build anchors from a pull (advanced)")) return;
-        ImGui.TextWrapped("Public timelines only cover DMU through phase 3. To make phases 4-5 self-correct, record a clean "
-                          + "pull: every boss cast is logged with the time it lands, then promote the phase-start casts to "
-                          + "anchors.");
+        SeparatorText("Resync anchors");
+        ImGui.TextWrapped("Record a clean pull, then promote boss casts to anchors so the timeline keeps re-syncing "
+                          + "through every phase (great for phases public timelines don't cover, like DMU P4-P5). "
+                          + "Anchors are saved per fight.");
 
-        var rec = _plugin.Sync.Recording;
-        if (ImGui.Checkbox("Record boss casts this pull", ref rec)) _plugin.Sync.Recording = rec;
-        ImGui.SameLine();
-        if (ImGui.Button("Clear captures")) _plugin.Sync.Captured.Clear();
-        ImGui.SameLine();
-        if (ImGui.Button("Export to clipboard"))
+        // Target fight: defaults to the one you're in, but you can build for any.
+        var fights = C.Fights;
+        if (fights.Count == 0)
         {
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine("# FrenMits capture  (time_s\tability\tcaster\tkind)");
-            foreach (var c in _plugin.Sync.Captured)
-                sb.AppendLine($"{c.Time:0.0}\t{(c.IsBoss ? $"boss:{c.Id}" : $"0x{c.Id:X}")}\t{c.Caster}\t{(c.IsBoss ? "appear" : "cast")}");
-            ImGui.SetClipboardText(sb.ToString());
+            ImGui.Spacing();
+            ImGui.TextDisabled("Add a fight first (Fights tab).");
+            return;
         }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy all captured casts (time + ability id) to paste/share for baking anchors.");
+        var active = _plugin.ActiveFight();
+        if (_anchorFight < 0 || _anchorFight >= fights.Count)
+            _anchorFight = active != null ? Math.Max(0, fights.IndexOf(active)) : 0;
 
-        if (_plugin.Sync.Captured.Count == 0) return;
+        var names = fights.Select(f => active == f ? $"{f.Name}  (you're here)" : f.Name).ToArray();
+        ImGui.SetNextItemWidth(280f);
+        ImGui.Combo("Target fight", ref _anchorFight, names, names.Length);
+        var target = fights[_anchorFight];
 
-        if (ImGui.BeginTable("##caps", 4,
-                ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY, new Vector2(0, 180)))
+        // --- Capture ---
+        if (Section("Capture a pull", true))
         {
-            ImGui.TableSetupScrollFreeze(0, 1);
-            ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 70);
-            ImGui.TableSetupColumn("Ability", ImGuiTableColumnFlags.WidthFixed, 90);
-            ImGui.TableSetupColumn("Caster", ImGuiTableColumnFlags.WidthStretch, 1);
-            ImGui.TableSetupColumn("Add", ImGuiTableColumnFlags.WidthFixed, 120);
-            ImGui.TableHeadersRow();
-
-            // newest first
-            for (var i = _plugin.Sync.Captured.Count - 1; i >= 0; i--)
+            var rec = _plugin.Sync.Recording;
+            ImGui.PushStyleColor(ImGuiCol.Text, rec ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudGrey);
+            if (ImGui.Checkbox("Recording boss casts", ref rec)) _plugin.Sync.Recording = rec;
+            ImGui.PopStyleColor();
+            ImGui.SameLine();
+            ImGui.TextDisabled($"{_plugin.Sync.Captured.Count} captured");
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Clear")) _plugin.Sync.Captured.Clear();
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Export"))
             {
-                var cap = _plugin.Sync.Captured[i];
-                ImGui.TableNextRow();
-                ImGui.PushID(i);
-                ImGui.TableNextColumn();
-                ImGui.TextUnformatted($"{(int)cap.Time / 60}:{(int)cap.Time % 60:00}");
-                ImGui.TableNextColumn();
-                ImGui.TextUnformatted(cap.IsBoss ? $"boss {cap.Id}" : $"0x{cap.Id:X}");
-                ImGui.TableNextColumn();
-                ImGui.TextUnformatted(cap.Caster);
-                ImGui.TableNextColumn();
-                if (cap.IsBoss)
-                {
-                    if (fight != null && ImGui.SmallButton("+boss anchor"))
-                        AddBossAnchor(fight, cap);
-                }
-                else
-                {
-                    if (fight != null && ImGui.SmallButton("+phase"))
-                        AddAnchor(fight, cap, true);
-                    ImGui.SameLine();
-                    if (fight != null && ImGui.SmallButton("+mech"))
-                        AddAnchor(fight, cap, false);
-                }
-                ImGui.PopID();
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("# FrenMits capture  (time_s\tability\tcaster\tkind)");
+                foreach (var cc in _plugin.Sync.Captured)
+                    sb.AppendLine($"{cc.Time:0.0}\t{(cc.IsBoss ? $"boss:{cc.Id}" : $"0x{cc.Id:X}")}\t{cc.Caster}\t{(cc.IsBoss ? "appear" : "cast")}");
+                ImGui.SetClipboardText(sb.ToString());
             }
-            ImGui.EndTable();
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy all captures (time + ids) to paste/share for baking.");
+
+            ImGui.TextDisabled("Tick on, do a clean pull (or replay), then add casts below as anchors.");
+
+            if (_plugin.Sync.Captured.Count > 0 &&
+                ImGui.BeginTable("##caps", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
+                    new Vector2(0, 220)))
+            {
+                ImGui.TableSetupScrollFreeze(0, 1);
+                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
+                ImGui.TableSetupColumn("Ability", ImGuiTableColumnFlags.WidthFixed, 90);
+                ImGui.TableSetupColumn("Caster", ImGuiTableColumnFlags.WidthStretch, 1);
+                ImGui.TableSetupColumn("Add anchor", ImGuiTableColumnFlags.WidthFixed, 130);
+                ImGui.TableHeadersRow();
+
+                for (var i = _plugin.Sync.Captured.Count - 1; i >= 0; i--)
+                {
+                    var cap = _plugin.Sync.Captured[i];
+                    ImGui.TableNextRow();
+                    ImGui.PushID(i);
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{(int)cap.Time / 60}:{(int)cap.Time % 60:00}");
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted(cap.IsBoss ? $"boss {cap.Id}" : $"0x{cap.Id:X}");
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted(cap.Caster);
+                    ImGui.TableNextColumn();
+                    if (cap.IsBoss)
+                    {
+                        if (ImGui.SmallButton("+ boss")) AddBossAnchor(target, cap);
+                    }
+                    else
+                    {
+                        if (ImGui.SmallButton("+ phase")) AddAnchor(target, cap, true);
+                        ImGui.SameLine();
+                        if (ImGui.SmallButton("+ mech")) AddAnchor(target, cap, false);
+                    }
+                    ImGui.PopID();
+                }
+                ImGui.EndTable();
+            }
         }
-        if (fight == null) ImGui.TextDisabled("Enter the fight's zone to add anchors to it.");
+
+        // --- Current anchors on the target fight ---
+        if (Section($"Current anchors on {target.Name}", true))
+        {
+            var total = target.SyncPoints.Count + target.BossAnchors.Count;
+            if (total == 0)
+            {
+                ImGui.TextDisabled("None yet. Add some from a capture above.");
+            }
+            else
+            {
+                var phases = target.SyncPoints.Count(s => s.IsPhase);
+                ImGui.TextDisabled($"{target.SyncPoints.Count} cast ({phases} phase) + {target.BossAnchors.Count} boss.");
+                ImGui.SameLine();
+                ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
+                if (ImGui.SmallButton("Clear all")) { target.SyncPoints.Clear(); target.BossAnchors.Clear(); C.Save(); }
+                ImGui.PopStyleColor();
+
+                if (ImGui.BeginTable("##anchors", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
+                        new Vector2(0, 200)))
+                {
+                    ImGui.TableSetupScrollFreeze(0, 1);
+                    ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
+                    ImGui.TableSetupColumn("Trigger", ImGuiTableColumnFlags.WidthFixed, 90);
+                    ImGui.TableSetupColumn("Kind / label", ImGuiTableColumnFlags.WidthStretch, 1);
+                    ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 30);
+                    ImGui.TableHeadersRow();
+
+                    SyncPoint? rmSp = null;
+                    BossAnchor? rmBa = null;
+                    var n = 0;
+                    foreach (var sp in target.SyncPoints.OrderBy(s => s.Time))
+                    {
+                        ImGui.TableNextRow(); ImGui.PushID(n++);
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)sp.Time / 60}:{(int)sp.Time % 60:00}");
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{sp.Ability:X}");
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted((sp.IsPhase ? "phase  " : "mech  ") + sp.Label);
+                        ImGui.TableNextColumn(); if (ImGui.SmallButton("X")) rmSp = sp;
+                        ImGui.PopID();
+                    }
+                    foreach (var ba in target.BossAnchors.OrderBy(b => b.Time))
+                    {
+                        ImGui.TableNextRow(); ImGui.PushID(n++);
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)ba.Time / 60}:{(int)ba.Time % 60:00}");
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"boss {ba.NameId}");
+                        ImGui.TableNextColumn(); ImGui.TextUnformatted("boss  " + ba.Label);
+                        ImGui.TableNextColumn(); if (ImGui.SmallButton("X")) rmBa = ba;
+                        ImGui.PopID();
+                    }
+                    ImGui.EndTable();
+
+                    if (rmSp != null) { target.SyncPoints.Remove(rmSp); C.Save(); }
+                    if (rmBa != null) { target.BossAnchors.Remove(rmBa); C.Save(); }
+                }
+            }
+            ImGui.TextDisabled("Last sync: " + (_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-"));
+        }
     }
 
     private void AddAnchor(FightProfile fight, SyncEngine.Capture cap, bool isPhase)
