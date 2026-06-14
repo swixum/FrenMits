@@ -364,6 +364,8 @@ public class ConfigWindow : Window, IDisposable
 
     private static readonly string[] WhatsNew =
     {
+        "Five more ultimates baked in: UCOB, UWU, TEA, DSR and TOP (timed from the Ikuya sheets against the cactbot timelines, with resync anchors).",
+        "Tank-buster plans for DSR, TOP, UCOB and UWU under each fight's tank section.",
         "Pick any Windows font for the call-out, with bold / italic and alignment.",
         "Cleaner config: settings grouped into collapsible sections.",
         "Online neural voices (Aria, Guy, Jenny, ...) for TTS, plus a gender picker.",
@@ -787,15 +789,17 @@ public class ConfigWindow : Window, IDisposable
         SeparatorText("Tank busters (from Ikuya)");
         ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
 
-        _tankComp = Math.Clamp(_tankComp, 0, TankMits.Comps.Length - 1);
+        var comps = TankMits.Comps(fight.TerritoryId);
+        if (comps.Length == 0) return;
+        _tankComp = Math.Clamp(_tankComp, 0, comps.Length - 1);
         ImGui.SetNextItemWidth(140f);
-        ImGui.Combo("Tank pairing", ref _tankComp, TankMits.Comps, TankMits.Comps.Length);
+        ImGui.Combo("Tank pairing", ref _tankComp, comps, comps.Length);
 
-        var comp = TankMits.Comps[_tankComp];
+        var comp = comps[_tankComp];
         var myJob = _plugin.ActiveJobAbbreviation();
         foreach (var j in TankMits.Jobs(comp))
         {
-            var entries = TankMits.For(comp, j);
+            var entries = TankMits.For(fight.TerritoryId, comp, j);
             ImGui.SameLine();
             var label = j == myJob ? $"Add {j} (yours)" : $"Add {j}";
             if (ImGui.Button($"{label}##tank{j}"))

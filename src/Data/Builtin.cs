@@ -11,20 +11,38 @@ public static class Builtin
     public const ushort FruTerritory = 1238;
     // M12S (AAC Heavyweight M4 Savage), per the cactbot r12s timeline.
     public const ushort M12sTerritory = 1327;
+    // The legacy ultimates, timed from Ikuya's sheets against the cactbot
+    // timelines (see IkuyaTimelines).
+    public const ushort UcobTerritory = 733;
+    public const ushort UwuTerritory = 777;
+    public const ushort TeaTerritory = 887;
+    public const ushort DsrTerritory = 968;
+    public const ushort TopTerritory = 1122;
 
     public static readonly (ushort Territory, string Name, string Category)[] Fights =
     {
         (DmuTerritory, "Dancing Mad (Ultimate)", "Ultimate"),
         (FruTerritory, "Futures Rewritten (Ultimate)", "Ultimate"),
+        (UcobTerritory, "Unending Coil of Bahamut (UCOB)", "Ultimate"),
+        (UwuTerritory, "Weapon's Refrain (UWU)", "Ultimate"),
+        (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate"),
+        (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate"),
+        (TopTerritory, "The Omega Protocol (TOP)", "Ultimate"),
         (M12sTerritory, "M12S — Lindwurm", "Savage"),
     };
 
-    public static bool Has(uint territory) => territory is DmuTerritory or FruTerritory or M12sTerritory;
+    public static bool Has(uint territory) =>
+        territory is DmuTerritory or FruTerritory or M12sTerritory || IkuyaTimelines.Has(territory);
 
     public static string Name(uint territory) => territory switch
     {
         FruTerritory => "Futures Rewritten (Ultimate)",
         M12sTerritory => "M12S — Lindwurm",
+        UcobTerritory => "Unending Coil of Bahamut (UCOB)",
+        UwuTerritory => "Weapon's Refrain (UWU)",
+        TeaTerritory => "Epic of Alexander (TEA)",
+        DsrTerritory => "Dragonsong's Reprise (DSR)",
+        TopTerritory => "The Omega Protocol (TOP)",
         _ => "Dancing Mad (Ultimate)"
     };
 
@@ -39,6 +57,7 @@ public static class Builtin
     {
         FruTerritory => FruData.Slots,
         M12sTerritory => M12sData.Slots,
+        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.Slots,
         _ => DmuData.Slots,
     };
 
@@ -46,6 +65,7 @@ public static class Builtin
     {
         FruTerritory => FruData.BuildLines(slot),
         M12sTerritory => M12sData.BuildLines(slot),
+        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BuildLines(territory, slot),
         _ => DmuData.BuildLines(slot),
     };
 
@@ -53,6 +73,7 @@ public static class Builtin
     {
         FruTerritory => FruData.SyncPoints(),
         M12sTerritory => M12sData.SyncPoints(),
+        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.SyncPoints(territory),
         _ => DmuData.SyncPoints(),
     };
 
@@ -60,6 +81,7 @@ public static class Builtin
     {
         FruTerritory => FruData.BossAnchors(),
         M12sTerritory => M12sData.BossAnchors(),
+        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BossAnchors(territory),
         _ => DmuData.BossAnchors(),
     };
 
