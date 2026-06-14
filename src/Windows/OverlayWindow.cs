@@ -108,13 +108,15 @@ public class OverlayWindow : Window
         // stale line from the previous run can't carry over.
         if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLine = null; }
 
-        // The line we count down to: the soonest one inside the warning window.
+        // The line we count down to: the soonest one inside its lead window (the
+        // per-line lead override, else the global warning lead).
         MitLine? upcoming = null;
         var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
             var remaining = line.Time - elapsed;
-            if (remaining < 0f || remaining > C.WarningSeconds) continue;
+            var lead = line.LeadOverride > 0f ? line.LeadOverride : C.WarningSeconds;
+            if (remaining < 0f || remaining > lead) continue;
             if (remaining < bestRemaining) { bestRemaining = remaining; upcoming = line; }
         }
 

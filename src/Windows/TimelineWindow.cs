@@ -101,9 +101,11 @@ public class TimelineWindow : Window
         var job = _plugin.ActiveJobAbbreviation();
         var elapsed = _plugin.ElapsedFor(fight);
 
+        // Show lines that are beyond their lead window (a line inside its lead is on
+        // the main call, so it isn't duplicated here) and within the look-ahead.
         var upcoming = fight.OrderedLines
             .Where(l => l.Enabled && l.AppliesTo(job)
-                        && l.Time - elapsed > C.WarningSeconds
+                        && l.Time - elapsed > (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds)
                         && l.Time - elapsed <= C.UpcomingLookaheadSeconds)
             .OrderBy(l => l.Time)
             .Take(Math.Max(0, C.UpcomingCount))

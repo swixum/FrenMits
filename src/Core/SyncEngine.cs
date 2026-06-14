@@ -14,6 +14,7 @@ public class SyncEngine
     private readonly Plugin _plugin;
     private readonly Dictionary<uint, uint> _lastCast = new(); // actor -> last seen cast action id
     private readonly HashSet<uint> _seenBoss = new();          // boss NameIds seen this pull
+    private bool _wasRunning;
 
     public string LastSync { get; private set; } = "";
 
@@ -29,7 +30,14 @@ public class SyncEngine
     public void Update()
     {
         var c = _plugin.Config;
-        if ((!c.EnableSync && !Recording) || !_plugin.Timer.Running) return;
+
+        // Fresh pull (combat just started): re-arm boss-presence + cast detection so
+        // anchors fire again. NOT keyed off Generation, which also bumps on /fm sync.
+        var running = _plugin.Timer.Running;
+        if (running && !_wasRunning) Forget();
+        _wasRunning = running;
+
+        if ((!c.EnableSync && !Recording) || !running) return;
         if (_plugin.ActiveFight() is not { } fight) return;
 
         // Work in the same clock the overlay reads (includes any door-boss phase
