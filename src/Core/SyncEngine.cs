@@ -123,20 +123,31 @@ public class SyncEngine
 
         var predictedElapsed = elapsed + timeToResolve; // where the clock will be at resolve
 
-        // Phase anchors get a wide window (a phase can start far from the sheet's
-        // nominal time); mechanic anchors use the tight window for fine drift.
+        // Match the way cactbot does: a wide FORWARD window and a tight BACKWARD
+        // one. Some accurate timelines (the legacy ultimates) carry loop/jump
+        // coordinates, so a phase or sub-phase can sit a long way ahead of a clock
+        // that's still at the previous segment's coordinate — we need to jump
+        // forward onto it. But we must not jump backward far, or a repeated
+        // ability later in a segment would snap the clock back to the segment
+        // start. (For continuous timelines like DMU the forward gap is ~0, so this
+        // is a no-op there.) Among candidates we take the nearest one ahead.
         SyncPoint? best = null;
         var bestDelta = float.MaxValue;
         foreach (var sp in fight.SyncPoints)
         {
             if (sp.Ability != actionId) continue;
-            var window = sp.IsPhase
+            // Phase / transition anchors get the wide forward window to jump onto a
+            // loop/jump coordinate; mechanic anchors stay tight in both directions
+            // (fine drift only) so an early stray cast can't snap the clock far
+            // forward onto a later anchor.
+            var fwd = sp.IsPhase ? _plugin.Config.SyncForwardWindowSeconds : _plugin.Config.SyncWindowSeconds;
+            var bwd = sp.IsPhase
                 ? MathF.Max(_plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncWindowSeconds)
                 : _plugin.Config.SyncWindowSeconds;
-            var delta = MathF.Abs(sp.Time - predictedElapsed);
-            if (delta > window) continue;
-            // Prefer phase anchors, then the closest in time.
-            var score = delta - (sp.IsPhase ? 1000f : 0f);
+            var ahead = sp.Time - predictedElapsed; // + => anchor is ahead of the clock
+            if (ahead > fwd || ahead < -bwd) continue;
+            // Prefer phase anchors, then the nearest in time.
+            var score = MathF.Abs(ahead) - (sp.IsPhase ? 1_000_000f : 0f);
             if (score < bestDelta)
             {
                 bestDelta = score;

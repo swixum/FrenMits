@@ -74,8 +74,13 @@ public class Configuration : IPluginConfiguration
 
     // Resync: snap the pull-clock when known boss casts happen.
     public bool EnableSync { get; set; } = true;
-    public float SyncWindowSeconds { get; set; } = 8f;       // mechanic anchors (fine drift)
-    public float SyncPhaseWindowSeconds { get; set; } = 60f; // phase anchors (re-base on phase start)
+    public float SyncWindowSeconds { get; set; } = 8f;        // backward window, mechanic anchors (fine drift)
+    public float SyncPhaseWindowSeconds { get; set; } = 60f;  // backward window, phase anchors (re-base)
+    // Forward window, like cactbot's wide sync windows: how far AHEAD of the clock
+    // an anchor may be and still snap onto it. Lets a loop/jump-coordinate timeline
+    // (the legacy ultimates) jump the clock forward onto the next segment. Large by
+    // design; a tight backward window keeps it from snapping back on repeats.
+    public float SyncForwardWindowSeconds { get; set; } = 2000f;
 
     // Which sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras) the baked DMU
     // timeline was last loaded for, for display.
