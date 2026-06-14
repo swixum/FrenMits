@@ -29,7 +29,6 @@ public class ConfigWindow : Window, IDisposable
     // Left-sidebar navigation.
     private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors }
     private NavKind _nav = NavKind.Home;
-    private bool _openWhatsNew;
     private int _anchorFight = -1; // target fight for anchor building
     private string _recName = "";  // name for saving the current capture
     private int _replayPick;       // selected saved recording
@@ -365,24 +364,6 @@ public class ConfigWindow : Window, IDisposable
         }
     }
 
-    private static readonly string[] WhatsNew =
-    {
-        "Record & replay: capture a pull (Anchors tab), save it, and replay it at your desk to watch the overlay, cues and cutscene handling line up — no instance needed.",
-        "Resync now works like cactbot's: a wide forward re-sync window lets the clock jump onto each phase, so the legacy ultimates (UCOB/UWU/TEA/DSR/TOP) track through every phase instead of drifting later on.",
-        "Futures Rewritten: fixed the P5 Pandora call firing the instant Pandora spawned — it now re-bases on the real cast (same fix as DMU's cutscene issue).",
-        "Dancing Mad: fixed the P3 'Bowels of Agony' call firing right after the cutscene (and the drift after) — the clock now re-bases on the real cast, not when Chaos first appears.",
-        "Dancing Mad: resync anchors now cover all five phases (cross-referenced from the cactbot timeline), so P3-P5 stop drifting and firing early.",
-        "Cutscenes: the clock now re-arms and snaps to the new phase on the way out, and calls stay quiet until it lines up (no more stale mits right after a cutscene).",
-        "Five more ultimates baked in: UCOB, UWU, TEA, DSR and TOP (timed from the Ikuya sheets against the cactbot timelines, with resync anchors).",
-        "Tank-buster plans for DSR, TOP, UCOB and UWU under each fight's tank section.",
-        "Pick any Windows font for the call-out, with bold / italic and alignment.",
-        "Cleaner config: settings grouped into collapsible sections.",
-        "Online neural voices (Aria, Guy, Jenny, ...) for TTS, plus a gender picker.",
-        "Per-line icon picker: search or browse any game icon.",
-        "Potion timings from top logs (opt-in), per job.",
-        "Times edit as m:ss; smoother resync (no more doubled audio).",
-    };
-
     private string Version => typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
     private void DrawHomePage()
@@ -435,16 +416,9 @@ public class ConfigWindow : Window, IDisposable
             Dalamud.Utility.Util.OpenLink("https://github.com/swixum/FrenMits");
 
         ImGui.Dummy(new Vector2(0, 4));
-        var link = $"v{Version} - What's new";
-        Center(ImGui.CalcTextSize(link).X);
-        ImGui.PushStyleColor(ImGuiCol.Text, accent);
-        ImGui.TextUnformatted(link);
-        ImGui.PopStyleColor();
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left)) _openWhatsNew = true;
-        }
+        var ver = $"v{Version}";
+        Center(ImGui.CalcTextSize(ver).X);
+        ImGui.TextDisabled(ver);
 
         ImGui.Dummy(new Vector2(0, 16));
 
@@ -453,10 +427,6 @@ public class ConfigWindow : Window, IDisposable
         if (HomeCard(FontAwesomeIcon.Desktop, "Display", "Overlay look: font, colors, size and placement.")) _nav = NavKind.Display;
         if (HomeCard(FontAwesomeIcon.VolumeUp, "Audio", "Voice cues - online neural or Windows voices.")) _nav = NavKind.Audio;
         if (HomeCard(FontAwesomeIcon.Stopwatch, "Timer", "Combat sync, resync anchors and capture.")) _nav = NavKind.Timer;
-
-        // What's-new popup (only when the link is clicked).
-        if (_openWhatsNew) { ImGui.OpenPopup("Fren Mits - What's New"); _openWhatsNew = false; }
-        DrawWhatsNewModal();
     }
 
     private bool HomeCard(FontAwesomeIcon icon, string title, string desc)
@@ -495,29 +465,6 @@ public class ConfigWindow : Window, IDisposable
         return clicked;
     }
 
-    private void DrawWhatsNewModal()
-    {
-        var open = true;
-        ImGui.SetNextWindowSize(new Vector2(420, 0), ImGuiCond.Appearing);
-        if (!ImGui.BeginPopupModal("Fren Mits - What's New", ref open,
-                ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysAutoResize))
-            return;
-
-        ImGui.TextColored(new Vector4(0.23f, 0.51f, 0.96f, 1f), "What's new");
-        ImGui.TextDisabled($"v{Version}");
-        ImGui.Separator();
-        foreach (var line in WhatsNew)
-        {
-            ImGui.TextColored(new Vector4(0.96f, 0.6f, 0.23f, 1f), "•");
-            ImGui.SameLine();
-            ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + 360);
-            ImGui.TextUnformatted(line);
-            ImGui.PopTextWrapPos();
-        }
-        ImGui.Separator();
-        if (ImGui.Button("Got it", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
-        ImGui.EndPopup();
-    }
 
     // ---- Fights page ------------------------------------------------------
 
