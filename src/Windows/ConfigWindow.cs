@@ -368,6 +368,7 @@ public class ConfigWindow : Window, IDisposable
     private static readonly string[] WhatsNew =
     {
         "Record & replay: capture a pull (Anchors tab), save it, and replay it at your desk to watch the overlay, cues and cutscene handling line up — no instance needed.",
+        "Futures Rewritten: fixed the P5 Pandora call firing the instant Pandora spawned — it now re-bases on the real cast (same fix as DMU's cutscene issue).",
         "Dancing Mad: fixed the P3 'Bowels of Agony' call firing right after the cutscene (and the drift after) — the clock now re-bases on the real cast, not when Chaos first appears.",
         "Dancing Mad: resync anchors now cover all five phases (cross-referenced from the cactbot timeline), so P3-P5 stop drifting and firing early.",
         "Cutscenes: the clock now re-arms and snaps to the new phase on the way out, and calls stay quiet until it lines up (no more stale mits right after a cutscene).",

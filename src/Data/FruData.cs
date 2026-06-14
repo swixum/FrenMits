@@ -80,10 +80,16 @@ public static class FruData
     public static List<BossAnchor> BossAnchors()
     {
         var list = new List<BossAnchor>();
+        // These re-base the clock when each boss APPEARS. The first three sit at
+        // the appearance time, earlier than that phase's first call, so they only
+        // correct the clock without firing a call early. Pandora was pinned at
+        // 1041s — the same time as P5's first call — so it would fire that call the
+        // instant Pandora spawned, before the mechanic (the same bug that hit DMU's
+        // Chaos anchor). Dropped; P5 re-bases on its first real cast (the 1041s
+        // phase anchor) instead.
         BossNames.Add(list, "Fatebreaker", 0f, "P1 Fatebreaker");
         BossNames.Add(list, "Usurper of Frost", 215.3f, "P2 Shiva");
         BossNames.Add(list, "Oracle of Darkness", 500.0f, "P3 Gaia");
-        BossNames.Add(list, "Pandora", 1041.0f, "P5 Pandora");
         return list;
     }
 }
