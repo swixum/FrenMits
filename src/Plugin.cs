@@ -238,7 +238,7 @@ public sealed class Plugin : IDalamudPlugin
 
             Sync.Forget();
             if (Config.EnableSync)
-                Cues.HoldForResync(Sync.LastSync, 6.0);
+                Cues.HoldForResync(Sync.PhaseSyncGeneration, 25.0);
         }
         _wasInCutscene = inCs;
     }

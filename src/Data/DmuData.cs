@@ -123,14 +123,10 @@ public static class DmuData
         return points;
     }
 
-    // Cast-free phase anchors by boss appearance. Chaos spawning marks the start
-    // of the Exdeath & Chaos phase. Names are resolved from game data; any that
-    // do not resolve are skipped (capture them from a pull instead).
-    public static List<BossAnchor> BossAnchors()
-    {
-        var list = new List<BossAnchor> { new() { NameId = 7691, Time = 451f, Label = "P3 Chaos (known id)" } };
-        BossNames.Add(list, "Chaos", 451f, "P3 Chaos");
-        BossNames.Add(list, "Exdeath", 451f, "P3 Exdeath");
-        return list;
-    }
+    // No boss-appearance anchors. The old Chaos@451 one fired the moment Chaos
+    // *appeared* (right when the P2->P3 cutscene ended), snapping the clock to 451
+    // and firing the "Bowels of Agony" call several seconds before Bowels actually
+    // cast — then everything after drifted. P3 now re-bases on the real Bowels cast
+    // (BAF2, a phase anchor at 451s), which fires when the mechanic truly happens.
+    public static List<BossAnchor> BossAnchors() => new();
 }

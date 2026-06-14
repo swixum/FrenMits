@@ -18,6 +18,11 @@ public class SyncEngine
 
     public string LastSync { get; private set; } = "";
 
+    // Bumps whenever a phase anchor (or boss-appearance anchor) re-bases the clock.
+    // The cue engine watches this to know a fresh phase has actually started after
+    // a cutscene, rather than releasing on any minor mid-phase drift correction.
+    public int PhaseSyncGeneration { get; private set; }
+
     // Capture mode: record every boss cast / first boss appearance (with the
     // time it lands on the current clock) so anchors for phases with no public
     // timeline can be built from a real pull.
@@ -101,6 +106,7 @@ public class SyncEngine
             {
                 _plugin.Timer.SetElapsed(ba.Time - fight.TimerOffset - _plugin.PhaseOffsetFor(fight));
                 LastSync = $"[boss] {(casterName.Length > 0 ? casterName : nameId.ToString())} -> {ba.Time:0.0}s (was {elapsed:0.0})";
+                PhaseSyncGeneration++;
                 return true;
             }
         return false;
@@ -145,6 +151,7 @@ public class SyncEngine
         var desiredElapsedNow = best.Time - timeToResolve - fight.TimerOffset - _plugin.PhaseOffsetFor(fight);
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
+        if (best.IsPhase) PhaseSyncGeneration++;
         return true;
     }
 
