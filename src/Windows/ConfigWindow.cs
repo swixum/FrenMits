@@ -26,8 +26,9 @@ public class ConfigWindow : Window, IDisposable
     private PotionTimings.Result? _potResult;
 
     // Left-sidebar navigation.
-    private enum NavKind { Fights, Timer, Display, Audio }
-    private NavKind _nav = NavKind.Fights;
+    private enum NavKind { Home, Fights, Timer, Display, Audio }
+    private NavKind _nav = NavKind.Home;
+    private bool _openWhatsNew;
     private string _navCategory = "Ultimate";
 
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
@@ -251,6 +252,9 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawSidebar()
     {
+        if (NavItem(FontAwesomeIcon.Home, "Home", null, _nav == NavKind.Home)) _nav = NavKind.Home;
+
+        ImGui.Spacing();
         SidebarHeading("FIGHTS");
         foreach (var cat in Categories)
         {
@@ -343,11 +347,158 @@ public class ConfigWindow : Window, IDisposable
     {
         switch (_nav)
         {
+            case NavKind.Home: DrawHomePage(); break;
             case NavKind.Timer: DrawTimerTab(); break;
             case NavKind.Display: DrawDisplayTab(); break;
             case NavKind.Audio: DrawAudioTab(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
+    }
+
+    private static readonly string[] WhatsNew =
+    {
+        "Pick any Windows font for the call-out, with bold / italic and alignment.",
+        "Cleaner config: settings grouped into collapsible sections.",
+        "Online neural voices (Aria, Guy, Jenny, ...) for TTS, plus a gender picker.",
+        "Per-line icon picker: search or browse any game icon.",
+        "Potion timings from top logs (opt-in), per job.",
+        "Times edit as m:ss; smoother resync (no more doubled audio).",
+    };
+
+    private string Version => typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+
+    private void DrawHomePage()
+    {
+        void Center(float w)
+        {
+            var x = (ImGui.GetContentRegionAvail().X - w) * 0.5f;
+            if (x > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + x);
+        }
+
+        var accent = new Vector4(0.23f, 0.51f, 0.96f, 1f);
+        var grey = new Vector4(0.55f, 0.59f, 0.66f, 1f);
+
+        ImGui.Dummy(new Vector2(0, 10));
+
+        // Emblem: a big shield in the accent color.
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            ImGui.SetWindowFontScale(2.6f);
+            var s = FontAwesomeIcon.Shield.ToIconString();
+            Center(ImGui.CalcTextSize(s).X);
+            ImGui.TextColored(accent, s);
+            ImGui.SetWindowFontScale(1f);
+        }
+
+        // Title (big crisp font) + tagline.
+        var titleFont = _plugin.Fonts.Get(34f, "Default", false, false);
+        if (titleFont is { Available: true })
+            using (titleFont.Push())
+            {
+                Center(ImGui.CalcTextSize("Fren Mits").X);
+                ImGui.TextUnformatted("Fren Mits");
+            }
+        else { Center(ImGui.CalcTextSize("Fren Mits").X); ImGui.TextUnformatted("Fren Mits"); }
+
+        Center(ImGui.CalcTextSize("It's mits with frens.").X);
+        ImGui.TextColored(grey, "It's mits with frens.");
+
+        // Accent divider.
+        ImGui.Dummy(new Vector2(0, 8));
+        var dl = ImGui.GetWindowDrawList();
+        var cy = ImGui.GetCursorScreenPos().Y;
+        var cx = ImGui.GetWindowPos().X + ImGui.GetWindowWidth() * 0.5f;
+        dl.AddRectFilled(new Vector2(cx - 60, cy), new Vector2(cx + 60, cy + 2), 0xFFF6823B, 1f);
+        ImGui.Dummy(new Vector2(0, 14));
+
+        // GitHub button + clickable changelog link.
+        Center(130);
+        if (ImGui.Button("GitHub", new Vector2(130, 0)))
+            Dalamud.Utility.Util.OpenLink("https://github.com/swixum/FrenMits");
+
+        ImGui.Dummy(new Vector2(0, 4));
+        var link = $"v{Version} - What's new";
+        Center(ImGui.CalcTextSize(link).X);
+        ImGui.PushStyleColor(ImGuiCol.Text, accent);
+        ImGui.TextUnformatted(link);
+        ImGui.PopStyleColor();
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left)) _openWhatsNew = true;
+        }
+
+        ImGui.Dummy(new Vector2(0, 16));
+
+        // Shortcut cards.
+        if (HomeCard(FontAwesomeIcon.Crown, "Fights", "Per-fight mit timelines, auto-loaded by zone.")) _nav = NavKind.Fights;
+        if (HomeCard(FontAwesomeIcon.Desktop, "Display", "Overlay look: font, colors, size and placement.")) _nav = NavKind.Display;
+        if (HomeCard(FontAwesomeIcon.VolumeUp, "Audio", "Voice cues - online neural or Windows voices.")) _nav = NavKind.Audio;
+        if (HomeCard(FontAwesomeIcon.Stopwatch, "Timer", "Combat sync, resync anchors and capture.")) _nav = NavKind.Timer;
+
+        // What's-new popup (only when the link is clicked).
+        if (_openWhatsNew) { ImGui.OpenPopup("Fren Mits - What's New"); _openWhatsNew = false; }
+        DrawWhatsNewModal();
+    }
+
+    private bool HomeCard(FontAwesomeIcon icon, string title, string desc)
+    {
+        var startX = ImGui.GetCursorPosX();
+        var startY = ImGui.GetCursorPosY();
+
+        ImGui.PushStyleColor(ImGuiCol.Header, 0x18FFFFFF);
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0x33F6823B);
+        var clicked = ImGui.Selectable($"##card-{title}", false, ImGuiSelectableFlags.None, new Vector2(0, 52));
+        ImGui.PopStyleColor(2);
+
+        var endX = ImGui.GetCursorPosX();
+        var endY = ImGui.GetCursorPosY();
+        var accent = new Vector4(0.23f, 0.51f, 0.96f, 1f);
+        var grey = new Vector4(0.55f, 0.59f, 0.66f, 1f);
+
+        ImGui.SameLine();
+        ImGui.SetCursorPos(new Vector2(startX + 14, startY + 16));
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.TextColored(accent, icon.ToIconString());
+        ImGui.SameLine();
+        ImGui.SetCursorPos(new Vector2(startX + 48, startY + 8));
+        ImGui.TextUnformatted(title);
+        ImGui.SameLine();
+        ImGui.SetCursorPos(new Vector2(startX + 48, startY + 28));
+        ImGui.TextColored(grey, desc);
+
+        // chevron on the right
+        ImGui.SameLine();
+        ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - 24, startY + 16));
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.TextColored(grey, FontAwesomeIcon.ChevronRight.ToIconString());
+
+        ImGui.SetCursorPos(new Vector2(endX, endY));
+        return clicked;
+    }
+
+    private void DrawWhatsNewModal()
+    {
+        var open = true;
+        ImGui.SetNextWindowSize(new Vector2(420, 0), ImGuiCond.Appearing);
+        if (!ImGui.BeginPopupModal("Fren Mits - What's New", ref open,
+                ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysAutoResize))
+            return;
+
+        ImGui.TextColored(new Vector4(0.23f, 0.51f, 0.96f, 1f), "What's new");
+        ImGui.TextDisabled($"v{Version}");
+        ImGui.Separator();
+        foreach (var line in WhatsNew)
+        {
+            ImGui.TextColored(new Vector4(0.96f, 0.6f, 0.23f, 1f), "•");
+            ImGui.SameLine();
+            ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + 360);
+            ImGui.TextUnformatted(line);
+            ImGui.PopTextWrapPos();
+        }
+        ImGui.Separator();
+        if (ImGui.Button("Got it", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.EndPopup();
     }
 
     // ---- Fights page ------------------------------------------------------
