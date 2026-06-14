@@ -146,8 +146,10 @@ public class SyncEngine
                 : _plugin.Config.SyncWindowSeconds;
             var ahead = sp.Time - predictedElapsed; // + => anchor is ahead of the clock
             if (ahead > fwd || ahead < -bwd) continue;
-            // Prefer phase anchors, then the nearest in time.
-            var score = MathF.Abs(ahead) - (sp.IsPhase ? 1_000_000f : 0f);
+            // Take the NEAREST anchor; only break a tie toward a phase anchor. (Not
+            // a strong phase bias — otherwise a repeated ability whose later cast is
+            // a phase anchor would drag an earlier cast forward onto it.)
+            var score = MathF.Abs(ahead) - (sp.IsPhase ? 0.01f : 0f);
             if (score < bestDelta)
             {
                 bestDelta = score;

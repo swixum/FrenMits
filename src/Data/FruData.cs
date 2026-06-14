@@ -67,10 +67,15 @@ public static class FruData
     {
         var points = new List<SyncPoint>();
         var phaseSeen = new HashSet<string>();
+        var prevTime = float.NegativeInfinity;
         foreach (var e in Timeline.Where(e => e.Sync != 0).OrderBy(e => e.Time))
         {
-            var isPhase = phaseSeen.Add(e.Phase);
+            // A re-base (wide-forward) anchor at each phase start AND after any
+            // downtime/cutscene gap (>90s), so the clock can jump back on across a
+            // transition even if it drifted while no mechanic was casting.
+            var isPhase = phaseSeen.Add(e.Phase) || (e.Time - prevTime) > 90f;
             points.Add(new SyncPoint { Ability = e.Sync, Time = e.Time, IsPhase = isPhase, Label = $"{e.Phase} {e.Mechanic}" });
+            prevTime = e.Time;
         }
         return points;
     }

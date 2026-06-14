@@ -97,7 +97,7 @@ public static class M12sData
         new() { Ability = 0xB528, Time = 655.8f, Label = "P2 Arcadia Aflame" },
         new() { Ability = 0xB509, Time = 688.8f, Label = "P2 Idyllic Dream" },
         new() { Ability = 0xB4F2, Time = 762.8f, Label = "P2 Lindwurm's Meteor" },
-        new() { Ability = 0xB4EC, Time = 855.7f, Label = "P2 Reenactment" },
+        new() { Ability = 0xB4EC, Time = 855.7f, IsPhase = true, Label = "P2 Reenactment" }, // re-base after the ~93s gap
     };
 
     public static List<BossAnchor> BossAnchors() => new();
