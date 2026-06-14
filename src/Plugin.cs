@@ -23,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     public Audio Audio { get; } = new();
     public CueEngine Cues { get; }
     public SyncEngine Sync { get; }
+    public ReplayEngine Replay { get; }
     public readonly WindowSystem Windows = new("FrenMits");
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
@@ -84,6 +85,7 @@ public sealed class Plugin : IDalamudPlugin
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
+        Replay = new ReplayEngine(this);
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
         TimelineWindow = new TimelineWindow(this);
@@ -158,9 +160,18 @@ public sealed class Plugin : IDalamudPlugin
     // call-outs and cues are suppressed — you can't act, and the clock self-corrects
     // on the next resync anchor when it ends.
     public static bool InCutscene =>
-        Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
+        ReplayCutsceneActive
+        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
+
+    // Replay state (desk testing). When ReplayFight is set the normal pipeline runs
+    // against the recording instead of the live instance: ActiveFight resolves to
+    // it, the live timer/territory gates step aside, and ReplayCutsceneActive
+    // drives InCutscene from the recorded cutscene windows.
+    public static FightProfile? ReplayFight;
+    public static bool ReplayCutsceneActive;
+    public static bool Replaying => ReplayFight != null;
 
     private bool _frameErrorLogged;
 
@@ -171,6 +182,7 @@ public sealed class Plugin : IDalamudPlugin
         try
         {
             Timer.Update();
+            Replay.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
             Sync.Update();
@@ -195,8 +207,20 @@ public sealed class Plugin : IDalamudPlugin
     private void HandleCutsceneBoundary()
     {
         var inCs = InCutscene;
-        if (!inCs && _wasInCutscene)
+        if (inCs && !_wasInCutscene)
         {
+            // Log the cutscene window into the active recording so a replay can
+            // reproduce it (skip the replay's own synthetic flag).
+            if (Sync.Recording && !Replaying && ActiveFight() is { } rf)
+                Sync.CutsceneMarks.Add(new PullRecording.RecEvent
+                { Time = ElapsedFor(rf), Type = PullRecording.Kind.CutsceneStart });
+        }
+        else if (!inCs && _wasInCutscene)
+        {
+            if (Sync.Recording && !Replaying && ActiveFight() is { } rf)
+                Sync.CutsceneMarks.Add(new PullRecording.RecEvent
+                { Time = ElapsedFor(rf), Type = PullRecording.Kind.CutsceneEnd });
+
             Sync.Forget();
             if (Config.EnableSync)
                 Cues.HoldForResync(Sync.LastSync, 6.0);
@@ -323,6 +347,7 @@ public sealed class Plugin : IDalamudPlugin
     // The fight whose territory matches where the player currently is.
     public FightProfile? ActiveFight()
     {
+        if (Replaying) return ReplayFight;
         var territory = Service.ClientState.TerritoryType;
         foreach (var fight in Config.Fights)
             if (fight.Enabled && fight.TerritoryId == territory)
@@ -332,6 +357,10 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        // Never leave replay state latched across a reload.
+        ReplayFight = null;
+        ReplayCutsceneActive = false;
+
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;

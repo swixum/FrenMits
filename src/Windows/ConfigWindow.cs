@@ -31,6 +31,9 @@ public class ConfigWindow : Window, IDisposable
     private NavKind _nav = NavKind.Home;
     private bool _openWhatsNew;
     private int _anchorFight = -1; // target fight for anchor building
+    private string _recName = "";  // name for saving the current capture
+    private int _replayPick;       // selected saved recording
+    private string[] _recordings = System.Array.Empty<string>();
     private string _navCategory = "Ultimate";
 
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
@@ -364,6 +367,7 @@ public class ConfigWindow : Window, IDisposable
 
     private static readonly string[] WhatsNew =
     {
+        "Record & replay: capture a pull (Anchors tab), save it, and replay it at your desk to watch the overlay, cues and cutscene handling line up — no instance needed.",
         "Cutscenes: the clock now re-arms and snaps to the new phase on the way out, and calls stay quiet until it lines up (no more stale mits right after a cutscene).",
         "Five more ultimates baked in: UCOB, UWU, TEA, DSR and TOP (timed from the Ikuya sheets against the cactbot timelines, with resync anchors).",
         "Tank-buster plans for DSR, TOP, UCOB and UWU under each fight's tank section.",
@@ -1243,7 +1247,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
             ImGui.TextDisabled($"{_plugin.Sync.Captured.Count} captured");
             ImGui.SameLine();
-            if (ImGui.SmallButton("Clear")) _plugin.Sync.Captured.Clear();
+            if (ImGui.SmallButton("Clear")) { _plugin.Sync.Captured.Clear(); _plugin.Sync.CutsceneMarks.Clear(); }
             ImGui.SameLine();
             if (ImGui.SmallButton("Export"))
             {
@@ -1294,6 +1298,67 @@ public class ConfigWindow : Window, IDisposable
                 }
                 ImGui.EndTable();
             }
+        }
+
+        // --- Save / replay a pull (desk testing) ---
+        if (Section("Record & replay (desk test)", true))
+        {
+            ImGui.TextWrapped("Tick \"Recording\" above, do a pull (casts and cutscenes are captured), then save it here. "
+                              + "Replay it any time to watch the overlay, cues and cutscene handling line up — no instance needed.");
+
+            ImGui.SetNextItemWidth(200f);
+            ImGui.InputTextWithHint("##recname", "recording name", ref _recName, 64);
+            ImGui.SameLine();
+            var canSave = _plugin.Sync.Captured.Count > 0 || _plugin.Sync.CutsceneMarks.Count > 0;
+            if (!canSave) ImGui.BeginDisabled();
+            if (ImGui.Button("Save capture"))
+            {
+                var rec = PullRecording.FromCapture(
+                    string.IsNullOrWhiteSpace(_recName) ? $"{target.Name} pull" : _recName,
+                    target.TerritoryId, target.Name,
+                    _plugin.Sync.Captured, _plugin.Sync.CutsceneMarks);
+                rec.Save();
+                _recordings = PullRecording.List().ToArray();
+                FlashBuiltin($"Saved recording with {rec.Events.Count} events.");
+            }
+            if (!canSave) ImGui.EndDisabled();
+
+            ImGui.Spacing();
+            if (_recordings.Length == 0) _recordings = PullRecording.List().ToArray();
+            if (ImGui.SmallButton("Refresh")) _recordings = PullRecording.List().ToArray();
+            ImGui.SameLine();
+            if (_recordings.Length == 0)
+            {
+                ImGui.TextDisabled("No saved recordings yet.");
+            }
+            else
+            {
+                _replayPick = Math.Clamp(_replayPick, 0, _recordings.Length - 1);
+                ImGui.SetNextItemWidth(200f);
+                ImGui.Combo("##replaypick", ref _replayPick, _recordings, _recordings.Length);
+
+                if (_plugin.Replay.Playing)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
+                    if (ImGui.Button("Stop replay")) _plugin.Replay.Stop();
+                    ImGui.PopStyleColor();
+                }
+                else if (ImGui.Button("Play"))
+                {
+                    var rec = PullRecording.Load(_recordings[_replayPick]);
+                    if (rec != null) _plugin.Replay.Start(rec);
+                }
+                ImGui.SameLine();
+                if (ImGui.SmallButton("Delete"))
+                {
+                    PullRecording.Delete(_recordings[_replayPick]);
+                    _recordings = PullRecording.List().ToArray();
+                    _replayPick = 0;
+                }
+            }
+
+            if (_plugin.Replay.Status.Length > 0)
+                ImGui.TextDisabled(_plugin.Replay.Status);
         }
 
         // --- Current anchors on the target fight ---

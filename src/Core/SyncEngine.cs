@@ -23,6 +23,7 @@ public class SyncEngine
     // timeline can be built from a real pull.
     public bool Recording { get; set; }
     public readonly List<Capture> Captured = new();
+    public readonly List<PullRecording.RecEvent> CutsceneMarks = new(); // cutscene enter/exit while recording
     public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss);
 
     public SyncEngine(Plugin plugin) => _plugin = plugin;
@@ -56,13 +57,7 @@ public class SyncEngine
                     if (Captured.Count > 160) Captured.RemoveAt(0);
                 }
                 if (c.EnableSync)
-                    foreach (var ba in fight.BossAnchors)
-                        if (ba.NameId == npc.NameId)
-                        {
-                            _plugin.Timer.SetElapsed(ba.Time - fight.TimerOffset - phaseOffset);
-                            LastSync = $"[boss] {npc.Name} -> {ba.Time:0.0}s (was {elapsed:0.0})";
-                            break;
-                        }
+                    SnapToBoss(fight, npc.NameId, npc.Name.ToString());
             }
 
             if (obj is not IBattleChara bc) continue;
@@ -92,6 +87,32 @@ public class SyncEngine
     {
         // Time until this cast resolves, straight from the cast bar.
         var timeToResolve = MathF.Max(0f, caster.TotalCastTime - caster.CurrentCastTime);
+        SnapToCast(fight, actionId, timeToResolve);
+    }
+
+    // Snap to the boss-appearance anchor for this NameId, if the fight has one.
+    // Public so a replay can drive it without a live game object. Returns true if
+    // it snapped.
+    public bool SnapToBoss(FightProfile fight, uint nameId, string casterName = "")
+    {
+        var elapsed = _plugin.ElapsedFor(fight);
+        foreach (var ba in fight.BossAnchors)
+            if (ba.NameId == nameId)
+            {
+                _plugin.Timer.SetElapsed(ba.Time - fight.TimerOffset - _plugin.PhaseOffsetFor(fight));
+                LastSync = $"[boss] {(casterName.Length > 0 ? casterName : nameId.ToString())} -> {ba.Time:0.0}s (was {elapsed:0.0})";
+                return true;
+            }
+        return false;
+    }
+
+    // Snap the clock so a cast of `actionId` resolving `timeToResolve` from now
+    // lands on its scripted time. Public so a replay can feed recorded casts
+    // (with timeToResolve 0, i.e. at their recorded resolve moment). Returns true
+    // if a matching anchor snapped the clock.
+    public bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
+    {
+        if (fight.SyncPoints.Count == 0) return false;
         var elapsed = _plugin.ElapsedFor(fight);
 
         var predictedElapsed = elapsed + timeToResolve; // where the clock will be at resolve
@@ -117,13 +138,14 @@ public class SyncEngine
             }
         }
 
-        if (best == null) return;
+        if (best == null) return false;
 
         // Snap so that, timeToResolve from now, ElapsedFor == best.Time. SetElapsed
         // sets the raw timer, so subtract the per-fight + phase offsets back out.
         var desiredElapsedNow = best.Time - timeToResolve - fight.TimerOffset - _plugin.PhaseOffsetFor(fight);
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
+        return true;
     }
 
     public void Forget()

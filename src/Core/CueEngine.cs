@@ -43,7 +43,7 @@ public class CueEngine
         }
 
         if (_plugin.ActiveFight() is not { } fight) return;
-        if (c.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return;
+        if (c.OnlyInTargetTerritory && !Plugin.Replaying && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 
         var job = _plugin.ActiveJobAbbreviation();
         var elapsed = _plugin.ElapsedFor(fight);

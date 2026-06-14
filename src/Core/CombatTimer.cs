@@ -30,6 +30,10 @@ public class CombatTimer
         // cutscene, so they still reset correctly.)
         if (Plugin.InCutscene) return;
 
+        // During a replay the clock is driven by the ReplayEngine, not live combat,
+        // so don't let the (out-of-combat) desk state null it.
+        if (Plugin.Replaying) return;
+
         var inCombat = Service.Condition[ConditionFlag.InCombat];
         if (inCombat && !_wasInCombat)
         {
