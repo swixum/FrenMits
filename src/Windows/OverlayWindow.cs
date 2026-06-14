@@ -12,6 +12,10 @@ public class OverlayWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
+    // The line currently being counted down / held, and the run it belongs to.
+    private MitLine? _activeLine;
+    private int _lastGen = -1;
+
     public OverlayWindow(Plugin plugin)
         : base("FrenMits##overlay")
     {
@@ -99,15 +103,38 @@ public class OverlayWindow : Window
 
         var lines = fight.OrderedLines.Where(l => l.Enabled && l.AppliesTo(job)).ToList();
 
-        MitLine? current = null;
-        var bestScore = float.MaxValue;
+        // Reset the held call when the run restarts (pull / wipe / manual sync) so a
+        // stale line from the previous run can't carry over.
+        if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLine = null; }
+
+        // The line we count down to: the soonest one inside the warning window.
+        MitLine? upcoming = null;
+        var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
             var remaining = line.Time - elapsed;
-            if (remaining > C.WarningSeconds) continue;
-            if (remaining < -C.HoldSeconds) continue;
-            var score = remaining >= 0 ? remaining : 1000f - remaining;
-            if (score < bestScore) { bestScore = score; current = line; }
+            if (remaining < 0f || remaining > C.WarningSeconds) continue;
+            if (remaining < bestRemaining) { bestRemaining = remaining; upcoming = line; }
+        }
+
+        MitLine? current;
+        if (upcoming != null)
+        {
+            current = upcoming;
+            _activeLine = upcoming; // remember what we're actively counting down
+        }
+        else if (_activeLine != null)
+        {
+            // Only hold a line we actually counted down, briefly after its time. This
+            // is what stops a phase-transition clock snap from flashing a mit we
+            // jumped over (it was never the active line).
+            var rem = _activeLine.Time - elapsed;
+            current = rem <= 0f && rem >= -C.HoldSeconds ? _activeLine : null;
+            if (current == null) _activeLine = null;
+        }
+        else
+        {
+            current = null;
         }
 
         if (current is { } call)
