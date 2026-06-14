@@ -57,7 +57,7 @@ public static class DmuData
         new(579, "P3", "Shocking Impact", 0xBAF4, new[]{"Reprisal + Party Mit","","Plenary Indulgence","Collective Unconscious","Spreadlo + Sacred Soil","Zoe Shields + Kerachole","","","","",""}),
         new(595, "P3", "Thunder III (Exdeath)", 0xBB0C, new[]{"","Reprisal","Assist Tanks","","","","","Feint","","",""}),
         new(609, "P3", "Shocking Impact", 0xBAFD, new[]{"","Party Mit","Liturgy of the Bell","Macrocosmos","Sacred Soil + Seraphism","Holos + Kerachole + Philosophia","","","Party Mit","","✔"}),
-        new(623, "P3", "Earthquakes", 0, new[]{"","","Temperance + Divine Caress","Neutral Sect + Sun Sign","Seraph + Fey Illumination","Panhaima","Feint","","","Addle",""}),
+        new(623, "P3", "Earthquakes", 0xC571, new[]{"","","Temperance + Divine Caress","Neutral Sect + Sun Sign","Seraph + Fey Illumination","Panhaima","Feint","","","Addle",""}),
         new(657, "P3", "Earthquakes", 0, new[]{"","Reprisal","","","","","","","","",""}),
         new(677, "P3", "Shockwave", 0, new[]{"","","Plenary Indulgence","Collective Unconscious","Sacred Soil","Kerachole","","Feint","","",""}),
         new(709, "P3", "Stomp-a-Mole", 0xBAF0, new[]{"Reprisal","Party Mit","","","Expedient + Sacred Soil","Zoe Shields + Kerachole","Feint","","","Addle",""}),
@@ -108,9 +108,13 @@ public static class DmuData
     {
         var points = new List<SyncPoint>();
         var phaseSeen = new HashSet<string>();
+        var prevTime = float.NegativeInfinity;
         foreach (var e in Timeline.Where(e => e.Sync != 0).OrderBy(e => e.Time))
         {
-            var isPhaseAnchor = phaseSeen.Add(e.Phase); // true the first time this phase appears
+            // Re-base (wide-forward) anchor at each phase start AND after any
+            // downtime/cutscene gap (>90s) — so the clock can jump back on across a
+            // transition even if it drifted while nothing was casting.
+            var isPhaseAnchor = phaseSeen.Add(e.Phase) || (e.Time - prevTime) > 90f;
             points.Add(new SyncPoint
             {
                 Ability = e.Sync,
@@ -118,6 +122,7 @@ public static class DmuData
                 IsPhase = isPhaseAnchor,
                 Label = $"{e.Phase} {e.Mechanic}"
             });
+            prevTime = e.Time;
         }
 
         return points;
