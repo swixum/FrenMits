@@ -364,6 +364,7 @@ public class ConfigWindow : Window, IDisposable
 
     private static readonly string[] WhatsNew =
     {
+        "Cutscenes: the clock now re-arms and snaps to the new phase on the way out, and calls stay quiet until it lines up (no more stale mits right after a cutscene).",
         "Five more ultimates baked in: UCOB, UWU, TEA, DSR and TOP (timed from the Ikuya sheets against the cactbot timelines, with resync anchors).",
         "Tank-buster plans for DSR, TOP, UCOB and UWU under each fight's tank section.",
         "Pick any Windows font for the call-out, with bold / italic and alignment.",

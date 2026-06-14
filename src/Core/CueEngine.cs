@@ -31,6 +31,17 @@ public class CueEngine
         }
 
         if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.InCutscene) return;
+
+        // Waiting for the post-cutscene resync to land — stay silent so we don't
+        // announce against a drifted clock. Release on the snap or the timeout.
+        if (_holdMarker != null)
+        {
+            if (_plugin.Sync.LastSync != _holdMarker || DateTime.UtcNow >= _holdUntil)
+                _holdMarker = null;
+            else
+                return;
+        }
+
         if (_plugin.ActiveFight() is not { } fight) return;
         if (c.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 
@@ -50,6 +61,24 @@ public class CueEngine
             Fire(c, line);
         }
     }
+
+    // After a phase-transition cutscene the wall clock has run on but hasn't been
+    // snapped back onto the timeline yet, so firing now would speak the wrong call.
+    // Hold cues until the resync engine actually snaps (LastSync changes) or this
+    // deadline passes, whichever comes first.
+    private string? _holdMarker;
+    private DateTime _holdUntil;
+
+    public void HoldForResync(string marker, double maxSeconds)
+    {
+        _holdMarker = marker ?? "";
+        _holdUntil = DateTime.UtcNow.AddSeconds(maxSeconds);
+    }
+
+    // True while we're waiting for the post-cutscene resync to land. The overlay
+    // and timeline windows hide during this brief window so nothing visual fires
+    // against the drifted clock either.
+    public bool Holding => _holdMarker != null;
 
     private void Fire(Configuration c, MitLine line)
     {

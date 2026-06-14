@@ -171,6 +171,7 @@ public sealed class Plugin : IDalamudPlugin
         try
         {
             Timer.Update();
+            HandleCutsceneBoundary();
             UpdatePhase();
             Sync.Update();
             Cues.Update();
@@ -180,6 +181,27 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (!_frameErrorLogged) { Service.Log.Error(ex, "FrenMits: framework update error"); _frameErrorLogged = true; }
         }
+    }
+
+    // ---- Cutscene boundary ------------------------------------------------
+    // Phase-transition cutscenes in ultimates pause the action but NOT our wall
+    // clock, and combat never drops (the timer freezes through them), so the
+    // resync engine never re-arms on its own. When the cutscene ends we therefore
+    // (1) re-arm resync so the new phase's first boss appearance / cast snaps the
+    // clock back onto the timeline, and (2) hold cues until that snap lands so the
+    // new phase doesn't open with calls fired against the drifted clock.
+    private bool _wasInCutscene;
+
+    private void HandleCutsceneBoundary()
+    {
+        var inCs = InCutscene;
+        if (!inCs && _wasInCutscene)
+        {
+            Sync.Forget();
+            if (Config.EnableSync)
+                Cues.HoldForResync(Sync.LastSync, 6.0);
+        }
+        _wasInCutscene = inCs;
     }
 
     // ---- Door-boss phase tracking ----------------------------------------
