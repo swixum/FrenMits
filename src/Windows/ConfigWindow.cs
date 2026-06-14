@@ -1013,6 +1013,16 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Checkbox("Record boss casts this pull", ref rec)) _plugin.Sync.Recording = rec;
         ImGui.SameLine();
         if (ImGui.Button("Clear captures")) _plugin.Sync.Captured.Clear();
+        ImGui.SameLine();
+        if (ImGui.Button("Export to clipboard"))
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("# FrenMits capture  (time_s\tability\tcaster\tkind)");
+            foreach (var c in _plugin.Sync.Captured)
+                sb.AppendLine($"{c.Time:0.0}\t{(c.IsBoss ? $"boss:{c.Id}" : $"0x{c.Id:X}")}\t{c.Caster}\t{(c.IsBoss ? "appear" : "cast")}");
+            ImGui.SetClipboardText(sb.ToString());
+        }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy all captured casts (time + ability id) to paste/share for baking anchors.");
 
         if (_plugin.Sync.Captured.Count == 0) return;
 
