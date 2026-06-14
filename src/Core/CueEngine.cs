@@ -30,7 +30,7 @@ public class CueEngine
             _fired.Clear();
         }
 
-        if (!c.AudioEnabled || !_plugin.Timer.Running) return;
+        if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.InCutscene) return;
         if (_plugin.ActiveFight() is not { } fight) return;
         if (c.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 

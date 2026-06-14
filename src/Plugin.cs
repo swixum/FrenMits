@@ -154,6 +154,14 @@ public sealed class Plugin : IDalamudPlugin
     public static Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter? LocalPlayer
         => Service.ObjectTable[0] as Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter;
 
+    // True while a cutscene is playing (phase-transition cutscenes in ultimates) so
+    // call-outs and cues are suppressed — you can't act, and the clock self-corrects
+    // on the next resync anchor when it ends.
+    public static bool InCutscene =>
+        Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
+        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
+        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
+
     private bool _frameErrorLogged;
 
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework _)

@@ -79,6 +79,7 @@ public class OverlayWindow : Window
     public override bool DrawConditions()
     {
         if (C.TestMode) return true;
+        if (Plugin.InCutscene) return false; // hide while a cutscene is playing
         if (_plugin.ActiveFight() is not { } fight) return false;
         if (C.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return false;
         return _plugin.Timer.Running;
