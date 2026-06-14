@@ -548,14 +548,14 @@ public class ConfigWindow : Window, IDisposable
                 else
                 {
                     if (Builtin.Has(fight.TerritoryId)) { ImGui.Separator(); DrawBuiltinLoad(fight); }
+                    ImGui.Spacing();
+                    DrawTankSection(fight);
                     ImGui.Separator();
                     DrawLineTable(fight);
                     ImGui.Separator();
                     DrawImportSection(fight);
                     ImGui.Spacing();
                     DrawPotionsSection(fight);
-                    ImGui.Spacing();
-                    DrawTankSection(fight);
                     ImGui.Spacing();
                     DrawAdvancedFightSettings(fight);
                 }
