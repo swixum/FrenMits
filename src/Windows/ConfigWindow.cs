@@ -935,7 +935,24 @@ public class ConfigWindow : Window, IDisposable
                 if (SheetImport.TryParseTime(_editTimeBuf, out var sec)) { line.Time = sec; C.Save(); }
                 _editTimeLine = null;
             }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds");
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds — right-click to reset");
+            if (ImGui.BeginPopupContextItem("##timectx"))
+            {
+                if (DefaultTimeFor(fight, line) is { } def)
+                {
+                    if (ImGui.MenuItem($"Reset time to default ({(int)def / 60}:{(int)def % 60:00})"))
+                    {
+                        line.Time = def;
+                        if (_editTimeLine == line) _editTimeBuf = line.TimeText;
+                        C.Save();
+                    }
+                }
+                else
+                {
+                    ImGui.TextDisabled("No baked default for this line.");
+                }
+                ImGui.EndPopup();
+            }
 
             ImGui.TableNextColumn();
             var mech = line.Mechanic;
@@ -1955,6 +1972,37 @@ public class ConfigWindow : Window, IDisposable
     }
 
     // ---- helpers ---------------------------------------------------------
+
+    // The baked default time for a line, for the right-click "reset time" option.
+    // Matches the built-in line by mechanic (+ action when it still matches), then
+    // picks the closest in time to the current value — so a typo'd time still finds
+    // the right mechanic. Null when there's no baked default (custom/tank/potion
+    // lines, or non-built-in fights).
+    private float? DefaultTimeFor(FightProfile fight, MitLine line)
+    {
+        if (!Builtin.Has(fight.TerritoryId) || string.IsNullOrWhiteSpace(line.Mechanic)) return null;
+        var baked = Builtin.BuildLines(fight.TerritoryId, fight.Slot);
+        if (baked.Count == 0) return null;
+
+        var mech = line.Mechanic.Trim();
+        var act = line.Action.Trim();
+
+        float? best = null;
+        var bestD = float.MaxValue;
+        // Prefer an exact mechanic+action match; fall back to mechanic-only.
+        foreach (var wantAction in new[] { true, false })
+        {
+            foreach (var b in baked)
+            {
+                if (!string.Equals(b.Mechanic.Trim(), mech, StringComparison.OrdinalIgnoreCase)) continue;
+                if (wantAction && !string.Equals(b.Action.Trim(), act, StringComparison.OrdinalIgnoreCase)) continue;
+                var d = MathF.Abs(b.Time - line.Time);
+                if (d < bestD) { bestD = d; best = b.Time; }
+            }
+            if (best != null) break;
+        }
+        return best;
+    }
 
     private static MitLine CloneLine(MitLine l) => new()
     {
