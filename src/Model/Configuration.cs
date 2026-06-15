@@ -66,6 +66,15 @@ public class Configuration : IPluginConfiguration
     public float ProgressBarHeight { get; set; } = 6f;
     public bool PulseWhenImminent { get; set; } = true;
     public bool ShowAbilityIcon { get; set; } = true;
+
+    // Colour the call text by the kind of mit (party / tank / personal). Only
+    // applies to lines without their own colour override.
+    public bool ColorByMitType { get; set; } = true;
+    public uint MitColorParty { get; set; } = 0xFFF68C3C;    // blue
+    public uint MitColorTank { get; set; } = 0xFF3C5AF0;     // red
+    public uint MitColorPersonal { get; set; } = 0xFF78C846; // green
+    // Radial countdown ring around the call icon.
+    public bool ShowRadialRing { get; set; } = true;
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;
 

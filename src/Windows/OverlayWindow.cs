@@ -153,12 +153,21 @@ public class OverlayWindow : Window
     private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
         uint colorOverride, float lead, uint iconId = 0)
     {
-        var baseColor = colorOverride != 0 ? colorOverride : (imminent ? C.OverlayColorImminent : C.OverlayColorActive);
+        // Colour priority: per-line override > mit-type colour > default imminent/active.
+        var typeColor = C.ColorByMitType ? MitTypes.Color(MitTypes.Classify(action, mechanic), C) : 0u;
+        var baseColor = colorOverride != 0 ? colorOverride
+            : typeColor != 0 ? typeColor
+            : (imminent ? C.OverlayColorImminent : C.OverlayColorActive);
         var color = imminent && C.PulseWhenImminent && remaining < 1.5f ? Pulse(baseColor) : baseColor;
         var headline = FormatHeadline(mechanic, action, remaining, imminent);
 
+        // Depleting ring around the icon while counting down (full at the lead, empty
+        // at the call). -1 = no ring.
+        var ringFrac = C.ShowRadialRing && imminent && lead > 0.01f
+            ? Math.Clamp(remaining / lead, 0f, 1f) : -1f;
+
         using (PushFont(C.OverlayFontSizePx))
-            CenteredIconText(iconId, headline, color);
+            CenteredIconText(iconId, headline, color, ringFrac, baseColor);
 
         if (C.ShowMechanicLine
             && !string.IsNullOrWhiteSpace(mechanic)
@@ -182,6 +191,24 @@ public class OverlayWindow : Window
         dl.AddRectFilled(origin, origin + new Vector2(width, height), 0x80202020, 2f);
         dl.AddRectFilled(origin, origin + new Vector2(width * frac, height), color, 2f);
         ImGui.Dummy(new Vector2(width, height));
+    }
+
+    // Depleting countdown ring around the call icon: a faint full ring plus a
+    // coloured arc that shrinks from full (at the lead) to empty (at the call).
+    private void DrawRing(Vector2 iconTopLeft, float iconH, float frac, uint color)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var center = iconTopLeft + new Vector2(iconH * 0.5f, iconH * 0.5f);
+        var radius = iconH * 0.5f + MathF.Max(2f, iconH * 0.12f);
+        var thickness = MathF.Max(2f, iconH * 0.14f);
+
+        dl.AddCircle(center, radius, 0x40FFFFFF, 40, thickness);
+        if (frac > 0.001f)
+        {
+            const float start = -MathF.PI / 2f; // 12 o'clock
+            dl.PathArcTo(center, radius, start, start + frac * MathF.PI * 2f, 40);
+            dl.PathStroke(color != 0 ? color : 0xFFFFFFFF, ImDrawFlags.None, thickness);
+        }
     }
 
     // Brightness oscillation for the imminent pulse, preserving alpha.
@@ -246,7 +273,7 @@ public class OverlayWindow : Window
     }
 
     // Centers an optional ability icon followed by the text as one group.
-    private void CenteredIconText(uint iconId, string text, uint color)
+    private void CenteredIconText(uint iconId, string text, uint color, float ringFrac = -1f, uint ringColor = 0)
     {
         if (iconId == 0)
         {
@@ -266,7 +293,9 @@ public class OverlayWindow : Window
         // the baseline so the text itself isn't nudged down.
         var baseY = ImGui.GetCursorPosY();
         ImGui.SetCursorPosY(MathF.Round(baseY + (lineH - iconH) * 0.5f));
+        var iconTopLeft = ImGui.GetCursorScreenPos();
         Icons.Draw(iconId, new Vector2(iconH, iconH));
+        if (ringFrac >= 0f) DrawRing(iconTopLeft, iconH, ringFrac, ringColor);
         ImGui.SameLine(0, spacing);
         ImGui.SetCursorPosY(baseY);
 

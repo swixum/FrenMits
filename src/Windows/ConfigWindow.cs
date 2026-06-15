@@ -1492,6 +1492,7 @@ public class ConfigWindow : Window, IDisposable
             C.ShowMechanicLine = CfgCheck("Show mechanic name on a second line", C.ShowMechanicLine);
             C.ShowAbilityIcon = CfgCheck("Show the ability icon next to the call", C.ShowAbilityIcon);
             HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
+            C.ShowRadialRing = CfgCheck("Radial countdown ring around the icon", C.ShowRadialRing);
             C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
             C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
         }
@@ -1523,6 +1524,19 @@ public class ConfigWindow : Window, IDisposable
                 C.OverlayColorImminent = 0xFF55FFFF; C.OverlayColorActive = 0xFF55FF55;
                 C.OverlayColorMechanic = 0xC0FFFFFF; C.OverlayColorUpcoming = 0xB0FFFFFF;
                 C.Save();
+            }
+
+            ImGui.Spacing();
+            C.ColorByMitType = CfgCheck("Color the call by mit type", C.ColorByMitType);
+            HelpMarker("Tints calls by what kind of mit they are. Lines with their own color override are left alone.");
+            if (C.ColorByMitType)
+            {
+                var party = ColorToVec4(C.MitColorParty);
+                if (ImGui.ColorEdit4("Party mit", ref party)) { C.MitColorParty = Vec4ToColor(party); C.Save(); }
+                var tank = ColorToVec4(C.MitColorTank);
+                if (ImGui.ColorEdit4("Tank cooldown", ref tank)) { C.MitColorTank = Vec4ToColor(tank); C.Save(); }
+                var personal = ColorToVec4(C.MitColorPersonal);
+                if (ImGui.ColorEdit4("Personal", ref personal)) { C.MitColorPersonal = Vec4ToColor(personal); C.Save(); }
             }
         }
 
@@ -1828,8 +1842,14 @@ public class ConfigWindow : Window, IDisposable
         try
         {
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(fight);
-            var b64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
-            ImGui.SetClipboardText("FRENMITS1:" + b64);
+            // FRENMITS2 = gzip-compressed, so a full raid plan is a much shorter,
+            // paste-friendly code to share. (FRENMITS1 plain base64 still imports.)
+            var raw = System.Text.Encoding.UTF8.GetBytes(json);
+            using var ms = new System.IO.MemoryStream();
+            using (var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionLevel.Optimal))
+                gz.Write(raw, 0, raw.Length);
+            ImGui.SetClipboardText("FRENMITS2:" + Convert.ToBase64String(ms.ToArray()));
+            FlashBuiltin("Plan code copied to clipboard.");
         }
         catch (Exception ex)
         {
@@ -1841,16 +1861,34 @@ public class ConfigWindow : Window, IDisposable
     {
         try
         {
-            var text = ImGui.GetClipboardText() ?? "";
-            const string prefix = "FRENMITS1:";
-            if (!text.StartsWith(prefix)) return;
-            var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(text[prefix.Length..]));
+            var text = (ImGui.GetClipboardText() ?? "").Trim();
+            string json;
+            if (text.StartsWith("FRENMITS2:"))
+            {
+                var data = Convert.FromBase64String(text["FRENMITS2:".Length..]);
+                using var ms = new System.IO.MemoryStream(data);
+                using var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Decompress);
+                using var outMs = new System.IO.MemoryStream();
+                gz.CopyTo(outMs);
+                json = System.Text.Encoding.UTF8.GetString(outMs.ToArray());
+            }
+            else if (text.StartsWith("FRENMITS1:"))
+            {
+                json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(text["FRENMITS1:".Length..]));
+            }
+            else
+            {
+                FlashBuiltin("No FrenMits plan code on the clipboard.");
+                return;
+            }
+
             var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
             if (fight == null) return;
             fight.Id = Guid.NewGuid().ToString("N");
             // Drop it into the category you're currently viewing and expand it.
             if (_nav == NavKind.Fights) fight.Category = _navCategory;
             AddFight(fight);
+            FlashBuiltin($"Imported \"{fight.Name}\".");
         }
         catch (Exception ex)
         {
