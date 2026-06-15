@@ -84,20 +84,36 @@ public class CueEngine
     // against the drifted clock either.
     public bool Holding => _holding;
 
+    // When each spoken phrase was last said, to debounce identical calls.
+    private readonly Dictionary<string, DateTime> _spokenAt = new();
+
     private void Fire(Configuration c, MitLine line)
     {
         if (!c.TtsEnabled) return;
-
-        // Respect a minimum gap between spoken cues, if set.
-        if (c.TtsMinGapSeconds > 0f && (DateTime.UtcNow - _lastSpoke).TotalSeconds < c.TtsMinGapSeconds)
-            return;
-        _lastSpoke = DateTime.UtcNow;
 
         // Per-line override wins; otherwise speak the action (or mechanic if chosen).
         var fallback = c.TtsSpeakMechanic
             ? (string.IsNullOrWhiteSpace(line.Mechanic) ? line.Action : line.Mechanic)
             : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : line.Action);
         var text = string.IsNullOrWhiteSpace(line.Tts) ? fallback : line.Tts;
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        var now = DateTime.UtcNow;
+
+        // Hard guard against doubled audio: never speak the exact same phrase twice
+        // within a short window, whatever caused the second trigger (a resync
+        // re-fire, a brief combat flicker resetting the fired-set, an in-editor time
+        // change). Distinct calls are unaffected.
+        if (_spokenAt.TryGetValue(text, out var lastSame) && (now - lastSame).TotalSeconds < 2.0)
+            return;
+
+        // Optional minimum gap between ANY cues.
+        if (c.TtsMinGapSeconds > 0f && (now - _lastSpoke).TotalSeconds < c.TtsMinGapSeconds)
+            return;
+
+        _spokenAt[text] = now;
+        if (_spokenAt.Count > 256) _spokenAt.Clear();
+        _lastSpoke = now;
 
         var voice = c.TtsUseEdge
             ? (string.IsNullOrWhiteSpace(c.TtsCustomVoice) ? c.TtsEdgeVoice : c.TtsCustomVoice)
