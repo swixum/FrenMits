@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Lumina.Excel.Sheets;
@@ -43,6 +44,9 @@ public class MitRecap
         try
         {
             if (!_plugin.Config.RecapAutoCapture) { _wasRunning = false; return; }
+            // Only track inside an actual duty/instance — never in the open world,
+            // hunts, cities, etc.
+            if (!InDuty()) { _wasRunning = false; return; }
 
             var running = _plugin.Timer.Running && !Plugin.InCutscene;
             if (running && !_wasRunning) { Log.Clear(); _active.Clear(); }
@@ -108,6 +112,71 @@ public class MitRecap
     {
         CapturedAt = DateTime.UtcNow;
         PopupDismissed = false;
+    }
+
+    private static bool InDuty()
+        => Service.Condition[ConditionFlag.BoundByDuty]
+           || Service.Condition[ConditionFlag.BoundByDuty56]
+           || Service.Condition[ConditionFlag.BoundByDuty95];
+
+    // Fill the recap with a randomised fake pull so you can see exactly how it
+    // looks in-game (icons, colours, missing mits) without doing a real pull.
+    public void LoadSample()
+    {
+        try
+        {
+            var rnd = new Random();
+            string[] party =
+            {
+                "Rampart", "Sentinel", "Bulwark", "Sacred Soil", "Kerachole", "Holos", "Expedient",
+                "Heart of Light", "Dark Missionary", "Temperance", "Fey Illumination", "Bloodwhetting",
+                "Reprisal", "Sheltron",
+            };
+            string[] jobs =
+            {
+                "Paladin", "Warrior", "Dark Knight", "Gunbreaker", "Scholar", "Sage",
+                "White Mage", "Astrologian", "Samurai", "Black Mage", "Dancer", "Bard",
+            };
+
+            // 2–3 of the four boss damage-downs land (so 1–2 show as "missing").
+            var bossMits = StandardRaidMits.OrderBy(_ => rnd.Next()).Take(rnd.Next(2, 4)).ToList();
+
+            var seq = new List<(string mit, string src, bool onBoss)>();
+            foreach (var b in bossMits) seq.Add((b, "Boss", true));
+            for (var i = 0; i < 9 + rnd.Next(7); i++)
+                seq.Add((party[rnd.Next(party.Length)], jobs[rnd.Next(jobs.Length)], false));
+
+            var log = new List<Applied>();
+            var t = 12f + rnd.Next(8);
+            foreach (var (mit, src, onBoss) in seq.OrderBy(_ => rnd.Next()))
+            {
+                t += 7 + rnd.Next(24);
+                log.Add(new Applied(t, mit, src, MitTypes.Classify(mit), onBoss, SampleIcon(mit)));
+            }
+            LastLog = log.OrderBy(a => a.Time).ToList();
+
+            Snapshot = LastLog.OrderBy(_ => rnd.Next()).Take(3 + rnd.Next(3))
+                .Select(a => new Active(a.Icon, a.Mit, a.Source, 4 + rnd.Next(18), a.Kind, a.OnBoss))
+                .ToList();
+
+            CapturedAt = DateTime.UtcNow;
+            PopupDismissed = false;
+        }
+        catch { /* ignore */ }
+    }
+
+    private static uint SampleIcon(string mit)
+    {
+        try
+        {
+            var sheet = Service.DataManager.GetExcelSheet<Status>();
+            if (sheet == null) return 0;
+            foreach (var row in sheet)
+                if (string.Equals(row.Name.ExtractText(), mit, StringComparison.OrdinalIgnoreCase))
+                    return (uint)row.Icon;
+        }
+        catch { /* ignore */ }
+        return 0;
     }
 
     // Standard raid damage-downs that never landed on the boss this pull

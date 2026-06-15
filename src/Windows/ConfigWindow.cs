@@ -1538,6 +1538,13 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Button("Open recap window")) _plugin.RecapWindow.IsOpen = true;
         Tip("Opens the movable recap window with the last pull's data.");
         ImGui.SameLine();
+        if (ImGui.Button("Sample recap"))
+        {
+            _plugin.Recap.LoadSample();             // fill with a fake randomised pull
+            _plugin.RecapWindow.IsOpen = true;
+        }
+        Tip("Fills the recap with a randomised fake pull so you can see exactly how it looks in-game — icons, colors, missing mits — without a real pull.");
+        ImGui.SameLine();
         if (ImGui.Button("Test placement"))
         {
             _plugin.Recap.ShowTestPopup();          // make the popup appear so you can drag it
