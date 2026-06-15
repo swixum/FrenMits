@@ -10,6 +10,9 @@ public class CueEngine
     private readonly Plugin _plugin;
     private readonly Audio _audio;
     private readonly HashSet<MitLine> _fired = new();
+    // Wall-clock time each line was last spoken, so a resync that re-arms a line
+    // can't make it speak again moments later. Cleared on a genuine fresh pull.
+    private readonly Dictionary<MitLine, DateTime> _firedAt = new();
     private int _generation = -1;
     private DateTime _lastSpoke = DateTime.MinValue;
 
@@ -35,10 +38,12 @@ public class CueEngine
             {
                 var el = _plugin.ElapsedFor(genFight);
                 _fired.RemoveWhere(l => l.Time > el + 0.5f);
+                if (el < 5f) _firedAt.Clear(); // a genuine fresh pull — allow every call again
             }
             else
             {
                 _fired.Clear();
+                _firedAt.Clear();
             }
         }
 
@@ -72,6 +77,13 @@ public class CueEngine
             if (remaining > lead || remaining < -0.5f) continue;
 
             _fired.Add(line);
+            // A backward resync / phase re-base can re-arm a line we already spoke
+            // (the clock steps back across it, then advances onto it again). Don't
+            // re-speak the same line within 90s; a real re-pull clears this above.
+            // This is what stops the resync double-calls in the legacy ultimates.
+            if (_firedAt.TryGetValue(line, out var prevFire) && (DateTime.UtcNow - prevFire).TotalSeconds < 90.0)
+                continue;
+            _firedAt[line] = DateTime.UtcNow;
             Fire(c, line);
         }
     }
