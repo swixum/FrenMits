@@ -71,6 +71,16 @@ public class RecapWindow : Window
             return;
         }
 
+        // Boss name + fight time of the capture.
+        ImGui.Dummy(new Vector2(0, 2));
+        ImGui.TextColored(Vec(Theme.Accent), string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName);
+        if (r.CaptureElapsed > 0)
+        {
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextColored(Vec(0xFF81766E), $"·  {(int)r.CaptureElapsed / 60}:{(int)r.CaptureElapsed % 60:00} in");
+        }
+
         // Headline: missing standard raid mits.
         ImGui.Spacing();
         var missed = r.NotSeen();

@@ -33,6 +33,8 @@ public class MitRecap
     public List<Active> Snapshot { get; private set; } = new();
     public DateTime CapturedAt { get; private set; }
     public bool PopupDismissed { get; private set; }
+    public string BossName { get; private set; } = "";
+    public float CaptureElapsed { get; private set; }   // fight time (s) at the capture / wipe
 
     // Hide the post-wipe popup without clearing the recap data.
     public void Dismiss() => PopupDismissed = true;
@@ -61,11 +63,13 @@ public class MitRecap
 
             var fight = _plugin.ActiveFight();
             var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
+            CaptureElapsed = elapsed;
             var now = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var live = new List<Active>();
 
             foreach (var (src, onBoss, chara) in Sources())
             {
+                if (onBoss) BossName = chara.Name.ToString();
                 foreach (var m in MitsOn(chara, onBoss))
                 {
                     var key = src + "|" + m.Mit;
@@ -98,9 +102,14 @@ public class MitRecap
             LastLog = new List<Applied>(Log);
             var snap = new List<Active>();
             foreach (var (src, onBoss, chara) in Sources())
+            {
+                if (onBoss) BossName = chara.Name.ToString();
                 foreach (var m in MitsOn(chara, onBoss))
                     snap.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
+            }
             Snapshot = snap;
+            var f = _plugin.ActiveFight();
+            CaptureElapsed = f != null ? _plugin.ElapsedFor(f) : _plugin.Timer.Elapsed;
             CapturedAt = DateTime.UtcNow;
             PopupDismissed = false;
         }
@@ -119,38 +128,81 @@ public class MitRecap
            || Service.Condition[ConditionFlag.BoundByDuty56]
            || Service.Condition[ConditionFlag.BoundByDuty95];
 
-    // Fill the recap with a randomised fake pull so you can see exactly how it
-    // looks in-game (icons, colours, missing mits) without doing a real pull.
+    // --- Sample data (job-accurate) ---------------------------------------
+
+    private static readonly string[] SampleTanks = { "Paladin", "Warrior", "Dark Knight", "Gunbreaker" };
+    private static readonly string[] SampleHealers = { "White Mage", "Scholar", "Astrologian", "Sage" };
+    private static readonly string[] SampleMelee = { "Monk", "Dragoon", "Ninja", "Samurai", "Reaper", "Viper" };
+    private static readonly string[] SampleRanged = { "Bard", "Machinist", "Dancer" };
+    private static readonly string[] SampleCasters = { "Black Mage", "Summoner", "Red Mage", "Pictomancer" };
+
+    private static readonly string[] SampleBosses =
+        { "Dragon-king Thordan", "Golden Bahamut", "The Omega Protocol", "Kefka", "Alexander Prime", "Pandora" };
+
+    // Each job's own defensive cooldowns (party buffs — boss damage-downs are
+    // handled separately by role).
+    private static readonly Dictionary<string, string[]> JobBuffs = new()
+    {
+        ["Paladin"] = new[] { "Rampart", "Sentinel", "Bulwark", "Holy Sheltron", "Divine Veil", "Passage of Arms", "Intervention" },
+        ["Warrior"] = new[] { "Rampart", "Vengeance", "Thrill of Battle", "Bloodwhetting", "Nascent Flash", "Shake It Off" },
+        ["Dark Knight"] = new[] { "Rampart", "Shadow Wall", "Dark Mind", "Dark Missionary", "The Blackest Night", "Oblation" },
+        ["Gunbreaker"] = new[] { "Rampart", "Camouflage", "Nebula", "Heart of Light", "Heart of Corundum", "Aurora" },
+        ["White Mage"] = new[] { "Temperance", "Divine Caress", "Asylum", "Liturgy of the Bell", "Aquaveil" },
+        ["Scholar"] = new[] { "Sacred Soil", "Expedient", "Fey Illumination", "Whispering Dawn", "Deployment Tactics" },
+        ["Astrologian"] = new[] { "Collective Unconscious", "Neutral Sect", "Sun Sign", "Exaltation", "Macrocosmos" },
+        ["Sage"] = new[] { "Kerachole", "Holos", "Panhaima", "Taurochole", "Krasis" },
+        ["Monk"] = new[] { "Arm's Length", "Second Wind", "Riddle of Earth" },
+        ["Dragoon"] = new[] { "Arm's Length", "Second Wind" },
+        ["Ninja"] = new[] { "Arm's Length", "Second Wind", "Shade Shift" },
+        ["Samurai"] = new[] { "Arm's Length", "Second Wind", "Third Eye" },
+        ["Reaper"] = new[] { "Arm's Length", "Second Wind", "Arcane Crest" },
+        ["Viper"] = new[] { "Arm's Length", "Second Wind" },
+        ["Bard"] = new[] { "Troubadour", "Nature's Minne", "Second Wind" },
+        ["Machinist"] = new[] { "Tactician", "Second Wind" },
+        ["Dancer"] = new[] { "Shield Samba", "Improvisation", "Curing Waltz" },
+        ["Black Mage"] = new[] { "Manaward", "Addle" },
+        ["Summoner"] = new[] { "Addle" },
+        ["Red Mage"] = new[] { "Magick Barrier", "Addle" },
+        ["Pictomancer"] = new[] { "Tempera Coat", "Addle" },
+    };
+
+    // Fill the recap with a randomised, comp-accurate fake pull — every job only
+    // emits mits it can actually use — so you can see exactly how it looks in-game
+    // (icons, colours, missing mits) without doing a real pull.
     public void LoadSample()
     {
         try
         {
             var rnd = new Random();
-            string[] party =
-            {
-                "Rampart", "Sentinel", "Bulwark", "Sacred Soil", "Kerachole", "Holos", "Expedient",
-                "Heart of Light", "Dark Missionary", "Temperance", "Fey Illumination", "Bloodwhetting",
-                "Reprisal", "Sheltron",
-            };
-            string[] jobs =
-            {
-                "Paladin", "Warrior", "Dark Knight", "Gunbreaker", "Scholar", "Sage",
-                "White Mage", "Astrologian", "Samurai", "Black Mage", "Dancer", "Bard",
-            };
+            string Pick(string[] pool) => pool[rnd.Next(pool.Length)];
 
-            // 2–3 of the four boss damage-downs land (so 1–2 show as "missing").
-            var bossMits = StandardRaidMits.OrderBy(_ => rnd.Next()).Take(rnd.Next(2, 4)).ToList();
+            // A realistic 8-player comp: 2 tanks, 2 healers, 4 DPS.
+            var dps = SampleMelee.Concat(SampleRanged).Concat(SampleCasters).OrderBy(_ => rnd.Next()).Take(4).ToList();
+            var comp = new List<string> { Pick(SampleTanks), Pick(SampleTanks), Pick(SampleHealers), Pick(SampleHealers) };
+            comp = comp.Concat(dps).ToList();
+
+            // Which boss damage-downs the comp could even provide.
+            var canProvide = new List<string>();
+            if (comp.Any(j => SampleTanks.Contains(j))) canProvide.Add("Reprisal");
+            if (comp.Any(j => SampleMelee.Contains(j))) canProvide.Add("Feint");
+            if (comp.Any(j => SampleCasters.Contains(j))) canProvide.Add("Addle");
+            if (comp.Contains("Machinist")) canProvide.Add("Dismantle");
+            // Land most-but-not-all of what's available, so something shows "missing".
+            var landed = canProvide.OrderBy(_ => rnd.Next())
+                .Take(Math.Max(1, canProvide.Count - rnd.Next(1, 2))).ToList();
 
             var seq = new List<(string mit, string src, bool onBoss)>();
-            foreach (var b in bossMits) seq.Add((b, "Boss", true));
-            for (var i = 0; i < 9 + rnd.Next(7); i++)
-                seq.Add((party[rnd.Next(party.Length)], jobs[rnd.Next(jobs.Length)], false));
+            foreach (var b in landed) { seq.Add((b, "Boss", true)); if (rnd.Next(3) == 0) seq.Add((b, "Boss", true)); }
+            foreach (var job in comp)
+                if (JobBuffs.TryGetValue(job, out var buffs))
+                    foreach (var buff in buffs.Where(b => b != "Addle").OrderBy(_ => rnd.Next()).Take(1 + rnd.Next(3)))
+                        seq.Add((buff, job, false));
 
             var log = new List<Applied>();
-            var t = 12f + rnd.Next(8);
+            var t = 10f + rnd.Next(8);
             foreach (var (mit, src, onBoss) in seq.OrderBy(_ => rnd.Next()))
             {
-                t += 7 + rnd.Next(24);
+                t += 6 + rnd.Next(20);
                 log.Add(new Applied(t, mit, src, MitTypes.Classify(mit), onBoss, SampleIcon(mit)));
             }
             LastLog = log.OrderBy(a => a.Time).ToList();
@@ -159,6 +211,8 @@ public class MitRecap
                 .Select(a => new Active(a.Icon, a.Mit, a.Source, 4 + rnd.Next(18), a.Kind, a.OnBoss))
                 .ToList();
 
+            BossName = Pick(SampleBosses);
+            CaptureElapsed = LastLog.Count > 0 ? LastLog[^1].Time + 6 : 0;
             CapturedAt = DateTime.UtcNow;
             PopupDismissed = false;
         }
@@ -192,7 +246,11 @@ public class MitRecap
     public string ToText()
     {
         var sb = new StringBuilder();
-        sb.AppendLine("Party Mit Recap");
+        sb.Append("Party Mit Recap");
+        if (!string.IsNullOrEmpty(BossName)) sb.Append(" — ").Append(BossName);
+        if (CaptureElapsed > 0) sb.Append($"  ({(int)CaptureElapsed / 60}:{(int)CaptureElapsed % 60:00}")
+            .Append(LastLog.Count > 0 ? " wipe)" : ")");
+        sb.AppendLine();
         var missed = NotSeen();
         sb.AppendLine(missed.Count == 0
             ? "All four standard raid mits landed."
