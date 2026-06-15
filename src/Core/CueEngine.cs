@@ -10,9 +10,6 @@ public class CueEngine
     private readonly Plugin _plugin;
     private readonly Audio _audio;
     private readonly HashSet<MitLine> _fired = new();
-    // Wall-clock time each line was last spoken, so a resync that re-arms a line
-    // can't make it speak again moments later. Cleared on a genuine fresh pull.
-    private readonly Dictionary<MitLine, DateTime> _firedAt = new();
     private int _generation = -1;
     private DateTime _lastSpoke = DateTime.MinValue;
 
@@ -26,25 +23,18 @@ public class CueEngine
     {
         var c = _plugin.Config;
 
-        // The clock's generation bumped (pull / wipe / sync / a brief combat
-        // flicker). Don't blanket-forget everything — that re-announces calls we've
-        // already passed (a flicker or a mid-fight /fm sync would replay them). Only
-        // re-arm calls now in the FUTURE: a genuine pull resets the clock to ~0 so
-        // everything re-arms, while a mid-pull bump keeps the past calls silent.
+        // The clock's generation bumped (pull / wipe / sync / a brief combat flicker).
+        // Only a genuine FRESH pull (the clock resets to ~0) re-arms every call, so we
+        // clear the fired-set then. A mid-pull bump — a resync snap or a brief combat
+        // flicker — leaves the fired-set untouched. (The old code re-armed every fired
+        // line that a backward snap had pushed ahead of the clock; re-advancing onto
+        // those is exactly what replayed a call we'd already spoken — the double-audio.
+        // Unfired future lines aren't in the set, so they still fire normally.)
         if (_plugin.Timer.Generation != _generation)
         {
             _generation = _plugin.Timer.Generation;
-            if (_plugin.ActiveFight() is { } genFight)
-            {
-                var el = _plugin.ElapsedFor(genFight);
-                _fired.RemoveWhere(l => l.Time > el + 0.5f);
-                if (el < 5f) _firedAt.Clear(); // a genuine fresh pull — allow every call again
-            }
-            else
-            {
-                _fired.Clear();
-                _firedAt.Clear();
-            }
+            var fresh = _plugin.ActiveFight() is not { } genFight || _plugin.ElapsedFor(genFight) < 5f;
+            if (fresh) _fired.Clear();
         }
 
         if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.InCutscene) return;
@@ -77,13 +67,6 @@ public class CueEngine
             if (remaining > lead || remaining < -0.5f) continue;
 
             _fired.Add(line);
-            // A backward resync / phase re-base can re-arm a line we already spoke
-            // (the clock steps back across it, then advances onto it again). Don't
-            // re-speak the same line within 90s; a real re-pull clears this above.
-            // This is what stops the resync double-calls in the legacy ultimates.
-            if (_firedAt.TryGetValue(line, out var prevFire) && (DateTime.UtcNow - prevFire).TotalSeconds < 90.0)
-                continue;
-            _firedAt[line] = DateTime.UtcNow;
             Fire(c, line);
         }
     }
