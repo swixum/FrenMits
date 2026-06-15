@@ -770,7 +770,7 @@ public class ConfigWindow : Window, IDisposable
         if (!TankMits.Has(fight.TerritoryId)) return;
         if (!IsTankSlot(fight.Slot)) return;
 
-        SeparatorText("Tank busters (from Ikuya)");
+        if (!Section("Tank busters (from Ikuya)")) return;
         ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
 
         var comps = TankMits.Comps(fight.TerritoryId);
@@ -810,7 +810,7 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawPotionsSection(FightProfile fight)
     {
-        SeparatorText("Potions (from top logs)");
+        if (!Section("Potions (from top logs)")) return;
 
         var job = _plugin.ActiveJobAbbreviation();
         var stat = PotionTimings.Stat(job);
@@ -1181,43 +1181,42 @@ public class ConfigWindow : Window, IDisposable
     {
         var fight = _plugin.ActiveFight();
 
-        if (Section("Timer", true))
+        if (Section("Timing", true))
         {
             var warn = C.WarningSeconds;
-            ImGui.SetNextItemWidth(160f);
-            if (ImGui.SliderFloat("Warning lead (s)", ref warn, 1f, 10f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
-            ImGui.TextDisabled("How early the call appears before the mit time (default 3s).");
-
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("Show ahead by (s)", ref warn, 1f, 12f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
+            Tip("How early a call appears before its mit time. Per-line leads override this.");
             var hold = C.HoldSeconds;
-            ImGui.SetNextItemWidth(160f);
+            ImGui.SetNextItemWidth(200f);
             if (ImGui.SliderFloat("Hold on screen (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
-            ImGui.TextDisabled("How long the call stays up after its time passes.");
-
-            ImGui.Spacing();
-            ImGui.TextUnformatted($"Timer: {(_plugin.Timer.Running ? _plugin.Timer.Elapsed.ToString("0.0") + "s" : "not running")}");
-            if (ImGui.Button("Sync now (zero timer)")) _plugin.Timer.SyncNow();
-            ImGui.SameLine();
-            if (ImGui.Button("Reset timer")) _plugin.Timer.Reset();
-            ImGui.TextDisabled("Auto-starts on combat. Sync aligns it to a known mechanic (also /fm sync).");
-
+            Tip("How long a call stays up after its time passes.");
             C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
         }
 
-        if (Section("Resync"))
+        if (Section("Clock", true))
+        {
+            ImGui.TextUnformatted($"Elapsed: {(_plugin.Timer.Running ? _plugin.Timer.Elapsed.ToString("0.0") + "s" : "not running")}");
+            if (ImGui.Button("Sync now")) _plugin.Timer.SyncNow();
+            Tip("Zero the clock to the current moment (also /fm sync). Auto-starts on combat otherwise.");
+            ImGui.SameLine();
+            if (ImGui.Button("Reset")) _plugin.Timer.Reset();
+        }
+
+        if (Section("Resync", true))
         {
             C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
-            HelpMarker("When a known boss ability begins casting, the timer snaps so that ability resolves on its scripted "
-                       + "time. This corrects the drift between phases caused by kill speed. Only abilities with a cast bar "
-                       + "can be caught; the continuous clock covers the rest.");
+            Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time — correcting phase drift from kill speed.");
             var win = C.SyncWindowSeconds;
-            ImGui.SetNextItemWidth(160f);
+            ImGui.SetNextItemWidth(200f);
             if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
+            Tip("Tight window for fine drift correction on a normal mechanic.");
             var pwin = C.SyncPhaseWindowSeconds;
-            ImGui.SetNextItemWidth(160f);
+            ImGui.SetNextItemWidth(200f);
             if (ImGui.SliderFloat("Phase window (s)", ref pwin, 15f, 120f, "%.0f")) { C.SyncPhaseWindowSeconds = pwin; C.Save(); }
-            HelpMarker("Phase anchors (the first known cast of each phase) re-base the whole clock with this wider window, so "
-                       + "a phase that starts well off the sheet's nominal time still locks on. Mechanic anchors only nudge "
-                       + "within the tighter window.");
+            Tip("Wider window so a phase that starts well off the sheet's nominal time still locks on.");
+
+            ImGui.Spacing();
             ImGui.TextDisabled($"Last sync: {(_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-")}");
             if (fight is { SyncPoints.Count: > 0 })
             {
@@ -1622,18 +1621,6 @@ public class ConfigWindow : Window, IDisposable
             }
         }
 
-        if (Section("Timing"))
-        {
-            var warn = C.WarningSeconds;
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Show ahead by (s)", ref warn, 1f, 12f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
-            HelpMarker("How early the call appears before the mit time. Per-line leads override this.");
-            var hold = C.HoldSeconds;
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Hold after (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
-            HelpMarker("How long the call stays up after its time passes.");
-        }
-
         if (Section("Colors"))
         {
             var imminent = ColorToVec4(C.OverlayColorImminent);
@@ -1791,21 +1778,18 @@ public class ConfigWindow : Window, IDisposable
             var vol = C.TtsVolume;
             ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderInt("Volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
-        }
 
-        if (Section("What it says"))
-        {
+            ImGui.Spacing();
             var mech = C.TtsSpeakMechanic;
-            if (ImGui.RadioButton("Speak the mit/action", !mech)) { C.TtsSpeakMechanic = false; C.Save(); }
+            if (ImGui.RadioButton("Speak the mit", !mech)) { C.TtsSpeakMechanic = false; C.Save(); }
+            Tip("Reads the action you press, e.g. \"Reprisal\". Override the exact words per line with the \"…\" button.");
             ImGui.SameLine();
             if (ImGui.RadioButton("Speak the mechanic", mech)) { C.TtsSpeakMechanic = true; C.Save(); }
-            HelpMarker("Default reads the action you press (e.g. \"Reprisal\"). Per-line you can override the exact "
-                       + "spoken text with the \"…\" button.");
 
             var gap = C.TtsMinGapSeconds;
             ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f")) { C.TtsMinGapSeconds = gap; C.Save(); }
-            HelpMarker("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
+            Tip("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
         }
 
         if (Section("Test", true))
