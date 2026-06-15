@@ -25,7 +25,7 @@ public sealed class Plugin : IDalamudPlugin
     public SyncEngine Sync { get; }
     public ReplayEngine Replay { get; }
     public MitReview Review { get; }
-    public BossMitRecap Recap { get; }
+    public MitRecap Recap { get; }
     public readonly WindowSystem Windows = new("FrenMits");
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
@@ -116,7 +116,7 @@ public sealed class Plugin : IDalamudPlugin
         Sync = new SyncEngine(this);
         Replay = new ReplayEngine(this);
         Review = new MitReview(this);
-        Recap = new BossMitRecap(this);
+        Recap = new MitRecap(this);
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
         TimelineWindow = new TimelineWindow(this);

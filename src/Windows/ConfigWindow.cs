@@ -1514,9 +1514,11 @@ public class ConfigWindow : Window, IDisposable
     private void DrawPartyRecapPage()
     {
         SeparatorText("Party Mit Recap");
-        ImGui.TextWrapped("After a wipe, see which damage-down mits were on the boss (Reprisal / Feint / "
-                          + "Addle / Dismantle) and which never landed. Captured automatically when a pull ends; "
-                          + "hit Capture now to grab it live, and there's a button on the overlay too.");
+        ImGui.TextWrapped("After a wipe, a full recap of the pull's mitigation: the damage-downs on the boss "
+                          + "(Reprisal / Feint / Addle / Dismantle) plus the party's defensive cooldowns "
+                          + "(Rampart, Sacred Soil, Kerachole, ...), who used them and when, and which standard "
+                          + "raid mits never landed. Captured automatically when a pull ends — hit Capture now to "
+                          + "grab it live, or use the on-screen button after a wipe.");
         ImGui.Spacing();
 
         if (ImGui.Button("Capture now")) _plugin.Recap.Capture();
@@ -1546,32 +1548,45 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled("(depends on your comp — no caster means no Addle, no MCH means no Dismantle, etc.)");
         }
 
-        // What's on the boss at the capture.
-        if (Section("On the boss (at capture)", true))
+        // What's currently up (at the capture) — boss debuffs + party buffs.
+        if (Section("Up at capture", true))
         {
-            if (_plugin.Recap.Snapshot.Count == 0) ImGui.TextDisabled("Nothing — the boss had no mit debuffs.");
-            else foreach (var m in _plugin.Recap.Snapshot)
+            if (_plugin.Recap.Snapshot.Count == 0) ImGui.TextDisabled("No mits were active.");
+            else foreach (var m in _plugin.Recap.Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
             {
                 if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, 6); }
-                ImGui.TextUnformatted($"{m.Name}  ·  {m.Remaining:0}s left");
+                var col = MitTypes.Color(m.Kind, C);
+                if (col != 0) ImGui.PushStyleColor(ImGuiCol.Text, col);
+                ImGui.TextUnformatted(m.Mit);
+                if (col != 0) ImGui.PopStyleColor();
+                ImGui.SameLine();
+                ImGui.TextDisabled($"· {m.Source} · {m.Remaining:0}s left");
             }
         }
 
-        // Timeline of when each mit was applied.
+        // Full timeline of every mit applied this pull (boss + party).
         if (Section("Applied this pull", true))
         {
-            if (ImGui.BeginTable("##recap", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
-                    new Vector2(0, 220)))
+            if (ImGui.BeginTable("##recap", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
+                    new Vector2(0, 240)))
             {
                 ImGui.TableSetupScrollFreeze(0, 1);
-                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
-                ImGui.TableSetupColumn("Mit landed on boss", ImGuiTableColumnFlags.WidthStretch, 1);
+                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 55);
+                ImGui.TableSetupColumn("Mit", ImGuiTableColumnFlags.WidthStretch, 1);
+                ImGui.TableSetupColumn("By / on", ImGuiTableColumnFlags.WidthStretch, 1);
                 ImGui.TableHeadersRow();
                 foreach (var a in _plugin.Recap.LastLog.OrderBy(a => a.Time))
                 {
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)a.Time / 60}:{(int)a.Time % 60:00}");
-                    ImGui.TableNextColumn(); ImGui.TextUnformatted(a.Name);
+                    ImGui.TableNextColumn();
+                    var col = MitTypes.Color(a.Kind, C);
+                    if (col != 0) ImGui.PushStyleColor(ImGuiCol.Text, col);
+                    ImGui.TextUnformatted(a.Mit);
+                    if (col != 0) ImGui.PopStyleColor();
+                    ImGui.TableNextColumn();
+                    if (a.OnBoss) ImGui.TextDisabled("on boss");
+                    else ImGui.TextUnformatted(a.Source);
                 }
                 ImGui.EndTable();
             }
