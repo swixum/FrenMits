@@ -153,7 +153,14 @@ public sealed class Plugin : IDalamudPlugin
         // Cover the case where the plugin loads while already inside a boss room.
         if (Builtin.Has(Service.ClientState.TerritoryType))
             AutoLoadForTerritory(Service.ClientState.TerritoryType);
+
+        // Diagnostic: if this ever logs "#2" (or higher) while only one copy should be
+        // running, the plugin is double-loaded — which would double every audio cue.
+        var n = System.Threading.Interlocked.Increment(ref _liveInstances);
+        Service.Log.Information($"[FrenMits] init — live instance #{n}");
     }
+
+    private static int _liveInstances;
 
     // Seamless auto-load: on entering a boss room we support, top up the fight's
     // lines with the latest baked timeline (adding only what's missing) and refresh
@@ -403,6 +410,7 @@ public sealed class Plugin : IDalamudPlugin
         ReplayFight = null;
         ReplayCutsceneActive = false;
 
+        Service.Log.Information($"[FrenMits] dispose — live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;

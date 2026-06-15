@@ -67,6 +67,8 @@ public class CueEngine
             if (remaining > lead || remaining < -0.5f) continue;
 
             _fired.Add(line);
+            Service.Log.Information(
+                $"[FrenMits] FIRE '{line.Action}' (time={line.Time} elapsed={elapsed:0.0} gen={_generation})");
             Fire(c, line);
         }
     }
@@ -112,7 +114,10 @@ public class CueEngine
         // re-fire, a brief combat flicker resetting the fired-set, an in-editor time
         // change). Distinct calls are unaffected.
         if (_spokenAt.TryGetValue(text, out var lastSame) && (now - lastSame).TotalSeconds < 2.0)
+        {
+            Service.Log.Information($"[FrenMits] (debounced duplicate '{text}', {(now - lastSame).TotalSeconds:0.00}s after last)");
             return;
+        }
 
         // Optional minimum gap between ANY cues.
         if (c.TtsMinGapSeconds > 0f && (now - _lastSpoke).TotalSeconds < c.TtsMinGapSeconds)
