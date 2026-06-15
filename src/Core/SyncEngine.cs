@@ -23,6 +23,12 @@ public class SyncEngine
     // a cutscene, rather than releasing on any minor mid-phase drift correction.
     public int PhaseSyncGeneration { get; private set; }
 
+    // Running estimate of how far the clock drifts from the baked timeline before a
+    // mechanic anchor corrects it (+ = your group runs ahead of the sheet). Shown
+    // as a "timeline fit" readout; nudge the fight's timer offset to match.
+    public float AvgDrift { get; private set; }
+    public int DriftSamples { get; private set; }
+
     // Capture mode: record every boss cast / first boss appearance (with the
     // time it lands on the current clock) so anchors for phases with no public
     // timeline can be built from a real pull.
@@ -158,6 +164,17 @@ public class SyncEngine
         }
 
         if (best == null) return false;
+
+        // Self-tuning telemetry: how far the clock was off when this mechanic
+        // anchor (not a big phase re-base) fired — a running feel for how well the
+        // baked timeline matches your group's pace. A small EMA, ignoring the large
+        // phase jumps which aren't drift.
+        if (!best.IsPhase)
+        {
+            var drift = predictedElapsed - best.Time; // + => clock was running ahead
+            AvgDrift = DriftSamples == 0 ? drift : AvgDrift * 0.7f + drift * 0.3f;
+            DriftSamples++;
+        }
 
         // Snap so that, timeToResolve from now, ElapsedFor == best.Time. SetElapsed
         // sets the raw timer, so subtract the per-fight + phase offsets back out.

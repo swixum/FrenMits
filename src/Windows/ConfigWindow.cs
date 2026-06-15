@@ -1374,6 +1374,24 @@ public class ConfigWindow : Window, IDisposable
                 }
             }
             ImGui.TextDisabled("Last sync: " + (_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-"));
+
+            // Self-tuning readout: how well the baked timeline matches your pace.
+            if (_plugin.Sync.DriftSamples >= 3)
+            {
+                var drift = _plugin.Sync.AvgDrift;
+                var dir = drift > 0 ? "ahead of" : "behind";
+                ImGui.TextDisabled($"Timeline fit: your group runs {Math.Abs(drift):0.0}s {dir} the sheet (avg of {_plugin.Sync.DriftSamples} corrections).");
+                if (Math.Abs(drift) >= 1.5f)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.SmallButton($"Shift {target.Name} by {drift:+0.0;-0.0}s"))
+                    {
+                        target.TimerOffset += drift;
+                        C.Save();
+                        FlashBuiltin($"Nudged timer offset by {drift:+0.0;-0.0}s to match your pace.");
+                    }
+                }
+            }
         }
     }
 
