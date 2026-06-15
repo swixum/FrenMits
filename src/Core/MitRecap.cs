@@ -41,9 +41,11 @@ public class MitRecap
     {
         try
         {
+            if (!_plugin.Config.RecapAutoCapture) { _wasRunning = false; return; }
+
             var running = _plugin.Timer.Running && !Plugin.InCutscene;
             if (running && !_wasRunning) { Log.Clear(); _active.Clear(); }
-            else if (!running && _wasRunning && Log.Count > 0) Capture();
+            else if (!running && _wasRunning && Log.Count > 0) FinalizePull(); // pull ended -> freeze recap
             _wasRunning = running;
             if (!running) return;
 
@@ -55,6 +57,7 @@ public class MitRecap
             var fight = _plugin.ActiveFight();
             var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
             var now = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var live = new List<Active>();
 
             foreach (var (src, onBoss, chara) in Sources())
             {
@@ -63,13 +66,26 @@ public class MitRecap
                     var key = src + "|" + m.Mit;
                     now.Add(key);
                     if (_active.Add(key)) Log.Add(new Applied(elapsed, m.Mit, src, m.Kind, onBoss));
+                    live.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
                 }
             }
             _active.RemoveWhere(k => !now.Contains(k)); // dropped -> can log again on re-apply
+            Snapshot = live; // keep "what's up" current, so the wipe snapshot has the boss mits
+                             // from the last live moment (the boss resets the instant combat ends)
         }
         catch { /* never disturb the tick */ }
     }
 
+    // Freeze the recap when a pull ends: keep the live Snapshot (the boss has reset
+    // by now) and copy the timeline.
+    private void FinalizePull()
+    {
+        LastLog = new List<Applied>(Log);
+        CapturedAt = DateTime.UtcNow;
+        PopupDismissed = false;
+    }
+
+    // Manual capture ("Capture now") — re-scans the current state right now.
     public void Capture()
     {
         try
@@ -84,6 +100,13 @@ public class MitRecap
             PopupDismissed = false;
         }
         catch { /* ignore */ }
+    }
+
+    // Make the popup + window appear now (for placing them) without touching data.
+    public void ShowTestPopup()
+    {
+        CapturedAt = DateTime.UtcNow;
+        PopupDismissed = false;
     }
 
     // Standard raid damage-downs that never landed on the boss this pull

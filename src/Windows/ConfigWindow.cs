@@ -1520,7 +1520,10 @@ public class ConfigWindow : Window, IDisposable
                           + "mits never landed.");
         ImGui.Spacing();
 
-        C.ShowRecapButton = CfgCheck("Auto-show the recap popup after every wipe", C.ShowRecapButton);
+        C.RecapAutoCapture = CfgCheck("Auto-capture the recap every pull", C.RecapAutoCapture);
+        Tip("On by default — the recap is captured automatically as you fight, so you never have to trigger it. Untick to turn the whole tool off.");
+
+        C.ShowRecapButton = CfgCheck("Show the recap popup after every wipe", C.ShowRecapButton);
         Tip("When on, a small \"Mit Recap\" popup appears after every pull ends so you can open the recap. Off = it never appears.");
 
         if (C.ShowRecapButton)
@@ -1534,6 +1537,13 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         if (ImGui.Button("Open recap window")) _plugin.RecapWindow.IsOpen = true;
         Tip("Opens the movable recap window with the last pull's data.");
+        ImGui.SameLine();
+        if (ImGui.Button("Test placement"))
+        {
+            _plugin.Recap.ShowTestPopup();          // make the popup appear so you can drag it
+            _plugin.RecapWindow.IsOpen = true;      // and open the window to place it too
+        }
+        Tip("Pops up the popup + window now (no wipe needed) so you can drag both into place.");
         ImGui.SameLine();
         ImGui.TextDisabled(_plugin.Recap.CapturedAt == default
             ? "no capture yet"
