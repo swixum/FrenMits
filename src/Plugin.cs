@@ -25,11 +25,13 @@ public sealed class Plugin : IDalamudPlugin
     public SyncEngine Sync { get; }
     public ReplayEngine Replay { get; }
     public MitReview Review { get; }
+    public BossMitRecap Recap { get; }
     public readonly WindowSystem Windows = new("FrenMits");
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
     public TimelineWindow TimelineWindow { get; }
     public MitBarWindow MitBarWindow { get; }
+    public RecapButtonWindow RecapButtonWindow { get; }
 
     private readonly IDtrBarEntry? _dtr;
 
@@ -114,17 +116,21 @@ public sealed class Plugin : IDalamudPlugin
         Sync = new SyncEngine(this);
         Replay = new ReplayEngine(this);
         Review = new MitReview(this);
+        Recap = new BossMitRecap(this);
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
         TimelineWindow = new TimelineWindow(this);
         MitBarWindow = new MitBarWindow(this);
+        RecapButtonWindow = new RecapButtonWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
         Windows.AddWindow(TimelineWindow);
         Windows.AddWindow(MitBarWindow);
+        Windows.AddWindow(RecapButtonWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;
+        RecapButtonWindow.IsOpen = true;
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
@@ -215,6 +221,7 @@ public sealed class Plugin : IDalamudPlugin
             Timer.Update();
             Replay.Update();
             Review.Update();
+            Recap.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
             Sync.Update();

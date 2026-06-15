@@ -27,7 +27,7 @@ public class ConfigWindow : Window, IDisposable
     private int _tankComp;
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors }
+    private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors, PartyRecap }
     private NavKind _nav = NavKind.Home;
     private int _anchorFight = -1; // target fight for anchor building
     private string _recName = "";  // name for saving the current capture
@@ -65,6 +65,13 @@ public class ConfigWindow : Window, IDisposable
     }
 
     public void Dispose() { }
+
+    // Open the config straight to the Party Mit Recap page (the on-screen button).
+    public void OpenPartyRecap()
+    {
+        _nav = NavKind.PartyRecap;
+        IsOpen = true;
+    }
 
     private DateTime _savedAt = DateTime.MinValue;
 
@@ -300,6 +307,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("TOOLS");
         if (NavItem(FontAwesomeIcon.Anchor, "Anchors", null, _nav == NavKind.Anchors)) _nav = NavKind.Anchors;
+        if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
         DrawSidebarJob();
     }
@@ -381,6 +389,7 @@ public class ConfigWindow : Window, IDisposable
             case NavKind.Display: DrawDisplayTab(); break;
             case NavKind.Audio: DrawAudioTab(); break;
             case NavKind.Anchors: DrawAnchorsPage(); break;
+            case NavKind.PartyRecap: DrawPartyRecapPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }
@@ -1500,6 +1509,75 @@ public class ConfigWindow : Window, IDisposable
         _plugin.OverlayWindow.RequestReposition();
     }
 
+    // ---- Party Mit Recap --------------------------------------------------
+
+    private void DrawPartyRecapPage()
+    {
+        SeparatorText("Party Mit Recap");
+        ImGui.TextWrapped("After a wipe, see which damage-down mits were on the boss (Reprisal / Feint / "
+                          + "Addle / Dismantle) and which never landed. Captured automatically when a pull ends; "
+                          + "hit Capture now to grab it live, and there's a button on the overlay too.");
+        ImGui.Spacing();
+
+        if (ImGui.Button("Capture now")) _plugin.Recap.Capture();
+        Tip("Snapshots the mits on the boss right now (use before the boss resets).");
+        ImGui.SameLine();
+        ImGui.TextDisabled(_plugin.Recap.CapturedAt == default
+            ? "no capture yet"
+            : $"captured {(int)(DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds}s ago");
+
+        if (!_plugin.Recap.HasData)
+        {
+            ImGui.Spacing();
+            ImGui.TextDisabled("Do a pull — the boss's mits and any that were missing will show up here.");
+            return;
+        }
+
+        // Missed (never seen) standard raid mits.
+        var missed = _plugin.Recap.NotSeen();
+        ImGui.Spacing();
+        if (missed.Count == 0)
+        {
+            ImGui.TextColored(ImGuiColors.HealerGreen, "All four standard raid mits landed this pull.");
+        }
+        else
+        {
+            ImGui.TextColored(ImGuiColors.DalamudYellow, "Never landed this pull: " + string.Join(", ", missed));
+            ImGui.TextDisabled("(depends on your comp — no caster means no Addle, no MCH means no Dismantle, etc.)");
+        }
+
+        // What's on the boss at the capture.
+        if (Section("On the boss (at capture)", true))
+        {
+            if (_plugin.Recap.Snapshot.Count == 0) ImGui.TextDisabled("Nothing — the boss had no mit debuffs.");
+            else foreach (var m in _plugin.Recap.Snapshot)
+            {
+                if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, 6); }
+                ImGui.TextUnformatted($"{m.Name}  ·  {m.Remaining:0}s left");
+            }
+        }
+
+        // Timeline of when each mit was applied.
+        if (Section("Applied this pull", true))
+        {
+            if (ImGui.BeginTable("##recap", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
+                    new Vector2(0, 220)))
+            {
+                ImGui.TableSetupScrollFreeze(0, 1);
+                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
+                ImGui.TableSetupColumn("Mit landed on boss", ImGuiTableColumnFlags.WidthStretch, 1);
+                ImGui.TableHeadersRow();
+                foreach (var a in _plugin.Recap.LastLog.OrderBy(a => a.Time))
+                {
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)a.Time / 60}:{(int)a.Time % 60:00}");
+                    ImGui.TableNextColumn(); ImGui.TextUnformatted(a.Name);
+                }
+                ImGui.EndTable();
+            }
+        }
+    }
+
     private void DrawDisplayTab()
     {
         // Quick controls: live preview + one-click reset of everything on this tab.
@@ -1594,6 +1672,8 @@ public class ConfigWindow : Window, IDisposable
                     "Shows the next mit on the server-info bar.");
                 C.ShowMitBar = GridCheck("Active-mits bar", C.ShowMitBar,
                     "A row of your active defensive buffs with seconds remaining, tinted by mit type.");
+                C.ShowRecapButton = GridCheck("Post-wipe recap button", C.ShowRecapButton,
+                    "Shows a \"Mit Recap\" button on screen for a few seconds after a wipe (Party Mit Recap tool).");
                 ImGui.EndTable();
             }
             if (C.ShowMitBar)

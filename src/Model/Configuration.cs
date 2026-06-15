@@ -50,6 +50,9 @@ public class Configuration : IPluginConfiguration
     public bool TimelineLocked { get; set; }
     public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);
 
+    // Show a "Mit Recap" button on screen for a few seconds after a wipe.
+    public bool ShowRecapButton { get; set; } = true;
+
     // Active-mitigations indicator (your live defensive buffs).
     public bool ShowMitBar { get; set; }
     public bool MitBarLocked { get; set; } = true;
