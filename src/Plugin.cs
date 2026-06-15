@@ -83,6 +83,16 @@ public sealed class Plugin : IDalamudPlugin
                 Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = category });
             seeded = true;
         }
+
+        // Migrate the two built-ins that were renamed (dropped the redundant
+        // "(Ultimate)" suffix for the short code, matching the others). Only touches
+        // the exact old default names, so a fight you renamed yourself is left alone.
+        foreach (var f in Config.Fights)
+        {
+            if (f.Name == "Dancing Mad (Ultimate)") { f.Name = Builtin.Name(Builtin.DmuTerritory); seeded = true; }
+            else if (f.Name == "Futures Rewritten (Ultimate)") { f.Name = Builtin.Name(Builtin.FruTerritory); seeded = true; }
+        }
+
         if (seeded) Config.Save();
 
         // Bake a default slot for any built-in that's still empty (freshly seeded,

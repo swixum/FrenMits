@@ -21,8 +21,8 @@ public static class Builtin
 
     public static readonly (ushort Territory, string Name, string Category)[] Fights =
     {
-        (DmuTerritory, "Dancing Mad (Ultimate)", "Ultimate"),
-        (FruTerritory, "Futures Rewritten (Ultimate)", "Ultimate"),
+        (DmuTerritory, "Dancing Mad (UMAD)", "Ultimate"),
+        (FruTerritory, "Futures Rewritten (FRU)", "Ultimate"),
         (UcobTerritory, "Unending Coil of Bahamut (UCOB)", "Ultimate"),
         (UwuTerritory, "Weapon's Refrain (UWU)", "Ultimate"),
         (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate"),
@@ -36,14 +36,14 @@ public static class Builtin
 
     public static string Name(uint territory) => territory switch
     {
-        FruTerritory => "Futures Rewritten (Ultimate)",
+        FruTerritory => "Futures Rewritten (FRU)",
         M12sTerritory => "M12S — Lindwurm",
         UcobTerritory => "Unending Coil of Bahamut (UCOB)",
         UwuTerritory => "Weapon's Refrain (UWU)",
         TeaTerritory => "Epic of Alexander (TEA)",
         DsrTerritory => "Dragonsong's Reprise (DSR)",
         TopTerritory => "The Omega Protocol (TOP)",
-        _ => "Dancing Mad (Ultimate)"
+        _ => "Dancing Mad (UMAD)"
     };
 
     public static string Category(uint territory)
