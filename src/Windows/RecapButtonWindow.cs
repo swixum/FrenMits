@@ -84,7 +84,7 @@ public class RecapButtonWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFFFFFu);
         var view = ImGui.Button("View recap");
         ImGui.PopStyleColor(4);
-        if (view) _plugin.RecapWindow.IsOpen = true;
+        if (view) _plugin.RecapWindow.IsOpen = !_plugin.RecapWindow.IsOpen; // toggle: click again to close
 
         ImGui.SameLine();
         if (ImGui.Button("Dismiss")) _plugin.Recap.Dismiss();
