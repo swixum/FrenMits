@@ -526,16 +526,13 @@ public class ConfigWindow : Window, IDisposable
                 }
                 else
                 {
-                    if (Builtin.Has(fight.TerritoryId)) { ImGui.Separator(); DrawBuiltinLoad(fight); }
-                    ImGui.Spacing();
+                    if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
                     DrawTankSection(fight);
                     ImGui.Separator();
                     DrawLineTable(fight);
-                    ImGui.Separator();
+                    ImGui.Spacing();
                     DrawImportSection(fight);
-                    ImGui.Spacing();
                     DrawPotionsSection(fight);
-                    ImGui.Spacing();
                     DrawAdvancedFightSettings(fight);
                 }
                 ImGui.Unindent(10f);
@@ -645,10 +642,6 @@ public class ConfigWindow : Window, IDisposable
     private void DrawBuiltinLoad(FightProfile fight)
     {
         var slots = Builtin.Slots(fight.TerritoryId);
-        SeparatorText($"Built-in mits — {Builtin.Name(fight.TerritoryId)}");
-        ImGui.TextWrapped("Pick your slot and its mits load automatically (and again when you enter the zone). "
-                          + "Each slot keeps its own edits, and switching slots loads that slot fresh. "
-                          + "Tanks pick a tank slot, DPS your role slot, healers your job.");
 
         // Reflect the fight's active slot in the picker.
         var savedIdx = Array.IndexOf(slots, fight.Slot);
@@ -656,26 +649,25 @@ public class ConfigWindow : Window, IDisposable
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
 
         var slotLabels = slots.Select(SlotLabel).ToArray();
-        ImGui.SetNextItemWidth(160f);
-        if (ImGui.Combo("Your slot##builtin", ref _builtinSlot, slotLabels, slotLabels.Length))
+        ImGui.SetNextItemWidth(170f);
+        if (ImGui.Combo("Your slot", ref _builtinSlot, slotLabels, slotLabels.Length))
             SelectBuiltinSlot(fight, slots[_builtinSlot]);  // load that slot now
+        Tip("Pick your slot and its mits load automatically (and again when you enter the zone). Each slot keeps its own edits; tanks pick a tank slot, healers their job, DPS their role slot.");
         var slot = slots[_builtinSlot];
 
         ImGui.SameLine();
-        if (!string.IsNullOrEmpty(C.DmuSlot))
-            ImGui.TextColored(ImGuiColors.ParsedGreen, $"loaded: {SlotLabel(C.DmuSlot)}");
-
-        // Reset only this slot back to the sheet (confirm if it's been edited).
-        if (ImGui.Button("Reset this slot to sheet"))
+        if (ImGui.SmallButton("Reset to sheet"))
         {
             if (HasBuiltinEdits(fight, slot)) ImGui.OpenPopup("##confirm-replace");
             else ResetBuiltinSlot(fight, slot);
         }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Reloads this slot from the baked sheet, discarding only this slot's edits.");
+        Tip("Reloads this slot from the baked sheet, discarding only this slot's edits.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
+        {
+            ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
+        }
 
         DrawReplaceConfirm(fight, slot);
     }
@@ -714,45 +706,14 @@ public class ConfigWindow : Window, IDisposable
         var name = fight.Name;
         ImGui.SetNextItemWidth(260f);
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
+        Tip("Line times are seconds from the pull — one continuous timeline across every phase; resets on a wipe.");
 
-        ImGui.SameLine();
-        if (ImGui.Button("Duplicate"))
-        {
-            AddFight(new FightProfile
-            {
-                Name = fight.Name + " copy",
-                TerritoryId = fight.TerritoryId,
-                Category = fight.Category,
-                TimerOffset = fight.TimerOffset,
-                Enabled = fight.Enabled,
-                Slot = fight.Slot,
-                Lines = fight.Lines.Select(CloneLine).ToList(),
-            });
-        }
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3A3AC8);
-        var deleted = ImGui.Button("Delete fight");
+        var deleted = ImGui.Button("Delete");
         ImGui.PopStyleColor(2);
-        if (deleted) return false;
-
-        if (ImGui.Button("Export to clipboard")) ExportFight(fight);
-        ImGui.SameLine();
-        if (ImGui.Button("Import from clipboard")) ImportFightFromClipboard();
-        ImGui.SameLine();
-        ImGui.TextDisabled("Share a whole fight (lines included) with a friend.");
-
-        if (Builtin.Has(fight.TerritoryId))
-        {
-            ImGui.TextColored(ImGuiColors.ParsedGreen, Builtin.Name(fight.TerritoryId));
-            ImGui.SameLine();
-            ImGui.TextDisabled("— continuous clock from the pull through every phase; resets on a wipe.");
-        }
-        else
-        {
-            ImGui.TextDisabled("Line times are seconds from the pull (one continuous timeline across all phases).");
-        }
-        return true;
+        return !deleted;
     }
 
     // Fetch potion timings for the current job from top logs, then (only if you
@@ -868,12 +829,33 @@ public class ConfigWindow : Window, IDisposable
         }
     }
 
-    // Rarely-touched zone + timing knobs, hidden behind a collapsing header.
+    // Rarely-touched share / duplicate actions + zone & timing knobs, behind a
+    // collapsing header so the editor opens lean.
     private void DrawAdvancedFightSettings(FightProfile fight)
     {
-        if (!ImGui.CollapsingHeader("Advanced — zone & timing")) return;
+        if (!Section("Manage & advanced")) return;
         ImGui.Indent(10f);
 
+        if (ImGui.Button("Duplicate"))
+        {
+            AddFight(new FightProfile
+            {
+                Name = fight.Name + " copy",
+                TerritoryId = fight.TerritoryId,
+                Category = fight.Category,
+                TimerOffset = fight.TimerOffset,
+                Enabled = fight.Enabled,
+                Slot = fight.Slot,
+                Lines = fight.Lines.Select(CloneLine).ToList(),
+            });
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Export to clipboard")) ExportFight(fight);
+        ImGui.SameLine();
+        if (ImGui.Button("Import from clipboard")) ImportFightFromClipboard();
+        Tip("Share a whole fight (lines included) with a friend via a clipboard code.");
+
+        ImGui.Spacing();
         var territory = (int)fight.TerritoryId;
         ImGui.SetNextItemWidth(120f);
         if (ImGui.InputInt("Territory id", ref territory)) { fight.TerritoryId = (uint)Math.Max(0, territory); C.Save(); }
