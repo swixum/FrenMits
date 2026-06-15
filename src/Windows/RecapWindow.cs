@@ -17,7 +17,7 @@ public class RecapWindow : Window
     public RecapWindow(Plugin plugin) : base("Party Mit Recap##recapwin")
     {
         _plugin = plugin;
-        Size = new Vector2(440, 520);
+        Size = new Vector2(470, 540);
         SizeCondition = ImGuiCond.FirstUseEver;
     }
 
@@ -54,6 +54,9 @@ public class RecapWindow : Window
 
         if (Button("Capture now")) r.Capture();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Snapshot the mits up right now (before the boss resets).");
+        ImGui.SameLine();
+        if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text — paste it into Discord or your notes.");
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Vec(0xFF81766E), r.CapturedAt == default
@@ -104,11 +107,15 @@ public class RecapWindow : Window
             ImGui.TableSetupColumn("Mit", ImGuiTableColumnFlags.WidthStretch, 1);
             ImGui.TableSetupColumn("By / on", ImGuiTableColumnFlags.WidthStretch, 1);
             ImGui.TableHeadersRow();
+            var ih = ImGui.GetTextLineHeight();
             foreach (var a in r.LastLog.OrderBy(a => a.Time))
             {
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn(); ImGui.TextColored(Vec(0xFF81766E), $"{(int)a.Time / 60}:{(int)a.Time % 60:00}");
                 ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextColored(Vec(0xFF81766E), $"{(int)a.Time / 60}:{(int)a.Time % 60:00}");
+                ImGui.TableNextColumn();
+                if (a.Icon != 0) { Icons.Draw(a.Icon, new Vector2(ih, ih)); ImGui.SameLine(0, 6); }
                 var col = MitTypes.Color(a.Kind, C);
                 ImGui.TextColored(col != 0 ? Vec(col) : Vec(0xFFECE8E6), a.Mit);
                 ImGui.TableNextColumn();

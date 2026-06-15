@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Lumina.Excel.Sheets;
@@ -23,7 +24,7 @@ public class MitRecap
     // Damage-down debuffs a full party lands on the boss.
     public static readonly string[] StandardRaidMits = { "Reprisal", "Feint", "Addle", "Dismantle" };
 
-    public sealed record Applied(float Time, string Mit, string Source, MitTypes.Kind Kind, bool OnBoss);
+    public sealed record Applied(float Time, string Mit, string Source, MitTypes.Kind Kind, bool OnBoss, uint Icon);
     public sealed record Active(uint Icon, string Mit, string Source, float Remaining, MitTypes.Kind Kind, bool OnBoss);
 
     public List<Applied> Log { get; } = new();
@@ -65,7 +66,7 @@ public class MitRecap
                 {
                     var key = src + "|" + m.Mit;
                     now.Add(key);
-                    if (_active.Add(key)) Log.Add(new Applied(elapsed, m.Mit, src, m.Kind, onBoss));
+                    if (_active.Add(key)) Log.Add(new Applied(elapsed, m.Mit, src, m.Kind, onBoss, m.Icon));
                     live.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
                 }
             }
@@ -117,6 +118,34 @@ public class MitRecap
             .ToList();
 
     public bool HasData => LastLog.Count > 0 || Snapshot.Count > 0;
+
+    // A plain-text recap for the clipboard (paste into Discord / notes).
+    public string ToText()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Party Mit Recap");
+        var missed = NotSeen();
+        sb.AppendLine(missed.Count == 0
+            ? "All four standard raid mits landed."
+            : "Never landed: " + string.Join(", ", missed));
+
+        if (Snapshot.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Up at capture:");
+            foreach (var m in Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
+                sb.AppendLine($"  {m.Mit} — {(m.OnBoss ? "on boss" : m.Source)} ({m.Remaining:0}s)");
+        }
+
+        if (LastLog.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Applied this pull:");
+            foreach (var a in LastLog.OrderBy(a => a.Time))
+                sb.AppendLine($"  {(int)a.Time / 60}:{(int)a.Time % 60:00}  {a.Mit} — {(a.OnBoss ? "on boss" : a.Source)}");
+        }
+        return sb.ToString();
+    }
 
     // The things we read statuses off: the boss (debuffs) + every party player (buffs).
     private IEnumerable<(string source, bool onBoss, IBattleChara chara)> Sources()
