@@ -131,6 +131,22 @@ public static class Builtin
             var baked = BuildLines(fight.TerritoryId, slot);
             foreach (var b in baked)
                 if (!fight.Lines.Any(l => SameCall(l, b))) { fight.Lines.Add(b); added++; }
+
+            // Drop stale leftovers from an earlier build. SameCall only matches
+            // within 0.75s, so when a baked mechanic's time shifted further than
+            // that between versions (e.g. Bowels of Agony 448 -> 451) the top-up
+            // above added the new line WITHOUT removing the old one — leaving two
+            // copies of the same call a few seconds apart, which speak as doubled
+            // audio. Remove any surviving line that no longer matches a current
+            // baked call yet shadows one: same spoken mit within a few seconds.
+            // (A real fight never reuses one mit that close — its cooldown is far
+            // longer — so this only ever clears a redundant duplicate.)
+            fight.Lines.RemoveAll(l =>
+                !string.IsNullOrWhiteSpace(l.Action)
+                && !baked.Any(b => SameCall(l, b))
+                && baked.Any(b => MathF.Abs(b.Time - l.Time) < 6f
+                                  && string.Equals(b.Action.Trim(), l.Action.Trim(),
+                                                   StringComparison.OrdinalIgnoreCase)));
         }
 
         fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();

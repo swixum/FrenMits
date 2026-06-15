@@ -59,38 +59,47 @@ public class SyncEngine
 
         foreach (var obj in Service.ObjectTable)
         {
-            // Boss-presence anchor + capture (cast-free safety net).
-            if (obj is IBattleNpc npc && npc.NameId != 0 && npc.MaxHp > 0 && _seenBoss.Add(npc.NameId))
+            // A game object can go stale mid-frame (an actor despawning during a
+            // phase transition leaves BattleChara.IsCasting dereferencing a null
+            // pointer). Skip just that object so the rest of the table — and the
+            // cue engine after us — still run this tick, instead of letting the
+            // NRE abort the whole framework update.
+            try
             {
-                if (Recording)
+                // Boss-presence anchor + capture (cast-free safety net).
+                if (obj is IBattleNpc npc && npc.NameId != 0 && npc.MaxHp > 0 && _seenBoss.Add(npc.NameId))
                 {
-                    Captured.Add(new Capture(npc.NameId, elapsed, npc.Name.ToString(), true));
+                    if (Recording)
+                    {
+                        Captured.Add(new Capture(npc.NameId, elapsed, npc.Name.ToString(), true));
+                        if (Captured.Count > 160) Captured.RemoveAt(0);
+                    }
+                    if (c.EnableSync)
+                        SnapToBoss(fight, npc.NameId, npc.Name.ToString());
+                }
+
+                if (obj is not IBattleChara bc) continue;
+                var id = bc.EntityId;
+                var castId = bc.IsCasting ? bc.CastActionId : 0u;
+
+                _lastCast.TryGetValue(id, out var prev);
+                if (castId == prev) continue;
+                _lastCast[id] = castId;
+                if (castId == 0) continue;
+
+                var timeToResolve = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);
+                var resolveTime = elapsed + timeToResolve;
+
+                if (Recording && bc.MaxHp > 0)
+                {
+                    Captured.Add(new Capture(castId, resolveTime, bc.Name.ToString(), false));
                     if (Captured.Count > 160) Captured.RemoveAt(0);
                 }
-                if (c.EnableSync)
-                    SnapToBoss(fight, npc.NameId, npc.Name.ToString());
+
+                if (c.EnableSync && fight.SyncPoints.Count > 0)
+                    OnCastStarted(fight, bc, castId);
             }
-
-            if (obj is not IBattleChara bc) continue;
-            var id = bc.EntityId;
-            var castId = bc.IsCasting ? bc.CastActionId : 0u;
-
-            _lastCast.TryGetValue(id, out var prev);
-            if (castId == prev) continue;
-            _lastCast[id] = castId;
-            if (castId == 0) continue;
-
-            var timeToResolve = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);
-            var resolveTime = elapsed + timeToResolve;
-
-            if (Recording && bc.MaxHp > 0)
-            {
-                Captured.Add(new Capture(castId, resolveTime, bc.Name.ToString(), false));
-                if (Captured.Count > 160) Captured.RemoveAt(0);
-            }
-
-            if (c.EnableSync && fight.SyncPoints.Count > 0)
-                OnCastStarted(fight, bc, castId);
+            catch (NullReferenceException) { /* stale actor this frame; ignore */ }
         }
     }
 
