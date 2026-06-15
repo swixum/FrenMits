@@ -6,13 +6,14 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// A small "Mit Recap" button that appears for a few seconds after a pull ends
-// (the recap is captured automatically then). Clicking it re-captures and opens
-// the Party Mit Recap page. Hidden in combat and once the window passes.
+// The small post-wipe popup: when "auto-show recap" is on it appears after every
+// pull ends, offering to open the recap window. Movable (drag it; position saved)
+// or lockable. Hidden in combat and once the window passes.
 public class RecapButtonWindow : Window
 {
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
+    private bool _applyPos = true;
 
     public RecapButtonWindow(Plugin plugin) : base("FrenMits Recap##recapbtn")
     {
@@ -20,34 +21,57 @@ public class RecapButtonWindow : Window
         RespectCloseHotkey = false;
         DisableWindowSounds = true;
         ForceMainWindow = true;
-        Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar
-                | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing
-                | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.AlwaysAutoResize;
     }
+
+    public void RequestReposition() => _applyPos = true;
 
     public override void PreDraw()
     {
+        Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar
+                | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing
+                | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.AlwaysAutoResize;
+        if (C.RecapPopupLocked)
+            Flags |= ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove;
+
         var vp = ImGui.GetMainViewport();
-        var pos = vp.WorkPos + new Vector2(vp.WorkSize.X * 0.5f, vp.WorkSize.Y * 0.30f);
-        ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f));
+        var pos = vp.WorkPos + C.RecapPopupPosition * vp.WorkSize;
+        pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
+        if (C.RecapPopupLocked) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = true; }
+        else if (_applyPos) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = false; }
     }
 
     public override bool DrawConditions()
     {
         if (!C.ShowRecapButton || Plugin.InCutscene) return false;
         if (Service.Condition[ConditionFlag.InCombat]) return false; // only after the pull ends
-        if (_plugin.Recap.CapturedAt == default) return false;
+        if (_plugin.Recap.PopupDismissed || _plugin.Recap.CapturedAt == default) return false;
         return (DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds < 30; // brief window after a wipe
     }
 
     public override void Draw()
     {
-        if (ImGui.Button("  Mit Recap  "))
+        SavePositionIfDragged();
+
+        ImGui.TextUnformatted("Mit Recap ready");
+        if (ImGui.Button("View"))
+            _plugin.RecapWindow.IsOpen = true;
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Dismiss"))
+            _plugin.Recap.Dismiss();
+        if (!C.RecapPopupLocked)
         {
-            _plugin.Recap.Capture();
-            _plugin.ConfigWindow.OpenPartyRecap();
+            ImGui.SameLine();
+            ImGui.TextDisabled("(drag to move)");
         }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("See which mits landed on the boss this pull, and which were missing.");
+    }
+
+    private void SavePositionIfDragged()
+    {
+        if (C.RecapPopupLocked) return;
+        var vp = ImGui.GetMainViewport();
+        var cur = ImGui.GetWindowPos();
+        var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);
+        var frac = (center - vp.WorkPos) / vp.WorkSize;
+        if ((frac - C.RecapPopupPosition).LengthSquared() > 0.0000001f) { C.RecapPopupPosition = frac; C.Save(); }
     }
 }

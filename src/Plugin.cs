@@ -32,6 +32,7 @@ public sealed class Plugin : IDalamudPlugin
     public TimelineWindow TimelineWindow { get; }
     public MitBarWindow MitBarWindow { get; }
     public RecapButtonWindow RecapButtonWindow { get; }
+    public RecapWindow RecapWindow { get; }
 
     private readonly IDtrBarEntry? _dtr;
 
@@ -122,11 +123,13 @@ public sealed class Plugin : IDalamudPlugin
         TimelineWindow = new TimelineWindow(this);
         MitBarWindow = new MitBarWindow(this);
         RecapButtonWindow = new RecapButtonWindow(this);
+        RecapWindow = new RecapWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
         Windows.AddWindow(TimelineWindow);
         Windows.AddWindow(MitBarWindow);
         Windows.AddWindow(RecapButtonWindow);
+        Windows.AddWindow(RecapWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;

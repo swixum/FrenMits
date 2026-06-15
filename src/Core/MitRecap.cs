@@ -30,6 +30,10 @@ public class MitRecap
     public List<Applied> LastLog { get; private set; } = new();
     public List<Active> Snapshot { get; private set; } = new();
     public DateTime CapturedAt { get; private set; }
+    public bool PopupDismissed { get; private set; }
+
+    // Hide the post-wipe popup without clearing the recap data.
+    public void Dismiss() => PopupDismissed = true;
 
     public MitRecap(Plugin plugin) => _plugin = plugin;
 
@@ -77,6 +81,7 @@ public class MitRecap
                     snap.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
             Snapshot = snap;
             CapturedAt = DateTime.UtcNow;
+            PopupDismissed = false;
         }
         catch { /* ignore */ }
     }

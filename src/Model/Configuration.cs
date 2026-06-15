@@ -50,8 +50,11 @@ public class Configuration : IPluginConfiguration
     public bool TimelineLocked { get; set; }
     public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);
 
-    // Show a "Mit Recap" button on screen for a few seconds after a wipe.
+    // Auto-show the "Mit Recap" popup after every wipe. When on it always appears;
+    // off and it never does. Both the popup and the recap window are movable.
     public bool ShowRecapButton { get; set; } = true;
+    public Vector2 RecapPopupPosition { get; set; } = new(0.5f, 0.28f);
+    public bool RecapPopupLocked { get; set; }
 
     // Active-mitigations indicator (your live defensive buffs).
     public bool ShowMitBar { get; set; }

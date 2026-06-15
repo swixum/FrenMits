@@ -1514,83 +1514,30 @@ public class ConfigWindow : Window, IDisposable
     private void DrawPartyRecapPage()
     {
         SeparatorText("Party Mit Recap");
-        ImGui.TextWrapped("After a wipe, a full recap of the pull's mitigation: the damage-downs on the boss "
-                          + "(Reprisal / Feint / Addle / Dismantle) plus the party's defensive cooldowns "
-                          + "(Rampart, Sacred Soil, Kerachole, ...), who used them and when, and which standard "
-                          + "raid mits never landed. Captured automatically when a pull ends — hit Capture now to "
-                          + "grab it live, or use the on-screen button after a wipe.");
+        ImGui.TextWrapped("After a wipe, a full recap of the pull's mitigation in its own window: the damage-downs "
+                          + "on the boss (Reprisal / Feint / Addle / Dismantle) plus the party's defensive cooldowns "
+                          + "(Rampart, Sacred Soil, Kerachole, ...), who used them and when, and which standard raid "
+                          + "mits never landed.");
         ImGui.Spacing();
 
-        if (ImGui.Button("Capture now")) _plugin.Recap.Capture();
-        Tip("Snapshots the mits on the boss right now (use before the boss resets).");
+        C.ShowRecapButton = CfgCheck("Auto-show the recap popup after every wipe", C.ShowRecapButton);
+        Tip("When on, a small \"Mit Recap\" popup appears after every pull ends so you can open the recap. Off = it never appears.");
+
+        if (C.ShowRecapButton)
+        {
+            var locked = C.RecapPopupLocked;
+            if (ImGui.Checkbox("Lock popup position", ref locked)) { C.RecapPopupLocked = locked; _plugin.RecapButtonWindow.RequestReposition(); C.Save(); }
+            ImGui.SameLine();
+            ImGui.TextDisabled("(unlock, then drag the popup to place it)");
+        }
+
+        ImGui.Spacing();
+        if (ImGui.Button("Open recap window")) _plugin.RecapWindow.IsOpen = true;
+        Tip("Opens the movable recap window with the last pull's data.");
         ImGui.SameLine();
         ImGui.TextDisabled(_plugin.Recap.CapturedAt == default
             ? "no capture yet"
-            : $"captured {(int)(DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds}s ago");
-
-        if (!_plugin.Recap.HasData)
-        {
-            ImGui.Spacing();
-            ImGui.TextDisabled("Do a pull — the boss's mits and any that were missing will show up here.");
-            return;
-        }
-
-        // Missed (never seen) standard raid mits.
-        var missed = _plugin.Recap.NotSeen();
-        ImGui.Spacing();
-        if (missed.Count == 0)
-        {
-            ImGui.TextColored(ImGuiColors.HealerGreen, "All four standard raid mits landed this pull.");
-        }
-        else
-        {
-            ImGui.TextColored(ImGuiColors.DalamudYellow, "Never landed this pull: " + string.Join(", ", missed));
-            ImGui.TextDisabled("(depends on your comp — no caster means no Addle, no MCH means no Dismantle, etc.)");
-        }
-
-        // What's currently up (at the capture) — boss debuffs + party buffs.
-        if (Section("Up at capture", true))
-        {
-            if (_plugin.Recap.Snapshot.Count == 0) ImGui.TextDisabled("No mits were active.");
-            else foreach (var m in _plugin.Recap.Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
-            {
-                if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, 6); }
-                var col = MitTypes.Color(m.Kind, C);
-                if (col != 0) ImGui.PushStyleColor(ImGuiCol.Text, col);
-                ImGui.TextUnformatted(m.Mit);
-                if (col != 0) ImGui.PopStyleColor();
-                ImGui.SameLine();
-                ImGui.TextDisabled($"· {m.Source} · {m.Remaining:0}s left");
-            }
-        }
-
-        // Full timeline of every mit applied this pull (boss + party).
-        if (Section("Applied this pull", true))
-        {
-            if (ImGui.BeginTable("##recap", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
-                    new Vector2(0, 240)))
-            {
-                ImGui.TableSetupScrollFreeze(0, 1);
-                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 55);
-                ImGui.TableSetupColumn("Mit", ImGuiTableColumnFlags.WidthStretch, 1);
-                ImGui.TableSetupColumn("By / on", ImGuiTableColumnFlags.WidthStretch, 1);
-                ImGui.TableHeadersRow();
-                foreach (var a in _plugin.Recap.LastLog.OrderBy(a => a.Time))
-                {
-                    ImGui.TableNextRow();
-                    ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)a.Time / 60}:{(int)a.Time % 60:00}");
-                    ImGui.TableNextColumn();
-                    var col = MitTypes.Color(a.Kind, C);
-                    if (col != 0) ImGui.PushStyleColor(ImGuiCol.Text, col);
-                    ImGui.TextUnformatted(a.Mit);
-                    if (col != 0) ImGui.PopStyleColor();
-                    ImGui.TableNextColumn();
-                    if (a.OnBoss) ImGui.TextDisabled("on boss");
-                    else ImGui.TextUnformatted(a.Source);
-                }
-                ImGui.EndTable();
-            }
-        }
+            : $"last captured {(int)(DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds}s ago");
     }
 
     private void DrawDisplayTab()
@@ -1687,8 +1634,6 @@ public class ConfigWindow : Window, IDisposable
                     "Shows the next mit on the server-info bar.");
                 C.ShowMitBar = GridCheck("Active-mits bar", C.ShowMitBar,
                     "A row of your active defensive buffs with seconds remaining, tinted by mit type.");
-                C.ShowRecapButton = GridCheck("Post-wipe recap button", C.ShowRecapButton,
-                    "Shows a \"Mit Recap\" button on screen for a few seconds after a wipe (Party Mit Recap tool).");
                 ImGui.EndTable();
             }
             if (C.ShowMitBar)
