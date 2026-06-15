@@ -50,6 +50,12 @@ public class Configuration : IPluginConfiguration
     public bool TimelineLocked { get; set; }
     public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);
 
+    // Active-mitigations indicator (your live defensive buffs).
+    public bool ShowMitBar { get; set; }
+    public bool MitBarLocked { get; set; } = true;
+    public Vector2 MitBarPosition { get; set; } = new(0.5f, 0.88f);
+    public float MitBarFontSizePx { get; set; } = 18f;
+
     // Text templates. Placeholders: {action} {mechanic} {time} {count} {remaining}
     // Default mirrors the "Raidwide (3.3)" style: name + a one-decimal countdown.
     public string HeadlineFormat { get; set; } = "{action} ({remaining})";

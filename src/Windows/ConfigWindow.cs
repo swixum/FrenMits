@@ -1513,6 +1513,13 @@ public class ConfigWindow : Window, IDisposable
             C.ShowRadialRing = CfgCheck("Radial countdown ring around the icon", C.ShowRadialRing);
             C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
             C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
+            C.ShowMitBar = CfgCheck("Show your active mitigations indicator", C.ShowMitBar);
+            HelpMarker("A small row of your currently-active defensive buffs with seconds remaining, tinted by mit type. Unlock it on this tab to drag it.");
+            if (C.ShowMitBar)
+            {
+                var locked = C.MitBarLocked;
+                if (ImGui.Checkbox("Lock active-mits position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
+            }
         }
 
         if (Section("Timing"))

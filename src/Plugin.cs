@@ -28,6 +28,7 @@ public sealed class Plugin : IDalamudPlugin
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
     public TimelineWindow TimelineWindow { get; }
+    public MitBarWindow MitBarWindow { get; }
 
     private readonly IDtrBarEntry? _dtr;
 
@@ -104,11 +105,14 @@ public sealed class Plugin : IDalamudPlugin
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
         TimelineWindow = new TimelineWindow(this);
+        MitBarWindow = new MitBarWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
         Windows.AddWindow(TimelineWindow);
+        Windows.AddWindow(MitBarWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
+        MitBarWindow.IsOpen = true;
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
