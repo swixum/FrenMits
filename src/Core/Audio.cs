@@ -348,20 +348,34 @@ public class Audio : IDisposable
 
     // ---- MP3 playback (NAudio) --------------------------------------------
 
-    // Decodes the MP3 (Windows ACM codec) and plays it through WaveOut. Runs on the
-    // background fetch task and blocks only for the clip's length, off the game
-    // thread. NAudio is bundled with the plugin.
+    // Single shared output so online cues never overlap. A new clip STOPS the one
+    // currently playing (the "interrupt, latest wins" behaviour SAPI already gets
+    // from PurgeBeforeSpeak) — otherwise two cues close together, or the same cue
+    // re-fired, would play on top of each other and sound doubled.
+    private readonly object _playLock = new();
+    private NAudio.Wave.WaveOutEvent? _output;
+    private NAudio.Wave.Mp3FileReader? _reader;
+    private MemoryStream? _readerMs;
+
+    // Decodes the MP3 (Windows ACM codec) and plays it through the shared WaveOut,
+    // non-blocking. NAudio is bundled with the plugin.
     private void PlayMp3(byte[] mp3)
     {
         try
         {
-            using var ms = new MemoryStream(mp3);
-            using var reader = new NAudio.Wave.Mp3FileReader(ms);
-            using var output = new NAudio.Wave.WaveOutEvent();
-            output.Init(reader);
-            output.Play();
-            while (output.PlaybackState == NAudio.Wave.PlaybackState.Playing)
-                Thread.Sleep(40);
+            lock (_playLock)
+            {
+                // Disposing the previous output stops it immediately.
+                try { _output?.Dispose(); } catch { /* ignore */ }
+                try { _reader?.Dispose(); } catch { /* ignore */ }
+                try { _readerMs?.Dispose(); } catch { /* ignore */ }
+
+                _readerMs = new MemoryStream(mp3);
+                _reader = new NAudio.Wave.Mp3FileReader(_readerMs);
+                _output = new NAudio.Wave.WaveOutEvent();
+                _output.Init(_reader);
+                _output.Play();
+            }
         }
         catch (Exception ex)
         {
@@ -379,5 +393,13 @@ public class Audio : IDisposable
         }
         catch { /* ignore */ }
         _voice = null;
+
+        lock (_playLock)
+        {
+            try { _output?.Dispose(); } catch { /* ignore */ }
+            try { _reader?.Dispose(); } catch { /* ignore */ }
+            try { _readerMs?.Dispose(); } catch { /* ignore */ }
+            _output = null; _reader = null; _readerMs = null;
+        }
     }
 }

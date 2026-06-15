@@ -23,11 +23,23 @@ public class CueEngine
     {
         var c = _plugin.Config;
 
-        // New pull / sync / reset -> forget what we have already announced.
+        // The clock's generation bumped (pull / wipe / sync / a brief combat
+        // flicker). Don't blanket-forget everything — that re-announces calls we've
+        // already passed (a flicker or a mid-fight /fm sync would replay them). Only
+        // re-arm calls now in the FUTURE: a genuine pull resets the clock to ~0 so
+        // everything re-arms, while a mid-pull bump keeps the past calls silent.
         if (_plugin.Timer.Generation != _generation)
         {
             _generation = _plugin.Timer.Generation;
-            _fired.Clear();
+            if (_plugin.ActiveFight() is { } genFight)
+            {
+                var el = _plugin.ElapsedFor(genFight);
+                _fired.RemoveWhere(l => l.Time > el + 0.5f);
+            }
+            else
+            {
+                _fired.Clear();
+            }
         }
 
         if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.InCutscene) return;
