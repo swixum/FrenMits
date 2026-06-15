@@ -35,12 +35,17 @@ public class ConfigWindow : Window, IDisposable
     private string[] _recordings = System.Array.Empty<string>();
     private string _navCategory = "Ultimate";
 
-    private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
+    private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme" };
 
-    // The sidebar group a fight belongs to (built-ins default to Ultimate).
+    // The sidebar group a fight belongs to. Built-ins use their baked category;
+    // any fight whose stored category is no longer a tab (e.g. the removed Raids /
+    // Other) falls back to Extreme so it isn't orphaned.
     private static string CategoryOf(FightProfile f)
-        => !string.IsNullOrEmpty(f.Category) ? f.Category
-           : (Builtin.Has(f.TerritoryId) ? "Ultimate" : "Other");
+    {
+        if (!string.IsNullOrEmpty(f.Category) && Array.IndexOf(Categories, f.Category) >= 0)
+            return f.Category;
+        return Builtin.Has(f.TerritoryId) ? Builtin.Category(f.TerritoryId) : "Extreme";
+    }
 
     // Import state.
     private string _importBuffer = "";
@@ -250,7 +255,6 @@ public class ConfigWindow : Window, IDisposable
         "Ultimate" => FontAwesomeIcon.Crown,
         "Savage" => FontAwesomeIcon.Skull,
         "Extreme" => FontAwesomeIcon.Fire,
-        "Raids" => FontAwesomeIcon.Users,
         _ => FontAwesomeIcon.LayerGroup,
     };
 
