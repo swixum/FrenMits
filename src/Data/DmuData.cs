@@ -90,11 +90,16 @@ public static class DmuData
         var idx = Array.IndexOf(Slots, slot);
         var list = new List<MitLine>();
         if (idx < 0) return list;
+        var seen = new HashSet<(int Time, uint Sync)>();
         foreach (var e in Timeline)
         {
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
-            list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action, Enabled = true });
+            // Some mechanics are listed across several note-rows (group / alt-strat)
+            // at the same time + ability. For one player that's a single action — take
+            // only the first, or the call (and its audio) fires twice or more.
+            if (!seen.Add((e.Time, e.Sync))) continue;
+            list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }
         return list;
     }
