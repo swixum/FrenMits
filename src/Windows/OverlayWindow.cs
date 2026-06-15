@@ -161,6 +161,14 @@ public class OverlayWindow : Window
         var color = imminent && C.PulseWhenImminent && remaining < 1.5f ? Pulse(baseColor) : baseColor;
         var headline = FormatHeadline(mechanic, action, remaining, imminent);
 
+        // Cooldown-aware: if your mit won't be off recast by the call, flag it (and
+        // tint the call to the warning colour). Guarded; null = not a tracked mit.
+        if (C.CooldownAwareCalls && imminent && Cooldowns.Remaining(action) is { } cd && cd > remaining + 0.5f)
+        {
+            headline += $"  [CD {MathF.Ceiling(cd):0}s]";
+            color = 0xFF3C3CF0; // red-ish warning
+        }
+
         // Depleting ring around the icon while counting down (full at the lead, empty
         // at the call). -1 = no ring.
         var ringFrac = C.ShowRadialRing && imminent && lead > 0.01f

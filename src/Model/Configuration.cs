@@ -81,6 +81,10 @@ public class Configuration : IPluginConfiguration
     public uint MitColorPersonal { get; set; } = 0xFF78C846; // green
     // Radial countdown ring around the call icon.
     public bool ShowRadialRing { get; set; } = true;
+
+    // Cooldown-aware calls: read your real recast and warn on a call when the mit
+    // won't be ready in time. Reads game state, so off by default.
+    public bool CooldownAwareCalls { get; set; }
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;
 

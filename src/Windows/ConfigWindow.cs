@@ -1542,6 +1542,8 @@ public class ConfigWindow : Window, IDisposable
             C.ShowAbilityIcon = CfgCheck("Show the ability icon next to the call", C.ShowAbilityIcon);
             HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
             C.ShowRadialRing = CfgCheck("Radial countdown ring around the icon", C.ShowRadialRing);
+            C.CooldownAwareCalls = CfgCheck("Warn when your mit won't be ready (reads cooldowns)", C.CooldownAwareCalls);
+            HelpMarker("On a call for one of your mits, if it's still on cooldown past the call time, the call shows [CD Ns] and turns red. Only affects your own job's mits.");
             C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
             C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
             C.ShowMitBar = CfgCheck("Show your active mitigations indicator", C.ShowMitBar);
