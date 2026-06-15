@@ -104,6 +104,7 @@ public class Audio : IDisposable
     private void SpeakSapi(string text, int rate, int volume, string voiceName)
     {
         if (_ttsUnavailable) return;
+        Service.Log.Information($"[FrenMits] SAPI.Speak '{text}'");
         try
         {
             _voice ??= CreateVoice();
@@ -361,6 +362,7 @@ public class Audio : IDisposable
     // non-blocking. NAudio is bundled with the plugin.
     private void PlayMp3(byte[] mp3)
     {
+        Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");
         try
         {
             lock (_playLock)
