@@ -53,9 +53,9 @@ public class Configuration : IPluginConfiguration
     // Capture the recap automatically every pull (always on unless unticked) so you
     // never have to trigger it by hand.
     public bool RecapAutoCapture { get; set; } = true;
-    // Auto-show the "Mit Recap" popup after every wipe. When on it always appears;
-    // off and it never does. Both the popup and the recap window are movable.
-    public bool ShowRecapButton { get; set; } = true;
+    // Auto-show the "Mit Recap" popup after every wipe. Off by default (opt-in);
+    // when on it always appears. Both the popup and the recap window are movable.
+    public bool ShowRecapButton { get; set; } = false;
     public Vector2 RecapPopupPosition { get; set; } = new(0.5f, 0.28f);
     public bool RecapPopupLocked { get; set; }
 
