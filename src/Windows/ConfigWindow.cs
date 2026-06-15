@@ -1319,6 +1319,37 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.TextDisabled(_plugin.Replay.Status);
         }
 
+        // --- Last pull: mits you used ---
+        if (Section("Last pull — mits you used", false))
+        {
+            var review = _plugin.Review.Last;
+            if (review.Count == 0)
+            {
+                ImGui.TextDisabled("Do a pull — the mits you use (and when) are logged here to compare against the plan.");
+            }
+            else if (ImGui.BeginTable("##review", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
+                         new Vector2(0, 200)))
+            {
+                ImGui.TableSetupScrollFreeze(0, 1);
+                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
+                ImGui.TableSetupColumn("Mit", ImGuiTableColumnFlags.WidthStretch, 1);
+                ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, 80);
+                ImGui.TableHeadersRow();
+                foreach (var u in review)
+                {
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)u.Time / 60}:{(int)u.Time % 60:00}");
+                    ImGui.TableNextColumn();
+                    var col = MitTypes.Color(u.Kind, C);
+                    if (col != 0) ImGui.PushStyleColor(ImGuiCol.Text, col);
+                    ImGui.TextUnformatted(u.Name);
+                    if (col != 0) ImGui.PopStyleColor();
+                    ImGui.TableNextColumn(); ImGui.TextDisabled(u.Kind.ToString());
+                }
+                ImGui.EndTable();
+            }
+        }
+
         // --- Current anchors on the target fight ---
         if (Section($"Current anchors on {target.Name}", true))
         {

@@ -24,6 +24,7 @@ public sealed class Plugin : IDalamudPlugin
     public CueEngine Cues { get; }
     public SyncEngine Sync { get; }
     public ReplayEngine Replay { get; }
+    public MitReview Review { get; }
     public readonly WindowSystem Windows = new("FrenMits");
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
@@ -102,6 +103,7 @@ public sealed class Plugin : IDalamudPlugin
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
         Replay = new ReplayEngine(this);
+        Review = new MitReview(this);
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
         TimelineWindow = new TimelineWindow(this);
@@ -202,6 +204,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             Timer.Update();
             Replay.Update();
+            Review.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
             Sync.Update();
