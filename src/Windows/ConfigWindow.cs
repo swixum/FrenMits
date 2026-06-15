@@ -938,11 +938,11 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds — right-click to reset");
             if (ImGui.BeginPopupContextItem("##timectx"))
             {
-                if (DefaultTimeFor(fight, line) is { } def)
+                if (DefaultLineFor(fight, line) is { } def)
                 {
-                    if (ImGui.MenuItem($"Reset time to default ({(int)def / 60}:{(int)def % 60:00})"))
+                    if (ImGui.MenuItem($"Reset time to default ({(int)def.Time / 60}:{(int)def.Time % 60:00})"))
                     {
-                        line.Time = def;
+                        line.Time = def.Time;
                         if (_editTimeLine == line) _editTimeBuf = line.TimeText;
                         C.Save();
                     }
@@ -958,6 +958,16 @@ public class ConfigWindow : Window, IDisposable
             var mech = line.Mechanic;
             ImGui.SetNextItemWidth(-1);
             if (ImGui.InputText("##mech", ref mech, 256)) { line.Mechanic = mech; C.Save(); }
+            if (ImGui.BeginPopupContextItem("##mechctx"))
+            {
+                var def = DefaultLineFor(fight, line);
+                if (def != null && !string.Equals(def.Mechanic.Trim(), line.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    if (ImGui.MenuItem($"Reset mechanic to \"{Ellipsis(def.Mechanic, 40)}\"")) { line.Mechanic = def.Mechanic; C.Save(); }
+                }
+                else ImGui.TextDisabled(def == null ? "No baked default for this line." : "Already the default.");
+                ImGui.EndPopup();
+            }
 
             ImGui.TableNextColumn();
             var icon = Icons.For(line);
@@ -970,6 +980,16 @@ public class ConfigWindow : Window, IDisposable
             var action = line.Action;
             ImGui.SetNextItemWidth(-1);
             if (ImGui.InputText("##action", ref action, 256)) { line.Action = action; C.Save(); }
+            if (ImGui.BeginPopupContextItem("##actionctx"))
+            {
+                var def = DefaultLineFor(fight, line);
+                if (def != null && !string.Equals(def.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    if (ImGui.MenuItem($"Reset action to \"{Ellipsis(def.Action, 40)}\"")) { line.Action = def.Action; C.Save(); }
+                }
+                else ImGui.TextDisabled(def == null ? "No baked default for this line." : "Already the default.");
+                ImGui.EndPopup();
+            }
 
             ImGui.TableNextColumn();
             DrawJobsCell(line);
@@ -1973,36 +1993,41 @@ public class ConfigWindow : Window, IDisposable
 
     // ---- helpers ---------------------------------------------------------
 
-    // The baked default time for a line, for the right-click "reset time" option.
-    // Matches the built-in line by mechanic (+ action when it still matches), then
-    // picks the closest in time to the current value — so a typo'd time still finds
-    // the right mechanic. Null when there's no baked default (custom/tank/potion
-    // lines, or non-built-in fights).
-    private float? DefaultTimeFor(FightProfile fight, MitLine line)
+    // The best-matching baked built-in line, for the right-click "reset to default"
+    // options on time / mechanic / action. Scored by time proximity with a strong
+    // bonus for a matching mechanic and/or action — so whichever field you typo'd,
+    // the OTHER fields (and the time) still pin the right baked line. Null when
+    // there's no baked default (custom / tank / potion lines, non-built-in fights).
+    private MitLine? DefaultLineFor(FightProfile fight, MitLine line)
     {
-        if (!Builtin.Has(fight.TerritoryId) || string.IsNullOrWhiteSpace(line.Mechanic)) return null;
+        if (!Builtin.Has(fight.TerritoryId)) return null;
         var baked = Builtin.BuildLines(fight.TerritoryId, fight.Slot);
         if (baked.Count == 0) return null;
 
         var mech = line.Mechanic.Trim();
         var act = line.Action.Trim();
 
-        float? best = null;
-        var bestD = float.MaxValue;
-        // Prefer an exact mechanic+action match; fall back to mechanic-only.
-        foreach (var wantAction in new[] { true, false })
+        MitLine? best = null;
+        var bestScore = float.MaxValue;
+        var bestHasMatch = false;
+        foreach (var b in baked)
         {
-            foreach (var b in baked)
+            var mMatch = mech.Length > 0 && string.Equals(b.Mechanic.Trim(), mech, StringComparison.OrdinalIgnoreCase);
+            var aMatch = act.Length > 0 && string.Equals(b.Action.Trim(), act, StringComparison.OrdinalIgnoreCase);
+            var hasMatch = mMatch || aMatch;
+            var score = MathF.Abs(b.Time - line.Time) - (mMatch ? 1000f : 0f) - (aMatch ? 1000f : 0f);
+            // Prefer any line that shares a field; among those, the lowest score.
+            if (best == null || (hasMatch && !bestHasMatch) || (hasMatch == bestHasMatch && score < bestScore))
             {
-                if (!string.Equals(b.Mechanic.Trim(), mech, StringComparison.OrdinalIgnoreCase)) continue;
-                if (wantAction && !string.Equals(b.Action.Trim(), act, StringComparison.OrdinalIgnoreCase)) continue;
-                var d = MathF.Abs(b.Time - line.Time);
-                if (d < bestD) { bestD = d; best = b.Time; }
+                best = b; bestScore = score; bestHasMatch = hasMatch;
             }
-            if (best != null) break;
         }
-        return best;
+        // Only offer a default when a baked line actually corresponds to this one
+        // (shares its mechanic or action) — not just the nearest in time.
+        return bestHasMatch ? best : null;
     }
+
+    private static string Ellipsis(string s, int max) => s.Length > max ? s[..max] + "…" : s;
 
     private static MitLine CloneLine(MitLine l) => new()
     {
