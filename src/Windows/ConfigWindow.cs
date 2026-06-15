@@ -159,6 +159,23 @@ public class ConfigWindow : Window, IDisposable
         return value;
     }
 
+    // Tooltip on the previous item — keeps help off the page (no inline "(?)") so
+    // toggle grids stay clean.
+    private static void Tip(string text)
+    {
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(text);
+    }
+
+    // A checkbox in the next cell of a 2-column toggle grid. Returns the value so
+    // the caller can assign it straight back to its setting.
+    private bool GridCheck(string label, bool value, string? tip = null)
+    {
+        ImGui.TableNextColumn();
+        if (ImGui.Checkbox(label, ref value)) C.Save();
+        if (tip != null) Tip(tip);
+        return value;
+    }
+
     // Section header with a blue accent bar + uppercase label, matching the
     // panel-based look of the reference UI.
     private static void SeparatorText(string text)
@@ -1300,7 +1317,7 @@ public class ConfigWindow : Window, IDisposable
         }
 
         // --- Save / replay a pull (desk testing) ---
-        if (Section("Record & replay (desk test)", true))
+        if (Section("Record & replay (desk test)", false))
         {
             ImGui.TextWrapped("Tick \"Recording\" above, do a pull (casts and cutscenes are captured), then save it here. "
                               + "Replay it any time to watch the overlay, cues and cutscene handling line up — no instance needed.");
@@ -1578,17 +1595,26 @@ public class ConfigWindow : Window, IDisposable
             var suffix = C.ActiveSuffix;
             ImGui.SetNextItemWidth(280f);
             if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.Save(); }
-            C.ShowCountdownNumber = CfgCheck("Append countdown number while counting down", C.ShowCountdownNumber);
-            C.ShowMechanicLine = CfgCheck("Show mechanic name on a second line", C.ShowMechanicLine);
-            C.ShowAbilityIcon = CfgCheck("Show the ability icon next to the call", C.ShowAbilityIcon);
-            HelpMarker("Icons are matched from the action name automatically; pin a specific one per line with the \"…\" button.");
-            C.ShowRadialRing = CfgCheck("Radial countdown ring around the icon", C.ShowRadialRing);
-            C.CooldownAwareCalls = CfgCheck("Warn when your mit won't be ready (reads cooldowns)", C.CooldownAwareCalls);
-            HelpMarker("On a call for one of your mits, if it's still on cooldown past the call time, the call shows [CD Ns] and turns red. Only affects your own job's mits.");
-            C.TextShadow = CfgCheck("Drop shadow (improves readability)", C.TextShadow);
-            C.ShowDtrBar = CfgCheck("Show next mit on the server-info bar", C.ShowDtrBar);
-            C.ShowMitBar = CfgCheck("Show your active mitigations indicator", C.ShowMitBar);
-            HelpMarker("A small row of your currently-active defensive buffs with seconds remaining, tinted by mit type. Unlock it on this tab to drag it.");
+
+            ImGui.Spacing();
+            if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
+            {
+                C.ShowAbilityIcon = GridCheck("Ability icon", C.ShowAbilityIcon,
+                    "Matched from the action name; pin one per line with the \"…\" button.");
+                C.ShowRadialRing = GridCheck("Radial ring", C.ShowRadialRing,
+                    "A depleting countdown ring around the call icon.");
+                C.ShowMechanicLine = GridCheck("Mechanic 2nd line", C.ShowMechanicLine);
+                C.ShowCountdownNumber = GridCheck("Countdown number", C.ShowCountdownNumber);
+                C.TextShadow = GridCheck("Drop shadow", C.TextShadow,
+                    "Improves readability over busy backgrounds.");
+                C.CooldownAwareCalls = GridCheck("Cooldown warnings", C.CooldownAwareCalls,
+                    "Shows [CD Ns] and reddens a call when your mit is still on cooldown past the call time. Your job's mits only.");
+                C.ShowDtrBar = GridCheck("Server-bar next mit", C.ShowDtrBar,
+                    "Shows the next mit on the server-info bar.");
+                C.ShowMitBar = GridCheck("Active-mits bar", C.ShowMitBar,
+                    "A row of your active defensive buffs with seconds remaining, tinted by mit type.");
+                ImGui.EndTable();
+            }
             if (C.ShowMitBar)
             {
                 var locked = C.MitBarLocked;
