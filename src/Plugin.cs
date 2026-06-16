@@ -40,7 +40,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         pluginInterface.Create<Service>();
 
-        Config = Service.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Config = LoadConfig();
         Config.Fights ??= new();
 
         // v2: split the upcoming list into its own timeline window and switch the
@@ -161,6 +161,50 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     private static int _liveInstances;
+
+    // Load the saved config defensively. GetPluginConfig() returns null both for a
+    // genuine first run (no file) AND when an existing file fails to deserialize
+    // (a partial write interrupted by a crash, an unresolved $type after a rename,
+    // a transient read error mid-update). The old code couldn't tell the two apart:
+    // it fell back to a fresh default config and the version migrations immediately
+    // Save()'d it, overwriting the user's real settings for good. Now, if the file
+    // exists but won't load, we keep it intact (backed up) and suppress saves for
+    // the session instead of clobbering it — so a one-off hiccup can't wipe colours
+    // and edits, and the original is recoverable.
+    private static Configuration LoadConfig()
+    {
+        try
+        {
+            if (Service.PluginInterface.GetPluginConfig() is Configuration cfg)
+                return cfg;
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Error(ex, "FrenMits: GetPluginConfig threw");
+        }
+
+        var file = Service.PluginInterface.ConfigFile;
+        if (file is { Exists: true } && file.Length > 2)
+        {
+            // The file is there but unreadable — do NOT treat this as a first run.
+            try
+            {
+                var bak = file.FullName + ".corrupt.bak";
+                System.IO.File.Copy(file.FullName, bak, overwrite: true);
+                Service.Log.Error(
+                    $"FrenMits: config exists ({file.Length} bytes) but failed to load. Backed up to {bak}. " +
+                    "Running on defaults WITHOUT saving over your file so it can be recovered.");
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error(ex, "FrenMits: failed to back up unreadable config");
+            }
+
+            Configuration.SuppressSave = true;
+        }
+
+        return new Configuration();
+    }
 
     // Seamless auto-load: on entering a boss room we support, top up the fight's
     // lines with the latest baked timeline (adding only what's missing) and refresh

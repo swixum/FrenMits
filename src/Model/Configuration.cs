@@ -137,5 +137,14 @@ public class Configuration : IPluginConfiguration
     public bool UseCustomPosition { get; set; }
     public Vector2 OverlayPosition { get; set; } = new(0.5f, 0.35f); // fractions of the screen
 
-    public void Save() => Service.PluginInterface.SavePluginConfig(this);
+    // Set when the on-disk config existed but could not be loaded. We keep working
+    // defaults in memory for the session but must NOT write them back, or we would
+    // overwrite the user's real (recoverable) settings with defaults.
+    public static bool SuppressSave;
+
+    public void Save()
+    {
+        if (SuppressSave) return;
+        Service.PluginInterface.SavePluginConfig(this);
+    }
 }
