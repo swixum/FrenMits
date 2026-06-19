@@ -107,7 +107,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (fight.Lines.Count == 0 && Builtin.Has(fight.TerritoryId))
             {
-                Builtin.ApplySlot(fight, Builtin.DefaultSlotForJob(fight.TerritoryId, null));
+                Builtin.ApplySlot(fight, PreferredDefaultSlot(fight.TerritoryId));
                 prebaked = true;
             }
         }
@@ -231,15 +231,22 @@ public sealed class Plugin : IDalamudPlugin
         }
         if (!fight.Enabled) return;
 
-        var slot = !string.IsNullOrEmpty(fight.Slot)
-            ? fight.Slot
-            : Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
+        var slot = !string.IsNullOrEmpty(fight.Slot) ? fight.Slot : PreferredDefaultSlot(territory);
 
         var added = Builtin.ApplySlot(fight, slot);
         Config.DmuSlot = fight.Slot;
         Config.Save();
 
         Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {fight.Slot}, +{added} lines.");
+    }
+
+    // Default slot for a fight with none picked yet: the global role pick (if set
+    // and the fight has a slot for it) wins, so a chosen role sticks to fights you
+    // haven't loaded yet; otherwise fall back to a best-guess by job.
+    private string PreferredDefaultSlot(uint territory)
+    {
+        var roleSlot = Builtin.RoleSlot(territory, Config.RoleSelection);
+        return !string.IsNullOrEmpty(roleSlot) ? roleSlot! : Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
     }
 
     // Local player via the object table (index 0); IClientState.LocalPlayer was

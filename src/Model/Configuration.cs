@@ -19,6 +19,11 @@ public class Configuration : IPluginConfiguration
     // "Auto" follows your current job; otherwise a job abbreviation override.
     public string JobSelection { get; set; } = "Auto";
 
+    // Global sheet-role pick (e.g. "Melee 1", "Main Tank"). When set, it's applied
+    // to every built-in fight, mapping to whichever slot code that fight uses for
+    // the role. Empty = pick a slot per fight. See Builtin.Roles / Builtin.RoleSlot.
+    public string RoleSelection { get; set; } = "";
+
     // Seconds of lead time the warning appears before the mit time.
     public float WarningSeconds { get; set; } = 3f;
     // How long the call stays on screen after its time passes.

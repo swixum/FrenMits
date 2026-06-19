@@ -61,6 +61,37 @@ public static class Builtin
         _ => DmuData.Slots,
     };
 
+    // Canonical cross-fight roles for the global role picker. One pick maps to
+    // whatever slot code each fight uses for that role (DMU/M12S use MT/OT/D1..,
+    // FRU uses T1/T2/M1../R/Caster), so it applies sensibly everywhere.
+    public static readonly string[] Roles =
+        { "Main Tank", "Off Tank", "WHM", "AST", "SCH", "SGE", "Melee 1", "Melee 2", "Phys Ranged", "Caster", "Extras" };
+
+    static readonly Dictionary<string, string[]> RoleSlotCodes = new()
+    {
+        ["Main Tank"] = new[] { "MT", "T1" },
+        ["Off Tank"] = new[] { "OT", "T2" },
+        ["WHM"] = new[] { "WHM" },
+        ["AST"] = new[] { "AST" },
+        ["SCH"] = new[] { "SCH" },
+        ["SGE"] = new[] { "SGE" },
+        ["Melee 1"] = new[] { "D1", "M1" },
+        ["Melee 2"] = new[] { "D2", "M2" },
+        ["Phys Ranged"] = new[] { "D3", "R" },
+        ["Caster"] = new[] { "D4", "Caster" },
+        ["Extras"] = new[] { "Extras" },
+    };
+
+    // The slot code a given fight uses for a canonical role, or null if it has none.
+    public static string? RoleSlot(uint territory, string role)
+    {
+        if (string.IsNullOrEmpty(role) || !RoleSlotCodes.TryGetValue(role, out var codes)) return null;
+        var slots = Slots(territory);
+        foreach (var c in codes)
+            if (slots.Contains(c, StringComparer.OrdinalIgnoreCase)) return c;
+        return null;
+    }
+
     public static List<MitLine> BuildLines(uint territory, string slot) => territory switch
     {
         FruTerritory => FruData.BuildLines(slot),

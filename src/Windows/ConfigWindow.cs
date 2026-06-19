@@ -310,6 +310,7 @@ public class ConfigWindow : Window, IDisposable
         if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
         DrawSidebarJob();
+        DrawSidebarRole();
     }
 
     private static void SidebarHeading(string text)
@@ -378,6 +379,66 @@ public class ConfigWindow : Window, IDisposable
         }
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled($"active: {_plugin.ActiveJobAbbreviation() ?? "?"}");
+    }
+
+    // Global sheet-role pick: one choice applies to every built-in fight, mapping
+    // to whatever slot that fight uses for the role (e.g. Melee 1 -> D1 in DMU, M1
+    // in FRU). A green check shows when every built-in fight is on that role's slot.
+    private void DrawSidebarRole()
+    {
+        ImGui.Spacing();
+        SidebarHeading("YOUR ROLE");
+
+        var roles = Builtin.Roles;
+        var labels = new List<string> { "— pick a role —" };
+        labels.AddRange(roles);
+        var idx = string.IsNullOrEmpty(C.RoleSelection) ? 0 : Math.Max(0, Array.IndexOf(roles, C.RoleSelection) + 1);
+
+        var active = !string.IsNullOrEmpty(C.RoleSelection) && RoleActiveEverywhere(C.RoleSelection);
+
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 12 - (active ? 24 : 0));
+        if (ImGui.Combo("##sbrole", ref idx, labels.ToArray(), labels.Count))
+        {
+            if (idx == 0) { C.RoleSelection = ""; C.Save(); }
+            else SelectRoleForAll(roles[idx - 1]);
+        }
+        if (active)
+        {
+            ImGui.SameLine();
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                ImGui.TextColored(ImGuiColors.HealerGreen, FontAwesomeIcon.Check.ToIconString());
+        }
+
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.TextDisabled("applies to every fight");
+    }
+
+    // True if every built-in fight is currently on the slot this role maps to.
+    private bool RoleActiveEverywhere(string role)
+    {
+        var fights = C.Fights.Where(f => Builtin.Has(f.TerritoryId)).ToList();
+        return fights.Count > 0 && fights.All(f =>
+            string.Equals(f.Slot, Builtin.RoleSlot(f.TerritoryId, role), StringComparison.OrdinalIgnoreCase));
+    }
+
+    // Apply the chosen role to every built-in fight, loading each one's matching
+    // slot (keeping that slot's own edits).
+    private void SelectRoleForAll(string role)
+    {
+        C.RoleSelection = role;
+        FightProfile? last = null;
+        foreach (var f in C.Fights)
+        {
+            if (!Builtin.Has(f.TerritoryId)) continue;
+            var slot = Builtin.RoleSlot(f.TerritoryId, role);
+            if (string.IsNullOrEmpty(slot)) continue;
+            Builtin.ApplySlot(f, slot);
+            last = f;
+        }
+        if (last != null) C.DmuSlot = last.Slot;
+        C.Save();
+        FlashBuiltin($"Set every fight to {role}.");
     }
 
     private void DrawSelectedPage()
