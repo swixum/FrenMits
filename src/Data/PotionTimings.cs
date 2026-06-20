@@ -18,47 +18,81 @@ public static class PotionTimings
 
     public sealed record Result(bool Ok, string Message, List<float> Times);
 
-    // Fights the site has data for (its boss slug). Others return null.
+    // Fights the site has potion-cast data for (its boss slug). Others return null.
+    // Only the current tier (this ultimate + this savage) is tracked with potion
+    // casts on the site; the older ultimates (UCOB/UWU/TEA/DSR/TOP) and FRU expose
+    // only rotational abilities in their rankings, so there's nothing to pull.
     public static string? BossSlug(uint territory) => territory switch
     {
         Builtin.DmuTerritory => "dancing-mad",
+        Builtin.M12sTerritory => "lindwurm",
         _ => null,
     };
 
-    // Baked consensus windows (seconds from pull) per job, clustered from the top
-    // Dancing Mad logs on raalm.com / Lorrgs. Shown straight away so you don't have
-    // to fetch; the "Refresh from logs" button re-pulls the latest live numbers.
+    // Baked consensus windows (seconds from pull) per boss slug, then per job,
+    // clustered from the top logs on raalm.com / Lorrgs. Shown straight away so you
+    // don't have to fetch; "Refresh from logs" re-pulls the latest live numbers.
     // Last refreshed: 2026-06-20.
-    public static readonly Dictionary<string, int[]> Defaults = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly Dictionary<string, Dictionary<string, int[]>> Defaults = new()
     {
-        ["PLD"] = new[] { 468, 761, 1083 },
-        ["WAR"] = new[] { 6, 469, 749, 1077 },
-        ["DRK"] = new[] { 3, 468, 755, 1086 },
-        ["GNB"] = new[] { 455, 753, 1092 },
-        ["MNK"] = new[] { 119, 467, 759, 1082 },
-        ["DRG"] = new[] { 466, 764, 1082 },
-        ["NIN"] = new[] { 3, 203, 465, 753, 1076 },
-        ["SAM"] = new[] { 4, 471, 748, 1081 },
-        ["RPR"] = new[] { 220, 469, 748, 1084 },
-        ["VPR"] = new[] { 211, 473, 751, 1080 },
-        ["BRD"] = new[] { 211, 471, 750, 1072 },
-        ["MCH"] = new[] { 120, 450, 742, 1064 },
-        ["DNC"] = new[] { 215, 472, 757, 1073 },
-        ["BLM"] = new[] { 6, 264, 473, 764, 1080 },
-        ["SMN"] = new[] { 3, 462, 754, 1092 },
-        ["RDM"] = new[] { 211, 471, 755, 1080 },
-        ["PCT"] = new[] { 469, 759, 1091 },
-        ["WHM"] = new[] { 1, 471, 746, 1082 },
-        ["SCH"] = new[] { 470, 749, 1085 },
-        ["AST"] = new[] { 472, 757, 1092 },
-        ["SGE"] = new[] { 1, 209, 469, 767, 1088 },
+        ["dancing-mad"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["PLD"] = new[] { 468, 761, 1083 },
+            ["WAR"] = new[] { 6, 469, 749, 1077 },
+            ["DRK"] = new[] { 3, 468, 755, 1086 },
+            ["GNB"] = new[] { 455, 753, 1092 },
+            ["MNK"] = new[] { 119, 467, 759, 1082 },
+            ["DRG"] = new[] { 466, 764, 1082 },
+            ["NIN"] = new[] { 3, 203, 465, 753, 1076 },
+            ["SAM"] = new[] { 4, 471, 748, 1081 },
+            ["RPR"] = new[] { 220, 469, 748, 1084 },
+            ["VPR"] = new[] { 211, 473, 751, 1080 },
+            ["BRD"] = new[] { 211, 471, 750, 1072 },
+            ["MCH"] = new[] { 120, 450, 742, 1064 },
+            ["DNC"] = new[] { 215, 472, 757, 1073 },
+            ["BLM"] = new[] { 6, 264, 473, 764, 1080 },
+            ["SMN"] = new[] { 3, 462, 754, 1092 },
+            ["RDM"] = new[] { 211, 471, 755, 1080 },
+            ["PCT"] = new[] { 469, 759, 1091 },
+            ["WHM"] = new[] { 1, 471, 746, 1082 },
+            ["SCH"] = new[] { 470, 749, 1085 },
+            ["AST"] = new[] { 472, 757, 1092 },
+            ["SGE"] = new[] { 1, 209, 469, 767, 1088 },
+        },
+        ["lindwurm"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["PLD"] = new[] { 5, 357 },
+            ["WAR"] = new[] { 7, 357 },
+            ["DRK"] = new[] { 2, 358 },
+            ["GNB"] = new[] { 7, 354 },
+            ["MNK"] = new[] { 3, 361 },
+            ["DRG"] = new[] { 3, 360 },
+            ["NIN"] = new[] { 3, 361 },
+            ["SAM"] = new[] { 4, 359 },
+            ["RPR"] = new[] { 3, 364 },
+            ["VPR"] = new[] { 6, 364 },
+            ["BRD"] = new[] { 4, 360 },
+            ["MCH"] = new[] { 362 },
+            ["DNC"] = new[] { 2, 362 },
+            ["BLM"] = new[] { 8, 349 },
+            ["SMN"] = new[] { 4, 364 },
+            ["RDM"] = new[] { 3, 362 },
+            ["PCT"] = new[] { 1, 360 },
+            ["WHM"] = new[] { 1, 362 },
+            ["SCH"] = new[] { 1, 357 },
+            ["AST"] = new[] { 1, 359 },
+            ["SGE"] = new[] { 1, 344 },
+        },
     };
 
-    // Baked windows for a job (DMU only for now), as floats. Empty if none.
+    // Baked windows for a fight + job, as floats. Empty if none.
     public static List<float> DefaultsFor(uint territory, string? jobAbbr)
     {
-        if (BossSlug(territory) == null || jobAbbr == null) return new();
-        return Defaults.TryGetValue(jobAbbr, out var t) ? t.Select(x => (float)x).ToList() : new();
+        var slug = BossSlug(territory);
+        if (slug == null || jobAbbr == null) return new();
+        return Defaults.TryGetValue(slug, out var jobs) && jobs.TryGetValue(jobAbbr, out var t)
+            ? t.Select(x => (float)x).ToList()
+            : new();
     }
 
     public static string Stat(string? jobAbbr) => (jobAbbr ?? "").ToUpperInvariant() switch
