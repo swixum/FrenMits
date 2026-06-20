@@ -909,7 +909,7 @@ public class ConfigWindow : Window, IDisposable
                 TimePill(Mmss(t));
             }
             ImGui.SameLine(0, 8);
-            ImGui.TextColored(new Vector4(0.45f, 0.48f, 0.54f, 1f), live ? "(live)" : "(baked)");
+            ImGui.TextColored(new Vector4(0.45f, 0.48f, 0.54f, 1f), live ? "(live)" : "(Current)");
 
             // Action row: add to timeline + refresh from logs.
             ImGui.Spacing();
