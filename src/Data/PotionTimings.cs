@@ -25,6 +25,42 @@ public static class PotionTimings
         _ => null,
     };
 
+    // Baked consensus windows (seconds from pull) per job, clustered from the top
+    // Dancing Mad logs on raalm.com / Lorrgs. Shown straight away so you don't have
+    // to fetch; the "Refresh from logs" button re-pulls the latest live numbers.
+    // Last refreshed: 2026-06-20.
+    public static readonly Dictionary<string, int[]> Defaults = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["PLD"] = new[] { 468, 761, 1083 },
+        ["WAR"] = new[] { 6, 469, 749, 1077 },
+        ["DRK"] = new[] { 3, 468, 755, 1086 },
+        ["GNB"] = new[] { 455, 753, 1092 },
+        ["MNK"] = new[] { 119, 467, 759, 1082 },
+        ["DRG"] = new[] { 466, 764, 1082 },
+        ["NIN"] = new[] { 3, 203, 465, 753, 1076 },
+        ["SAM"] = new[] { 4, 471, 748, 1081 },
+        ["RPR"] = new[] { 220, 469, 748, 1084 },
+        ["VPR"] = new[] { 211, 473, 751, 1080 },
+        ["BRD"] = new[] { 211, 471, 750, 1072 },
+        ["MCH"] = new[] { 120, 450, 742, 1064 },
+        ["DNC"] = new[] { 215, 472, 757, 1073 },
+        ["BLM"] = new[] { 6, 264, 473, 764, 1080 },
+        ["SMN"] = new[] { 3, 462, 754, 1092 },
+        ["RDM"] = new[] { 211, 471, 755, 1080 },
+        ["PCT"] = new[] { 469, 759, 1091 },
+        ["WHM"] = new[] { 1, 471, 746, 1082 },
+        ["SCH"] = new[] { 470, 749, 1085 },
+        ["AST"] = new[] { 472, 757, 1092 },
+        ["SGE"] = new[] { 1, 209, 469, 767, 1088 },
+    };
+
+    // Baked windows for a job (DMU only for now), as floats. Empty if none.
+    public static List<float> DefaultsFor(uint territory, string? jobAbbr)
+    {
+        if (BossSlug(territory) == null || jobAbbr == null) return new();
+        return Defaults.TryGetValue(jobAbbr, out var t) ? t.Select(x => (float)x).ToList() : new();
+    }
+
     public static string Stat(string? jobAbbr) => (jobAbbr ?? "").ToUpperInvariant() switch
     {
         "PLD" or "WAR" or "DRK" or "GNB" or "MNK" or "DRG" or "SAM" or "RPR" => "Strength",

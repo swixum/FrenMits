@@ -597,12 +597,12 @@ public class ConfigWindow : Window, IDisposable
                 else
                 {
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
+                    DrawPotionsSection(fight);
                     DrawTankSection(fight);
                     ImGui.Separator();
                     DrawLineTable(fight);
                     ImGui.Spacing();
                     DrawImportSection(fight);
-                    DrawPotionsSection(fight);
                     DrawAdvancedFightSettings(fight);
                 }
                 ImGui.Unindent(10f);
@@ -839,64 +839,128 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("Lines are tagged to the job, so they only show when you're on it.");
     }
 
+    // A rounded "pill" showing one potion window (mm:ss). Returns its right edge X
+    // so the caller can flow the next one after it.
+    private static void TimePill(string text)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var pad = new Vector2(8, 3);
+        var sz = ImGui.CalcTextSize(text);
+        var p = ImGui.GetCursorScreenPos();
+        var box = sz + pad * 2;
+        dl.AddRectFilled(p, p + box, 0xFF2A2017, 6f);
+        dl.AddRect(p, p + box, Theme.Accent, 6f);
+        dl.AddText(p + pad, 0xFFECE8E6, text);
+        ImGui.Dummy(box);
+    }
+
+    private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
+
+    // Potions card: baked top-log windows for your job, shown up front with a one-
+    // click add, plus an optional live refresh from the logs. Drawn as a styled
+    // panel near the top of the fight editor.
     private void DrawPotionsSection(FightProfile fight)
     {
-        if (!Section("Potions (from top logs)")) return;
+        if (PotionTimings.BossSlug(fight.TerritoryId) == null) return;
 
         var job = _plugin.ActiveJobAbbreviation();
         var stat = PotionTimings.Stat(job);
-        if (string.IsNullOrEmpty(job) || string.IsNullOrEmpty(stat))
-        {
-            ImGui.TextDisabled("Pick your job (top of the sidebar) to fetch its potion timings.");
-            return;
-        }
-        if (PotionTimings.BossSlug(fight.TerritoryId) == null)
-        {
-            ImGui.TextDisabled("No top-log potion data for this fight.");
-            return;
-        }
 
-        ImGui.TextDisabled($"Pulls {stat} potion windows for {job} from top logs (raalm.com / Lorrgs).");
-
-        var fetching = _potTask is { IsCompleted: false };
-        if (fetching)
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
+        ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 8f);
+        var height = ImGui.GetTextLineHeightWithSpacing() * 3 + 30;
+        if (ImGui.BeginChild("##potions", new Vector2(0, height), true))
         {
-            ImGui.TextDisabled("Fetching…");
-        }
-        else if (ImGui.Button("Fetch potion timings"))
-        {
-            _potResult = null;
-            _potTask = PotionTimings.FetchAsync(fight.TerritoryId, job);
-        }
+            var dl = ImGui.GetWindowDrawList();
+            var wp = ImGui.GetWindowPos();
+            dl.AddRectFilled(wp, wp + new Vector2(3, ImGui.GetWindowHeight()), Theme.Accent);
 
-        if (_potTask is { IsCompleted: true } && _potResult == null)
-            _potResult = _potTask.Result;
+            // Title row: flask icon + "Potions" + the source.
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                ImGui.TextColored(ImGuiColors.DalamudViolet, FontAwesomeIcon.Flask.ToIconString());
+            ImGui.SameLine(0, 8);
+            ImGui.TextUnformatted("Potions");
+            ImGui.SameLine(0, 10);
+            ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f), "top-log windows · raalm.com / Lorrgs");
 
-        if (_potResult is { } res)
-        {
-            ImGui.TextColored(res.Ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, res.Message);
-            if (res.Ok && res.Times.Count > 0)
+            if (string.IsNullOrEmpty(job) || string.IsNullOrEmpty(stat))
             {
-                ImGui.TextDisabled("Windows: " + string.Join(", ",
-                    res.Times.Select(t => $"{(int)t / 60}:{(int)t % 60:00}")));
-                if (ImGui.Button($"Add {res.Times.Count} potion line(s) for {job}"))
-                {
-                    var lines = new List<MitLine>(fight.Lines);
-                    foreach (var t in res.Times)
-                        lines.Add(new MitLine
-                        {
-                            Time = t,
-                            Mechanic = $"Potion ({stat})",
-                            Action = "Potion",
-                            Jobs = new List<string> { job },
-                            Enabled = true,
-                        });
-                    SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
-                    _potResult = null;
-                    _potTask = null;
-                }
+                ImGui.Spacing();
+                ImGui.TextDisabled("Pick your job (top of the sidebar) to see its potion timings.");
+                ImGui.EndChild();
+                ImGui.PopStyleVar();
+                ImGui.PopStyleColor();
+                return;
+            }
+
+            // Live fetch result wins if present; otherwise the baked consensus.
+            if (_potTask is { IsCompleted: true } && _potResult == null) _potResult = _potTask.Result;
+            var live = _potResult is { Ok: true, Times.Count: > 0 };
+            var times = live ? _potResult!.Times : PotionTimings.DefaultsFor(fight.TerritoryId, job);
+
+            // Window pills.
+            ImGui.Spacing();
+            ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {stat}");
+            ImGui.SameLine(0, 10);
+            if (times.Count == 0) ImGui.TextDisabled("no windows");
+            foreach (var t in times)
+            {
+                ImGui.SameLine(0, 6);
+                TimePill(Mmss(t));
+            }
+            ImGui.SameLine(0, 8);
+            ImGui.TextColored(new Vector4(0.45f, 0.48f, 0.54f, 1f), live ? "(live)" : "(baked)");
+
+            // Action row: add to timeline + refresh from logs.
+            ImGui.Spacing();
+            var fetching = _potTask is { IsCompleted: false };
+            ImGui.BeginDisabled(times.Count == 0);
+            ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
+            if (ImGui.Button($"Add {times.Count} potion line(s)"))
+            {
+                var lines = new List<MitLine>(fight.Lines);
+                lines.RemoveAll(l => l.Mechanic.StartsWith("Potion", StringComparison.Ordinal)
+                                     && l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase));
+                foreach (var t in times)
+                    lines.Add(new MitLine
+                    {
+                        Time = t,
+                        Mechanic = $"Potion ({stat})",
+                        Action = "Potion",
+                        Jobs = new List<string> { job },
+                        Enabled = true,
+                    });
+                SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
+                FlashBuiltin($"Added {times.Count} {job} potion line(s).");
+            }
+            ImGui.PopStyleColor(2);
+            ImGui.EndDisabled();
+            Tip("Adds these as job-tagged lines (replacing any existing potion lines for this job), so they only show when you're on it.");
+
+            ImGui.SameLine();
+            if (fetching) ImGui.TextDisabled("Refreshing…");
+            else if (ImGui.SmallButton("Refresh from logs"))
+            {
+                _potResult = null;
+                _potTask = PotionTimings.FetchAsync(fight.TerritoryId, job);
+            }
+            Tip("Re-pull the latest consensus windows from the top logs.");
+
+            if (_potResult is { Ok: false } bad)
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(ImGuiColors.DalamudYellow, bad.Message);
+            }
+            if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(ImGuiColors.ParsedGreen, _builtinMsg);
             }
         }
+        ImGui.EndChild();
+        ImGui.PopStyleVar();
+        ImGui.PopStyleColor();
     }
 
     // Rarely-touched share / duplicate actions + zone & timing knobs, behind a
