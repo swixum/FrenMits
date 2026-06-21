@@ -44,10 +44,12 @@ jobs:
           $out = "src\bin\x64\Release"
           if (-not (Test-Path "$out\FrenMits.dll")) { $out = "src\bin\Release" }
           New-Item -ItemType Directory -Force -Path "site" | Out-Null
-          # Plugin + manifest + bundled NAudio assemblies (for online-voice playback).
-          $files = @("$out\FrenMits.dll", "$out\FrenMits.json")
+          # Plugin + manifest + icon + bundled NAudio assemblies (online-voice playback).
+          $files = @("$out\FrenMits.dll", "$out\FrenMits.json", "$out\icon.png")
           $files += (Get-ChildItem "$out\NAudio*.dll" | ForEach-Object { $_.FullName })
           Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
+          # Publicly host the icon for the listing IconUrl.
+          Copy-Item "images\icon.png" "site\icon.png" -Force
           # Publish the manifest with the version stamped straight from the built
           # plugin, so the in-game installer always sees the version it just got
           # (repo.json's committed version can never go stale and block updates).

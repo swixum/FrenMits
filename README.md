@@ -1,3 +1,5 @@
+<img src="images/icon.png" width="128" align="right" alt="Fren Mits icon"/>
+
 # Fren Mits
 
 Turn a mitigation sheet into clean on-screen call-outs. Pick your job and Fren Mits

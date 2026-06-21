@@ -11,7 +11,7 @@
     "TestingAssemblyVersion": "1.0.0.80",
     "RepoUrl": "https://github.com/swixum/FrenMits",
     "ApplicableVersion": "any",
-    "IconUrl": "",
+    "IconUrl": "https://swixum.github.io/FrenMits/icon.png",
     "DownloadLinkInstall": "https://swixum.github.io/FrenMits/FrenMits.zip",
     "DownloadLinkUpdate": "https://swixum.github.io/FrenMits/FrenMits.zip",
     "DownloadLinkTesting": "https://swixum.github.io/FrenMits/FrenMits.zip",

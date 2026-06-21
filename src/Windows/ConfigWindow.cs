@@ -26,6 +26,27 @@ public class ConfigWindow : Window, IDisposable
     private PotionTimings.Result? _potResult;
     private int _tankComp;
 
+    // Plugin icon (group-hug logo), loaded once from the file shipped next to the
+    // DLL. Null until found; the Home page falls back to a glyph if it's missing.
+    private Dalamud.Interface.Textures.ISharedImmediateTexture? _iconShared;
+    private bool _iconLookedUp;
+    private Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? IconWrap()
+    {
+        if (!_iconLookedUp)
+        {
+            _iconLookedUp = true;
+            try
+            {
+                var dir = Service.PluginInterface.AssemblyLocation.Directory?.FullName;
+                var path = dir == null ? null : System.IO.Path.Combine(dir, "icon.png");
+                if (path != null && System.IO.File.Exists(path))
+                    _iconShared = Service.TextureProvider.GetFromFile(path);
+            }
+            catch { /* fall back to the glyph emblem */ }
+        }
+        return _iconShared?.GetWrapOrDefault();
+    }
+
     // Left-sidebar navigation.
     private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors, PartyRecap }
     private NavKind _nav = NavKind.Home;
@@ -470,15 +491,23 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.Dummy(new Vector2(0, 10));
 
-        // Emblem: a big shield in the accent color.
-        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        // Emblem: the group-hug icon, or a glyph shield if it didn't load.
+        var icon = IconWrap();
+        if (icon != null)
         {
-            ImGui.SetWindowFontScale(2.6f);
-            var s = FontAwesomeIcon.Shield.ToIconString();
-            Center(ImGui.CalcTextSize(s).X);
-            ImGui.TextColored(accent, s);
-            ImGui.SetWindowFontScale(1f);
+            const float sz = 112f;
+            Center(sz);
+            ImGui.Image(icon.Handle, new Vector2(sz, sz));
         }
+        else
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            {
+                ImGui.SetWindowFontScale(2.6f);
+                var s = FontAwesomeIcon.Shield.ToIconString();
+                Center(ImGui.CalcTextSize(s).X);
+                ImGui.TextColored(accent, s);
+                ImGui.SetWindowFontScale(1f);
+            }
 
         // Title (big crisp font) + tagline.
         var titleFont = _plugin.Fonts.Get(34f, "Default", false, false);
