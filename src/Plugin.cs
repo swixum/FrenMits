@@ -66,6 +66,15 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v4: per-pull diagnostics on by default (local only). Flip existing
+        // profiles on once; the toggle stays so it can still be turned off.
+        if (Config.Version < 4)
+        {
+            Config.Diagnostics = true;
+            Config.Version = 4;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)

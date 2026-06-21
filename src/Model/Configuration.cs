@@ -106,8 +106,8 @@ public class Configuration : IPluginConfiguration
     public bool ShowDtrBar { get; set; } = true;
 
     // Write a per-pull diagnostics file (resync + cue events) to the plugin's
-    // diagnostics/ folder. Local only; for reviewing resync accuracy. Off by default.
-    public bool Diagnostics { get; set; }
+    // diagnostics/ folder. Local only; for reviewing resync accuracy. On by default.
+    public bool Diagnostics { get; set; } = true;
 
     // Resync: snap the pull-clock when known boss casts happen.
     public bool EnableSync { get; set; } = true;
