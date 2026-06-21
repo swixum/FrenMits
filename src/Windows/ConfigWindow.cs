@@ -2055,6 +2055,9 @@ public class ConfigWindow : Window, IDisposable
             : (resolved != 0 ? "auto from action" : "none"));
         if (ImGui.SmallButton("Use auto")) { line.IconId = 0; C.Save(); }
         ImGui.SameLine();
+        if (ImGui.SmallButton("Potion")) { line.IconId = Icons.PotionIcon(); C.Save(); }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Pin the potion (Gemdraught) icon to this line.");
+        ImGui.SameLine();
         var iconId = (int)line.IconId;
         ImGui.SetNextItemWidth(110f);
         if (ImGui.InputInt("##iconid", ref iconId)) { line.IconId = (uint)Math.Max(0, iconId); C.Save(); }

@@ -46,9 +46,49 @@ public static class Icons
         _byLength = list;
     }
 
-    // The icon a line should display: its pinned icon, else inferred from text.
+    // The icon a line should display: its pinned icon, else the potion icon for a
+    // potion line, else inferred from the action text.
     public static uint For(MitLine line)
-        => line.IconId != 0 ? line.IconId : ResolveFromText(line.Action);
+    {
+        if (line.IconId != 0) return line.IconId;
+        if (IsPotion(line)) return PotionIcon();
+        return ResolveFromText(line.Action);
+    }
+
+    // A potion line (from the Potions section): action "Potion", or a "Potion (…)"
+    // mechanic. These have no player-action icon, so they get the item icon instead.
+    public static bool IsPotion(MitLine line)
+        => line.Action.Trim().Equals("Potion", StringComparison.OrdinalIgnoreCase)
+           || line.Mechanic.StartsWith("Potion", StringComparison.OrdinalIgnoreCase);
+
+    // Icon for the current stat-potion (a Gemdraught), resolved once from the Item
+    // sheet. 0 if it can't be found (e.g. a non-English client) — caller draws none.
+    private static uint? _potionIcon;
+    public static uint PotionIcon()
+    {
+        if (_potionIcon.HasValue) return _potionIcon.Value;
+        uint icon = 0;
+        try
+        {
+            var items = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Item>();
+            if (items != null)
+                foreach (var row in items)
+                {
+                    var name = row.Name.ExtractText();
+                    if (name.Contains("Gemdraught", StringComparison.OrdinalIgnoreCase))
+                    {
+                        icon = row.Icon;
+                        break;
+                    }
+                }
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: potion icon lookup failed");
+        }
+        _potionIcon = icon;
+        return icon;
+    }
 
     public static uint ResolveFromText(string text)
     {
