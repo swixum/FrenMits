@@ -26,6 +26,7 @@ public sealed class Plugin : IDalamudPlugin
     public ReplayEngine Replay { get; }
     public MitReview Review { get; }
     public MitRecap Recap { get; }
+    public Diagnostics Diag { get; }
     public readonly WindowSystem Windows = new("FrenMits");
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
@@ -118,6 +119,7 @@ public sealed class Plugin : IDalamudPlugin
         Replay = new ReplayEngine(this);
         Review = new MitReview(this);
         Recap = new MitRecap(this);
+        Diag = new Diagnostics(this);
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
         TimelineWindow = new TimelineWindow(this);
@@ -285,6 +287,7 @@ public sealed class Plugin : IDalamudPlugin
             Recap.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
+            Diag.Update();   // open/close the pull record before the engines log into it
             Sync.Update();
             Cues.Update();
             UpdateDtr();

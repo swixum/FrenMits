@@ -105,6 +105,10 @@ public class Configuration : IPluginConfiguration
     // Server-info (DTR) bar entry showing the next mit.
     public bool ShowDtrBar { get; set; } = true;
 
+    // Write a per-pull diagnostics file (resync + cue events) to the plugin's
+    // diagnostics/ folder. Local only; for reviewing resync accuracy. Off by default.
+    public bool Diagnostics { get; set; }
+
     // Resync: snap the pull-clock when known boss casts happen.
     public bool EnableSync { get; set; } = true;
     public float SyncWindowSeconds { get; set; } = 8f;        // backward window, mechanic anchors (fine drift)

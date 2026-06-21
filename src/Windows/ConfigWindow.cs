@@ -1352,6 +1352,8 @@ public class ConfigWindow : Window, IDisposable
         {
             C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
             Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time — correcting phase drift from kill speed.");
+            C.Diagnostics = CfgCheck("Write per-pull diagnostics file", C.Diagnostics);
+            Tip("Saves a resync + cue log per pull to the plugin's diagnostics/ folder. Local only — nothing is sent anywhere. Use it to check resync accuracy.");
             var win = C.SyncWindowSeconds;
             ImGui.SetNextItemWidth(200f);
             if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }

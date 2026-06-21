@@ -122,6 +122,7 @@ public class SyncEngine
                 _plugin.Timer.SetElapsed(ba.Time - fight.TimerOffset - _plugin.PhaseOffsetFor(fight));
                 LastSync = $"[boss] {(casterName.Length > 0 ? casterName : nameId.ToString())} -> {ba.Time:0.0}s (was {elapsed:0.0})";
                 PhaseSyncGeneration++;
+                _plugin.Diag.Sync(LastSync, elapsed, true);
                 return true;
             }
         return false;
@@ -191,6 +192,7 @@ public class SyncEngine
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
         if (best.IsPhase) PhaseSyncGeneration++;
+        _plugin.Diag.Sync(LastSync, elapsed, best.IsPhase);
         return true;
     }
 

@@ -69,6 +69,7 @@ public class CueEngine
             _fired.Add(line);
             Service.Log.Information(
                 $"[FrenMits] FIRE '{line.Action}' (time={line.Time} elapsed={elapsed:0.0} gen={_generation})");
+            _plugin.Diag.Cue(line.Action, line.Time, elapsed, _generation, "");
             Fire(c, line);
         }
     }
@@ -116,6 +117,7 @@ public class CueEngine
         if (_spokenAt.TryGetValue(text, out var lastSame) && (now - lastSame).TotalSeconds < 2.0)
         {
             Service.Log.Information($"[FrenMits] (debounced duplicate '{text}', {(now - lastSame).TotalSeconds:0.00}s after last)");
+            _plugin.Diag.Cue(text, 0, 0, 0, $"debounced ({(now - lastSame).TotalSeconds:0.0}s after last)");
             return;
         }
 
