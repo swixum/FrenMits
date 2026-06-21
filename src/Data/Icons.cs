@@ -51,7 +51,7 @@ public static class Icons
     public static uint For(MitLine line)
     {
         if (line.IconId != 0) return line.IconId;
-        if (IsPotion(line)) return PotionIcon();
+        if (IsPotion(line)) return PotionIcon(PotionStat(line));
         return ResolveFromText(line.Action);
     }
 
@@ -61,13 +61,28 @@ public static class Icons
         => line.Action.Trim().Equals("Potion", StringComparison.OrdinalIgnoreCase)
            || line.Mechanic.StartsWith("Potion", StringComparison.OrdinalIgnoreCase);
 
-    // Icon for the current stat-potion (a Gemdraught), resolved once from the Item
-    // sheet. 0 if it can't be found (e.g. a non-English client) — caller draws none.
-    private static uint? _potionIcon;
-    public static uint PotionIcon()
+    // The stat baked into a potion line's mechanic, e.g. "Potion (Strength)" -> Strength.
+    private static string PotionStat(MitLine line)
     {
-        if (_potionIcon.HasValue) return _potionIcon.Value;
-        uint icon = 0;
+        var m = line.Mechanic;
+        int i = m.IndexOf('('), j = m.IndexOf(')');
+        return i >= 0 && j > i ? m.Substring(i + 1, j - i - 1).Trim() : "";
+    }
+
+    // The stat-coloured Gemdraught icon for a line (Strength/Dexterity/Intelligence/
+    // Mind). Public so the icon picker can pin the right one.
+    public static uint PotionIconFor(MitLine line) => PotionIcon(PotionStat(line));
+
+    // Icon for a stat's Gemdraught, resolved from the Item sheet and cached per stat.
+    // Falls back to any Gemdraught, then 0 (e.g. a non-English client) — caller draws none.
+    private static readonly Dictionary<string, uint> _potionIconByStat = new(StringComparer.OrdinalIgnoreCase);
+    public static uint PotionIcon(string? stat = null)
+    {
+        stat = (stat ?? "").Trim();
+        var key = stat.Length == 0 ? "*" : stat;
+        if (_potionIconByStat.TryGetValue(key, out var cached)) return cached;
+
+        uint icon = 0, anyGem = 0;
         try
         {
             var items = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Item>();
@@ -75,7 +90,9 @@ public static class Icons
                 foreach (var row in items)
                 {
                     var name = row.Name.ExtractText();
-                    if (name.Contains("Gemdraught", StringComparison.OrdinalIgnoreCase))
+                    if (!name.Contains("Gemdraught", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (anyGem == 0) anyGem = row.Icon;
+                    if (stat.Length > 0 && name.Contains(stat, StringComparison.OrdinalIgnoreCase))
                     {
                         icon = row.Icon;
                         break;
@@ -86,7 +103,9 @@ public static class Icons
         {
             Service.Log.Warning(ex, "FrenMits: potion icon lookup failed");
         }
-        _potionIcon = icon;
+
+        if (icon == 0) icon = anyGem; // unknown/blank stat -> any Gemdraught
+        _potionIconByStat[key] = icon;
         return icon;
     }
 
