@@ -75,6 +75,15 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v5: the Ikuya sheet had a big v3.0 mit rework, so rebake all built-in
+        // fights once to clear stale lines and start fresh on the new plan.
+        if (Config.Version < 5)
+        {
+            ResetAllBuiltins();
+            Config.Version = 5;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
@@ -228,6 +237,30 @@ public sealed class Plugin : IDalamudPlugin
         _trackedBossLastHp = 0;
         try { AutoLoadForTerritory(territory); }
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
+    }
+
+    // Full refresh: rebake every built-in fight's lines fresh from the current
+    // sheet data, discarding saved per-slot edits (and any added potion/tank
+    // lines). Used by the "Refresh from sheet" button and the one-time migration
+    // after a big sheet update. Returns how many fights were rebaked.
+    public int ResetAllBuiltins()
+    {
+        var n = 0;
+        foreach (var f in Config.Fights)
+        {
+            if (!Builtin.Has(f.TerritoryId)) continue;
+            f.SavedSlots.Clear();
+            if (!string.IsNullOrEmpty(f.Slot))
+                Builtin.ResetSlot(f, f.Slot);   // fresh bake of the active slot
+            else
+            {
+                f.Lines.Clear();                // no slot yet: auto-load will bake on zone-in
+                f.AutoLoaded = false;
+            }
+            n++;
+        }
+        Config.Save();
+        return n;
     }
 
     public void AutoLoadForTerritory(uint territory)

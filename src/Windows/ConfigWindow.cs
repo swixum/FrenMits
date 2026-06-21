@@ -540,6 +540,21 @@ public class ConfigWindow : Window, IDisposable
         Center(ImGui.CalcTextSize(ver).X);
         ImGui.TextDisabled(ver);
 
+        // Full refresh: rebake every built-in fight from the latest sheet data.
+        ImGui.Dummy(new Vector2(0, 10));
+        Center(230);
+        if (ImGui.Button("Refresh all fights from sheet", new Vector2(230, 0)))
+            ImGui.OpenPopup("##refreshall");
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Rebake every built-in fight from the baked sheet, discarding line edits and any added potion / tank lines.");
+        DrawRefreshConfirm();
+        if ((DateTime.Now - _homeMsgAt).TotalSeconds < 5 && _homeMsg.Length > 0)
+        {
+            ImGui.Dummy(new Vector2(0, 4));
+            Center(ImGui.CalcTextSize(_homeMsg).X);
+            ImGui.TextColored(ImGuiColors.ParsedGreen, _homeMsg);
+        }
+
         ImGui.Dummy(new Vector2(0, 16));
 
         // Shortcut cards.
@@ -548,6 +563,31 @@ public class ConfigWindow : Window, IDisposable
         if (HomeCard(FontAwesomeIcon.VolumeUp, "Audio", "Voice cues - online neural or Windows voices.")) _nav = NavKind.Audio;
         if (HomeCard(FontAwesomeIcon.Stopwatch, "Timer", "Combat sync, resync anchors and capture.")) _nav = NavKind.Timer;
     }
+
+    private void DrawRefreshConfirm()
+    {
+        var open = true;
+        if (!ImGui.BeginPopupModal("##refreshall", ref open,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+            return;
+
+        ImGui.TextUnformatted("Rebake every built-in fight from the sheet?");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "This discards your line edits and any added potion / tank lines.");
+        ImGui.Spacing();
+        if (ImGui.Button("Refresh", new Vector2(120, 0)))
+        {
+            var n = _plugin.ResetAllBuiltins();
+            _homeMsg = $"Refreshed {n} fight(s) from the sheet.";
+            _homeMsgAt = DateTime.Now;
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.EndPopup();
+    }
+
+    private string _homeMsg = "";
+    private DateTime _homeMsgAt = DateTime.MinValue;
 
     private bool HomeCard(FontAwesomeIcon icon, string title, string desc)
     {
