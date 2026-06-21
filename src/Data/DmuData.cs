@@ -88,6 +88,13 @@ public static class DmuData
         new(1088, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"","Party Mit (WAR/PLD)","","","Seraph + Sacred Soil","Kerachole","","","","",""}),
     };
 
+    // First time each phase appears, for the practice phase-jump.
+    public static List<(string Name, float Time)> PhaseStarts()
+        => Timeline.GroupBy(e => e.Phase)
+                   .Select(g => (g.Key, (float)g.Min(e => e.Time)))
+                   .OrderBy(p => p.Item2)
+                   .ToList();
+
     // Build mit lines for a sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras).
     public static List<MitLine> BuildLines(string slot)
     {

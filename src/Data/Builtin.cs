@@ -92,6 +92,15 @@ public static class Builtin
         return null;
     }
 
+    // Phase start times for the practice phase-jump. Empty for fights with no
+    // phase data (the practice UI then doesn't show).
+    public static List<(string Name, float Time)> PhaseStarts(uint territory) => territory switch
+    {
+        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.PhaseStarts(territory),
+        DmuTerritory => DmuData.PhaseStarts(),
+        _ => new(),
+    };
+
     public static List<MitLine> BuildLines(uint territory, string slot) => territory switch
     {
         FruTerritory => FruData.BuildLines(slot),

@@ -148,7 +148,7 @@ public sealed class Plugin : IDalamudPlugin
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Open Fren Mits. /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer."
+            HelpMessage = "Open Fren Mits. /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer, /fm p4 = practice-jump to a phase."
         });
         Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand));
 
@@ -441,7 +441,17 @@ public sealed class Plugin : IDalamudPlugin
                 Config.Save();
                 break;
             default:
-                ConfigWindow.Toggle();
+                var pm = System.Text.RegularExpressions.Regex.Match(args.Trim().ToLowerInvariant(), @"^(?:phase|p)\s*(\d)$");
+                if (pm.Success && (ActiveFight() ?? PreviewFight) is { } pf)
+                {
+                    var phases = Builtin.PhaseStarts(pf.TerritoryId);
+                    var n = int.Parse(pm.Groups[1].Value);
+                    if (n >= 1 && n <= phases.Count) PracticeJump(pf, phases[n - 1].Time);
+                }
+                else
+                {
+                    ConfigWindow.Toggle();
+                }
                 break;
         }
     }
@@ -457,6 +467,10 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     // The fight whose territory matches where the player currently is.
+    // Practice: a fight to preview out of its zone (set by the phase-jump). Used
+    // only in Test Mode, and only when the current zone isn't a real fight.
+    public static FightProfile? PreviewFight;
+
     public FightProfile? ActiveFight()
     {
         if (Replaying) return ReplayFight;
@@ -464,7 +478,25 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var fight in Config.Fights)
             if (fight.Enabled && fight.TerritoryId == territory)
                 return fight;
+        if (Config.TestMode && PreviewFight != null) return PreviewFight;
         return null;
+    }
+
+    // Practice phase-jump: preview a fight's phase by parking the clock ~6s before
+    // its first call (Test Mode on so the overlay shows it anywhere).
+    public void PracticeJump(FightProfile fight, float time)
+    {
+        PreviewFight = fight;
+        if (!Config.TestMode) { Config.TestMode = true; Config.Save(); }
+        var raw = time - 6f - fight.TimerOffset - PhaseOffsetFor(fight);
+        Timer.SetElapsed(MathF.Max(0f, raw));
+    }
+
+    public void StopPractice()
+    {
+        PreviewFight = null;
+        Timer.Reset();
+        if (Config.TestMode) { Config.TestMode = false; Config.Save(); }
     }
 
     public void Dispose()

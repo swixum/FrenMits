@@ -125,28 +125,34 @@ public class TimelineWindow : Window
                 var inSec = (int)MathF.Round(l.Time - elapsed);
                 var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : l.Action;
                 var icon = C.ShowAbilityIcon ? Icons.For(l) : 0u;
-                Row(icon, $"+{inSec}s  {name}");
+                // Dim a line whose mit won't be off cooldown by the time it's called.
+                var notReady = C.CooldownAwareCalls
+                    && Cooldowns.Remaining(l.Action) is { } cd && cd > (l.Time - elapsed) + 0.5f;
+                Row(icon, $"+{inSec}s  {name}{(notReady ? "  (cd)" : "")}", notReady);
             }
     }
 
-    private void Row(uint iconId, string text)
+    private void Row(uint iconId, string text, bool dim = false)
     {
+        if (dim) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
         var color = C.OverlayColorUpcoming;
         if (iconId == 0)
         {
             CenteredText(text, color);
-            return;
         }
+        else
+        {
+            var lineH = ImGui.GetTextLineHeight();
+            var spacing = ImGui.GetStyle().ItemSpacing.X;
+            var total = lineH + spacing + ImGui.CalcTextSize(text).X;
+            var offset = (ImGui.GetContentRegionAvail().X - total) * 0.5f;
+            if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
-        var lineH = ImGui.GetTextLineHeight();
-        var spacing = ImGui.GetStyle().ItemSpacing.X;
-        var total = lineH + spacing + ImGui.CalcTextSize(text).X;
-        var offset = (ImGui.GetContentRegionAvail().X - total) * 0.5f;
-        if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
-
-        Icons.Draw(iconId, new Vector2(lineH, lineH));
-        ImGui.SameLine(0, spacing);
-        DrawText(text, color);
+            Icons.Draw(iconId, new Vector2(lineH, lineH));
+            ImGui.SameLine(0, spacing);
+            DrawText(text, color);
+        }
+        if (dim) ImGui.PopStyleVar();
     }
 
     private void CenteredText(string text, uint color)

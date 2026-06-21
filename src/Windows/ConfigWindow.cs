@@ -626,6 +626,7 @@ public class ConfigWindow : Window, IDisposable
                 else
                 {
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
+                    DrawPracticeSection(fight);
                     DrawPotionsSection(fight);
                     DrawTankSection(fight);
                     ImGui.Separator();
@@ -888,6 +889,32 @@ public class ConfigWindow : Window, IDisposable
     // Potions card: baked top-log windows for your job, shown up front with a one-
     // click add, plus an optional live refresh from the logs. Drawn as a styled
     // panel near the top of the fight editor.
+    // Practice phase-jump: park the overlay at a phase to preview/place its calls
+    // without a real pull. Only shown for fights with phase data.
+    private void DrawPracticeSection(FightProfile fight)
+    {
+        var phases = Builtin.PhaseStarts(fight.TerritoryId);
+        if (phases.Count == 0) return;
+        if (!Section("Practice")) return;
+
+        ImGui.TextDisabled("Jump the overlay to a phase to preview & place its calls. Turns on Test Mode; no pull needed.");
+        var previewing = Plugin.PreviewFight == fight && C.TestMode;
+        for (var i = 0; i < phases.Count; i++)
+        {
+            if (i > 0) ImGui.SameLine();
+            if (ImGui.Button($"{phases[i].Name}##prac{i}"))
+                _plugin.PracticeJump(fight, phases[i].Time);
+            Tip($"Preview from {(int)phases[i].Time / 60}:{(int)phases[i].Time % 60:00} (~6s before the first call).");
+        }
+        if (previewing)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("Stop")) _plugin.StopPractice();
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.DalamudYellow, "previewing");
+        }
+    }
+
     private void DrawPotionsSection(FightProfile fight)
     {
         if (PotionTimings.BossSlug(fight.TerritoryId) == null) return;
@@ -1802,7 +1829,7 @@ public class ConfigWindow : Window, IDisposable
                 C.TextShadow = GridCheck("Drop shadow", C.TextShadow,
                     "Improves readability over busy backgrounds.");
                 C.CooldownAwareCalls = GridCheck("Cooldown warnings", C.CooldownAwareCalls,
-                    "Shows [CD Ns] and reddens a call when your mit is still on cooldown past the call time. Your job's mits only.");
+                    "Reddens the main call ([CD Ns]) and dims it in the upcoming list when your mit is still on cooldown past the call time. Your job's mits only.");
                 C.ShowDtrBar = GridCheck("Server-bar next mit", C.ShowDtrBar,
                     "Shows the next mit on the server-info bar.");
                 C.ShowMitBar = GridCheck("Active-mits bar", C.ShowMitBar,

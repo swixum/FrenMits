@@ -7,6 +7,7 @@
 // the other baked fights.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FrenMits;
 
@@ -27,6 +28,13 @@ public static class IkuyaTimelines
         1122 => Top,
         _ => Array.Empty<Entry>(),
     };
+
+    // First time each phase appears, for the practice phase-jump.
+    public static List<(string Name, float Time)> PhaseStarts(uint territory)
+        => Timeline(territory).GroupBy(e => e.Phase)
+                              .Select(g => (g.Key, (float)g.Min(e => e.Time)))
+                              .OrderBy(p => p.Item2)
+                              .ToList();
 
     public static List<MitLine> BuildLines(uint territory, string slot)
     {
