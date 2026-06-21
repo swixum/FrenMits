@@ -43,21 +43,21 @@ public static class PotionTimings
             ["GNB"] = new[] { 455, 753, 1092 },
             ["MNK"] = new[] { 119, 467, 759, 1082 },
             ["DRG"] = new[] { 466, 764, 1082 },
-            ["NIN"] = new[] { 3, 203, 465, 753, 1076 },
+            ["NIN"] = new[] { 3, 465, 753, 1076 },
             ["SAM"] = new[] { 4, 471, 748, 1081 },
-            ["RPR"] = new[] { 220, 469, 748, 1084 },
-            ["VPR"] = new[] { 211, 473, 751, 1080 },
-            ["BRD"] = new[] { 211, 471, 750, 1072 },
+            ["RPR"] = new[] { 220, 490, 760, 1084 },
+            ["VPR"] = new[] { 211, 481, 751, 1080 },
+            ["BRD"] = new[] { 211, 481, 751, 1072 },
             ["MCH"] = new[] { 120, 450, 742, 1064 },
-            ["DNC"] = new[] { 215, 472, 757, 1073 },
-            ["BLM"] = new[] { 6, 264, 473, 764, 1080 },
+            ["DNC"] = new[] { 215, 485, 757, 1073 },
+            ["BLM"] = new[] { 6, 473, 764, 1080 },
             ["SMN"] = new[] { 3, 462, 754, 1092 },
-            ["RDM"] = new[] { 211, 471, 755, 1080 },
+            ["RDM"] = new[] { 211, 481, 755, 1080 },
             ["PCT"] = new[] { 469, 759, 1091 },
             ["WHM"] = new[] { 1, 471, 746, 1082 },
             ["SCH"] = new[] { 470, 749, 1085 },
             ["AST"] = new[] { 472, 757, 1092 },
-            ["SGE"] = new[] { 1, 209, 469, 767, 1088 },
+            ["SGE"] = new[] { 1, 469, 767, 1088 },
         },
         ["lindwurm"] = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -170,8 +170,14 @@ public static class PotionTimings
         }
     }
 
+    // Potion recast (Gemdraught / Tincture): 4m30s. No single player can pot two
+    // windows closer than this, so windows nearer than it are competing strats, not
+    // a real sequence — we keep the better-supported one.
+    private const float PotionRecast = 270f;
+
     // Group nearby cast times (pots are minutes apart) and keep windows that show
-    // up in a reasonable share of logs; average each into one time.
+    // up in a reasonable share of logs; average each into one time. Then enforce the
+    // recast so the result is a feasible sequence for one player.
     private static List<float> Cluster(List<float> stamps, int reports)
     {
         stamps.Sort();
@@ -183,9 +189,30 @@ public static class PotionTimings
         }
 
         var minSupport = Math.Max(2, reports / 3);
-        return clusters
+        var kept = clusters
             .Where(c => c.Count >= minSupport)
             .Select(c => MathF.Round(c.Average()))
+            .OrderBy(t => t)
             .ToList();
+
+        return EnforceRecast(kept);
+    }
+
+    // Make a set of windows a feasible sequence for one player. A window within the
+    // recast of a pre-pull (<=30s) pot is a competing opener strat (prepull vs an
+    // early pot) -> drop it. Any other too-close window is just averaging noise ->
+    // push it out so the spacing is at least the recast. Windows are sorted in.
+    public static List<float> EnforceRecast(List<float> windows)
+    {
+        var result = new List<float>();
+        foreach (var t in windows)
+        {
+            if (result.Count == 0) { result.Add(t); continue; }
+            var prev = result[^1];
+            if (t - prev >= PotionRecast) result.Add(t);
+            else if (prev > 30f) result.Add(prev + PotionRecast); // noise: keep, spaced out
+            // else prev is a pre-pull pot: drop this competing opener
+        }
+        return result;
     }
 }

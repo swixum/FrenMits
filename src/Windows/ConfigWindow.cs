@@ -843,6 +843,18 @@ public class ConfigWindow : Window, IDisposable
     // now; the rare zone/timing fields are tucked into an Advanced sub-section.
     private bool DrawFightEditor(FightProfile fight)
     {
+        // Built-in fights (the ones shipped with the plugin) are locked: their name
+        // can't be edited and they can't be deleted. Only user-added fights can.
+        if (Builtin.Has(fight.TerritoryId))
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextUnformatted(fight.Name);
+            ImGui.SameLine(0, 8);
+            ImGui.TextDisabled("(built-in)");
+            Tip("Line times are seconds from the pull — one continuous timeline across every phase; resets on a wipe.");
+            return true;
+        }
+
         var name = fight.Name;
         ImGui.SetNextItemWidth(260f);
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
@@ -1066,26 +1078,31 @@ public class ConfigWindow : Window, IDisposable
         if (!Section("Manage & advanced")) return;
         ImGui.Indent(10f);
 
-        if (ImGui.Button("Duplicate"))
+        var locked = Builtin.Has(fight.TerritoryId);
+        if (!locked)  // duplicating a built-in would make a same-zone copy that's then locked
         {
-            AddFight(new FightProfile
+            if (ImGui.Button("Duplicate"))
             {
-                Name = fight.Name + " copy",
-                TerritoryId = fight.TerritoryId,
-                Category = fight.Category,
-                TimerOffset = fight.TimerOffset,
-                Enabled = fight.Enabled,
-                Slot = fight.Slot,
-                Lines = fight.Lines.Select(CloneLine).ToList(),
-            });
+                AddFight(new FightProfile
+                {
+                    Name = fight.Name + " copy",
+                    TerritoryId = fight.TerritoryId,
+                    Category = fight.Category,
+                    TimerOffset = fight.TimerOffset,
+                    Enabled = fight.Enabled,
+                    Slot = fight.Slot,
+                    Lines = fight.Lines.Select(CloneLine).ToList(),
+                });
+            }
+            ImGui.SameLine();
         }
-        ImGui.SameLine();
         if (ImGui.Button("Export to clipboard")) ExportFight(fight);
         ImGui.SameLine();
         if (ImGui.Button("Import from clipboard")) ImportFightFromClipboard();
         Tip("Share a whole fight (lines included) with a friend via a clipboard code.");
 
         ImGui.Spacing();
+        ImGui.BeginDisabled(locked); // a built-in's zone is fixed
         var territory = (int)fight.TerritoryId;
         ImGui.SetNextItemWidth(120f);
         if (ImGui.InputInt("Territory id", ref territory)) { fight.TerritoryId = (uint)Math.Max(0, territory); C.Save(); }
@@ -1097,6 +1114,7 @@ public class ConfigWindow : Window, IDisposable
         }
         var zoneName = TerritoryName(fight.TerritoryId);
         if (!string.IsNullOrEmpty(zoneName)) { ImGui.SameLine(); ImGui.TextDisabled(zoneName); }
+        ImGui.EndDisabled();
 
         var offset = fight.TimerOffset;
         ImGui.SetNextItemWidth(120f);
