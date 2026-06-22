@@ -52,17 +52,54 @@ internal static class Theme
         (ImGuiCol.ScrollbarGrabActive,  Accent),
     };
 
+    // Rounded, softer geometry so the window doesn't look like raw ImGui. Window-
+    // scope vars (rounding/border/padding of the window itself) are pushed before
+    // Begin; the rest with the widgets.
+    private static readonly (ImGuiStyleVar Var, float Val)[] WindowVarsF =
+    {
+        (ImGuiStyleVar.WindowRounding, 9f),
+        (ImGuiStyleVar.WindowBorderSize, 1f),
+        (ImGuiStyleVar.ChildRounding, 8f),
+        (ImGuiStyleVar.PopupRounding, 7f),
+    };
+
+    private static readonly (ImGuiStyleVar Var, float Val)[] WidgetVarsF =
+    {
+        (ImGuiStyleVar.FrameRounding, 5f),
+        (ImGuiStyleVar.GrabRounding, 4f),
+        (ImGuiStyleVar.TabRounding, 5f),
+        (ImGuiStyleVar.ScrollbarRounding, 6f),
+    };
+
+    private static readonly (ImGuiStyleVar Var, System.Numerics.Vector2 Val)[] WidgetVarsV =
+    {
+        (ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(9, 5)),
+        (ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(8, 6)),
+        (ImGuiStyleVar.ItemInnerSpacing, new System.Numerics.Vector2(6, 4)),
+    };
+
     public static void PushWindow()
     {
         foreach (var (c, v) in WindowColors) ImGui.PushStyleColor(c, v);
+        foreach (var (s, v) in WindowVarsF) ImGui.PushStyleVar(s, v);
     }
 
-    public static void PopWindow() => ImGui.PopStyleColor(WindowColors.Length);
+    public static void PopWindow()
+    {
+        ImGui.PopStyleVar(WindowVarsF.Length);
+        ImGui.PopStyleColor(WindowColors.Length);
+    }
 
     public static void PushWidgets()
     {
         foreach (var (c, v) in WidgetColors) ImGui.PushStyleColor(c, v);
+        foreach (var (s, v) in WidgetVarsF) ImGui.PushStyleVar(s, v);
+        foreach (var (s, v) in WidgetVarsV) ImGui.PushStyleVar(s, v);
     }
 
-    public static void PopWidgets() => ImGui.PopStyleColor(WidgetColors.Length);
+    public static void PopWidgets()
+    {
+        ImGui.PopStyleVar(WidgetVarsF.Length + WidgetVarsV.Length);
+        ImGui.PopStyleColor(WidgetColors.Length);
+    }
 }
