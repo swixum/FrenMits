@@ -84,6 +84,25 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v6: the legacy ultimate timelines (UCOB/UWU/TEA/DSR/TOP) were re-timed
+        // from real FFLogs clears (the old cactbot-derived times were inflated
+        // 2-4x). The shifts are far larger than the top-up's merge window, so a
+        // plain re-load would leave stale duplicate lines — clean-rebake just
+        // those five fights. DMU/FRU/M12S are unchanged, so any edits there stay.
+        if (Config.Version < 6)
+        {
+            foreach (var f in Config.Fights)
+            {
+                if (!IkuyaTimelines.Has(f.TerritoryId)) continue;
+                f.SavedSlots.Clear();
+                if (!string.IsNullOrEmpty(f.Slot))
+                    Builtin.ResetSlot(f, f.Slot);
+                else { f.Lines.Clear(); f.AutoLoaded = false; }
+            }
+            Config.Version = 6;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
