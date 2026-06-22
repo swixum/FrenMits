@@ -13,7 +13,7 @@ namespace FrenMits;
 
 public static class IkuyaTimelines
 {
-    public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4", "Extras" };
+    public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
     public sealed record Entry(int Time, string Phase, string Mechanic, string[] Actions);
 

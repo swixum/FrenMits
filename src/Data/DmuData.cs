@@ -16,7 +16,7 @@ namespace FrenMits;
 
 public static class DmuData
 {
-    public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4", "Extras" };
+    public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions);
 

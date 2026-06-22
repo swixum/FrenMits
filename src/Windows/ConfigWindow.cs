@@ -21,9 +21,6 @@ public class ConfigWindow : Window, IDisposable
     private MitLine? _editTimeLine;
     private string _editTimeBuf = "";
 
-    // Potion-timing fetch (top logs).
-    private System.Threading.Tasks.Task<PotionTimings.Result>? _potTask;
-    private PotionTimings.Result? _potResult;
     private int _tankComp;
 
     // Plugin icon (group-hug logo), loaded once from the file shipped next to the
@@ -1002,11 +999,6 @@ public class ConfigWindow : Window, IDisposable
 
     private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
 
-    // Potions card: baked top-log windows for your job, shown up front with a one-
-    // click add, plus an optional live refresh from the logs. Drawn as a styled
-    // panel near the top of the fight editor.
-    // Practice phase-jump: park the overlay at a phase to preview/place its calls
-    // without a real pull. Only shown for fights with phase data.
     // Practice page (Tools): jump the overlay to a phase to preview/place its calls
     // without a real pull. One card per built-in fight that has phase data.
     private void DrawPracticePage()
@@ -1046,6 +1038,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled("No fights with phase data. Practice works for Dancing Mad and the legacy ultimates.");
     }
 
+    // Potions card: baked top-log potion windows for your job with a one-click add.
     private void DrawPotionsSection(FightProfile fight)
     {
         if (PotionTimings.BossSlug(fight.TerritoryId) == null) return;
@@ -1062,26 +1055,19 @@ public class ConfigWindow : Window, IDisposable
             return;
         }
 
-        // Live fetch result wins if present; otherwise the baked consensus.
-        if (_potTask is { IsCompleted: true } && _potResult == null) _potResult = _potTask.Result;
-        var live = _potResult is { Ok: true, Times.Count: > 0 };
-        var times = live ? _potResult!.Times : PotionTimings.DefaultsFor(fight.TerritoryId, job);
+        var times = PotionTimings.DefaultsFor(fight.TerritoryId, job);
 
         // Window pills.
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {stat}");
-        ImGui.SameLine(0, 10);
-        if (times.Count == 0) ImGui.TextDisabled("no windows");
+        if (times.Count == 0) { ImGui.SameLine(0, 10); ImGui.TextDisabled("no windows"); }
         foreach (var t in times)
         {
             ImGui.SameLine(0, 6);
             TimePill(Mmss(t));
         }
-        ImGui.SameLine(0, 8);
-        ImGui.TextColored(new Vector4(0.45f, 0.48f, 0.54f, 1f), live ? "(live)" : "(Current)");
 
-        // Action row: add to timeline + refresh from logs.
+        // Add to the timeline.
         ImGui.Spacing();
-        var fetching = _potTask is { IsCompleted: false };
         ImGui.BeginDisabled(times.Count == 0);
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
@@ -1106,20 +1092,6 @@ public class ConfigWindow : Window, IDisposable
         ImGui.EndDisabled();
         Tip("Adds these as job-tagged lines (replacing any existing potion lines for this job), so they only show when you're on it.");
 
-        ImGui.SameLine();
-        if (fetching) ImGui.TextDisabled("Refreshing…");
-        else if (ImGui.SmallButton("Refresh from logs"))
-        {
-            _potResult = null;
-            _potTask = PotionTimings.FetchAsync(fight.TerritoryId, job);
-        }
-        Tip("Re-pull the latest consensus windows from the top logs.");
-
-        if (_potResult is { Ok: false } bad)
-        {
-            ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.DalamudYellow, bad.Message);
-        }
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
             ImGui.SameLine();

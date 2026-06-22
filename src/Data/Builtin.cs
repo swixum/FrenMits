@@ -65,7 +65,7 @@ public static class Builtin
     // whatever slot code each fight uses for that role (DMU/M12S use MT/OT/D1..,
     // FRU uses T1/T2/M1../R/Caster), so it applies sensibly everywhere.
     public static readonly string[] Roles =
-        { "Main Tank", "Off Tank", "WHM", "AST", "SCH", "SGE", "Melee 1", "Melee 2", "Phys Ranged", "Caster", "Extras" };
+        { "Main Tank", "Off Tank", "WHM", "AST", "SCH", "SGE", "Melee 1", "Melee 2", "Phys Ranged", "Caster" };
 
     static readonly Dictionary<string, string[]> RoleSlotCodes = new()
     {
@@ -79,7 +79,6 @@ public static class Builtin
         ["Melee 2"] = new[] { "D2", "M2" },
         ["Phys Ranged"] = new[] { "D3", "R" },
         ["Caster"] = new[] { "D4", "Caster" },
-        ["Extras"] = new[] { "Extras" },
     };
 
     // The slot code a given fight uses for a canonical role, or null if it has none.

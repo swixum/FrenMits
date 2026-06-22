@@ -8,7 +8,7 @@ namespace FrenMits;
 
 public static class FruData
 {
-    public static readonly string[] Slots = { "T1", "T2", "SCH", "SGE", "WHM", "AST", "M1", "M2", "R", "Caster", "Extras" };
+    public static readonly string[] Slots = { "T1", "T2", "SCH", "SGE", "WHM", "AST", "M1", "M2", "R", "Caster" };
 
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions);
 

@@ -275,7 +275,12 @@ public sealed class Plugin : IDalamudPlugin
         }
         if (!fight.Enabled) return;
 
-        var slot = !string.IsNullOrEmpty(fight.Slot) ? fight.Slot : PreferredDefaultSlot(territory);
+        // Fall back to a default if the saved slot is no longer valid (e.g. the
+        // removed "Extras" slot), so the fight never ends up baked from a dead slot.
+        var slot = !string.IsNullOrEmpty(fight.Slot)
+                   && Builtin.Slots(territory).Contains(fight.Slot, StringComparer.OrdinalIgnoreCase)
+            ? fight.Slot
+            : PreferredDefaultSlot(territory);
 
         var added = Builtin.ApplySlot(fight, slot);
         Config.DmuSlot = fight.Slot;

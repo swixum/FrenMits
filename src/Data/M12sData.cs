@@ -14,7 +14,7 @@ namespace FrenMits;
 
 public static class M12sData
 {
-    public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4", "Extras" };
+    public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
     // Seconds from pull that Phase 2's 0:00 lands on (estimate — adjust to taste).
     public const int Phase2Offset = 420;
