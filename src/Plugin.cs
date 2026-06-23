@@ -136,20 +136,13 @@ public sealed class Plugin : IDalamudPlugin
 
         if (seeded) Config.Save();
 
-        // Bake a default slot for any built-in that's still empty (freshly seeded,
-        // or seeded empty by an older version that only baked on zone-in), so its
-        // mits show up front instead of reading "(0)". Your own edits and any slot
-        // you've already loaded are left untouched.
-        var prebaked = false;
-        foreach (var fight in Config.Fights)
-        {
-            if (fight.Lines.Count == 0 && Builtin.Has(fight.TerritoryId))
-            {
-                Builtin.ApplySlot(fight, PreferredDefaultSlot(fight.TerritoryId));
-                prebaked = true;
-            }
-        }
-        if (prebaked) Config.Save();
+        // NOTE: the default-slot prebake and the "already inside a boss room"
+        // auto-load both need live game state (the player's job via ObjectTable,
+        // and the current territory). Dalamud only permits ObjectTable/ClientState
+        // access on the game's main thread, but this constructor runs on a loader
+        // thread — touching them here throws InvalidOperationException and aborts
+        // the load. Both are deferred to the first Framework.Update tick instead,
+        // which is guaranteed to run on the main thread. See RunFirstTickInit().
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
@@ -188,10 +181,6 @@ public sealed class Plugin : IDalamudPlugin
         Service.PluginInterface.UiBuilder.OpenMainUi += OpenConfig;
         Service.Framework.Update += OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged += OnTerritoryChanged;
-
-        // Cover the case where the plugin loads while already inside a boss room.
-        if (Builtin.Has(Service.ClientState.TerritoryType))
-            AutoLoadForTerritory(Service.ClientState.TerritoryType);
 
         // Diagnostic: if this ever logs "#2" (or higher) while only one copy should be
         // running, the plugin is double-loaded — which would double every audio cue.
@@ -340,6 +329,33 @@ public sealed class Plugin : IDalamudPlugin
     public static bool Replaying => ReplayFight != null;
 
     private bool _frameErrorLogged;
+    private bool _firstTickDone;
+
+    // Game-state-dependent startup that can't run in the constructor (loader thread).
+    // Runs once on the first Framework.Update tick, which is on the main thread, so
+    // ObjectTable / ClientState access here is safe.
+    private void RunFirstTickInit()
+    {
+        // Bake a default slot for any built-in that's still empty (freshly seeded,
+        // or seeded empty by an older version that only baked on zone-in), so its
+        // mits show up front instead of reading "(0)". Your own edits and any slot
+        // you've already loaded are left untouched. PreferredDefaultSlot reads the
+        // live job off the object table, which is why this waits for the main thread.
+        var prebaked = false;
+        foreach (var fight in Config.Fights)
+        {
+            if (fight.Lines.Count == 0 && Builtin.Has(fight.TerritoryId))
+            {
+                Builtin.ApplySlot(fight, PreferredDefaultSlot(fight.TerritoryId));
+                prebaked = true;
+            }
+        }
+        if (prebaked) Config.Save();
+
+        // Cover the case where the plugin loads while already inside a boss room.
+        if (Builtin.Has(Service.ClientState.TerritoryType))
+            AutoLoadForTerritory(Service.ClientState.TerritoryType);
+    }
 
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework _)
     {
@@ -347,6 +363,8 @@ public sealed class Plugin : IDalamudPlugin
         // Dalamud's tick loop. Log the first one, then stay quiet.
         try
         {
+            if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
+
             Timer.Update();
             Replay.Update();
             Review.Update();
