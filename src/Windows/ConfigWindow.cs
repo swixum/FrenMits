@@ -21,6 +21,9 @@ public class ConfigWindow : Window, IDisposable
     private MitLine? _editTimeLine;
     private string _editTimeBuf = "";
 
+    // In-memory line clipboard for the right-click copy / paste / duplicate menu.
+    private MitLine? _copiedLine;
+
     private int _tankComp;
 
     // Plugin icon (group-hug logo), loaded once from the file shipped next to the
@@ -1173,6 +1176,9 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.SmallButton("Add line")) { fight.Lines.Add(new MitLine()); C.Save(); }
         ImGui.SameLine();
         if (ImGui.SmallButton("Sort by time")) SetFightLines(fight, fight.Lines.OrderBy(l => l.Time).ToList());
+        ImGui.SameLine();
+        ImGui.TextDisabled("(?)");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Right-click a line's time / mechanic / action cell to copy, paste, duplicate, reorder, or delete it.");
 
         // Grow the table to fill what's left, leaving room for the import header
         // underneath, so a freshly loaded sheet isn't cut off.
@@ -1194,6 +1200,9 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TableHeadersRow();
 
         MitLine? toDelete = null;
+        // Right-click line ops (paste / duplicate / move) mutate the list, so we
+        // capture them here and run them after the table loop, never mid-iteration.
+        Action? deferred = null;
         for (var i = 0; i < fight.Lines.Count; i++)
         {
             var line = fight.Lines[i];
@@ -1235,6 +1244,8 @@ public class ConfigWindow : Window, IDisposable
                 {
                     ImGui.TextDisabled("No baked default for this line.");
                 }
+                ImGui.Separator();
+                LineContextItems(fight, line, i, ref deferred, ref toDelete);
                 ImGui.EndPopup();
             }
 
@@ -1250,6 +1261,8 @@ public class ConfigWindow : Window, IDisposable
                     if (ImGui.MenuItem($"Reset mechanic to \"{Ellipsis(def.Mechanic, 40)}\"")) { line.Mechanic = def.Mechanic; C.Save(); }
                 }
                 else ImGui.TextDisabled(def == null ? "No baked default for this line." : "Already the default.");
+                ImGui.Separator();
+                LineContextItems(fight, line, i, ref deferred, ref toDelete);
                 ImGui.EndPopup();
             }
 
@@ -1272,6 +1285,8 @@ public class ConfigWindow : Window, IDisposable
                     if (ImGui.MenuItem($"Reset action to \"{Ellipsis(def.Action, 40)}\"")) { line.Action = def.Action; C.Save(); }
                 }
                 else ImGui.TextDisabled(def == null ? "No baked default for this line." : "Already the default.");
+                ImGui.Separator();
+                LineContextItems(fight, line, i, ref deferred, ref toDelete);
                 ImGui.EndPopup();
             }
 
@@ -1291,7 +1306,72 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.EndTable();
 
+        deferred?.Invoke();
         if (toDelete != null) { fight.Lines.Remove(toDelete); C.Save(); }
+    }
+
+    // Right-click line menu shared by the time / mechanic / action cells: copy a
+    // line to the in-memory clipboard, paste a copy above / below / over this one,
+    // duplicate, reorder, or delete. List-mutating actions are deferred so the
+    // caller can run them once the row loop finishes.
+    private void LineContextItems(FightProfile fight, MitLine line, int index, ref Action? deferred, ref MitLine? toDelete)
+    {
+        if (ImGui.MenuItem("Copy line")) _copiedLine = CloneLine(line);
+
+        var hasCopy = _copiedLine != null;
+        if (ImGui.MenuItem("Paste above", string.Empty, false, hasCopy) && _copiedLine != null)
+        {
+            var clip = CloneLine(_copiedLine);
+            var at = index;
+            deferred = () => { fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
+        }
+        if (ImGui.MenuItem("Paste below", string.Empty, false, hasCopy) && _copiedLine != null)
+        {
+            var clip = CloneLine(_copiedLine);
+            var at = index + 1;
+            deferred = () => { fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
+        }
+        if (ImGui.MenuItem("Paste over this line", string.Empty, false, hasCopy) && _copiedLine != null)
+        {
+            OverwriteLine(line, _copiedLine);
+            C.Save();
+        }
+
+        ImGui.Separator();
+        if (ImGui.MenuItem("Duplicate line"))
+        {
+            var dup = CloneLine(line);
+            var at = index + 1;
+            deferred = () => { fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), dup); C.Save(); };
+        }
+        if (ImGui.MenuItem("Move up", string.Empty, false, index > 0))
+        {
+            var at = index;
+            deferred = () => { (fight.Lines[at - 1], fight.Lines[at]) = (fight.Lines[at], fight.Lines[at - 1]); C.Save(); };
+        }
+        if (ImGui.MenuItem("Move down", string.Empty, false, index < fight.Lines.Count - 1))
+        {
+            var at = index;
+            deferred = () => { (fight.Lines[at + 1], fight.Lines[at]) = (fight.Lines[at], fight.Lines[at + 1]); C.Save(); };
+        }
+
+        ImGui.Separator();
+        if (ImGui.MenuItem("Delete line")) toDelete = line;
+    }
+
+    // Copy every field of src onto target in place (used by "Paste over").
+    private static void OverwriteLine(MitLine target, MitLine src)
+    {
+        target.Time = src.Time;
+        target.Mechanic = src.Mechanic;
+        target.Action = src.Action;
+        target.Jobs = new List<string>(src.Jobs);
+        target.Enabled = src.Enabled;
+        target.LeadOverride = src.LeadOverride;
+        target.Tts = src.Tts;
+        target.Sound = src.Sound;
+        target.Color = src.Color;
+        target.IconId = src.IconId;
     }
 
     private void DrawJobsCell(MitLine line)
