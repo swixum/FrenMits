@@ -1887,9 +1887,8 @@ public class ConfigWindow : Window, IDisposable
             var callPx = C.OverlayFontSizePx;
             ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Call text size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
-            var upPx = C.UpcomingFontSizePx;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Timeline text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+            // The timeline's own text size + color live with the timeline toggle in
+            // the "Next-mits timeline" section below.
             if (C.ShowAbilityIcon)
             {
                 var iconScale = C.IconScale;
@@ -1942,8 +1941,8 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.ColorEdit4("Active (NOW)", ref active)) { C.OverlayColorActive = Vec4ToColor(active); C.Save(); }
             var mechCol = ColorToVec4(C.OverlayColorMechanic);
             if (ImGui.ColorEdit4("Mechanic line", ref mechCol)) { C.OverlayColorMechanic = Vec4ToColor(mechCol); C.Save(); }
-            var upCol = ColorToVec4(C.OverlayColorUpcoming);
-            if (ImGui.ColorEdit4("Timeline list", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
+            // The timeline list color lives with the timeline toggle in the
+            // "Next-mits timeline" section below.
             if (ImGui.SmallButton("Reset colors"))
             {
                 C.OverlayColorImminent = 0xFF55FFFF; C.OverlayColorActive = 0xFF55FF55;
@@ -2011,6 +2010,12 @@ public class ConfigWindow : Window, IDisposable
                 var look = C.UpcomingLookaheadSeconds;
                 ImGui.SetNextItemWidth(160f);
                 if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
+
+                var upPx = C.UpcomingFontSizePx;
+                ImGui.SetNextItemWidth(220f);
+                if (ImGui.SliderFloat("Timeline text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+                var upCol = ColorToVec4(C.OverlayColorUpcoming);
+                if (ImGui.ColorEdit4("Timeline text color", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
             }
         }
     }
