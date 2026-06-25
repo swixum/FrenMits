@@ -103,6 +103,26 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v7: Dancing Mad mits resynced to the Ikuya sheet v4.0 (action + timing
+        // overwrites, line splits, new rows) and WHM Asylum added from FFLogs.
+        // The shifts are far larger than the top-up's merge window, so a plain
+        // re-load would leave stale/duplicate lines — clean-rebake just the DMU
+        // built-in so everyone gets the new plan on update. Other built-ins are
+        // unchanged, so any edits there stay.
+        if (Config.Version < 7)
+        {
+            foreach (var f in Config.Fights)
+            {
+                if (f.TerritoryId != Builtin.DmuTerritory) continue;
+                f.SavedSlots.Clear();
+                if (!string.IsNullOrEmpty(f.Slot))
+                    Builtin.ResetSlot(f, f.Slot);
+                else { f.Lines.Clear(); f.AutoLoaded = false; }
+            }
+            Config.Version = 7;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
