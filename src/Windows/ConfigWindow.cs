@@ -183,15 +183,33 @@ public class ConfigWindow : Window, IDisposable
     // Config-bound checkbox: edits a local copy, saves on change, returns the new value.
     private bool CfgCheck(string label, bool value) => Toggle(label, value);
 
-    // A pill switch + label, replacing the stock checkbox. Saves on change.
+    // A checkbox + label. Fills green with a white tick when on. Saves on change.
     private bool Toggle(string label, bool value)
     {
         var v = value;
-        if (ImGuiComponents.ToggleButton($"##tg_{label}", ref v)) C.Save();
+        if (GreenCheckbox($"##tg_{label}", ref v)) C.Save();
         ImGui.SameLine(0, 8);
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(label);
         return v;
+    }
+
+    // The one checkbox style used across the whole config: fills green with a white
+    // tick when checked (replaces the old hard-to-read pill toggle). Mirrors
+    // ImGui.Checkbox's signature/return so it's a drop-in everywhere.
+    private static bool GreenCheckbox(string label, ref bool v)
+    {
+        var on = v; // style by the current state; push and pop must use the same flag
+        if (on)
+        {
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0xFF5AC832);        // green (ABGR)
+            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, 0xFF6FD647);
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, 0xFF5AC832);
+            ImGui.PushStyleColor(ImGuiCol.CheckMark, 0xFFFFFFFF);      // white tick
+        }
+        var changed = ImGui.Checkbox(label, ref v);
+        if (on) ImGui.PopStyleColor(4);
+        return changed;
     }
 
     // Tooltip on the previous item — keeps help off the page (no inline "(?)") so
@@ -282,7 +300,7 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Sync timer to now (/fm sync)");
             ImGui.SameLine();
             var test = C.TestMode;
-            if (ImGui.Checkbox("Test", ref test)) { C.TestMode = test; C.Save(); }
+            if (GreenCheckbox("Test", ref test)) { C.TestMode = test; C.Save(); }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Show a sample call so you can place / size the overlay");
 
             // Status dots on the second line.
@@ -667,7 +685,7 @@ public class ConfigWindow : Window, IDisposable
 
             // Enable toggle + an expandable dropdown per fight.
             var enabled = fight.Enabled;
-            if (ImGui.Checkbox("##en", ref enabled)) { fight.Enabled = enabled; C.Save(); }
+            if (GreenCheckbox("##en", ref enabled)) { fight.Enabled = enabled; C.Save(); }
             ImGui.SameLine();
 
             if (fight.Id == _expandFightId) { ImGui.SetNextItemOpen(true); _expandFightId = ""; }
@@ -1215,7 +1233,7 @@ public class ConfigWindow : Window, IDisposable
             if (chip != 0)
                 ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (chip & 0x00FFFFFFu) | 0x55000000u, 0);
             var on = line.Enabled;
-            if (ImGui.Checkbox("##on", ref on)) { line.Enabled = on; C.Save(); }
+            if (GreenCheckbox("##on", ref on)) { line.Enabled = on; C.Save(); }
 
             ImGui.TableNextColumn();
             // Edit time as m:ss. Use a per-edit buffer so partial typing isn't lost.
@@ -1394,7 +1412,7 @@ public class ConfigWindow : Window, IDisposable
                     if (!first) ImGui.SameLine();
                     first = false;
                     var has = line.Jobs.Contains(abbr, StringComparer.OrdinalIgnoreCase);
-                    if (ImGui.Checkbox(abbr, ref has))
+                    if (GreenCheckbox(abbr, ref has))
                     {
                         if (has && !line.Jobs.Contains(abbr)) line.Jobs.Add(abbr);
                         else line.Jobs.RemoveAll(j => string.Equals(j, abbr, StringComparison.OrdinalIgnoreCase));
@@ -1449,7 +1467,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Combo("Action column (your mit)", ref _actionCol, colNames, colNames.Length);
 
         var header = _importHeader;
-        if (ImGui.Checkbox("First row is a header", ref header)) _importHeader = header;
+        if (GreenCheckbox("First row is a header", ref header)) _importHeader = header;
 
         ImGui.TextUnformatted("Assign imported lines to:");
         ImGui.RadioButton("Everyone", ref _importJobMode, 0); ImGui.SameLine();
@@ -1466,7 +1484,7 @@ public class ConfigWindow : Window, IDisposable
                 {
                     ImGui.SameLine();
                     var on = _importPickedJobs.Contains(abbr);
-                    if (ImGui.Checkbox(abbr + "##imp", ref on))
+                    if (GreenCheckbox(abbr + "##imp", ref on))
                     {
                         if (on) _importPickedJobs.Add(abbr); else _importPickedJobs.Remove(abbr);
                     }
@@ -1602,7 +1620,7 @@ public class ConfigWindow : Window, IDisposable
         {
             var rec = _plugin.Sync.Recording;
             ImGui.PushStyleColor(ImGuiCol.Text, rec ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudGrey);
-            if (ImGui.Checkbox("Recording boss casts", ref rec)) _plugin.Sync.Recording = rec;
+            if (GreenCheckbox("Recording boss casts", ref rec)) _plugin.Sync.Recording = rec;
             ImGui.PopStyleColor();
             ImGui.SameLine();
             ImGui.TextDisabled($"{_plugin.Sync.Captured.Count} captured");
@@ -1883,7 +1901,7 @@ public class ConfigWindow : Window, IDisposable
         if (C.ShowRecapButton)
         {
             var locked = C.RecapPopupLocked;
-            if (ImGui.Checkbox("Lock popup position", ref locked)) { C.RecapPopupLocked = locked; _plugin.RecapButtonWindow.RequestReposition(); C.Save(); }
+            if (GreenCheckbox("Lock popup position", ref locked)) { C.RecapPopupLocked = locked; _plugin.RecapButtonWindow.RequestReposition(); C.Save(); }
             ImGui.SameLine();
             ImGui.TextDisabled("(unlock, then drag the popup to place it)");
         }
@@ -1915,7 +1933,7 @@ public class ConfigWindow : Window, IDisposable
     {
         // Quick controls: live preview + one-click reset of everything on this tab.
         var preview = C.TestMode;
-        if (ImGui.Checkbox("Live preview", ref preview)) { C.TestMode = preview; C.Save(); }
+        if (GreenCheckbox("Live preview", ref preview)) { C.TestMode = preview; C.Save(); }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Show a sample call so you can place, size and color it.");
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - 150);
@@ -1951,10 +1969,10 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SetNextItemWidth(220f);
             if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.OverlayFontFamily = fonts[fIdx]; C.Save(); }
             var bold = C.OverlayFontBold;
-            if (ImGui.Checkbox("Bold", ref bold)) { C.OverlayFontBold = bold; C.Save(); }
+            if (GreenCheckbox("Bold", ref bold)) { C.OverlayFontBold = bold; C.Save(); }
             ImGui.SameLine();
             var italic = C.OverlayFontItalic;
-            if (ImGui.Checkbox("Italic", ref italic)) { C.OverlayFontItalic = italic; C.Save(); }
+            if (GreenCheckbox("Italic", ref italic)) { C.OverlayFontItalic = italic; C.Save(); }
             if (C.OverlayFontFamily == "Default" && (C.OverlayFontBold || C.OverlayFontItalic))
             {
                 ImGui.SameLine();
@@ -2010,7 +2028,7 @@ public class ConfigWindow : Window, IDisposable
             if (C.ShowMitBar)
             {
                 var locked = C.MitBarLocked;
-                if (ImGui.Checkbox("Lock active-mits position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
+                if (GreenCheckbox("Lock active-mits position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
                 ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Live preview.");
             }
         }
@@ -2331,10 +2349,10 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("Empty = speak the action.");
 
         var sound = line.Sound;
-        if (ImGui.Checkbox("Play audio cue for this line", ref sound)) { line.Sound = sound; C.Save(); }
+        if (GreenCheckbox("Play audio cue for this line", ref sound)) { line.Sound = sound; C.Save(); }
 
         var useColor = line.Color != 0;
-        if (ImGui.Checkbox("Custom text color", ref useColor))
+        if (GreenCheckbox("Custom text color", ref useColor))
         {
             line.Color = useColor ? 0xFF55FFFF : 0u;
             C.Save();
