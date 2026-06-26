@@ -340,6 +340,12 @@ public sealed class Plugin : IDalamudPlugin
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
 
+    // True while actually in a pull. The HUD displays force-lock here (see each
+    // window's EffectiveLocked) so a stray drag can't grab them mid-fight; you
+    // reposition them out of combat or with Live preview.
+    public static bool InCombat =>
+        Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat];
+
     // Replay state (desk testing). When ReplayFight is set the normal pipeline runs
     // against the recording instead of the live instance: ActiveFight resolves to
     // it, the live timer/territory gates step aside, and ReplayCutsceneActive

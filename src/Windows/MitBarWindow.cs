@@ -13,6 +13,10 @@ public class MitBarWindow : Window
     private Configuration C => _plugin.Config;
     private bool _applyPos = true;
 
+    // Locked for real if you ticked the lock OR you're in a live pull (but not
+    // while previewing) — combat always pins it so it can't be grabbed mid-fight.
+    private bool EffectiveLocked => C.MitBarLocked || (Plugin.InCombat && !C.TestMode);
+
     public MitBarWindow(Plugin plugin) : base("FrenMits Mits##mitbar")
     {
         _plugin = plugin;
@@ -30,14 +34,14 @@ public class MitBarWindow : Window
                 | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.AlwaysAutoResize
                 | ImGuiWindowFlags.NoBackground;
 
-        if (C.MitBarLocked)
+        if (EffectiveLocked)
             Flags |= ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize
                      | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs;
 
         var vp = ImGui.GetMainViewport();
         var pos = vp.WorkPos + C.MitBarPosition * vp.WorkSize;
         pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
-        if (C.MitBarLocked) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = true; }
+        if (EffectiveLocked) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = true; }
         else if (_applyPos) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = false; }
     }
 
@@ -84,7 +88,7 @@ public class MitBarWindow : Window
 
     private void SavePositionIfDragged()
     {
-        if (C.MitBarLocked) return;
+        if (EffectiveLocked) return;
         var vp = ImGui.GetMainViewport();
         var cur = ImGui.GetWindowPos();
         var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);

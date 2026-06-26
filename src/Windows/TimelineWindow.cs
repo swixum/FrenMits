@@ -25,6 +25,11 @@ public class TimelineWindow : Window
     }
 
     private bool _applyPos = true;
+
+    // Locked for real if you ticked the lock OR you're in a live pull (but not
+    // while previewing) — combat always pins it so it can't be grabbed mid-fight.
+    private bool EffectiveLocked => C.TimelineLocked || (Plugin.InCombat && !C.TestMode);
+
     public void RequestReposition() => _applyPos = true;
 
     public override void PreDraw()
@@ -39,7 +44,7 @@ public class TimelineWindow : Window
         if (!C.ShowBackground)
             Flags |= ImGuiWindowFlags.NoBackground;
 
-        if (C.TimelineLocked)
+        if (EffectiveLocked)
             Flags |= ImGuiWindowFlags.NoTitleBar
                      | ImGuiWindowFlags.NoResize
                      | ImGuiWindowFlags.NoMove
@@ -52,7 +57,7 @@ public class TimelineWindow : Window
         var pos = viewport.WorkPos + C.TimelinePosition * viewport.WorkSize;
         pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
 
-        if (C.TimelineLocked)
+        if (EffectiveLocked)
         {
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
             _applyPos = true;
@@ -190,7 +195,7 @@ public class TimelineWindow : Window
 
     private void SavePositionIfDragged()
     {
-        if (C.TimelineLocked) return;
+        if (EffectiveLocked) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
         var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);

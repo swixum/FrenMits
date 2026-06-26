@@ -1927,6 +1927,7 @@ public class ConfigWindow : Window, IDisposable
             C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
             ImGui.SameLine();
             ImGui.TextDisabled(C.OverlayLocked ? "locked, unlock to drag" : "drag the title bar, or use the sliders");
+            ImGui.TextDisabled("Auto-locks in combat — use Live preview or the sliders to move it during a pull.");
 
             var pos = C.OverlayPosition;
             ImGui.SetNextItemWidth(200f);
@@ -2010,6 +2011,7 @@ public class ConfigWindow : Window, IDisposable
             {
                 var locked = C.MitBarLocked;
                 if (ImGui.Checkbox("Lock active-mits position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
+                ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Live preview.");
             }
         }
 
@@ -2083,6 +2085,7 @@ public class ConfigWindow : Window, IDisposable
                 }
                 ImGui.SameLine();
                 ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag the title bar to move)");
+                ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Live preview.");
 
                 var count = C.UpcomingCount;
                 ImGui.SetNextItemWidth(120f);

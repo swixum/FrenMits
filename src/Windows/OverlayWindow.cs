@@ -37,7 +37,7 @@ public class OverlayWindow : Window
         if (!C.ShowBackground)
             Flags |= ImGuiWindowFlags.NoBackground;
 
-        if (C.OverlayLocked)
+        if (EffectiveLocked)
             Flags |= ImGuiWindowFlags.NoTitleBar
                      | ImGuiWindowFlags.NoResize
                      | ImGuiWindowFlags.NoMove
@@ -53,7 +53,7 @@ public class OverlayWindow : Window
         // Locked: pin to the saved spot every frame (click-through HUD).
         // Unlocked: place it once, then let you drag it freely; the drag is saved
         // in Draw(). Forcing the position every frame is what blocked dragging.
-        if (C.OverlayLocked)
+        if (EffectiveLocked)
         {
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
             _applyPos = true; // re-apply once the moment we unlock / on reset
@@ -66,6 +66,11 @@ public class OverlayWindow : Window
     }
 
     private bool _applyPos = true;
+
+    // Locked for real if you ticked the lock OR you're in a live pull (but not
+    // while previewing). Combat always pins/click-throughs the overlay so it
+    // can't be grabbed and "stuck" mid-fight; drag it out of combat or in preview.
+    private bool EffectiveLocked => C.OverlayLocked || (Plugin.InCombat && !C.TestMode);
 
     // Snap the overlay back to the saved position next frame (used by Reset).
     public void RequestReposition() => _applyPos = true;
@@ -344,7 +349,7 @@ public class OverlayWindow : Window
 
     private void SavePositionIfDragged()
     {
-        if (C.OverlayLocked) return;
+        if (EffectiveLocked) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
         var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);
