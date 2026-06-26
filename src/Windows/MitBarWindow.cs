@@ -29,13 +29,15 @@ public class MitBarWindow : Window
 
     public override void PreDraw()
     {
+        // NoTitleBar always on so locking can't shift the bar vertically (a title
+        // bar present only when unlocked would). Drag the body to move it.
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing
                 | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.AlwaysAutoResize
-                | ImGuiWindowFlags.NoBackground;
+                | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground;
 
         if (EffectiveLocked)
-            Flags |= ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize
+            Flags |= ImGuiWindowFlags.NoResize
                      | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs;
 
         var vp = ImGui.GetMainViewport();

@@ -34,19 +34,21 @@ public class TimelineWindow : Window
 
     public override void PreDraw()
     {
+        // NoTitleBar always on so locking can't shift the content vertically (a
+        // title bar present only when unlocked would). Drag the body to move it.
         Flags = ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings
                 | ImGuiWindowFlags.NoFocusOnAppearing
                 | ImGuiWindowFlags.NoNav
+                | ImGuiWindowFlags.NoTitleBar
                 | ImGuiWindowFlags.AlwaysAutoResize;
 
         if (!C.ShowBackground)
             Flags |= ImGuiWindowFlags.NoBackground;
 
         if (EffectiveLocked)
-            Flags |= ImGuiWindowFlags.NoTitleBar
-                     | ImGuiWindowFlags.NoResize
+            Flags |= ImGuiWindowFlags.NoResize
                      | ImGuiWindowFlags.NoMove
                      | ImGuiWindowFlags.NoMouseInputs;
 

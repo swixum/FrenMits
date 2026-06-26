@@ -27,19 +27,24 @@ public class OverlayWindow : Window
 
     public override void PreDraw()
     {
+        // NoTitleBar is always on: a title bar shown only when unlocked shifts the
+        // content down by its height, so the display would jump up the moment you
+        // lock it. Without one the content top IS the window top in both states, so
+        // locking never moves it. Unlocked, you drag the body (move-from-titlebar-
+        // only is off), so a grab handle isn't needed.
         Flags = ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings
                 | ImGuiWindowFlags.NoFocusOnAppearing
                 | ImGuiWindowFlags.NoNav
+                | ImGuiWindowFlags.NoTitleBar
                 | ImGuiWindowFlags.AlwaysAutoResize;
 
         if (!C.ShowBackground)
             Flags |= ImGuiWindowFlags.NoBackground;
 
         if (EffectiveLocked)
-            Flags |= ImGuiWindowFlags.NoTitleBar
-                     | ImGuiWindowFlags.NoResize
+            Flags |= ImGuiWindowFlags.NoResize
                      | ImGuiWindowFlags.NoMove
                      | ImGuiWindowFlags.NoMouseInputs;
 

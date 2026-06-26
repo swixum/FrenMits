@@ -1926,7 +1926,7 @@ public class ConfigWindow : Window, IDisposable
         {
             C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
             ImGui.SameLine();
-            ImGui.TextDisabled(C.OverlayLocked ? "locked, unlock to drag" : "drag the title bar, or use the sliders");
+            ImGui.TextDisabled(C.OverlayLocked ? "locked, unlock to drag" : "drag it, or use the sliders");
             ImGui.TextDisabled("Auto-locks in combat — use Live preview or the sliders to move it during a pull.");
 
             var pos = C.OverlayPosition;
@@ -2084,7 +2084,7 @@ public class ConfigWindow : Window, IDisposable
                     _plugin.TimelineWindow.RequestReposition();
                 }
                 ImGui.SameLine();
-                ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag the title bar to move)");
+                ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move)");
                 ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Live preview.");
 
                 var count = C.UpcomingCount;
