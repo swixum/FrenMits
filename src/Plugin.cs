@@ -135,6 +135,17 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v9: an earlier DMU merge could leave overlapping / stale lines (it matched
+        // on the mechanic label, which the sheet renames). Re-run the smart re-bake
+        // with the hardened de-overlap so nothing doubles up, and flag surviving
+        // custom lines so future sheet updates keep them cleanly.
+        if (Config.Version < 9)
+        {
+            SmartRebakeDmu();
+            Config.Version = 9;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
@@ -336,16 +347,31 @@ public sealed class Plugin : IDalamudPlugin
         var oldBaked = DmuLegacy.BuildLines(slot);
         var newBaked = DmuData.BuildLines(slot);
 
-        static bool Same(MitLine a, MitLine b)
-            => MathF.Abs(a.Time - b.Time) < 0.4f
+        // Exact match against the previous bake (time + action + mechanic).
+        static bool SameBaked(MitLine a, MitLine b)
+            => MathF.Abs(a.Time - b.Time) < 0.6f
                && string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
                && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
-        // Keep customs (flagged, or anything that isn't a previous sheet-baked line).
-        var kept = existing.Where(l => l.Custom || !oldBaked.Any(b => Same(l, b))).ToList();
-        // Fresh bake + the kept customs that a new baked line doesn't already cover.
+        // "Shadows a real call": the same spoken action within a few seconds of a
+        // current baked line. A fight never reuses one mit that close (its cooldown
+        // is far longer), so anything that shadows a baked call is a stale or
+        // duplicate line — drop it so nothing overlaps. Ignores the mechanic label
+        // (the sheet renames/retimes those between versions).
+        static bool Shadows(MitLine line, List<MitLine> baked)
+            => baked.Any(b => MathF.Abs(b.Time - line.Time) < 6f
+                              && string.Equals(b.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        // Keep a line only if it does NOT shadow a baked call (no overlap) AND it is
+        // either a user-flagged custom or not a recognised old sheet-baked line.
+        var customs = existing
+            .Where(l => !Shadows(l, newBaked) && (l.Custom || !oldBaked.Any(b => SameBaked(l, b))))
+            .ToList();
+
+        foreach (var c in customs) c.Custom = true; // flag survivors so future updates keep them cleanly
+
         var result = new List<MitLine>(newBaked);
-        result.AddRange(kept.Where(k => !newBaked.Any(b => Same(k, b))));
+        result.AddRange(customs);
         return result.OrderBy(l => l.Time).ToList();
     }
 
