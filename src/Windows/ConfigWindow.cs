@@ -602,7 +602,17 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.TextUnformatted("Rebake every built-in fight from the sheet?");
         ImGui.TextColored(ImGuiColors.DalamudYellow, "This discards your line edits and any added potion / tank lines.");
+        ImGui.TextColored(ImGuiColors.DalamudRed, "This can't be undone.");
         ImGui.Spacing();
+
+        // Cancel is leftmost and holds default focus, so a stray click or Enter
+        // dismisses rather than wiping everything. Refresh is styled red (danger).
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.SetItemDefaultFocus();
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2222C8);        // red (ABGR)
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3333DD);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0xFF1A1AB0);
         if (ImGui.Button("Refresh", new Vector2(120, 0)))
         {
             var n = _plugin.ResetAllBuiltins();
@@ -610,8 +620,7 @@ public class ConfigWindow : Window, IDisposable
             _homeMsgAt = DateTime.Now;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.PopStyleColor(3);
         ImGui.EndPopup();
     }
 
