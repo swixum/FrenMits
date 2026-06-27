@@ -915,6 +915,7 @@ public class ConfigWindow : Window, IDisposable
                         Action = e.Action,
                         Jobs = new List<string> { j },
                         Enabled = true,
+                        Custom = true,
                     });
                 SetFightLines(fight, merged.OrderBy(l => l.Time).ToList());
                 FlashBuiltin($"Added {entries.Length} {j} tank-buster line(s).");
@@ -1072,6 +1073,7 @@ public class ConfigWindow : Window, IDisposable
                     Action = "Potion",
                     Jobs = new List<string> { job },
                     Enabled = true,
+                    Custom = true,
                 });
             SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
             FlashBuiltin($"Added {times.Count} {job} potion line(s).");
@@ -1158,7 +1160,7 @@ public class ConfigWindow : Window, IDisposable
     {
         ImGui.TextUnformatted($"Lines ({fight.Lines.Count})");
         ImGui.SameLine();
-        if (ImGui.SmallButton("Add line")) { fight.Lines.Add(new MitLine()); C.Save(); }
+        if (ImGui.SmallButton("Add line")) { fight.Lines.Add(new MitLine { Custom = true }); C.Save(); }
         ImGui.SameLine();
         if (ImGui.SmallButton("Sort by time")) SetFightLines(fight, fight.Lines.OrderBy(l => l.Time).ToList());
         ImGui.SameLine();

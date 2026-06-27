@@ -76,6 +76,11 @@ public class MitLine
     public List<string> Jobs { get; set; } = new();
     public bool Enabled { get; set; } = true;
 
+    // True for a line a user added themselves (not from a built-in sheet bake).
+    // A re-bake of a built-in fight keeps these and only replaces the baked lines,
+    // so custom timers people add survive sheet updates.
+    public bool Custom { get; set; }
+
     // Per-line overrides (0 / empty = use the global setting).
     public float LeadOverride { get; set; }   // warning lead seconds; 0 = global
     public string Tts { get; set; } = "";      // custom spoken text; empty = Action

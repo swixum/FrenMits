@@ -124,6 +124,17 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v8: the Ikuya sheet's v4.0 was edited in place after the v7 bake (P3 Black
+        // Holes restructure, P4 Grand Cross reshuffle, P2/P5 tweaks). Re-bake DMU to
+        // the new timeline, but KEEP custom lines people added — a smart merge that
+        // only replaces the lines matching the previous bake (DmuLegacy snapshot).
+        if (Config.Version < 8)
+        {
+            SmartRebakeDmu();
+            Config.Version = 8;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
@@ -293,6 +304,49 @@ public sealed class Plugin : IDalamudPlugin
         }
         Config.Save();
         return n;
+    }
+
+    // Re-bake the Dancing Mad built-in from the (updated) sheet while KEEPING the
+    // custom lines people added. A line is "old sheet-baked" if it matches the
+    // previous bake (the DmuLegacy snapshot); those get replaced by the new bake.
+    // Everything else — anything flagged Custom, or that no longer matches the old
+    // bake — is kept, so custom timers survive the sheet update.
+    public int SmartRebakeDmu()
+    {
+        var n = 0;
+        foreach (var f in Config.Fights)
+        {
+            if (f.TerritoryId != Builtin.DmuTerritory) continue;
+
+            if (!string.IsNullOrEmpty(f.Slot))
+                f.Lines = MergeDmuSlot(f.Slot, f.Lines);
+            foreach (var key in new List<string>(f.SavedSlots.Keys))
+                f.SavedSlots[key] = MergeDmuSlot(key, f.SavedSlots[key]);
+
+            f.SyncPoints = Builtin.SyncPoints(f.TerritoryId);
+            f.BossAnchors = Builtin.BossAnchors(f.TerritoryId);
+            n++;
+        }
+        if (n > 0) Config.Save();
+        return n;
+    }
+
+    private static List<MitLine> MergeDmuSlot(string slot, List<MitLine> existing)
+    {
+        var oldBaked = DmuLegacy.BuildLines(slot);
+        var newBaked = DmuData.BuildLines(slot);
+
+        static bool Same(MitLine a, MitLine b)
+            => MathF.Abs(a.Time - b.Time) < 0.4f
+               && string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
+               && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
+
+        // Keep customs (flagged, or anything that isn't a previous sheet-baked line).
+        var kept = existing.Where(l => l.Custom || !oldBaked.Any(b => Same(l, b))).ToList();
+        // Fresh bake + the kept customs that a new baked line doesn't already cover.
+        var result = new List<MitLine>(newBaked);
+        result.AddRange(kept.Where(k => !newBaked.Any(b => Same(k, b))));
+        return result.OrderBy(l => l.Time).ToList();
     }
 
     public void AutoLoadForTerritory(uint territory)

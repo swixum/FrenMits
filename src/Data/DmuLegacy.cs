@@ -1,6 +1,7 @@
-// AUTO-GENERATED from the Ikuya "Dancing Mad (Ultimate)" mit sheet
-// (Ikuya Kirishima). Resync ability ids are cross-referenced from the cactbot
-// dancing_mad timeline (07-dt/ultimate): every sheet mechanic is matched to its
+// FROZEN SNAPSHOT of the DMU timeline as it was baked into users' configs before
+// the live-sheet resync (v1.0.0.118). The smart re-bake migration diffs against
+// this to tell sheet-baked lines (replace) from custom lines people added (keep).
+// Do not edit — it must match what shipped previously.
 // cactbot cast in fight order, gated to its phase's timeline offset, and stamped
 // with that cast's id at the sheet's (real, pull-relative) time. Mit times are
 // left as authored — the anchors snap the clock onto each cast, so the calls
@@ -14,7 +15,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-public static class DmuData
+public static class DmuLegacy
 {
     public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
@@ -28,7 +29,7 @@ public static class DmuData
         new(50, "P1", "Double-Trouble Trap", 0xBAA7, new[]{"", "", "", "", "Seraph", "", "", "", "", "Addle", ""}),
         new(63, "P1", "Light of Judgment", 0xC622, new[]{"Reprisal", "", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil", "Kerachole", "", "Feint", "", "", "✔"}),
         new(88, "P1", "Gravitas II (Part I)", 0xBAAC, new[]{"", "", "", "Macrocosmos", "Seraphism", "", "", "", "", "", ""}),
-        new(106, "P1", "Gravitas II (Part II)", 0xBAAC, new[]{"", "", "Liturgy of the Bell", "", "Expedient + Fey Illumination", "Kerachole + Philosophia", "", "", "", "", ""}),
+        new(106, "P1", "Gravitas II (Part II)", 0xBAAC, new[]{"", "", "Liturgy of the Bell", "", "Sacred Soil + Expedient + Fey Illumination", "Kerachole + Philosophia", "", "", "", "", ""}),
         new(118, "P1", "Double-Trouble Trap", 0xBAA7, new[]{"", "Reprisal + Party Mit (GNB/DRK)", "", "", "Spreadlo + Sacred Soil", "Panhaima + Zoe Shields", "", "", "Party Mit", "", ""}),
         new(133, "P1", "Light of Judgment", 0xC622, new[]{"Reprisal + Party Mit", "", "Plenary Indulgence + Asylum", "Collective Unconscious", "", "Kerachole", "Feint", "", "", "", ""}),
         new(168, "P1", "Double-Trouble Trap", 0xBCF2, new[]{"", "", "Temperance", "Neutral Sect", "", "", "", "", "", "", ""}),
@@ -36,43 +37,41 @@ public static class DmuData
         new(187, "P1", "Mystery Magic", 0xBA94, new[]{"", "Reprisal", "", "", "", "", "", "", "", "", ""}),
         new(220, "P2", "Ultimate Embrance", 0xC24C, new[]{"", "", "Assist Tanks (PLD/GNB & PLD/DRK)", "", "", "", "", "Feint", "", "", ""}),
         new(237, "P2", "Forsaken", 0xBABC, new[]{"Reprisal", "Party Mit", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil + Spreadlo", "Kerachole + Holos + Zoe Shields", "Feint", "", "Party Mit", "Addle", "✔"}),
-        new(249, "P2", "Towers I", 0xBABE, new[]{"", "", "Asylum", "", "Seraph + Fey Illumination", "Panhaima", "", "", "", "", ""}),
+        new(249, "P2", "Towers I", 0xBABE, new[]{"Party Mit", "", "Asylum", "", "Seraph + Fey Illumination", "Panhaima", "", "", "", "", ""}),
         new(259, "P2", "Towers II (Past/Future's End)", 0xBABE, new[]{"", "", "", "", "Seraph", "", "", "", "", "", ""}),
-        new(270, "P2", "Towers III (All Things Ending)", 0xBABE, new[]{"Party Mit", "Reprisal", "", "Macrocosmos", "Sacred Soil", "Kerachole", "", "", "", "", ""}),
+        new(270, "P2", "Towers III (All Things Ending)", 0xBABE, new[]{"", "Reprisal", "", "Macrocosmos", "Sacred Soil", "Kerachole", "", "", "", "", ""}),
         new(280, "P2", "Towers IV (Past/Future's End)", 0xBABE, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
         new(291, "P2", "Towers V (All Things Ending)", 0xBABE, new[]{"", "", "Liturgy of the Bell", "", "Expedient", "", "", "", "", "", ""}),
         new(301, "P2", "Towers VI (Past/Future's End)", 0xBABE, new[]{"Reprisal", "", "Plenary Indulgence + Temperance", "Collective Unconscious + Neutral Sect", "Seraphism", "Philosophia", "", "", "", "", ""}),
         new(312, "P2", "Towers VII (All Things Ending)", 0xBABE, new[]{"", "", "Divine Caress", "Sun Sign", "Sacred Soil", "Kerachole", "", "", "", "", ""}),
         new(322, "P2", "Towers VIII (Past/Future's End)", 0xBABE, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
-        new(342, "P2", "Light of Judgement", 0xBABD, new[]{"", "Reprisal + Party Mit", "Asylum", "", "Spreadlo + Sacred Soil", "Kerachole + Holos + Zoe Shields", "Feint", "", "Party Mit", "Addle", ""}),
-        new(371, "P2", "Wings of Destruction", 0xC24C, new[]{"Reprisal + Party Mit", "", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil + Fey Illumination + Seraph", "Kerachole + Panhaima", "", "Feint", "", "", ""}),
-        new(378, "P2", "Ultimate Embrace", 0xC24C, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
+        new(342, "P2", "Light of Judgement", 0xBABD, new[]{"Party Mit", "Reprisal", "Asylum", "", "Spreadlo + Sacred Soil", "Kerachole + Holos + Zoe Shields", "Feint", "", "Party Mit", "Addle", ""}),
+        new(371, "P2", "Wings of Destruction", 0xC24C, new[]{"Reprisal", "Party Mit (WAR/GNB/DRK)", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil + Fey Illumination + Seraph", "Kerachole + Panhaima", "", "Feint", "", "", ""}),
+        new(378, "P2", "Ultimate Embrace", 0xC24C, new[]{"", "Party Mit (PLD)", "", "", "", "", "", "", "", "", ""}),
         new(451, "P3", "Bowels of Agony (Chaos)", 0xBAF2, new[]{"Reprisal", "", "Plenary Indulgence + Asylum", "Collective Unconscious", "Sacred Soil", "Kerachole", "Feint (Chaos)", "", "", "Addle (The Decisive Battle)", ""}),
         new(470, "P3", "Stray Flames/Tsunami", 0xBAF8, new[]{"Party Mit", "Reprisal", "", "", "Spreadlo + Sacred Soil", "Zoe Shields + Kerachole", "", "", "", "", "✔"}),
         new(479, "P3", "Thunder III (1st Set)", 0, new[]{"", "", "", "", "Expedient", "Holos", "", "", "", "", "✔"}),
         new(498, "P3", "Stray Flames/Tsunami", 0, new[]{"", "Party Mit", "Temperance", "Neutral Sect", "Seraph", "", "", "", "", "", ""}),
-        new(508, "P3", "Ultima Blaster + Umbra Smash", 0xBB00, new[]{"Reprisal", "", "", "Sun Sign", "Sacred Soil + Fey Illumination + Seraphism", "Kerachole + Panhaima", "", "Feint (Chaos)", "Party Mit", "", ""}),
-        new(513, "P3", "Vacuum Wave", 0, new[]{"LB3", "LB3", "Plenary Indulgence", "Collective Unconscious", "", "", "", "", "", "", ""}),
+        new(508, "P3", "Ultima Blaster + Umbra Smash", 0xBB00, new[]{"Reprisal + LB3 (Vacuum Wave)", "", "", "Sun Sign", "Sacred Soil + Fey Illumination + Seraphism", "Kerachole + Panhaima", "", "Feint (Chaos)", "Party Mit", "", ""}),
+        new(513, "P3", "Vacuum Wave", 0, new[]{"", "LB3", "Plenary Indulgence", "Collective Unconscious", "", "", "", "", "", "", ""}),
         new(519, "P3", "Cyclone", 0xBAF8, new[]{"", "", "Divine Caress", "", "", "", "", "", "", "", ""}),
         new(536, "P3", "Thunder III (2nd Set)", 0xBAE2, new[]{"", "Reprisal", "", "", "", "", "", "", "", "", ""}),
         new(544, "P3", "The Decisive Battle", 0, new[]{"", "", "", "", "Spreadlo", "Zoe Shields", "", "", "", "Addle (Exdeath)", ""}),
         new(559, "P3", "Earthquake (HP to 1)", 0, new[]{"Party Mit (GNB/DRK)", "Reprisal", "Asylum", "Macrocosmos", "Sacred Soil", "Kerachole + Philosophia", "Feint (Chaos)", "", "", "", ""}),
-        new(579, "P3", "Shocking Impact", 0xBAF4, new[]{"Reprisal + Party Mit (WAR/PLD)", "", "Plenary Indulgence", "Collective Unconscious", "", "", "", "", "", "", ""}),
-        new(609, "P3", "Shocking Impact", 0xBAFD, new[]{"", "Party Mit (GNB/DRK)", "Liturgy of the Bell", "", "Expedient + Seraph + Sacred Soil", "Holos + Kerachole", "", "", "", "", "✔"}),
-        new(616, "P3", "Black Holes II (3rd Tether Set)", 0, new[]{"", "Party Mit (WAR/PLD)", "Temperance + Divine Caress", "Neutral Sect + Sun Sign", "Seraph", "", "", "", "", ""}),
-        new(621, "P3", "Black Holes II (4th Tether Set)", 0xC571, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
-        new(626, "P3", "Black Holes II (5th Tether Set)", 0, new[]{"", "", "", "", "Fey Illumination", "", "", "", "", ""}),
+        new(579, "P3", "Shocking Impact", 0xBAF4, new[]{"Party Mit (WAR/PLD)", "", "Plenary Indulgence", "Collective Unconscious", "", "", "", "", "", "", ""}),
+        new(609, "P3", "Shocking Impact", 0xBAFD, new[]{"", "Party Mit", "Liturgy of the Bell", "", "Expedient + Seraph + Sacred Soil", "Holos + Kerachole", "", "", "", "", "✔"}),
+        new(621, "P3", "Black Holes (4th Tether Set)", 0xC571, new[]{"", "", "Temperance + Divine Caress", "Neutral Sect + Sun Sign", "Seraph", "", "", "", "", "", ""}),
+        new(626, "P3", "Black Holes (5th Tether Set)", 0, new[]{"", "", "", "", "Fey Illumination", "Panhaima", "", "", "", ""}),
         new(637, "P3", "Thunder III (5th Set)", 0, new[]{"Reprisal", "", "Asylum", "", "Spreadlo + Sacred Soil", "Zoe Shields + Kerachole", "", "Feint (Chaos)", "", "Addle (Exdeath)", ""}),
-        new(650, "P3", "Black Holes III (6th Tether Set)", 0, new[]{"", "", "", "", "", "Panhaima", "", "", "Party Mit", ""}),
-        new(677, "P3", "Shockwave", 0, new[]{"", "", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil", "Kerachole", "", "", "", "", ""}),
-        new(705, "P3", "Stomp-a-Mole", 0xBAF0, new[]{"Reprisal + Party Mit", "", "", "", "Seraphism + Sacred Soil", "Kerachole", "Feint (Chaos)", "", "", "", ""}),
+        new(677, "P3", "Shockwave", 0, new[]{"", "", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil", "Kerachole", "", "", "Party Mit", "", ""}),
+        new(709, "P3", "Stomp-a-Mole", 0xBAF0, new[]{"Reprisal + Party Mit", "", "", "", "Seraphism + Sacred Soil", "Kerachole", "Feint (Chaos)", "", "", "", ""}),
         new(745, "P4", "Kefka Returns (phase enter)", 0xC2DC, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
-        new(759, "P4", "Grand Cross + Inferno/Tsunami", 0xBB14, new[]{"", "Reprisal", "Temperance + Asylum", "Neutral Sect", "Spreadlo + Expedient + Sacred Soil", "Kerachole + Philosophia + Zoe Shields", "", "Feint", "Party Mit", "", ""}),
-        new(765, "P4", "Inferno/Tsunami", 0, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
-        new(774, "P4", "Grand Cross + Inferno/Tsunami", 0xBB14, new[]{"", "", "Plenary Indulgence", "Collective Unconscious", "Fey Illumination", "Holos", "", "", "", "", "✔"}),
-        new(779, "P4", "Inferno/Tsunami", 0, new[]{"", "Party Mit (GNB/DRK)", "", "Sun Sign", "Seraph", "", "", "", "", "", ""}),
-        new(789, "P4", "Grand Cross", 0xBB14, new[]{"", "Party Mit (WAR/PLD)", "Divine Caress", "", "Seraph", "Kerachole", "", "", "", "", ""}),
-        new(803, "P4", "Flood of Naught", 0xC393, new[]{"", "", "Liturgy of the Bell", "Macrocosmos", "Sacred Soil", "Panhaima", "", "", "", "", ""}),
+        new(759, "P4", "Grand Cross + Inferno/Tsunami", 0xBB14, new[]{"", "", "Temperance + Asylum", "Neutral Sect", "Spreadlo + Expedient + Sacred Soil", "Kerachole + Holos + Philosophia", "", "", "", "", ""}),
+        new(765, "P4", "Inferno/Tsunami", 0, new[]{"", "Party Mit (GNB/DRK)", "", "", "", "", "", "", "", "", ""}),
+        new(774, "P4", "Grand Cross + Inferno/Tsunami", 0xBB14, new[]{"", "Party Mit (WAR/PLD)", "Plenary Indulgence", "Collective Unconscious", "Fey Illumination", "Panhaima", "", "", "", "", "✔"}),
+        new(779, "P4", "Inferno/Tsunami", 0, new[]{"", "", "", "Sun Sign", "Seraph", "", "", "", "Party Mit", "", ""}),
+        new(789, "P4", "Grand Cross", 0xBB14, new[]{"", "", "Divine Caress", "", "Seraph", "Zoe Shields", "", "", "", "", ""}),
+        new(803, "P4", "Flood of Naught", 0xC393, new[]{"", "", "Liturgy of the Bell", "Macrocosmos", "Sacred Soil", "Kerachole", "", "", "", "", ""}),
         new(807, "P4", "Death Bolt/Wave", 0, new[]{"Party Mit", "", "", "", "", "", "", "", "", "", ""}),
         new(827, "P4", "Ultima Upsurge", 0xC24A, new[]{"Reprisal", "", "", "", "Sacred Soil", "Kerachole", "Feint", "", "", "Addle", ""}),
         new(833, "P4", "Death Bolt/Wave", 0xBB1B, new[]{"", "", "Plenary Indulgence + Asylum", "Collective Unconscious", "", "", "", "", "", "", ""}),
@@ -87,13 +86,12 @@ public static class DmuData
         new(1026, "P5", "Stray Entropy", 0xBB3F, new[]{"", "Reprisal", "", "", "Sacred Soil", "Kerachole", "", "", "", "", ""}),
         new(1036, "P5", "Maddening Orchestra", 0xBB51, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
         new(1046, "P5", "Fell Forces (3x)", 0xC654, new[]{"", "", "", "", "", "", "", "", "", "", ""}),
-        new(1064, "P5", "Forsaken + Forsaken Bonds", 0xBB35, new[]{"Reprisal + Party Mit (GNB/DRK)", "", "Temperance + Asylum", "Neutral Sect", "Spreadlo + Fey Illumination + Sacred Soil", "Zoe Shields + Holos + Kerachole", "", "Feint", "", "", "✔"}),
-        new(1069, "P5", "Forsaken Bonds", 0, new[]{"Party Mit (WAR/PLD)", "", "", "", "Seraphism", "Philosophia", "", "", "", "", ""}),
+        new(1064, "P5", "Forsaken + Forsaken Bonds", 0xBB35, new[]{"Reprisal + Party Mit (GNB/DRK)", "", "Temperance + Asylum", "Neutral Sect", "Spreadlo + Fey Illumination + Sacred Soil", "Zoe Shields + Holos + Philosophia + Kerachole", "", "Feint", "", "", "✔"}),
+        new(1069, "P5", "Forsaken Bonds", 0, new[]{"Party Mit (WAR/PLD)", "", "", "", "Seraphism", "", "", "", "", "", ""}),
         new(1072, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"", "", "Liturgy of the Bell", "Macrocosmos", "Expedient", "Panhaima", "", "", "", "", ""}),
         new(1080, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"", "Reprisal + Party Mit (GNB/DRK)", "Divine Caress + Plenary Indulgence", "Sun Sign + Collective Unconscious", "Seraph", "", "Feint", "", "Party Mit", "Addle", ""}),
         new(1085, "P5", "Forsaken Bonds", 0, new[]{"", "Party Mit (WAR/PLD)", "", "", "", "", "", "", "", "", ""}),
-        new(1088, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"", "", "", "", "Seraph", "", "", "", "", "", ""}),
-        new(1093, "P5", "Forsaken Bonds", 0, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
+        new(1088, "P5", "Forsaken + Forsaken Bonds", 0xBB36, new[]{"", "", "", "", "Seraph + Sacred Soil", "Kerachole", "", "", "", "", ""}),
     };
 
     // First time each phase appears, for the practice phase-jump.
