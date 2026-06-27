@@ -48,7 +48,7 @@ public class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors, PartyRecap, Practice }
+    private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors, PartyRecap, Practice, CombatTimer }
     private NavKind _nav = NavKind.Home;
     private int _anchorFight = -1; // target fight for anchor building
     private string _recName = "";  // name for saving the current capture
@@ -353,6 +353,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("TOOLS");
         if (NavItem(FontAwesomeIcon.PlayCircle, "Practice", null, _nav == NavKind.Practice)) _nav = NavKind.Practice;
+        if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
         if (NavItem(FontAwesomeIcon.Anchor, "Anchors", null, _nav == NavKind.Anchors)) _nav = NavKind.Anchors;
         if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
@@ -499,6 +500,7 @@ public class ConfigWindow : Window, IDisposable
             case NavKind.Anchors: DrawAnchorsPage(); break;
             case NavKind.PartyRecap: DrawPartyRecapPage(); break;
             case NavKind.Practice: DrawPracticePage(); break;
+            case NavKind.CombatTimer: DrawCombatTimerPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }
@@ -1896,6 +1898,74 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled(_plugin.Recap.CapturedAt == default
             ? "no capture yet"
             : $"last captured {(int)(DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds}s ago");
+    }
+
+    private void DrawCombatTimerPage()
+    {
+        SeparatorText("Combat Timer");
+        ImGui.TextWrapped("A plain stopwatch of the current pull's combat time (mm:ss), shown as its own "
+                          + "overlay. Use the \"Test\" toggle in the header to preview while you place and style it.");
+        ImGui.Spacing();
+
+        C.ShowCombatTimer = CfgCheck("Show the combat timer", C.ShowCombatTimer);
+        if (!C.ShowCombatTimer) return;
+
+        if (Section("Placement", true))
+        {
+            C.CombatTimerLocked = CfgCheck("Lock position (click-through)", C.CombatTimerLocked);
+            ImGui.SameLine();
+            ImGui.TextDisabled(C.CombatTimerLocked ? "locked, unlock to drag" : "drag it, or use the sliders");
+            ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Test preview.");
+
+            var pos = C.CombatTimerPosition;
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
+            { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
+            { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
+            if (ImGui.Button("Center top"))
+            {
+                C.CombatTimerPosition = new Vector2(0.5f, 0.08f);
+                C.Save();
+                _plugin.CombatTimerWindow.RequestReposition();
+            }
+        }
+
+        if (Section("Font & size", true))
+        {
+            var fonts = FontManager.FamilyNames;
+            var fIdx = Math.Max(0, Array.IndexOf(fonts, C.CombatTimerFontFamily));
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.CombatTimerFontFamily = fonts[fIdx]; C.Save(); }
+            var bold = C.CombatTimerFontBold;
+            if (GreenCheckbox("Bold", ref bold)) { C.CombatTimerFontBold = bold; C.Save(); }
+            ImGui.SameLine();
+            var italic = C.CombatTimerFontItalic;
+            if (GreenCheckbox("Italic", ref italic)) { C.CombatTimerFontItalic = italic; C.Save(); }
+            if (C.CombatTimerFontFamily == "Default" && (C.CombatTimerFontBold || C.CombatTimerFontItalic))
+            {
+                ImGui.SameLine();
+                ImGui.TextDisabled("(pick a font for bold/italic)");
+            }
+            var px = C.CombatTimerFontSizePx;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderFloat("Text size", ref px, 12f, 120f, "%.0f px")) { C.CombatTimerFontSizePx = px; C.Save(); }
+        }
+
+        if (Section("Colors", true))
+        {
+            var col = ColorToVec4(C.CombatTimerColor);
+            if (ImGui.ColorEdit4("Text color", ref col)) { C.CombatTimerColor = Vec4ToColor(col); C.Save(); }
+
+            C.CombatTimerShowBackground = CfgCheck("Draw a background box", C.CombatTimerShowBackground);
+            if (C.CombatTimerShowBackground)
+            {
+                var bg = ColorToVec4(C.CombatTimerBackgroundColor);
+                if (ImGui.ColorEdit4("Background color", ref bg)) { C.CombatTimerBackgroundColor = Vec4ToColor(bg); C.Save(); }
+                ImGui.TextDisabled("Drag the alpha channel down for a translucent box.");
+            }
+        }
     }
 
     private void DrawDisplayTab()

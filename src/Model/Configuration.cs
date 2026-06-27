@@ -70,6 +70,18 @@ public class Configuration : IPluginConfiguration
     public Vector2 MitBarPosition { get; set; } = new(0.5f, 0.88f);
     public float MitBarFontSizePx { get; set; } = 18f;
 
+    // Combat timer: a plain stopwatch (mm:ss) of the current pull, its own overlay.
+    public bool ShowCombatTimer { get; set; }
+    public bool CombatTimerLocked { get; set; } = true;
+    public Vector2 CombatTimerPosition { get; set; } = new(0.5f, 0.08f);
+    public string CombatTimerFontFamily { get; set; } = "Default";
+    public bool CombatTimerFontBold { get; set; }
+    public bool CombatTimerFontItalic { get; set; }
+    public float CombatTimerFontSizePx { get; set; } = 28f;
+    public uint CombatTimerColor { get; set; } = 0xFFFFFFFF;        // ABGR (white)
+    public bool CombatTimerShowBackground { get; set; }
+    public uint CombatTimerBackgroundColor { get; set; } = 0xB0000000; // ABGR (dim black)
+
     // Text templates. Placeholders: {action} {mechanic} {time} {count} {remaining}
     // Default mirrors the "Raidwide (3.3)" style: name + a one-decimal countdown.
     public string HeadlineFormat { get; set; } = "{action} ({remaining})";

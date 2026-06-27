@@ -32,6 +32,7 @@ public sealed class Plugin : IDalamudPlugin
     public OverlayWindow OverlayWindow { get; }
     public TimelineWindow TimelineWindow { get; }
     public MitBarWindow MitBarWindow { get; }
+    public CombatTimerWindow CombatTimerWindow { get; }
     public RecapButtonWindow RecapButtonWindow { get; }
     public RecapWindow RecapWindow { get; }
 
@@ -174,17 +175,20 @@ public sealed class Plugin : IDalamudPlugin
         OverlayWindow = new OverlayWindow(this);
         TimelineWindow = new TimelineWindow(this);
         MitBarWindow = new MitBarWindow(this);
+        CombatTimerWindow = new CombatTimerWindow(this);
         RecapButtonWindow = new RecapButtonWindow(this);
         RecapWindow = new RecapWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
         Windows.AddWindow(TimelineWindow);
         Windows.AddWindow(MitBarWindow);
+        Windows.AddWindow(CombatTimerWindow);
         Windows.AddWindow(RecapButtonWindow);
         Windows.AddWindow(RecapWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;
+        CombatTimerWindow.IsOpen = true;
         RecapButtonWindow.IsOpen = true;
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
