@@ -13,7 +13,32 @@ public static class Icons
 {
     private static Dictionary<string, uint>? _exact;
     private static List<(string Name, uint Icon)>? _byLength;
+    private static Dictionary<string, uint>? _statusExact;
+    private static List<(string Name, uint Icon)>? _statusByLength;
+    private static List<(string Kw, uint Icon)>? _keywords;
     private static readonly Dictionary<string, uint> _textCache = new(StringComparer.OrdinalIgnoreCase);
+
+    // A "bucket" of friendly mechanic shorthand -> a game action/status name we
+    // resolve to an icon at runtime (no hard-coded ids, so it survives patches).
+    // Typing e.g. "Bait" on a line auto-fills the matching icon; the picker also
+    // lists these as a quick palette. Extend freely.
+    private static readonly Dictionary<string, string> KeywordNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Debuffs (Status sheet)
+        ["bind"] = "Bind", ["stun"] = "Stun", ["heavy"] = "Heavy", ["slow"] = "Slow",
+        ["sleep"] = "Sleep", ["silence"] = "Silence", ["doom"] = "Doom", ["poison"] = "Poison",
+        ["paralysis"] = "Paralysis", ["paralyze"] = "Paralysis", ["blind"] = "Blind",
+        ["bleed"] = "Bleeding", ["burn"] = "Burns", ["burns"] = "Burns",
+        ["vuln"] = "Vulnerability Up", ["vulnerability"] = "Vulnerability Up", ["vulnerable"] = "Vulnerability Up",
+        // Actions (Action sheet)
+        ["heal"] = "Cure", ["esuna"] = "Esuna", ["cleanse"] = "Esuna",
+        ["raise"] = "Raise", ["rez"] = "Raise", ["sprint"] = "Sprint",
+        ["provoke"] = "Provoke", ["shirk"] = "Shirk", ["rescue"] = "Rescue",
+        ["interrupt"] = "Interject", ["interject"] = "Interject",
+        ["reprisal"] = "Reprisal", ["feint"] = "Feint", ["addle"] = "Addle",
+        ["knockback"] = "Arm's Length", ["kb"] = "Arm's Length", ["arms length"] = "Arm's Length",
+        ["bait"] = "Cast", // fisher's rod, a stand-in for baiting
+    };
 
     private static void EnsureBuilt()
     {
@@ -44,6 +69,106 @@ public static class Icons
 
         list.Sort((a, b) => b.Item1.Length - a.Item1.Length);
         _byLength = list;
+
+        // Status effects too: their names (Bind, Stun, Doom, Vulnerability Up, …)
+        // and icons make great auto-matches and picker results for mechanic text.
+        var sExact = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+        var sList = new List<(string, uint)>();
+        try
+        {
+            var statuses = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>();
+            if (statuses != null)
+                foreach (var row in statuses)
+                {
+                    var icon = (uint)row.Icon;
+                    if (icon == 0) continue;
+                    var name = row.Name.ExtractText();
+                    if (string.IsNullOrWhiteSpace(name)) continue;
+                    if (sExact.TryAdd(name, icon)) sList.Add((name, icon));
+                }
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: status index build failed");
+        }
+
+        sList.Sort((a, b) => b.Item1.Length - a.Item1.Length);
+        _statusExact = sExact;
+        _statusByLength = sList;
+    }
+
+    // Resolve the keyword bucket once: map each shorthand to an icon via the
+    // action/status indices, dropping any that don't resolve on this client.
+    private static void EnsureKeywords()
+    {
+        if (_keywords != null) return;
+        EnsureBuilt();
+        var list = new List<(string, uint)>();
+        foreach (var (kw, name) in KeywordNames)
+        {
+            var ic = NameIcon(name);
+            if (ic != 0) list.Add((kw.ToLowerInvariant(), ic));
+        }
+        list.Sort((a, b) => b.Item1.Length - a.Item1.Length); // longest keyword wins
+        _keywords = list;
+    }
+
+    // Icon for a known game name: exact action, exact status, then substring of each.
+    private static uint NameIcon(string name)
+    {
+        if (_exact!.TryGetValue(name, out var a)) return a;
+        if (_statusExact!.TryGetValue(name, out var s)) return s;
+        var sub = Substr(_byLength!, name);
+        return sub != 0 ? sub : Substr(_statusByLength!, name);
+    }
+
+    // Longest-first substring match over a name->icon index (names >= 4 chars).
+    private static uint Substr(List<(string Name, uint Icon)> index, string text)
+    {
+        foreach (var (name, ic) in index)
+            if (name.Length >= 4 && text.Contains(name, StringComparison.OrdinalIgnoreCase))
+                return ic;
+        return 0;
+    }
+
+    // A keyword-bucket match: a whole word equal to a single-word keyword, or the
+    // text containing a multi-word keyword. Word-level so short keys ("kb") don't
+    // false-match inside longer words.
+    private static uint KeywordIcon(string text)
+    {
+        EnsureKeywords();
+        if (_keywords!.Count == 0) return 0;
+        var lower = text.ToLowerInvariant();
+        var tokens = Tokenize(lower);
+        foreach (var (kw, ic) in _keywords!)
+        {
+            if (kw.IndexOf(' ') >= 0) { if (lower.Contains(kw)) return ic; }
+            else if (tokens.Contains(kw)) return ic;
+        }
+        return 0;
+    }
+
+    private static HashSet<string> Tokenize(string lower)
+    {
+        var set = new HashSet<string>();
+        var sb = new System.Text.StringBuilder();
+        foreach (var ch in lower)
+        {
+            if (char.IsLetter(ch)) sb.Append(ch);
+            else if (sb.Length > 0) { set.Add(sb.ToString()); sb.Clear(); }
+        }
+        if (sb.Length > 0) set.Add(sb.ToString());
+        return set;
+    }
+
+    // The resolved keyword bucket as (label, icon) for a quick palette in the picker.
+    public static IEnumerable<(string Label, uint Icon)> Common()
+    {
+        EnsureKeywords();
+        var seen = new HashSet<uint>();
+        foreach (var (kw, ic) in _keywords!)
+            if (seen.Add(ic))
+                yield return (char.ToUpper(kw[0]).ToString() + kw.Substring(1), ic);
     }
 
     // The icon a line should display: its pinned icon, else the potion icon for a
@@ -115,20 +240,16 @@ public static class Icons
         if (_textCache.TryGetValue(text, out var cached)) return cached;
         EnsureBuilt();
 
+        // Priority: exact action > exact status > keyword bucket > action substring
+        // > status substring. Exact matches first keeps every existing line's icon;
+        // keywords/statuses only fill in where nothing matched before.
+        var t = text.Trim();
         uint icon = 0;
-        if (_exact!.TryGetValue(text.Trim(), out var exact))
-        {
-            icon = exact;
-        }
-        else
-        {
-            foreach (var (name, ic) in _byLength!)
-                if (name.Length >= 4 && text.Contains(name, StringComparison.OrdinalIgnoreCase))
-                {
-                    icon = ic;
-                    break;
-                }
-        }
+        if (_exact!.TryGetValue(t, out var ax)) icon = ax;
+        if (icon == 0 && _statusExact!.TryGetValue(t, out var sx)) icon = sx;
+        if (icon == 0) icon = KeywordIcon(t);
+        if (icon == 0) icon = Substr(_byLength!, t);
+        if (icon == 0) icon = Substr(_statusByLength!, t);
 
         _textCache[text] = icon;
         return icon;
@@ -139,8 +260,16 @@ public static class Icons
         EnsureBuilt();
         if (string.IsNullOrWhiteSpace(query)) yield break;
         var n = 0;
+        var seen = new HashSet<uint>();
+        // Actions first, then statuses; dedupe by icon so the grid stays tidy.
         foreach (var (name, ic) in _byLength!)
-            if (name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            if (name.Contains(query, StringComparison.OrdinalIgnoreCase) && seen.Add(ic))
+            {
+                yield return (name, ic);
+                if (++n >= max) yield break;
+            }
+        foreach (var (name, ic) in _statusByLength!)
+            if (name.Contains(query, StringComparison.OrdinalIgnoreCase) && seen.Add(ic))
             {
                 yield return (name, ic);
                 if (++n >= max) yield break;

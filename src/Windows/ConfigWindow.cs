@@ -2321,7 +2321,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         ImGui.BeginGroup();
         ImGui.TextUnformatted(line.IconId != 0 ? $"pinned (#{line.IconId})"
-            : (resolved != 0 ? "auto from action" : "none"));
+            : (resolved != 0 ? "auto (action / status / keyword)" : "none"));
         if (ImGui.SmallButton("Use auto")) { line.IconId = 0; C.Save(); }
         ImGui.SameLine();
         if (ImGui.SmallButton("Potion")) { line.IconId = Icons.PotionIconFor(line); C.Save(); }
@@ -2334,9 +2334,9 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("id");
         ImGui.EndGroup();
 
-        // Search by action name -> clickable icon grid.
+        // Search actions + statuses by name -> clickable icon grid.
         ImGui.SetNextItemWidth(240f);
-        ImGui.InputTextWithHint("##iconsearch", "search by action name…", ref _iconSearch, 64);
+        ImGui.InputTextWithHint("##iconsearch", "search actions & statuses…", ref _iconSearch, 64);
         if (!string.IsNullOrWhiteSpace(_iconSearch))
         {
             var n = 0;
@@ -2347,6 +2347,21 @@ public class ConfigWindow : Window, IDisposable
                 if (++n % 8 != 0) ImGui.SameLine();
             }
             ImGui.NewLine();
+        }
+
+        // Quick palette: the keyword "bucket" (Bait, Stun, Bind, Heal, Knockback …).
+        // Click one to pin it. Typing the same word on a line auto-fills it too.
+        if (ImGui.TreeNode("Common mechanic icons"))
+        {
+            var n = 0;
+            foreach (var (label, ic) in Icons.Common())
+            {
+                if (Icons.Button(ic, new Vector2(32, 32), $"##c{ic}_{n}")) { line.IconId = ic; C.Save(); }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{label}  (#{ic})");
+                if (++n % 8 != 0) ImGui.SameLine();
+            }
+            ImGui.NewLine();
+            ImGui.TreePop();
         }
 
         // Browse any icon by id (paged grid) — pick literally anything.
