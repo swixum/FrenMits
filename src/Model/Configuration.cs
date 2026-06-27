@@ -10,6 +10,10 @@ public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 1;
 
+    // Last plugin version whose "What's New" panel was dismissed. Shows the panel
+    // once after an update with notes, then records the version so it stays hidden.
+    public string LastWhatsNew { get; set; } = "";
+
     public List<FightProfile> Fights { get; set; } = new();
 
     // Built-in fight territories already auto-added to the list, so a newly

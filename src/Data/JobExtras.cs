@@ -9,7 +9,7 @@ namespace FrenMits;
 // page when you're on that job. Lines are job-restricted (only fire for that job)
 // and flagged Custom, so a sheet re-bake keeps them.
 //
-// Every schedule is spaced to the ability's real recast — no call ever asks you to
+// Every schedule is spaced to the ability's real recast - no call ever asks you to
 // press something that's still on cooldown.
 public static class JobExtras
 {
@@ -19,7 +19,7 @@ public static class JobExtras
     {
         [Builtin.DmuTerritory] = new[]
         {
-            // Bard — Nature's Minne (120s recast)
+            // Bard - Nature's Minne (120s recast)
             new Extra("BRD", "Nature's Minne", 120f, new[]
             {
                 (63, "Light of Judgment"),
@@ -30,7 +30,7 @@ public static class JobExtras
                 (922, "Chaotic Flood"),
                 (1046, "Fell Forces (3x)"),
             }),
-            // Monk — Mantra (90s recast)
+            // Monk - Mantra (90s recast)
             new Extra("MNK", "Mantra", 90f, new[]
             {
                 (88, "Gravitas II (Part I)"),
@@ -41,7 +41,7 @@ public static class JobExtras
                 (765, "Inferno/Tsunami"),
                 (905, "Ultima Repeater"),
             }),
-            // Paladin — Passage of Arms (120s recast)
+            // Paladin - Passage of Arms (120s recast)
             new Extra("PLD", "Passage of Arms", 120f, new[]
             {
                 (63, "Light of Judgment"),

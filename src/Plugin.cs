@@ -33,6 +33,7 @@ public sealed class Plugin : IDalamudPlugin
     public TimelineWindow TimelineWindow { get; }
     public MitBarWindow MitBarWindow { get; }
     public CombatTimerWindow CombatTimerWindow { get; }
+    public WhatsNewWindow WhatsNewWindow { get; }
     public RecapButtonWindow RecapButtonWindow { get; }
     public RecapWindow RecapWindow { get; }
 
@@ -107,7 +108,7 @@ public sealed class Plugin : IDalamudPlugin
         // v7: Dancing Mad mits resynced to the Ikuya sheet v4.0 (action + timing
         // overwrites, line splits, new rows) and WHM Asylum added from FFLogs.
         // The shifts are far larger than the top-up's merge window, so a plain
-        // re-load would leave stale/duplicate lines — clean-rebake just the DMU
+        // re-load would leave stale/duplicate lines - clean-rebake just the DMU
         // built-in so everyone gets the new plan on update. Other built-ins are
         // unchanged, so any edits there stay.
         if (Config.Version < 7)
@@ -126,7 +127,7 @@ public sealed class Plugin : IDalamudPlugin
 
         // v8: the Ikuya sheet's v4.0 was edited in place after the v7 bake (P3 Black
         // Holes restructure, P4 Grand Cross reshuffle, P2/P5 tweaks). Re-bake DMU to
-        // the new timeline, but KEEP custom lines people added — a smart merge that
+        // the new timeline, but KEEP custom lines people added - a smart merge that
         // only replaces the lines matching the previous bake (DmuLegacy snapshot).
         if (Config.Version < 8)
         {
@@ -143,6 +144,15 @@ public sealed class Plugin : IDalamudPlugin
         {
             SmartRebakeDmu();
             Config.Version = 9;
+            Config.Save();
+        }
+
+        // v10: ship the full sheet refresh to everyone - re-bake DMU to the latest
+        // baked timings (the smart merge keeps every custom line people added).
+        if (Config.Version < 10)
+        {
+            SmartRebakeDmu();
+            Config.Version = 10;
             Config.Save();
         }
 
@@ -200,6 +210,7 @@ public sealed class Plugin : IDalamudPlugin
         CombatTimerWindow = new CombatTimerWindow(this);
         RecapButtonWindow = new RecapButtonWindow(this);
         RecapWindow = new RecapWindow(this);
+        WhatsNewWindow = new WhatsNewWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
         Windows.AddWindow(TimelineWindow);
@@ -207,11 +218,14 @@ public sealed class Plugin : IDalamudPlugin
         Windows.AddWindow(CombatTimerWindow);
         Windows.AddWindow(RecapButtonWindow);
         Windows.AddWindow(RecapWindow);
+        Windows.AddWindow(WhatsNewWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;
         CombatTimerWindow.IsOpen = true;
         RecapButtonWindow.IsOpen = true;
+        // Pop the "What's New" panel once after an update with notes.
+        WhatsNewWindow.IsOpen = Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
@@ -320,8 +334,8 @@ public sealed class Plugin : IDalamudPlugin
     // Re-bake the Dancing Mad built-in from the (updated) sheet while KEEPING the
     // custom lines people added. A line is "old sheet-baked" if it matches the
     // previous bake (the DmuLegacy snapshot); those get replaced by the new bake.
-    // Everything else — anything flagged Custom, or that no longer matches the old
-    // bake — is kept, so custom timers survive the sheet update.
+    // Everything else - anything flagged Custom, or that no longer matches the old
+    // bake - is kept, so custom timers survive the sheet update.
     public int SmartRebakeDmu()
     {
         var n = 0;
@@ -423,6 +437,10 @@ public sealed class Plugin : IDalamudPlugin
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
+
+    // The running assembly version, e.g. "1.0.0.121". Used for the What's New gate.
+    public static string PluginVersion =>
+        typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
     // True while actually in a pull. The HUD displays force-lock here (see each
     // window's EffectiveLocked) so a stray drag can't grab them mid-fight; you
