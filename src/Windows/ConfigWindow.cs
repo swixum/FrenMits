@@ -591,13 +591,6 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextColored(ImGuiColors.ParsedGreen, _homeMsg);
         }
 
-        ImGui.Dummy(new Vector2(0, 18));
-
-        // Shortcut cards.
-        if (HomeCard(FontAwesomeIcon.Crown, "Fights", "Per-fight mit timelines, auto-loaded by zone.")) _nav = NavKind.Fights;
-        if (HomeCard(FontAwesomeIcon.Desktop, "Display", "Overlay look: font, colors, size and placement.")) _nav = NavKind.Display;
-        if (HomeCard(FontAwesomeIcon.VolumeUp, "Audio", "Voice cues - online neural or Windows voices.")) _nav = NavKind.Audio;
-        if (HomeCard(FontAwesomeIcon.Stopwatch, "Timer", "Combat sync, resync anchors and capture.")) _nav = NavKind.Timer;
     }
 
     private void DrawRefreshConfirm()
@@ -624,43 +617,6 @@ public class ConfigWindow : Window, IDisposable
 
     private string _homeMsg = "";
     private DateTime _homeMsgAt = DateTime.MinValue;
-
-    private bool HomeCard(FontAwesomeIcon icon, string title, string desc)
-    {
-        var startX = ImGui.GetCursorPosX();
-        var startY = ImGui.GetCursorPosY();
-
-        ImGui.PushStyleColor(ImGuiCol.Header, 0x18FFFFFF);
-        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0x33F6823B);
-        var clicked = ImGui.Selectable($"##card-{title}", false, ImGuiSelectableFlags.None, new Vector2(0, 52));
-        ImGui.PopStyleColor(2);
-
-        var endX = ImGui.GetCursorPosX();
-        var endY = ImGui.GetCursorPosY();
-        var accent = new Vector4(0.23f, 0.51f, 0.96f, 1f);
-        var grey = new Vector4(0.55f, 0.59f, 0.66f, 1f);
-
-        ImGui.SameLine();
-        ImGui.SetCursorPos(new Vector2(startX + 14, startY + 16));
-        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-            ImGui.TextColored(accent, icon.ToIconString());
-        ImGui.SameLine();
-        ImGui.SetCursorPos(new Vector2(startX + 48, startY + 8));
-        ImGui.TextUnformatted(title);
-        ImGui.SameLine();
-        ImGui.SetCursorPos(new Vector2(startX + 48, startY + 28));
-        ImGui.TextColored(grey, desc);
-
-        // chevron on the right
-        ImGui.SameLine();
-        ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - 24, startY + 16));
-        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-            ImGui.TextColored(grey, FontAwesomeIcon.ChevronRight.ToIconString());
-
-        ImGui.SetCursorPos(new Vector2(endX, endY));
-        return clicked;
-    }
-
 
     // ---- Fights page ------------------------------------------------------
 
@@ -1570,14 +1526,18 @@ public class ConfigWindow : Window, IDisposable
             Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time — correcting phase drift from kill speed.");
             C.Diagnostics = CfgCheck("Write per-pull diagnostics file", C.Diagnostics);
             Tip("Saves a resync + cue log per pull to the plugin's diagnostics/ folder. Local only — nothing is sent anywhere. Use it to check resync accuracy.");
-            var win = C.SyncWindowSeconds;
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
-            Tip("Tight window for fine drift correction on a normal mechanic.");
-            var pwin = C.SyncPhaseWindowSeconds;
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Phase window (s)", ref pwin, 15f, 120f, "%.0f")) { C.SyncPhaseWindowSeconds = pwin; C.Save(); }
-            Tip("Wider window so a phase that starts well off the sheet's nominal time still locks on.");
+            if (ImGui.TreeNode("Advanced windows"))
+            {
+                var win = C.SyncWindowSeconds;
+                ImGui.SetNextItemWidth(200f);
+                if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
+                Tip("Tight window for fine drift correction on a normal mechanic.");
+                var pwin = C.SyncPhaseWindowSeconds;
+                ImGui.SetNextItemWidth(200f);
+                if (ImGui.SliderFloat("Phase window (s)", ref pwin, 15f, 120f, "%.0f")) { C.SyncPhaseWindowSeconds = pwin; C.Save(); }
+                Tip("Wider window so a phase that starts well off the sheet's nominal time still locks on.");
+                ImGui.TreePop();
+            }
 
             ImGui.Spacing();
             ImGui.TextDisabled($"Last sync: {(_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-")}");
@@ -1931,12 +1891,8 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawDisplayTab()
     {
-        // Quick controls: live preview + one-click reset of everything on this tab.
-        var preview = C.TestMode;
-        if (GreenCheckbox("Live preview", ref preview)) { C.TestMode = preview; C.Save(); }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Show a sample call so you can place, size and color it.");
-        ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - 150);
+        // One-click reset of everything on this tab. To preview while you adjust,
+        // use the "Test" toggle in the header (always visible).
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this tab to defaults.");
 
@@ -1998,13 +1954,17 @@ public class ConfigWindow : Window, IDisposable
 
         if (Section("Text & content"))
         {
-            var fmt = C.HeadlineFormat;
-            ImGui.SetNextItemWidth(280f);
-            if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.Save(); }
-            ImGui.TextDisabled("Placeholders: {action} {mechanic} {time} {count} {remaining}");
-            var suffix = C.ActiveSuffix;
-            ImGui.SetNextItemWidth(280f);
-            if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.Save(); }
+            if (ImGui.TreeNode("Advanced format"))
+            {
+                var fmt = C.HeadlineFormat;
+                ImGui.SetNextItemWidth(280f);
+                if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.Save(); }
+                ImGui.TextDisabled("Placeholders: {action} {mechanic} {time} {count} {remaining}");
+                var suffix = C.ActiveSuffix;
+                ImGui.SetNextItemWidth(280f);
+                if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.Save(); }
+                ImGui.TreePop();
+            }
 
             ImGui.Spacing();
             if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
@@ -2205,10 +2165,14 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
             if (ImGui.RadioButton("Speak the mechanic", mech)) { C.TtsSpeakMechanic = true; C.Save(); }
 
-            var gap = C.TtsMinGapSeconds;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f")) { C.TtsMinGapSeconds = gap; C.Save(); }
-            Tip("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
+            if (ImGui.TreeNode("Advanced"))
+            {
+                var gap = C.TtsMinGapSeconds;
+                ImGui.SetNextItemWidth(220f);
+                if (ImGui.SliderFloat("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f")) { C.TtsMinGapSeconds = gap; C.Save(); }
+                Tip("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
+                ImGui.TreePop();
+            }
         }
 
         if (Section("Test", true))
