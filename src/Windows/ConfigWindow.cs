@@ -670,6 +670,7 @@ public class ConfigWindow : Window, IDisposable
                 {
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
                     DrawPotionsSection(fight);
+                    DrawJobExtrasSection(fight);
                     DrawTankSection(fight);
                     ImGui.Separator();
                     DrawLineTable(fight);
@@ -1081,6 +1082,53 @@ public class ConfigWindow : Window, IDisposable
         ImGui.PopStyleColor(2);
         ImGui.EndDisabled();
         Tip("Adds these as job-tagged lines (replacing any existing potion lines for this job), so they only show when you're on it.");
+
+        if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.ParsedGreen, _builtinMsg);
+        }
+        EndCard();
+    }
+
+    // Job-mitigation card: optional job-specific mit timers from logs (Asylum-style)
+    // — e.g. BRD Nature's Minne, MNK Mantra, PLD Passage of Arms. Shows only when
+    // you're on a job that has one for this fight. One-click add, job-tagged + Custom.
+    private void DrawJobExtrasSection(FightProfile fight)
+    {
+        var job = _plugin.ActiveJobAbbreviation();
+        var extra = JobExtras.For(fight.TerritoryId, job);
+        if (extra == null) return;
+
+        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job mitigation", "optional, from logs · raalm.com");
+
+        ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {extra.Action}");
+        ImGui.SameLine(0, 10);
+        ImGui.TextDisabled($"{extra.Lines.Length} casts, spaced to its {extra.Recast:0}s recast");
+
+        ImGui.Spacing();
+        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add {extra.Lines.Length} {extra.Action} line(s)"))
+        {
+            var lines = new List<MitLine>(fight.Lines);
+            lines.RemoveAll(l => string.Equals(l.Action, extra.Action, StringComparison.OrdinalIgnoreCase)
+                                 && l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase));
+            foreach (var (time, mech) in extra.Lines)
+                lines.Add(new MitLine
+                {
+                    Time = time,
+                    Mechanic = mech,
+                    Action = extra.Action,
+                    Jobs = new List<string> { job },
+                    Enabled = true,
+                    Custom = true,
+                });
+            SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
+            FlashBuiltin($"Added {extra.Lines.Length} {job} {extra.Action} line(s).");
+        }
+        ImGui.PopStyleColor(2);
+        Tip($"Adds {extra.Action} as {job}-tagged lines (replacing any existing ones), so they only show on {job}.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
