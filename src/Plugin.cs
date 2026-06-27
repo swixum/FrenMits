@@ -156,6 +156,24 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v11: a deliberate one-time CLEAN reset of Dancing Mad to the sheet, wiping
+        // any custom lines too (to clear overlapping/stale data from earlier merges).
+        // Custom lines added AFTER this are still kept by the smart re-bake going
+        // forward (they get flagged Custom). Other built-ins are untouched.
+        if (Config.Version < 11)
+        {
+            foreach (var f in Config.Fights)
+            {
+                if (f.TerritoryId != Builtin.DmuTerritory) continue;
+                f.SavedSlots.Clear();
+                if (!string.IsNullOrEmpty(f.Slot))
+                    Builtin.ResetSlot(f, f.Slot);
+                else { f.Lines.Clear(); f.AutoLoaded = false; }
+            }
+            Config.Version = 11;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
