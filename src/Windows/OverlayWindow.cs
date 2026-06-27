@@ -13,7 +13,7 @@ public class OverlayWindow : Window
     private Configuration C => _plugin.Config;
 
     // The line currently being counted down / held, and the run it belongs to.
-    private MitLine? _activeLine;
+    private readonly List<MitLine> _activeLines = new();
     private int _lastGen = -1;
 
     public OverlayWindow(Plugin plugin)
@@ -117,42 +117,49 @@ public class OverlayWindow : Window
 
         // Reset the held call when the run restarts (pull / wipe / manual sync) so a
         // stale line from the previous run can't carry over.
-        if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLine = null; }
+        if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLines.Clear(); }
 
-        // The line we count down to: the soonest one inside its lead window (the
-        // per-line lead override, else the global warning lead).
-        MitLine? upcoming = null;
+        // The calls we count down to: the soonest line inside its lead window, plus
+        // any other line tied at (about) the same time — so simultaneous mits stack
+        // instead of one hiding the other. Lead window is the per-line override, else
+        // the global warning lead.
         var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
             var remaining = line.Time - elapsed;
             var lead = line.LeadOverride > 0f ? line.LeadOverride : C.WarningSeconds;
             if (remaining < 0f || remaining > lead) continue;
-            if (remaining < bestRemaining) { bestRemaining = remaining; upcoming = line; }
+            if (remaining < bestRemaining) bestRemaining = remaining;
         }
 
-        MitLine? current;
-        if (upcoming != null)
+        const float tieWindow = 0.75f; // lines within this of the soonest stack together
+        List<MitLine> group;
+        if (bestRemaining < float.MaxValue)
         {
-            current = upcoming;
-            _activeLine = upcoming; // remember what we're actively counting down
-        }
-        else if (_activeLine != null)
-        {
-            // Only hold a line we actually counted down, briefly after its time. This
-            // is what stops a phase-transition clock snap from flashing a mit we
-            // jumped over (it was never the active line).
-            var rem = _activeLine.Time - elapsed;
-            current = rem <= 0f && rem >= -C.HoldSeconds ? _activeLine : null;
-            if (current == null) _activeLine = null;
+            group = lines.Where(l =>
+            {
+                var rem = l.Time - elapsed;
+                var lead = l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds;
+                return rem >= 0f && rem <= lead && rem <= bestRemaining + tieWindow;
+            }).OrderBy(l => l.Time).ToList();
+            _activeLines.Clear();
+            _activeLines.AddRange(group); // remember what we're actively counting down
         }
         else
         {
-            current = null;
+            // Nothing upcoming: briefly hold the calls we actually counted down so
+            // "NOW" lingers, but never resurrect a line the clock snapped past (it
+            // was never in the active set).
+            group = _activeLines
+                .Where(l => { var rem = l.Time - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
+                .OrderBy(l => l.Time).ToList();
+            if (group.Count == 0) _activeLines.Clear();
         }
 
-        if (current is { } call)
+        for (var i = 0; i < group.Count; i++)
         {
+            if (i > 0) ImGui.Spacing();
+            var call = group[i];
             var remaining = call.Time - elapsed;
             var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
             var icon = C.ShowAbilityIcon ? Icons.For(call) : 0u;
