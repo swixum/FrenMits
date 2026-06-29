@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.122";
+    public const string NotesVersion = "1.0.0.123";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -65,8 +65,8 @@ public class WhatsNewWindow : Window
             + "timers you added yourself, to clear out stale/overlapping lines. Re-add your own "
             + "and they'll be kept from here on."),
         ("Dancing Mad mits refreshed",
-            "The whole DMU timeline was re-synced to the latest Ikuya sheet (P3 Black Holes "
-            + "restructure, P4 Grand Cross reshuffle, and more)."),
+            "The whole DMU timeline was re-synced to the latest Ikuya sheet again - every call "
+            + "re-timed to the newest timings, plus the P5 enrage marker."),
         ("Optional job mitigations",
             "On a fight's page, a one-click Add for your job's extra mit: BRD Nature's Minne, "
             + "MNK Mantra, PLD Passage of Arms (and WHM Asylum), pulled from logs and spaced to "

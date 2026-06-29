@@ -174,6 +174,24 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v12: the sheet was re-timed again (every row nudged 1-5s, a helper column
+        // added, P5 enrage marker). Force another clean reset of Dancing Mad for
+        // everyone so the new timings land cleanly. Custom lines added after still
+        // survive the smart re-bake going forward.
+        if (Config.Version < 12)
+        {
+            foreach (var f in Config.Fights)
+            {
+                if (f.TerritoryId != Builtin.DmuTerritory) continue;
+                f.SavedSlots.Clear();
+                if (!string.IsNullOrEmpty(f.Slot))
+                    Builtin.ResetSlot(f, f.Slot);
+                else { f.Lines.Clear(); f.AutoLoaded = false; }
+            }
+            Config.Version = 12;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
