@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.123";
+    public const string NotesVersion = "1.0.0.125";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -67,6 +67,10 @@ public class WhatsNewWindow : Window
         ("Dancing Mad mits refreshed",
             "The whole DMU timeline was re-synced to the latest Ikuya sheet again - every call "
             + "re-timed to the newest timings, plus the P5 enrage marker."),
+        ("Per-class mit icons",
+            "Generic \"Party Mit\" calls now show your job's actual ability icon - Troubadour on "
+            + "Bard, Tactician on Machinist, Shake It Off on Warrior, and so on for every job that "
+            + "has one."),
         ("Optional job mitigations",
             "On a fight's page, a one-click Add for your job's extra mit: BRD Nature's Minne, "
             + "MNK Mantra, PLD Passage of Arms (and WHM Asylum), pulled from logs and spaced to "

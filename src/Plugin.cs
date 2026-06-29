@@ -192,6 +192,23 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v13: hard reset Dancing Mad again so everyone is freshly baked from the
+        // current sheet (now that generic mits resolve to each job's icon). Custom
+        // lines added after this still survive the smart re-bake going forward.
+        if (Config.Version < 13)
+        {
+            foreach (var f in Config.Fights)
+            {
+                if (f.TerritoryId != Builtin.DmuTerritory) continue;
+                f.SavedSlots.Clear();
+                if (!string.IsNullOrEmpty(f.Slot))
+                    Builtin.ResetSlot(f, f.Slot);
+                else { f.Lines.Clear(); f.AutoLoaded = false; }
+            }
+            Config.Version = 13;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
