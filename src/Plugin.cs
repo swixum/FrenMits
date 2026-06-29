@@ -209,6 +209,23 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v14: hard reset Dancing Mad once more so the latest baked timeline is in
+        // for everyone (pairs with calls now showing each job's real ability name).
+        // Custom lines added after this still survive the smart re-bake going forward.
+        if (Config.Version < 14)
+        {
+            foreach (var f in Config.Fights)
+            {
+                if (f.TerritoryId != Builtin.DmuTerritory) continue;
+                f.SavedSlots.Clear();
+                if (!string.IsNullOrEmpty(f.Slot))
+                    Builtin.ResetSlot(f, f.Slot);
+                else { f.Lines.Clear(); f.AutoLoaded = false; }
+            }
+            Config.Version = 14;
+            Config.Save();
+        }
+
         // Migrate the old M12S placeholder zone (1320) to the real one (1327).
         foreach (var f in Config.Fights)
             if (f.TerritoryId == 1320)
