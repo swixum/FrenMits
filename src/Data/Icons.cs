@@ -172,12 +172,41 @@ public static class Icons
     }
 
     // The icon a line should display: its pinned icon, else the potion icon for a
-    // potion line, else inferred from the action text.
-    public static uint For(MitLine line)
+    // potion line, else the active job's matching ability for a generic mit term
+    // ("Party Mit" -> Troubadour on BRD, Shake It Off on WAR, ...), else inferred
+    // from the action text.
+    public static uint For(MitLine line, string? job = null)
     {
         if (line.IconId != 0) return line.IconId;
         if (IsPotion(line)) return PotionIcon(PotionStat(line));
+        var jm = JobMitIcon(line.Action, job);
+        if (jm != 0) return jm;
         return ResolveFromText(line.Action);
+    }
+
+    // Generic mit terms -> the per-job ability whose icon to show. Lets a single
+    // "Party Mit" line render the right party-mitigation icon for whoever's looking.
+    private static readonly Dictionary<string, Dictionary<string, string>> JobMits =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Party Mit"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["WAR"] = "Shake It Off", ["PLD"] = "Divine Veil",
+                ["DRK"] = "Dark Missionary", ["GNB"] = "Heart of Light",
+                ["BRD"] = "Troubadour", ["MCH"] = "Tactician", ["DNC"] = "Shield Samba",
+            },
+        };
+
+    // Icon for the active job's version of a generic mit term in the action text,
+    // or 0 if the text isn't a known generic term / the job has no mapping.
+    public static uint JobMitIcon(string? action, string? job)
+    {
+        if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return 0;
+        foreach (var (term, map) in JobMits)
+            if (action!.Contains(term, StringComparison.OrdinalIgnoreCase)
+                && map.TryGetValue(job!, out var ability))
+                return ResolveFromText(ability);
+        return 0;
     }
 
     // A potion line (from the Potions section): action "Potion", or a "Potion (…)"

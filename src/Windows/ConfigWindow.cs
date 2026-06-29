@@ -1302,7 +1302,7 @@ public class ConfigWindow : Window, IDisposable
             }
 
             ImGui.TableNextColumn();
-            var icon = Icons.For(line);
+            var icon = Icons.For(line, _plugin.ActiveJobAbbreviation());
             if (icon != 0)
             {
                 var h = ImGui.GetFrameHeight();
@@ -2366,7 +2366,7 @@ public class ConfigWindow : Window, IDisposable
         }
 
         SeparatorText("Icon");
-        var resolved = Icons.For(line);
+        var resolved = Icons.For(line, _plugin.ActiveJobAbbreviation());
         Icons.Draw(resolved, new Vector2(40, 40));
         ImGui.SameLine();
         ImGui.BeginGroup();

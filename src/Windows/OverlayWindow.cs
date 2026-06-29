@@ -162,7 +162,7 @@ public class OverlayWindow : Window
             var call = group[i];
             var remaining = call.Time - elapsed;
             var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
-            var icon = C.ShowAbilityIcon ? Icons.For(call) : 0u;
+            var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
             DrawCurrent(call.Mechanic, call.Action, MathF.Max(0f, remaining), remaining > 0f, call.Color, lead, icon);
         }
     }
