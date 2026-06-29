@@ -130,7 +130,7 @@ public class TimelineWindow : Window
             foreach (var l in upcoming)
             {
                 var inSec = (int)MathF.Round(l.Time - elapsed);
-                var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : l.Action;
+                var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.Action, job);
                 var icon = C.ShowAbilityIcon ? Icons.For(l, job) : 0u;
                 // Dim a line whose mit won't be off cooldown by the time it's called.
                 var notReady = C.CooldownAwareCalls

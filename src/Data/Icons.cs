@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures;
 
@@ -197,16 +198,44 @@ public static class Icons
             },
         };
 
-    // Icon for the active job's version of a generic mit term in the action text,
-    // or 0 if the text isn't a known generic term / the job has no mapping.
-    public static uint JobMitIcon(string? action, string? job)
+    // The active job's ability for a generic mit term in the action, honoring an
+    // optional job qualifier like "Party Mit (WAR/PLD)": resolves only when the job
+    // has no qualifier or is named in it. Null if it doesn't apply.
+    private static string? ResolveMitAbility(string? action, string? job)
     {
-        if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return 0;
+        if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return null;
         foreach (var (term, map) in JobMits)
-            if (action!.Contains(term, StringComparison.OrdinalIgnoreCase)
-                && map.TryGetValue(job!, out var ability))
-                return ResolveFromText(ability);
-        return 0;
+        {
+            if (!map.TryGetValue(job!, out var ability)) continue;
+            var m = Regex.Match(action!, Regex.Escape(term) + @"(?:\s*\(([^)]*)\))?", RegexOptions.IgnoreCase);
+            if (!m.Success) continue;
+            var quals = m.Groups[1].Value;
+            if (quals.Length == 0 || quals.IndexOf(job!, StringComparison.OrdinalIgnoreCase) >= 0)
+                return ability;
+        }
+        return null;
+    }
+
+    // Icon for the active job's version of a generic mit term, or 0 if not applicable.
+    public static uint JobMitIcon(string? action, string? job)
+        => ResolveMitAbility(action, job) is { } a ? ResolveFromText(a) : 0u;
+
+    // Replace a generic mit term (and its job qualifier) in the action text with the
+    // active job's real ability name, so a call reads "Troubadour" not "Party Mit".
+    public static string DisplayAction(string action, string? job)
+    {
+        if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return action;
+        foreach (var (term, map) in JobMits)
+        {
+            if (!map.TryGetValue(job!, out var ability)) continue;
+            action = Regex.Replace(action, Regex.Escape(term) + @"(?:\s*\(([^)]*)\))?", m =>
+            {
+                var quals = m.Groups[1].Value;
+                return quals.Length == 0 || quals.IndexOf(job!, StringComparison.OrdinalIgnoreCase) >= 0
+                    ? ability : m.Value;
+            }, RegexOptions.IgnoreCase);
+        }
+        return action;
     }
 
     // A potion line (from the Potions section): action "Potion", or a "Potion (…)"

@@ -70,7 +70,7 @@ public class CueEngine
             Service.Log.Information(
                 $"[FrenMits] FIRE '{line.Action}' (time={line.Time} elapsed={elapsed:0.0} gen={_generation})");
             _plugin.Diag.Cue(line.Action, line.Time, elapsed, _generation, "");
-            Fire(c, line);
+            Fire(c, line, job);
         }
     }
 
@@ -97,14 +97,15 @@ public class CueEngine
     // When each spoken phrase was last said, to debounce identical calls.
     private readonly Dictionary<string, DateTime> _spokenAt = new();
 
-    private void Fire(Configuration c, MitLine line)
+    private void Fire(Configuration c, MitLine line, string? job)
     {
         if (!c.TtsEnabled) return;
 
         // Per-line override wins; otherwise speak the action (or mechanic if chosen).
+        // The action is job-resolved so "Party Mit" is spoken as e.g. "Troubadour".
         var fallback = c.TtsSpeakMechanic
-            ? (string.IsNullOrWhiteSpace(line.Mechanic) ? line.Action : line.Mechanic)
-            : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : line.Action);
+            ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.Action, job) : line.Mechanic)
+            : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.Action, job));
         var text = string.IsNullOrWhiteSpace(line.Tts) ? fallback : line.Tts;
         if (string.IsNullOrWhiteSpace(text)) return;
 

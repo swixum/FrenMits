@@ -25,7 +25,7 @@ public static class MitTypes
     private static readonly string[] PartyWords =
     {
         "feint", "addle", "dismantle", "magick barrier", "tactician", "troubadour",
-        "shield samba", "improvisation", "divine veil", "passage of arms",
+        "shield samba", "improvisation", "divine veil", "passage of arms", "shake it off",
         "heart of light", "dark missionary", "sacred soil", "kerachole", "holos",
         "expedient", "temperance", "divine caress", "neutral sect", "collective",
         "plenary", "fey illumination", "seraph", "panhaima", "philosophia", "zoe",
