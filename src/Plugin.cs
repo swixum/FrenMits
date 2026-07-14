@@ -36,6 +36,7 @@ public sealed class Plugin : IDalamudPlugin
     public WhatsNewWindow WhatsNewWindow { get; }
     public RecapButtonWindow RecapButtonWindow { get; }
     public RecapWindow RecapWindow { get; }
+    public SheetViewWindow SheetViewWindow { get; }
 
     private readonly IDtrBarEntry? _dtr;
 
@@ -280,6 +281,7 @@ public sealed class Plugin : IDalamudPlugin
         CombatTimerWindow = new CombatTimerWindow(this);
         RecapButtonWindow = new RecapButtonWindow(this);
         RecapWindow = new RecapWindow(this);
+        SheetViewWindow = new SheetViewWindow(this);
         WhatsNewWindow = new WhatsNewWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
@@ -288,6 +290,7 @@ public sealed class Plugin : IDalamudPlugin
         Windows.AddWindow(CombatTimerWindow);
         Windows.AddWindow(RecapButtonWindow);
         Windows.AddWindow(RecapWindow);
+        Windows.AddWindow(SheetViewWindow);
         Windows.AddWindow(WhatsNewWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
@@ -299,7 +302,7 @@ public sealed class Plugin : IDalamudPlugin
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Open Fren Mits. /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer, /fm p4 = practice-jump to a phase."
+            HelpMessage = "Open Fren Mits. /fm sheet = the all-slots sheet view, /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer, /fm p4 = practice-jump to a phase."
         });
         Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand));
 
@@ -724,6 +727,10 @@ public sealed class Plugin : IDalamudPlugin
             case "test":
                 Config.TestMode = !Config.TestMode;
                 Config.Save();
+                break;
+            case "sheet":
+                if (SheetViewWindow.IsOpen) SheetViewWindow.IsOpen = false;
+                else SheetViewWindow.Open();
                 break;
             default:
                 var pm = System.Text.RegularExpressions.Regex.Match(args.Trim().ToLowerInvariant(), @"^(?:phase|p)\s*(\d)$");

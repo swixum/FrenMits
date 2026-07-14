@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.130";
+    public const string NotesVersion = "1.0.0.131";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -30,7 +30,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Big fix round: edits stick, recaps cover the whole pull");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "New: Sheet View — the whole raid plan in one grid");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -60,20 +60,18 @@ public class WhatsNewWindow : Window
 
     private static readonly (string Head, string Body)[] Notes =
     {
-        ("Your edits stick now",
-            "Re-timing or renaming a sheet call used to quietly revert the next time you zoned "
-            + "in. Edited lines are now yours for good (like deleted ones since last update); "
-            + "Restore or Reset to sheet brings the originals back."),
-        ("Wipe recap covers the whole pull",
-            "Phase cutscenes no longer restart the mit recap and review, so after a wipe you "
-            + "see every mit from the whole pull - and the wipe popup can't appear mid-fight "
-            + "during a transition anymore."),
-        ("Sharing a plan updates, not duplicates",
-            "Importing a friend's plan for a fight you already have now updates that fight "
-            + "instead of creating a stuck duplicate that never fires."),
-        ("Voice and polish fixes",
-            "A slow online voice can no longer talk over the next call; charge mits (Aurora, "
-            + "Oblation) aren't shown as on cooldown when a charge is ready; a passed call's "
-            + "NOW now stays up alongside the next call; plus smaller editor and overlay fixes."),
+        ("Sheet View (under Sheet View in the sidebar, or /fm sheet)",
+            "Every slot's mits in one grid, just like the Google sheet. Rows are the fight's "
+            + "mechanics, columns are all ten slots, your slot is starred and tinted."),
+        ("Re-time once, move everyone",
+            "Click a mechanic's TIME to shift it for every slot at once. Click a cell to change "
+            + "one slot's mit. Everything you touch turns orange (yours now, safe from sheet "
+            + "updates), and the row's ⟲ puts it back on the sheet."),
+        ("Share the fixed plan",
+            "Hit Share plan, post the code, and each friend's import updates their own slot in "
+            + "place. One person fixes the timings; the whole group syncs up."),
+        ("From v130, in case you missed it",
+            "Edits and deletes on the fight page now stick through zone-ins and sheet updates, "
+            + "and wipe recaps cover the whole pull instead of just the last phase."),
     };
 }

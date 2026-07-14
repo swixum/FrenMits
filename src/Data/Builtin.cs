@@ -145,6 +145,23 @@ public static class Builtin
     public static bool IsDeleted(FightProfile fight, string slot, MitLine baked)
         => fight.DeletedCalls.Any(d => MatchesTombstone(d, slot, baked));
 
+    // Tombstone the ORIGINAL coordinates + flag the line Custom before an edit
+    // mutates it, so re-bakes keep the user's version instead of reverting it.
+    // Slot-explicit: the fight-page editor passes the active slot, the sheet
+    // view passes whichever column is being edited. Call BEFORE mutating.
+    public static void PreserveEdit(FightProfile fight, string slot, MitLine line)
+    {
+        if (line.Custom || !Has(fight.TerritoryId) || string.IsNullOrEmpty(slot)) return;
+        fight.DeletedCalls.Add(new DeletedCall
+        {
+            Slot = slot,
+            Time = line.Time,
+            Mechanic = line.Mechanic,
+            Action = line.Action,
+        });
+        line.Custom = true;
+    }
+
     // Make `slot` the fight's active slot and load its mits — and ONLY its mits.
     //  - Switching to a different slot stashes the slot you're leaving and swaps in
     //    the target slot's own set (your saved edits for it, or a fresh bake).
