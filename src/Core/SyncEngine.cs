@@ -23,9 +23,11 @@ public class SyncEngine
     // a cutscene, rather than releasing on any minor mid-phase drift correction.
     public int PhaseSyncGeneration { get; private set; }
 
-    // Running estimate of how far the clock drifts from the baked timeline before a
-    // mechanic anchor corrects it (+ = your group runs ahead of the sheet). Shown
-    // as a "timeline fit" readout; nudge the fight's timer offset to match.
+    // Running estimate of how far the clock drifts from the baked timeline before
+    // a mechanic anchor corrects it (+ = the clock runs ahead of the fight, i.e.
+    // mechanics resolve later than the sheet says, i.e. your group runs behind).
+    // Shown as a "timeline fit" readout; the config button folds -drift into the
+    // fight's timer offset to re-center calls on the mechanics.
     public float AvgDrift { get; private set; }
     public int DriftSamples { get; private set; }
 
@@ -119,7 +121,7 @@ public class SyncEngine
         foreach (var ba in fight.BossAnchors)
             if (ba.NameId == nameId)
             {
-                _plugin.Timer.SetElapsed(ba.Time - fight.TimerOffset - _plugin.PhaseOffsetFor(fight));
+                _plugin.Timer.SetElapsed(ba.Time - _plugin.PhaseOffsetFor(fight));
                 LastSync = $"[boss] {(casterName.Length > 0 ? casterName : nameId.ToString())} -> {ba.Time:0.0}s (was {elapsed:0.0})";
                 PhaseSyncGeneration++;
                 _plugin.Diag.Sync(LastSync, elapsed, true);
@@ -187,8 +189,10 @@ public class SyncEngine
         }
 
         // Snap so that, timeToResolve from now, ElapsedFor == best.Time. SetElapsed
-        // sets the raw timer, so subtract the per-fight + phase offsets back out.
-        var desiredElapsedNow = best.Time - timeToResolve - fight.TimerOffset - _plugin.PhaseOffsetFor(fight);
+        // sets the raw timer, so subtract the phase offset back out. The fight's
+        // timer offset is deliberately NOT subtracted: it lives on the cue clock
+        // (CueClockFor), so a user's call-shift survives every snap.
+        var desiredElapsedNow = best.Time - timeToResolve - _plugin.PhaseOffsetFor(fight);
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
         if (best.IsPhase) PhaseSyncGeneration++;

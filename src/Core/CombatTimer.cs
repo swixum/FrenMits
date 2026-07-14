@@ -4,7 +4,9 @@ using Dalamud.Game.ClientState.Conditions;
 namespace FrenMits;
 
 // Tracks "seconds since the pull". Syncs to combat start by default; can be
-// manually zeroed (/fm sync) or offset for sheets whose t=0 differs.
+// manually zeroed (/fm sync). The per-fight timer offset does NOT live here or
+// on ElapsedFor; it is applied on the cue clock (Plugin.CueClockFor) so resync
+// snaps can't cancel it.
 public class CombatTimer
 {
     private DateTime? _startUtc;

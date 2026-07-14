@@ -33,6 +33,9 @@ public class CueEngine
         if (_plugin.Timer.Generation != _generation)
         {
             _generation = _plugin.Timer.Generation;
+            // Freshness is judged on the SHEET clock, not the cue clock: a positive
+            // timer offset would otherwise read "10s in" at pull start and never
+            // re-arm the fired-set.
             var fresh = _plugin.ActiveFight() is not { } genFight || _plugin.ElapsedFor(genFight) < 5f;
             if (fresh) _fired.Clear();
         }
@@ -55,7 +58,8 @@ public class CueEngine
         if (c.OnlyInTargetTerritory && !Plugin.Replaying && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 
         var job = _plugin.ActiveJobAbbreviation();
-        var elapsed = _plugin.ElapsedFor(fight);
+        // Cue clock: sheet time + the fight's timer offset, so calls shift as set.
+        var elapsed = _plugin.CueClockFor(fight);
 
         foreach (var line in fight.Lines)
         {

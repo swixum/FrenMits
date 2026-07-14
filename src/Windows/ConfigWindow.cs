@@ -1185,11 +1185,17 @@ public class ConfigWindow : Window, IDisposable
 
         var offset = fight.TimerOffset;
         ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f")) { fight.TimerOffset = offset; C.Save(); }
+        if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f"))
+        {
+            fight.TimerOffset = Math.Clamp(offset, -30f, 30f);
+            C.Save();
+        }
         ImGui.SameLine();
-        ImGui.TextDisabled("+ shifts every call earlier. /fm sync zeroes the live timer.");
-        HelpMarker("The timer auto-starts on combat and resets on a wipe / when the duty ends. Use the offset "
-                   + "or /fm sync to align the sheet's t=0 with your pull.");
+        ImGui.TextDisabled("+ fires every call earlier, - later. Survives resync.");
+        HelpMarker("Shifts when this fight's calls fire: +10 makes every call come 10s sooner, "
+                   + "even with resync on. Heads up: a big + shift can swallow calls timed inside "
+                   + "the first seconds of a pull. The timer auto-starts on combat and resets on a "
+                   + "wipe / when the duty ends; /fm sync zeroes the live timer.");
 
         ImGui.Unindent(10f);
     }
@@ -1851,16 +1857,21 @@ public class ConfigWindow : Window, IDisposable
             if (_plugin.Sync.DriftSamples >= 3)
             {
                 var drift = _plugin.Sync.AvgDrift;
-                var dir = drift > 0 ? "ahead of" : "behind";
+                // drift + = the clock reads past the sheet time when a mechanic
+                // actually resolves, i.e. mechanics land late vs the sheet, i.e.
+                // the group runs behind it. Calls between anchors then fire early,
+                // so the corrective shift is -drift (calls later), folded into the
+                // offset the cue clock reads.
+                var dir = drift > 0 ? "behind" : "ahead of";
                 ImGui.TextDisabled($"Timeline fit: your group runs {Math.Abs(drift):0.0}s {dir} the sheet (avg of {_plugin.Sync.DriftSamples} corrections).");
                 if (Math.Abs(drift) >= 1.5f)
                 {
                     ImGui.SameLine();
-                    if (ImGui.SmallButton($"Shift {target.Name} by {drift:+0.0;-0.0}s"))
+                    if (ImGui.SmallButton($"Shift {target.Name} by {-drift:+0.0;-0.0}s"))
                     {
-                        target.TimerOffset += drift;
+                        target.TimerOffset = Math.Clamp(target.TimerOffset - drift, -30f, 30f);
                         C.Save();
-                        FlashBuiltin($"Nudged timer offset by {drift:+0.0;-0.0}s to match your pace.");
+                        FlashBuiltin($"Nudged timer offset by {-drift:+0.0;-0.0}s to match your pace.");
                     }
                 }
             }

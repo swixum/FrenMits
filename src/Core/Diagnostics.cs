@@ -54,7 +54,8 @@ public class Diagnostics
         var f = _plugin.ActiveFight();
         var job = _plugin.ActiveJobAbbreviation() ?? "?";
         _header = $"FrenMits pull diagnostics  v{typeof(Plugin).Assembly.GetName().Version}\n" +
-                  $"fight={f?.Name ?? "?"}  slot={f?.Slot ?? "?"}  job={job}  start={_start:yyyy-MM-dd HH:mm:ss}";
+                  $"fight={f?.Name ?? "?"}  slot={f?.Slot ?? "?"}  job={job}  " +
+                  $"callShift={(f?.TimerOffset ?? 0f):+0.0;-0.0}s  start={_start:yyyy-MM-dd HH:mm:ss}";
         Log("PULL START");
     }
 
@@ -77,9 +78,11 @@ public class Diagnostics
         if (_active) Log($"{(isPhase ? "PHASE" : "sync ")}  {detail}");
     }
 
+    // `elapsed` here is the CUE clock (sheet + the fight's timer offset); sync
+    // lines log the sheet clock. Subtract the header's callShift to compare.
     public void Cue(string action, float time, float elapsed, int gen, string note)
     {
-        if (_active) Log($"cue    '{action}'  time={time:0}  clock={elapsed:0.0}  gen={gen}{(note.Length > 0 ? "  " + note : "")}");
+        if (_active) Log($"cue    '{action}'  time={time:0}  cueClock={elapsed:0.0}  gen={gen}{(note.Length > 0 ? "  " + note : "")}");
     }
 
     public void Note(string what)

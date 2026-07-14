@@ -107,7 +107,9 @@ public class TimelineWindow : Window
         if (fight == null) return;
 
         var job = _plugin.ActiveJobAbbreviation();
-        var elapsed = _plugin.ElapsedFor(fight);
+        // Cue clock, same as the main call overlay, so the hand-off between this
+        // list and the live call stays seamless when a timer offset is set.
+        var elapsed = _plugin.CueClockFor(fight);
 
         // Show lines that are beyond their lead window (a line inside its lead is on
         // the main call, so it isn't duplicated here) and within the look-ahead.

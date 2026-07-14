@@ -111,7 +111,7 @@ public class OverlayWindow : Window
         if (fight == null) return;
 
         var job = _plugin.ActiveJobAbbreviation();
-        var elapsed = _plugin.ElapsedFor(fight);
+        var elapsed = _plugin.CueClockFor(fight); // call schedule, not sheet position
 
         var lines = fight.OrderedLines.Where(l => l.Enabled && l.AppliesTo(job)).ToList();
 

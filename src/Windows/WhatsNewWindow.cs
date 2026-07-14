@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.125";
+    public const string NotesVersion = "1.0.0.128";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -30,7 +30,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Full refresh: updated mits");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "Timer offset now really shifts your calls");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -60,26 +60,17 @@ public class WhatsNewWindow : Window
 
     private static readonly (string Head, string Body)[] Notes =
     {
-        ("Full reset to the sheet",
-            "This update does a one-time full reset of Dancing Mad to the sheet, including any "
-            + "timers you added yourself, to clear out stale/overlapping lines. Re-add your own "
-            + "and they'll be kept from here on."),
-        ("Dancing Mad mits refreshed",
-            "The whole DMU timeline was re-synced to the latest Ikuya sheet again - every call "
-            + "re-timed to the newest timings, plus the P5 enrage marker."),
-        ("Per-class mit icons",
-            "Generic \"Party Mit\" calls now show your job's actual ability icon - Troubadour on "
-            + "Bard, Tactician on Machinist, Shake It Off on Warrior, and so on for every job that "
-            + "has one."),
-        ("Optional job mitigations",
-            "On a fight's page, a one-click Add for your job's extra mit: BRD Nature's Minne, "
-            + "MNK Mantra, PLD Passage of Arms (and WHM Asylum), pulled from logs and spaced to "
-            + "each ability's recast."),
-        ("Combat timer",
-            "A customizable combat stopwatch overlay (font, color, placement) under Tools."),
-        ("Overlay and UI polish",
-            "Mits at the same time now stack instead of one hiding the other; green checkboxes "
-            + "replace the old pill toggles; the Refresh-from-sheet button is harder to hit by "
-            + "accident; and a tidier settings layout."),
+        ("Timer offset actually works now",
+            "A fight's Timer offset now genuinely shifts every call: +10 fires everything 10s "
+            + "earlier, -2 fires everything 2s later, with resync on or off. Before this fix the "
+            + "resync engine snapped the clock right back within seconds, so the offset silently "
+            + "did nothing in synced fights like Dancing Mad."),
+        ("Check your saved offsets",
+            "Because the knob was dead, any offset you set in the past never applied - it will "
+            + "now. If a fight's calls suddenly feel early or late, check its Timer offset and "
+            + "set it back to 0."),
+        ("Timeline fit button fixed",
+            "The \"Shift by ...s\" suggestion under Resync now nudges your calls in the correct "
+            + "direction (it also wrote to the dead knob before, so it never did anything)."),
     };
 }

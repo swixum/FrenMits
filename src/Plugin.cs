@@ -653,9 +653,18 @@ public sealed class Plugin : IDalamudPlugin
     public float PhaseOffsetFor(FightProfile fight)
         => _phaseTwo && fight.TerritoryId == Builtin.M12sTerritory ? M12sData.Phase2Offset : 0f;
 
-    // The fight clock the overlay/cues read: pull time + per-fight offset + phase.
+    // The sheet clock: where the fight actually is on the timeline. Owned by the
+    // resync engine; everything internal (sync matching, anchor capture, mit
+    // review, recordings, diagnostics) reads this one.
     public float ElapsedFor(FightProfile fight)
-        => Timer.Elapsed + fight.TimerOffset + PhaseOffsetFor(fight);
+        => Timer.Elapsed + PhaseOffsetFor(fight);
+
+    // The call schedule the overlay/cues/DTR/upcoming list read: sheet clock plus
+    // the fight's timer offset. The offset lives here and NOT on the sheet clock,
+    // so a resync snap can never cancel it: +10 always fires every call 10s
+    // earlier, resync on or off.
+    public float CueClockFor(FightProfile fight)
+        => ElapsedFor(fight) + fight.TimerOffset;
 
     // Next-up mit on the server-info bar.
     private void UpdateDtr()
@@ -668,7 +677,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         var job = ActiveJobAbbreviation();
-        var elapsed = ElapsedFor(fight);
+        var elapsed = CueClockFor(fight);
         var next = fight.OrderedLines
             .Where(l => l.Enabled && l.AppliesTo(job) && l.Time - elapsed > 0)
             .Select(l => (l, remaining: l.Time - elapsed))
