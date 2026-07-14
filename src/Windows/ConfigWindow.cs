@@ -1221,6 +1221,24 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("(?)");
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Right-click a line's time / mechanic / action cell to copy, paste, duplicate, reorder, or delete it.");
 
+        // Deleted sheet calls are remembered (so updates can't re-add them); show
+        // that hidden state and offer the way back.
+        var dead = fight.DeletedCalls.Count(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
+        if (dead > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextDisabled($"· {dead} deleted sheet call{(dead == 1 ? "" : "s")}");
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Restore"))
+            {
+                fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
+                var back = Builtin.ApplySlot(fight, fight.Slot);
+                C.Save();
+                FlashBuiltin($"Restored {back} deleted sheet call{(back == 1 ? "" : "s")}.");
+            }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Bring every deleted sheet call for this slot back from the sheet.");
+        }
+
         // Grow the table to fill what's left, leaving room for the import header
         // underneath, so a freshly loaded sheet isn't cut off.
         var avail = ImGui.GetContentRegionAvail().Y;
@@ -1348,7 +1366,29 @@ public class ConfigWindow : Window, IDisposable
         ImGui.EndTable();
 
         deferred?.Invoke();
-        if (toDelete != null) { fight.Lines.Remove(toDelete); C.Save(); }
+        if (toDelete != null)
+        {
+            // Sheet-baked lines get a tombstone so the zone-in top-up / slot
+            // switches / sheet re-bakes can't resurrect them. Custom lines exist
+            // only in the saved lists, so removal alone is final for those.
+            if (!toDelete.Custom && Builtin.Has(fight.TerritoryId) && !string.IsNullOrEmpty(fight.Slot))
+            {
+                fight.DeletedCalls.Add(new DeletedCall
+                {
+                    Slot = fight.Slot,
+                    Time = toDelete.Time,
+                    Mechanic = toDelete.Mechanic,
+                    Action = toDelete.Action,
+                });
+                FlashBuiltin("Line deleted. It stays deleted; Restore (above the table) brings it back.");
+            }
+            fight.Lines.Remove(toDelete);
+            // Keep the slot's saved copy in step even right after a config reload,
+            // when Lines and SavedSlots hold separate list objects.
+            if (!string.IsNullOrEmpty(fight.Slot))
+                fight.SavedSlots[fight.Slot] = fight.Lines;
+            C.Save();
+        }
     }
 
     // Right-click line menu shared by the time / mechanic / action cells: copy a

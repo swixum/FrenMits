@@ -388,6 +388,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (!Builtin.Has(f.TerritoryId)) continue;
             f.SavedSlots.Clear();
+            f.DeletedCalls.Clear();             // a full refresh un-deletes everything
             if (!string.IsNullOrEmpty(f.Slot))
                 Builtin.ResetSlot(f, f.Slot);   // fresh bake of the active slot
             else
@@ -414,9 +415,9 @@ public sealed class Plugin : IDalamudPlugin
             if (f.TerritoryId != Builtin.DmuTerritory) continue;
 
             if (!string.IsNullOrEmpty(f.Slot))
-                f.Lines = MergeDmuSlot(f.Slot, f.Lines);
+                f.Lines = MergeDmuSlot(f, f.Slot, f.Lines);
             foreach (var key in new List<string>(f.SavedSlots.Keys))
-                f.SavedSlots[key] = MergeDmuSlot(key, f.SavedSlots[key]);
+                f.SavedSlots[key] = MergeDmuSlot(f, key, f.SavedSlots[key]);
 
             f.SyncPoints = Builtin.SyncPoints(f.TerritoryId);
             f.BossAnchors = Builtin.BossAnchors(f.TerritoryId);
@@ -426,10 +427,12 @@ public sealed class Plugin : IDalamudPlugin
         return n;
     }
 
-    private static List<MitLine> MergeDmuSlot(string slot, List<MitLine> existing)
+    private static List<MitLine> MergeDmuSlot(FightProfile fight, string slot, List<MitLine> existing)
     {
         var oldBaked = DmuLegacy.BuildLines(slot);
-        var newBaked = DmuData.BuildLines(slot);
+        // Deleted calls stay deleted through a sheet re-bake too.
+        var newBaked = DmuData.BuildLines(slot)
+            .Where(b => !Builtin.IsDeleted(fight, slot, b)).ToList();
 
         // Exact match against the previous bake (time + action + mechanic).
         static bool SameBaked(MitLine a, MitLine b)

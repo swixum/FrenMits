@@ -130,6 +130,21 @@ public static class Builtin
         => MathF.Abs(a.Time - b.Time) < 0.75f
            && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
+    // A deletion tombstone suppresses a baked line when the spoken action matches
+    // within a wide window (same "a fight never reuses one mit that close"
+    // reasoning as the de-overlap in ApplySlot), so a sheet update that re-times
+    // or renames the mechanic can't resurrect a deleted call. Lines with no
+    // action on either side fall back to the mechanic label.
+    public static bool MatchesTombstone(DeletedCall d, string slot, MitLine baked)
+        => string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase)
+           && MathF.Abs(d.Time - baked.Time) < 6f
+           && (!string.IsNullOrWhiteSpace(d.Action) || !string.IsNullOrWhiteSpace(baked.Action)
+               ? string.Equals(d.Action.Trim(), baked.Action.Trim(), StringComparison.OrdinalIgnoreCase)
+               : string.Equals(d.Mechanic.Trim(), baked.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    public static bool IsDeleted(FightProfile fight, string slot, MitLine baked)
+        => fight.DeletedCalls.Any(d => MatchesTombstone(d, slot, baked));
+
     // Make `slot` the fight's active slot and load its mits — and ONLY its mits.
     //  - Switching to a different slot stashes the slot you're leaving and swaps in
     //    the target slot's own set (your saved edits for it, or a fresh bake).
@@ -142,13 +157,17 @@ public static class Builtin
 
         var topUp = true;
 
+        // A fresh bake never includes calls the user deleted from this slot.
+        List<MitLine> Bake(string s)
+            => BuildLines(fight.TerritoryId, s).Where(b => !IsDeleted(fight, s, b)).ToList();
+
         if (string.IsNullOrEmpty(fight.Slot))
         {
             // First use / migrating an older profile: adopt this slot. Keep any
             // existing lines as-is (don't top up — we can't assume they're this
             // slot's), otherwise bake the slot fresh.
             fight.Slot = slot;
-            if (fight.Lines.Count == 0) fight.Lines = BuildLines(fight.TerritoryId, slot);
+            if (fight.Lines.Count == 0) fight.Lines = Bake(slot);
             else topUp = false;
         }
         else if (!string.Equals(fight.Slot, slot, StringComparison.OrdinalIgnoreCase))
@@ -157,19 +176,28 @@ public static class Builtin
             fight.Slot = slot;
             fight.Lines = fight.SavedSlots.TryGetValue(slot, out var saved) && saved.Count > 0
                 ? saved                                    // your saved edits for this slot
-                : BuildLines(fight.TerritoryId, slot);     // or a clean bake
+                : Bake(slot);                              // or a clean bake
         }
         else if (fight.Lines.Count == 0)
         {
-            fight.Lines = BuildLines(fight.TerritoryId, slot);
+            fight.Lines = Bake(slot);
         }
 
         var added = 0;
         if (topUp)
         {
             var baked = BuildLines(fight.TerritoryId, slot);
-            foreach (var b in baked)
-                if (!fight.Lines.Any(l => SameCall(l, b))) { fight.Lines.Add(b); added++; }
+            // The bake minus deleted calls: what this slot is actually entitled to.
+            // The de-overlap below also checks against THIS list, so a custom line
+            // the user added to replace a deleted call doesn't get swept as a
+            // duplicate of the (suppressed) original.
+            var live = baked.Where(b => !IsDeleted(fight, slot, b)).ToList();
+            foreach (var b in live)
+                if (!fight.Lines.Any(l => SameCall(l, b)))
+                {
+                    fight.Lines.Add(b);
+                    added++;
+                }
 
             // Drop stale leftovers from an earlier build. SameCall only matches
             // within 0.75s, so when a baked mechanic's time shifted further than
@@ -182,10 +210,16 @@ public static class Builtin
             // longer — so this only ever clears a redundant duplicate.)
             fight.Lines.RemoveAll(l =>
                 !string.IsNullOrWhiteSpace(l.Action)
-                && !baked.Any(b => SameCall(l, b))
-                && baked.Any(b => MathF.Abs(b.Time - l.Time) < 6f
-                                  && string.Equals(b.Action.Trim(), l.Action.Trim(),
-                                                   StringComparison.OrdinalIgnoreCase)));
+                && !live.Any(b => SameCall(l, b))
+                && live.Any(b => MathF.Abs(b.Time - l.Time) < 6f
+                                 && string.Equals(b.Action.Trim(), l.Action.Trim(),
+                                                  StringComparison.OrdinalIgnoreCase)));
+
+            // Housekeeping: drop tombstones for calls the sheet itself no longer
+            // bakes, so the list can't grow stale forever.
+            fight.DeletedCalls.RemoveAll(d =>
+                string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase)
+                && !baked.Any(b => MatchesTombstone(d, slot, b)));
         }
 
         fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
@@ -197,8 +231,11 @@ public static class Builtin
     }
 
     // Discard this slot's edits and reload it straight from the baked sheet.
+    // "Edits" includes deletions: the slot's tombstones are cleared, so every
+    // sheet call comes back.
     public static void ResetSlot(FightProfile fight, string slot)
     {
+        fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase));
         fight.Slot = slot;
         fight.Lines = BuildLines(fight.TerritoryId, slot);
         fight.SavedSlots[slot] = fight.Lines;

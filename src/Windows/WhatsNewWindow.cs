@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.128";
+    public const string NotesVersion = "1.0.0.129";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -30,7 +30,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Timer offset now really shifts your calls");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "Deleted lines now stay deleted");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -60,17 +60,15 @@ public class WhatsNewWindow : Window
 
     private static readonly (string Head, string Body)[] Notes =
     {
-        ("Timer offset actually works now",
-            "A fight's Timer offset now genuinely shifts every call: +10 fires everything 10s "
-            + "earlier, -2 fires everything 2s later, with resync on or off. Before this fix the "
-            + "resync engine snapped the clock right back within seconds, so the offset silently "
-            + "did nothing in synced fights like Dancing Mad."),
-        ("Check your saved offsets",
-            "Because the knob was dead, any offset you set in the past never applied - it will "
-            + "now. If a fight's calls suddenly feel early or late, check its Timer offset and "
-            + "set it back to 0."),
-        ("Timeline fit button fixed",
-            "The \"Shift by ...s\" suggestion under Resync now nudges your calls in the correct "
-            + "direction (it also wrote to the dead knob before, so it never did anything)."),
+        ("Deleted lines stay deleted",
+            "Deleting a sheet call now sticks. Zoning in, switching slot or role, and sheet "
+            + "updates used to quietly re-add it; now the plugin remembers what you deleted."),
+        ("Restore when you change your mind",
+            "The Lines header shows how many sheet calls you've deleted, with a Restore button "
+            + "to bring them all back. \"Reset to sheet\" also brings everything back."),
+        ("From v128: Timer offset works now",
+            "In case you missed it: a fight's Timer offset now genuinely shifts every call "
+            + "(+10 fires everything 10s earlier) and resync can't cancel it. If you set an "
+            + "offset long ago, it applies now - set it back to 0 if you didn't mean it."),
     };
 }

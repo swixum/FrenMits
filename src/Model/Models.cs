@@ -17,12 +17,17 @@ public class FightProfile
     // Sidebar group: "Ultimate", "Savage", "Extreme", "Raids", "Other".
     public string Category { get; set; } = "";
 
-    // Added to the combat-synced elapsed time. Use it to nudge the whole sheet
-    // earlier/later if your sheet's t=0 differs from combat start.
+    // Added on the cue clock (Plugin.CueClockFor), NOT the sheet clock, so it
+    // survives resync: + fires every call earlier, - later.
     public float TimerOffset { get; set; }
 
     // The active slot's lines (what the overlay reads + the line table edits).
     public List<MitLine> Lines { get; set; } = new();
+
+    // Tombstones for sheet-baked lines the user deleted, so ApplySlot's top-up
+    // and the sheet re-bakes don't resurrect them. Slot-scoped, like the lines
+    // themselves. Cleared by Reset to sheet / the Restore button.
+    public List<DeletedCall> DeletedCalls { get; set; } = new();
 
     // The built-in sheet slot currently selected for this fight (e.g. "D1", "WHM").
     // Drives the seamless auto-load when you enter the zone. Empty = infer from job.
@@ -44,6 +49,19 @@ public class FightProfile
     public List<BossAnchor> BossAnchors { get; set; } = new();
 
     public IEnumerable<MitLine> OrderedLines => Lines.OrderBy(l => l.Time);
+}
+
+// A deleted sheet call, remembered so no re-bake brings it back. Matched by the
+// spoken action (or mechanic when neither line has an action) within a wide time
+// window, so a sheet update that re-times or renames the mechanic still can't
+// resurrect it.
+[Serializable]
+public class DeletedCall
+{
+    public string Slot { get; set; } = "";
+    public float Time { get; set; }
+    public string Mechanic { get; set; } = "";
+    public string Action { get; set; } = "";
 }
 
 [Serializable]
