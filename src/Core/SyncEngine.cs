@@ -52,6 +52,11 @@ public class SyncEngine
         _wasRunning = running;
 
         if ((!c.EnableSync && !Recording) || !running) return;
+        // A replay feeds SnapToCast/SnapToBoss itself from the recording; the
+        // live object-table scan must stay out of it, or a real NPC in the zone
+        // (replaying while standing inside the instance) re-anchors the replay
+        // clock mid-run.
+        if (Plugin.Replaying) return;
         if (_plugin.ActiveFight() is not { } fight) return;
 
         // Work in the same clock the overlay reads (includes any door-boss phase

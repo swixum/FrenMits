@@ -79,6 +79,18 @@ public static class Cooldowns
         var total = am->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
         if (total <= 0f) return 0f; // no recast group / not on your current job
         var elapsed = am->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
+
+        // Charge actions (Aurora, Oblation): the recast timer spans ALL charges,
+        // so total - elapsed reads "on cooldown" even while a charge sits ready.
+        // A charge is available once elapsed covers one per-charge span.
+        var maxCharges = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(adjusted, 0);
+        if (maxCharges > 1)
+        {
+            var perCharge = total / maxCharges;
+            if (perCharge > 0f && elapsed >= perCharge) return 0f;      // a charge is up
+            return MathF.Max(0f, perCharge - elapsed);                  // time to first charge
+        }
+
         return MathF.Max(0f, total - elapsed);
     }
 }

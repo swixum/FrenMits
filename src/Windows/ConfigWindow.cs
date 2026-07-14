@@ -150,7 +150,19 @@ public class ConfigWindow : Window, IDisposable
         DrawFooter();
         ImGui.PopStyleVar(4);
         Theme.PopWidgets();
+
+        // Toggle()/CfgCheck()/GridCheck() return the new value for the CALLER to
+        // assign, so saving inside them would persist the pre-assignment state
+        // (one edit stale on disk until some later save). They mark this flag
+        // instead, and the save runs here, after every assignment this frame.
+        if (_toggleDirty)
+        {
+            _toggleDirty = false;
+            C.Save();
+        }
     }
+
+    private bool _toggleDirty;
 
     private void DrawFooter()
     {
@@ -183,11 +195,12 @@ public class ConfigWindow : Window, IDisposable
     // Config-bound checkbox: edits a local copy, saves on change, returns the new value.
     private bool CfgCheck(string label, bool value) => Toggle(label, value);
 
-    // A checkbox + label. Fills green with a white tick when on. Saves on change.
+    // A checkbox + label. Fills green with a white tick when on. Saves on change
+    // (deferred to the end of Draw, AFTER the caller assigns the returned value).
     private bool Toggle(string label, bool value)
     {
         var v = value;
-        if (GreenCheckbox($"##tg_{label}", ref v)) C.Save();
+        if (GreenCheckbox($"##tg_{label}", ref v)) _toggleDirty = true;
         ImGui.SameLine(0, 8);
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(label);
@@ -786,9 +799,12 @@ public class ConfigWindow : Window, IDisposable
     {
         var slots = Builtin.Slots(fight.TerritoryId);
 
-        // Reflect the fight's active slot in the picker.
+        // Reflect the fight's active slot in the picker. When this fight has no
+        // valid slot yet (fresh profile / removed legacy slot), fall back to the
+        // first slot rather than whatever index the LAST fight's picker used;
+        // otherwise "Reset to sheet" would bake this fight onto that stale slot.
         var savedIdx = Array.IndexOf(slots, fight.Slot);
-        if (savedIdx >= 0) _builtinSlot = savedIdx;
+        _builtinSlot = savedIdx >= 0 ? savedIdx : 0;
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
 
         var slotLabels = slots.Select(SlotLabel).ToArray();
@@ -885,12 +901,13 @@ public class ConfigWindow : Window, IDisposable
     {
         if (!TankMits.Has(fight.TerritoryId)) return;
         if (!IsTankSlot(fight.Slot)) return;
+        // Check BEFORE BeginCard: returning between Begin/EndCard would leak the
+        // draw-list channel split + indent and corrupt the next card this frame.
+        var comps = TankMits.Comps(fight.TerritoryId);
+        if (comps.Length == 0) return;
 
         BeginCard(FontAwesomeIcon.ShieldAlt, ImGuiColors.TankBlue, "Tank busters", "from Ikuya");
         ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
-
-        var comps = TankMits.Comps(fight.TerritoryId);
-        if (comps.Length == 0) return;
         _tankComp = Math.Clamp(_tankComp, 0, comps.Length - 1);
         ImGui.SetNextItemWidth(140f);
         ImGui.Combo("Tank pairing", ref _tankComp, comps, comps.Length);
@@ -1097,6 +1114,7 @@ public class ConfigWindow : Window, IDisposable
     private void DrawJobExtrasSection(FightProfile fight)
     {
         var job = _plugin.ActiveJobAbbreviation();
+        if (string.IsNullOrEmpty(job)) return; // also lets the compiler see job is non-null below
         var extra = JobExtras.For(fight.TerritoryId, job);
         if (extra == null) return;
 
@@ -1159,6 +1177,17 @@ public class ConfigWindow : Window, IDisposable
                     Enabled = fight.Enabled,
                     Slot = fight.Slot,
                     Lines = fight.Lines.Select(CloneLine).ToList(),
+                    // Deep-copy the rest too: for a custom fight the hand-built
+                    // anchors are its most laborious data, and sharing object
+                    // references between two profiles would make edits bleed over.
+                    SyncPoints = fight.SyncPoints.Select(s => new SyncPoint
+                    { Ability = s.Ability, Time = s.Time, IsPhase = s.IsPhase, Label = s.Label }).ToList(),
+                    BossAnchors = fight.BossAnchors.Select(b => new BossAnchor
+                    { NameId = b.NameId, Time = b.Time, Label = b.Label }).ToList(),
+                    DeletedCalls = fight.DeletedCalls.Select(d => new DeletedCall
+                    { Slot = d.Slot, Time = d.Time, Mechanic = d.Mechanic, Action = d.Action }).ToList(),
+                    SavedSlots = fight.SavedSlots.ToDictionary(
+                        kv => kv.Key, kv => kv.Value.Select(CloneLine).ToList()),
                 });
             }
             ImGui.SameLine();
@@ -1284,8 +1313,19 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.IsItemActivated()) { _editTimeLine = line; _editTimeBuf = line.TimeText; }
             if (ImGui.IsItemDeactivatedAfterEdit())
             {
-                if (SheetImport.TryParseTime(_editTimeBuf, out var sec)) { line.Time = sec; C.Save(); }
-                _editTimeLine = null;
+                // Commit ONLY if the shared buffer still belongs to this line.
+                // Clicking straight into an earlier row's time cell activates that
+                // cell first in the frame (overwriting the buffer), so committing
+                // unconditionally here would write the OTHER row's time into this
+                // line.
+                if (_editTimeLine == line && SheetImport.TryParseTime(_editTimeBuf, out var sec)
+                    && MathF.Abs(sec - line.Time) > 0.001f)
+                {
+                    PreserveBakedEdit(fight, line);
+                    line.Time = sec;
+                    C.Save();
+                }
+                if (_editTimeLine == line) _editTimeLine = null;
             }
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds — right-click to reset");
             if (ImGui.BeginPopupContextItem("##timectx"))
@@ -1311,7 +1351,12 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TableNextColumn();
             var mech = line.Mechanic;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.InputText("##mech", ref mech, 256)) { line.Mechanic = mech; C.Save(); }
+            if (ImGui.InputText("##mech", ref mech, 256))
+            {
+                PreserveBakedEdit(fight, line); // before the first keystroke lands
+                line.Mechanic = mech;
+                C.Save();
+            }
             if (ImGui.BeginPopupContextItem("##mechctx"))
             {
                 var def = DefaultLineFor(fight, line);
@@ -1335,7 +1380,15 @@ public class ConfigWindow : Window, IDisposable
             }
             var action = line.Action;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.InputText("##action", ref action, 256)) { line.Action = action; C.Save(); }
+            if (ImGui.InputText("##action", ref action, 256))
+            {
+                // Tombstone here too, not just on time/mechanic edits: otherwise
+                // editing the ACTION first would leave later tombstones recording
+                // the mutated action, which no longer matches the baked original.
+                PreserveBakedEdit(fight, line);
+                line.Action = action;
+                C.Save();
+            }
             if (ImGui.BeginPopupContextItem("##actionctx"))
             {
                 var def = DefaultLineFor(fight, line);
@@ -1414,6 +1467,7 @@ public class ConfigWindow : Window, IDisposable
         }
         if (ImGui.MenuItem("Paste over this line", string.Empty, false, hasCopy) && _copiedLine != null)
         {
+            PreserveBakedEdit(fight, line); // pasting over rewrites time/mechanic
             OverwriteLine(line, _copiedLine);
             C.Save();
         }
@@ -1438,6 +1492,25 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.Separator();
         if (ImGui.MenuItem("Delete line")) toDelete = line;
+    }
+
+    // Editing the time or mechanic of a sheet-baked line breaks its identity with
+    // the bake (SameCall keys on time + mechanic), so the next zone-in would
+    // re-add the original and the de-overlap would sweep the edited copy,
+    // silently reverting the edit. Preserve it the same way delete does: record
+    // a tombstone at the ORIGINAL coordinates (call BEFORE mutating the line)
+    // and flag the line Custom so it's the user's from here on.
+    private void PreserveBakedEdit(FightProfile fight, MitLine line)
+    {
+        if (line.Custom || !Builtin.Has(fight.TerritoryId) || string.IsNullOrEmpty(fight.Slot)) return;
+        fight.DeletedCalls.Add(new DeletedCall
+        {
+            Slot = fight.Slot,
+            Time = line.Time,
+            Mechanic = line.Mechanic,
+            Action = line.Action,
+        });
+        line.Custom = true;
     }
 
     // Copy every field of src onto target in place (used by "Paste over").
@@ -1580,13 +1653,23 @@ public class ConfigWindow : Window, IDisposable
 
         if (ImGui.Button("Add to current mits"))
         {
-            // Always additive: imported lines are appended onto whatever this slot
-            // already has, then sorted. Nothing is replaced.
-            var imported = SheetImport.BuildLines(_importGrid, opt);
-            var merged = new List<MitLine>(fight.Lines);
-            merged.AddRange(imported);
-            SetFightLines(fight, merged.OrderBy(l => l.Time).ToList());
-            FlashBuiltin($"Added {imported.Count} imported line(s).");
+            if (_importJobMode == 1 && pickedJobs.Count == 0)
+            {
+                // "My selected job" resolved to nothing (Job selection on Auto with
+                // no player loaded). Empty Jobs means "everyone", so importing now
+                // would silently give every job these lines - block it instead.
+                FlashBuiltin("Couldn't resolve your job - pick jobs manually or set Job selection first.");
+            }
+            else
+            {
+                // Always additive: imported lines are appended onto whatever this slot
+                // already has, then sorted. Nothing is replaced.
+                var imported = SheetImport.BuildLines(_importGrid, opt);
+                var merged = new List<MitLine>(fight.Lines);
+                merged.AddRange(imported);
+                SetFightLines(fight, merged.OrderBy(l => l.Time).ToList());
+                FlashBuiltin($"Added {imported.Count} imported line(s).");
+            }
         }
         ImGui.SameLine();
         ImGui.TextDisabled("Imported lines are added onto your current slot.");
@@ -2574,6 +2657,45 @@ public class ConfigWindow : Window, IDisposable
 
             var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
             if (fight == null) return;
+
+            // A same-territory import UPDATES the existing profile instead of
+            // adding a duplicate: a second profile for one territory never fires
+            // (ActiveFight takes the first match), and a duplicate of a built-in
+            // renders locked, with no way to delete it.
+            var existing = fight.TerritoryId != 0
+                ? _plugin.Config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId)
+                : null;
+            if (existing != null)
+            {
+                // Slot-scoped update: the import replaces the sender's ACTIVE slot
+                // only. Wholesale-replacing SavedSlots/DeletedCalls would silently
+                // wipe YOUR saved edits for every other slot in the fight.
+                existing.Lines = fight.Lines;
+                existing.TimerOffset = fight.TimerOffset;
+                if (!string.IsNullOrEmpty(fight.Slot))
+                {
+                    existing.Slot = fight.Slot;
+                    existing.SavedSlots[fight.Slot] = fight.Lines;
+                    existing.DeletedCalls.RemoveAll(d =>
+                        string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
+                    existing.DeletedCalls.AddRange(fight.DeletedCalls.Where(d =>
+                        string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase)));
+                }
+                if (!Builtin.Has(existing.TerritoryId))
+                {
+                    // Custom fights carry their hand-built anchors; built-ins keep
+                    // the canonical baked ones (ApplySlot refreshes those anyway).
+                    existing.Name = fight.Name;
+                    existing.SyncPoints = fight.SyncPoints;
+                    existing.BossAnchors = fight.BossAnchors;
+                }
+                C.Save();
+                FlashBuiltin(string.IsNullOrEmpty(fight.Slot)
+                    ? $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\"."
+                    : $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\" ({SlotLabel(fight.Slot)} slot; your other slots kept).");
+                return;
+            }
+
             fight.Id = Guid.NewGuid().ToString("N");
             // Drop it into the category you're currently viewing and expand it.
             if (_nav == NavKind.Fights) fight.Category = _navCategory;

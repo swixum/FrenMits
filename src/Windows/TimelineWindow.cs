@@ -200,6 +200,11 @@ public class TimelineWindow : Window
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
+        // Only capture while the mouse is held: the anchor derives from the
+        // window CENTER, and AlwaysAutoResize changes the width as the upcoming
+        // list changes, so saving on any difference would let the anchor drift
+        // (with a config write each time) without the user touching anything.
+        if (!ImGui.IsMouseDown(ImGuiMouseButton.Left)) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
         var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);

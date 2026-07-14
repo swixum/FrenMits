@@ -142,6 +142,14 @@ public class OverlayWindow : Window
                 var lead = l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds;
                 return rem >= 0f && rem <= lead && rem <= bestRemaining + tieWindow;
             }).OrderBy(l => l.Time).ToList();
+            // Keep a just-passed call's "NOW" up for its full hold, stacked with
+            // the next call, instead of cutting it short the moment another call
+            // enters its lead window (calls 1-3s apart are routine).
+            var held = _activeLines
+                .Where(l => !group.Contains(l))
+                .Where(l => { var rem = l.Time - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
+                .ToList();
+            if (held.Count > 0) group = held.Concat(group).OrderBy(l => l.Time).ToList();
             _activeLines.Clear();
             _activeLines.AddRange(group); // remember what we're actively counting down
         }
@@ -363,6 +371,11 @@ public class OverlayWindow : Window
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
+        // Only capture while the mouse is held: the anchor derives from the
+        // window CENTER, and AlwaysAutoResize changes the width as call text
+        // changes, so saving on any difference would let the anchor drift
+        // (with a config write each time) without the user touching anything.
+        if (!ImGui.IsMouseDown(ImGuiMouseButton.Left)) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
         var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);

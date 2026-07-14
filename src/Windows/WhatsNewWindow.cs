@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.129";
+    public const string NotesVersion = "1.0.0.130";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -30,7 +30,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Deleted lines now stay deleted");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "Big fix round: edits stick, recaps cover the whole pull");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -60,15 +60,20 @@ public class WhatsNewWindow : Window
 
     private static readonly (string Head, string Body)[] Notes =
     {
-        ("Deleted lines stay deleted",
-            "Deleting a sheet call now sticks. Zoning in, switching slot or role, and sheet "
-            + "updates used to quietly re-add it; now the plugin remembers what you deleted."),
-        ("Restore when you change your mind",
-            "The Lines header shows how many sheet calls you've deleted, with a Restore button "
-            + "to bring them all back. \"Reset to sheet\" also brings everything back."),
-        ("From v128: Timer offset works now",
-            "In case you missed it: a fight's Timer offset now genuinely shifts every call "
-            + "(+10 fires everything 10s earlier) and resync can't cancel it. If you set an "
-            + "offset long ago, it applies now - set it back to 0 if you didn't mean it."),
+        ("Your edits stick now",
+            "Re-timing or renaming a sheet call used to quietly revert the next time you zoned "
+            + "in. Edited lines are now yours for good (like deleted ones since last update); "
+            + "Restore or Reset to sheet brings the originals back."),
+        ("Wipe recap covers the whole pull",
+            "Phase cutscenes no longer restart the mit recap and review, so after a wipe you "
+            + "see every mit from the whole pull - and the wipe popup can't appear mid-fight "
+            + "during a transition anymore."),
+        ("Sharing a plan updates, not duplicates",
+            "Importing a friend's plan for a fight you already have now updates that fight "
+            + "instead of creating a stuck duplicate that never fires."),
+        ("Voice and polish fixes",
+            "A slow online voice can no longer talk over the next call; charge mits (Aurora, "
+            + "Oblation) aren't shown as on cooldown when a charge is ready; a passed call's "
+            + "NOW now stays up alongside the next call; plus smaller editor and overlay fixes."),
     };
 }

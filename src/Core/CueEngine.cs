@@ -19,6 +19,10 @@ public class CueEngine
         _audio = audio;
     }
 
+    // Re-arm every cue. Needed when a replay rebases the clock mid-sheet: the
+    // fresh-pull check below (elapsed < 5s) can't recognize that as a new run.
+    public void Rearm() => _fired.Clear();
+
     public void Update()
     {
         var c = _plugin.Config;

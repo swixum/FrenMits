@@ -50,8 +50,14 @@ public class MitRecap
             // hunts, cities, etc.
             if (!InDuty()) { _wasRunning = false; return; }
 
-            var running = _plugin.Timer.Running && !Plugin.InCutscene;
-            if (running && !_wasRunning) { Log.Clear(); _active.Clear(); }
+            // A phase cutscene is a FREEZE, not a pull boundary: the timer keeps
+            // running through it. Treating it as a boundary used to finalize the
+            // recap (and pop the wipe recap mid-fight) at every DMU transition,
+            // then clear the log, so a real wipe only showed the last phase.
+            if (Plugin.InCutscene) return;
+
+            var running = _plugin.Timer.Running;
+            if (running && !_wasRunning) { Log.Clear(); _active.Clear(); BossName = ""; }
             else if (!running && _wasRunning && Log.Count > 0) FinalizePull(); // pull ended -> freeze recap
             _wasRunning = running;
             if (!running) return;

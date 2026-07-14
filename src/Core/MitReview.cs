@@ -23,7 +23,13 @@ public class MitReview
     {
         try
         {
-            var running = _plugin.Timer.Running && !Plugin.InCutscene;
+            // A phase cutscene is a FREEZE, not a pull boundary: the timer keeps
+            // running through it, so pausing here (no scan, no state flip) keeps
+            // one pull = one log. Treating it as a boundary used to wipe the log
+            // at every DMU transition.
+            if (Plugin.InCutscene) return;
+
+            var running = _plugin.Timer.Running;
             if (running && !_wasRunning) { Current.Clear(); _prevActive.Clear(); }   // pull start
             else if (!running && _wasRunning && Current.Count > 0) Last = new List<Use>(Current); // pull end
             _wasRunning = running;

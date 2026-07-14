@@ -31,6 +31,17 @@ public class ReplayEngine
         Plugin.ReplayCutsceneActive = false;
         Playing = true;
         _plugin.Timer.SyncNow();          // virtual pull starts at 0 and free-runs
+
+        // Recorded times are sheet-clock values. A recording whose first event
+        // sits far from 0 (an M12S phase-2 pull includes the door-boss phase
+        // offset; the raw replay timer has none) would otherwise stall silently
+        // until the raw clock caught up. Jump to just before the first event.
+        if (rec.Events.Count > 0 && rec.Events[0].Time > 30f)
+        {
+            _plugin.Timer.SetElapsed(rec.Events[0].Time - 5f);
+            _plugin.Cues.Rearm(); // the >5s clock hides this from the fresh-pull check
+        }
+
         Status = $"Replaying \"{rec.Name}\" into {_fight.Name}";
     }
 

@@ -46,6 +46,30 @@ public class Audio : IDisposable
     private string _currentVoice = "";
     private List<string>? _voiceNames;
 
+    // SAPI is COM touched from the framework thread (direct Speak / VoiceNames)
+    // AND thread-pool tasks (the Edge fallback); one lock serializes all of it.
+    private readonly object _sapiLock = new();
+
+    // Cue ordering: each Speak gets a rising sequence number, and playback only
+    // accepts a cue newer than the last one played - across BOTH engines, so a
+    // slow Edge fetch can't play over a newer cue that already went out via the
+    // Windows voice. Without this, "latest to ARRIVE wins": a slow uncached
+    // fetch finishing late would cut off the newer call and speak the stale one.
+    private long _speakSeq;
+    private long _playedSeq;
+    private volatile bool _disposed;
+
+    // Monotonic advance: true if seq is the newest cue either engine has played.
+    private static bool TryAdvance(ref long played, long seq)
+    {
+        while (true)
+        {
+            var cur = Interlocked.Read(ref played);
+            if (seq < cur) return false;
+            if (Interlocked.CompareExchange(ref played, seq, cur) == cur) return true;
+        }
+    }
+
     // Last TTS result, shown in the Audio tab so you can see if the online voice
     // worked or fell back to Windows (and why).
     public string LastTtsStatus { get; private set; } = "";
@@ -61,13 +85,16 @@ public class Audio : IDisposable
     {
         if (string.IsNullOrWhiteSpace(text)) return;
 
+        var seq = Interlocked.Increment(ref _speakSeq);
+
         if (useEdge)
         {
             var t = text;
             var v = voice;
             // Fire-and-forget: an OUTER catch-all guarantees the task can never
             // fault unobserved (which, with ThrowUnobservedTaskExceptions on, would
-            // crash the game).
+            // crash the game). Status writes are gated on still being the newest
+            // request, so a stale slow fetch can't overwrite the newer cue's status.
             _ = Task.Run(() =>
             {
                 try
@@ -77,18 +104,21 @@ public class Audio : IDisposable
                         var mp3 = GetEdgeWav(t, v, rate, volume);
                         if (mp3 is { Length: > 64 })
                         {
-                            LastTtsStatus = $"Online OK — {v}";
-                            PlayMp3(mp3);
+                            if (seq == Interlocked.Read(ref _speakSeq))
+                                LastTtsStatus = $"Online OK — {v}";
+                            PlayMp3(mp3, seq);
                             return;
                         }
-                        LastTtsStatus = $"Online: no audio [{_edgeDiag}] — using Windows voice";
+                        if (seq == Interlocked.Read(ref _speakSeq))
+                            LastTtsStatus = $"Online: no audio [{_edgeDiag}] — using Windows voice";
                     }
                     catch (Exception ex)
                     {
-                        LastTtsStatus = $"Online failed: {ex.Message} — using Windows voice";
+                        if (seq == Interlocked.Read(ref _speakSeq))
+                            LastTtsStatus = $"Online failed: {ex.Message} — using Windows voice";
                         Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
                     }
-                    SpeakSapi(t, rate, volume, "");   // fallback
+                    SpeakSapi(t, rate, volume, "", seq);   // fallback
                 }
                 catch { /* never let the background task throw */ }
             });
@@ -96,25 +126,34 @@ public class Audio : IDisposable
         }
 
         LastTtsStatus = "Windows voice";
-        SpeakSapi(text, rate, volume, voice);
+        SpeakSapi(text, rate, volume, voice, seq);
     }
 
     // ---- Windows SAPI -----------------------------------------------------
 
-    private void SpeakSapi(string text, int rate, int volume, string voiceName)
+    private void SpeakSapi(string text, int rate, int volume, string voiceName, long seq)
     {
         if (_ttsUnavailable) return;
         Service.Log.Information($"[FrenMits] SAPI.Speak '{text}'");
         try
         {
-            _voice ??= CreateVoice();
-            if (_voice is null) return;
-            dynamic v = _voice;
-            ApplyVoice(v, voiceName);
-            v.Rate = Math.Clamp(rate, -10, 10);
-            v.Volume = Math.Clamp(volume, 0, 100);
-            // SVSFlagsAsync (1) | SVSFPurgeBeforeSpeak (2): interrupt + speak async.
-            v.Speak(text, 3u);
+            lock (_sapiLock)
+            {
+                if (_disposed) return;
+                // A newer cue has been requested since this one; speaking now
+                // would purge the newer one and say the stale call instead.
+                if (seq < Interlocked.Read(ref _speakSeq)) return;
+                if (!TryAdvance(ref _playedSeq, seq)) return; // newer cue already played
+
+                _voice ??= CreateVoice();
+                if (_voice is null) return;
+                dynamic v = _voice;
+                ApplyVoice(v, voiceName);
+                v.Rate = Math.Clamp(rate, -10, 10);
+                v.Volume = Math.Clamp(volume, 0, 100);
+                // SVSFlagsAsync (1) | SVSFPurgeBeforeSpeak (2): interrupt + speak async.
+                v.Speak(text, 3u);
+            }
         }
         catch (Exception ex)
         {
@@ -129,15 +168,19 @@ public class Audio : IDisposable
         _voiceNames = new List<string>();
         try
         {
-            _voice ??= CreateVoice();
-            if (_voice is null) return _voiceNames;
-            dynamic v = _voice;
-            dynamic tokens = v.GetVoices();
-            int count = tokens.Count;
-            for (var i = 0; i < count; i++)
+            lock (_sapiLock)
             {
-                try { _voiceNames.Add((string)tokens.Item(i).GetDescription()); }
-                catch { /* skip malformed token */ }
+                if (_disposed) return _voiceNames;
+                _voice ??= CreateVoice();
+                if (_voice is null) return _voiceNames;
+                dynamic v = _voice;
+                dynamic tokens = v.GetVoices();
+                int count = tokens.Count;
+                for (var i = 0; i < count; i++)
+                {
+                    try { _voiceNames.Add((string)tokens.Item(i).GetDescription()); }
+                    catch { /* skip malformed token */ }
+                }
             }
         }
         catch (Exception ex)
@@ -360,13 +403,19 @@ public class Audio : IDisposable
 
     // Decodes the MP3 (Windows ACM codec) and plays it through the shared WaveOut,
     // non-blocking. NAudio is bundled with the plugin.
-    private void PlayMp3(byte[] mp3)
+    private void PlayMp3(byte[] mp3, long seq)
     {
         Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");
         try
         {
             lock (_playLock)
             {
+                // Unloaded mid-fetch: don't resurrect the player after Dispose.
+                if (_disposed) return;
+                // A newer cue already played (or is playing) on EITHER engine:
+                // drop this stale one instead of cutting the newer call off.
+                if (!TryAdvance(ref _playedSeq, seq)) return;
+
                 // Disposing the previous output stops it immediately.
                 try { _output?.Dispose(); } catch { /* ignore */ }
                 try { _reader?.Dispose(); } catch { /* ignore */ }
@@ -388,13 +437,20 @@ public class Audio : IDisposable
 
     public void Dispose()
     {
-        try
+        // Flag first so any in-flight Speak task bails at its next gate instead
+        // of resurrecting the COM voice or the WaveOut chain after this runs.
+        _disposed = true;
+
+        lock (_sapiLock)
         {
-            if (_voice is not null && Marshal.IsComObject(_voice))
-                Marshal.ReleaseComObject(_voice);
+            try
+            {
+                if (_voice is not null && Marshal.IsComObject(_voice))
+                    Marshal.ReleaseComObject(_voice);
+            }
+            catch { /* ignore */ }
+            _voice = null;
         }
-        catch { /* ignore */ }
-        _voice = null;
 
         lock (_playLock)
         {
