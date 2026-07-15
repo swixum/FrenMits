@@ -188,6 +188,7 @@ public class SheetViewWindow : Window
         public BakedRow? Bake;      // nearest same-mechanic baked instance
         public bool Edited;
         public bool Ghost;          // baked instance deleted from every slot
+        public bool JobExtra;       // every line is a job-restricted custom (e.g. Nature's Minne)
     }
 
     private Row? _editTimeRow;
@@ -329,7 +330,9 @@ public class SheetViewWindow : Window
                 }
                 row.Cells[i].Add(line);
                 row.Time = MathF.Min(row.Time, line.Time);
-                row.Edited |= line.Custom;
+                // Job-restricted customs (the Job extras schedules) don't count
+                // as "edited": they get their own "job extra" tag instead.
+                row.Edited |= line.Custom && line.Jobs.Count == 0;
             }
         }
 
@@ -402,6 +405,20 @@ public class SheetViewWindow : Window
             foreach (var (name, time) in _phases)
                 if (time <= r.Time + 0.5f) ph = name;
             r.Phase = ph.Length > 0 ? ph : (_phases.Count > 0 ? _phases[0].Name : "");
+
+            // A row made ENTIRELY of job-restricted custom lines is a job extra
+            // (e.g. Nature's Minne riding 1s off its mechanic's row). Tagged so
+            // it doesn't read as a mysterious duplicate.
+            if (r.Ghost) continue;
+            var any = false;
+            var all = true;
+            foreach (var cell in r.Cells)
+                foreach (var l in cell)
+                {
+                    any = true;
+                    if (!(l.Custom && l.Jobs.Count > 0)) all = false;
+                }
+            r.JobExtra = any && all;
         }
 
         FindCooldownConflicts();
@@ -1548,7 +1565,21 @@ public class SheetViewWindow : Window
             ImGui.SameLine(0, 5);
             IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
         }
-        if (row.Edited)
+        if (row.JobExtra && !row.Edited)
+        {
+            // A quiet tag, not a warning: this row is a job-specific schedule
+            // (Nature's Minne and friends) sitting at its own time on purpose.
+            ImGui.SameLine(0, 6);
+            ImGui.TextDisabled("job extra");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("A job-specific line (like the fight page's Job extras): it only fires "
+                    + "for the listed job, and sits at its own time on purpose. Nothing is wrong.");
+            ImGui.SameLine(0, 4);
+            if (IconSmallButton(FontAwesomeIcon.Times, "##delextra")) DeleteExtraRow(row);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Remove this job extra (every slot). Ctrl+Z brings it back.");
+        }
+        else if (row.Edited)
         {
             ImGui.SameLine(0, 6);
             ImGui.TextColored(EditedColor, "edited");
@@ -1557,6 +1588,26 @@ public class SheetViewWindow : Window
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Reset this mechanic to the baked sheet, every slot.");
         }
+    }
+
+    // Remove a job-extra row's lines everywhere. They're custom lines, so no
+    // tombstones are needed: the sheet's top-up never re-adds custom lines.
+    private void DeleteExtraRow(Row row)
+    {
+        if (_fight == null || row.Ghost || AbortIfStale()) return;
+        PushUndo($"delete \"{row.Mechanic}\" job extra");
+        var removed = 0;
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            if (row.Cells[i].Count == 0) continue;
+            EnsureBacked(i);
+            foreach (var l in row.Cells[i].ToList()) { _slotLines[i].Remove(l); removed++; }
+            Resort(i);
+        }
+        if (removed == 0) { PopUndo(); return; }
+        C.Save();
+        _dirty = true;
+        Flash($"\"{row.Mechanic}\" job extra removed. Ctrl+Z brings it back.");
     }
 
     private void DrawSlotCell(Row row, int i)
@@ -1588,7 +1639,9 @@ public class SheetViewWindow : Window
 
         var cell = row.Cells[i];
         var first = cell.Count == 0 ? "" : cell[0].Action;
-        var custom = cell.Any(l => l.Custom);
+        // Job extras render as normal text (no orange, no *): they're not edits.
+        var jobOnly = cell.Count > 0 && cell.All(l => l.Custom && l.Jobs.Count > 0);
+        var custom = !jobOnly && cell.Any(l => l.Custom);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
 
         // Cooldown conflicts tint the cell red (details go in the tooltip).
@@ -1630,6 +1683,7 @@ public class SheetViewWindow : Window
                     ? $"{first}\nClick to edit {_slots[i]}'s mit (that slot only). Clear the text to remove it."
                     : $"{string.Join("  ·  ", cell.Select(l => l.Action))}\nTwo lines share this moment; "
                       + "editing changes the first one only. Fine-tune both on the fight page.";
+            if (jobOnly) tip = $"Job extra: only fires for {string.Join("/", cell[0].Jobs)}.\n" + tip;
             if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
             if (warn != null) tip = warn + "\n\n" + tip;
             ImGui.SetTooltip(tip);

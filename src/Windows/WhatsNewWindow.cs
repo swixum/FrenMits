@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.142";
+    public const string NotesVersion = "1.0.0.143";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -99,5 +99,10 @@ public class WhatsNewWindow : Window
             + "mit, or a column header to copy one slot's whole plan onto another. And the "
             + "History button keeps snapshots of your plan, taken automatically before "
             + "imports, replaces, column pastes and sheet refreshes, restorable any time."),
+        ("Job extras, labeled",
+            "Job-specific schedules (Nature's Minne, Mantra, ...) used to show as confusing "
+            + "\"edited\" duplicates near their mechanic. They now carry a quiet \"job extra\" "
+            + "tag, render as normal text, and get a one-click remove. Nothing about how they "
+            + "fire changed."),
     };
 }
