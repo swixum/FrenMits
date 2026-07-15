@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.141";
+    public const string NotesVersion = "1.0.0.142";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -93,5 +93,11 @@ public class WhatsNewWindow : Window
             + "or Discord, phase notes included). Replace renames a mit across the entire "
             + "sheet in one go, like \"all my Vengeance becomes Damnation\"; replacing with "
             + "nothing deletes those calls."),
+        ("Undo, copy/paste, and plan history",
+            "Ctrl+Z (or the Undo button) takes back your last sheet edit; every edit, delete, "
+            + "re-time, replace and paste is undoable. Right-click a cell to copy and paste a "
+            + "mit, or a column header to copy one slot's whole plan onto another. And the "
+            + "History button keeps snapshots of your plan, taken automatically before "
+            + "imports, replaces, column pastes and sheet refreshes, restorable any time."),
     };
 }

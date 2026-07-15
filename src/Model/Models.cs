@@ -52,6 +52,9 @@ public class FightProfile
     // clock snaps to Time. Ideal for phases with no public ability timeline.
     public List<BossAnchor> BossAnchors { get; set; } = new();
 
+    // Derived; ignored by the serializer so share codes and plan snapshots
+    // don't carry every line twice.
+    [Newtonsoft.Json.JsonIgnore]
     public IEnumerable<MitLine> OrderedLines => Lines.OrderBy(l => l.Time);
 }
 

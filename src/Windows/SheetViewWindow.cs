@@ -71,7 +71,7 @@ public class SheetViewWindow : Window
     private int[] _order = Array.Empty<int>();
     private int _pinnedCount;
 
-    private bool IsPinned(int i)
+    private bool IsPinnedColumn(int i)
         => C.SheetPinnedSlots.Contains(_slots[i], StringComparer.OrdinalIgnoreCase);
     // Lines whose mit repeats before its cooldown can be back (message per line).
     private readonly Dictionary<MitLine, string> _conflicts = new();
@@ -82,6 +82,86 @@ public class SheetViewWindow : Window
     private string _replFind = "";
     private string _replWith = "";
     private bool _replMineOnly;
+
+    // ---- undo (Ctrl+Z) -----------------------------------------------------
+    // Snapshot-based: every sheet edit pushes a deep copy of the fight's plan
+    // BEFORE mutating; undo swaps it back. In-memory only, capped.
+
+    private sealed class PlanSnapshot
+    {
+        public FightProfile Fight = null!;
+        public string Label = "";
+        public List<MitLine> Lines = new();
+        public Dictionary<string, List<MitLine>> SavedSlots = new();
+        public List<DeletedCall> DeletedCalls = new();
+        public List<SheetNote> Notes = new();
+        public string Slot = "";
+        public float TimerOffset;
+    }
+
+    private readonly List<PlanSnapshot> _undoStack = new();
+    private bool _noteUndoArmed;   // one undo entry per note-popup session
+    private bool _offsetUndoArmed; // one undo entry per cell-menu session
+
+    private static T Clone<T>(T value)
+        => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(Newtonsoft.Json.JsonConvert.SerializeObject(value))!;
+
+    private void PushUndo(string label)
+    {
+        if (_fight == null) return;
+        _undoStack.Add(new PlanSnapshot
+        {
+            Fight = _fight,
+            Label = label,
+            Lines = Clone(_fight.Lines),
+            SavedSlots = Clone(_fight.SavedSlots),
+            DeletedCalls = Clone(_fight.DeletedCalls),
+            Notes = Clone(_fight.Notes),
+            Slot = _fight.Slot,
+            TimerOffset = _fight.TimerOffset,
+        });
+        if (_undoStack.Count > 20) _undoStack.RemoveAt(0);
+    }
+
+    private void PopUndo() // for ops that turn out to be no-ops after pushing
+    {
+        if (_undoStack.Count > 0) _undoStack.RemoveAt(_undoStack.Count - 1);
+    }
+
+    private void Undo()
+    {
+        CommitPending();
+        if (_undoStack.Count == 0) { Flash("Nothing to undo."); return; }
+        var s = _undoStack[^1];
+        _undoStack.RemoveAt(_undoStack.Count - 1);
+        if (!C.Fights.Contains(s.Fight)) { Flash("Can't undo: that fight no longer exists."); return; }
+
+        // Jumping to another fight's undo entry: reset the view filters (they
+        // may not exist there) and keep a disk snapshot as insurance, since the
+        // user may not have that fight's current state in their head.
+        var jumped = s.Fight != _fight;
+        if (jumped)
+        {
+            _plugin.SnapshotPlan(s.Fight, "before undo");
+            _phaseFilter = "";
+            _filter = "";
+        }
+
+        s.Fight.Lines = s.Lines;
+        s.Fight.SavedSlots = s.SavedSlots;
+        s.Fight.DeletedCalls = s.DeletedCalls;
+        s.Fight.Notes = s.Notes;
+        s.Fight.Slot = s.Slot;
+        s.Fight.TimerOffset = s.TimerOffset;
+        // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
+        if (!string.IsNullOrEmpty(s.Slot) && s.Fight.SavedSlots.ContainsKey(s.Slot))
+            s.Fight.SavedSlots[s.Slot] = s.Fight.Lines;
+
+        _fight = s.Fight;
+        C.Save();
+        _dirty = true;
+        Flash(jumped ? $"Undid: {s.Label} (in {s.Fight.Name})." : $"Undid: {s.Label}.");
+    }
 
     // Sticky-phase pill state, recomputed every frame from the top visible row.
     private float _headerY;
@@ -139,6 +219,7 @@ public class SheetViewWindow : Window
     private void SaveNote(Row row, string text)
     {
         if (_fight == null) return;
+        if (_noteUndoArmed) { PushUndo($"edit \"{row.Mechanic}\" note"); _noteUndoArmed = false; }
         var note = NoteFor(row);
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -196,8 +277,8 @@ public class SheetViewWindow : Window
         _slots = Builtin.Slots(_fight.TerritoryId);
         // Pinned columns (right-click a header) ride first, inside the frozen
         // area. Stable sort keeps the sheet's slot order within each group.
-        _order = Enumerable.Range(0, _slots.Length).OrderBy(i => IsPinned(i) ? 0 : 1).ToArray();
-        _pinnedCount = _order.Count(IsPinned);
+        _order = Enumerable.Range(0, _slots.Length).OrderBy(i => IsPinnedColumn(i) ? 0 : 1).ToArray();
+        _pinnedCount = _order.Count(IsPinnedColumn);
         _phases = Builtin.PhaseStarts(_fight.TerritoryId);
         _phaseNotes = _phases
             .Select(p => (p.Name,
@@ -526,6 +607,7 @@ public class SheetViewWindow : Window
         if (!SheetImport.TryParseTime(_timeBuf, out var newTime) || MathF.Abs(newTime - row.Time) < 0.05f)
             return;
 
+        PushUndo($"re-time \"{row.Mechanic}\"");
         var delta = newTime - row.Time;
         // The row's note (matched at the old coordinates) rides along.
         if (NoteFor(row) is { } note) note.Time += delta;
@@ -549,13 +631,15 @@ public class SheetViewWindow : Window
         Flash($"Shifted \"{row.Mechanic}\" by {delta:+0.0;-0.0}s: {lines} line(s) across {slots} slot(s). Kept through sheet updates.");
     }
 
+    private void CommitCell(Row row, int i) => ApplyCellText(row, i, _cellBuf);
+
     // Cell edits touch the FIRST line in the cell only; a cell holding two real
-    // lines (rare merge of near-simultaneous casts) shows "+1" and leaves the
-    // second line alone.
-    private void CommitCell(Row row, int i)
+    // lines (rare merge of near-simultaneous casts) stacks them and leaves the
+    // second line alone. Shared by inline editing and the right-click paste.
+    private void ApplyCellText(Row row, int i, string raw)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
-        var text = _cellBuf.Trim();
+        var text = raw.Trim();
         var cell = row.Cells[i];
 
         if (cell.Count > 0 && text == cell[0].Action.Trim()) return; // no-op
@@ -568,6 +652,7 @@ public class SheetViewWindow : Window
             return;
         }
 
+        PushUndo($"edit {_slots[i]}'s \"{row.Mechanic}\"");
         EnsureBacked(i);
         if (cell.Count == 0)
         {
@@ -604,6 +689,7 @@ public class SheetViewWindow : Window
             return;
         }
 
+        PushUndo($"reset \"{row.Mechanic}\"");
         var touched = 0;
         for (var i = 0; i < _slots.Length; i++)
         {
@@ -634,6 +720,7 @@ public class SheetViewWindow : Window
             Resort(i);
             touched++;
         }
+        if (touched == 0) PopUndo(); // nothing changed; don't log a no-op undo
         C.Save();
         _dirty = true;
         Flash(touched > 0
@@ -700,6 +787,12 @@ public class SheetViewWindow : Window
         if (focused && !_wasFocused) _dirty = true;
         _wasFocused = focused;
         if (_dirty && !Editing) Rebuild();
+
+        // Ctrl+Z undoes the last sheet edit. Skipped while a text field is
+        // active: InputText has its own internal Ctrl+Z for the typed buffer.
+        if (focused && !ImGui.GetIO().WantTextInput
+            && ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGuiKey.Z, false))
+            Undo();
 
         DrawToolbar();
         ImGui.Spacing();
@@ -864,18 +957,37 @@ public class SheetViewWindow : Window
             ImGui.SetTooltip(
                 "Click a time to re-time that mechanic for every slot at once.\n"
                 + "Click a cell to edit that slot only; clear the text to remove it.\n"
-                + "Right-click a cell for delete / reset / a per-call offset; right-click a mechanic for notes.\n"
+                + "Right-click a cell for copy / paste / delete / reset / a per-call offset; right-click a mechanic for notes.\n"
                 + "Orange * = your edit, kept through sheet updates.\n"
                 + "Dim rows are deleted; the undo button restores the sheet's version.\n"
                 + "A red cell means that mit is planned again before its cooldown can be back.\n"
                 + "Tick Colors to tint mits by type (party / tank / personal, overlay colors).\n"
-                + "Right-click a column header to pin that column next to Mechanic.\n"
+                + "Right-click a column header to pin it next to Mechanic, or copy/paste a whole column.\n"
+                + "Ctrl+Z (or the Undo button) takes back your last sheet edit.\n"
                 + "Drag a column edge to resize it; double-click the edge to fit the text.");
 
-        // Right side: refresh + export + import + share.
-        var rightW = ImGui.CalcTextSize("Refresh").X + ImGui.CalcTextSize("Export").X
-                   + ImGui.CalcTextSize("Import").X + ImGui.CalcTextSize("Share plan").X + 128f;
+        // Right side: undo + history + refresh + export + import + share.
+        var rightW = ImGui.CalcTextSize("Undo").X + ImGui.CalcTextSize("History").X
+                   + ImGui.CalcTextSize("Refresh").X + ImGui.CalcTextSize("Export").X
+                   + ImGui.CalcTextSize("Import").X + ImGui.CalcTextSize("Share plan").X + 192f;
         ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 8f, ImGui.GetContentRegionMax().X - rightW));
+        ImGui.BeginDisabled(_undoStack.Count == 0);
+        if (ImGui.SmallButton("Undo")) Undo();
+        ImGui.EndDisabled();
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            ImGui.SetTooltip(_undoStack.Count == 0
+                ? "Nothing to undo yet. Ctrl+Z also works."
+                : $"Undo: {_undoStack[^1].Label} (Ctrl+Z). Restores the plan to how it was before that edit.");
+        ImGui.SameLine();
+        if (ImGui.SmallButton("History"))
+        {
+            _snapList = _plugin.ListSnapshots(_fight!.Id);
+            ImGui.OpenPopup("##sheethistory");
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Plan snapshots, taken automatically before imports, replaces and\ncolumn pastes. Restore any of them, or take one by hand.");
+        DrawHistoryPopup();
+        ImGui.SameLine();
         if (ImGui.SmallButton("Refresh")) { CommitPending(); _dirty = true; Flash("Reloaded from your saved plans."); }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Re-read every slot (picks up edits made on the fight page).");
         ImGui.SameLine();
@@ -909,10 +1021,17 @@ public class SheetViewWindow : Window
     {
         CommitPending();
         var (fight, _, message) = _plugin.ImportPlanCode(ImGui.GetClipboardText());
-        if (fight != null && Builtin.Has(fight.TerritoryId))
+        if (fight != null)
         {
-            _fight = fight;
-            _phaseFilter = "";
+            // Ctrl+Z entries older than the import would also revert the import
+            // under a misleading label; the pre-import disk snapshot (History)
+            // is the way back instead.
+            _undoStack.RemoveAll(s => s.Fight == fight);
+            if (Builtin.Has(fight.TerritoryId))
+            {
+                _fight = fight;
+                _phaseFilter = "";
+            }
         }
         _dirty = true;
         Flash(message);
@@ -934,6 +1053,48 @@ public class SheetViewWindow : Window
             _phaseFilter = name == "All" ? "" : name;
         }
         if (on) ImGui.PopStyleColor(3);
+    }
+
+    // ---- plan snapshots (History) -------------------------------------------
+
+    private List<Plugin.SnapshotInfo> _snapList = new();
+
+    private void DrawHistoryPopup()
+    {
+        if (!ImGui.BeginPopup("##sheethistory")) return;
+
+        ImGui.TextDisabled("Plan snapshots (this fight)");
+        ImGui.SameLine(0, 12);
+        if (ImGui.SmallButton("Snapshot now"))
+        {
+            _plugin.SnapshotPlan(_fight!, "manual snapshot");
+            _snapList = _plugin.ListSnapshots(_fight!.Id);
+            Flash("Snapshot saved.");
+        }
+        ImGui.Separator();
+
+        if (_snapList.Count == 0)
+        {
+            ImGui.TextDisabled("None yet. Snapshots are taken automatically before");
+            ImGui.TextDisabled("imports, replaces, column pastes and sheet refreshes.");
+        }
+        foreach (var s in _snapList)
+        {
+            ImGui.TextUnformatted($"{s.When:MMM d, h:mm tt}");
+            ImGui.SameLine(0, 8);
+            ImGui.TextDisabled(s.Reason);
+            ImGui.SameLine(0, 12);
+            if (ImGui.SmallButton($"Restore##{s.File}"))
+            {
+                CommitPending();
+                PushUndo("restore snapshot"); // restoring is itself undoable
+                var msg = _plugin.RestoreSnapshot(_fight!, s.File);
+                _dirty = true;
+                Flash(msg);
+                ImGui.CloseCurrentPopup();
+            }
+        }
+        ImGui.EndPopup();
     }
 
     // ---- search & replace --------------------------------------------------
@@ -982,6 +1143,19 @@ public class SheetViewWindow : Window
     {
         if (_fight == null || find.Length == 0 || AbortIfStale()) return;
         var with = _replWith.Trim();
+
+        var would = 0;
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            if (_replMineOnly && !IsActiveSlot(i)) continue;
+            would += _slotLines[i].Count(l => WouldReplace(l.Action, find, with) != null);
+        }
+        if (would == 0) { Flash($"No mits containing \"{find}\"."); return; }
+
+        // Bulk edit: undoable AND snapshotted to disk (see the History button).
+        PushUndo($"replace \"{find}\"");
+        _plugin.SnapshotPlan(_fight, $"before replacing \"{find}\"");
+
         var changed = 0;
         var slotsTouched = 0;
         for (var i = 0; i < _slots.Length; i++)
@@ -1014,7 +1188,7 @@ public class SheetViewWindow : Window
             if (touched) { Resort(i); slotsTouched++; }
         }
 
-        if (changed == 0) { Flash($"No mits containing \"{find}\"."); return; }
+        if (changed == 0) { PopUndo(); Flash($"No mits containing \"{find}\"."); return; }
         C.Save();
         _dirty = true;
         Flash(string.IsNullOrWhiteSpace(with)
@@ -1159,7 +1333,7 @@ public class SheetViewWindow : Window
             ImGui.PopStyleColor();
             var headMin = ImGui.GetItemRectMin();
             var headMax = ImGui.GetItemRectMax();
-            var pinned = IsPinned(i);
+            var pinned = IsPinnedColumn(i);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip((IsActiveSlot(i)
                     ? $"{SlotTip(_slots[i])}, your slot. These are the lines your overlay calls."
@@ -1178,6 +1352,22 @@ public class SheetViewWindow : Window
                     CommitPending();
                     _dirty = true;
                 }
+                ImGui.Separator();
+                if (ImGui.MenuItem($"Copy column ({_slots[i]})"))
+                {
+                    _copyColFight = _fight;
+                    _copyColSlot = _slots[i];
+                }
+                var canPaste = _copyColFight == _fight && _copyColSlot.Length > 0
+                    && !string.Equals(_copyColSlot, _slots[i], StringComparison.OrdinalIgnoreCase)
+                    && _slots.Contains(_copyColSlot, StringComparer.OrdinalIgnoreCase);
+                ImGui.BeginDisabled(!canPaste);
+                if (ImGui.MenuItem(canPaste ? $"Paste column ({_copyColSlot}'s plan)" : "Paste column"))
+                {
+                    CommitPending();
+                    PasteColumn(i);
+                }
+                ImGui.EndDisabled();
                 ImGui.EndPopup();
             }
             if (pinned)
@@ -1342,7 +1532,11 @@ public class SheetViewWindow : Window
         // note for whatever row the mouse is on, zero clicks to read.
         if (ImGui.BeginPopupContextItem("##notectx"))
         {
-            if (ImGui.IsWindowAppearing()) _noteBuf = NoteFor(row)?.Text ?? "";
+            if (ImGui.IsWindowAppearing())
+            {
+                _noteBuf = NoteFor(row)?.Text ?? "";
+                _noteUndoArmed = true; // one undo entry per editing session
+            }
             ImGui.TextDisabled($"Note: {row.Mechanic}");
             if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84)))
                 SaveNote(row, _noteBuf);
@@ -1444,6 +1638,7 @@ public class SheetViewWindow : Window
         // Right-click: quick actions + the per-call offset, sheet-side.
         if (ImGui.BeginPopupContextItem($"##cellctx{i}"))
         {
+            if (ImGui.IsWindowAppearing()) _offsetUndoArmed = true;
             ImGui.TextDisabled($"{_slots[i]}  ·  {row.Mechanic}");
             ImGui.Separator();
             if (cell.Count > 0)
@@ -1455,17 +1650,63 @@ public class SheetViewWindow : Window
                 // flagged Custom (an offset is a nudge, not a rewrite).
                 if (ImGui.InputFloat("call offset (s)", ref offset, 0.5f, 1f, "%.1f") && !AbortIfStale())
                 {
+                    if (_offsetUndoArmed) { PushUndo($"adjust \"{row.Mechanic}\" offset"); _offsetUndoArmed = false; }
                     EnsureBacked(i);
                     line.OffsetSeconds = Math.Clamp(offset, -30f, 30f);
                     C.Save();
                 }
                 ImGui.TextDisabled("+ fires this one call earlier, - later.");
                 ImGui.Separator();
+                if (ImGui.MenuItem("Copy mit")) _cellClip = line.Action;
                 if (ImGui.MenuItem("Delete this mit")) DeleteCellLine(row, i);
             }
+            ImGui.BeginDisabled(_cellClip.Length == 0);
+            if (ImGui.MenuItem(_cellClip.Length > 0
+                    ? $"Paste mit ({(_cellClip.Length > 24 ? _cellClip[..22] + "..." : _cellClip)})"
+                    : "Paste mit"))
+                ApplyCellText(row, i, _cellClip);
+            ImGui.EndDisabled();
             if (ImGui.MenuItem("Reset this cell to the sheet")) ResetCell(row, i);
             ImGui.EndPopup();
         }
+    }
+
+    // Cell clipboard for right-click copy/paste (a mit's action text).
+    private string _cellClip = "";
+    // Column clipboard: which fight + slot code was copied.
+    private FightProfile? _copyColFight;
+    private string _copyColSlot = "";
+
+    // Overwrite one column with another slot's plan, like pasting a column in a
+    // spreadsheet. Pasted lines are flagged Custom so sheet re-bakes keep them,
+    // and target-baked calls the new plan doesn't carry are tombstoned so the
+    // zone-in top-up can't resurrect them.
+    private void PasteColumn(int dst)
+    {
+        if (_fight == null || AbortIfStale()) return;
+        var src = Array.FindIndex(_slots, s => s.Equals(_copyColSlot, StringComparison.OrdinalIgnoreCase));
+        if (src < 0 || src == dst) return;
+
+        PushUndo($"paste {_slots[src]}'s plan into {_slots[dst]}");
+        _plugin.SnapshotPlan(_fight, $"before pasting {_slots[src]} into {_slots[dst]}");
+        EnsureBacked(dst);
+        var target = _slotLines[dst];
+        target.Clear();
+        foreach (var l in _slotLines[src])
+        {
+            var copy = Clone(l);
+            copy.Custom = true;
+            target.Add(copy);
+        }
+        _fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, _slots[dst], StringComparison.OrdinalIgnoreCase));
+        foreach (var b in Builtin.BuildLines(_fight.TerritoryId, _slots[dst]))
+            if (!target.Any(l => Builtin.SameCall(l, b)))
+                _fight.DeletedCalls.Add(new DeletedCall
+                { Slot = _slots[dst], Time = b.Time, Mechanic = b.Mechanic, Action = b.Action });
+        Resort(dst);
+        C.Save();
+        _dirty = true;
+        Flash($"{_slots[src]}'s plan pasted into {_slots[dst]} (that column only). Ctrl+Z undoes it.");
     }
 
     // Delete one slot's line at this row: tombstoned exactly like clearing the
@@ -1475,6 +1716,7 @@ public class SheetViewWindow : Window
         if (_fight == null || row.Ghost || AbortIfStale()) return;
         var cell = row.Cells[i];
         if (cell.Count == 0) return;
+        PushUndo($"delete {_slots[i]}'s \"{row.Mechanic}\" mit");
         EnsureBacked(i);
         var line = cell[0];
         if (!line.Custom)
@@ -1508,6 +1750,7 @@ public class SheetViewWindow : Window
             Flash($"{slot}'s \"{row.Mechanic}\" already matches the sheet.");
             return;
         }
+        PushUndo($"reset {slot}'s \"{row.Mechanic}\"");
         EnsureBacked(i);
         foreach (var line in row.Cells[i].ToList()) _slotLines[i].Remove(line);
         foreach (var b in candidates)

@@ -401,6 +401,8 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var f in Config.Fights)
         {
             if (!Builtin.Has(f.TerritoryId)) continue;
+            if (f.Lines.Count > 0 || f.SavedSlots.Count > 0)
+                SnapshotPlan(f, "before Refresh from sheet");
             f.SavedSlots.Clear();
             f.DeletedCalls.Clear();             // a full refresh un-deletes everything
             if (!string.IsNullOrEmpty(f.Slot))
@@ -414,6 +416,103 @@ public sealed class Plugin : IDalamudPlugin
         }
         Config.Save();
         return n;
+    }
+
+    // ---- plan snapshots ---------------------------------------------------
+    // A snapshot is the whole FightProfile serialized to a file under the plugin
+    // config directory, taken automatically before destructive operations and on
+    // demand (Sheet View's History button). Pruned to the newest per fight.
+
+    public sealed class PlanBackup
+    {
+        public string Reason = "";
+        public string FightName = "";
+        public DateTime When;
+        public FightProfile Fight = null!;
+    }
+
+    public readonly record struct SnapshotInfo(string File, DateTime When, string Reason);
+
+    private string SnapshotDir => System.IO.Path.Combine(
+        Service.PluginInterface.GetPluginConfigDirectory(), "snapshots");
+
+    public void SnapshotPlan(FightProfile fight, string reason)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(SnapshotDir);
+            var file = System.IO.Path.Combine(SnapshotDir,
+                $"{fight.Id}_{DateTime.Now:yyyyMMdd-HHmmss-fff}.json");
+            System.IO.File.WriteAllText(file, Newtonsoft.Json.JsonConvert.SerializeObject(
+                new PlanBackup { Reason = reason, FightName = fight.Name, When = DateTime.Now, Fight = fight }));
+
+            // Keep the newest 12 per fight.
+            var mine = System.IO.Directory.GetFiles(SnapshotDir, $"{fight.Id}_*.json")
+                .OrderByDescending(f => f).ToList();
+            foreach (var old in mine.Skip(12)) System.IO.File.Delete(old);
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: snapshot failed");
+        }
+    }
+
+    public List<SnapshotInfo> ListSnapshots(string fightId)
+    {
+        var list = new List<SnapshotInfo>();
+        try
+        {
+            if (!System.IO.Directory.Exists(SnapshotDir)) return list;
+            foreach (var file in System.IO.Directory.GetFiles(SnapshotDir, $"{fightId}_*.json")
+                         .OrderByDescending(f => f))
+            {
+                try
+                {
+                    var b = Newtonsoft.Json.JsonConvert.DeserializeObject<PlanBackup>(
+                        System.IO.File.ReadAllText(file));
+                    if (b != null) list.Add(new SnapshotInfo(file, b.When, b.Reason));
+                }
+                catch { /* one unreadable file shouldn't hide the rest */ }
+            }
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: snapshot list failed");
+        }
+        return list;
+    }
+
+    // Restore a snapshot file over the target fight (full plan replace).
+    public string RestoreSnapshot(FightProfile target, string file)
+    {
+        try
+        {
+            var b = Newtonsoft.Json.JsonConvert.DeserializeObject<PlanBackup>(
+                System.IO.File.ReadAllText(file));
+            if (b?.Fight == null) return "That snapshot couldn't be read.";
+
+            target.Lines = b.Fight.Lines ?? new();
+            target.SavedSlots = b.Fight.SavedSlots ?? new();
+            target.DeletedCalls = b.Fight.DeletedCalls ?? new();
+            target.Notes = b.Fight.Notes ?? new();
+            target.Slot = b.Fight.Slot;
+            target.TimerOffset = b.Fight.TimerOffset;
+            if (!Builtin.Has(target.TerritoryId))
+            {
+                target.SyncPoints = b.Fight.SyncPoints ?? new();
+                target.BossAnchors = b.Fight.BossAnchors ?? new();
+            }
+            // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
+            if (!string.IsNullOrEmpty(target.Slot) && target.SavedSlots.ContainsKey(target.Slot))
+                target.SavedSlots[target.Slot] = target.Lines;
+            Config.Save();
+            return $"Restored the {b.When:MMM d, h:mm tt} snapshot ({b.Reason}).";
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: snapshot restore failed");
+            return "That snapshot couldn't be read.";
+        }
     }
 
     // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
@@ -457,6 +556,7 @@ public sealed class Plugin : IDalamudPlugin
                 : null;
             if (existing != null)
             {
+                SnapshotPlan(existing, $"before importing \"{fight.Name}\"");
                 // Slot-scoped update: the import replaces the sender's ACTIVE slot
                 // only. Wholesale-replacing SavedSlots/DeletedCalls would silently
                 // wipe YOUR saved edits for every other slot in the fight.
