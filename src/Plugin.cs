@@ -416,6 +416,97 @@ public sealed class Plugin : IDalamudPlugin
         return n;
     }
 
+    // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
+    // existing profile in place (the sender's active slot only, notes merged);
+    // anything else is added as a new fight. Shared by the fight page's "Import
+    // from clipboard" and the Sheet View's Import button. Returns the touched
+    // fight (null on failure), whether it was newly added, and a user message.
+    public (FightProfile? Fight, bool IsNew, string Message) ImportPlanCode(string? clipboardText)
+    {
+        try
+        {
+            var text = (clipboardText ?? "").Trim();
+            string json;
+            if (text.StartsWith("FRENMITS2:"))
+            {
+                var data = Convert.FromBase64String(text["FRENMITS2:".Length..]);
+                using var ms = new System.IO.MemoryStream(data);
+                using var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Decompress);
+                using var outMs = new System.IO.MemoryStream();
+                gz.CopyTo(outMs);
+                json = System.Text.Encoding.UTF8.GetString(outMs.ToArray());
+            }
+            else if (text.StartsWith("FRENMITS1:"))
+            {
+                json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(text["FRENMITS1:".Length..]));
+            }
+            else
+            {
+                return (null, false, "No FrenMits plan code on the clipboard.");
+            }
+
+            var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
+            if (fight == null) return (null, false, "That plan code couldn't be read.");
+
+            // A same-territory import UPDATES the existing profile instead of
+            // adding a duplicate: a second profile for one territory never fires
+            // (ActiveFight takes the first match), and a duplicate of a built-in
+            // renders locked, with no way to delete it.
+            var existing = fight.TerritoryId != 0
+                ? Config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId)
+                : null;
+            if (existing != null)
+            {
+                // Slot-scoped update: the import replaces the sender's ACTIVE slot
+                // only. Wholesale-replacing SavedSlots/DeletedCalls would silently
+                // wipe YOUR saved edits for every other slot in the fight.
+                existing.Lines = fight.Lines;
+                existing.TimerOffset = fight.TimerOffset;
+                // Sheet notes MERGE: take the sender's note where they wrote one,
+                // keep yours everywhere else (wholesale replace would wipe your
+                // notes with a v131-era code's empty list).
+                foreach (var n in fight.Notes)
+                {
+                    existing.Notes.RemoveAll(o =>
+                        string.Equals(o.Mechanic.Trim(), n.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase)
+                        && MathF.Abs(o.Time - n.Time) < 4f);
+                    existing.Notes.Add(n);
+                }
+                if (!string.IsNullOrEmpty(fight.Slot))
+                {
+                    existing.Slot = fight.Slot;
+                    existing.SavedSlots[fight.Slot] = fight.Lines;
+                    existing.DeletedCalls.RemoveAll(d =>
+                        string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
+                    existing.DeletedCalls.AddRange(fight.DeletedCalls.Where(d =>
+                        string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase)));
+                }
+                if (!Builtin.Has(existing.TerritoryId))
+                {
+                    // Custom fights carry their hand-built anchors; built-ins keep
+                    // the canonical baked ones (ApplySlot refreshes those anyway).
+                    existing.Name = fight.Name;
+                    existing.SyncPoints = fight.SyncPoints;
+                    existing.BossAnchors = fight.BossAnchors;
+                }
+                Config.Save();
+                return (existing, false, string.IsNullOrEmpty(fight.Slot)
+                    ? $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\"."
+                    : $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\" ({fight.Slot} slot; your other slots kept).");
+            }
+
+            fight.Id = Guid.NewGuid().ToString("N");
+            Config.Fights.Add(fight);
+            Config.Save();
+            return (fight, true, $"Imported \"{fight.Name}\".");
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: import failed");
+            return (null, false, "That plan code couldn't be read.");
+        }
+    }
+
     // Re-bake the Dancing Mad built-in from the (updated) sheet while KEEPING the
     // custom lines people added. A line is "old sheet-baked" if it matches the
     // previous bake (the DmuLegacy snapshot); those get replaced by the new bake.

@@ -2824,92 +2824,19 @@ public class ConfigWindow : Window, IDisposable
         }
     }
 
+    // Decode + merge live in Plugin.ImportPlanCode (shared with the Sheet View's
+    // Import button); this wrapper adds the fight-page niceties on top.
     private void ImportFightFromClipboard()
     {
-        try
+        var (fight, isNew, message) = _plugin.ImportPlanCode(ImGui.GetClipboardText());
+        if (fight != null && isNew)
         {
-            var text = (ImGui.GetClipboardText() ?? "").Trim();
-            string json;
-            if (text.StartsWith("FRENMITS2:"))
-            {
-                var data = Convert.FromBase64String(text["FRENMITS2:".Length..]);
-                using var ms = new System.IO.MemoryStream(data);
-                using var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Decompress);
-                using var outMs = new System.IO.MemoryStream();
-                gz.CopyTo(outMs);
-                json = System.Text.Encoding.UTF8.GetString(outMs.ToArray());
-            }
-            else if (text.StartsWith("FRENMITS1:"))
-            {
-                json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(text["FRENMITS1:".Length..]));
-            }
-            else
-            {
-                FlashBuiltin("No FrenMits plan code on the clipboard.");
-                return;
-            }
-
-            var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
-            if (fight == null) return;
-
-            // A same-territory import UPDATES the existing profile instead of
-            // adding a duplicate: a second profile for one territory never fires
-            // (ActiveFight takes the first match), and a duplicate of a built-in
-            // renders locked, with no way to delete it.
-            var existing = fight.TerritoryId != 0
-                ? _plugin.Config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId)
-                : null;
-            if (existing != null)
-            {
-                // Slot-scoped update: the import replaces the sender's ACTIVE slot
-                // only. Wholesale-replacing SavedSlots/DeletedCalls would silently
-                // wipe YOUR saved edits for every other slot in the fight.
-                existing.Lines = fight.Lines;
-                existing.TimerOffset = fight.TimerOffset;
-                // Sheet notes MERGE: take the sender's note where they wrote one,
-                // keep yours everywhere else (wholesale replace would wipe your
-                // notes with a v131-era code's empty list).
-                foreach (var n in fight.Notes)
-                {
-                    existing.Notes.RemoveAll(o =>
-                        string.Equals(o.Mechanic.Trim(), n.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase)
-                        && MathF.Abs(o.Time - n.Time) < 4f);
-                    existing.Notes.Add(n);
-                }
-                if (!string.IsNullOrEmpty(fight.Slot))
-                {
-                    existing.Slot = fight.Slot;
-                    existing.SavedSlots[fight.Slot] = fight.Lines;
-                    existing.DeletedCalls.RemoveAll(d =>
-                        string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
-                    existing.DeletedCalls.AddRange(fight.DeletedCalls.Where(d =>
-                        string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase)));
-                }
-                if (!Builtin.Has(existing.TerritoryId))
-                {
-                    // Custom fights carry their hand-built anchors; built-ins keep
-                    // the canonical baked ones (ApplySlot refreshes those anyway).
-                    existing.Name = fight.Name;
-                    existing.SyncPoints = fight.SyncPoints;
-                    existing.BossAnchors = fight.BossAnchors;
-                }
-                C.Save();
-                FlashBuiltin(string.IsNullOrEmpty(fight.Slot)
-                    ? $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\"."
-                    : $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\" ({SlotLabel(fight.Slot)} slot; your other slots kept).");
-                return;
-            }
-
-            fight.Id = Guid.NewGuid().ToString("N");
             // Drop it into the category you're currently viewing and expand it.
-            if (_nav == NavKind.Fights) fight.Category = _navCategory;
-            AddFight(fight);
-            FlashBuiltin($"Imported \"{fight.Name}\".");
+            if (_nav == NavKind.Fights) { fight.Category = _navCategory; C.Save(); }
+            _selectedFight = C.Fights.IndexOf(fight);
+            _expandFightId = fight.Id;
         }
-        catch (Exception ex)
-        {
-            Service.Log.Warning(ex, "FrenMits: import failed");
-        }
+        FlashBuiltin(message);
     }
 
     // ---- helpers ---------------------------------------------------------

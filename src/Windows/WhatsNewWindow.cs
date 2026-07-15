@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.135";
+    public const string NotesVersion = "1.0.0.136";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -75,5 +75,10 @@ public class WhatsNewWindow : Window
             "The fight dropdown is grouped by category with your slot shown per fight, and "
             + "the permanent hint text at the bottom is gone; the how-to now lives in the "
             + "toolbar's (?) hover."),
+        ("Sheet View usability",
+            "Columns are resizable: drag an edge, or double-click it to fit the text, like "
+            + "a spreadsheet. The fight list scrolls instead of running off screen and no "
+            + "longer overlaps long names. And an Import button now sits next to Share plan, "
+            + "so pasting a friend's code happens right where you'd look for it."),
     };
 }

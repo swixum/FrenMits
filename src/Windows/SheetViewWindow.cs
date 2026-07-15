@@ -679,6 +679,12 @@ public class SheetViewWindow : Window
         if (builtins.Count <= 1) return;
 
         ImGui.SetNextItemWidth(230f);
+        // Popup sized to the longest fight name plus the slot tag (so nothing
+        // overlaps), and height-capped so a long list scrolls.
+        var nameW = 0f;
+        foreach (var f in builtins) nameW = MathF.Max(nameW, ImGui.CalcTextSize(f.Name).X);
+        var popupW = nameW + 96f;
+        ImGui.SetNextWindowSizeConstraints(new Vector2(popupW, 0f), new Vector2(popupW, 320f));
         if (ImGui.BeginCombo("##sheetfight", _fight!.Name))
         {
             var groups = builtins
@@ -705,9 +711,12 @@ public class SheetViewWindow : Window
                         _dirty = true;
                     }
                     // Your slot for that fight, right-aligned; fights without one
-                    // land on the pick-your-slot screen when chosen.
+                    // land on the pick-your-slot screen when chosen. Clamped so it
+                    // can never sit on top of a long fight name.
                     var tag = string.IsNullOrEmpty(f.Slot) ? "no slot" : f.Slot;
-                    ImGui.SameLine(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(tag).X - 6f);
+                    ImGui.SameLine(MathF.Max(
+                        ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(tag).X - 6f,
+                        ImGui.CalcTextSize(f.Name).X + 24f));
                     ImGui.TextDisabled(tag);
                 }
             }
@@ -740,20 +749,42 @@ public class SheetViewWindow : Window
                 + "Click a cell to edit that slot only; clear the text to remove it.\n"
                 + "Orange * = your edit, kept through sheet updates.\n"
                 + "Dim rows are deleted; the undo button restores the sheet's version.\n"
-                + "Right-click a mechanic to write a note; hover a row with a pen mark to read it.");
+                + "Right-click a mechanic to write a note; hover a row with a pen mark to read it.\n"
+                + "Drag a column edge to resize it; double-click the edge to fit the text.");
 
-        // Right side: refresh + share.
-        var shareW = ImGui.CalcTextSize("Share plan").X + 60f + ImGui.CalcTextSize("Refresh").X + 24f;
-        ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 8f, ImGui.GetContentRegionMax().X - shareW));
+        // Right side: refresh + import + share.
+        var rightW = ImGui.CalcTextSize("Refresh").X + ImGui.CalcTextSize("Import").X
+                   + ImGui.CalcTextSize("Share plan").X + 96f;
+        ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 8f, ImGui.GetContentRegionMax().X - rightW));
         if (ImGui.SmallButton("Refresh")) { CommitPending(); _dirty = true; Flash("Reloaded from your saved plans."); }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Re-read every slot (picks up edits made on the fight page).");
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Import")) ImportPlan();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Paste a plan code from your clipboard (a friend's \"Share plan\").\n"
+                + "Updates that fight in place: the sender's slot is replaced, your other slots are kept.");
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
         if (ImGui.SmallButton("Share plan")) SharePlan();
         ImGui.PopStyleColor(2);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Copy the whole plan as a clipboard code. Friends use Import from clipboard\non the fight page; it updates their fight in place (their slot's plan).");
+            ImGui.SetTooltip("Copy the whole plan as a clipboard code. Friends press Import here\n(or on the fight page); it updates their fight in place (their slot's plan).");
+    }
+
+    // Import a friend's plan code from the clipboard, then jump to the fight it
+    // touched so the result is on screen immediately.
+    private void ImportPlan()
+    {
+        CommitPending();
+        var (fight, _, message) = _plugin.ImportPlanCode(ImGui.GetClipboardText());
+        if (fight != null && Builtin.Has(fight.TerritoryId))
+        {
+            _fight = fight;
+            _phaseFilter = "";
+        }
+        _dirty = true;
+        Flash(message);
     }
 
     private void PhaseButton(string label, bool on)
@@ -808,8 +839,10 @@ public class SheetViewWindow : Window
         // Below the grid: the sheet-notes panel plus one footer line (flash
         // message, or the hovered row's note).
         var footerH = ImGui.GetTextLineHeightWithSpacing() + 10f + NotesReserve();
+        // Resizable: drag a column edge, or double-click it to auto-fit the
+        // column to its content (the Google-sheets gesture).
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
-                  | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit;
+                  | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable;
         if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
             return;
 
