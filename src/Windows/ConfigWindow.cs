@@ -527,8 +527,47 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.TextColored(ImGuiColors.HealerGreen, FontAwesomeIcon.Check.ToIconString());
         }
 
+        // One click to match the role to the job you're playing right now, same
+        // idea as the job picker's "Use current". Hidden when already on it, and
+        // also when the pick is the other seat of the same pair (Off Tank while
+        // tanking, Melee 2 on a melee): that pick is deliberate, don't nag.
+        var liveRole = RoleForJob(_plugin.ActiveJobAbbreviation());
+        if (liveRole != null
+            && !string.Equals(C.RoleSelection, liveRole, StringComparison.OrdinalIgnoreCase)
+            && !SameSeatGroup(C.RoleSelection, liveRole))
+        {
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+            if (ImGui.SmallButton($"Use current ({liveRole})"))
+                SelectRoleForAll(liveRole);
+            Tip("Set the role from your current job with one click. Tanks and melee "
+                + "land on the first seat (Main Tank / Melee 1); pick Off Tank or "
+                + "Melee 2 from the list if that's your spot.");
+        }
+
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled("applies to every fight");
+    }
+
+    // Both roles are seats of the same pair (MT/OT, or Melee 1/2), so the
+    // current pick already matches the live job's role.
+    private static bool SameSeatGroup(string selection, string liveRole)
+        => (selection is "Main Tank" or "Off Tank" && liveRole is "Main Tank" or "Off Tank")
+        || (selection is "Melee 1" or "Melee 2" && liveRole is "Melee 1" or "Melee 2");
+
+    // The canonical role for a job: healers map to their own column, everyone
+    // else by role bucket, preferring the first seat (mirrors DefaultSlotForJob).
+    private static string? RoleForJob(string? jobAbbr)
+    {
+        if (Jobs.ByAbbreviation(jobAbbr) is not { } job) return null;
+        if (Builtin.Roles.Contains(job.Abbreviation)) return job.Abbreviation;
+        return job.Role switch
+        {
+            JobRole.Tank => "Main Tank",
+            JobRole.Melee => "Melee 1",
+            JobRole.PhysicalRanged => "Phys Ranged",
+            JobRole.Caster => "Caster",
+            _ => null,
+        };
     }
 
     // True if every built-in fight is currently on the slot this role maps to.

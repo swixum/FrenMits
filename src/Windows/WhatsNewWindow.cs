@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.133";
+    public const string NotesVersion = "1.0.0.134";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -68,5 +68,8 @@ public class WhatsNewWindow : Window
             "The little empty-box character that showed up around the UI is gone. It appeared "
             + "wherever a symbol wasn't in the game's font; every star, pen, undo arrow, "
             + "status dot and check mark is now drawn with real icons instead."),
+        ("One-click role match",
+            "The sidebar's Your Role section now has a \"Use current\" button that sets the "
+            + "role from the job you're playing, just like the job picker's."),
     };
 }
