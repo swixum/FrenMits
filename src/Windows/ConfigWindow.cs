@@ -69,7 +69,7 @@ public class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Timer, Display, Audio, PartyRecap, Practice, CombatTimer }
+    private enum NavKind { Home, Fights, Timer, Display, Audio, PartyRecap, CombatTimer }
     private NavKind _nav = NavKind.Home;
     private int _anchorFight = -1; // target fight for anchor building
     private string _recName = "";  // name for saving the current capture
@@ -312,6 +312,13 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextUnformatted(label);
     }
 
+    private static void WarnDot(string label)
+    {
+        StatusDot(ImGuiColors.DalamudYellow);
+        ImGui.SameLine(0, 4);
+        ImGui.TextColored(ImGuiColors.DalamudYellow, label);
+    }
+
     // Small filled status dot via the draw list: the text font has no circle
     // glyph, so a "●" literal renders as an empty box.
     private static void StatusDot(Vector4 color)
@@ -374,10 +381,10 @@ public class ConfigWindow : Window, IDisposable
             Dot(job != null, $"Job: {job ?? "?"}");
             ImGui.SameLine(0, 18);
             Dot(running, running ? $"Timer: {_plugin.Timer.Elapsed:0.0}s" : "Timer: idle");
-            ImGui.SameLine(0, 18);
-            Dot(C.AudioEnabled, "Audio");
-            ImGui.SameLine(0, 18);
-            Dot(C.EnableSync, "Resync");
+            // Audio / Resync only appear when they need attention: a healthy
+            // plugin shows a quiet header.
+            if (!C.AudioEnabled) { ImGui.SameLine(0, 18); WarnDot("Audio off"); }
+            if (!C.EnableSync) { ImGui.SameLine(0, 18); WarnDot("Resync off"); }
         }
         ImGui.EndChild();
         ImGui.PopStyleColor();
@@ -419,7 +426,6 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.Spacing();
         SidebarHeading("TOOLS");
-        if (NavItem(FontAwesomeIcon.PlayCircle, "Practice", null, _nav == NavKind.Practice)) _nav = NavKind.Practice;
         // Sheet View is a window, not a page: the nav item opens it directly.
         if (NavItem(FontAwesomeIcon.Table, "Sheet View", null, false))
         {
@@ -628,7 +634,6 @@ public class ConfigWindow : Window, IDisposable
             case NavKind.Display: DrawDisplayTab(); break;
             case NavKind.Audio: DrawAudioTab(); break;
             case NavKind.PartyRecap: DrawPartyRecapPage(); break;
-            case NavKind.Practice: DrawPracticePage(); break;
             case NavKind.CombatTimer: DrawCombatTimerPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
@@ -724,30 +729,19 @@ public class ConfigWindow : Window, IDisposable
             ImGui.Dummy(new Vector2(0, 10));
         }
 
-        // Action row: GitHub + Refresh side by side, centered together so they align.
+        // Action row: just GitHub. The destructive "Refresh from sheet" lives
+        // with the other maintenance tools (Timer > Anchors & diagnostics), not
+        // one misclick away from the landing page.
         var ghW = IconBtnWidth(FontAwesomeIcon.ExternalLinkAlt, "GitHub");
-        var rfW = IconBtnWidth(FontAwesomeIcon.Sync, "Refresh from sheet");
-        Center(ghW + ImGui.GetStyle().ItemSpacing.X + rfW);
+        Center(ghW);
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ExternalLinkAlt, "GitHub"))
             Dalamud.Utility.Util.OpenLink("https://github.com/swixum/FrenMits");
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Sync, "Refresh from sheet"))
-            ImGui.OpenPopup("##refreshall");
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Rebake every built-in fight from the sheet, discarding line edits and any added potion / tank lines.");
-        DrawRefreshConfirm();
 
-        // Version + transient refresh result, centered below.
+        // Version, centered below.
         ImGui.Dummy(new Vector2(0, 6));
         var ver = $"v{Version}";
         Center(ImGui.CalcTextSize(ver).X);
         ImGui.TextDisabled(ver);
-        if ((DateTime.Now - _homeMsgAt).TotalSeconds < 5 && _homeMsg.Length > 0)
-        {
-            Center(ImGui.CalcTextSize(_homeMsg).X);
-            ImGui.TextColored(ImGuiColors.ParsedGreen, _homeMsg);
-        }
-
     }
 
     private void DrawRefreshConfirm()
@@ -864,6 +858,7 @@ public class ConfigWindow : Window, IDisposable
                 {
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
                     DrawFightOffsetRow(fight);
+                    DrawPracticeRow(fight);
                     // Optional add-ons live behind one fold, so an expanded fight
                     // reads as offset + line table by default.
                     var job = _plugin.ActiveJobAbbreviation();
@@ -891,28 +886,35 @@ public class ConfigWindow : Window, IDisposable
         if (toDelete != null) { C.Fights.Remove(toDelete); C.Save(); }
     }
 
+    // One menu instead of a button row that grows every tier: blank fight,
+    // paste a code, and any not-yet-added official sheets for this category.
     private void DrawCategoryToolbar(string category)
     {
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add fight"))
+            ImGui.OpenPopup("##addfight");
+        if (!ImGui.BeginPopup("##addfight")) return;
+
+        if (ImGui.MenuItem("New blank fight (this zone)"))
             AddFight(new FightProfile
             {
                 Name = "New fight",
                 TerritoryId = Service.ClientState.TerritoryType,
                 Category = category,
             });
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Paste, "Paste fight")) ImportFightFromClipboard();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Import a fight shared via clipboard into this category.");
+        if (ImGui.MenuItem("Paste fight code from clipboard")) ImportFightFromClipboard();
 
-        // Quick presets: any built-in for THIS category that isn't added yet.
-        foreach (var (territory, name, cat) in Builtin.Fights)
+        var presets = Builtin.Fights
+            .Where(f => f.Category == category && C.Fights.All(x => x.TerritoryId != f.Territory))
+            .ToList();
+        if (presets.Count > 0)
         {
-            if (cat != category) continue;
-            if (C.Fights.Any(f => f.TerritoryId == territory)) continue;
-            ImGui.SameLine();
-            if (ImGui.Button($"+ {name}"))
-                AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
+            ImGui.Separator();
+            ImGui.TextDisabled("Official sheets");
+            foreach (var (territory, name, cat) in presets)
+                if (ImGui.MenuItem(name))
+                    AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
         }
+        ImGui.EndPopup();
     }
 
     // Adds a fight and auto-expands its dropdown.
@@ -1219,43 +1221,30 @@ public class ConfigWindow : Window, IDisposable
 
     private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
 
-    // Practice page (Tools): jump the overlay to a phase to preview/place its calls
-    // without a real pull. One card per built-in fight that has phase data.
-    private void DrawPracticePage()
+    // Practice, contextual: one row of phase-jump buttons inside the fight it
+    // belongs to (the old Practice page, dissolved).
+    private void DrawPracticeRow(FightProfile fight)
     {
-        SeparatorText("Practice");
-        ImGui.TextWrapped("Jump the overlay to a phase to preview and place its calls; no pull needed. "
-                          + "Picking a phase turns on Test Mode; press Stop when you're done.");
-        ImGui.Spacing();
+        var phases = Builtin.PhaseStarts(fight.TerritoryId);
+        if (phases.Count == 0) return;
 
-        var any = false;
-        foreach (var fight in C.Fights)
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Practice:");
+        Tip("Jump the overlay to a phase to preview and place its calls; no pull needed.\nPicking a phase turns on Test Mode; Stop (or a real pull) ends it.");
+        for (var i = 0; i < phases.Count; i++)
         {
-            var phases = Builtin.PhaseStarts(fight.TerritoryId);
-            if (phases.Count == 0) continue;
-            any = true;
-
-            BeginCard(FontAwesomeIcon.PlayCircle, ImGuiColors.DalamudOrange, fight.Name);
-            var previewing = Plugin.PreviewFight == fight && C.TestMode;
-            for (var i = 0; i < phases.Count; i++)
-            {
-                if (i > 0) ImGui.SameLine();
-                if (ImGui.Button($"{phases[i].Name}##prac{fight.Id}{i}"))
-                    _plugin.PracticeJump(fight, phases[i].Time);
-                Tip($"Preview from {(int)phases[i].Time / 60}:{(int)phases[i].Time % 60:00} (~6s before the first call).");
-            }
-            if (previewing)
-            {
-                ImGui.SameLine();
-                if (ImGui.Button($"Stop##{fight.Id}")) _plugin.StopPractice();
-                ImGui.SameLine();
-                ImGui.TextColored(ImGuiColors.DalamudYellow, "previewing");
-            }
-            EndCard();
+            ImGui.SameLine(0, 4);
+            if (ImGui.SmallButton($"{phases[i].Name}##prac{i}"))
+                _plugin.PracticeJump(fight, phases[i].Time);
+            Tip($"Preview from {(int)phases[i].Time / 60}:{(int)phases[i].Time % 60:00} (~6s before the first call).");
         }
-
-        if (!any)
-            ImGui.TextDisabled("No fights with phase data. Practice works for Dancing Mad and the legacy ultimates.");
+        if (Plugin.PreviewFight == fight && C.TestMode)
+        {
+            ImGui.SameLine(0, 8);
+            if (ImGui.SmallButton("Stop##prac")) _plugin.StopPractice();
+            ImGui.SameLine(0, 6);
+            ImGui.TextColored(ImGuiColors.DalamudYellow, "previewing");
+        }
     }
 
     // Potions card: baked top-log potion windows for your job with a one-click add.
@@ -1979,6 +1968,18 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawAnchorsContent()
     {
+        // Maintenance: full rebake of every built-in fight from the sheet data.
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Sync, "Refresh from sheet"))
+            ImGui.OpenPopup("##refreshall");
+        Tip("Rebake every built-in fight from the sheet, discarding line edits and any added potion / tank lines.");
+        DrawRefreshConfirm();
+        if ((DateTime.Now - _homeMsgAt).TotalSeconds < 5 && _homeMsg.Length > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.ParsedGreen, _homeMsg);
+        }
+        ImGui.Spacing();
+
         ImGui.TextWrapped("Record a clean pull, then promote boss casts to anchors so the timeline keeps re-syncing "
                           + "through every phase (great for phases public timelines don't cover, like DMU P4-P5). "
                           + "Anchors are saved per fight.");
