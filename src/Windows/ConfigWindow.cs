@@ -346,7 +346,8 @@ public class ConfigWindow : Window, IDisposable
             // Right-aligned quick action (measured, not hardcoded, so font
             // scaling can't push it off the edge).
             var right = ImGui.GetWindowWidth()
-                - (ImGui.CalcTextSize("Test").X + ImGui.GetFrameHeight() + 24f);
+                - (ImGui.CalcTextSize("Test").X + ImGui.GetFrameHeight()
+                   + ImGui.GetStyle().ItemInnerSpacing.X + ImGui.GetStyle().WindowPadding.X + 12f);
             if (right > 0) { ImGui.SameLine(); ImGui.SetCursorPosX(right); }
             var test = C.TestMode;
             if (GreenCheckbox("Test", ref test)) { C.TestMode = test; C.Save(); }
@@ -2237,7 +2238,9 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Preview"))
         {
-            _plugin.Recap.LoadSample();             // fake randomised pull to look at
+            // A real capture previews better than the fake one, and must not be
+            // clobbered just to drag windows around.
+            if (_plugin.Recap.CapturedAt == default) _plugin.Recap.LoadSample();
             _plugin.Recap.ShowTestPopup();          // popup appears so it can be dragged
             _plugin.RecapWindow.IsOpen = true;      // window opens for placement too
         }

@@ -430,7 +430,7 @@ public class SheetViewWindow : Window
         }
 
         // Custom sheets: scaffold rows exist even before any lines are written
-        // into them, so "+ Row" gives you a plannable grid immediately.
+        // into them, so Build > Add row gives you a plannable grid immediately.
         if (_isCustom && _fight.CustomRows.Count > 0)
             foreach (var cr in _fight.CustomRows)
                 if (!_rows.Any(r => MechEquals(r.Mechanic, cr.Mechanic) && MathF.Abs(r.Time - cr.Time) < 2f))
@@ -1113,7 +1113,7 @@ public class SheetViewWindow : Window
         _phaseFilter = "";
         _filter = "";
         _dirty = true;
-        Flash($"\"{name}\" created. + Row adds mechanics; click cells to write mits; Share plan sends it to friends.");
+        Flash($"\"{name}\" created. Build > Add row adds mechanics; click cells to write mits; Share plan sends it to friends.");
     }
 
     private void PickCustomSlot(string slot)
@@ -1166,68 +1166,6 @@ public class SheetViewWindow : Window
             if (ImGui.SmallButton("x##clearfilter")) _filter = "";
         }
 
-        // Search-and-replace across mits ("all my Vengeance becomes Damnation").
-        ImGui.SameLine(0, 4);
-        if (ImGui.SmallButton("Replace..."))
-        {
-            _replFind = _filter;
-            ImGui.OpenPopup("##sheetreplace");
-        }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Rename a mit across the whole sheet in one go.");
-        DrawReplacePopup();
-
-        // Custom sheets: add a mechanic row (name + time).
-        if (_isCustom)
-        {
-            ImGui.SameLine(0, 8);
-            if (ImGui.SmallButton("+ Row"))
-            {
-                _rowMech = "";
-                _rowTime = "";
-                ImGui.OpenPopup("##addrow");
-            }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Add a mechanic row (name + time).");
-            if (ImGui.BeginPopup("##addrow"))
-            {
-                ImGui.SetNextItemWidth(200f);
-                ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
-                ImGui.SetNextItemWidth(200f);
-                ImGui.InputTextWithHint("##artime", "time (m:ss or seconds)", ref _rowTime, 16);
-                var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
-                ImGui.BeginDisabled(!okRow);
-                if (ImGui.Button("Add row", new Vector2(110, 0)))
-                {
-                    SheetImport.TryParseTime(_rowTime, out var t);
-                    AddCustomRow(_rowMech.Trim(), t);
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.EndDisabled();
-                ImGui.EndPopup();
-            }
-
-            ImGui.SameLine(0, 4);
-            if (ImGui.SmallButton("Build from pull")) ImGui.OpenPopup("##buildpull");
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Turn the last pull's boss casts into mechanic rows and resync anchors.\n"
-                    + "Just pull the boss in this duty (a wipe is fine): every cast is captured automatically.");
-            DrawBuildFromPullPopup();
-
-            ImGui.SameLine(0, 4);
-            if (ImGui.SmallButton("Import log")) ImGui.OpenPopup("##fflogs");
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Build this sheet from an FFLogs report: paste a report link, pick the kill,\n"
-                    + "and its casts become mechanic rows + resync anchors. Prep before you've ever pulled.");
-            DrawFFLogsPopup();
-        }
-
-        // Type coloring is opt-in: a full grid of colored text is a lot.
-        ImGui.SameLine(0, 8);
-        var colors = C.SheetColorByType;
-        if (ImGui.Checkbox("Colors##sheetcolors", ref colors)) { C.SheetColorByType = colors; C.Save(); }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Color mits by type (party / tank / personal), using your overlay's mit colors.\nRed cooldown warnings show either way.");
-
         ImGui.SameLine(0, 8);
         var filtered = _phaseFilter.Length > 0 || _filter.Length > 0;
         var shown = _rows.Count(r => !r.Ghost
@@ -1247,15 +1185,16 @@ public class SheetViewWindow : Window
                 + "Orange * = your edit, kept through sheet updates.\n"
                 + "Dim rows are deleted; the undo button restores the sheet's version.\n"
                 + "A red cell means that mit is planned again before its cooldown can be back.\n"
-                + "Tick Colors to tint mits by type (party / tank / personal, overlay colors).\n"
+                + "The Plan menu has export, import, Replace, plan History, and type colors.\n"
                 + "Right-click a column header to pin it next to Mechanic, or copy/paste a whole column.\n"
                 + "Ctrl+Z (or the Undo button) takes back your last sheet edit.\n"
                 + "Drag a column edge to resize it; double-click the edge to fit the text.");
 
-        // Right side: undo + history + refresh + export + import + share.
-        var rightW = ImGui.CalcTextSize("Undo").X + ImGui.CalcTextSize("History").X
-                   + ImGui.CalcTextSize("Refresh").X + ImGui.CalcTextSize("Export").X
-                   + ImGui.CalcTextSize("Import").X + ImGui.CalcTextSize("Share plan").X + 192f;
+        // Right side: Undo | Build (custom sheets) | Plan | Share plan. The
+        // one-click accent stays on Share; everything else folds into menus.
+        var rightW = ImGui.CalcTextSize("Undo").X + ImGui.CalcTextSize("Plan").X
+                   + ImGui.CalcTextSize("Share plan").X + 96f
+                   + (_isCustom ? ImGui.CalcTextSize("Build").X + 32f : 0f);
         ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 8f, ImGui.GetContentRegionMax().X - rightW));
         ImGui.BeginDisabled(_undoStack.Count == 0);
         if (ImGui.SmallButton("Undo")) Undo();
@@ -1264,41 +1203,104 @@ public class SheetViewWindow : Window
             ImGui.SetTooltip(_undoStack.Count == 0
                 ? "Nothing to undo yet. Ctrl+Z also works."
                 : $"Undo: {_undoStack[^1].Label} (Ctrl+Z). Restores the plan to how it was before that edit.");
-        ImGui.SameLine();
-        if (ImGui.SmallButton("History"))
+
+        // Deferred popup opens: OpenPopup can't run inside another popup's
+        // scope, so menu items set flags and the popups open out here.
+        var openReplace = false;
+        var openHistory = false;
+        var openAddRow = false;
+        var openBuildPull = false;
+        var openLog = false;
+
+        if (_isCustom)
         {
-            _snapList = _plugin.ListSnapshots(_fight!.Id);
-            ImGui.OpenPopup("##sheethistory");
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Build")) ImGui.OpenPopup("##buildmenu");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Grow this sheet: add rows by hand, from your own pulls, or from an FFLogs kill.");
+            if (ImGui.BeginPopup("##buildmenu"))
+            {
+                if (ImGui.MenuItem("Add row...")) openAddRow = true;
+                if (ImGui.MenuItem("Build from pull...")) openBuildPull = true;
+                if (ImGui.MenuItem("Import FFLogs log...")) openLog = true;
+                ImGui.EndPopup();
+            }
         }
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Plan")) ImGui.OpenPopup("##planmenu");
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Plan snapshots, taken automatically before imports, replaces and\ncolumn pastes. Restore any of them, or take one by hand.");
-        DrawHistoryPopup();
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Refresh")) { CommitPending(); _dirty = true; Flash("Reloaded from your saved plans."); }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Re-read every slot (picks up edits made on the fight page).");
-        ImGui.SameLine();
-        // Land any half-typed edit and fold it into the rows first, so the
-        // clipboard never captures a pre-edit grid.
-        if (ImGui.SmallButton("Export"))
+            ImGui.SetTooltip("Export / import, bulk replace, plan history, and view options.");
+        if (ImGui.BeginPopup("##planmenu"))
         {
-            CommitPending();
-            if (_dirty) Rebuild();
-            ExportText();
+            // Land any half-typed edit first, so the clipboard never captures
+            // a pre-edit grid.
+            if (ImGui.MenuItem("Export as text"))
+            {
+                CommitPending();
+                if (_dirty) Rebuild();
+                ExportText();
+            }
+            if (ImGui.MenuItem("Import plan code")) ImportPlan();
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Paste a friend's Share plan code from your clipboard.\nTheir slot is replaced; your other slots are kept.");
+            if (ImGui.MenuItem("Replace a mit...")) openReplace = true;
+            if (ImGui.MenuItem("Plan history...")) openHistory = true;
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Snapshots taken automatically before imports, replaces and\ncolumn pastes; restore any of them.");
+            ImGui.Separator();
+            if (ImGui.MenuItem("Color mits by type", "", C.SheetColorByType))
+            {
+                C.SheetColorByType = !C.SheetColorByType;
+                C.Save();
+            }
+            ImGui.EndPopup();
         }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Copy the whole grid as tab-separated text: paste straight into\nGoogle Sheets / Excel (lands in columns) or Discord.");
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Import")) ImportPlan();
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Paste a plan code from your clipboard (a friend's \"Share plan\").\n"
-                + "Updates that fight in place: the sender's slot is replaced, your other slots are kept.");
+
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
         if (ImGui.SmallButton("Share plan")) SharePlan();
         ImGui.PopStyleColor(2);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Copy the whole plan as a clipboard code. Friends press Import here\n(or on the fight page); it updates their fight in place (their slot's plan).");
+            ImGui.SetTooltip("Copy the whole plan as a clipboard code. Friends use Plan > Import plan code\n(or the fight page); it updates their fight in place (their slot's plan).");
+
+        if (openReplace) { _replFind = _filter; ImGui.OpenPopup("##sheetreplace"); }
+        DrawReplacePopup();
+        if (openHistory)
+        {
+            _snapList = _plugin.ListSnapshots(_fight!.Id);
+            ImGui.OpenPopup("##sheethistory");
+        }
+        DrawHistoryPopup();
+        if (_isCustom)
+        {
+            if (openAddRow) { _rowMech = ""; _rowTime = ""; ImGui.OpenPopup("##addrow"); }
+            DrawAddRowPopup();
+            if (openBuildPull) ImGui.OpenPopup("##buildpull");
+            DrawBuildFromPullPopup();
+            if (openLog) ImGui.OpenPopup("##fflogs");
+            DrawFFLogsPopup();
+        }
+    }
+
+    private void DrawAddRowPopup()
+    {
+        if (!ImGui.BeginPopup("##addrow")) return;
+        ImGui.SetNextItemWidth(200f);
+        ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.InputTextWithHint("##artime", "time (m:ss or seconds)", ref _rowTime, 16);
+        var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
+        ImGui.BeginDisabled(!okRow);
+        if (ImGui.Button("Add row", new Vector2(110, 0)))
+        {
+            SheetImport.TryParseTime(_rowTime, out var t);
+            AddCustomRow(_rowMech.Trim(), t);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndDisabled();
+        ImGui.EndPopup();
     }
 
     // Import a friend's plan code from the clipboard, then jump to the fight it
