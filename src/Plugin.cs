@@ -235,6 +235,17 @@ public sealed class Plugin : IDalamudPlugin
                 f.Category = "Savage";
             }
 
+        // v15: stored fight names may carry an em dash from an older seed, which
+        // the game font renders as an empty box. Normalize to a plain hyphen.
+        if (Config.Version < 15)
+        {
+            foreach (var f in Config.Fights)
+                if (f.Name.Contains('—'))
+                    f.Name = f.Name.Replace('—', '-');
+            Config.Version = 15;
+            Config.Save();
+        }
+
         // Auto-add any built-in fight the user hasn't been shown yet, so a newly
         // shipped fight (e.g. a fresh savage) appears directly on its tab with no
         // button to click. Tracked per-territory so a deleted built-in stays gone.
@@ -318,7 +329,7 @@ public sealed class Plugin : IDalamudPlugin
         // Diagnostic: if this ever logs "#2" (or higher) while only one copy should be
         // running, the plugin is double-loaded — which would double every audio cue.
         var n = System.Threading.Interlocked.Increment(ref _liveInstances);
-        Service.Log.Information($"[FrenMits] init — live instance #{n}");
+        Service.Log.Information($"[FrenMits] init - live instance #{n}");
     }
 
     private static int _liveInstances;
@@ -797,7 +808,7 @@ public sealed class Plugin : IDalamudPlugin
         ReplayFight = null;
         ReplayCutsceneActive = false;
 
-        Service.Log.Information($"[FrenMits] dispose — live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
+        Service.Log.Information($"[FrenMits] dispose - live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;

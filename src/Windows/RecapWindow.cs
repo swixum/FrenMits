@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
@@ -56,7 +57,7 @@ public class RecapWindow : Window
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Snapshot the mits up right now (before the boss resets).");
         ImGui.SameLine();
         if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text — paste it into Discord or your notes.");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text; paste it into Discord or your notes.");
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Vec(0xFF81766E), r.CapturedAt == default
@@ -66,7 +67,7 @@ public class RecapWindow : Window
         if (!r.HasData)
         {
             ImGui.Spacing();
-            ImGui.TextColored(Vec(0xFF81766E), "Do a pull — the boss's mits, the party's cooldowns and");
+            ImGui.TextColored(Vec(0xFF81766E), "Do a pull; the boss's mits, the party's cooldowns and");
             ImGui.TextColored(Vec(0xFF81766E), "anything missing will show here.");
             return;
         }
@@ -91,7 +92,7 @@ public class RecapWindow : Window
         else
         {
             ImGui.TextColored(Vec(Theme.Warn), "Never landed:  " + string.Join("   ", missed));
-            ImGui.TextColored(Vec(0xFF81766E), "comp-dependent — no caster = no Addle, no MCH = no Dismantle");
+            ImGui.TextColored(Vec(0xFF81766E), "comp-dependent: no caster = no Addle, no MCH = no Dismantle");
         }
 
         // What's up at the capture.
@@ -141,7 +142,7 @@ public class RecapWindow : Window
                 ImGui.AlignTextToFramePadding();
                 ImGui.TextColored(Vec(0xFF81766E), $"{(int)group[0].Time / 60}:{(int)group[0].Time % 60:00}");
                 ImGui.TableNextColumn();
-                ImGui.TextUnformatted(mech.Length > 0 ? mech : "—");
+                ImGui.TextUnformatted(mech.Length > 0 ? mech : "-");
                 ImGui.TableNextColumn();
 
                 var n = 0;
@@ -174,9 +175,17 @@ public class RecapWindow : Window
                             ImGui.BeginTooltip();
                             ImGui.TextColored(Vec(0xFF81766E), $"{e.Mit} coverage:");
                             foreach (var name in party)
-                                ImGui.TextColored(
-                                    e.Covered.Contains(name) ? Vec(Theme.Good) : Vec(0xFF5050E0),
-                                    (e.Covered.Contains(name) ? "✓ " : "✗ ") + name);
+                            {
+                                // Check/cross via the icon font: the text font
+                                // has no glyph for either symbol.
+                                var hit = e.Covered.Contains(name);
+                                var rowCol = hit ? Vec(Theme.Good) : Vec(0xFF5050E0);
+                                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                                    ImGui.TextColored(rowCol,
+                                        (hit ? FontAwesomeIcon.Check : FontAwesomeIcon.Times).ToIconString());
+                                ImGui.SameLine(0, 5);
+                                ImGui.TextColored(rowCol, name);
+                            }
                             ImGui.EndTooltip();
                         }
                     }

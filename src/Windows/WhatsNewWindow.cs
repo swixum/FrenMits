@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.132";
+    public const string NotesVersion = "1.0.0.133";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -30,7 +30,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Per-call offsets, sheet notes, and a cleaner recap");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "Phase notes from the sheet, and symbol fixes");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -60,21 +60,13 @@ public class WhatsNewWindow : Window
 
     private static readonly (string Head, string Body)[] Notes =
     {
-        ("Offset a single call",
-            "New ±s column in the line table (and in each line's … options): +2 fires just that "
-            + "one call 2s earlier. The fight-wide Timer offset now sits at the top of each fight "
-            + "instead of hiding in Advanced."),
-        ("Party Mit Recap, rebuilt",
-            "One line per mechanic, with coverage counts: Troubadour 7/8 means one person missed "
-            + "it - hover to see exactly who (green in, red out)."),
-        ("Notes on the sheet",
-            "Right-click a mechanic in Sheet View to write a note (Ikuya-footer style). Hover any "
-            + "✎ row and the note shows at the bottom - no clicks to read. Notes travel with "
-            + "shared plan codes."),
-        ("Polish",
-            "★ marks the official sheets everywhere; the call display no longer wanders as text "
-            + "length changes; cooldown-aware calls dim only the ability, not the whole line; a "
-            + "one-click \"Use current (job)\" button; and the footer now just tells the truth: "
-            + "every edit saves instantly, nothing to lose on exit."),
+        ("The sheet's phase notes, in game",
+            "Sheet View now has a \"Sheet notes\" panel at the bottom with the notes section "
+            + "from every phase tab of the official sheet (usage tips, footnotes, healer "
+            + "callouts). Filter to a phase and the panel follows; collapse it any time."),
+        ("Empty-box symbols fixed",
+            "The little empty-box character that showed up around the UI is gone. It appeared "
+            + "wherever a symbol wasn't in the game's font; every star, pen, undo arrow, "
+            + "status dot and check mark is now drawn with real icons instead."),
     };
 }

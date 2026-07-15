@@ -15,6 +15,9 @@ public class ConfigWindow : Window, IDisposable
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
+    // Official-sheet star color (drawn with the icon font).
+    private static readonly Vector4 GoldStar = new(0.98f, 0.82f, 0.35f, 1f);
+
     private int _selectedFight;
 
     // In-progress m:ss edit for the line table (one row at a time).
@@ -190,7 +193,7 @@ public class ConfigWindow : Window, IDisposable
 
         if (Configuration.SuppressSave)
         {
-            ImGui.TextColored(ImGuiColors.DalamudYellow, "●");
+            StatusDot(ImGuiColors.DalamudYellow);
             ImGui.SameLine(0, 6);
             ImGui.TextColored(ImGuiColors.DalamudYellow,
                 "Saving is OFF this session (your config file failed to load and was backed up).");
@@ -199,13 +202,13 @@ public class ConfigWindow : Window, IDisposable
 
         var last = Configuration.LastSavedAt;
         var recent = last != DateTime.MinValue && (DateTime.Now - last).TotalSeconds < 3;
-        ImGui.TextColored(recent ? ImGuiColors.ParsedGreen : ImGuiColors.HealerGreen, "●");
+        StatusDot(recent ? ImGuiColors.ParsedGreen : ImGuiColors.HealerGreen);
         ImGui.SameLine(0, 6);
         ImGui.TextDisabled(last == DateTime.MinValue
-            ? "All changes save instantly — nothing to lose on exit."
+            ? "All changes save instantly; nothing to lose on exit."
             : recent
-                ? "All changes saved — just now."
-                : $"All changes saved — every edit writes instantly (last {Ago(last)}).");
+                ? "All changes saved just now."
+                : $"All changes saved; every edit writes instantly (last {Ago(last)}).");
     }
 
     private static string Ago(DateTime t)
@@ -288,9 +291,21 @@ public class ConfigWindow : Window, IDisposable
 
     private static void Dot(bool on, string label)
     {
-        ImGui.TextColored(on ? ImGuiColors.HealerGreen : ImGuiColors.DalamudGrey, "●");
+        StatusDot(on ? ImGuiColors.HealerGreen : ImGuiColors.DalamudGrey);
         ImGui.SameLine(0, 4);
         ImGui.TextUnformatted(label);
+    }
+
+    // Small filled status dot via the draw list: the text font has no circle
+    // glyph, so a "●" literal renders as an empty box.
+    private static void StatusDot(Vector4 color)
+    {
+        var size = ImGui.GetTextLineHeight();
+        var pos = ImGui.GetCursorScreenPos();
+        ImGui.GetWindowDrawList().AddCircleFilled(
+            new Vector2(pos.X + size * 0.5f, pos.Y + size * 0.55f), size * 0.22f,
+            ImGui.ColorConvertFloat4ToU32(color));
+        ImGui.Dummy(new Vector2(size, size));
     }
 
     private static void HelpMarker(string text)
@@ -492,7 +507,7 @@ public class ConfigWindow : Window, IDisposable
         SidebarHeading("YOUR ROLE");
 
         var roles = Builtin.Roles;
-        var labels = new List<string> { "— pick a role —" };
+        var labels = new List<string> { "(pick a role)" };
         labels.AddRange(roles);
         var idx = string.IsNullOrEmpty(C.RoleSelection) ? 0 : Math.Max(0, Array.IndexOf(roles, C.RoleSelection) + 1);
 
@@ -690,7 +705,7 @@ public class ConfigWindow : Window, IDisposable
     {
         var fights = C.Fights.Where(f => CategoryOf(f) == category).ToList();
 
-        SeparatorText($"{category} — {fights.Count} fight{(fights.Count == 1 ? "" : "s")}");
+        SeparatorText($"{category}: {fights.Count} fight{(fights.Count == 1 ? "" : "s")}");
         DrawCategoryToolbar(category);
         ImGui.Spacing();
 
@@ -711,11 +726,24 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
 
             if (fight.Id == _expandFightId) { ImGui.SetNextItemOpen(true); _expandFightId = ""; }
-            // ★ = official: ships with the plugin, baked from the community sheet.
-            var star = Builtin.Has(fight.TerritoryId) ? "★ " : "";
-            var open = ImGui.CollapsingHeader($"{star}{fight.Name}   ({fight.Lines.Count})###fh-{fight.Id}");
-            if (star.Length > 0 && ImGui.IsItemHovered())
-                ImGui.SetTooltip("Official sheet — ships with the plugin and gets timeline updates automatically.");
+            // Gold star after the name = official: ships with the plugin, baked
+            // from the community sheet. Icon font, since the text font has no star.
+            var official = Builtin.Has(fight.TerritoryId);
+            var headerStartX = ImGui.GetCursorPosX();
+            var headerLabel = $"{fight.Name}   ({fight.Lines.Count})";
+            var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
+            if (official && ImGui.IsItemHovered())
+                ImGui.SetTooltip("Official sheet: ships with the plugin and gets timeline updates automatically.");
+            if (official)
+            {
+                // A framed tree node indents its label one extra FramePadding.X
+                // beyond GetTreeNodeToLabelSpacing().
+                ImGui.SameLine(headerStartX + ImGui.GetTreeNodeToLabelSpacing()
+                    + ImGui.GetStyle().FramePadding.X + ImGui.CalcTextSize(headerLabel).X + 8f);
+                ImGui.AlignTextToFramePadding();
+                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                    ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
+            }
 
             if (open)
             {
@@ -933,19 +961,20 @@ public class ConfigWindow : Window, IDisposable
         if (Builtin.Has(fight.TerritoryId))
         {
             ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(new Vector4(0.98f, 0.82f, 0.35f, 1f), "★");
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
             ImGui.SameLine(0, 5);
             ImGui.TextUnformatted(fight.Name);
             ImGui.SameLine(0, 8);
             ImGui.TextDisabled("(official sheet)");
-            Tip("Line times are seconds from the pull — one continuous timeline across every phase; resets on a wipe.");
+            Tip("Line times are seconds from the pull, one continuous timeline across every phase; resets on a wipe.");
             return true;
         }
 
         var name = fight.Name;
         ImGui.SetNextItemWidth(260f);
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
-        Tip("Line times are seconds from the pull — one continuous timeline across every phase; resets on a wipe.");
+        Tip("Line times are seconds from the pull, one continuous timeline across every phase; resets on a wipe.");
 
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
@@ -1079,7 +1108,7 @@ public class ConfigWindow : Window, IDisposable
     private void DrawPracticePage()
     {
         SeparatorText("Practice");
-        ImGui.TextWrapped("Jump the overlay to a phase to preview and place its calls — no pull needed. "
+        ImGui.TextWrapped("Jump the overlay to a phase to preview and place its calls; no pull needed. "
                           + "Picking a phase turns on Test Mode; press Stop when you're done.");
         ImGui.Spacing();
 
@@ -1384,7 +1413,7 @@ public class ConfigWindow : Window, IDisposable
                 }
                 if (_editTimeLine == line) _editTimeLine = null;
             }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds — right-click to reset");
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds; right-click to reset");
             if (ImGui.BeginPopupContextItem("##timectx"))
             {
                 if (DefaultLineFor(fight, line) is { } def)
@@ -1500,7 +1529,7 @@ public class ConfigWindow : Window, IDisposable
             DrawJobsCell(line);
 
             ImGui.TableNextColumn();
-            if (ImGui.SmallButton("…")) ImGui.OpenPopup("lineopt");
+            if (ImGui.SmallButton("...")) ImGui.OpenPopup("lineopt");
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Per-line lead / speech / color / mute");
             DrawLineOptionsPopup(line);
 
@@ -1616,7 +1645,7 @@ public class ConfigWindow : Window, IDisposable
     private void DrawJobsCell(MitLine line)
     {
         var label = line.Jobs.Count == 0 ? "All" : string.Join(",", line.Jobs);
-        if (label.Length > 14) label = label[..12] + "…";
+        if (label.Length > 14) label = label[..12] + "...";
         if (ImGui.Button(label + "##jobs", new Vector2(-1, 0)))
             ImGui.OpenPopup("jobspopup");
 
@@ -1796,9 +1825,9 @@ public class ConfigWindow : Window, IDisposable
         if (Section("Resync", true))
         {
             C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
-            Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time — correcting phase drift from kill speed.");
+            Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time, correcting phase drift from kill speed.");
             C.Diagnostics = CfgCheck("Write per-pull diagnostics file", C.Diagnostics);
-            Tip("Saves a resync + cue log per pull to the plugin's diagnostics/ folder. Local only — nothing is sent anywhere. Use it to check resync accuracy.");
+            Tip("Saves a resync + cue log per pull to the plugin's diagnostics/ folder. Local only; nothing is sent anywhere. Use it to check resync accuracy.");
             if (ImGui.TreeNode("Advanced windows"))
             {
                 var win = C.SyncWindowSeconds;
@@ -1915,7 +1944,7 @@ public class ConfigWindow : Window, IDisposable
         if (Section("Record & replay (desk test)", false))
         {
             ImGui.TextWrapped("Tick \"Recording\" above, do a pull (casts and cutscenes are captured), then save it here. "
-                              + "Replay it any time to watch the overlay, cues and cutscene handling line up — no instance needed.");
+                              + "Replay it any time to watch the overlay, cues and cutscene handling line up, no instance needed.");
 
             ImGui.SetNextItemWidth(200f);
             ImGui.InputTextWithHint("##recname", "recording name", ref _recName, 64);
@@ -1973,12 +2002,12 @@ public class ConfigWindow : Window, IDisposable
         }
 
         // --- Last pull: mits you used ---
-        if (Section("Last pull — mits you used", false))
+        if (Section("Last pull: mits you used", false))
         {
             var review = _plugin.Review.Last;
             if (review.Count == 0)
             {
-                ImGui.TextDisabled("Do a pull — the mits you use (and when) are logged here to compare against the plan.");
+                ImGui.TextDisabled("Do a pull; the mits you use (and when) are logged here to compare against the plan.");
             }
             else if (ImGui.BeginTable("##review", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
                          new Vector2(0, 200)))
@@ -2131,7 +2160,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
 
         C.RecapAutoCapture = CfgCheck("Auto-capture the recap every pull", C.RecapAutoCapture);
-        Tip("On by default — the recap is captured automatically as you fight, so you never have to trigger it. Untick to turn the whole tool off.");
+        Tip("On by default: the recap is captured automatically as you fight, so you never have to trigger it. Untick to turn the whole tool off.");
 
         C.ShowRecapButton = CfgCheck("Show the recap popup after every wipe", C.ShowRecapButton);
         Tip("When on, a small \"Mit Recap\" popup appears after every pull ends so you can open the recap. Off = it never appears.");
@@ -2153,7 +2182,7 @@ public class ConfigWindow : Window, IDisposable
             _plugin.Recap.LoadSample();             // fill with a fake randomised pull
             _plugin.RecapWindow.IsOpen = true;
         }
-        Tip("Fills the recap with a randomised fake pull so you can see exactly how it looks in-game — icons, colors, missing mits — without a real pull.");
+        Tip("Fills the recap with a randomised fake pull so you can see exactly how it looks in-game (icons, colors, missing mits) without a real pull.");
         ImGui.SameLine();
         if (ImGui.Button("Test placement"))
         {
@@ -2193,7 +2222,7 @@ public class ConfigWindow : Window, IDisposable
                 + "the \"shift all instances of this one thing\" edit.");
             ImGui.Bullet(); ImGui.TextWrapped("Click a CELL to change one slot's mit only. Clear the text to remove it.");
             ImGui.Bullet(); ImGui.TextWrapped("Anything you touch turns orange: it's yours now, and sheet updates "
-                + "won't revert it. The row's ⟲ puts a mechanic back on the sheet.");
+                + "won't revert it. The row's undo button puts a mechanic back on the sheet.");
             ImGui.Bullet(); ImGui.TextWrapped("Edits to OTHER slots live in your saved copy until you press "
                 + "\"Share plan\" and friends import the code - then their own slot updates in place.");
         }
@@ -2214,7 +2243,7 @@ public class ConfigWindow : Window, IDisposable
             C.CombatTimerLocked = CfgCheck("Lock position (click-through)", C.CombatTimerLocked);
             ImGui.SameLine();
             ImGui.TextDisabled(C.CombatTimerLocked ? "locked, unlock to drag" : "drag it, or use the sliders");
-            ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Test preview.");
+            ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Test preview.");
 
             var pos = C.CombatTimerPosition;
             ImGui.SetNextItemWidth(200f);
@@ -2279,7 +2308,7 @@ public class ConfigWindow : Window, IDisposable
             C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
             ImGui.SameLine();
             ImGui.TextDisabled(C.OverlayLocked ? "locked, unlock to drag" : "drag it, or use the sliders");
-            ImGui.TextDisabled("Auto-locks in combat — use Live preview or the sliders to move it during a pull.");
+            ImGui.TextDisabled("Auto-locks in combat; use Live preview or the sliders to move it during a pull.");
 
             var pos = C.OverlayPosition;
             ImGui.SetNextItemWidth(200f);
@@ -2348,7 +2377,7 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
             {
                 C.ShowAbilityIcon = GridCheck("Ability icon", C.ShowAbilityIcon,
-                    "Matched from the action name; pin one per line with the \"…\" button.");
+                    "Matched from the action name; pin one per line with the \"...\" button.");
                 C.ShowRadialRing = GridCheck("Radial ring", C.ShowRadialRing,
                     "A depleting countdown ring around the call icon.");
                 C.ShowMechanicLine = GridCheck("Mechanic 2nd line", C.ShowMechanicLine);
@@ -2367,7 +2396,7 @@ public class ConfigWindow : Window, IDisposable
             {
                 var locked = C.MitBarLocked;
                 if (GreenCheckbox("Lock active-mits position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
-                ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Live preview.");
+                ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
             }
         }
 
@@ -2441,7 +2470,7 @@ public class ConfigWindow : Window, IDisposable
                 }
                 ImGui.SameLine();
                 ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move)");
-                ImGui.TextDisabled("Auto-locks in combat — move it out of combat or with Live preview.");
+                ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
 
                 var count = C.UpcomingCount;
                 ImGui.SetNextItemWidth(120f);
@@ -2539,7 +2568,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.Spacing();
             var mech = C.TtsSpeakMechanic;
             if (ImGui.RadioButton("Speak the mit", !mech)) { C.TtsSpeakMechanic = false; C.Save(); }
-            Tip("Reads the action you press, e.g. \"Reprisal\". Override the exact words per line with the \"…\" button.");
+            Tip("Reads the action you press, e.g. \"Reprisal\". Override the exact words per line with the \"...\" button.");
             ImGui.SameLine();
             if (ImGui.RadioButton("Speak the mechanic", mech)) { C.TtsSpeakMechanic = true; C.Save(); }
 
@@ -2556,7 +2585,7 @@ public class ConfigWindow : Window, IDisposable
         if (Section("Test", true))
         {
             ImGui.SetNextItemWidth(220f);
-            ImGui.InputTextWithHint("##testtext", "text to test…", ref _ttsTestText, 128);
+            ImGui.InputTextWithHint("##testtext", "text to test...", ref _ttsTestText, 128);
             ImGui.SameLine();
             if (ImGui.Button("Speak"))
             {
@@ -2578,7 +2607,7 @@ public class ConfigWindow : Window, IDisposable
                 var ok = status.StartsWith("Online OK") || status == "Windows voice";
                 ImGui.TextColored(ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, "Status: " + status);
             }
-            ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"…\" button).");
+            ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"...\" button).");
         }
     }
 
@@ -2635,7 +2664,7 @@ public class ConfigWindow : Window, IDisposable
 
         // Search actions + statuses by name -> clickable icon grid.
         ImGui.SetNextItemWidth(240f);
-        ImGui.InputTextWithHint("##iconsearch", "search actions & statuses…", ref _iconSearch, 64);
+        ImGui.InputTextWithHint("##iconsearch", "search actions & statuses...", ref _iconSearch, 64);
         if (!string.IsNullOrWhiteSpace(_iconSearch))
         {
             var n = 0;
@@ -2674,7 +2703,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
             if (ImGui.ArrowButton("##iconext", ImGuiDir.Right)) _iconBrowseStart += IconPage;
             ImGui.SameLine();
-            ImGui.TextDisabled($"{_iconBrowseStart}–{_iconBrowseStart + IconPage - 1}");
+            ImGui.TextDisabled($"{_iconBrowseStart}-{_iconBrowseStart + IconPage - 1}");
 
             if (ImGui.BeginChild("##iconbrowse", new Vector2(0, 220), true))
             {
@@ -2880,7 +2909,7 @@ public class ConfigWindow : Window, IDisposable
         return bestHasMatch ? best : null;
     }
 
-    private static string Ellipsis(string s, int max) => s.Length > max ? s[..max] + "…" : s;
+    private static string Ellipsis(string s, int max) => s.Length > max ? s[..max] + "..." : s;
 
     private static MitLine CloneLine(MitLine l) => new()
     {
@@ -2891,7 +2920,7 @@ public class ConfigWindow : Window, IDisposable
     };
 
     private static string Get(string[] row, int i) => i >= 0 && i < row.Length ? row[i] : "";
-    private static string Trunc(string s, int n) => s.Length <= n ? s : s[..n] + "…";
+    private static string Trunc(string s, int n) => s.Length <= n ? s : s[..n] + "...";
 
     private static string TerritoryName(uint id)
     {

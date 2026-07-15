@@ -16,6 +16,9 @@ public class Configuration : IPluginConfiguration
 
     public List<FightProfile> Fights { get; set; } = new();
 
+    // Whether the Sheet View's per-phase "Sheet notes" panel is expanded.
+    public bool SheetNotesOpen { get; set; } = true;
+
     // Built-in fight territories already auto-added to the list, so a newly
     // shipped built-in shows up directly (no button) while a deleted one stays gone.
     public List<uint> SeededTerritories { get; set; } = new();

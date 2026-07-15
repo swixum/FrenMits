@@ -303,7 +303,7 @@ public class MitRecap
     {
         var sb = new StringBuilder();
         sb.Append("Party Mit Recap");
-        if (!string.IsNullOrEmpty(BossName)) sb.Append(" — ").Append(BossName);
+        if (!string.IsNullOrEmpty(BossName)) sb.Append(" - ").Append(BossName);
         if (CaptureElapsed > 0) sb.Append($"  ({(int)CaptureElapsed / 60}:{(int)CaptureElapsed % 60:00}")
             .Append(LastLog.Count > 0 ? " wipe)" : ")");
         sb.AppendLine();
@@ -317,7 +317,7 @@ public class MitRecap
             sb.AppendLine();
             sb.AppendLine("Up at capture:");
             foreach (var m in Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
-                sb.AppendLine($"  {m.Mit} — {(m.OnBoss ? "on boss" : m.Source)} ({m.Remaining:0}s)");
+                sb.AppendLine($"  {m.Mit} - {(m.OnBoss ? "on boss" : m.Source)} ({m.Remaining:0}s)");
         }
 
         if (LastLog.Count > 0)
@@ -325,7 +325,7 @@ public class MitRecap
             sb.AppendLine();
             sb.AppendLine("Applied this pull:");
             foreach (var a in LastLog.OrderBy(a => a.Time))
-                sb.AppendLine($"  {(int)a.Time / 60}:{(int)a.Time % 60:00}  {a.Mit} — {(a.OnBoss ? "on boss" : a.Source)}");
+                sb.AppendLine($"  {(int)a.Time / 60}:{(int)a.Time % 60:00}  {a.Mit} - {(a.OnBoss ? "on boss" : a.Source)}");
         }
         return sb.ToString();
     }

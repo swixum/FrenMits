@@ -28,7 +28,7 @@ public static class Builtin
         (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate"),
         (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate"),
         (TopTerritory, "The Omega Protocol (TOP)", "Ultimate"),
-        (M12sTerritory, "M12S — Lindwurm", "Savage"),
+        (M12sTerritory, "M12S - Lindwurm", "Savage"),
     };
 
     public static bool Has(uint territory) =>
@@ -37,7 +37,7 @@ public static class Builtin
     public static string Name(uint territory) => territory switch
     {
         FruTerritory => "Futures Rewritten (FRU)",
-        M12sTerritory => "M12S — Lindwurm",
+        M12sTerritory => "M12S - Lindwurm",
         UcobTerritory => "Unending Coil of Bahamut (UCOB)",
         UwuTerritory => "Weapon's Refrain (UWU)",
         TeaTerritory => "Epic of Alexander (TEA)",
@@ -98,6 +98,21 @@ public static class Builtin
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.PhaseStarts(territory),
         DmuTerritory => DmuData.PhaseStarts(),
         _ => new(),
+    };
+
+    // The sheet's per-phase "Notes" footer, shown at the bottom of the Sheet
+    // View. Empty for fights whose sheet has no notes.
+    public static string PhaseNotes(uint territory, string phase) => territory switch
+    {
+        DmuTerritory => DmuData.PhaseNotes(phase),
+        _ => "",
+    };
+
+    // Long display title for a phase key ("P1" -> "Phase 1: Kefka").
+    public static string PhaseTitle(uint territory, string phase) => territory switch
+    {
+        DmuTerritory => DmuData.PhaseTitle(phase),
+        _ => phase,
     };
 
     public static List<MitLine> BuildLines(uint territory, string slot) => territory switch

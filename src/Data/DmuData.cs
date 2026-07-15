@@ -106,6 +106,74 @@ public static class DmuData
                    .OrderBy(p => p.Item2)
                    .ToList();
 
+    public static string PhaseTitle(string phase) => phase switch
+    {
+        "P1" => "Phase 1: Kefka",
+        "P2" => "Phase 2: Forsaken Kefka",
+        "P3" => "Phase 3: Exdeath & Chaos",
+        "P4" => "Phase 4: Kefka Says",
+        "P5" => "Phase 5: Ultima Kefka",
+        _ => phase,
+    };
+
+    // The "Notes" footer from each phase tab of the sheet, shown at the bottom of
+    // the Sheet View. Footnote superscripts are written as "1)" and glyphs the
+    // game font can't render are spelled out; otherwise the text is the sheet's.
+    public static string PhaseNotes(string phase) => phase switch
+    {
+        "P1" => "Heal and shield as necessary!\n"
+            + "Mitigation for the first Mystery Magic should carry over till the first Double-Trouble Trap unless there is a different usage timing below. "
+            + "Targeted mitigation does not work on Wave Cannon, but does apply to Double-Trouble Trap.\n"
+            + "Use mitigation for Light of Judgement late into the castbar so it will cover Hyperdrive.\n"
+            + "\n"
+            + "1) Use your 90s party mitigation as Kefka re-centers to cast the first Graven Image (WAR/PLD can use after Revolting Ruin III finishes).\n"
+            + "2) Use your 30s mitigation for the first Mystery Magic after the Graven Image castbar.\n"
+            + "3) You can alternatively use Bell just before the first set of puddles which will provide an immediate heal when the second set of puddles occurs, as the Bell will expire shortly after.\n"
+            + "4) If you plan to use Dissipation in your opener, use it before Aetherflow. If you use the first Spreadlo earlier, you will get it back for the Double-Trouble Trap in the second Graven Image and be able to use Seraphism earlier/later.",
+
+        "P2" => "Heal and shield as necessary!\n"
+            + "\n"
+            + "1) Provide single target mitigation and GCD shield both tanks in the phase transition for Ultimate Embrace. Also assist tanks with the last Ultimate Embrace.\n"
+            + "2) Prepare Spreadlo either on the OT shortly beforehand or the MT during Ultimate Embrace to assist the tanks.\n"
+            + "3) Use Holos during the first Ultimate Embrace so it is back for Light of Judgement and provides mitigation to the tanks. Alternatively, you can use Holos for the Wings of Destruction + Ultimate Embrace instead of Light of Judgement.\n"
+            + "4) Use early to avoid shaking off mitigation if playing WAR.",
+
+        "P3" => "Heal and shield as necessary!\n"
+            + "Targeted mitigation must be on your firewalled target unless the firewall is down. For the most part, most targeted mitigation is mostly filler and does not work on raidwides. It is mainly used for minimizing tank autos and/or busters.\n"
+            + "Both tanks will get attacked for moderately high damage throughout the entire phase, ensure you are rolling mitigation and heals on them.\n"
+            + "\n"
+            + "1) At the beginning of the phase, use 30s mitigation after (when the textbox disappears) Kefka says, \"Oh! What other toys can I throw in here...\" to get tank autos and the raidwide + an additional usage for Stray Flames/Tsunami.\n"
+            + "2) There is a very small period where you can cover both hits of Thunder III and the next Stray Flames/Tsunami; if you miss the timing, you can use it next GCD.\n"
+            + "3) Use if holding Chaos, otherwise use at the beginning of P4 for autos.\n"
+            + "\n"
+            + "4) Accretions: Healer Accretion pops 1st, DPS Accretion 2nd. Non-healers should avoid using any healing abilities that may cause their Accretion to pop early such as Second Wind, Curing Waltz or Divine Veil. If both Accretions are activated in a short amount of time, it will cause a wipe.\n"
+            + "Healers will need to manage HP burst accordingly to ensure that Accretions are not popped together. The H1 and H2 can throw single target heals at whoever has the Accretion between them.\n"
+            + "If playing AST, ensure the vulnerability has expired before popping Macrocosmos. WHM can use Benediction (if not used earlier) to instantly pop the healer Accretion.\n"
+            + "\n"
+            + "5) If you are holding Exdeath instead of Chaos at the beginning, use Reprisal on both before The Decisive Battle finishes.\n"
+            + "6) Use LB3 at the W of Vacuum Wave. Either tank can press it, discuss beforehand.\n"
+            + "7) Seraphism can be shifted to P4 if you feel you have sufficient mitigation.\n"
+            + "8) Prepare Spreadlo on the tanks, prioritizing WAR > DRK > GNB/PLD.\n"
+            + "9) Prepare immediately after Bowels of Agony.\n"
+            + "10) WAR/PLD should use after the first role stack resolves.",
+
+        "P4" => "All mechanics require shields!\n"
+            + "Targeted mitigation (Reprisal, Addle, etc) only works on Ultima Upsurge; the rest is used to assist in mitigating tank auto attacks.\n"
+            + "\n"
+            + "1) Use at the beginning of the phase for autos.",
+
+        "P5" => "All mechanics require shields!\n"
+            + "For Forsaken, use any timed mitigation as late as possible unless otherwise noted.\n"
+            + "\n"
+            + "1) Use when Kefka brings his staff down to his right side, or when the textbox circle reaches 50%. The subsequent usages should be pressed immediately off cooldown.\n"
+            + "2) Healers should monitor the tanks during Maddening Orchestra (especially the Flare tank) and Fell Forces. For WAR/DRK, you will need to have single target burst healing prepared after their invulnerability expires so they can survive the 3rd auto.\n"
+            + "3) Use two GCDs after the Stray Apocalypse castbar is completed so it is back for Forsaken.\n"
+            + "4) Use during the Celestriad castbar.\n"
+            + "5) Use after the third towers in Celestriad resolves.",
+
+        _ => "",
+    };
+
     // Build mit lines for a sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras).
     public static List<MitLine> BuildLines(string slot)
     {

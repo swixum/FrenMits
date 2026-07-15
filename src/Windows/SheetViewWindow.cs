@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 
@@ -25,7 +26,9 @@ public class SheetViewWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
-    public SheetViewWindow(Plugin plugin) : base("Fren Mits — Sheet View##fmsheet")
+    // ### so the ImGui window ID stays "fmsheet" no matter how the visible
+    // title changes; future renames won't reset the saved position/size again.
+    public SheetViewWindow(Plugin plugin) : base("Fren Mits - Sheet View###fmsheet")
     {
         _plugin = plugin;
         Size = new Vector2(1150, 620);
@@ -62,6 +65,8 @@ public class SheetViewWindow : Window
     private List<Row> _rows = new();
     private List<BakedRow> _bakedRows = new();
     private List<(string Name, float Time)> _phases = new();
+    // The sheet's per-phase "Notes" footer (only phases that have one).
+    private List<(string Name, string Title, string Text)> _phaseNotes = new();
 
     // A mechanic instance as the SHEET bakes it (unfiltered), used as the anchor
     // for row resets, edited/deleted detection, and ghost rows.
@@ -168,6 +173,12 @@ public class SheetViewWindow : Window
 
         _slots = Builtin.Slots(_fight.TerritoryId);
         _phases = Builtin.PhaseStarts(_fight.TerritoryId);
+        _phaseNotes = _phases
+            .Select(p => (p.Name,
+                          Title: Builtin.PhaseTitle(_fight.TerritoryId, p.Name),
+                          Text: Builtin.PhaseNotes(_fight.TerritoryId, p.Name)))
+            .Where(p => p.Text.Length > 0)
+            .ToList();
         _slotLines = new List<MitLine>[_slots.Length];
         _slotBacked = new bool[_slots.Length];
 
@@ -370,7 +381,7 @@ public class SheetViewWindow : Window
     {
         if (!PlanChangedElsewhere()) return false;
         _dirty = true;
-        Flash("The plan changed on the fight page — reloaded. Make the edit again.");
+        Flash("The plan changed on the fight page, so it was reloaded. Make the edit again.");
         return true;
     }
 
@@ -449,7 +460,7 @@ public class SheetViewWindow : Window
         }
         C.Save();
         _dirty = true;
-        Flash($"Shifted \"{row.Mechanic}\" by {delta:+0.0;-0.0}s — {lines} line(s) across {slots} slot(s). Kept through sheet updates.");
+        Flash($"Shifted \"{row.Mechanic}\" by {delta:+0.0;-0.0}s: {lines} line(s) across {slots} slot(s). Kept through sheet updates.");
     }
 
     // Cell edits touch the FIRST line in the cell only; a cell holding two real
@@ -468,13 +479,13 @@ public class SheetViewWindow : Window
         {
             if (cell.Count == 0) return;
             // Clearing the cell = delete this slot's line (tombstoned like a
-            // delete on the fight page, so it stays gone; ⟲ restores).
+            // delete on the fight page, so it stays gone; the undo button restores).
             var line = cell[0];
             if (!line.Custom)
                 _fight.DeletedCalls.Add(new DeletedCall
                 { Slot = _slots[i], Time = line.Time, Mechanic = line.Mechanic, Action = line.Action });
             _slotLines[i].Remove(line);
-            Flash($"{_slots[i]}'s mit for \"{row.Mechanic}\" removed. ⟲ on the row brings the sheet's version back.");
+            Flash($"{_slots[i]}'s mit for \"{row.Mechanic}\" removed. The undo button on the row brings the sheet's version back.");
         }
         else if (cell.Count == 0)
         {
@@ -559,7 +570,7 @@ public class SheetViewWindow : Window
             using (var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionLevel.Optimal))
                 gz.Write(raw, 0, raw.Length);
             ImGui.SetClipboardText("FRENMITS2:" + Convert.ToBase64String(ms.ToArray()));
-            Flash("Plan code copied — friends paste it into Import and their slot updates.");
+            Flash("Plan code copied. Friends paste it into Import and their slot updates.");
         }
         catch (Exception ex)
         {
@@ -595,7 +606,7 @@ public class SheetViewWindow : Window
         {
             DrawFightPicker(); // still allow switching to a fight that HAS a slot
             ImGui.Spacing();
-            ImGui.TextWrapped("Pick your slot for this fight first (fight page → \"Your slot\"), then come back — "
+            ImGui.TextWrapped("Pick your slot for this fight first (fight page, \"Your slot\"), then come back; "
                 + "the sheet needs to know which column is yours.");
             return;
         }
@@ -611,7 +622,49 @@ public class SheetViewWindow : Window
         DrawToolbar();
         ImGui.Spacing();
         DrawGrid();
+        DrawNotesPanel();
         DrawFooter();
+    }
+
+    // ---- sheet notes (the per-phase "Notes" footer from the sheet's tabs) ----
+
+    private float NotesBodyHeight() => ImGui.GetTextLineHeightWithSpacing() * 7f;
+
+    // Vertical space the notes panel takes below the grid, so the table can
+    // shrink to make room (header row + the body when expanded).
+    private float NotesReserve()
+    {
+        if (_phaseNotes.Count == 0) return 0f;
+        var h = ImGui.GetFrameHeightWithSpacing();
+        if (C.SheetNotesOpen) h += NotesBodyHeight() + ImGui.GetStyle().ItemSpacing.Y;
+        return h;
+    }
+
+    private void DrawNotesPanel()
+    {
+        if (_fight == null || _phaseNotes.Count == 0) return;
+
+        ImGui.SetNextItemOpen(C.SheetNotesOpen, ImGuiCond.Always);
+        var label = _phaseFilter.Length > 0 ? $"Sheet notes ({_phaseFilter})" : "Sheet notes";
+        var open = ImGui.CollapsingHeader($"{label}###sheetnotes");
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("The notes section from the bottom of each phase's sheet tab.");
+        if (open != C.SheetNotesOpen) { C.SheetNotesOpen = open; C.Save(); }
+        if (!open) return;
+
+        if (ImGui.BeginChild("##sheetnotesbody", new Vector2(0, NotesBodyHeight()), true))
+        {
+            var first = true;
+            foreach (var (name, title, text) in _phaseNotes)
+            {
+                if (_phaseFilter.Length > 0 && name != _phaseFilter) continue;
+                if (!first) { ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing(); }
+                first = false;
+                ImGui.TextColored(NoteBlue, title);
+                ImGui.TextWrapped(text);
+            }
+        }
+        ImGui.EndChild();
     }
 
     // Fight picker (only when there's a choice to make). Also shown on the
@@ -624,7 +677,7 @@ public class SheetViewWindow : Window
         if (ImGui.BeginCombo("##sheetfight", _fight!.Name))
         {
             foreach (var f in builtins)
-                if (ImGui.Selectable("★ " + f.Name, f == _fight))
+                if (ImGui.Selectable(f.Name, f == _fight))
                 {
                     CommitPending();
                     _fight = f;
@@ -692,15 +745,31 @@ public class SheetViewWindow : Window
          : ImGuiColors.DPSRed;
 
     private static readonly Vector4 EditedColor = new(0.96f, 0.62f, 0.36f, 1f);
+    private static readonly Vector4 NoteBlue = new(0.42f, 0.66f, 0.96f, 1f);
     private const uint YouCellBg = 0x2233AA33;   // faint green tint (ABGR)
+
+    // The game font has no glyphs for symbols like a star, pen, or undo arrow
+    // (they render as an empty box), so every symbol is drawn with the icon font.
+    private static void IconText(FontAwesomeIcon icon, Vector4 color)
+    {
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.TextColored(color, icon.ToIconString());
+    }
+
+    private static bool IconSmallButton(FontAwesomeIcon icon, string id)
+    {
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            return ImGui.SmallButton(icon.ToIconString() + id);
+    }
 
     private bool _editorDrawn; // safety net: an open editor whose row got hidden
 
     private void DrawGrid()
     {
         _editorDrawn = false;
-        // Two footer lines now: the note strip + the flash/legend line.
-        var footerH = ImGui.GetTextLineHeightWithSpacing() * 2 + 12f;
+        // Below the grid: the sheet-notes panel plus two footer lines (the note
+        // strip + the flash/legend line).
+        var footerH = ImGui.GetTextLineHeightWithSpacing() * 2 + 12f + NotesReserve();
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit;
         if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
@@ -712,7 +781,7 @@ public class SheetViewWindow : Window
         foreach (var s in _slots)
             ImGui.TableSetupColumn(s, ImGuiTableColumnFlags.WidthFixed, 130);
 
-        // Header row with role colors + a star on your active slot.
+        // Header row with role colors + a "(you)" tag on your active slot.
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
         ImGui.TableNextColumn(); ImGui.TableHeader("Time");
         ImGui.TableNextColumn(); ImGui.TableHeader("Mechanic");
@@ -720,11 +789,11 @@ public class SheetViewWindow : Window
         {
             ImGui.TableNextColumn();
             ImGui.PushStyleColor(ImGuiCol.Text, RoleColor(_slots[i]));
-            ImGui.TableHeader(IsActiveSlot(i) ? $"{_slots[i]} ★" : _slots[i]);
+            ImGui.TableHeader(IsActiveSlot(i) ? $"{_slots[i]} (you)" : _slots[i]);
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(IsActiveSlot(i)
-                    ? $"{SlotTip(_slots[i])} — your slot. These are the lines your overlay calls."
+                    ? $"{SlotTip(_slots[i])}, your slot. These are the lines your overlay calls."
                     : SlotTip(_slots[i]));
         }
 
@@ -741,7 +810,7 @@ public class SheetViewWindow : Window
                 ImGui.TableNextColumn();
                 ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, 0xFF221B17);
                 ImGui.TableNextColumn();
-                ImGui.TextDisabled($"—  {row.Phase}  —");
+                ImGui.TextDisabled(Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
                 for (var i = 0; i < _slots.Length; i++) ImGui.TableNextColumn();
             }
 
@@ -790,7 +859,7 @@ public class SheetViewWindow : Window
         }
         else
         {
-            if (row.Edited) { ImGui.TextColored(EditedColor, "•"); ImGui.SameLine(0, 3); }
+            if (row.Edited) { ImGui.TextColored(EditedColor, "*"); ImGui.SameLine(0, 3); }
             if (ImGui.Selectable(TimeText(row.Time) + "##time", false) && !CommitPending())
             {
                 _editTimeRow = row;
@@ -800,7 +869,7 @@ public class SheetViewWindow : Window
             if (ImGui.IsItemHovered())
             {
                 _hoverRow = row;
-                ImGui.SetTooltip($"{row.Time:0.#}s — click to re-time \"{row.Mechanic}\" for EVERY slot at once");
+                ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time \"{row.Mechanic}\" for EVERY slot at once.");
             }
         }
     }
@@ -814,9 +883,9 @@ public class SheetViewWindow : Window
             ImGui.SameLine(0, 6);
             ImGui.TextColored(EditedColor, "deleted");
             ImGui.SameLine(0, 4);
-            if (ImGui.SmallButton("⟲##reset")) ResetRow(row);
+            if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("This mechanic is deleted from your plan. ⟲ restores the sheet's version.");
+                ImGui.SetTooltip("This mechanic is deleted from your plan. The undo button restores the sheet's version.");
             return;
         }
 
@@ -831,7 +900,7 @@ public class SheetViewWindow : Window
         if (ImGui.BeginPopupContextItem("##notectx"))
         {
             if (ImGui.IsWindowAppearing()) _noteBuf = NoteFor(row)?.Text ?? "";
-            ImGui.TextDisabled($"Note — {row.Mechanic}");
+            ImGui.TextDisabled($"Note: {row.Mechanic}");
             if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84)))
                 SaveNote(row, _noteBuf);
             ImGui.TextDisabled("Saved as you type. Clear the text to remove the note.");
@@ -840,14 +909,14 @@ public class SheetViewWindow : Window
         if (NoteFor(row) != null)
         {
             ImGui.SameLine(0, 5);
-            ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "✎");
+            IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
         }
         if (row.Edited)
         {
             ImGui.SameLine(0, 6);
             ImGui.TextColored(EditedColor, "edited");
             ImGui.SameLine(0, 4);
-            if (ImGui.SmallButton("⟲##reset")) ResetRow(row);
+            if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Reset this mechanic to the baked sheet, every slot.");
         }
@@ -884,7 +953,7 @@ public class SheetViewWindow : Window
         var first = cell.Count == 0 ? "" : cell[0].Action;
         var extra = cell.Count > 1 ? $"  (+{cell.Count - 1})" : "";
         var custom = cell.Any(l => l.Custom);
-        var label = (custom ? "• " : "") + (first.Length == 0 ? " " : first + extra);
+        var label = (custom ? "* " : "") + (first.Length == 0 ? " " : first + extra);
         if (custom) ImGui.PushStyleColor(ImGuiCol.Text, EditedColor);
         var clicked = ImGui.Selectable($"{label}##c{i}", false);
         if (custom) ImGui.PopStyleColor();
@@ -930,17 +999,17 @@ public class SheetViewWindow : Window
         var note = _hoverRow != null ? NoteFor(_hoverRow) : null;
         if (note != null)
         {
-            ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "✎");
+            IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
             ImGui.SameLine(0, 6);
             ImGui.TextUnformatted($"{_hoverRow!.Mechanic}:");
             ImGui.SameLine(0, 6);
             var text = note.Text.Replace('\n', ' ');
-            ImGui.TextDisabled(text.Length > 220 ? text[..220] + "…" : text);
+            ImGui.TextDisabled(text.Length > 220 ? text[..220] + "..." : text);
             if (ImGui.IsItemHovered() && note.Text.Length > 220) ImGui.SetTooltip(note.Text);
         }
         else
         {
-            ImGui.TextDisabled("Notes: right-click a mechanic to write one; hover a ✎ row and it shows here.");
+            ImGui.TextDisabled("Notes: right-click a mechanic to write one; hover a row with a pen mark and it shows here.");
         }
 
         if ((DateTime.Now - _flashAt).TotalSeconds < 4.5 && _flash.Length > 0)
@@ -950,7 +1019,7 @@ public class SheetViewWindow : Window
         else
         {
             ImGui.TextDisabled("Click a time = re-time that mechanic for every slot  ·  click a cell = edit that slot only  ·  "
-                + "• orange = your edit, kept through sheet updates  ·  dim rows = deleted (⟲ restores)");
+                + "orange * = your edit, kept through sheet updates  ·  dim rows = deleted (undo restores)");
         }
     }
 }

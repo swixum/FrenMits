@@ -105,17 +105,17 @@ public class Audio : IDisposable
                         if (mp3 is { Length: > 64 })
                         {
                             if (seq == Interlocked.Read(ref _speakSeq))
-                                LastTtsStatus = $"Online OK — {v}";
+                                LastTtsStatus = $"Online OK - {v}";
                             PlayMp3(mp3, seq);
                             return;
                         }
                         if (seq == Interlocked.Read(ref _speakSeq))
-                            LastTtsStatus = $"Online: no audio [{_edgeDiag}] — using Windows voice";
+                            LastTtsStatus = $"Online: no audio [{_edgeDiag}] - using Windows voice";
                     }
                     catch (Exception ex)
                     {
                         if (seq == Interlocked.Read(ref _speakSeq))
-                            LastTtsStatus = $"Online failed: {ex.Message} — using Windows voice";
+                            LastTtsStatus = $"Online failed: {ex.Message} - using Windows voice";
                         Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
                     }
                     SpeakSapi(t, rate, volume, "", seq);   // fallback
