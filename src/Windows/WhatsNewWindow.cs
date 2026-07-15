@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.134";
+    public const string NotesVersion = "1.0.0.135";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -71,5 +71,9 @@ public class WhatsNewWindow : Window
         ("One-click role match",
             "The sidebar's Your Role section now has a \"Use current\" button that sets the "
             + "role from the job you're playing, just like the job picker's."),
+        ("Sheet View declutter",
+            "The fight dropdown is grouped by category with your slot shown per fight, and "
+            + "the permanent hint text at the bottom is gone; the how-to now lives in the "
+            + "toolbar's (?) hover."),
     };
 }

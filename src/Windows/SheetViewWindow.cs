@@ -669,21 +669,48 @@ public class SheetViewWindow : Window
 
     // Fight picker (only when there's a choice to make). Also shown on the
     // pick-your-slot screen so a slotless default is never a dead end.
+    // Grouped by category (Ultimate / Savage / ...) with your slot shown per
+    // fight, so the list stays scannable as more fights ship.
+    private static readonly string[] PickerCategories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
+
     private void DrawFightPicker()
     {
         var builtins = C.Fights.Where(f => Builtin.Has(f.TerritoryId)).ToList();
         if (builtins.Count <= 1) return;
-        ImGui.SetNextItemWidth(210f);
+
+        ImGui.SetNextItemWidth(230f);
         if (ImGui.BeginCombo("##sheetfight", _fight!.Name))
         {
-            foreach (var f in builtins)
-                if (ImGui.Selectable(f.Name, f == _fight))
+            var groups = builtins
+                .GroupBy(f =>
                 {
-                    CommitPending();
-                    _fight = f;
-                    _phaseFilter = "";
-                    _dirty = true;
+                    var c = string.IsNullOrEmpty(f.Category) ? Builtin.Category(f.TerritoryId) : f.Category;
+                    return PickerCategories.Contains(c) ? c : "Other";
+                })
+                .OrderBy(g => Array.IndexOf(PickerCategories, g.Key));
+
+            var firstGroup = true;
+            foreach (var g in groups)
+            {
+                if (!firstGroup) { ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing(); }
+                firstGroup = false;
+                ImGui.TextDisabled(g.Key.ToUpperInvariant());
+                foreach (var f in g)
+                {
+                    if (ImGui.Selectable(f.Name, f == _fight))
+                    {
+                        CommitPending();
+                        _fight = f;
+                        _phaseFilter = "";
+                        _dirty = true;
+                    }
+                    // Your slot for that fight, right-aligned; fights without one
+                    // land on the pick-your-slot screen when chosen.
+                    var tag = string.IsNullOrEmpty(f.Slot) ? "no slot" : f.Slot;
+                    ImGui.SameLine(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(tag).X - 6f);
+                    ImGui.TextDisabled(tag);
                 }
+            }
             ImGui.EndCombo();
         }
         ImGui.SameLine();
@@ -703,6 +730,17 @@ public class SheetViewWindow : Window
 
         ImGui.SameLine();
         ImGui.TextDisabled($"·  {_rows.Count(r => !r.Ghost)} mechanics, {_slots.Length} slots");
+
+        // The how-to lives here now instead of a permanent footer line.
+        ImGui.SameLine(0, 8);
+        ImGui.TextDisabled("(?)");
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(
+                "Click a time to re-time that mechanic for every slot at once.\n"
+                + "Click a cell to edit that slot only; clear the text to remove it.\n"
+                + "Orange * = your edit, kept through sheet updates.\n"
+                + "Dim rows are deleted; the undo button restores the sheet's version.\n"
+                + "Right-click a mechanic to write a note; hover a row with a pen mark to read it.");
 
         // Right side: refresh + share.
         var shareW = ImGui.CalcTextSize("Share plan").X + 60f + ImGui.CalcTextSize("Refresh").X + 24f;
@@ -767,9 +805,9 @@ public class SheetViewWindow : Window
     private void DrawGrid()
     {
         _editorDrawn = false;
-        // Below the grid: the sheet-notes panel plus two footer lines (the note
-        // strip + the flash/legend line).
-        var footerH = ImGui.GetTextLineHeightWithSpacing() * 2 + 12f + NotesReserve();
+        // Below the grid: the sheet-notes panel plus one footer line (flash
+        // message, or the hovered row's note).
+        var footerH = ImGui.GetTextLineHeightWithSpacing() + 10f + NotesReserve();
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit;
         if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
@@ -989,37 +1027,28 @@ public class SheetViewWindow : Window
          : HealSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? "Healer slot"
          : "DPS slot";
 
+    // One quiet line: a flash message when something just happened, otherwise
+    // the hovered row's note (Ikuya-footer style, sticky on the last hovered
+    // row so it stays readable while the mouse travels down here). Empty rest
+    // of the time; the how-to lives in the toolbar's (?) tooltip.
     private void DrawFooter()
     {
         ImGui.Spacing();
 
-        // Note strip: the hovered row's note, zero clicks to read (Ikuya-footer
-        // style). Sticky on the last hovered row so it stays readable while the
-        // mouse travels down here.
-        var note = _hoverRow != null ? NoteFor(_hoverRow) : null;
-        if (note != null)
-        {
-            IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
-            ImGui.SameLine(0, 6);
-            ImGui.TextUnformatted($"{_hoverRow!.Mechanic}:");
-            ImGui.SameLine(0, 6);
-            var text = note.Text.Replace('\n', ' ');
-            ImGui.TextDisabled(text.Length > 220 ? text[..220] + "..." : text);
-            if (ImGui.IsItemHovered() && note.Text.Length > 220) ImGui.SetTooltip(note.Text);
-        }
-        else
-        {
-            ImGui.TextDisabled("Notes: right-click a mechanic to write one; hover a row with a pen mark and it shows here.");
-        }
-
         if ((DateTime.Now - _flashAt).TotalSeconds < 4.5 && _flash.Length > 0)
         {
             ImGui.TextColored(ImGuiColors.ParsedGreen, _flash);
+            return;
         }
-        else
-        {
-            ImGui.TextDisabled("Click a time = re-time that mechanic for every slot  ·  click a cell = edit that slot only  ·  "
-                + "orange * = your edit, kept through sheet updates  ·  dim rows = deleted (undo restores)");
-        }
+
+        var note = _hoverRow != null ? NoteFor(_hoverRow) : null;
+        if (note == null) return;
+        IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
+        ImGui.SameLine(0, 6);
+        ImGui.TextUnformatted($"{_hoverRow!.Mechanic}:");
+        ImGui.SameLine(0, 6);
+        var text = note.Text.Replace('\n', ' ');
+        ImGui.TextDisabled(text.Length > 220 ? text[..220] + "..." : text);
+        if (ImGui.IsItemHovered() && note.Text.Length > 220) ImGui.SetTooltip(note.Text);
     }
 }
