@@ -74,6 +74,11 @@ public class SheetViewWindow : Window
     // Text filter: show only rows whose mechanic or any mit matches.
     private string _filter = "";
 
+    // Search-and-replace popup state.
+    private string _replFind = "";
+    private string _replWith = "";
+    private bool _replMineOnly;
+
     // Sticky-phase pill state, recomputed every frame from the top visible row.
     private float _headerY;
     private int _rowIdxDrawing = -1;
@@ -823,6 +828,17 @@ public class SheetViewWindow : Window
             if (ImGui.SmallButton("x##clearfilter")) _filter = "";
         }
 
+        // Search-and-replace across mits ("all my Vengeance becomes Damnation").
+        ImGui.SameLine(0, 4);
+        if (ImGui.SmallButton("Replace..."))
+        {
+            _replFind = _filter;
+            ImGui.OpenPopup("##sheetreplace");
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Rename a mit across the whole sheet in one go.");
+        DrawReplacePopup();
+
         ImGui.SameLine(0, 8);
         var filtered = _phaseFilter.Length > 0 || _filter.Length > 0;
         var shown = _rows.Count(r => !r.Ghost
@@ -846,12 +862,23 @@ public class SheetViewWindow : Window
                 + "Your slot's column is pinned next to Mechanic.\n"
                 + "Drag a column edge to resize it; double-click the edge to fit the text.");
 
-        // Right side: refresh + import + share.
-        var rightW = ImGui.CalcTextSize("Refresh").X + ImGui.CalcTextSize("Import").X
-                   + ImGui.CalcTextSize("Share plan").X + 96f;
+        // Right side: refresh + export + import + share.
+        var rightW = ImGui.CalcTextSize("Refresh").X + ImGui.CalcTextSize("Export").X
+                   + ImGui.CalcTextSize("Import").X + ImGui.CalcTextSize("Share plan").X + 128f;
         ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 8f, ImGui.GetContentRegionMax().X - rightW));
         if (ImGui.SmallButton("Refresh")) { CommitPending(); _dirty = true; Flash("Reloaded from your saved plans."); }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Re-read every slot (picks up edits made on the fight page).");
+        ImGui.SameLine();
+        // Land any half-typed edit and fold it into the rows first, so the
+        // clipboard never captures a pre-edit grid.
+        if (ImGui.SmallButton("Export"))
+        {
+            CommitPending();
+            if (_dirty) Rebuild();
+            ExportText();
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Copy the whole grid as tab-separated text: paste straight into\nGoogle Sheets / Excel (lands in columns) or Discord.");
         ImGui.SameLine();
         if (ImGui.SmallButton("Import")) ImportPlan();
         if (ImGui.IsItemHovered())
@@ -900,6 +927,154 @@ public class SheetViewWindow : Window
         }
         if (on) ImGui.PopStyleColor(3);
     }
+
+    // ---- search & replace --------------------------------------------------
+
+    private void DrawReplacePopup()
+    {
+        if (!ImGui.BeginPopup("##sheetreplace")) return;
+
+        ImGui.TextDisabled("Replace a mit across the sheet");
+        ImGui.SetNextItemWidth(230f);
+        ImGui.InputTextWithHint("##rfind", "find (e.g. Vengeance)", ref _replFind, 64);
+        ImGui.SetNextItemWidth(230f);
+        ImGui.InputTextWithHint("##rwith", "replace with (e.g. Damnation)", ref _replWith, 64);
+        ImGui.Checkbox("My column only", ref _replMineOnly);
+
+        var find = _replFind.Trim();
+        var with = _replWith.Trim();
+        var lines = 0;
+        var slots = 0;
+        if (find.Length > 0)
+            for (var i = 0; i < _slots.Length; i++)
+            {
+                if (_replMineOnly && !IsActiveSlot(i)) continue;
+                // Same "would it actually change" test the apply uses, so the
+                // preview never promises edits an identity replace won't make.
+                var n = _slotLines[i].Count(l => WouldReplace(l.Action, find, with) != null);
+                if (n > 0) { lines += n; slots++; }
+            }
+        ImGui.TextDisabled(find.Length == 0 ? "type something to find"
+            : lines == 0 ? "no matches"
+            : $"will change {lines} line(s) across {slots} slot(s)");
+        if (string.IsNullOrWhiteSpace(_replWith) && lines > 0)
+            ImGui.TextDisabled("empty replacement = those calls are DELETED");
+
+        ImGui.BeginDisabled(lines == 0);
+        if (ImGui.Button("Replace", new Vector2(120, 0)))
+        {
+            ApplyReplace(find);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndDisabled();
+        ImGui.EndPopup();
+    }
+
+    private void ApplyReplace(string find)
+    {
+        if (_fight == null || find.Length == 0 || AbortIfStale()) return;
+        var with = _replWith.Trim();
+        var changed = 0;
+        var slotsTouched = 0;
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            if (_replMineOnly && !IsActiveSlot(i)) continue;
+            var touched = false;
+            var remove = new List<MitLine>();
+            foreach (var l in _slotLines[i])
+            {
+                if (WouldReplace(l.Action, find, with) is not { } replaced) continue;
+                EnsureBacked(i);
+                touched = true;
+                changed++;
+                if (replaced.Length == 0)
+                {
+                    // Replacing with nothing = delete the call, tombstoned like
+                    // any other delete so sheet updates don't resurrect it.
+                    if (!l.Custom)
+                        _fight.DeletedCalls.Add(new DeletedCall
+                        { Slot = _slots[i], Time = l.Time, Mechanic = l.Mechanic, Action = l.Action });
+                    remove.Add(l);
+                }
+                else
+                {
+                    Builtin.PreserveEdit(_fight, _slots[i], l);
+                    l.Action = replaced;
+                }
+            }
+            foreach (var l in remove) _slotLines[i].Remove(l);
+            if (touched) { Resort(i); slotsTouched++; }
+        }
+
+        if (changed == 0) { Flash($"No mits containing \"{find}\"."); return; }
+        C.Save();
+        _dirty = true;
+        Flash(string.IsNullOrWhiteSpace(with)
+            ? $"Deleted \"{find}\" from {changed} line(s) across {slotsTouched} slot(s)."
+            : $"Replaced \"{find}\" in {changed} line(s) across {slotsTouched} slot(s). Kept through sheet updates.");
+    }
+
+    // The action text after a real replacement, or null when nothing would
+    // change. Joins are only tidied when the raw replace changed something, so
+    // an identity replace can't silently normalize (and Custom-flag) a line.
+    private static string? WouldReplace(string action, string find, string with)
+    {
+        var raw = action.Replace(find, with, StringComparison.OrdinalIgnoreCase);
+        if (raw == action) return null;
+        var replaced = TidyJoins(raw);
+        return replaced == action ? null : replaced;
+    }
+
+    // Re-join a "A + B + C" action string, dropping empty segments left behind
+    // by a replacement and normalizing the separators.
+    private static string TidyJoins(string s)
+        => string.Join(" + ", s.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+
+    // ---- export -------------------------------------------------------------
+
+    // The whole grid as tab-separated text: pastes into Google Sheets / Excel
+    // as real columns, and reads fine in Discord. Phase notes ride at the bottom.
+    private void ExportText()
+    {
+        if (_fight == null) return;
+        var sb = new System.Text.StringBuilder();
+        sb.Append("Time\tMechanic");
+        foreach (var i in _order) sb.Append('\t').Append(_slots[i]);
+        var anyNotes = _fight.Notes.Count > 0;
+        if (anyNotes) sb.Append("\tNotes");
+        sb.AppendLine();
+
+        var lastPhase = "";
+        foreach (var row in _rows)
+        {
+            if (row.Ghost) continue;
+            if (row.Phase != lastPhase)
+            {
+                lastPhase = row.Phase;
+                sb.Append('\t').Append(Builtin.PhaseTitle(_fight.TerritoryId, row.Phase)).AppendLine();
+            }
+            sb.Append(TimeText(row.Time)).Append('\t').Append(TsvCell(row.Mechanic));
+            foreach (var i in _order)
+                sb.Append('\t').Append(TsvCell(string.Join(" + ", row.Cells[i].Select(l => l.Action))));
+            if (anyNotes) sb.Append('\t').Append(TsvCell(NoteFor(row)?.Text ?? ""));
+            sb.AppendLine();
+        }
+
+        foreach (var (_, title, text) in _phaseNotes)
+        {
+            sb.AppendLine();
+            sb.AppendLine(title);
+            sb.AppendLine(text);
+        }
+
+        ImGui.SetClipboardText(sb.ToString());
+        Flash("Plan copied as text. Paste into Google Sheets / Excel (lands in columns) or Discord.");
+    }
+
+    // Imported plans can carry arbitrary text; tabs/newlines inside a cell
+    // would shift or split the TSV row.
+    private static string TsvCell(string s)
+        => s.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
 
     private bool MatchesFilter(Row row)
     {

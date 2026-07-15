@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.137";
+    public const string NotesVersion = "1.0.0.138";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -87,5 +87,10 @@ public class WhatsNewWindow : Window
             + "is pinned next to Mechanic, phase tabs show row counts, a corner tag names the "
             + "phase you're scrolled into, and right-clicking a cell offers delete / reset / "
             + "a per-call offset. Disabled lines now show dim with (off)."),
+        ("Export and Replace",
+            "Export copies the whole grid as spreadsheet-ready text (paste into Google Sheets "
+            + "or Discord, phase notes included). Replace renames a mit across the entire "
+            + "sheet in one go, like \"all my Vengeance becomes Damnation\"; replacing with "
+            + "nothing deletes those calls."),
     };
 }
