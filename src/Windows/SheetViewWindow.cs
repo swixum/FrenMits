@@ -807,13 +807,12 @@ public class SheetViewWindow : Window
     {
         DrawFightPicker();
 
-        // Phase filter: All + one button per phase (with row counts), like the
-        // sheet's tabs.
-        PhaseButton("All", null, _phaseFilter.Length == 0);
+        // Phase filter: All + one button per phase, like the sheet's tabs.
+        PhaseButton("All", _phaseFilter.Length == 0);
         foreach (var (name, _) in _phases)
         {
             ImGui.SameLine(0, 4);
-            PhaseButton(name, _rows.Count(r => !r.Ghost && r.Phase == name), _phaseFilter == name);
+            PhaseButton(name, _phaseFilter == name);
         }
 
         // Text filter across mechanics and mits ("Reprisal" = every Reprisal row).
@@ -915,7 +914,7 @@ public class SheetViewWindow : Window
         Flash(message);
     }
 
-    private void PhaseButton(string name, int? count, bool on)
+    private void PhaseButton(string name, bool on)
     {
         if (on)
         {
@@ -923,9 +922,7 @@ public class SheetViewWindow : Window
             ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
             ImGui.PushStyleColor(ImGuiCol.Text, Theme.AccentText);
         }
-        // ### keeps the button id stable while the row count in the label moves.
-        var label = count.HasValue ? $"{name} ({count.Value})###ph{name}" : $"{name}###ph{name}";
-        if (ImGui.SmallButton(label))
+        if (ImGui.SmallButton($"{name}###ph{name}"))
         {
             // Land any open editor BEFORE the filter hides its row, or the edit
             // state would linger unseen (blocking rebuilds) until a later click.
