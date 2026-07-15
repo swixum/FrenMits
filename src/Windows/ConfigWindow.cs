@@ -99,7 +99,7 @@ public class ConfigWindow : Window, IDisposable
     private readonly HashSet<string> _importPickedJobs = new(StringComparer.OrdinalIgnoreCase);
 
     public ConfigWindow(Plugin plugin)
-        : base("Fren Mits##config")
+        : base("Fren Mits###config")
     {
         _plugin = plugin;
         Size = new Vector2(740, 620);
@@ -1913,11 +1913,11 @@ public class ConfigWindow : Window, IDisposable
         if (Section("Timing", true))
         {
             var warn = C.WarningSeconds;
-            ImGui.SetNextItemWidth(200f);
+            ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Show ahead by (s)", ref warn, 1f, 12f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
             Tip("How early a call appears before its mit time. Per-line leads override this.");
             var hold = C.HoldSeconds;
-            ImGui.SetNextItemWidth(200f);
+            ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Hold on screen (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
             Tip("How long a call stays up after its time passes.");
             C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
@@ -1939,11 +1939,11 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.TreeNode("Advanced windows"))
             {
                 var win = C.SyncWindowSeconds;
-                ImGui.SetNextItemWidth(200f);
+                ImGui.SetNextItemWidth(220f);
                 if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
                 Tip("Tight window for fine drift correction on a normal mechanic.");
                 var pwin = C.SyncPhaseWindowSeconds;
-                ImGui.SetNextItemWidth(200f);
+                ImGui.SetNextItemWidth(220f);
                 if (ImGui.SliderFloat("Phase window (s)", ref pwin, 15f, 120f, "%.0f")) { C.SyncPhaseWindowSeconds = pwin; C.Save(); }
                 Tip("Wider window so a phase that starts well off the sheet's nominal time still locks on.");
                 ImGui.TreePop();
@@ -2070,7 +2070,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextWrapped("Tick \"Recording\" above, do a pull (casts and cutscenes are captured), then save it here. "
                               + "Replay it any time to watch the overlay, cues and cutscene handling line up, no instance needed.");
 
-            ImGui.SetNextItemWidth(200f);
+            ImGui.SetNextItemWidth(220f);
             ImGui.InputTextWithHint("##recname", "recording name", ref _recName, 64);
             ImGui.SameLine();
             var canSave = _plugin.Sync.Captured.Count > 0 || _plugin.Sync.CutsceneMarks.Count > 0;
@@ -2098,7 +2098,7 @@ public class ConfigWindow : Window, IDisposable
             else
             {
                 _replayPick = Math.Clamp(_replayPick, 0, _recordings.Length - 1);
-                ImGui.SetNextItemWidth(200f);
+                ImGui.SetNextItemWidth(220f);
                 ImGui.Combo("##replaypick", ref _replayPick, _recordings, _recordings.Length);
 
                 if (_plugin.Replay.Playing)
@@ -2334,10 +2334,10 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Test preview.");
 
             var pos = C.CombatTimerPosition;
-            ImGui.SetNextItemWidth(200f);
+            ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
             { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
-            ImGui.SetNextItemWidth(200f);
+            ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
             { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
             if (ImGui.Button("Center top"))
@@ -2399,10 +2399,10 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled("Auto-locks in combat; use Live preview or the sliders to move it during a pull.");
 
             var pos = C.OverlayPosition;
-            ImGui.SetNextItemWidth(200f);
+            ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
             { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
-            ImGui.SetNextItemWidth(200f);
+            ImGui.SetNextItemWidth(220f);
             if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
             { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
             if (ImGui.Button("Center"))
@@ -2525,7 +2525,7 @@ public class ConfigWindow : Window, IDisposable
             if (C.ShowProgressBar)
             {
                 var barH = C.ProgressBarHeight;
-                ImGui.SetNextItemWidth(200f);
+                ImGui.SetNextItemWidth(220f);
                 if (ImGui.SliderFloat("Bar height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
             }
             C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);

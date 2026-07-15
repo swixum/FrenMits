@@ -14,13 +14,13 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.153";
+    public const string NotesVersion = "1.0.0.154";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
     public WhatsNewWindow(Plugin plugin)
-        : base("Fren Mits: What's New##whatsnew")
+        : base("Fren Mits: What's New###whatsnew")
     {
         _plugin = plugin;
         Flags = ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.154", "Polish: shorter sheet help, aligned control widths, window positions safe across future renames."),
         ("1.0.0.153", "Practice moved onto each fight's page, one Add fight menu, quieter status header, Refresh from sheet moved off Home."),
         ("1.0.0.152", "Sheet cells: Enter moves down, Tab moves right, like a spreadsheet. A Get started card for new installs."),
         ("1.0.0.151", "Drag columns to reorder, row hover highlight, click the server-bar timer, quick jumps between windows."),

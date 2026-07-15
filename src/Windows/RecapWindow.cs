@@ -15,7 +15,7 @@ public class RecapWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
-    public RecapWindow(Plugin plugin) : base("Party Mit Recap##recapwin")
+    public RecapWindow(Plugin plugin) : base("Party Mit Recap###recapwin")
     {
         _plugin = plugin;
         Size = new Vector2(470, 540);

@@ -1258,17 +1258,11 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("(?)");
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(
-                "Click a time to re-time that mechanic for every slot at once.\n"
-                + "Click a cell to edit that slot only; clear the text to remove it.\n"
-                + "While editing: Enter moves down a row, Tab moves right, like a spreadsheet.\n"
-                + "Right-click a cell for copy / paste / delete / reset / a per-call offset; right-click a mechanic for notes.\n"
-                + "Orange * = your edit, kept through sheet updates.\n"
-                + "Dim rows are deleted; the undo button restores the sheet's version.\n"
-                + "A red cell means that mit is planned again before its cooldown can be back.\n"
-                + "The Plan menu has export, import, Replace, plan History, and type colors.\n"
-                + "Right-click a column header to pin it next to Mechanic, or copy/paste a whole column.\n"
-                + "Ctrl+Z (or the Undo button) takes back your last sheet edit.\n"
-                + "Drag a column edge to resize it; double-click the edge to fit the text.");
+                "Click a time to re-time a mechanic for every slot; click a cell to edit that slot only.\n"
+                + "While editing: Enter moves down, Tab moves right. Ctrl+Z undoes any edit.\n"
+                + "Orange * = your edit (kept through sheet updates); red cell = cooldown conflict; dim = deleted.\n"
+                + "Drag column edges to resize (double-click to fit) or drag headers to reorder.\n"
+                + "Right-click cells, mechanics and column headers; most tools live there.");
 
         // Right side: Undo | Build (custom sheets) | Plan | Share plan. The
         // one-click accent stays on Share; everything else folds into menus.
