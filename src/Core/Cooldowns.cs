@@ -71,6 +71,63 @@ public static class Cooldowns
         catch { return null; }
     }
 
+    // ---- static planning data (from the game sheets, no combat needed) ----
+
+    public readonly record struct PlanMit(string Name, float Recast, int Charges);
+
+    private static Dictionary<string, PlanMit>? _planByName;
+
+    private static void EnsurePlanMap()
+    {
+        if (_planByName != null) return;
+        EnsureMap();
+        var map = new Dictionary<string, PlanMit>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+            if (sheet != null && _byName != null)
+                foreach (var kv in _byName)
+                {
+                    var row = sheet.GetRowOrDefault(kv.Value);
+                    if (row == null) continue;
+                    var recast = row.Value.Recast100ms / 10f;
+                    if (recast <= 5f) continue; // GCD-ish rows aren't worth validating
+                    map[kv.Key] = new PlanMit(kv.Key, recast, Math.Max(1, (int)row.Value.MaxCharges));
+                }
+        }
+        catch { }
+        _planByName = map;
+    }
+
+    // Every tracked mit referenced in an action text ("Sacred Soil + Spreadlo"
+    // yields Sacred Soil), with its full recast and charge count from the game
+    // sheets. Word-boundary matched, so "Seraphism" is not read as "Seraph".
+    public static IEnumerable<PlanMit> PlanMits(string? actionText)
+    {
+        if (string.IsNullOrWhiteSpace(actionText)) yield break;
+        EnsurePlanMap();
+        if (_planByName == null) yield break;
+        foreach (var pm in _planByName.Values)
+        {
+            // Check every occurrence: "Seraphism + Seraph" must still find the
+            // standalone Seraph even though the first occurrence fails the
+            // boundary test inside "Seraphism".
+            var idx = actionText!.IndexOf(pm.Name, StringComparison.OrdinalIgnoreCase);
+            while (idx >= 0)
+            {
+                var before = idx == 0 ? ' ' : actionText[idx - 1];
+                var end = idx + pm.Name.Length;
+                var after = end >= actionText.Length ? ' ' : actionText[end];
+                if (!char.IsLetter(before) && !char.IsLetter(after))
+                {
+                    yield return pm;
+                    break;
+                }
+                idx = actionText.IndexOf(pm.Name, idx + 1, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+    }
+
     private static unsafe float? RecastRemaining(uint id)
     {
         var am = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();

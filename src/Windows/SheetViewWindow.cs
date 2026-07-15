@@ -67,6 +67,19 @@ public class SheetViewWindow : Window
     private List<(string Name, float Time)> _phases = new();
     // The sheet's per-phase "Notes" footer (only phases that have one).
     private List<(string Name, string Title, string Text)> _phaseNotes = new();
+    // Column display order: your slot first (pinned into the frozen area).
+    private int[] _order = Array.Empty<int>();
+    // Lines whose mit repeats before its cooldown can be back (message per line).
+    private readonly Dictionary<MitLine, string> _conflicts = new();
+    // Text filter: show only rows whose mechanic or any mit matches.
+    private string _filter = "";
+
+    // Sticky-phase pill state, recomputed every frame from the top visible row.
+    private float _headerY;
+    private int _rowIdxDrawing = -1;
+    private int _firstDrawnIdx = -1;
+    private int _stickyRowIdx = -1;
+    private string _stickyTitle = "";
 
     // A mechanic instance as the SHEET bakes it (unfiltered), used as the anchor
     // for row resets, edited/deleted detection, and ghost rows.
@@ -172,6 +185,10 @@ public class SheetViewWindow : Window
         if (_fight == null || !Builtin.Has(_fight.TerritoryId)) return;
 
         _slots = Builtin.Slots(_fight.TerritoryId);
+        // Your slot's column first, pinned next to Mechanic in the frozen area.
+        var act = -1;
+        for (var i = 0; i < _slots.Length; i++) if (IsActiveSlot(i)) act = i;
+        _order = Enumerable.Range(0, _slots.Length).OrderBy(i => i == act ? -1 : i).ToArray();
         _phases = Builtin.PhaseStarts(_fight.TerritoryId);
         _phaseNotes = _phases
             .Select(p => (p.Name,
@@ -295,6 +312,66 @@ public class SheetViewWindow : Window
             foreach (var (name, time) in _phases)
                 if (time <= r.Time + 0.5f) ph = name;
             r.Phase = ph.Length > 0 ? ph : (_phases.Count > 0 ? _phases[0].Name : "");
+        }
+
+        FindCooldownConflicts();
+    }
+
+    // Flag any line whose mit is used again before its cooldown (with charges
+    // honored) can possibly be back, per slot. Uses plan times, not the live
+    // recast, so it works while planning at the aetheryte.
+    private void FindCooldownConflicts()
+    {
+        _conflicts.Clear();
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            var uses = new Dictionary<string, (Cooldowns.PlanMit Mit, List<(float Time, MitLine Line)> Uses)>(StringComparer.OrdinalIgnoreCase);
+            foreach (var l in _slotLines[i])
+            {
+                if (!l.Enabled) continue;
+                foreach (var pm in Cooldowns.PlanMits(l.Action))
+                {
+                    if (!uses.TryGetValue(pm.Name, out var entry))
+                        uses[pm.Name] = entry = (pm, new List<(float, MitLine)>());
+                    entry.Uses.Add((l.Time, l));
+                }
+            }
+
+            foreach (var (mit, list) in uses.Values)
+            {
+                if (list.Count < 2) continue;
+                list.Sort((a, b) => a.Time.CompareTo(b.Time));
+
+                // Serial recharge, like the game: charges regenerate one at a
+                // time, so Oblation @0 and @5 is back at 60 and 120, not 60/65.
+                var max = mit.Charges;
+                var avail = max;
+                var nextAt = float.PositiveInfinity; // when a charge next finishes
+                foreach (var (t, line) in list)
+                {
+                    // Regenerate charges finished by now (1s resync tolerance).
+                    while (avail < max && nextAt <= t + 1f)
+                    {
+                        avail++;
+                        nextAt = avail < max ? nextAt + mit.Recast : float.PositiveInfinity;
+                    }
+
+                    if (avail == 0)
+                    {
+                        var msg = $"{mit.Name}: not back for another {nextAt - t:0}s here "
+                                + $"({mit.Recast:0}s cooldown" + (max > 1 ? $", {max} charges)." : ").");
+                        _conflicts[line] = _conflicts.TryGetValue(line, out var old) ? old + "\n" + msg : msg;
+                        // The plan presumably slips to use the charge the moment
+                        // it lands, so its recharge slot is consumed.
+                        nextAt += mit.Recast;
+                    }
+                    else
+                    {
+                        if (avail == max) nextAt = t + mit.Recast; // pipeline starts
+                        avail--;
+                    }
+                }
+            }
         }
     }
 
@@ -474,20 +551,16 @@ public class SheetViewWindow : Window
 
         if (cell.Count > 0 && text == cell[0].Action.Trim()) return; // no-op
 
-        EnsureBacked(i);
+        // Clearing the cell = delete this slot's line (tombstoned like a delete
+        // on the fight page, so it stays gone; the undo button restores).
         if (text.Length == 0)
         {
-            if (cell.Count == 0) return;
-            // Clearing the cell = delete this slot's line (tombstoned like a
-            // delete on the fight page, so it stays gone; the undo button restores).
-            var line = cell[0];
-            if (!line.Custom)
-                _fight.DeletedCalls.Add(new DeletedCall
-                { Slot = _slots[i], Time = line.Time, Mechanic = line.Mechanic, Action = line.Action });
-            _slotLines[i].Remove(line);
-            Flash($"{_slots[i]}'s mit for \"{row.Mechanic}\" removed. The undo button on the row brings the sheet's version back.");
+            DeleteCellLine(row, i);
+            return;
         }
-        else if (cell.Count == 0)
+
+        EnsureBacked(i);
+        if (cell.Count == 0)
         {
             _slotLines[i].Add(new MitLine
             {
@@ -729,16 +802,34 @@ public class SheetViewWindow : Window
     {
         DrawFightPicker();
 
-        // Phase filter: All + one button per phase, like the sheet's tabs.
-        PhaseButton("All", _phaseFilter.Length == 0);
+        // Phase filter: All + one button per phase (with row counts), like the
+        // sheet's tabs.
+        PhaseButton("All", null, _phaseFilter.Length == 0);
         foreach (var (name, _) in _phases)
         {
             ImGui.SameLine(0, 4);
-            PhaseButton(name, _phaseFilter == name);
+            PhaseButton(name, _rows.Count(r => !r.Ghost && r.Phase == name), _phaseFilter == name);
         }
 
-        ImGui.SameLine();
-        ImGui.TextDisabled($"·  {_rows.Count(r => !r.Ghost)} mechanics, {_slots.Length} slots");
+        // Text filter across mechanics and mits ("Reprisal" = every Reprisal row).
+        ImGui.SameLine(0, 10);
+        ImGui.SetNextItemWidth(140f);
+        ImGui.InputTextWithHint("##sheetfilter", "filter...", ref _filter, 64);
+        if (ImGui.IsItemHovered() && !ImGui.IsItemActive())
+            ImGui.SetTooltip("Show only rows whose mechanic or any slot's mit contains this text.");
+        if (_filter.Length > 0)
+        {
+            ImGui.SameLine(0, 2);
+            if (ImGui.SmallButton("x##clearfilter")) _filter = "";
+        }
+
+        ImGui.SameLine(0, 8);
+        var filtered = _phaseFilter.Length > 0 || _filter.Length > 0;
+        var shown = _rows.Count(r => !r.Ghost
+            && (_phaseFilter.Length == 0 || r.Phase == _phaseFilter) && MatchesFilter(r));
+        ImGui.TextDisabled(filtered
+            ? $"·  {shown} of {_rows.Count(r => !r.Ghost)} mechanics"
+            : $"·  {_rows.Count(r => !r.Ghost)} mechanics, {_slots.Length} slots");
 
         // The how-to lives here now instead of a permanent footer line.
         ImGui.SameLine(0, 8);
@@ -747,9 +838,12 @@ public class SheetViewWindow : Window
             ImGui.SetTooltip(
                 "Click a time to re-time that mechanic for every slot at once.\n"
                 + "Click a cell to edit that slot only; clear the text to remove it.\n"
+                + "Right-click a cell for delete / reset / a per-call offset; right-click a mechanic for notes.\n"
                 + "Orange * = your edit, kept through sheet updates.\n"
                 + "Dim rows are deleted; the undo button restores the sheet's version.\n"
-                + "Right-click a mechanic to write a note; hover a row with a pen mark to read it.\n"
+                + "Mits are colored by type with the overlay's colors; a red cell means that mit\n"
+                + "is planned again before its cooldown can be back.\n"
+                + "Your slot's column is pinned next to Mechanic.\n"
                 + "Drag a column edge to resize it; double-click the edge to fit the text.");
 
         // Right side: refresh + import + share.
@@ -787,7 +881,7 @@ public class SheetViewWindow : Window
         Flash(message);
     }
 
-    private void PhaseButton(string label, bool on)
+    private void PhaseButton(string name, int? count, bool on)
     {
         if (on)
         {
@@ -795,14 +889,27 @@ public class SheetViewWindow : Window
             ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
             ImGui.PushStyleColor(ImGuiCol.Text, Theme.AccentText);
         }
+        // ### keeps the button id stable while the row count in the label moves.
+        var label = count.HasValue ? $"{name} ({count.Value})###ph{name}" : $"{name}###ph{name}";
         if (ImGui.SmallButton(label))
         {
             // Land any open editor BEFORE the filter hides its row, or the edit
             // state would linger unseen (blocking rebuilds) until a later click.
             CommitPending();
-            _phaseFilter = label == "All" ? "" : label;
+            _phaseFilter = name == "All" ? "" : name;
         }
         if (on) ImGui.PopStyleColor(3);
+    }
+
+    private bool MatchesFilter(Row row)
+    {
+        if (_filter.Length == 0) return true;
+        if (row.Mechanic.Contains(_filter, StringComparison.OrdinalIgnoreCase)) return true;
+        var cells = row.Ghost ? row.Bake!.Cells : row.Cells;
+        foreach (var cell in cells)
+            foreach (var l in cell)
+                if (l.Action.Contains(_filter, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
     }
 
     private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2" };
@@ -816,6 +923,7 @@ public class SheetViewWindow : Window
     private static readonly Vector4 EditedColor = new(0.96f, 0.62f, 0.36f, 1f);
     private static readonly Vector4 NoteBlue = new(0.42f, 0.66f, 0.96f, 1f);
     private const uint YouCellBg = 0x2233AA33;   // faint green tint (ABGR)
+    private const uint WarnCellBg = 0x483040E6;  // translucent red: cooldown conflict
 
     // The game font has no glyphs for symbols like a star, pen, or undo arrow
     // (they render as an empty box), so every symbol is drawn with the icon font.
@@ -846,17 +954,20 @@ public class SheetViewWindow : Window
         if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
             return;
 
-        ImGui.TableSetupScrollFreeze(2, 1);
+        // Your column rides in the frozen area (pinned right after Mechanic).
+        ImGui.TableSetupScrollFreeze(_order.Length > 0 && IsActiveSlot(_order[0]) ? 3 : 2, 1);
         ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 62);
         ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 240);
-        foreach (var s in _slots)
-            ImGui.TableSetupColumn(s, ImGuiTableColumnFlags.WidthFixed, 130);
+        foreach (var i in _order)
+            ImGui.TableSetupColumn(_slots[i], ImGuiTableColumnFlags.WidthFixed, 130);
 
         // Header row with role colors + a "(you)" tag on your active slot.
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
-        ImGui.TableNextColumn(); ImGui.TableHeader("Time");
+        ImGui.TableNextColumn();
+        _headerY = ImGui.GetCursorScreenPos().Y;
+        ImGui.TableHeader("Time");
         ImGui.TableNextColumn(); ImGui.TableHeader("Mechanic");
-        for (var i = 0; i < _slots.Length; i++)
+        foreach (var i in _order)
         {
             ImGui.TableNextColumn();
             ImGui.PushStyleColor(ImGuiCol.Text, RoleColor(_slots[i]));
@@ -868,11 +979,15 @@ public class SheetViewWindow : Window
                     : SlotTip(_slots[i]));
         }
 
+        _firstDrawnIdx = -1;
+        _stickyRowIdx = -1;
+        _stickyTitle = "";
         var lastPhase = "";
         for (var r = 0; r < _rows.Count; r++)
         {
             var row = _rows[r];
             if (_phaseFilter.Length > 0 && row.Phase != _phaseFilter) continue;
+            if (!MatchesFilter(row)) continue;
 
             if (row.Phase != lastPhase)
             {
@@ -885,17 +1000,21 @@ public class SheetViewWindow : Window
                 for (var i = 0; i < _slots.Length; i++) ImGui.TableNextColumn();
             }
 
+            if (_firstDrawnIdx < 0) _firstDrawnIdx = r;
+            _rowIdxDrawing = r;
+
             ImGui.PushID(r);
             ImGui.TableNextRow();
 
             DrawTimeCell(row);
             DrawMechanicCell(row);
-            for (var i = 0; i < _slots.Length; i++) DrawSlotCell(row, i);
+            foreach (var i in _order) DrawSlotCell(row, i);
 
             ImGui.PopID();
         }
 
         ImGui.EndTable();
+        DrawStickyPhasePill();
 
         // An editor whose row was hidden this frame (filter change, rebuild race)
         // can never deactivate normally; land it now instead of leaving a zombie
@@ -905,9 +1024,44 @@ public class SheetViewWindow : Window
         if (Editing && !_editorDrawn && !_focusPending) CommitPending();
     }
 
+    // A quiet pill in the grid's top-right corner naming the phase you're
+    // scrolled into, since the phase separator rows scroll away with the rows.
+    // Hidden at the very top (the separator is on screen) and while filtering.
+    private void DrawStickyPhasePill()
+    {
+        if (_phaseFilter.Length > 0 || _filter.Length > 0) return;
+        if (_stickyRowIdx < 0 || _stickyRowIdx <= _firstDrawnIdx || _stickyTitle.Length == 0) return;
+
+        var rectMin = ImGui.GetItemRectMin(); // the table is the last item
+        var rectMax = ImGui.GetItemRectMax();
+        var size = ImGui.CalcTextSize(_stickyTitle);
+        var pad = new Vector2(8f, 3f);
+        var headerH = ImGui.GetTextLineHeight() + ImGui.GetStyle().CellPadding.Y * 2f + 4f;
+        var p0 = new Vector2(rectMax.X - size.X - pad.X * 2f - 24f, rectMin.Y + headerH + 6f);
+        // Tiny window: don't cover the frozen columns (time+mechanic+your slot).
+        if (p0.X < rectMin.X + 460f) return;
+
+        // Foreground list: the table's rows live in an inner scrolling child,
+        // which renders AFTER the window's own draw list; drawing there would
+        // put the pill underneath the cells.
+        var dl = ImGui.GetForegroundDrawList();
+        dl.PushClipRect(rectMin, rectMax);
+        dl.AddRectFilled(p0, p0 + size + pad * 2f, 0xE619130F, 5f);
+        dl.AddRect(p0, p0 + size + pad * 2f, 0x2EFFFFFF, 5f);
+        dl.AddText(p0 + pad, ImGui.GetColorU32(ImGuiCol.TextDisabled), _stickyTitle);
+        dl.PopClipRect();
+    }
+
     private void DrawTimeCell(Row row)
     {
         ImGui.TableNextColumn();
+        // First row that renders below the frozen header = the top visible row;
+        // its phase feeds the sticky pill.
+        if (_stickyRowIdx < 0 && ImGui.GetCursorScreenPos().Y > _headerY + ImGui.GetTextLineHeight())
+        {
+            _stickyRowIdx = _rowIdxDrawing;
+            _stickyTitle = Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase);
+        }
         if (row.Ghost)
         {
             ImGui.TextDisabled(TimeText(row.Time));
@@ -1022,12 +1176,32 @@ public class SheetViewWindow : Window
 
         var cell = row.Cells[i];
         var first = cell.Count == 0 ? "" : cell[0].Action;
-        var extra = cell.Count > 1 ? $"  (+{cell.Count - 1})" : "";
         var custom = cell.Any(l => l.Custom);
-        var label = (custom ? "* " : "") + (first.Length == 0 ? " " : first + extra);
+        var off = cell.Count > 0 && cell.All(l => !l.Enabled);
+
+        // Cooldown conflicts tint the cell red (details go in the tooltip).
+        string? warn = null;
+        foreach (var l in cell)
+            if (_conflicts.TryGetValue(l, out var w))
+                warn = warn == null ? w : warn + "\n" + w;
+        if (warn != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, WarnCellBg);
+
+        // Merged cells stack their lines instead of hiding behind a "+1".
+        var body = cell.Count > 1 ? string.Join("\n", cell.Select(l => l.Action)) : first;
+        var label = (custom ? "* " : "") + (body.Length == 0 ? " " : body) + (off ? "  (off)" : "");
+
+        // Text color: your edits stay orange, disabled lines dim, everything
+        // else is colored by mit type with the overlay's configured colors.
+        var kindCol = !custom && !off && first.Length > 0
+            ? MitTypes.Color(MitTypes.Classify(first), C) : 0u;
+        var pushed = true;
         if (custom) ImGui.PushStyleColor(ImGuiCol.Text, EditedColor);
+        else if (off) ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
+        else if (kindCol != 0) ImGui.PushStyleColor(ImGuiCol.Text, kindCol);
+        else pushed = false;
         var clicked = ImGui.Selectable($"{label}##c{i}", false);
-        if (custom) ImGui.PopStyleColor();
+        if (pushed) ImGui.PopStyleColor();
+
         if (clicked && !CommitPending())
         {
             _editCellRow = row;
@@ -1038,13 +1212,98 @@ public class SheetViewWindow : Window
         if (ImGui.IsItemHovered())
         {
             _hoverRow = row;
-            ImGui.SetTooltip(cell.Count == 0
+            var tip = cell.Count == 0
                 ? $"Click to add a mit for {_slots[i]} here (that slot only)"
                 : cell.Count == 1
                     ? $"{first}\nClick to edit {_slots[i]}'s mit (that slot only). Clear the text to remove it."
                     : $"{string.Join("  ·  ", cell.Select(l => l.Action))}\nTwo lines share this moment; "
-                      + "editing changes the first one only. Fine-tune both on the fight page.");
+                      + "editing changes the first one only. Fine-tune both on the fight page.";
+            if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
+            if (warn != null) tip = warn + "\n\n" + tip;
+            ImGui.SetTooltip(tip);
         }
+
+        // Right-click: quick actions + the per-call offset, sheet-side.
+        if (ImGui.BeginPopupContextItem($"##cellctx{i}"))
+        {
+            ImGui.TextDisabled($"{_slots[i]}  ·  {row.Mechanic}");
+            ImGui.Separator();
+            if (cell.Count > 0)
+            {
+                var line = cell[0];
+                var offset = line.OffsetSeconds;
+                ImGui.SetNextItemWidth(110f);
+                // Same semantics as the fight page's ±s column: clamped, and NOT
+                // flagged Custom (an offset is a nudge, not a rewrite).
+                if (ImGui.InputFloat("call offset (s)", ref offset, 0.5f, 1f, "%.1f") && !AbortIfStale())
+                {
+                    EnsureBacked(i);
+                    line.OffsetSeconds = Math.Clamp(offset, -30f, 30f);
+                    C.Save();
+                }
+                ImGui.TextDisabled("+ fires this one call earlier, - later.");
+                ImGui.Separator();
+                if (ImGui.MenuItem("Delete this mit")) DeleteCellLine(row, i);
+            }
+            if (ImGui.MenuItem("Reset this cell to the sheet")) ResetCell(row, i);
+            ImGui.EndPopup();
+        }
+    }
+
+    // Delete one slot's line at this row: tombstoned exactly like clearing the
+    // cell's text, so sheet updates don't resurrect it.
+    private void DeleteCellLine(Row row, int i)
+    {
+        if (_fight == null || row.Ghost || AbortIfStale()) return;
+        var cell = row.Cells[i];
+        if (cell.Count == 0) return;
+        EnsureBacked(i);
+        var line = cell[0];
+        if (!line.Custom)
+            _fight.DeletedCalls.Add(new DeletedCall
+            { Slot = _slots[i], Time = line.Time, Mechanic = line.Mechanic, Action = line.Action });
+        _slotLines[i].Remove(line);
+        Resort(i);
+        C.Save();
+        _dirty = true;
+        Flash($"{_slots[i]}'s mit for \"{row.Mechanic}\" removed. The undo button on the row brings the sheet's version back.");
+    }
+
+    // Reset ONE slot's cell to the baked sheet (the row's undo button does every
+    // slot at once; this is the surgical version).
+    private void ResetCell(Row row, int i)
+    {
+        if (_fight == null || AbortIfStale()) return;
+        if (row.Bake == null)
+        {
+            Flash("Can't match this row to the sheet (renamed mechanic?). Use the fight page's Reset to sheet instead.");
+            return;
+        }
+        var slot = _slots[i];
+        var candidates = row.Bake.Cells[i];
+        var pristine = row.Cells[i].All(l => !l.Custom)
+            && row.Cells[i].Count == candidates.Count
+            && candidates.All(b => row.Cells[i].Any(l => Builtin.SameCall(l, b)))
+            && !_fight.DeletedCalls.Any(d => candidates.Any(b => Builtin.MatchesTombstone(d, slot, b)));
+        if (pristine)
+        {
+            Flash($"{slot}'s \"{row.Mechanic}\" already matches the sheet.");
+            return;
+        }
+        EnsureBacked(i);
+        foreach (var line in row.Cells[i].ToList()) _slotLines[i].Remove(line);
+        foreach (var b in candidates)
+        {
+            _fight.DeletedCalls.RemoveAll(d => Builtin.MatchesTombstone(d, slot, b));
+            if (!_slotLines[i].Any(l => Builtin.SameCall(l, b)
+                    || (MathF.Abs(l.Time - b.Time) < 0.9f
+                        && string.Equals(l.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))))
+                _slotLines[i].Add(b);
+        }
+        Resort(i);
+        C.Save();
+        _dirty = true;
+        Flash($"{slot}'s \"{row.Mechanic}\" reset to the sheet.");
     }
 
     private static string TimeText(float t)

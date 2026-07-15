@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.136";
+    public const string NotesVersion = "1.0.0.137";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -30,7 +30,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Phase notes from the sheet, and symbol fixes");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "Sheet View grows up: notes, colors, cooldown checks");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -80,5 +80,12 @@ public class WhatsNewWindow : Window
             + "a spreadsheet. The fight list scrolls instead of running off screen and no "
             + "longer overlaps long names. And an Import button now sits next to Share plan, "
             + "so pasting a friend's code happens right where you'd look for it."),
+        ("Sheet View, now a real planner",
+            "Mits are colored by type (party / tank / personal, your overlay colors). A cell "
+            + "turns red when that mit is planned again before its cooldown can be back. "
+            + "A filter box finds every row containing e.g. \"Reprisal\". Your slot's column "
+            + "is pinned next to Mechanic, phase tabs show row counts, a corner tag names the "
+            + "phase you're scrolled into, and right-clicking a cell offers delete / reset / "
+            + "a per-call offset. Disabled lines now show dim with (off)."),
     };
 }
