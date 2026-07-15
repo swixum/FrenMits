@@ -14,7 +14,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.147";
+    public const string NotesVersion = "1.0.0.148";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.148", "Test mode turns itself off when a real pull starts."),
         ("1.0.0.147", "Shorter update notes (this list)."),
         ("1.0.0.146", "Import an FFLogs kill into a custom sheet: rows + anchors from any report link."),
         ("1.0.0.145", "Build from pull: your own wipes become rows + resync anchors automatically."),

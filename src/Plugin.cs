@@ -388,6 +388,11 @@ public sealed class Plugin : IDalamudPlugin
         _phaseTwo = false;
         _trackedBossEntity = 0;
         _trackedBossLastHp = 0;
+        // A practice preview never survives a zone change: without this, Test
+        // mode left on could route the previewed fight's plan into any zone
+        // that has no fight of its own. (Test mode itself stays on: sample-call
+        // placement across teleports is legitimate.)
+        PreviewFight = null;
         try { AutoLoadForTerritory(territory); }
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
     }
@@ -752,6 +757,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private bool _frameErrorLogged;
     private bool _firstTickDone;
+    private bool _wasInCombatForTest; // edge detector for the Test-mode auto-off
 
     // Game-state-dependent startup that can't run in the constructor (loader thread).
     // Runs once on the first Framework.Update tick, which is on the main thread, so
@@ -786,6 +792,25 @@ public sealed class Plugin : IDalamudPlugin
         try
         {
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
+
+            // A REAL pull always outranks Test mode. Left on, Test would keep
+            // the overlays unlocked (click-catching) and visible through
+            // cutscenes mid-fight, and a leftover practice preview could even
+            // route another zone's plan into this pull. Placement is an
+            // out-of-combat activity; combat switches it off.
+            var inCombatNow = InCombat;
+            if (inCombatNow && !_wasInCombatForTest && !Replaying
+                && (Config.TestMode || PreviewFight != null))
+            {
+                PreviewFight = null;
+                if (Config.TestMode)
+                {
+                    Config.TestMode = false;
+                    Config.Save();
+                    Service.Log.Information("[FrenMits] Test mode switched off: a real pull started.");
+                }
+            }
+            _wasInCombatForTest = inCombatNow;
 
             Timer.Update();
             Replay.Update();

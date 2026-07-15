@@ -351,7 +351,8 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
             var test = C.TestMode;
             if (GreenCheckbox("Test", ref test)) { C.TestMode = test; C.Save(); }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Show a sample call so you can place / size the overlay");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Show a sample call so you can place / size the overlay.\nTurns itself off automatically when a real pull starts.");
 
             // Status dots on the second line.
             Dot(job != null, $"Job: {job ?? "?"}");
