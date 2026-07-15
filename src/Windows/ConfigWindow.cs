@@ -258,13 +258,18 @@ public class ConfigWindow : Window, IDisposable
     private static Vector2 _tipPos;
     private static double _tipSince;
 
+    private static int _tipFrame;
+
     private static void Tip(string text)
     {
         if (!ImGui.IsItemHovered()) return;
-        // The item rect is a fine identity for "did the hovered thing change".
+        // The item rect is a fine identity for "did the hovered thing change";
+        // a frame gap means the mouse left and the delay starts over.
         var pos = ImGui.GetItemRectMin();
         var now = ImGui.GetTime();
-        if (pos != _tipPos) { _tipPos = pos; _tipSince = now; }
+        var frame = ImGui.GetFrameCount();
+        if (pos != _tipPos || frame - _tipFrame > 2) { _tipPos = pos; _tipSince = now; }
+        _tipFrame = frame;
         if (now - _tipSince >= 0.35) ImGui.SetTooltip(text);
     }
 
@@ -692,6 +697,32 @@ public class ConfigWindow : Window, IDisposable
         var cx = ImGui.GetWindowPos().X + ImGui.GetWindowWidth() * 0.5f;
         dl.AddRectFilled(new Vector2(cx - 60, cy), new Vector2(cx + 60, cy + 2), 0xFFF6823B, 1f);
         ImGui.Dummy(new Vector2(0, 14));
+
+        // First-run: three steps until the plugin is actually calling mits.
+        // Disappears forever once any fight has a slot picked.
+        if (!C.Fights.Any(f => !string.IsNullOrEmpty(f.Slot)))
+        {
+            var cardW = MathF.Max(220f, MathF.Min(430f, ImGui.GetContentRegionAvail().X - 20f));
+            Center(cardW);
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
+            if (ImGui.BeginChild("##firstrun",
+                    new Vector2(cardW, ImGui.GetTextLineHeightWithSpacing() * 9f + 24f), true))
+            {
+                ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "Get started");
+                ImGui.TextWrapped("1. Pick your job in the sidebar (or leave it on Auto).");
+                ImGui.TextWrapped("2. Open your fight and choose \"Your slot\": that column of the mit sheet becomes yours.");
+                ImGui.TextWrapped("3. Tick Test (top right) and drag the call display where you want it. It switches off by itself when you pull.");
+                ImGui.Spacing();
+                if (ImGui.SmallButton("Take me to the fights"))
+                {
+                    _nav = NavKind.Fights;
+                    _navCategory = "Ultimate";
+                }
+            }
+            ImGui.EndChild();
+            ImGui.PopStyleColor();
+            ImGui.Dummy(new Vector2(0, 10));
+        }
 
         // Action row: GitHub + Refresh side by side, centered together so they align.
         var ghW = IconBtnWidth(FontAwesomeIcon.ExternalLinkAlt, "GitHub");

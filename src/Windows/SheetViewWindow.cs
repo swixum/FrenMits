@@ -221,6 +221,11 @@ public class SheetViewWindow : Window
     private bool _focusPending;
     private bool Editing => _editTimeRow != null || _editCellRow != null;
 
+    // Spreadsheet keyboard flow: Enter commits and edits the cell below, Tab
+    // the next column. Held as coordinates, not references, because the commit
+    // rebuilds every row object before the next edit can start.
+    private (float Time, string Mech, int Slot)? _pendingEdit;
+
     private string _flash = "";
     private DateTime _flashAt;
     private void Flash(string msg) { _flash = msg; _flashAt = DateTime.Now; }
@@ -266,6 +271,7 @@ public class SheetViewWindow : Window
     public void Open(FightProfile? fight = null)
     {
         _fight = fight ?? PickDefaultFight();
+        _pendingEdit = null;
         _dirty = true;
         IsOpen = true;
         BringToFront(); // safe outside a draw frame, unlike ImGui.SetWindowFocus
@@ -701,6 +707,34 @@ public class SheetViewWindow : Window
 
     private void CommitCell(Row row, int i) => ApplyCellText(row, i, _cellBuf);
 
+    // Enter = the visible row below (same column); Tab = the next column (same
+    // row). Coordinates are captured now and resolved after the rebuild.
+    private void QueueNeighborEdit(Row row, int i, bool right)
+    {
+        if (right)
+        {
+            // Follows the pin/submission order; a hand-dragged display order
+            // isn't readable from ImGui, so Tab may jump non-adjacently there.
+            var k = Array.IndexOf(_order, i);
+            if (k < 0 || k + 1 >= _order.Length) return; // last column: stay put
+            _pendingEdit = (row.Time, row.Mechanic, _order[k + 1]);
+            return;
+        }
+
+        Row? below = null;
+        var seen = false;
+        foreach (var r in _rows)
+        {
+            if (r == row) { seen = true; continue; }
+            if (!seen || r.Ghost) continue;
+            if (_phaseFilter.Length > 0 && r.Phase != _phaseFilter) continue;
+            if (!MatchesFilter(r)) continue;
+            below = r;
+            break;
+        }
+        if (below != null) _pendingEdit = (below.Time, below.Mechanic, i);
+    }
+
     // Cell edits touch the FIRST line in the cell only; a cell holding two real
     // lines (rare merge of near-simultaneous casts) stacks them and leaves the
     // second line alone. Shared by inline editing and the right-click paste.
@@ -877,6 +911,24 @@ public class SheetViewWindow : Window
         _wasFocused = focused;
         if (_dirty && !Editing) Rebuild();
 
+        // A queued Enter/Tab edit lands once the grid is rebuilt and idle.
+        if (_pendingEdit is { } pe && !Editing && !_dirty)
+        {
+            _pendingEdit = null;
+            var target = _rows.FirstOrDefault(r => !r.Ghost
+                && MechEquals(r.Mechanic, pe.Mech) && MathF.Abs(r.Time - pe.Time) < 0.9f
+                // Must be VISIBLE: an editor on a filtered-out row never draws,
+                // which would wedge the edit state machine.
+                && (_phaseFilter.Length == 0 || r.Phase == _phaseFilter) && MatchesFilter(r));
+            if (target != null && pe.Slot >= 0 && pe.Slot < _slots.Length)
+            {
+                _editCellRow = target;
+                _editCellSlot = pe.Slot;
+                _cellBuf = _cellSeed = target.Cells[pe.Slot].Count > 0 ? target.Cells[pe.Slot][0].Action : "";
+                _focusPending = true;
+            }
+        }
+
         // Ctrl+Z undoes the last sheet edit. Skipped while a text field is
         // active: InputText has its own internal Ctrl+Z for the typed buffer.
         if (focused && !ImGui.GetIO().WantTextInput
@@ -971,6 +1023,7 @@ public class SheetViewWindow : Window
                     if (ImGui.Selectable(f.Name, f == _fight))
                     {
                         CommitPending();
+                        _pendingEdit = null;
                         _fight = f;
                         _phaseFilter = "";
                         _dirty = true;
@@ -1153,14 +1206,18 @@ public class SheetViewWindow : Window
     // Short hover delay for informational tooltips on the toolbar sweep path.
     private static Vector2 _ttPos;
     private static double _ttSince;
+    private static int _ttFrame;
 
     private static bool DelayedHover(ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
     {
         if (!ImGui.IsItemHovered(flags)) return false;
-        // The item rect is a fine identity for "did the hovered thing change".
+        // The item rect is a fine identity for "did the hovered thing change";
+        // a frame gap means the mouse left and the delay starts over.
         var pos = ImGui.GetItemRectMin();
         var now = ImGui.GetTime();
-        if (pos != _ttPos) { _ttPos = pos; _ttSince = now; }
+        var frame = ImGui.GetFrameCount();
+        if (pos != _ttPos || frame - _ttFrame > 2) { _ttPos = pos; _ttSince = now; }
+        _ttFrame = frame;
         return now - _ttSince >= 0.35;
     }
 
@@ -1203,6 +1260,7 @@ public class SheetViewWindow : Window
             ImGui.SetTooltip(
                 "Click a time to re-time that mechanic for every slot at once.\n"
                 + "Click a cell to edit that slot only; clear the text to remove it.\n"
+                + "While editing: Enter moves down a row, Tab moves right, like a spreadsheet.\n"
                 + "Right-click a cell for copy / paste / delete / reset / a per-call offset; right-click a mechanic for notes.\n"
                 + "Orange * = your edit, kept through sheet updates.\n"
                 + "Dim rows are deleted; the undo button restores the sheet's version.\n"
@@ -1999,7 +2057,11 @@ public class SheetViewWindow : Window
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit
                   | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
-        if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
+        // Settings (widths, drag order) are saved by column INDEX, so the ID
+        // bakes in the fight + pin layout: a layout change resets them instead
+        // of re-attaching them to the wrong slots.
+        var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}";
+        if (!ImGui.BeginTable(tableId, 2 + _slots.Length, flags, new Vector2(0, -footerH)))
             return;
 
         // Pinned columns ride in the frozen area right after Mechanic (capped so
@@ -2107,7 +2169,7 @@ public class SheetViewWindow : Window
             ImGui.PushID(r);
             ImGui.TableNextRow();
             if (row == _hoverLivePrev)
-                ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, 0x16FFFFFF);
+                ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, 0x16FFFFFF); // RowBg1 layers; RowBg0 would replace the alternation
 
             DrawTimeCell(row);
             DrawMechanicCell(row);
@@ -2319,8 +2381,11 @@ public class SheetViewWindow : Window
             ImGui.InputText("##c", ref _cellBuf, 256);
             if (ImGui.IsItemDeactivated())
             {
+                var enter = ImGui.IsKeyPressed(ImGuiKey.Enter, false) || ImGui.IsKeyPressed(ImGuiKey.KeypadEnter, false);
+                var tab = ImGui.IsKeyPressed(ImGuiKey.Tab, false);
                 if (ImGui.IsItemDeactivatedAfterEdit()) CommitCell(row, i);
                 _editCellRow = null;
+                if (enter || tab) QueueNeighborEdit(row, i, tab);
             }
             return;
         }
