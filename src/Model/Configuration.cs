@@ -167,9 +167,14 @@ public class Configuration : IPluginConfiguration
     // overwrite the user's real (recoverable) settings with defaults.
     public static bool SuppressSave;
 
+    // When the config last hit disk, so the UI can show a truthful live status
+    // ("All changes saved · 3s ago") instead of a ceremonial Save button.
+    public static DateTime LastSavedAt { get; private set; } = DateTime.MinValue;
+
     public void Save()
     {
         if (SuppressSave) return;
         Service.PluginInterface.SavePluginConfig(this);
+        LastSavedAt = DateTime.Now;
     }
 }

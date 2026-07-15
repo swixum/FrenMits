@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.131";
+    public const string NotesVersion = "1.0.0.132";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -30,7 +30,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "New: Sheet View — the whole raid plan in one grid");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "Per-call offsets, sheet notes, and a cleaner recap");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -60,18 +60,21 @@ public class WhatsNewWindow : Window
 
     private static readonly (string Head, string Body)[] Notes =
     {
-        ("Sheet View (under Sheet View in the sidebar, or /fm sheet)",
-            "Every slot's mits in one grid, just like the Google sheet. Rows are the fight's "
-            + "mechanics, columns are all ten slots, your slot is starred and tinted."),
-        ("Re-time once, move everyone",
-            "Click a mechanic's TIME to shift it for every slot at once. Click a cell to change "
-            + "one slot's mit. Everything you touch turns orange (yours now, safe from sheet "
-            + "updates), and the row's ⟲ puts it back on the sheet."),
-        ("Share the fixed plan",
-            "Hit Share plan, post the code, and each friend's import updates their own slot in "
-            + "place. One person fixes the timings; the whole group syncs up."),
-        ("From v130, in case you missed it",
-            "Edits and deletes on the fight page now stick through zone-ins and sheet updates, "
-            + "and wipe recaps cover the whole pull instead of just the last phase."),
+        ("Offset a single call",
+            "New ±s column in the line table (and in each line's … options): +2 fires just that "
+            + "one call 2s earlier. The fight-wide Timer offset now sits at the top of each fight "
+            + "instead of hiding in Advanced."),
+        ("Party Mit Recap, rebuilt",
+            "One line per mechanic, with coverage counts: Troubadour 7/8 means one person missed "
+            + "it - hover to see exactly who (green in, red out)."),
+        ("Notes on the sheet",
+            "Right-click a mechanic in Sheet View to write a note (Ikuya-footer style). Hover any "
+            + "✎ row and the note shows at the bottom - no clicks to read. Notes travel with "
+            + "shared plan codes."),
+        ("Polish",
+            "★ marks the official sheets everywhere; the call display no longer wanders as text "
+            + "length changes; cooldown-aware calls dim only the ability, not the whole line; a "
+            + "one-click \"Use current (job)\" button; and the footer now just tells the truth: "
+            + "every edit saves instantly, nothing to lose on exit."),
     };
 }

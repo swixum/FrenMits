@@ -59,7 +59,9 @@ public class TimelineWindow : Window
         var pos = viewport.WorkPos + C.TimelinePosition * viewport.WorkSize;
         pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
 
-        if (EffectiveLocked)
+        // Same as the main overlay: pinned center-anchored whenever a drag can't
+        // be in progress, so the auto-resizing list can't wander as it re-widths.
+        if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
             _applyPos = true;
@@ -96,9 +98,9 @@ public class TimelineWindow : Window
         {
             using (PushFont(C.UpcomingFontSizePx))
             {
-                Row(Icons.ResolveFromText("Addle"), "+12s  Addle");
-                Row(Icons.ResolveFromText("Rampart"), "+28s  Rampart");
-                Row(Icons.ResolveFromText("Reprisal"), "+41s  Reprisal");
+                Row(Icons.ResolveFromText("Addle"), "+12s  ", "Addle");
+                Row(Icons.ResolveFromText("Rampart"), "+28s  ", "Rampart");
+                Row(Icons.ResolveFromText("Reprisal"), "+41s  ", "Reprisal", true);
             }
             return;
         }
@@ -115,9 +117,9 @@ public class TimelineWindow : Window
         // the main call, so it isn't duplicated here) and within the look-ahead.
         var upcoming = fight.OrderedLines
             .Where(l => l.Enabled && l.AppliesTo(job)
-                        && l.Time - elapsed > (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds)
-                        && l.Time - elapsed <= C.UpcomingLookaheadSeconds)
-            .OrderBy(l => l.Time)
+                        && l.CueTime - elapsed > (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds)
+                        && l.CueTime - elapsed <= C.UpcomingLookaheadSeconds)
+            .OrderBy(l => l.CueTime) // fire order, so offsets can't cut the soonest call
             .Take(Math.Max(0, C.UpcomingCount))
             .ToList();
 
@@ -131,44 +133,41 @@ public class TimelineWindow : Window
         using (PushFont(C.UpcomingFontSizePx))
             foreach (var l in upcoming)
             {
-                var inSec = (int)MathF.Round(l.Time - elapsed);
+                var inSec = (int)MathF.Round(l.CueTime - elapsed);
                 var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.Action, job);
                 var icon = C.ShowAbilityIcon ? Icons.For(l, job) : 0u;
-                // Dim a line whose mit won't be off cooldown by the time it's called.
+                // Mark a mit that won't be off cooldown by the time it's called:
+                // only the ABILITY dims, so the time and the rest of the line
+                // stay fully readable.
                 var notReady = C.CooldownAwareCalls
-                    && Cooldowns.Remaining(l.Action) is { } cd && cd > (l.Time - elapsed) + 0.5f;
-                Row(icon, $"+{inSec}s  {name}{(notReady ? "  (cd)" : "")}", notReady);
+                    && Cooldowns.Remaining(l.Action) is { } cd && cd > (l.CueTime - elapsed) + 0.5f;
+                Row(icon, $"+{inSec}s  ", name + (notReady ? "  (cd)" : ""), notReady);
             }
     }
 
-    private void Row(uint iconId, string text, bool dim = false)
+    private void Row(uint iconId, string prefix, string name, bool dimName = false)
     {
-        if (dim) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
         var color = C.OverlayColorUpcoming;
-        if (iconId == 0)
-        {
-            CenteredText(text, color);
-        }
-        else
-        {
-            var lineH = ImGui.GetTextLineHeight();
-            var spacing = ImGui.GetStyle().ItemSpacing.X;
-            var total = lineH + spacing + ImGui.CalcTextSize(text).X;
-            var offset = (ImGui.GetContentRegionAvail().X - total) * 0.5f;
-            if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
+        // The dim variant of the upcoming colour: same hue, 40% alpha.
+        var dimColor = (color & 0x00FFFFFFu) | ((uint)(((color >> 24) & 0xFF) * 0.4f) << 24);
 
-            Icons.Draw(iconId, new Vector2(lineH, lineH));
-            ImGui.SameLine(0, spacing);
-            DrawText(text, color);
-        }
-        if (dim) ImGui.PopStyleVar();
-    }
-
-    private void CenteredText(string text, uint color)
-    {
-        var offset = (ImGui.GetContentRegionAvail().X - ImGui.CalcTextSize(text).X) * 0.5f;
+        var lineH = ImGui.GetTextLineHeight();
+        var spacing = ImGui.GetStyle().ItemSpacing.X;
+        var total = (iconId != 0 ? lineH + spacing : 0f)
+                    + ImGui.CalcTextSize(prefix).X + ImGui.CalcTextSize(name).X;
+        var offset = (ImGui.GetContentRegionAvail().X - total) * 0.5f;
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
-        DrawText(text, color);
+
+        if (iconId != 0)
+        {
+            if (dimName) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
+            Icons.Draw(iconId, new Vector2(lineH, lineH));
+            if (dimName) ImGui.PopStyleVar();
+            ImGui.SameLine(0, spacing);
+        }
+        DrawText(prefix, color);
+        ImGui.SameLine(0, 0);
+        DrawText(name, dimName ? dimColor : color);
     }
 
     private void DrawText(string text, uint color)
@@ -200,11 +199,11 @@ public class TimelineWindow : Window
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
-        // Only capture while the mouse is held: the anchor derives from the
-        // window CENTER, and AlwaysAutoResize changes the width as the upcoming
-        // list changes, so saving on any difference would let the anchor drift
-        // (with a config write each time) without the user touching anything.
-        if (!ImGui.IsMouseDown(ImGuiMouseButton.Left)) return;
+        // Only capture during a REAL drag of this window (focused + mouse drag):
+        // the anchor derives from the window CENTER, and AlwaysAutoResize width
+        // changes during any stray left-button hold (camera turns) would
+        // otherwise be saved as position drift.
+        if (!ImGui.IsMouseDragging(ImGuiMouseButton.Left) || !ImGui.IsWindowFocused()) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
         var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);

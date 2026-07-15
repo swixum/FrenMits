@@ -106,33 +106,105 @@ public class RecapWindow : Window
             ImGui.TextColored(Vec(0xFF81766E), $"· {m.Source} · {m.Remaining:0}s");
         }
 
-        // Full timeline.
+        // Full timeline: ONE row per mechanic, its mits inline with coverage
+        // counts, so a wipe reads at a glance instead of as a long scroll.
         Header("Applied this pull");
+        var events = r.LastEvents();
+        var party = r.LastParty;
+        var fight = _plugin.ActiveFight();
         if (ImGui.BeginTable("##recapwin", 3,
                 ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX,
                 new Vector2(0, 0)))
         {
             ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 52);
-            ImGui.TableSetupColumn("Mit", ImGuiTableColumnFlags.WidthStretch, 1);
-            ImGui.TableSetupColumn("By / on", ImGuiTableColumnFlags.WidthStretch, 1);
+            ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 150);
+            ImGui.TableSetupColumn("Mits", ImGuiTableColumnFlags.WidthStretch, 1);
             ImGui.TableHeadersRow();
+
             var ih = ImGui.GetTextLineHeight();
-            foreach (var a in r.LastLog.OrderBy(a => a.Time))
+            var idx = 0;
+            while (idx < events.Count)
             {
+                // Consecutive events under the same mechanic share one row.
+                var mech = MechanicFor(fight, events[idx].Time);
+                var group = new List<MitRecap.MitEvent> { events[idx] };
+                var next = idx + 1;
+                while (next < events.Count
+                       && MechanicFor(fight, events[next].Time) == mech
+                       && events[next].Time - events[idx].Time < 25f)
+                    group.Add(events[next++]);
+                idx = next;
+
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextColored(Vec(0xFF81766E), $"{(int)a.Time / 60}:{(int)a.Time % 60:00}");
+                ImGui.TextColored(Vec(0xFF81766E), $"{(int)group[0].Time / 60}:{(int)group[0].Time % 60:00}");
                 ImGui.TableNextColumn();
-                if (a.Icon != 0) { Icons.Draw(a.Icon, new Vector2(ih, ih)); ImGui.SameLine(0, 6); }
-                var col = MitTypes.Color(a.Kind, C);
-                ImGui.TextColored(col != 0 ? Vec(col) : Vec(0xFFECE8E6), a.Mit);
+                ImGui.TextUnformatted(mech.Length > 0 ? mech : "—");
                 ImGui.TableNextColumn();
-                ImGui.TextColored(Vec(a.OnBoss ? 0xFF81766E : 0xFFECE8E6u), a.OnBoss ? "on boss" : a.Source);
+
+                var n = 0;
+                foreach (var e in group)
+                {
+                    // Three mits per visual line, then wrap inside the cell, so
+                    // heavy mechanics don't clip off the right edge.
+                    if (n > 0 && n % 3 != 0) { ImGui.SameLine(0, 2); ImGui.TextColored(Vec(0xFF81766E), " · "); ImGui.SameLine(0, 2); }
+                    n++;
+                    if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ih, ih)); ImGui.SameLine(0, 4); }
+                    var col = MitTypes.Color(e.Kind, C);
+                    ImGui.TextColored(col != 0 ? Vec(col) : Vec(0xFFECE8E6), e.Mit);
+
+                    if (e.OnBoss)
+                    {
+                        ImGui.SameLine(0, 4);
+                        ImGui.TextColored(Vec(0xFF81766E), "(boss)");
+                    }
+                    else if (e.Kind == MitTypes.Kind.Party && party.Count is > 1 and <= 8)
+                    {
+                        // Coverage only for party-wide buffs, and only with a sane
+                        // 8-man denominator (alliance zones would read "8/24").
+                        // Coverage: how many of the party the buff actually hit.
+                        ImGui.SameLine(0, 4);
+                        var full = e.Covered.Count >= party.Count;
+                        ImGui.TextColored(full ? Vec(Theme.Good) : Vec(Theme.Warn),
+                            $"{e.Covered.Count}/{party.Count}");
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.TextColored(Vec(0xFF81766E), $"{e.Mit} coverage:");
+                            foreach (var name in party)
+                                ImGui.TextColored(
+                                    e.Covered.Contains(name) ? Vec(Theme.Good) : Vec(0xFF5050E0),
+                                    (e.Covered.Contains(name) ? "✓ " : "✗ ") + name);
+                            ImGui.EndTooltip();
+                        }
+                    }
+                    else if (e.Covered.Count == 1)
+                    {
+                        ImGui.SameLine(0, 4);
+                        ImGui.TextColored(Vec(0xFF81766E), e.Covered[0]);
+                    }
+                }
             }
             ImGui.EndTable();
         }
+    }
+
+    // The plan mechanic nearest this moment (within a window), so recap rows can
+    // group under the same names the calls used. Empty when no fight is active
+    // or nothing on the plan is close.
+    private static string MechanicFor(FightProfile? fight, float time)
+    {
+        if (fight == null) return "";
+        MitLine? best = null;
+        var bestDist = 9f; // window: within 9s of a planned call
+        foreach (var l in fight.Lines)
+        {
+            var d = MathF.Abs(l.Time - time);
+            if (d < bestDist && !string.IsNullOrWhiteSpace(l.Mechanic)) { best = l; bestDist = d; }
+        }
+        return best?.Mechanic.Trim() ?? "";
     }
 
     // Accent-bar section header, matching the config window's SeparatorText.

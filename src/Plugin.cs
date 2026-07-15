@@ -685,8 +685,8 @@ public sealed class Plugin : IDalamudPlugin
         var job = ActiveJobAbbreviation();
         var elapsed = CueClockFor(fight);
         var next = fight.OrderedLines
-            .Where(l => l.Enabled && l.AppliesTo(job) && l.Time - elapsed > 0)
-            .Select(l => (l, remaining: l.Time - elapsed))
+            .Where(l => l.Enabled && l.AppliesTo(job) && l.CueTime - elapsed > 0)
+            .Select(l => (l, remaining: l.CueTime - elapsed))
             .OrderBy(x => x.remaining)
             .FirstOrDefault();
 

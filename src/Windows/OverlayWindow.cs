@@ -55,13 +55,14 @@ public class OverlayWindow : Window
         var pos = viewport.WorkPos + C.OverlayPosition * viewport.WorkSize;
         pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y)); // whole pixels = sharp text
 
-        // Locked: pin to the saved spot every frame (click-through HUD).
-        // Unlocked: place it once, then let you drag it freely; the drag is saved
-        // in Draw(). Forcing the position every frame is what blocked dragging.
-        if (EffectiveLocked)
+        // Pin to the saved spot (center-anchored) every frame EXCEPT while the
+        // mouse is held, which is the only time a drag can be happening. Pinning
+        // only-once while unlocked let the auto-resize box grow rightward as call
+        // text length changed, so the display appeared to wander between calls.
+        if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
-            _applyPos = true; // re-apply once the moment we unlock / on reset
+            _applyPos = true; // re-apply the moment a drag ends / on reset
         }
         else if (_applyPos)
         {
@@ -126,7 +127,7 @@ public class OverlayWindow : Window
         var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
-            var remaining = line.Time - elapsed;
+            var remaining = line.CueTime - elapsed;
             var lead = line.LeadOverride > 0f ? line.LeadOverride : C.WarningSeconds;
             if (remaining < 0f || remaining > lead) continue;
             if (remaining < bestRemaining) bestRemaining = remaining;
@@ -138,18 +139,18 @@ public class OverlayWindow : Window
         {
             group = lines.Where(l =>
             {
-                var rem = l.Time - elapsed;
+                var rem = l.CueTime - elapsed;
                 var lead = l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds;
                 return rem >= 0f && rem <= lead && rem <= bestRemaining + tieWindow;
-            }).OrderBy(l => l.Time).ToList();
+            }).OrderBy(l => l.CueTime).ToList();
             // Keep a just-passed call's "NOW" up for its full hold, stacked with
             // the next call, instead of cutting it short the moment another call
             // enters its lead window (calls 1-3s apart are routine).
             var held = _activeLines
                 .Where(l => !group.Contains(l))
-                .Where(l => { var rem = l.Time - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
+                .Where(l => { var rem = l.CueTime - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
                 .ToList();
-            if (held.Count > 0) group = held.Concat(group).OrderBy(l => l.Time).ToList();
+            if (held.Count > 0) group = held.Concat(group).OrderBy(l => l.CueTime).ToList();
             _activeLines.Clear();
             _activeLines.AddRange(group); // remember what we're actively counting down
         }
@@ -159,8 +160,8 @@ public class OverlayWindow : Window
             // "NOW" lingers, but never resurrect a line the clock snapped past (it
             // was never in the active set).
             group = _activeLines
-                .Where(l => { var rem = l.Time - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
-                .OrderBy(l => l.Time).ToList();
+                .Where(l => { var rem = l.CueTime - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
+                .OrderBy(l => l.CueTime).ToList();
             if (group.Count == 0) _activeLines.Clear();
         }
 
@@ -168,7 +169,7 @@ public class OverlayWindow : Window
         {
             if (i > 0) ImGui.Spacing();
             var call = group[i];
-            var remaining = call.Time - elapsed;
+            var remaining = call.CueTime - elapsed;
             var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
             var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
             var action = Icons.DisplayAction(call.Action, job);
@@ -371,11 +372,11 @@ public class OverlayWindow : Window
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
-        // Only capture while the mouse is held: the anchor derives from the
-        // window CENTER, and AlwaysAutoResize changes the width as call text
-        // changes, so saving on any difference would let the anchor drift
-        // (with a config write each time) without the user touching anything.
-        if (!ImGui.IsMouseDown(ImGuiMouseButton.Left)) return;
+        // Only capture during a REAL drag of this window (focused + mouse drag):
+        // the anchor derives from the window CENTER, and AlwaysAutoResize width
+        // changes during any stray left-button hold (camera turns) would
+        // otherwise be saved as position drift.
+        if (!ImGui.IsMouseDragging(ImGuiMouseButton.Left) || !ImGui.IsWindowFocused()) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();
         var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);

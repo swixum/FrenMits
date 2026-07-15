@@ -30,6 +30,11 @@ public class MitRecap
 
     public List<Applied> Log { get; } = new();
     public List<Applied> LastLog { get; private set; } = new();
+
+    // Party roster this pull / at the last freeze, so coverage ("7/8") can name
+    // exactly who was missing a party mit, not just count.
+    public List<string> Party { get; } = new();
+    public List<string> LastParty { get; private set; } = new();
     public List<Active> Snapshot { get; private set; } = new();
     public DateTime CapturedAt { get; private set; }
     public bool PopupDismissed { get; private set; }
@@ -57,7 +62,7 @@ public class MitRecap
             if (Plugin.InCutscene) return;
 
             var running = _plugin.Timer.Running;
-            if (running && !_wasRunning) { Log.Clear(); _active.Clear(); BossName = ""; }
+            if (running && !_wasRunning) { Log.Clear(); _active.Clear(); Party.Clear(); BossName = ""; }
             else if (!running && _wasRunning && Log.Count > 0) FinalizePull(); // pull ended -> freeze recap
             _wasRunning = running;
             if (!running) return;
@@ -76,6 +81,7 @@ public class MitRecap
             foreach (var (src, onBoss, chara) in Sources())
             {
                 if (onBoss) BossName = chara.Name.ToString();
+                else if (!Party.Contains(src)) Party.Add(src);
                 foreach (var m in MitsOn(chara, onBoss))
                 {
                     var key = src + "|" + m.Mit;
@@ -96,8 +102,41 @@ public class MitRecap
     private void FinalizePull()
     {
         LastLog = new List<Applied>(Log);
+        LastParty = new List<string>(Party);
         CapturedAt = DateTime.UtcNow;
         PopupDismissed = false;
+    }
+
+    // ---- aggregation for the recap window ---------------------------------
+
+    // One USE of a mit: the same buff seen on several party members within a
+    // short window collapses to a single event with the covered members listed,
+    // so "Troubadour" reads as one line with 7/8, not seven rows.
+    public sealed record MitEvent(float Time, string Mit, MitTypes.Kind Kind, bool OnBoss, uint Icon, List<string> Covered);
+
+    public List<MitEvent> LastEvents()
+    {
+        var events = new List<MitEvent>();
+        foreach (var a in LastLog.OrderBy(a => a.Time))
+        {
+            // PARTY buffs merge across members (one Troubadour = one event with
+            // its coverage). Everything else merges only with ITSELF (the same
+            // source re-detected), so both tanks hitting Rampart 2s apart stays
+            // two distinct uses instead of a bogus "2/8 coverage".
+            var ev = events.FirstOrDefault(e =>
+                e.OnBoss == a.OnBoss
+                && string.Equals(e.Mit, a.Mit, StringComparison.OrdinalIgnoreCase)
+                && a.Time - e.Time < 6f
+                && (a.Kind == MitTypes.Kind.Party || a.OnBoss
+                    || (e.Covered.Count == 1 && e.Covered[0] == a.Source)));
+            if (ev == null)
+            {
+                ev = new MitEvent(a.Time, a.Mit, a.Kind, a.OnBoss, a.Icon, new List<string>());
+                events.Add(ev);
+            }
+            if (!a.OnBoss && !ev.Covered.Contains(a.Source)) ev.Covered.Add(a.Source);
+        }
+        return events;
     }
 
     // Manual capture ("Capture now") — re-scans the current state right now.
@@ -106,6 +145,7 @@ public class MitRecap
         try
         {
             LastLog = new List<Applied>(Log);
+            LastParty = new List<string>(Party);
             var snap = new List<Active>();
             foreach (var (src, onBoss, chara) in Sources())
             {
@@ -182,10 +222,12 @@ public class MitRecap
             var rnd = new Random();
             string Pick(string[] pool) => pool[rnd.Next(pool.Length)];
 
-            // A realistic 8-player comp: 2 tanks, 2 healers, 4 DPS.
+            // A realistic 8-player comp: 2 DISTINCT tanks, 2 DISTINCT healers,
+            // 4 DPS - duplicates would make full coverage impossible by name.
             var dps = SampleMelee.Concat(SampleRanged).Concat(SampleCasters).OrderBy(_ => rnd.Next()).Take(4).ToList();
-            var comp = new List<string> { Pick(SampleTanks), Pick(SampleTanks), Pick(SampleHealers), Pick(SampleHealers) };
-            comp = comp.Concat(dps).ToList();
+            var comp = SampleTanks.OrderBy(_ => rnd.Next()).Take(2)
+                .Concat(SampleHealers.OrderBy(_ => rnd.Next()).Take(2))
+                .Concat(dps).ToList();
 
             // Which boss damage-downs the comp could even provide.
             var canProvide = new List<string>();
@@ -209,9 +251,17 @@ public class MitRecap
             foreach (var (mit, src, onBoss) in seq.OrderBy(_ => rnd.Next()))
             {
                 t += 6 + rnd.Next(20);
-                log.Add(new Applied(t, mit, src, MitTypes.Classify(mit), onBoss, SampleIcon(mit)));
+                var kind = MitTypes.Classify(mit);
+                log.Add(new Applied(t, mit, src, kind, onBoss, SampleIcon(mit)));
+                // Party-wide buffs land on most of the raid: emit an entry per
+                // covered member so the coverage readout (7/8 etc.) previews too.
+                if (!onBoss && kind == MitTypes.Kind.Party)
+                    foreach (var member in comp.Where(m => m != src).OrderBy(_ => rnd.Next())
+                                 .Take(comp.Count - 1 - rnd.Next(0, 3)))
+                        log.Add(new Applied(t + 0.3f, mit, member, kind, false, SampleIcon(mit)));
             }
             LastLog = log.OrderBy(a => a.Time).ToList();
+            LastParty = comp.ToList(); // sample roster, so coverage renders too
 
             Snapshot = LastLog.OrderBy(_ => rnd.Next()).Take(3 + rnd.Next(3))
                 .Select(a => new Active(a.Icon, a.Mit, a.Source, 4 + rnd.Next(18), a.Kind, a.OnBoss))

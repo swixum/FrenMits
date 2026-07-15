@@ -29,6 +29,10 @@ public class FightProfile
     // themselves. Cleared by Reset to sheet / the Restore button.
     public List<DeletedCall> DeletedCalls { get; set; } = new();
 
+    // Per-mechanic notes shown in the Sheet View's footer strip (the in-game
+    // version of the Ikuya sheet's notes). Fight-wide, shared with the plan code.
+    public List<SheetNote> Notes { get; set; } = new();
+
     // The built-in sheet slot currently selected for this fight (e.g. "D1", "WHM").
     // Drives the seamless auto-load when you enter the zone. Empty = infer from job.
     public string Slot { get; set; } = "";
@@ -62,6 +66,16 @@ public class DeletedCall
     public float Time { get; set; }
     public string Mechanic { get; set; } = "";
     public string Action { get; set; } = "";
+}
+
+// A note attached to one mechanic row on the sheet, matched by mechanic label +
+// nearby time (a bulk re-time moves it along with the row).
+[Serializable]
+public class SheetNote
+{
+    public float Time { get; set; }
+    public string Mechanic { get; set; } = "";
+    public string Text { get; set; } = "";
 }
 
 [Serializable]
@@ -98,6 +112,14 @@ public class MitLine
     // A re-bake of a built-in fight keeps these and only replaces the baked lines,
     // so custom timers people add survive sheet updates.
     public bool Custom { get; set; }
+
+    // Per-line offset on the CUE clock: + fires this one call earlier, - later.
+    // The plan time (Time) stays put; only when the call fires/shows moves, so
+    // resync and sheet updates are unaffected. 0 = no shift.
+    public float OffsetSeconds { get; set; }
+
+    // Where this call actually fires on the cue clock.
+    public float CueTime => Time - OffsetSeconds;
 
     // Per-line overrides (0 / empty = use the global setting).
     public float LeadOverride { get; set; }   // warning lead seconds; 0 = global

@@ -20,6 +20,24 @@ public class ConfigWindow : Window, IDisposable
     // In-progress m:ss edit for the line table (one row at a time).
     private MitLine? _editTimeLine;
     private string _editTimeBuf = "";
+    private MitLine? _editOffLine;      // per-line offset (±s column) inline edit
+    private string _editOffBuf = "";
+    private string _editOffSeed = "";
+    private bool _offFocusPending;
+
+    // Land a half-typed ±s edit before switching cells: clicking an EARLIER row
+    // draws before the active editor, which would otherwise drop the text.
+    private void CommitPendingOffset()
+    {
+        if (_editOffLine != null && _editOffBuf != _editOffSeed
+            && float.TryParse(_editOffBuf, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var v))
+        {
+            _editOffLine.OffsetSeconds = Math.Clamp(v, -30f, 30f);
+            C.Save();
+        }
+        _editOffLine = null;
+    }
 
     // In-memory line clipboard for the right-click copy / paste / duplicate menu.
     private MitLine? _copiedLine;
@@ -94,7 +112,6 @@ public class ConfigWindow : Window, IDisposable
         IsOpen = true;
     }
 
-    private DateTime _savedAt = DateTime.MinValue;
 
     // Window-level theming (background, title, border) must be applied before the
     // window begins, so it lives in PreDraw/PostDraw.
@@ -164,32 +181,37 @@ public class ConfigWindow : Window, IDisposable
 
     private bool _toggleDirty;
 
+    // Truthful save status: every edit writes to disk the moment it happens, so
+    // there is never an unsaved state to warn about on exit. The old "Save
+    // changes" button was ceremonial and implied otherwise.
     private void DrawFooter()
     {
         ImGui.Separator();
-        var justSaved = (DateTime.Now - _savedAt).TotalSeconds < 2;
 
-        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Good);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF5FC46A);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0xFF3FA44A);
-        if (ImGui.Button("Save changes", new Vector2(150, 0)))
-        {
-            C.Save();
-            _savedAt = DateTime.Now;
-        }
-        ImGui.PopStyleColor(3);
-
-        ImGui.SameLine();
-        if (justSaved)
-        {
-            ImGui.TextColored(ImGuiColors.ParsedGreen, "● saved");
-        }
-        else
+        if (Configuration.SuppressSave)
         {
             ImGui.TextColored(ImGuiColors.DalamudYellow, "●");
-            ImGui.SameLine(0, 5);
-            ImGui.TextDisabled("autosaves as you edit");
+            ImGui.SameLine(0, 6);
+            ImGui.TextColored(ImGuiColors.DalamudYellow,
+                "Saving is OFF this session (your config file failed to load and was backed up).");
+            return;
         }
+
+        var last = Configuration.LastSavedAt;
+        var recent = last != DateTime.MinValue && (DateTime.Now - last).TotalSeconds < 3;
+        ImGui.TextColored(recent ? ImGuiColors.ParsedGreen : ImGuiColors.HealerGreen, "●");
+        ImGui.SameLine(0, 6);
+        ImGui.TextDisabled(last == DateTime.MinValue
+            ? "All changes save instantly — nothing to lose on exit."
+            : recent
+                ? "All changes saved — just now."
+                : $"All changes saved — every edit writes instantly (last {Ago(last)}).");
+    }
+
+    private static string Ago(DateTime t)
+    {
+        var s = (DateTime.Now - t).TotalSeconds;
+        return s < 90 ? $"{(int)s}s ago" : s < 5400 ? $"{(int)(s / 60)}m ago" : $"{(int)(s / 3600)}h ago";
     }
 
     // Config-bound checkbox: edits a local copy, saves on change, returns the new value.
@@ -439,6 +461,24 @@ public class ConfigWindow : Window, IDisposable
             C.JobSelection = idx == 0 ? "Auto" : Jobs.Abbreviations[idx - 1];
             C.Save();
         }
+
+        // One click to pin whatever you're playing right now - no list-diving.
+        // Hidden on Auto: Auto already follows the live job, so pinning from
+        // there would only stop it following the NEXT job change.
+        var live = Plugin.LocalPlayer?.ClassJob.RowId is { } rid ? Jobs.ByRowId(rid)?.Abbreviation : null;
+        if (live != null
+            && !string.Equals(C.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(C.JobSelection, live, StringComparison.OrdinalIgnoreCase))
+        {
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+            if (ImGui.SmallButton($"Use current ({live})"))
+            {
+                C.JobSelection = live;
+                C.Save();
+            }
+            Tip("Pin your job with one click instead of picking it from the list.");
+        }
+
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled($"active: {_plugin.ActiveJobAbbreviation() ?? "?"}");
     }
@@ -671,7 +711,11 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
 
             if (fight.Id == _expandFightId) { ImGui.SetNextItemOpen(true); _expandFightId = ""; }
-            var open = ImGui.CollapsingHeader($"{fight.Name}   ({fight.Lines.Count})###fh-{fight.Id}");
+            // ★ = official: ships with the plugin, baked from the community sheet.
+            var star = Builtin.Has(fight.TerritoryId) ? "★ " : "";
+            var open = ImGui.CollapsingHeader($"{star}{fight.Name}   ({fight.Lines.Count})###fh-{fight.Id}");
+            if (star.Length > 0 && ImGui.IsItemHovered())
+                ImGui.SetTooltip("Official sheet — ships with the plugin and gets timeline updates automatically.");
 
             if (open)
             {
@@ -684,6 +728,7 @@ public class ConfigWindow : Window, IDisposable
                 else
                 {
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
+                    DrawFightOffsetRow(fight);
                     DrawPotionsSection(fight);
                     DrawJobExtrasSection(fight);
                     DrawTankSection(fight);
@@ -862,6 +907,25 @@ public class ConfigWindow : Window, IDisposable
     // The expanded editor for one fight. Returns false if it was deleted this
     // frame (caller removes it and stops drawing). Category lives in the sidebar
     // now; the rare zone/timing fields are tucked into an Advanced sub-section.
+    // The fight-wide offset, up top where it's findable: shifts EVERY call. The
+    // per-line ±s column below handles individual calls.
+    private void DrawFightOffsetRow(FightProfile fight)
+    {
+        var offset = fight.TimerOffset;
+        ImGui.SetNextItemWidth(110f);
+        if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f"))
+        {
+            fight.TimerOffset = Math.Clamp(offset, -30f, 30f);
+            C.Save();
+        }
+        ImGui.SameLine();
+        ImGui.TextDisabled("+ fires every call earlier, - later. Survives resync.");
+        HelpMarker("Shifts when this fight's calls fire: +10 makes every call come 10s sooner, "
+                   + "even with resync on. For one call only, use the ±s column in the line table. "
+                   + "Heads up: a big + shift can swallow calls timed inside the first seconds of a "
+                   + "pull. The timer auto-starts on combat and resets on a wipe / duty end.");
+    }
+
     private bool DrawFightEditor(FightProfile fight)
     {
         // Built-in fights (the ones shipped with the plugin) are locked: their name
@@ -869,9 +933,11 @@ public class ConfigWindow : Window, IDisposable
         if (Builtin.Has(fight.TerritoryId))
         {
             ImGui.AlignTextToFramePadding();
+            ImGui.TextColored(new Vector4(0.98f, 0.82f, 0.35f, 1f), "★");
+            ImGui.SameLine(0, 5);
             ImGui.TextUnformatted(fight.Name);
             ImGui.SameLine(0, 8);
-            ImGui.TextDisabled("(built-in)");
+            ImGui.TextDisabled("(official sheet)");
             Tip("Line times are seconds from the pull — one continuous timeline across every phase; resets on a wipe.");
             return true;
         }
@@ -1214,19 +1280,7 @@ public class ConfigWindow : Window, IDisposable
         if (!string.IsNullOrEmpty(zoneName)) { ImGui.SameLine(); ImGui.TextDisabled(zoneName); }
         ImGui.EndDisabled();
 
-        var offset = fight.TimerOffset;
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f"))
-        {
-            fight.TimerOffset = Math.Clamp(offset, -30f, 30f);
-            C.Save();
-        }
-        ImGui.SameLine();
-        ImGui.TextDisabled("+ fires every call earlier, - later. Survives resync.");
-        HelpMarker("Shifts when this fight's calls fire: +10 makes every call come 10s sooner, "
-                   + "even with resync on. Heads up: a big + shift can swallow calls timed inside "
-                   + "the first seconds of a pull. The timer auto-starts on combat and resets on a "
-                   + "wipe / when the duty ends; /fm sync zeroes the live timer.");
+        ImGui.TextDisabled("Timer offset now lives at the top of this fight, above the mit sections.");
 
         ImGui.Unindent(10f);
     }
@@ -1276,12 +1330,13 @@ public class ConfigWindow : Window, IDisposable
         var tableH = MathF.Max(200f, avail - ImGui.GetFrameHeightWithSpacing() - 8f);
 
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY;
-        if (!ImGui.BeginTable("##lines", 7, flags, new Vector2(0, tableH)))
+        if (!ImGui.BeginTable("##lines", 8, flags, new Vector2(0, tableH)))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("On", ImGuiTableColumnFlags.WidthFixed, 28);
         ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 70);
+        ImGui.TableSetupColumn("±s", ImGuiTableColumnFlags.WidthFixed, 44);
         ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthStretch, 1);
         ImGui.TableSetupColumn("Action", ImGuiTableColumnFlags.WidthStretch, 1);
         ImGui.TableSetupColumn("Jobs", ImGuiTableColumnFlags.WidthFixed, 120);
@@ -1348,6 +1403,43 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.Separator();
                 LineContextItems(fight, line, i, ref deferred, ref toDelete);
                 ImGui.EndPopup();
+            }
+
+            // Per-line offset: + fires just this call earlier. Blank = none.
+            ImGui.TableNextColumn();
+            if (_editOffLine == line)
+            {
+                ImGui.SetNextItemWidth(-1);
+                if (_offFocusPending) { ImGui.SetKeyboardFocusHere(); _offFocusPending = false; }
+                ImGui.InputText("##off", ref _editOffBuf, 8);
+                if (ImGui.IsItemDeactivated())
+                {
+                    if (_editOffLine == line && ImGui.IsItemDeactivatedAfterEdit()
+                        && float.TryParse(_editOffBuf, System.Globalization.NumberStyles.Float,
+                            System.Globalization.CultureInfo.InvariantCulture, out var ov))
+                    {
+                        line.OffsetSeconds = Math.Clamp(ov, -30f, 30f);
+                        C.Save();
+                    }
+                    if (_editOffLine == line) _editOffLine = null;
+                }
+            }
+            else
+            {
+                var offLabel = line.OffsetSeconds == 0f ? " " : line.OffsetSeconds.ToString("+0.#;-0.#");
+                if (line.OffsetSeconds != 0f) ImGui.PushStyleColor(ImGuiCol.Text, 0xFF5C9EF5); // orange (ABGR)
+                if (ImGui.Selectable(offLabel + "##off", false))
+                {
+                    CommitPendingOffset();
+                    _editOffLine = line;
+                    _editOffBuf = _editOffSeed = line.OffsetSeconds == 0f ? ""
+                        : line.OffsetSeconds.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+                    _offFocusPending = true;
+                }
+                if (line.OffsetSeconds != 0f) ImGui.PopStyleColor();
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Offset just this call: + = earlier, - = later. Click to edit."
+                        + (line.OffsetSeconds != 0f ? $"\nCurrently {line.OffsetSeconds:+0.#;-0.#}s." : ""));
             }
 
             ImGui.TableNextColumn();
@@ -1514,6 +1606,7 @@ public class ConfigWindow : Window, IDisposable
         target.Jobs = new List<string>(src.Jobs);
         target.Enabled = src.Enabled;
         target.LeadOverride = src.LeadOverride;
+        target.OffsetSeconds = src.OffsetSeconds;
         target.Tts = src.Tts;
         target.Sound = src.Sound;
         target.Color = src.Color;
@@ -1696,10 +1789,8 @@ public class ConfigWindow : Window, IDisposable
         if (Section("Clock", true))
         {
             ImGui.TextUnformatted($"Elapsed: {(_plugin.Timer.Running ? _plugin.Timer.Elapsed.ToString("0.0") + "s" : "not running")}");
-            if (ImGui.Button("Sync now")) _plugin.Timer.SyncNow();
-            Tip("Zero the clock to the current moment (also /fm sync). Auto-starts on combat otherwise.");
-            ImGui.SameLine();
             if (ImGui.Button("Reset")) _plugin.Timer.Reset();
+            Tip("Clear the clock. It auto-starts on combat; /fm sync still zeroes it manually if ever needed.");
         }
 
         if (Section("Resync", true))
@@ -2609,6 +2700,17 @@ public class ConfigWindow : Window, IDisposable
             C.Save();
         }
 
+        var off = line.OffsetSeconds;
+        ImGui.SetNextItemWidth(120f);
+        if (ImGui.InputFloat("Offset (s)", ref off, 0.5f, 1f, "%.1f"))
+        {
+            line.OffsetSeconds = Math.Clamp(off, -30f, 30f);
+            C.Save();
+        }
+        Tip("Shift only THIS call: + fires it earlier, - later. The plan time stays put and "
+            + "resync can't cancel it. A big + offset on a very early call can push it before "
+            + "the pull starts (it won't fire). Also editable in the ±s column.");
+
         var tts = line.Tts;
         ImGui.SetNextItemWidth(220f);
         if (ImGui.InputText("Speak instead", ref tts, 128)) { line.Tts = tts; C.Save(); }
@@ -2696,6 +2798,16 @@ public class ConfigWindow : Window, IDisposable
                 // wipe YOUR saved edits for every other slot in the fight.
                 existing.Lines = fight.Lines;
                 existing.TimerOffset = fight.TimerOffset;
+                // Sheet notes MERGE: take the sender's note where they wrote one,
+                // keep yours everywhere else (wholesale replace would wipe your
+                // notes with a v131-era code's empty list).
+                foreach (var n in fight.Notes)
+                {
+                    existing.Notes.RemoveAll(o =>
+                        string.Equals(o.Mechanic.Trim(), n.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase)
+                        && MathF.Abs(o.Time - n.Time) < 4f);
+                    existing.Notes.Add(n);
+                }
                 if (!string.IsNullOrEmpty(fight.Slot))
                 {
                     existing.Slot = fight.Slot;
@@ -2774,7 +2886,8 @@ public class ConfigWindow : Window, IDisposable
     {
         Time = l.Time, Mechanic = l.Mechanic, Action = l.Action,
         Jobs = new List<string>(l.Jobs), Enabled = l.Enabled,
-        LeadOverride = l.LeadOverride, Tts = l.Tts, Sound = l.Sound, Color = l.Color, IconId = l.IconId
+        LeadOverride = l.LeadOverride, OffsetSeconds = l.OffsetSeconds,
+        Tts = l.Tts, Sound = l.Sound, Color = l.Color, IconId = l.IconId
     };
 
     private static string Get(string[] row, int i) => i >= 0 && i < row.Length ? row[i] : "";

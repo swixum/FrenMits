@@ -71,7 +71,7 @@ public class CueEngine
             if (_fired.Contains(line)) continue;
 
             var lead = line.LeadOverride > 0f ? line.LeadOverride : c.WarningSeconds;
-            var remaining = line.Time - elapsed;
+            var remaining = line.CueTime - elapsed; // honors the per-line offset
             if (remaining > lead || remaining < -0.5f) continue;
 
             _fired.Add(line);

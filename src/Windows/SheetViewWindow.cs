@@ -97,6 +97,37 @@ public class SheetViewWindow : Window
     private DateTime _flashAt;
     private void Flash(string msg) { _flash = msg; _flashAt = DateTime.Now; }
 
+    // Notes: the row the mouse is on (its note shows in the footer strip) and
+    // the edit buffer for the right-click note popup.
+    private Row? _hoverRow;
+    private string _noteBuf = "";
+
+    // Tight window (4s): some mechanics repeat under 10s apart with the same
+    // label (Ultimate Embrace at 371/378), and a wider match would cross-link
+    // one note to both rows.
+    private SheetNote? NoteFor(Row row)
+        => _fight?.Notes.FirstOrDefault(n =>
+            MechEquals(n.Mechanic, row.Mechanic) && MathF.Abs(n.Time - row.Time) < 4f);
+
+    private void SaveNote(Row row, string text)
+    {
+        if (_fight == null) return;
+        var note = NoteFor(row);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            if (note != null) _fight.Notes.Remove(note);
+        }
+        else if (note == null)
+        {
+            _fight.Notes.Add(new SheetNote { Time = row.Time, Mechanic = row.Mechanic, Text = text });
+        }
+        else
+        {
+            note.Text = text;
+        }
+        C.Save();
+    }
+
     // ---- opening ----------------------------------------------------------
 
     public void Open(FightProfile? fight = null)
@@ -399,6 +430,8 @@ public class SheetViewWindow : Window
             return;
 
         var delta = newTime - row.Time;
+        // The row's note (matched at the old coordinates) rides along.
+        if (NoteFor(row) is { } note) note.Time += delta;
         var lines = 0;
         var slots = 0;
         for (var i = 0; i < _slots.Length; i++)
@@ -591,7 +624,7 @@ public class SheetViewWindow : Window
         if (ImGui.BeginCombo("##sheetfight", _fight!.Name))
         {
             foreach (var f in builtins)
-                if (ImGui.Selectable(f.Name, f == _fight))
+                if (ImGui.Selectable("★ " + f.Name, f == _fight))
                 {
                     CommitPending();
                     _fight = f;
@@ -666,7 +699,8 @@ public class SheetViewWindow : Window
     private void DrawGrid()
     {
         _editorDrawn = false;
-        var footerH = ImGui.GetFrameHeightWithSpacing() + 6f;
+        // Two footer lines now: the note strip + the flash/legend line.
+        var footerH = ImGui.GetTextLineHeightWithSpacing() * 2 + 12f;
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit;
         if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
@@ -764,7 +798,10 @@ public class SheetViewWindow : Window
                 _focusPending = true;
             }
             if (ImGui.IsItemHovered())
+            {
+                _hoverRow = row;
                 ImGui.SetTooltip($"{row.Time:0.#}s — click to re-time \"{row.Mechanic}\" for EVERY slot at once");
+            }
         }
     }
 
@@ -784,6 +821,27 @@ public class SheetViewWindow : Window
         }
 
         ImGui.TextUnformatted(row.Mechanic);
+        if (ImGui.IsItemHovered())
+        {
+            _hoverRow = row;
+            ImGui.SetTooltip("Right-click to add or edit this mechanic's note.");
+        }
+        // Right-click the mechanic name = note editor. The footer strip shows the
+        // note for whatever row the mouse is on, zero clicks to read.
+        if (ImGui.BeginPopupContextItem("##notectx"))
+        {
+            if (ImGui.IsWindowAppearing()) _noteBuf = NoteFor(row)?.Text ?? "";
+            ImGui.TextDisabled($"Note — {row.Mechanic}");
+            if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84)))
+                SaveNote(row, _noteBuf);
+            ImGui.TextDisabled("Saved as you type. Clear the text to remove the note.");
+            ImGui.EndPopup();
+        }
+        if (NoteFor(row) != null)
+        {
+            ImGui.SameLine(0, 5);
+            ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "✎");
+        }
         if (row.Edited)
         {
             ImGui.SameLine(0, 6);
@@ -838,12 +896,15 @@ public class SheetViewWindow : Window
             _focusPending = true;
         }
         if (ImGui.IsItemHovered())
+        {
+            _hoverRow = row;
             ImGui.SetTooltip(cell.Count == 0
                 ? $"Click to add a mit for {_slots[i]} here (that slot only)"
                 : cell.Count == 1
                     ? $"{first}\nClick to edit {_slots[i]}'s mit (that slot only). Clear the text to remove it."
                     : $"{string.Join("  ·  ", cell.Select(l => l.Action))}\nTwo lines share this moment; "
                       + "editing changes the first one only. Fine-tune both on the fight page.");
+        }
     }
 
     private static string TimeText(float t)
@@ -862,6 +923,26 @@ public class SheetViewWindow : Window
     private void DrawFooter()
     {
         ImGui.Spacing();
+
+        // Note strip: the hovered row's note, zero clicks to read (Ikuya-footer
+        // style). Sticky on the last hovered row so it stays readable while the
+        // mouse travels down here.
+        var note = _hoverRow != null ? NoteFor(_hoverRow) : null;
+        if (note != null)
+        {
+            ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "✎");
+            ImGui.SameLine(0, 6);
+            ImGui.TextUnformatted($"{_hoverRow!.Mechanic}:");
+            ImGui.SameLine(0, 6);
+            var text = note.Text.Replace('\n', ' ');
+            ImGui.TextDisabled(text.Length > 220 ? text[..220] + "…" : text);
+            if (ImGui.IsItemHovered() && note.Text.Length > 220) ImGui.SetTooltip(note.Text);
+        }
+        else
+        {
+            ImGui.TextDisabled("Notes: right-click a mechanic to write one; hover a ✎ row and it shows here.");
+        }
+
         if ((DateTime.Now - _flashAt).TotalSeconds < 4.5 && _flash.Length > 0)
         {
             ImGui.TextColored(ImGuiColors.ParsedGreen, _flash);
