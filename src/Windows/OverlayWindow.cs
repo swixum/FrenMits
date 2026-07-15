@@ -101,6 +101,30 @@ public class OverlayWindow : Window
     {
         SavePositionIfDragged();
 
+        // Right-click quick menu. Only reachable while the overlay accepts the
+        // mouse at all (unlocked, out of combat), so it can never eat a click
+        // mid-fight.
+        if (ImGui.BeginPopupContextWindow("##fmoverlayctx"))
+        {
+            if (ImGui.MenuItem("Lock position", "", C.OverlayLocked))
+            {
+                C.OverlayLocked = !C.OverlayLocked;
+                C.Save();
+            }
+            if (ImGui.MenuItem("Open settings"))
+            {
+                _plugin.ConfigWindow.IsOpen = true;
+                _plugin.ConfigWindow.BringToFront();
+            }
+            if (ImGui.MenuItem("Open Sheet View"))
+            {
+                var f = _plugin.ActiveFight();
+                _plugin.SheetViewWindow.Open(
+                    f != null && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) ? f : null);
+            }
+            ImGui.EndPopup();
+        }
+
         if (C.TestMode && !_plugin.Timer.Running)
         {
             DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds,

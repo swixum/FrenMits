@@ -14,7 +14,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.150";
+    public const string NotesVersion = "1.0.0.151";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.151", "Drag columns to reorder, row hover highlight, click the server-bar timer, quick jumps between windows."),
         ("1.0.0.150", "Sheet View toolbar folded into Build and Plan menus."),
         ("1.0.0.149", "Tidier UI: fewer sidebar pages, extras folded away, one Preview button."),
         ("1.0.0.148", "Test mode turns itself off when a real pull starts."),

@@ -19,6 +19,9 @@ public class Configuration : IPluginConfiguration
     // Whether the Sheet View's per-phase "Sheet notes" panel is expanded.
     public bool SheetNotesOpen { get; set; } = true;
 
+    // The fight Sheet View last showed, so it reopens where you left off.
+    public string LastSheetFightId { get; set; } = "";
+
     // Color Sheet View mits by type (party / tank / personal). Off by default;
     // it's a lot of color on a full grid.
     public bool SheetColorByType { get; set; }

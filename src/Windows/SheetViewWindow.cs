@@ -226,8 +226,12 @@ public class SheetViewWindow : Window
     private void Flash(string msg) { _flash = msg; _flashAt = DateTime.Now; }
 
     // Notes: the row the mouse is on (its note shows in the footer strip) and
-    // the edit buffer for the right-click note popup.
+    // the edit buffer for the right-click note popup. _hoverRow is sticky (the
+    // footer keeps the last note readable); _hoverLive is only the row the
+    // mouse is on THIS frame, driving the row highlight.
     private Row? _hoverRow;
+    private Row? _hoverLive;
+    private Row? _hoverLivePrev;
     private string _noteBuf = "";
 
     // Tight window (4s): some mechanics repeat under 10s apart with the same
@@ -274,6 +278,7 @@ public class SheetViewWindow : Window
         var terr = Service.ClientState.TerritoryType;
         // Prefer fights that already have a slot picked: the grid needs one.
         return C.Fights.FirstOrDefault(f => Sheetable(f) && f.TerritoryId == terr && f.Enabled)
+            ?? C.Fights.FirstOrDefault(f => Sheetable(f) && f.Id == C.LastSheetFightId)
             ?? C.Fights.FirstOrDefault(f => f.TerritoryId == Builtin.DmuTerritory && !string.IsNullOrEmpty(f.Slot))
             ?? C.Fights.FirstOrDefault(f => Sheetable(f) && !string.IsNullOrEmpty(f.Slot))
             ?? C.Fights.FirstOrDefault(f => f.TerritoryId == Builtin.DmuTerritory)
@@ -861,6 +866,9 @@ public class SheetViewWindow : Window
             return;
         }
 
+        // The sheet reopens where you left off, across sessions.
+        if (_fight.Id != C.LastSheetFightId) { C.LastSheetFightId = _fight.Id; C.Save(); }
+
         // Regaining focus re-reads every slot, so edits made on the fight page
         // while this window sat in the background always show up. Never rebuild
         // mid-edit: commits set _dirty and it lands right after.
@@ -1142,6 +1150,20 @@ public class SheetViewWindow : Window
         Flash($"{slot} is your column now; the overlay calls that plan.");
     }
 
+    // Short hover delay for informational tooltips on the toolbar sweep path.
+    private static Vector2 _ttPos;
+    private static double _ttSince;
+
+    private static bool DelayedHover(ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
+    {
+        if (!ImGui.IsItemHovered(flags)) return false;
+        // The item rect is a fine identity for "did the hovered thing change".
+        var pos = ImGui.GetItemRectMin();
+        var now = ImGui.GetTime();
+        if (pos != _ttPos) { _ttPos = pos; _ttSince = now; }
+        return now - _ttSince >= 0.35;
+    }
+
     private void DrawToolbar()
     {
         DrawFightPicker();
@@ -1158,7 +1180,7 @@ public class SheetViewWindow : Window
         ImGui.SameLine(0, 10);
         ImGui.SetNextItemWidth(140f);
         ImGui.InputTextWithHint("##sheetfilter", "filter...", ref _filter, 64);
-        if (ImGui.IsItemHovered() && !ImGui.IsItemActive())
+        if (DelayedHover() && !ImGui.IsItemActive())
             ImGui.SetTooltip("Show only rows whose mechanic or any slot's mit contains this text.");
         if (_filter.Length > 0)
         {
@@ -1199,7 +1221,7 @@ public class SheetViewWindow : Window
         ImGui.BeginDisabled(_undoStack.Count == 0);
         if (ImGui.SmallButton("Undo")) Undo();
         ImGui.EndDisabled();
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+        if (DelayedHover(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(_undoStack.Count == 0
                 ? "Nothing to undo yet. Ctrl+Z also works."
                 : $"Undo: {_undoStack[^1].Label} (Ctrl+Z). Restores the plan to how it was before that edit.");
@@ -1216,7 +1238,7 @@ public class SheetViewWindow : Window
         {
             ImGui.SameLine();
             if (ImGui.SmallButton("Build")) ImGui.OpenPopup("##buildmenu");
-            if (ImGui.IsItemHovered())
+            if (DelayedHover())
                 ImGui.SetTooltip("Grow this sheet: add rows by hand, from your own pulls, or from an FFLogs kill.");
             if (ImGui.BeginPopup("##buildmenu"))
             {
@@ -1229,7 +1251,7 @@ public class SheetViewWindow : Window
 
         ImGui.SameLine();
         if (ImGui.SmallButton("Plan")) ImGui.OpenPopup("##planmenu");
-        if (ImGui.IsItemHovered())
+        if (DelayedHover())
             ImGui.SetTooltip("Export / import, bulk replace, plan history, and view options.");
         if (ImGui.BeginPopup("##planmenu"))
         {
@@ -1248,6 +1270,9 @@ public class SheetViewWindow : Window
             if (ImGui.MenuItem("Plan history...")) openHistory = true;
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Snapshots taken automatically before imports, replaces and\ncolumn pastes; restore any of them.");
+            if (ImGui.MenuItem("Open fight page")) _plugin.ConfigWindow.OpenFightPage(_fight!);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Per-line options, anchors and import tools live there.");
             ImGui.Separator();
             if (ImGui.MenuItem("Color mits by type", "", C.SheetColorByType))
             {
@@ -1262,7 +1287,7 @@ public class SheetViewWindow : Window
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
         if (ImGui.SmallButton("Share plan")) SharePlan();
         ImGui.PopStyleColor(2);
-        if (ImGui.IsItemHovered())
+        if (DelayedHover())
             ImGui.SetTooltip("Copy the whole plan as a clipboard code. Friends use Plan > Import plan code\n(or the fight page); it updates their fight in place (their slot's plan).");
 
         if (openReplace) { _replFind = _filter; ImGui.OpenPopup("##sheetreplace"); }
@@ -1961,13 +1986,19 @@ public class SheetViewWindow : Window
     private void DrawGrid()
     {
         _editorDrawn = false;
+        // Hover highlight rides one frame behind: cells set _hoverLive while
+        // drawing, and the NEXT frame tints that whole row.
+        _hoverLivePrev = _hoverLive;
+        _hoverLive = null;
         // Below the grid: the sheet-notes panel plus one footer line (flash
         // message, or the hovered row's note).
         var footerH = ImGui.GetTextLineHeightWithSpacing() + 10f + NotesReserve();
         // Resizable: drag a column edge, or double-click it to auto-fit the
-        // column to its content (the Google-sheets gesture).
+        // column to its content. Reorderable: drag a header to move the column.
+        // (Both are the Google-sheets gestures.)
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
-                  | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable;
+                  | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit
+                  | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
         if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
             return;
 
@@ -2075,6 +2106,8 @@ public class SheetViewWindow : Window
 
             ImGui.PushID(r);
             ImGui.TableNextRow();
+            if (row == _hoverLivePrev)
+                ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, 0x16FFFFFF);
 
             DrawTimeCell(row);
             DrawMechanicCell(row);
@@ -2163,7 +2196,7 @@ public class SheetViewWindow : Window
             }
             if (ImGui.IsItemHovered())
             {
-                _hoverRow = row;
+                _hoverRow = row; _hoverLive = row;
                 ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time \"{row.Mechanic}\" for EVERY slot at once.");
             }
         }
@@ -2187,7 +2220,7 @@ public class SheetViewWindow : Window
         ImGui.TextUnformatted(row.Mechanic);
         if (ImGui.IsItemHovered())
         {
-            _hoverRow = row;
+            _hoverRow = row; _hoverLive = row;
             ImGui.SetTooltip("Right-click to add or edit this mechanic's note.");
         }
         // Right-click the mechanic name = note editor. The footer strip shows the
@@ -2333,7 +2366,7 @@ public class SheetViewWindow : Window
         }
         if (ImGui.IsItemHovered())
         {
-            _hoverRow = row;
+            _hoverRow = row; _hoverLive = row;
             var tip = cell.Count == 0
                 ? $"Click to add a mit for {_slots[i]} here (that slot only)"
                 : cell.Count == 1

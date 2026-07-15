@@ -252,9 +252,20 @@ public class ConfigWindow : Window, IDisposable
 
     // Tooltip on the previous item — keeps help off the page (no inline "(?)") so
     // toggle grids stay clean.
+    // A short hover delay before informational tooltips, so sweeping the mouse
+    // across a page doesn't flash one on every control it crosses. (These
+    // bindings predate ImGui's ForTooltip flag, hence the manual timer.)
+    private static Vector2 _tipPos;
+    private static double _tipSince;
+
     private static void Tip(string text)
     {
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(text);
+        if (!ImGui.IsItemHovered()) return;
+        // The item rect is a fine identity for "did the hovered thing change".
+        var pos = ImGui.GetItemRectMin();
+        var now = ImGui.GetTime();
+        if (pos != _tipPos) { _tipPos = pos; _tipSince = now; }
+        if (now - _tipSince >= 0.35) ImGui.SetTooltip(text);
     }
 
     // A checkbox in the next cell of a 2-column toggle grid. Returns the value so
@@ -744,6 +755,17 @@ public class ConfigWindow : Window, IDisposable
 
     // ---- Fights page ------------------------------------------------------
 
+    // Jump from Sheet View straight to a fight's page (per-line options,
+    // anchors, import tools all live there).
+    public void OpenFightPage(FightProfile fight)
+    {
+        IsOpen = true;
+        BringToFront();
+        _nav = NavKind.Fights;
+        _navCategory = CategoryOf(fight);
+        _expandFightId = fight.Id;
+    }
+
     private void DrawFightCategoryPage(string category)
     {
         var fights = C.Fights.Where(f => CategoryOf(f) == category).ToList();
@@ -786,6 +808,17 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.AlignTextToFramePadding();
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                     ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
+            }
+            // Quick jump into Sheet View for any fight that has a sheet.
+            if (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0)
+            {
+                ImGui.SameLine(ImGui.GetContentRegionMax().X - 28f);
+                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                {
+                    if (ImGui.SmallButton(FontAwesomeIcon.Table.ToIconString() + "##opensheet"))
+                        _plugin.SheetViewWindow.Open(fight);
+                }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Open in Sheet View");
             }
 
             if (open)

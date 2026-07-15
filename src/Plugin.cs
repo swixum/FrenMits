@@ -318,7 +318,18 @@ public sealed class Plugin : IDalamudPlugin
         });
         Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand));
 
-        try { _dtr = Service.DtrBar.Get("Fren Mits"); }
+        try
+        {
+            _dtr = Service.DtrBar.Get("Fren Mits");
+            // The server-bar countdown doubles as a button: click = Sheet View.
+            _dtr.Tooltip = "Fren Mits: the next call. Click to open Sheet View.";
+            _dtr.OnClick = _ =>
+            {
+                var f = ActiveFight();
+                SheetViewWindow.Open(
+                    f != null && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) ? f : null);
+            };
+        }
         catch (Exception ex) { Service.Log.Warning(ex, "FrenMits: DTR entry failed"); }
 
         Service.PluginInterface.UiBuilder.Draw += DrawUi;
