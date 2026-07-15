@@ -8,6 +8,22 @@ synced to combat, and fully editable.
 
 > It's mits with frens.
 
+## Installation
+
+Fren Mits is still in beta testing, but it's available to use right now:
+
+1. In Dalamud, open **Settings** (`/xlsettings`) and go to **Experimental**.
+2. Under **Custom Plugin Repositories**, add:
+
+   ```
+   https://swixum.github.io/FrenMits/repo.json
+   ```
+
+3. Save, then find **Fren Mits** in the plugin installer (`/xlplugins`) and install it.
+
+Updates arrive automatically through the repo. Being a beta, things move fast;
+if something breaks, an update is usually already on the way.
+
 ## Features
 
 - Per-fight timelines that auto-load when you enter the zone. Only the fight you're in fires.
