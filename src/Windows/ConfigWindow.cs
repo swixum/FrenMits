@@ -69,7 +69,7 @@ public class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Timer, Display, Audio, Anchors, PartyRecap, Practice, CombatTimer, SheetView }
+    private enum NavKind { Home, Fights, Timer, Display, Audio, PartyRecap, Practice, CombatTimer }
     private NavKind _nav = NavKind.Home;
     private int _anchorFight = -1; // target fight for anchor building
     private string _recName = "";  // name for saving the current capture
@@ -343,12 +343,11 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f),
                 fight != null ? fight.Name : "no supported fight in this zone");
 
-            // Right-aligned quick actions.
-            var right = ImGui.GetWindowWidth() - 150;
+            // Right-aligned quick action (measured, not hardcoded, so font
+            // scaling can't push it off the edge).
+            var right = ImGui.GetWindowWidth()
+                - (ImGui.CalcTextSize("Test").X + ImGui.GetFrameHeight() + 24f);
             if (right > 0) { ImGui.SameLine(); ImGui.SetCursorPosX(right); }
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Stopwatch)) _plugin.Timer.SyncNow();
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Sync timer to now (/fm sync)");
-            ImGui.SameLine();
             var test = C.TestMode;
             if (GreenCheckbox("Test", ref test)) { C.TestMode = test; C.Save(); }
             if (ImGui.IsItemHovered())
@@ -404,9 +403,14 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("TOOLS");
         if (NavItem(FontAwesomeIcon.PlayCircle, "Practice", null, _nav == NavKind.Practice)) _nav = NavKind.Practice;
-        if (NavItem(FontAwesomeIcon.Table, "Sheet View", null, _nav == NavKind.SheetView)) _nav = NavKind.SheetView;
+        // Sheet View is a window, not a page: the nav item opens it directly.
+        if (NavItem(FontAwesomeIcon.Table, "Sheet View", null, false))
+        {
+            var fight = _plugin.ActiveFight();
+            _plugin.SheetViewWindow.Open(
+                fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
+        }
         if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
-        if (NavItem(FontAwesomeIcon.Anchor, "Anchors", null, _nav == NavKind.Anchors)) _nav = NavKind.Anchors;
         if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
         DrawSidebarJob();
@@ -606,11 +610,9 @@ public class ConfigWindow : Window, IDisposable
             case NavKind.Timer: DrawTimerTab(); break;
             case NavKind.Display: DrawDisplayTab(); break;
             case NavKind.Audio: DrawAudioTab(); break;
-            case NavKind.Anchors: DrawAnchorsPage(); break;
             case NavKind.PartyRecap: DrawPartyRecapPage(); break;
             case NavKind.Practice: DrawPracticePage(); break;
             case NavKind.CombatTimer: DrawCombatTimerPage(); break;
-            case NavKind.SheetView: DrawSheetViewPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }
@@ -797,9 +799,18 @@ public class ConfigWindow : Window, IDisposable
                 {
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
                     DrawFightOffsetRow(fight);
-                    DrawPotionsSection(fight);
-                    DrawJobExtrasSection(fight);
-                    DrawTankSection(fight);
+                    // Optional add-ons live behind one fold, so an expanded fight
+                    // reads as offset + line table by default.
+                    var job = _plugin.ActiveJobAbbreviation();
+                    var hasExtras = PotionTimings.BossSlug(fight.TerritoryId) != null
+                        || (!string.IsNullOrEmpty(job) && JobExtras.For(fight.TerritoryId, job) != null)
+                        || (TankMits.Has(fight.TerritoryId) && IsTankSlot(fight.Slot));
+                    if (hasExtras && Section("Extras: potions, job mits, tank busters", false))
+                    {
+                        DrawPotionsSection(fight);
+                        DrawJobExtrasSection(fight);
+                        DrawTankSection(fight);
+                    }
                     ImGui.Separator();
                     DrawLineTable(fight);
                     ImGui.Spacing();
@@ -1889,16 +1900,20 @@ public class ConfigWindow : Window, IDisposable
             if (fight is { SyncPoints.Count: > 0 })
             {
                 var phases = fight.SyncPoints.Count(s => s.IsPhase);
-                ImGui.TextDisabled($"This fight: {fight.SyncPoints.Count} anchors ({phases} phase). Build more in the Anchors tab.");
+                ImGui.TextDisabled($"This fight: {fight.SyncPoints.Count} anchors ({phases} phase). Build more below.");
             }
         }
+
+        // The old Anchors tab, tucked away: capture tables and desk-test replay
+        // are expert tools most people never open.
+        if (Section("Anchors & diagnostics (advanced)", false))
+            DrawAnchorsContent();
     }
 
-    // ---- Anchors tool -----------------------------------------------------
+    // ---- Anchors tool (lives under Timer > Anchors & diagnostics) ----------
 
-    private void DrawAnchorsPage()
+    private void DrawAnchorsContent()
     {
-        SeparatorText("Resync anchors");
         ImGui.TextWrapped("Record a clean pull, then promote boss casts to anchors so the timeline keeps re-syncing "
                           + "through every phase (great for phases public timelines don't cover, like DMU P4-P5). "
                           + "Anchors are saved per fight.");
@@ -2220,55 +2235,17 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Button("Open recap window")) _plugin.RecapWindow.IsOpen = true;
         Tip("Opens the movable recap window with the last pull's data.");
         ImGui.SameLine();
-        if (ImGui.Button("Sample recap"))
+        if (ImGui.Button("Preview"))
         {
-            _plugin.Recap.LoadSample();             // fill with a fake randomised pull
-            _plugin.RecapWindow.IsOpen = true;
+            _plugin.Recap.LoadSample();             // fake randomised pull to look at
+            _plugin.Recap.ShowTestPopup();          // popup appears so it can be dragged
+            _plugin.RecapWindow.IsOpen = true;      // window opens for placement too
         }
-        Tip("Fills the recap with a randomised fake pull so you can see exactly how it looks in-game (icons, colors, missing mits) without a real pull.");
-        ImGui.SameLine();
-        if (ImGui.Button("Test placement"))
-        {
-            _plugin.Recap.ShowTestPopup();          // make the popup appear so you can drag it
-            _plugin.RecapWindow.IsOpen = true;      // and open the window to place it too
-        }
-        Tip("Pops up the popup + window now (no wipe needed) so you can drag both into place.");
+        Tip("Fills the recap with a fake pull and pops up the window + popup, so you can see the look and drag everything into place without wiping.");
         ImGui.SameLine();
         ImGui.TextDisabled(_plugin.Recap.CapturedAt == default
             ? "no capture yet"
             : $"last captured {(int)(DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds}s ago");
-    }
-
-    private void DrawSheetViewPage()
-    {
-        SeparatorText("Sheet View");
-        ImGui.TextWrapped("The whole raid plan as one sheet, like the Google sheet everyone plans from: "
-                          + "rows are the fight's mechanics, columns are all the slots. Your slot is starred; "
-                          + "its column is the live plan your overlay calls.");
-        ImGui.Spacing();
-
-        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-        if (ImGui.Button("Open Sheet View", new Vector2(180, 0)))
-        {
-            var fight = _plugin.ActiveFight();
-            _plugin.SheetViewWindow.Open(fight != null && Builtin.Has(fight.TerritoryId) ? fight : null);
-        }
-        ImGui.PopStyleColor(2);
-        ImGui.SameLine();
-        ImGui.TextDisabled("or /fm sheet");
-
-        ImGui.Spacing();
-        if (Section("How it works", true))
-        {
-            ImGui.Bullet(); ImGui.TextWrapped("Click a TIME to re-time that mechanic for every slot at once - "
-                + "the \"shift all instances of this one thing\" edit.");
-            ImGui.Bullet(); ImGui.TextWrapped("Click a CELL to change one slot's mit only. Clear the text to remove it.");
-            ImGui.Bullet(); ImGui.TextWrapped("Anything you touch turns orange: it's yours now, and sheet updates "
-                + "won't revert it. The row's undo button puts a mechanic back on the sheet.");
-            ImGui.Bullet(); ImGui.TextWrapped("Edits to OTHER slots live in your saved copy until you press "
-                + "\"Share plan\" and friends import the code - then their own slot updates in place.");
-        }
     }
 
     private void DrawCombatTimerPage()
