@@ -27,6 +27,12 @@ public class Configuration : IPluginConfiguration
     // Pinned columns ride next to Mechanic inside the frozen area.
     public List<string> SheetPinnedSlots { get; set; } = new();
 
+    // FFLogs API client credentials (the user creates a client once at
+    // fflogs.com/api/clients); used by Sheet View's "Import log" to turn a
+    // report's casts into rows + anchors. Local only, never sent anywhere else.
+    public string FflogsClientId { get; set; } = "";
+    public string FflogsClientSecret { get; set; } = "";
+
     // Built-in fight territories already auto-added to the list, so a newly
     // shipped built-in shows up directly (no button) while a deleted one stays gone.
     public List<uint> SeededTerritories { get; set; } = new();

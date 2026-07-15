@@ -23,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     public Audio Audio { get; } = new();
     public CueEngine Cues { get; }
     public SyncEngine Sync { get; }
+    public FFLogsClient FFLogs { get; } = new();
     public ReplayEngine Replay { get; }
     public MitReview Review { get; }
     public MitRecap Recap { get; }

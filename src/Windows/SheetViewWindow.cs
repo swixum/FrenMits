@@ -1212,6 +1212,13 @@ public class SheetViewWindow : Window
                 ImGui.SetTooltip("Turn the last pull's boss casts into mechanic rows and resync anchors.\n"
                     + "Just pull the boss in this duty (a wipe is fine): every cast is captured automatically.");
             DrawBuildFromPullPopup();
+
+            ImGui.SameLine(0, 4);
+            if (ImGui.SmallButton("Import log")) ImGui.OpenPopup("##fflogs");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Build this sheet from an FFLogs report: paste a report link, pick the kill,\n"
+                    + "and its casts become mechanic rows + resync anchors. Prep before you've ever pulled.");
+            DrawFFLogsPopup();
         }
 
         // Type coloring is opt-in: a full grid of colored text is a lot.
@@ -1466,29 +1473,44 @@ public class SheetViewWindow : Window
         ImGui.EndPopup();
     }
 
+    private readonly record struct BuildEvent(uint Id, float Time, string Name, bool Anchorable);
+
     private void BuildFromPull(List<SyncEngine.Capture> casts, bool rows, bool anchors)
     {
-        if (_fight == null || AbortIfStale()) return;
+        // Live captures come from cast bars, so every one is anchorable.
+        var events = SiftEvents(casts.OrderBy(cp => cp.Time).Select(cp => (cp.Id, cp.Time, Anchorable: true)));
+        ApplyBuild(events, rows, anchors, "the last pull");
+    }
 
-        // Resolve names from the game data; drop unnamed casts, auto-attacks,
-        // and back-to-back repeats of the same ability (double casts).
-        var events = new List<(uint Id, float Time, string Name)>();
-        foreach (var cp in casts.OrderBy(cp => cp.Time))
+    // Resolve names from the game data; drop unnamed casts, auto-attacks, and
+    // back-to-back repeats of the same ability (double casts).
+    private static List<BuildEvent> SiftEvents(IEnumerable<(uint Id, float Time, bool Anchorable)> raw)
+    {
+        var events = new List<BuildEvent>();
+        foreach (var (id, time, anchorable) in raw)
         {
-            var name = ActionName(cp.Id);
+            var name = ActionName(id);
             if (name.Length == 0) continue;
             if (string.Equals(name, "attack", StringComparison.OrdinalIgnoreCase)) continue;
-            if (events.Count > 0 && events[^1].Id == cp.Id && cp.Time - events[^1].Time < 3f) continue;
-            events.Add((cp.Id, cp.Time, name));
+            if (events.Count > 0 && events[^1].Id == id && time - events[^1].Time < 3f) continue;
+            events.Add(new BuildEvent(id, time, name, anchorable));
         }
+        return events;
+    }
+
+    private void ApplyBuild(List<BuildEvent> events, bool rows, bool anchors, string source)
+    {
+        // Custom sheets only: replacing a BUILTIN fight's anchors would destroy
+        // the official ones (unreachable via UI today; cheap insurance).
+        if (_fight == null || !_isCustom || AbortIfStale()) return;
         if (events.Count == 0)
         {
-            Flash("The capture had no usable casts (only auto-attacks).");
+            Flash("No usable casts found (only auto-attacks).");
             return;
         }
 
-        PushUndo("build from pull");
-        _plugin.SnapshotPlan(_fight, "before build from pull");
+        PushUndo($"build from {source}");
+        _plugin.SnapshotPlan(_fight, $"before build from {source}");
 
         var addedRows = 0;
         if (rows)
@@ -1503,6 +1525,13 @@ public class SheetViewWindow : Window
             }
 
         var anchorCount = 0;
+        var noAnchorable = anchors && !events.Any(e => e.Anchorable);
+        if (anchors && noAnchorable)
+        {
+            // Nothing in this source had a cast bar: leave the fight's existing
+            // anchors alone rather than wiping them to (nearly) nothing.
+            anchors = false;
+        }
         if (anchors)
         {
             // A captured cast IS an anchor: ability id + the time it resolved.
@@ -1513,16 +1542,23 @@ public class SheetViewWindow : Window
             // a later pull's clock back to the opener.
             var points = new List<SyncPoint>();
             var prev = 0f;
+            var pendingPhase = false;
             var lastById = new Dictionary<uint, float>();
             foreach (var e in events)
             {
+                // The gap detector runs over EVERY event; the phase flag then
+                // lands on the next anchorable cast (a log's instant abilities
+                // can't anchor, but they mustn't hide the downtime gap either).
+                if (e.Time - prev > 90f) pendingPhase = true;
+                prev = e.Time;
+                if (!e.Anchorable) continue;
                 // Same ability again within ~two match windows: skip the anchor
                 // (multi-hit raidwides), or overlapping windows could snap the
                 // clock to the wrong instance. The row above still exists.
-                if (lastById.TryGetValue(e.Id, out var lt) && e.Time - lt < 18f) { prev = e.Time; continue; }
+                if (lastById.TryGetValue(e.Id, out var lt) && e.Time - lt < 18f) continue;
                 lastById[e.Id] = e.Time;
-                points.Add(new SyncPoint { Ability = e.Id, Time = e.Time, IsPhase = e.Time - prev > 90f, Label = e.Name });
-                prev = e.Time;
+                points.Add(new SyncPoint { Ability = e.Id, Time = e.Time, IsPhase = pendingPhase, Label = e.Name });
+                pendingPhase = false;
             }
             // Keep any previously learned anchors BEYOND this pull's end, so a
             // short wipe never truncates coverage a longer pull already earned.
@@ -1535,14 +1571,188 @@ public class SheetViewWindow : Window
         if (addedRows == 0 && anchorCount == 0)
         {
             PopUndo();
-            Flash("Nothing new in that pull (rows already covered, anchors unticked).");
+            Flash("Nothing new there (rows already covered, anchors unticked).");
             return;
         }
 
         C.Save();
         _dirty = true;
-        Flash($"Built from the last pull: {addedRows} new row(s), {anchorCount} anchor(s). "
-            + "Prog further and build again; anchors past this pull's end are kept.");
+        Flash(noAnchorable
+            ? $"Built from {source}: {addedRows} new row(s). No cast-bar casts found, so existing anchors were left untouched."
+            : $"Built from {source}: {addedRows} new row(s), {anchorCount} anchor(s). "
+              + "Build again any time; anchors past this build's end are kept.");
+    }
+
+    // ---- FFLogs import ---------------------------------------------------
+    // Paste a report URL, pick the fight, and its enemy casts become rows +
+    // anchors via the same builder "Build from pull" uses. Results from the
+    // background tasks land in these fields as whole-list assignments, which
+    // the draw thread reads; only the Import click mutates the plan.
+
+    private string _flUrl = "";
+    private string _flStatus = "";
+    private volatile bool _flBusy;
+    private List<FFLogsClient.FightInfo>? _flFights;
+    private int _flPick;
+    private List<FFLogsClient.LogCast>? _flCasts;
+    private int _flCastsForFight = -1;
+    private string _flIdBuf = "";
+    private string _flSecretBuf = "";
+    private FightProfile? _flForFight; // whose sheet the cached report state belongs to
+
+    private void DrawFFLogsPopup()
+    {
+        if (!ImGui.BeginPopup("##fflogs")) return;
+
+        // Cached report state is per fight: duty A's casts must never sit one
+        // click away from being imported into duty B's sheet.
+        if (ImGui.IsWindowAppearing() && _flForFight != _fight)
+        {
+            _flFights = null;
+            _flCasts = null;
+            _flCastsForFight = -1;
+            _flStatus = "";
+            _flForFight = _fight;
+        }
+
+        // One-time credentials: the user makes an API client on the FFLogs
+        // site and pastes the two strings here. Stored locally only.
+        if (C.FflogsClientId.Length == 0 || C.FflogsClientSecret.Length == 0)
+        {
+            ImGui.TextDisabled("One-time setup (about two minutes)");
+            ImGui.TextWrapped("FFLogs' API needs a personal client. Create one (any name, no redirect "
+                + "URL needed), then paste its id and secret here. They stay on this PC.");
+            if (ImGui.SmallButton("Open fflogs.com/api/clients"))
+                Dalamud.Utility.Util.OpenLink("https://www.fflogs.com/api/clients");
+            ImGui.SetNextItemWidth(300f);
+            ImGui.InputTextWithHint("##flid", "client id", ref _flIdBuf, 128);
+            ImGui.SetNextItemWidth(300f);
+            ImGui.InputTextWithHint("##flsecret", "client secret", ref _flSecretBuf, 128, ImGuiInputTextFlags.Password);
+            ImGui.BeginDisabled(_flIdBuf.Trim().Length == 0 || _flSecretBuf.Trim().Length == 0);
+            if (ImGui.Button("Save credentials", new Vector2(160, 0)))
+            {
+                C.FflogsClientId = _flIdBuf.Trim();
+                C.FflogsClientSecret = _flSecretBuf.Trim();
+                C.Save();
+            }
+            ImGui.EndDisabled();
+            ImGui.EndPopup();
+            return;
+        }
+
+        ImGui.SetNextItemWidth(320f);
+        ImGui.InputTextWithHint("##flurl", "FFLogs report link (or code)", ref _flUrl, 256);
+        ImGui.SameLine();
+        ImGui.BeginDisabled(_flBusy || FFLogsClient.ParseReportCode(_flUrl) == null);
+        if (ImGui.SmallButton("Fetch")) FetchFights();
+        ImGui.EndDisabled();
+        ImGui.SameLine();
+        // Typo'd credentials must be fixable without config-file surgery.
+        if (ImGui.SmallButton("Credentials..."))
+        {
+            _flIdBuf = C.FflogsClientId;
+            _flSecretBuf = "";
+            C.FflogsClientId = "";
+            C.FflogsClientSecret = "";
+            C.Save();
+        }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Re-enter your FFLogs API client id and secret.");
+
+        if (_flStatus.Length > 0) ImGui.TextDisabled(_flStatus);
+
+        if (_flFights is { Count: > 0 } fights)
+        {
+            var labels = fights.Select(f =>
+                $"#{f.Id}  {f.Name}  {(f.Kill ? "KILL" : "wipe")}  {(int)f.DurationSec / 60}:{(int)f.DurationSec % 60:00}").ToArray();
+            _flPick = Math.Clamp(_flPick, 0, fights.Count - 1);
+            ImGui.SetNextItemWidth(320f);
+            if (ImGui.Combo("##flfight", ref _flPick, labels, labels.Length))
+            {
+                _flCasts = null; // picked a different fight: refetch its casts
+                _flCastsForFight = -1;
+            }
+
+            var picked = fights[_flPick];
+            if (_flCasts == null || _flCastsForFight != picked.Id)
+            {
+                ImGui.BeginDisabled(_flBusy);
+                if (ImGui.Button("Load casts", new Vector2(120, 0))) FetchCasts(picked);
+                ImGui.EndDisabled();
+            }
+            else
+            {
+                ImGui.TextUnformatted($"{_flCasts.Count} enemy casts loaded.");
+                ImGui.Checkbox("Add mechanic rows", ref _bpRows);
+                ImGui.Checkbox("Set resync anchors", ref _bpAnchors);
+                ImGui.TextDisabled("Their kill's timings become this sheet's skeleton; anchors");
+                ImGui.TextDisabled("snap it to YOUR pulls live. Make sure the log is this duty.");
+                ImGui.BeginDisabled(!_bpRows && !_bpAnchors);
+                if (ImGui.Button("Import", new Vector2(120, 0)))
+                {
+                    var events = SiftEvents(_flCasts.OrderBy(c => c.Time)
+                        .Select(c => (c.AbilityId, c.Time, Anchorable: c.HasCastBar)));
+                    ApplyBuild(events, _bpRows, _bpAnchors, "the log");
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndDisabled();
+            }
+        }
+
+        ImGui.EndPopup();
+    }
+
+    private void FetchFights()
+    {
+        var code = FFLogsClient.ParseReportCode(_flUrl);
+        if (code == null) return;
+        _flBusy = true;
+        _flStatus = "Fetching report...";
+        _flFights = null;
+        _flCasts = null;
+        _flCastsForFight = -1;
+        _flPick = 0;              // reset on the draw thread: it also clamps this
+        _flForFight = _fight;
+        var (id, secret) = (C.FflogsClientId, C.FflogsClientSecret);
+        System.Threading.Tasks.Task.Run(async () =>
+        {
+            try
+            {
+                var fights = await _plugin.FFLogs.GetFightsAsync(id, secret, code);
+                _flFights = fights;
+                _flStatus = fights.Count == 0 ? "No boss fights in that report." : $"{fights.Count} fight(s); kills listed first.";
+            }
+            catch (Exception ex)
+            {
+                _flStatus = ex.Message;
+                Service.Log.Warning(ex, "FrenMits: FFLogs fights fetch failed");
+            }
+            finally { _flBusy = false; }
+        });
+    }
+
+    private void FetchCasts(FFLogsClient.FightInfo fight)
+    {
+        var code = FFLogsClient.ParseReportCode(_flUrl);
+        if (code == null) return;
+        _flBusy = true;
+        _flStatus = $"Loading {fight.Name}'s casts...";
+        var (id, secret) = (C.FflogsClientId, C.FflogsClientSecret);
+        System.Threading.Tasks.Task.Run(async () =>
+        {
+            try
+            {
+                var casts = await _plugin.FFLogs.GetCastsAsync(id, secret, code, fight);
+                _flCasts = casts;
+                _flCastsForFight = fight.Id;
+                _flStatus = "";
+            }
+            catch (Exception ex)
+            {
+                _flStatus = ex.Message;
+                Service.Log.Warning(ex, "FrenMits: FFLogs casts fetch failed");
+            }
+            finally { _flBusy = false; }
+        });
     }
 
     // ---- search & replace --------------------------------------------------

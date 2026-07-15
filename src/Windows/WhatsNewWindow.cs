@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.145";
+    public const string NotesVersion = "1.0.0.146";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -116,5 +116,11 @@ public class WhatsNewWindow : Window
             + "at its real time, and, more importantly, a resync anchor, so your calls snap "
             + "to the fight exactly like the official sheets do. Prog further, build again, "
             + "and the sheet grows with you."),
+        ("Import an FFLogs kill",
+            "Prep a fight before you've ever pulled it: on a custom sheet, \"Import log\" "
+            + "takes an FFLogs report link, lists its fights (kills first), and turns the "
+            + "chosen fight's casts into mechanic rows and resync anchors. One-time setup: "
+            + "create a free API client at fflogs.com/api/clients and paste its id + secret "
+            + "into the popup; they never leave your PC."),
     };
 }
