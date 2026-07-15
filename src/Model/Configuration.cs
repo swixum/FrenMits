@@ -23,6 +23,10 @@ public class Configuration : IPluginConfiguration
     // it's a lot of color on a full grid.
     public bool SheetColorByType { get; set; }
 
+    // Slot codes the user pinned in Sheet View (right-click a column header).
+    // Pinned columns ride next to Mechanic inside the frozen area.
+    public List<string> SheetPinnedSlots { get; set; } = new();
+
     // Built-in fight territories already auto-added to the list, so a newly
     // shipped built-in shows up directly (no button) while a deleted one stays gone.
     public List<uint> SeededTerritories { get; set; } = new();

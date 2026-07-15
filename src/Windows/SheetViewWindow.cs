@@ -67,8 +67,12 @@ public class SheetViewWindow : Window
     private List<(string Name, float Time)> _phases = new();
     // The sheet's per-phase "Notes" footer (only phases that have one).
     private List<(string Name, string Title, string Text)> _phaseNotes = new();
-    // Column display order: your slot first (pinned into the frozen area).
+    // Column display order: pinned columns first (into the frozen area).
     private int[] _order = Array.Empty<int>();
+    private int _pinnedCount;
+
+    private bool IsPinned(int i)
+        => C.SheetPinnedSlots.Contains(_slots[i], StringComparer.OrdinalIgnoreCase);
     // Lines whose mit repeats before its cooldown can be back (message per line).
     private readonly Dictionary<MitLine, string> _conflicts = new();
     // Text filter: show only rows whose mechanic or any mit matches.
@@ -190,10 +194,10 @@ public class SheetViewWindow : Window
         if (_fight == null || !Builtin.Has(_fight.TerritoryId)) return;
 
         _slots = Builtin.Slots(_fight.TerritoryId);
-        // Your slot's column first, pinned next to Mechanic in the frozen area.
-        var act = -1;
-        for (var i = 0; i < _slots.Length; i++) if (IsActiveSlot(i)) act = i;
-        _order = Enumerable.Range(0, _slots.Length).OrderBy(i => i == act ? -1 : i).ToArray();
+        // Pinned columns (right-click a header) ride first, inside the frozen
+        // area. Stable sort keeps the sheet's slot order within each group.
+        _order = Enumerable.Range(0, _slots.Length).OrderBy(i => IsPinned(i) ? 0 : 1).ToArray();
+        _pinnedCount = _order.Count(IsPinned);
         _phases = Builtin.PhaseStarts(_fight.TerritoryId);
         _phaseNotes = _phases
             .Select(p => (p.Name,
@@ -865,7 +869,7 @@ public class SheetViewWindow : Window
                 + "Dim rows are deleted; the undo button restores the sheet's version.\n"
                 + "A red cell means that mit is planned again before its cooldown can be back.\n"
                 + "Tick Colors to tint mits by type (party / tank / personal, overlay colors).\n"
-                + "Your slot's column is pinned next to Mechanic.\n"
+                + "Right-click a column header to pin that column next to Mechanic.\n"
                 + "Drag a column edge to resize it; double-click the edge to fit the text.");
 
         // Right side: refresh + export + import + share.
@@ -1133,8 +1137,9 @@ public class SheetViewWindow : Window
         if (!ImGui.BeginTable("##sheetgrid", 2 + _slots.Length, flags, new Vector2(0, -footerH)))
             return;
 
-        // Your column rides in the frozen area (pinned right after Mechanic).
-        ImGui.TableSetupScrollFreeze(_order.Length > 0 && IsActiveSlot(_order[0]) ? 3 : 2, 1);
+        // Pinned columns ride in the frozen area right after Mechanic (capped so
+        // the frozen block can't out-grow a narrow window).
+        ImGui.TableSetupScrollFreeze(2 + Math.Min(4, _pinnedCount), 1);
         ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 62);
         ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 240);
         foreach (var i in _order)
@@ -1152,10 +1157,42 @@ public class SheetViewWindow : Window
             ImGui.PushStyleColor(ImGuiCol.Text, RoleColor(_slots[i]));
             ImGui.TableHeader(IsActiveSlot(i) ? $"{_slots[i]} (you)" : _slots[i]);
             ImGui.PopStyleColor();
+            var headMin = ImGui.GetItemRectMin();
+            var headMax = ImGui.GetItemRectMax();
+            var pinned = IsPinned(i);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(IsActiveSlot(i)
+                ImGui.SetTooltip((IsActiveSlot(i)
                     ? $"{SlotTip(_slots[i])}, your slot. These are the lines your overlay calls."
-                    : SlotTip(_slots[i]));
+                    : SlotTip(_slots[i]))
+                    + (pinned ? "\nPinned. Right-click to unpin."
+                              : "\nRight-click to pin this column next to Mechanic."));
+            if (ImGui.BeginPopupContextItem($"##colpin{i}"))
+            {
+                if (ImGui.MenuItem(pinned ? "Unpin column" : "Pin column"))
+                {
+                    if (pinned)
+                        C.SheetPinnedSlots.RemoveAll(s => string.Equals(s, _slots[i], StringComparison.OrdinalIgnoreCase));
+                    else
+                        C.SheetPinnedSlots.Add(_slots[i]);
+                    C.Save();
+                    CommitPending();
+                    _dirty = true;
+                }
+                ImGui.EndPopup();
+            }
+            if (pinned)
+            {
+                // Thumbtack in the header's top-right corner, so pinned state is
+                // visible at a glance. Icon font: the text font has no pin glyph.
+                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                {
+                    var s = FontAwesomeIcon.Thumbtack.ToIconString();
+                    var sz = ImGui.CalcTextSize(s);
+                    ImGui.GetWindowDrawList().AddText(
+                        new Vector2(headMax.X - sz.X - 4f, headMin.Y + (headMax.Y - headMin.Y - sz.Y) * 0.5f),
+                        0xCCD0C8C0, s);
+                }
+            }
         }
 
         _firstDrawnIdx = -1;
@@ -1175,7 +1212,9 @@ public class SheetViewWindow : Window
                 ImGui.TableNextColumn();
                 ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, 0xFF221B17);
                 ImGui.TableNextColumn();
-                ImGui.TextDisabled(Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
+                // Accent blue, matching the phase titles in the notes panel,
+                // so the separators pop instead of reading as disabled text.
+                ImGui.TextColored(NoteBlue, Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
                 for (var i = 0; i < _slots.Length; i++) ImGui.TableNextColumn();
             }
 
@@ -1227,7 +1266,7 @@ public class SheetViewWindow : Window
         dl.PushClipRect(rectMin, rectMax);
         dl.AddRectFilled(p0, p0 + size + pad * 2f, 0xE619130F, 5f);
         dl.AddRect(p0, p0 + size + pad * 2f, 0x2EFFFFFF, 5f);
-        dl.AddText(p0 + pad, ImGui.GetColorU32(ImGuiCol.TextDisabled), _stickyTitle);
+        dl.AddText(p0 + pad, ImGui.GetColorU32(NoteBlue), _stickyTitle);
         dl.PopClipRect();
     }
 

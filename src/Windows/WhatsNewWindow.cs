@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.140";
+    public const string NotesVersion = "1.0.0.141";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -84,8 +84,8 @@ public class WhatsNewWindow : Window
             "A Colors box tints mits by type (party / tank / personal, your overlay colors; "
             + "off by default). A cell "
             + "turns red when that mit is planned again before its cooldown can be back. "
-            + "A filter box finds every row containing e.g. \"Reprisal\". Your slot's column "
-            + "is pinned next to Mechanic, a corner tag names the "
+            + "A filter box finds every row containing e.g. \"Reprisal\". Right-click a column "
+            + "header to pin it next to Mechanic (a pin icon marks it), a corner tag names the "
             + "phase you're scrolled into, and right-clicking a cell offers delete / reset / "
             + "a per-call offset. Disabled lines now show dim with (off)."),
         ("Export and Replace",
