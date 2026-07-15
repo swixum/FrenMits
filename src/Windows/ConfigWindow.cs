@@ -1324,6 +1324,9 @@ public class ConfigWindow : Window, IDisposable
                     { Slot = d.Slot, Time = d.Time, Mechanic = d.Mechanic, Action = d.Action }).ToList(),
                     SavedSlots = fight.SavedSlots.ToDictionary(
                         kv => kv.Key, kv => kv.Value.Select(CloneLine).ToList()),
+                    CustomSlots = fight.CustomSlots.ToList(),
+                    CustomRows = fight.CustomRows.Select(cr => new CustomRow
+                    { Time = cr.Time, Mechanic = cr.Mechanic }).ToList(),
                 });
             }
             ImGui.SameLine();

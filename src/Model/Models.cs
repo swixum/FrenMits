@@ -52,6 +52,14 @@ public class FightProfile
     // clock snaps to Time. Ideal for phases with no public ability timeline.
     public List<BossAnchor> BossAnchors { get; set; } = new();
 
+    // Custom sheets (non-builtin fights): the column layout of a user-made
+    // sheet. Non-empty = this fight shows in Sheet View like an official one.
+    public List<string> CustomSlots { get; set; } = new();
+
+    // Scaffold rows for custom sheets: mechanics that exist before anyone has
+    // written a mit into them (a row needs no lines to be plannable).
+    public List<CustomRow> CustomRows { get; set; } = new();
+
     // Derived; ignored by the serializer so share codes and plan snapshots
     // don't carry every line twice.
     [Newtonsoft.Json.JsonIgnore]
@@ -69,6 +77,15 @@ public class DeletedCall
     public float Time { get; set; }
     public string Mechanic { get; set; } = "";
     public string Action { get; set; } = "";
+}
+
+// A mechanic row on a custom sheet: just a name and a time. Lines reference it
+// loosely (mechanic label + nearby time), same as notes.
+[Serializable]
+public class CustomRow
+{
+    public float Time { get; set; }
+    public string Mechanic { get; set; } = "";
 }
 
 // A note attached to one mechanic row on the sheet, matched by mechanic label +

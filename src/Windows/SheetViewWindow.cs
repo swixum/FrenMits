@@ -73,6 +73,14 @@ public class SheetViewWindow : Window
 
     private bool IsPinnedColumn(int i)
         => C.SheetPinnedSlots.Contains(_slots[i], StringComparer.OrdinalIgnoreCase);
+
+    // A user-made sheet: a non-builtin fight with its own column layout.
+    private static bool IsCustomSheet(FightProfile f)
+        => !Builtin.Has(f.TerritoryId) && f.CustomSlots.Count > 0;
+
+    // Set from the current fight each Rebuild; custom sheets have no bake, so
+    // ghosts, tombstone resets and the official notes panel don't apply.
+    private bool _isCustom;
     // Lines whose mit repeats before its cooldown can be back (message per line).
     private readonly Dictionary<MitLine, string> _conflicts = new();
     // Text filter: show only rows whose mechanic or any mit matches.
@@ -95,6 +103,8 @@ public class SheetViewWindow : Window
         public Dictionary<string, List<MitLine>> SavedSlots = new();
         public List<DeletedCall> DeletedCalls = new();
         public List<SheetNote> Notes = new();
+        public List<CustomRow> CustomRows = new();
+        public List<string> CustomSlots = new();
         public string Slot = "";
         public float TimerOffset;
     }
@@ -117,6 +127,8 @@ public class SheetViewWindow : Window
             SavedSlots = Clone(_fight.SavedSlots),
             DeletedCalls = Clone(_fight.DeletedCalls),
             Notes = Clone(_fight.Notes),
+            CustomRows = Clone(_fight.CustomRows),
+            CustomSlots = Clone(_fight.CustomSlots),
             Slot = _fight.Slot,
             TimerOffset = _fight.TimerOffset,
         });
@@ -151,6 +163,8 @@ public class SheetViewWindow : Window
         s.Fight.SavedSlots = s.SavedSlots;
         s.Fight.DeletedCalls = s.DeletedCalls;
         s.Fight.Notes = s.Notes;
+        s.Fight.CustomRows = s.CustomRows;
+        s.Fight.CustomSlots = s.CustomSlots;
         s.Fight.Slot = s.Slot;
         s.Fight.TimerOffset = s.TimerOffset;
         // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
@@ -247,15 +261,17 @@ public class SheetViewWindow : Window
         BringToFront(); // safe outside a draw frame, unlike ImGui.SetWindowFocus
     }
 
+    private static bool Sheetable(FightProfile f) => Builtin.Has(f.TerritoryId) || IsCustomSheet(f);
+
     private FightProfile? PickDefaultFight()
     {
         var terr = Service.ClientState.TerritoryType;
         // Prefer fights that already have a slot picked: the grid needs one.
-        return C.Fights.FirstOrDefault(f => Builtin.Has(f.TerritoryId) && f.TerritoryId == terr && f.Enabled)
+        return C.Fights.FirstOrDefault(f => Sheetable(f) && f.TerritoryId == terr && f.Enabled)
             ?? C.Fights.FirstOrDefault(f => f.TerritoryId == Builtin.DmuTerritory && !string.IsNullOrEmpty(f.Slot))
-            ?? C.Fights.FirstOrDefault(f => Builtin.Has(f.TerritoryId) && !string.IsNullOrEmpty(f.Slot))
+            ?? C.Fights.FirstOrDefault(f => Sheetable(f) && !string.IsNullOrEmpty(f.Slot))
             ?? C.Fights.FirstOrDefault(f => f.TerritoryId == Builtin.DmuTerritory)
-            ?? C.Fights.FirstOrDefault(f => Builtin.Has(f.TerritoryId));
+            ?? C.Fights.FirstOrDefault(Sheetable);
     }
 
     // ---- data -------------------------------------------------------------
@@ -273,14 +289,15 @@ public class SheetViewWindow : Window
         _bakedRows = new List<BakedRow>();
         _editTimeRow = null;
         _editCellRow = null;
-        if (_fight == null || !Builtin.Has(_fight.TerritoryId)) return;
+        if (_fight == null || !Sheetable(_fight)) return;
 
-        _slots = Builtin.Slots(_fight.TerritoryId);
+        _isCustom = IsCustomSheet(_fight);
+        _slots = _isCustom ? _fight.CustomSlots.ToArray() : Builtin.Slots(_fight.TerritoryId);
         // Pinned columns (right-click a header) ride first, inside the frozen
         // area. Stable sort keeps the sheet's slot order within each group.
         _order = Enumerable.Range(0, _slots.Length).OrderBy(i => IsPinnedColumn(i) ? 0 : 1).ToArray();
         _pinnedCount = _order.Count(IsPinnedColumn);
-        _phases = Builtin.PhaseStarts(_fight.TerritoryId);
+        _phases = _isCustom ? new() : Builtin.PhaseStarts(_fight.TerritoryId);
         _phaseNotes = _phases
             .Select(p => (p.Name,
                           Title: Builtin.PhaseTitle(_fight.TerritoryId, p.Name),
@@ -301,6 +318,12 @@ public class SheetViewWindow : Window
             {
                 _slotLines[i] = saved;
                 _slotBacked[i] = true;
+            }
+            else if (_isCustom)
+            {
+                // Custom sheets have no bake: an untouched column starts empty.
+                _slotLines[i] = new List<MitLine>();
+                _slotBacked[i] = false;
             }
             else
             {
@@ -337,8 +360,10 @@ public class SheetViewWindow : Window
         }
 
         // The same grid straight from the bake (unfiltered): reset anchors,
-        // deleted-detection, and ghost rows all come from here.
-        for (var i = 0; i < _slots.Length; i++)
+        // deleted-detection, and ghost rows all come from here. Custom sheets
+        // have no bake at all (Builtin.BuildLines would leak DMU's defaults for
+        // any slot code that happens to match, so don't even ask).
+        for (var i = 0; !_isCustom && i < _slots.Length; i++)
         {
             foreach (var line in Builtin.BuildLines(_fight.TerritoryId, _slots[i]).OrderBy(l => l.Time))
             {
@@ -398,6 +423,13 @@ public class SheetViewWindow : Window
             });
         }
 
+        // Custom sheets: scaffold rows exist even before any lines are written
+        // into them, so "+ Row" gives you a plannable grid immediately.
+        if (_isCustom && _fight.CustomRows.Count > 0)
+            foreach (var cr in _fight.CustomRows)
+                if (!_rows.Any(r => MechEquals(r.Mechanic, cr.Mechanic) && MathF.Abs(r.Time - cr.Time) < 2f))
+                    _rows.Add(new Row { Time = cr.Time, Mechanic = cr.Mechanic, Cells = NewCellArray() });
+
         _rows = _rows.OrderBy(r => r.Time).ToList();
         foreach (var r in _rows)
         {
@@ -406,10 +438,13 @@ public class SheetViewWindow : Window
                 if (time <= r.Time + 0.5f) ph = name;
             r.Phase = ph.Length > 0 ? ph : (_phases.Count > 0 ? _phases[0].Name : "");
 
+            // On a custom sheet everything is yours: no "edited" state exists.
+            if (_isCustom) r.Edited = false;
+
             // A row made ENTIRELY of job-restricted custom lines is a job extra
             // (e.g. Nature's Minne riding 1s off its mechanic's row). Tagged so
             // it doesn't read as a mysterious duplicate.
-            if (r.Ghost) continue;
+            if (r.Ghost || _isCustom) continue;
             var any = false;
             var all = true;
             foreach (var cell in r.Cells)
@@ -628,6 +663,11 @@ public class SheetViewWindow : Window
         var delta = newTime - row.Time;
         // The row's note (matched at the old coordinates) rides along.
         if (NoteFor(row) is { } note) note.Time += delta;
+        // On a custom sheet the scaffold row entry moves too.
+        if (_isCustom)
+            foreach (var cr in _fight.CustomRows)
+                if (MechEquals(cr.Mechanic, row.Mechanic) && MathF.Abs(cr.Time - row.Time) < 2f)
+                    cr.Time += delta;
         var lines = 0;
         var slots = 0;
         for (var i = 0; i < _slots.Length; i++)
@@ -785,15 +825,33 @@ public class SheetViewWindow : Window
         if (_fight == null) _fight = PickDefaultFight();
         if (_fight == null)
         {
-            ImGui.TextDisabled("No built-in fight to show. Add one on the Home page first.");
+            ImGui.TextDisabled("No fight to show yet.");
+            ImGui.Spacing();
+            if (ImGui.Button("New sheet (this zone)")) OpenNewSheetPopup();
+            DrawNewSheetPopup();
             return;
         }
         if (string.IsNullOrEmpty(_fight.Slot))
         {
             DrawFightPicker(); // still allow switching to a fight that HAS a slot
             ImGui.Spacing();
-            ImGui.TextWrapped("Pick your slot for this fight first (fight page, \"Your slot\"), then come back; "
-                + "the sheet needs to know which column is yours.");
+            if (IsCustomSheet(_fight))
+            {
+                // Custom sheets pick their column right here: no fight-page trip.
+                ImGui.TextWrapped("Pick your column for this sheet; that column becomes the plan your overlay calls.");
+                ImGui.Spacing();
+                foreach (var s in _fight.CustomSlots)
+                {
+                    if (ImGui.Button(s)) PickCustomSlot(s);
+                    ImGui.SameLine(0, 6);
+                }
+                ImGui.NewLine();
+            }
+            else
+            {
+                ImGui.TextWrapped("Pick your slot for this fight first (fight page, \"Your slot\"), then come back; "
+                    + "the sheet needs to know which column is yours.");
+            }
             return;
         }
 
@@ -867,19 +925,20 @@ public class SheetViewWindow : Window
 
     private void DrawFightPicker()
     {
-        var builtins = C.Fights.Where(f => Builtin.Has(f.TerritoryId)).ToList();
-        if (builtins.Count <= 1) return;
+        var fights = C.Fights.Where(Sheetable).ToList();
+        if (fights.Count == 0) return;
 
         ImGui.SetNextItemWidth(230f);
         // Popup sized to the longest fight name plus the slot tag (so nothing
         // overlaps), and height-capped so a long list scrolls.
-        var nameW = 0f;
-        foreach (var f in builtins) nameW = MathF.Max(nameW, ImGui.CalcTextSize(f.Name).X);
+        var nameW = ImGui.CalcTextSize("+ New sheet (this zone)...").X;
+        foreach (var f in fights) nameW = MathF.Max(nameW, ImGui.CalcTextSize(f.Name).X);
         var popupW = nameW + 96f;
-        ImGui.SetNextWindowSizeConstraints(new Vector2(popupW, 0f), new Vector2(popupW, 320f));
+        ImGui.SetNextWindowSizeConstraints(new Vector2(popupW, 0f), new Vector2(popupW, 340f));
+        var openNew = false;
         if (ImGui.BeginCombo("##sheetfight", _fight!.Name))
         {
-            var groups = builtins
+            var groups = fights
                 .GroupBy(f =>
                 {
                     var c = string.IsNullOrEmpty(f.Category) ? Builtin.Category(f.TerritoryId) : f.Category;
@@ -912,9 +971,169 @@ public class SheetViewWindow : Window
                     ImGui.TextDisabled(tag);
                 }
             }
+
+            ImGui.Spacing();
+            ImGui.Separator();
+            ImGui.Spacing();
+            // OpenPopup can't run inside the combo (wrong ID scope); flag it.
+            if (ImGui.Selectable("+ New sheet (this zone)...")) openNew = true;
             ImGui.EndCombo();
         }
+        if (openNew) OpenNewSheetPopup();
+        DrawNewSheetPopup();
         ImGui.SameLine();
+    }
+
+    // ---- new custom sheet ---------------------------------------------------
+
+    private string _newName = "";
+    private int _newTemplate;
+    private string _newSlotsBuf = "";
+    private int _newMySlot;
+
+    private static readonly string[] SlotTemplates =
+        { "Full party (MT OT H1 H2 D1-D4)", "Light party (T H D1 D2)", "Custom columns" };
+
+    private string[] TemplateSlots() => _newTemplate switch
+    {
+        0 => new[] { "MT", "OT", "H1", "H2", "D1", "D2", "D3", "D4" },
+        1 => new[] { "T", "H", "D1", "D2" },
+        _ => _newSlotsBuf.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                         .Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
+    };
+
+    private void OpenNewSheetPopup()
+    {
+        _newName = "";
+        _newTemplate = 0;
+        _newSlotsBuf = "";
+        _newMySlot = 0;
+        ImGui.OpenPopup("##newsheet");
+    }
+
+    private void DrawNewSheetPopup()
+    {
+        if (!ImGui.BeginPopup("##newsheet")) return;
+
+        ImGui.TextDisabled("New custom sheet");
+        ImGui.SetNextItemWidth(250f);
+        ImGui.InputTextWithHint("##nsname", "sheet name (usually the fight)", ref _newName, 64);
+        ImGui.SetNextItemWidth(250f);
+        ImGui.Combo("##nstpl", ref _newTemplate, SlotTemplates, SlotTemplates.Length);
+        if (_newTemplate == 2)
+        {
+            ImGui.SetNextItemWidth(250f);
+            ImGui.InputTextWithHint("##nscols", "columns, comma-separated (e.g. MT,OT,H1,H2)", ref _newSlotsBuf, 128);
+        }
+        var slots = TemplateSlots();
+        if (slots.Length > 0)
+        {
+            _newMySlot = Math.Clamp(_newMySlot, 0, slots.Length - 1);
+            ImGui.SetNextItemWidth(250f);
+            ImGui.Combo("your column##nsmine", ref _newMySlot, slots, slots.Length);
+        }
+
+        var terr = (uint)Service.ClientState.TerritoryType;
+        var zoneBlocked = false;
+        if (terr == 0)
+        {
+            // A zone-less sheet can never fire (and re-imports of its code would
+            // stack duplicates, since imports match by territory).
+            ImGui.TextColored(ImGuiColors.DalamudYellow,
+                "You're not in a duty. Stand in the duty and create the sheet there.");
+            zoneBlocked = true;
+        }
+        else if (Builtin.Has(terr))
+        {
+            ImGui.TextColored(ImGuiColors.DalamudYellow,
+                "This zone already has an official sheet; edit that one instead.");
+            zoneBlocked = true;
+        }
+        else if (C.Fights.FirstOrDefault(f => f.TerritoryId == terr) is { } already)
+        {
+            ImGui.TextDisabled($"\"{already.Name}\" already covers this zone: Create adds these");
+            ImGui.TextDisabled("columns to it (its current lines become your column).");
+        }
+        else
+        {
+            ImGui.TextDisabled("Binds to the zone you're standing in; the calls fire there.");
+        }
+
+        var ok = !zoneBlocked && _newName.Trim().Length > 0 && slots.Length is > 0 and <= 12;
+        ImGui.BeginDisabled(!ok);
+        if (ImGui.Button("Create", new Vector2(110, 0)))
+        {
+            CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndDisabled();
+        ImGui.EndPopup();
+    }
+
+    private void CreateCustomSheet(string name, string[] slots, string mySlot, uint terr)
+    {
+        // A fight for this zone already exists: UPGRADE it into a sheet instead
+        // of adding a duplicate profile (ActiveFight and imports take the first
+        // territory match, so a duplicate would never fire).
+        var existing = C.Fights.FirstOrDefault(f => f.TerritoryId == terr && !Builtin.Has(f.TerritoryId));
+        if (existing != null)
+        {
+            existing.CustomSlots = slots.ToList();
+            if (string.IsNullOrEmpty(existing.Slot)
+                || !slots.Contains(existing.Slot, StringComparer.OrdinalIgnoreCase))
+                existing.Slot = mySlot;
+            existing.SavedSlots[existing.Slot] = existing.Lines;
+            C.Save();
+            _fight = existing;
+            _phaseFilter = "";
+            _filter = "";
+            _dirty = true;
+            Flash($"\"{existing.Name}\" is a sheet now; its existing lines are the {existing.Slot} column.");
+            return;
+        }
+
+        var f = new FightProfile
+        {
+            Name = name,
+            TerritoryId = terr,
+            Category = "Other",
+            CustomSlots = slots.ToList(),
+            Slot = mySlot,
+        };
+        f.SavedSlots[mySlot] = f.Lines;
+        C.Fights.Add(f);
+        C.Save();
+        _fight = f;
+        _phaseFilter = "";
+        _filter = "";
+        _dirty = true;
+        Flash($"\"{name}\" created. + Row adds mechanics; click cells to write mits; Share plan sends it to friends.");
+    }
+
+    private void PickCustomSlot(string slot)
+    {
+        if (_fight == null) return;
+        _fight.Slot = slot;
+        // Any lines the fight already had become this column's plan.
+        if (_fight.SavedSlots.TryGetValue(slot, out var saved)) _fight.Lines = saved;
+        _fight.SavedSlots[slot] = _fight.Lines;
+        C.Save();
+        _dirty = true;
+    }
+
+    // Move "(you)" to another column of a custom sheet (header right-click).
+    private void SwitchCustomSlot(int i)
+    {
+        if (_fight == null) return;
+        CommitPending();
+        var slot = _slots[i];
+        if (!string.IsNullOrEmpty(_fight.Slot)) _fight.SavedSlots[_fight.Slot] = _fight.Lines;
+        _fight.Slot = slot;
+        _fight.Lines = _fight.SavedSlots.TryGetValue(slot, out var saved) ? saved : new List<MitLine>();
+        _fight.SavedSlots[slot] = _fight.Lines;
+        C.Save();
+        _dirty = true;
+        Flash($"{slot} is your column now; the overlay calls that plan.");
     }
 
     private void DrawToolbar()
@@ -951,6 +1170,36 @@ public class SheetViewWindow : Window
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Rename a mit across the whole sheet in one go.");
         DrawReplacePopup();
+
+        // Custom sheets: add a mechanic row (name + time).
+        if (_isCustom)
+        {
+            ImGui.SameLine(0, 8);
+            if (ImGui.SmallButton("+ Row"))
+            {
+                _rowMech = "";
+                _rowTime = "";
+                ImGui.OpenPopup("##addrow");
+            }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Add a mechanic row (name + time).");
+            if (ImGui.BeginPopup("##addrow"))
+            {
+                ImGui.SetNextItemWidth(200f);
+                ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
+                ImGui.SetNextItemWidth(200f);
+                ImGui.InputTextWithHint("##artime", "time (m:ss or seconds)", ref _rowTime, 16);
+                var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
+                ImGui.BeginDisabled(!okRow);
+                if (ImGui.Button("Add row", new Vector2(110, 0)))
+                {
+                    SheetImport.TryParseTime(_rowTime, out var t);
+                    AddCustomRow(_rowMech.Trim(), t);
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndDisabled();
+                ImGui.EndPopup();
+            }
+        }
 
         // Type coloring is opt-in: a full grid of colored text is a lot.
         ImGui.SameLine(0, 8);
@@ -1044,7 +1293,7 @@ public class SheetViewWindow : Window
             // under a misleading label; the pre-import disk snapshot (History)
             // is the way back instead.
             _undoStack.RemoveAll(s => s.Fight == fight);
-            if (Builtin.Has(fight.TerritoryId))
+            if (Sheetable(fight))
             {
                 _fight = fight;
                 _phaseFilter = "";
@@ -1112,6 +1361,45 @@ public class SheetViewWindow : Window
             }
         }
         ImGui.EndPopup();
+    }
+
+    // ---- custom rows ---------------------------------------------------------
+
+    private string _rowMech = "";
+    private string _rowTime = "";
+
+    private void AddCustomRow(string mech, float time)
+    {
+        if (_fight == null || AbortIfStale()) return;
+        if (_rows.Any(r => !r.Ghost && MechEquals(r.Mechanic, mech) && MathF.Abs(r.Time - time) < 2f))
+        {
+            Flash($"\"{mech}\" already has a row near {TimeText(time)}.");
+            return;
+        }
+        PushUndo($"add \"{mech}\" row");
+        _fight.CustomRows.Add(new CustomRow { Time = time, Mechanic = mech });
+        C.Save();
+        _dirty = true;
+        Flash($"\"{mech}\" added at {TimeText(time)}. Click its cells to write mits.");
+    }
+
+    // Delete a custom-sheet row: its scaffold entry and every column's lines.
+    private void DeleteCustomRow(Row row)
+    {
+        if (_fight == null || row.Ghost || AbortIfStale()) return;
+        PushUndo($"delete \"{row.Mechanic}\" row");
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            if (row.Cells[i].Count == 0) continue;
+            EnsureBacked(i);
+            foreach (var l in row.Cells[i].ToList()) _slotLines[i].Remove(l);
+            Resort(i);
+        }
+        _fight.CustomRows.RemoveAll(cr =>
+            MechEquals(cr.Mechanic, row.Mechanic) && MathF.Abs(cr.Time - row.Time) < 2f);
+        C.Save();
+        _dirty = true;
+        Flash($"\"{row.Mechanic}\" removed. Ctrl+Z brings it back.");
     }
 
     // ---- search & replace --------------------------------------------------
@@ -1286,8 +1574,8 @@ public class SheetViewWindow : Window
         return false;
     }
 
-    private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2" };
-    private static readonly string[] HealSlots = { "WHM", "AST", "SCH", "SGE", "H1", "H2" };
+    private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2", "T" };
+    private static readonly string[] HealSlots = { "WHM", "AST", "SCH", "SGE", "H1", "H2", "H" };
 
     private static Vector4 RoleColor(string slot)
         => TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? ImGuiColors.TankBlue
@@ -1359,6 +1647,8 @@ public class SheetViewWindow : Window
                               : "\nRight-click to pin this column next to Mechanic."));
             if (ImGui.BeginPopupContextItem($"##colpin{i}"))
             {
+                if (_isCustom && !IsActiveSlot(i) && ImGui.MenuItem("Make this my column"))
+                    SwitchCustomSlot(i);
                 if (ImGui.MenuItem(pinned ? "Unpin column" : "Pin column"))
                 {
                     if (pinned)
@@ -1565,6 +1855,16 @@ public class SheetViewWindow : Window
             ImGui.SameLine(0, 5);
             IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
         }
+        if (_isCustom)
+        {
+            // Custom-sheet rows are all yours; the only row action is delete.
+            ImGui.SameLine(0, 6);
+            if (IconSmallButton(FontAwesomeIcon.Times, "##delrow")) DeleteCustomRow(row);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Delete this row (every column). Ctrl+Z brings it back.");
+            return;
+        }
+
         if (row.JobExtra && !row.Edited)
         {
             // A quiet tag, not a warning: this row is a job-specific schedule
@@ -1640,8 +1940,10 @@ public class SheetViewWindow : Window
         var cell = row.Cells[i];
         var first = cell.Count == 0 ? "" : cell[0].Action;
         // Job extras render as normal text (no orange, no *): they're not edits.
+        // On a custom sheet EVERY line is technically Custom, so the orange
+        // "your edit" treatment would cover the whole grid; skip it there.
         var jobOnly = cell.Count > 0 && cell.All(l => l.Custom && l.Jobs.Count > 0);
-        var custom = !jobOnly && cell.Any(l => l.Custom);
+        var custom = !_isCustom && !jobOnly && cell.Any(l => l.Custom);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
 
         // Cooldown conflicts tint the cell red (details go in the tooltip).
@@ -1752,11 +2054,14 @@ public class SheetViewWindow : Window
             copy.Custom = true;
             target.Add(copy);
         }
-        _fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, _slots[dst], StringComparison.OrdinalIgnoreCase));
-        foreach (var b in Builtin.BuildLines(_fight.TerritoryId, _slots[dst]))
-            if (!target.Any(l => Builtin.SameCall(l, b)))
-                _fight.DeletedCalls.Add(new DeletedCall
-                { Slot = _slots[dst], Time = b.Time, Mechanic = b.Mechanic, Action = b.Action });
+        if (!_isCustom)
+        {
+            _fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, _slots[dst], StringComparison.OrdinalIgnoreCase));
+            foreach (var b in Builtin.BuildLines(_fight.TerritoryId, _slots[dst]))
+                if (!target.Any(l => Builtin.SameCall(l, b)))
+                    _fight.DeletedCalls.Add(new DeletedCall
+                    { Slot = _slots[dst], Time = b.Time, Mechanic = b.Mechanic, Action = b.Action });
+        }
         Resort(dst);
         C.Save();
         _dirty = true;

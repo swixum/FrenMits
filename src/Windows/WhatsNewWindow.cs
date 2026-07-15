@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.143";
+    public const string NotesVersion = "1.0.0.144";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -104,5 +104,12 @@ public class WhatsNewWindow : Window
             + "\"edited\" duplicates near their mechanic. They now carry a quiet \"job extra\" "
             + "tag, render as normal text, and get a one-click remove. Nothing about how they "
             + "fire changed."),
+        ("Build your own sheets",
+            "The fight list now has \"+ New sheet (this zone)\": name it, pick a column "
+            + "template (full party, light party, or your own columns), and you get a blank "
+            + "grid bound to the duty you're standing in. + Row adds mechanics, every cell "
+            + "works like the official sheets (notes, undo, history, export), and Share plan "
+            + "hands the whole thing to your static. Calls run on the combat timer for now; "
+            + "learned anchors from your own pulls are coming next."),
     };
 }

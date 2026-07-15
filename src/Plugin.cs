@@ -501,6 +501,13 @@ public sealed class Plugin : IDalamudPlugin
             {
                 target.SyncPoints = b.Fight.SyncPoints ?? new();
                 target.BossAnchors = b.Fight.BossAnchors ?? new();
+                // Columns only when the snapshot has them: a pre-sheet-era
+                // snapshot must never wipe the fight's sheet layout.
+                if (b.Fight.CustomSlots is { Count: > 0 })
+                {
+                    target.CustomSlots = b.Fight.CustomSlots;
+                    target.CustomRows = b.Fight.CustomRows ?? new();
+                }
             }
             // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
             if (!string.IsNullOrEmpty(target.Slot) && target.SavedSlots.ContainsKey(target.Slot))
@@ -583,11 +590,19 @@ public sealed class Plugin : IDalamudPlugin
                 }
                 if (!Builtin.Has(existing.TerritoryId))
                 {
-                    // Custom fights carry their hand-built anchors; built-ins keep
-                    // the canonical baked ones (ApplySlot refreshes those anyway).
+                    // Custom fights carry their hand-built anchors + sheet layout;
+                    // built-ins keep the canonical baked ones (ApplySlot refreshes
+                    // those anyway). Sheet columns only transfer when the sender
+                    // actually HAS them: a pre-sheet-era code must never wipe the
+                    // receiver's columns.
                     existing.Name = fight.Name;
                     existing.SyncPoints = fight.SyncPoints;
                     existing.BossAnchors = fight.BossAnchors;
+                    if (fight.CustomSlots is { Count: > 0 })
+                    {
+                        existing.CustomSlots = fight.CustomSlots;
+                        existing.CustomRows = fight.CustomRows ?? new();
+                    }
                 }
                 Config.Save();
                 return (existing, false, string.IsNullOrEmpty(fight.Slot)
