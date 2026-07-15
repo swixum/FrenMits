@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
@@ -7,11 +8,13 @@ namespace FrenMits.Windows;
 
 // A one-time "What's New" panel shown after the plugin updates. Dismissing it
 // records the version so it won't show again until the next release with notes.
+// One short line per version; only versions newer than the last one dismissed
+// are listed, so it reads like a changelog, not an essay.
 public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.146";
+    public const string NotesVersion = "1.0.0.147";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -24,26 +27,31 @@ public class WhatsNewWindow : Window
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(380, 0),
-            MaximumSize = new Vector2(480, 900),
+            MaximumSize = new Vector2(520, 900),
         };
     }
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Sheet View grows up: notes, colors, cooldown checks");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "What's new");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
 
-        foreach (var (head, body) in Notes)
+        var shown = 0;
+        foreach (var (version, text) in Notes)
         {
-            ImGui.TextColored(new Vector4(0.96f, 0.62f, 0.36f, 1f), head);
+            if (!IsNewerThan(version, C.LastWhatsNew)) continue;
+            if (++shown > 10) break; // fresh installs see the latest ten, not the whole history
+            ImGui.TextDisabled(version);
+            ImGui.SameLine(88f);
             ImGui.PushTextWrapPos(0f);
-            ImGui.TextUnformatted(body);
+            ImGui.TextUnformatted(text);
             ImGui.PopTextWrapPos();
-            ImGui.Spacing();
         }
+        if (shown == 0) ImGui.TextDisabled("You're all caught up.");
 
+        ImGui.Spacing();
         ImGui.Separator();
         if (ImGui.Button("Got it", new Vector2(120, 0)))
             Dismiss();
@@ -58,69 +66,30 @@ public class WhatsNewWindow : Window
         IsOpen = false;
     }
 
-    private static readonly (string Head, string Body)[] Notes =
+    // True when `version` is newer than `seen` ("" or unparseable = show).
+    private static bool IsNewerThan(string version, string seen)
     {
-        ("The sheet's phase notes, in game",
-            "Sheet View now has a \"Sheet notes\" panel at the bottom with the notes section "
-            + "from every phase tab of the official sheet (usage tips, footnotes, healer "
-            + "callouts). Filter to a phase and the panel follows; collapse it any time."),
-        ("Empty-box symbols fixed",
-            "The little empty-box character that showed up around the UI is gone. It appeared "
-            + "wherever a symbol wasn't in the game's font; every star, pen, undo arrow, "
-            + "status dot and check mark is now drawn with real icons instead."),
-        ("One-click role match",
-            "The sidebar's Your Role section now has a \"Use current\" button that sets the "
-            + "role from the job you're playing, just like the job picker's."),
-        ("Sheet View declutter",
-            "The fight dropdown is grouped by category with your slot shown per fight, and "
-            + "the permanent hint text at the bottom is gone; the how-to now lives in the "
-            + "toolbar's (?) hover."),
-        ("Sheet View usability",
-            "Columns are resizable: drag an edge, or double-click it to fit the text, like "
-            + "a spreadsheet. The fight list scrolls instead of running off screen and no "
-            + "longer overlaps long names. And an Import button now sits next to Share plan, "
-            + "so pasting a friend's code happens right where you'd look for it."),
-        ("Sheet View, now a real planner",
-            "A Colors box tints mits by type (party / tank / personal, your overlay colors; "
-            + "off by default). A cell "
-            + "turns red when that mit is planned again before its cooldown can be back. "
-            + "A filter box finds every row containing e.g. \"Reprisal\". Right-click a column "
-            + "header to pin it next to Mechanic (a pin icon marks it), a corner tag names the "
-            + "phase you're scrolled into, and right-clicking a cell offers delete / reset / "
-            + "a per-call offset. Disabled lines now show dim with (off)."),
-        ("Export and Replace",
-            "Export copies the whole grid as spreadsheet-ready text (paste into Google Sheets "
-            + "or Discord, phase notes included). Replace renames a mit across the entire "
-            + "sheet in one go, like \"all my Vengeance becomes Damnation\"; replacing with "
-            + "nothing deletes those calls."),
-        ("Undo, copy/paste, and plan history",
-            "Ctrl+Z (or the Undo button) takes back your last sheet edit; every edit, delete, "
-            + "re-time, replace and paste is undoable. Right-click a cell to copy and paste a "
-            + "mit, or a column header to copy one slot's whole plan onto another. And the "
-            + "History button keeps snapshots of your plan, taken automatically before "
-            + "imports, replaces, column pastes and sheet refreshes, restorable any time."),
-        ("Job extras, labeled",
-            "Job-specific schedules (Nature's Minne, Mantra, ...) used to show as confusing "
-            + "\"edited\" duplicates near their mechanic. They now carry a quiet \"job extra\" "
-            + "tag, render as normal text, and get a one-click remove. Nothing about how they "
-            + "fire changed."),
-        ("Build your own sheets",
-            "The fight list now has \"+ New sheet (this zone)\": name it, pick a column "
-            + "template (full party, light party, or your own columns), and you get a blank "
-            + "grid bound to the duty you're standing in. + Row adds mechanics, every cell "
-            + "works like the official sheets (notes, undo, history, export), and Share plan "
-            + "hands the whole thing to your static."),
-        ("Build from pull: your wipe writes the timeline",
-            "In a custom sheet's duty, every boss cast is captured automatically while you "
-            + "fight. Afterward, press \"Build from pull\": each cast becomes a mechanic row "
-            + "at its real time, and, more importantly, a resync anchor, so your calls snap "
-            + "to the fight exactly like the official sheets do. Prog further, build again, "
-            + "and the sheet grows with you."),
-        ("Import an FFLogs kill",
-            "Prep a fight before you've ever pulled it: on a custom sheet, \"Import log\" "
-            + "takes an FFLogs report link, lists its fights (kills first), and turns the "
-            + "chosen fight's casts into mechanic rows and resync anchors. One-time setup: "
-            + "create a free API client at fflogs.com/api/clients and paste its id + secret "
-            + "into the popup; they never leave your PC."),
+        if (!Version.TryParse(seen, out var s)) return true;
+        return Version.TryParse(version, out var v) && v > s;
+    }
+
+    // Newest first; a few words per release.
+    private static readonly (string Version, string Text)[] Notes =
+    {
+        ("1.0.0.147", "Shorter update notes (this list)."),
+        ("1.0.0.146", "Import an FFLogs kill into a custom sheet: rows + anchors from any report link."),
+        ("1.0.0.145", "Build from pull: your own wipes become rows + resync anchors automatically."),
+        ("1.0.0.144", "Build your own mit sheets for any duty (+ New sheet in the fight list)."),
+        ("1.0.0.143", "Job extras (Nature's Minne, ...) labeled instead of looking like duplicates."),
+        ("1.0.0.142", "Undo (Ctrl+Z), cell/column copy-paste, and restorable plan snapshots."),
+        ("1.0.0.141", "Pin columns by right-click (pin icon); phase rows in accent blue."),
+        ("1.0.0.140", "Cleaner phase tabs."),
+        ("1.0.0.139", "Mit type colors are now a Colors checkbox, off by default."),
+        ("1.0.0.138", "Export the sheet as spreadsheet-ready text; Replace renames a mit everywhere."),
+        ("1.0.0.137", "Cooldown warnings (red cells), filter box, per-call offsets on right-click."),
+        ("1.0.0.136", "Sheet Import button, resizable columns (double-click an edge), scrolling fight list."),
+        ("1.0.0.135", "Sheet footer decluttered; fight dropdown grouped by category."),
+        ("1.0.0.134", "One-click \"Use current\" for Your Role."),
+        ("1.0.0.133", "The sheet's per-phase notes in game; empty-box symbols fixed everywhere."),
     };
 }
