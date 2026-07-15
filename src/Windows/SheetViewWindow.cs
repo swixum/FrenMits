@@ -2081,7 +2081,7 @@ public class SheetViewWindow : Window
             var headMin = ImGui.GetItemRectMin();
             var headMax = ImGui.GetItemRectMax();
             var pinned = IsPinnedColumn(i);
-            if (ImGui.IsItemHovered())
+            if (DelayedHover())
                 ImGui.SetTooltip((IsActiveSlot(i)
                     ? $"{SlotTip(_slots[i])}, your slot. These are the lines your overlay calls."
                     : SlotTip(_slots[i]))
@@ -2253,7 +2253,8 @@ public class SheetViewWindow : Window
             if (ImGui.IsItemHovered())
             {
                 _hoverRow = row; _hoverLive = row;
-                ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time \"{row.Mechanic}\" for EVERY slot at once.");
+                if (DelayedHover())
+                    ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time \"{row.Mechanic}\" for EVERY slot at once.");
             }
         }
     }
@@ -2277,7 +2278,8 @@ public class SheetViewWindow : Window
         if (ImGui.IsItemHovered())
         {
             _hoverRow = row; _hoverLive = row;
-            ImGui.SetTooltip("Right-click to add or edit this mechanic's note.");
+            if (DelayedHover())
+                ImGui.SetTooltip("Right-click to add or edit this mechanic's note.");
         }
         // Right-click the mechanic name = note editor. The footer strip shows the
         // note for whatever row the mouse is on, zero clicks to read.
@@ -2435,7 +2437,8 @@ public class SheetViewWindow : Window
             if (jobOnly) tip = $"Job extra: only fires for {string.Join("/", cell[0].Jobs)}.\n" + tip;
             if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
             if (warn != null) tip = warn + "\n\n" + tip;
-            ImGui.SetTooltip(tip);
+            // Warnings show immediately; informational tips wait the beat.
+            if (warn != null || DelayedHover()) ImGui.SetTooltip(tip);
         }
 
         // Right-click: quick actions + the per-call offset, sheet-side.

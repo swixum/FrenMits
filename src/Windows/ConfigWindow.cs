@@ -822,8 +822,6 @@ public class ConfigWindow : Window, IDisposable
             var headerStartX = ImGui.GetCursorPosX();
             var headerLabel = $"{fight.Name}   ({fight.Lines.Count})";
             var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
-            if (official && ImGui.IsItemHovered())
-                ImGui.SetTooltip("Official sheet: ships with the plugin and gets timeline updates automatically.");
             if (official)
             {
                 // A framed tree node indents its label one extra FramePadding.X
@@ -833,6 +831,10 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.AlignTextToFramePadding();
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                     ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
+                // The tooltip lives on the star, not the whole header: sweeping
+                // the fight list stays silent, hovering the symbol explains it.
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Official sheet; updates automatically.");
             }
             // Quick jump into Sheet View for any fight that has a sheet.
             if (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0)
@@ -1081,6 +1083,8 @@ public class ConfigWindow : Window, IDisposable
             ImGui.AlignTextToFramePadding();
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Official sheet; updates automatically.");
             ImGui.SameLine(0, 5);
             ImGui.TextUnformatted(fight.Name);
             ImGui.SameLine(0, 8);
