@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.144";
+    public const string NotesVersion = "1.0.0.145";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -109,7 +109,12 @@ public class WhatsNewWindow : Window
             + "template (full party, light party, or your own columns), and you get a blank "
             + "grid bound to the duty you're standing in. + Row adds mechanics, every cell "
             + "works like the official sheets (notes, undo, history, export), and Share plan "
-            + "hands the whole thing to your static. Calls run on the combat timer for now; "
-            + "learned anchors from your own pulls are coming next."),
+            + "hands the whole thing to your static."),
+        ("Build from pull: your wipe writes the timeline",
+            "In a custom sheet's duty, every boss cast is captured automatically while you "
+            + "fight. Afterward, press \"Build from pull\": each cast becomes a mechanic row "
+            + "at its real time, and, more importantly, a resync anchor, so your calls snap "
+            + "to the fight exactly like the official sheets do. Prog further, build again, "
+            + "and the sheet grows with you."),
     };
 }

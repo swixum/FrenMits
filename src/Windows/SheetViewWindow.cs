@@ -105,6 +105,8 @@ public class SheetViewWindow : Window
         public List<SheetNote> Notes = new();
         public List<CustomRow> CustomRows = new();
         public List<string> CustomSlots = new();
+        public List<SyncPoint> SyncPoints = new();
+        public List<BossAnchor> BossAnchors = new();
         public string Slot = "";
         public float TimerOffset;
     }
@@ -129,6 +131,8 @@ public class SheetViewWindow : Window
             Notes = Clone(_fight.Notes),
             CustomRows = Clone(_fight.CustomRows),
             CustomSlots = Clone(_fight.CustomSlots),
+            SyncPoints = Clone(_fight.SyncPoints),
+            BossAnchors = Clone(_fight.BossAnchors),
             Slot = _fight.Slot,
             TimerOffset = _fight.TimerOffset,
         });
@@ -165,6 +169,8 @@ public class SheetViewWindow : Window
         s.Fight.Notes = s.Notes;
         s.Fight.CustomRows = s.CustomRows;
         s.Fight.CustomSlots = s.CustomSlots;
+        s.Fight.SyncPoints = s.SyncPoints;
+        s.Fight.BossAnchors = s.BossAnchors;
         s.Fight.Slot = s.Slot;
         s.Fight.TimerOffset = s.TimerOffset;
         // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
@@ -1199,6 +1205,13 @@ public class SheetViewWindow : Window
                 ImGui.EndDisabled();
                 ImGui.EndPopup();
             }
+
+            ImGui.SameLine(0, 4);
+            if (ImGui.SmallButton("Build from pull")) ImGui.OpenPopup("##buildpull");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Turn the last pull's boss casts into mechanic rows and resync anchors.\n"
+                    + "Just pull the boss in this duty (a wipe is fine): every cast is captured automatically.");
+            DrawBuildFromPullPopup();
         }
 
         // Type coloring is opt-in: a full grid of colored text is a lot.
@@ -1400,6 +1413,136 @@ public class SheetViewWindow : Window
         C.Save();
         _dirty = true;
         Flash($"\"{row.Mechanic}\" removed. Ctrl+Z brings it back.");
+    }
+
+    // ---- build from pull -----------------------------------------------------
+    // In a custom-sheet duty, SyncEngine records every NPC cast of the pull
+    // automatically; this turns that capture into mechanic rows + cast anchors.
+
+    private bool _bpRows = true;
+    private bool _bpAnchors = true;
+
+    private static string ActionName(uint id)
+    {
+        try
+        {
+            var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+            var row = sheet?.GetRowOrDefault(id);
+            return row?.Name.ExtractText() ?? "";
+        }
+        catch { return ""; }
+    }
+
+    private void DrawBuildFromPullPopup()
+    {
+        if (!ImGui.BeginPopup("##buildpull")) return;
+
+        // Only offer a capture that came from THIS duty: building duty A's
+        // casts into duty B's sheet would replace B's anchors with nonsense.
+        var casts = _fight != null && _plugin.Sync.LastPullTerritory == _fight.TerritoryId
+            ? _plugin.Sync.LastPull.Where(cp => !cp.IsBoss).ToList()
+            : new List<SyncEngine.Capture>();
+        if (casts.Count == 0)
+        {
+            ImGui.TextDisabled("Nothing captured from this duty yet. Do a pull (even a");
+            ImGui.TextDisabled("short wipe); the boss's casts are recorded automatically.");
+            ImGui.EndPopup();
+            return;
+        }
+
+        ImGui.TextUnformatted($"{casts.Count} casts captured from the last pull.");
+        ImGui.Checkbox("Add mechanic rows", ref _bpRows);
+        ImGui.Checkbox("Set resync anchors", ref _bpAnchors);
+        if (_bpAnchors)
+            ImGui.TextDisabled("Replaces this fight's existing cast anchors.");
+
+        ImGui.BeginDisabled(!_bpRows && !_bpAnchors);
+        if (ImGui.Button("Build", new Vector2(110, 0)))
+        {
+            BuildFromPull(casts, _bpRows, _bpAnchors);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndDisabled();
+        ImGui.EndPopup();
+    }
+
+    private void BuildFromPull(List<SyncEngine.Capture> casts, bool rows, bool anchors)
+    {
+        if (_fight == null || AbortIfStale()) return;
+
+        // Resolve names from the game data; drop unnamed casts, auto-attacks,
+        // and back-to-back repeats of the same ability (double casts).
+        var events = new List<(uint Id, float Time, string Name)>();
+        foreach (var cp in casts.OrderBy(cp => cp.Time))
+        {
+            var name = ActionName(cp.Id);
+            if (name.Length == 0) continue;
+            if (string.Equals(name, "attack", StringComparison.OrdinalIgnoreCase)) continue;
+            if (events.Count > 0 && events[^1].Id == cp.Id && cp.Time - events[^1].Time < 3f) continue;
+            events.Add((cp.Id, cp.Time, name));
+        }
+        if (events.Count == 0)
+        {
+            Flash("The capture had no usable casts (only auto-attacks).");
+            return;
+        }
+
+        PushUndo("build from pull");
+        _plugin.SnapshotPlan(_fight, "before build from pull");
+
+        var addedRows = 0;
+        if (rows)
+            foreach (var e in events)
+            {
+                if (_rows.Any(r => !r.Ghost && MechEquals(r.Mechanic, e.Name) && MathF.Abs(r.Time - e.Time) < 2f))
+                    continue;
+                if (_fight.CustomRows.Any(cr => MechEquals(cr.Mechanic, e.Name) && MathF.Abs(cr.Time - e.Time) < 2f))
+                    continue;
+                _fight.CustomRows.Add(new CustomRow { Time = MathF.Round(e.Time), Mechanic = e.Name });
+                addedRows++;
+            }
+
+        var anchorCount = 0;
+        if (anchors)
+        {
+            // A captured cast IS an anchor: ability id + the time it resolved.
+            // A cast after a long quiet stretch (downtime, phase transition)
+            // re-bases the whole clock; the rest trim drift with tight windows.
+            // NOT the first cast though: at pull start the timer is already
+            // exact, and a phase anchor's wide backward window there could yank
+            // a later pull's clock back to the opener.
+            var points = new List<SyncPoint>();
+            var prev = 0f;
+            var lastById = new Dictionary<uint, float>();
+            foreach (var e in events)
+            {
+                // Same ability again within ~two match windows: skip the anchor
+                // (multi-hit raidwides), or overlapping windows could snap the
+                // clock to the wrong instance. The row above still exists.
+                if (lastById.TryGetValue(e.Id, out var lt) && e.Time - lt < 18f) { prev = e.Time; continue; }
+                lastById[e.Id] = e.Time;
+                points.Add(new SyncPoint { Ability = e.Id, Time = e.Time, IsPhase = e.Time - prev > 90f, Label = e.Name });
+                prev = e.Time;
+            }
+            // Keep any previously learned anchors BEYOND this pull's end, so a
+            // short wipe never truncates coverage a longer pull already earned.
+            var end = events[^1].Time;
+            points.AddRange(_fight.SyncPoints.Where(sp => sp.Time > end + 10f));
+            _fight.SyncPoints = points;
+            anchorCount = points.Count;
+        }
+
+        if (addedRows == 0 && anchorCount == 0)
+        {
+            PopUndo();
+            Flash("Nothing new in that pull (rows already covered, anchors unticked).");
+            return;
+        }
+
+        C.Save();
+        _dirty = true;
+        Flash($"Built from the last pull: {addedRows} new row(s), {anchorCount} anchor(s). "
+            + "Prog further and build again; anchors past this pull's end are kept.");
     }
 
     // ---- search & replace --------------------------------------------------

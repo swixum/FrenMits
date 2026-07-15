@@ -15,6 +15,7 @@ public class SyncEngine
     private readonly Dictionary<uint, uint> _lastCast = new(); // actor -> last seen cast action id
     private readonly HashSet<uint> _seenBoss = new();          // boss NameIds seen this pull
     private bool _wasRunning;
+    private bool _lastPullArmed; // LastPull cleared once per pull, on its first frame
 
     public string LastSync { get; private set; } = "";
 
@@ -39,6 +40,25 @@ public class SyncEngine
     public readonly List<PullRecording.RecEvent> CutsceneMarks = new(); // cutscene enter/exit while recording
     public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss);
 
+    // Automatic capture for CUSTOM sheets: every enemy cast of the current/last
+    // pull, no toggle needed, so Sheet View's "Build from pull" can turn a wipe
+    // into rows + anchors. Cleared lazily on the next pull's FIRST capture, so
+    // an instant wipe (or a stray /fm sync) can't destroy the previous capture.
+    public readonly List<Capture> LastPull = new();
+    public uint LastPullTerritory { get; private set; }
+
+    private void AutoCapture(uint id, float time, string caster, bool isBoss)
+    {
+        if (!_lastPullArmed)
+        {
+            LastPull.Clear();
+            LastPullTerritory = Service.ClientState.TerritoryType;
+            _lastPullArmed = true;
+        }
+        LastPull.Add(new Capture(id, time, caster, isBoss));
+        if (LastPull.Count > 500) LastPull.RemoveAt(0);
+    }
+
     public SyncEngine(Plugin plugin) => _plugin = plugin;
 
     public void Update()
@@ -48,16 +68,21 @@ public class SyncEngine
         // Fresh pull (combat just started): re-arm boss-presence + cast detection so
         // anchors fire again. NOT keyed off Generation, which also bumps on /fm sync.
         var running = _plugin.Timer.Running;
-        if (running && !_wasRunning) Forget();
+        if (running && !_wasRunning) { Forget(); _lastPullArmed = false; }
         _wasRunning = running;
 
-        if ((!c.EnableSync && !Recording) || !running) return;
+        if (!running) return;
         // A replay feeds SnapToCast/SnapToBoss itself from the recording; the
         // live object-table scan must stay out of it, or a real NPC in the zone
         // (replaying while standing inside the instance) re-anchors the replay
         // clock mid-run.
         if (Plugin.Replaying) return;
         if (_plugin.ActiveFight() is not { } fight) return;
+
+        // Custom sheets get a hands-free capture of every pull; official fights
+        // only record when the Anchors page's capture toggle is on.
+        var autoCapture = fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId);
+        if (!c.EnableSync && !Recording && !autoCapture) return;
 
         // Work in the same clock the overlay reads (includes any door-boss phase
         // offset), so anchors line up in both phases.
@@ -81,6 +106,10 @@ public class SyncEngine
                         Captured.Add(new Capture(npc.NameId, elapsed, npc.Name.ToString(), true));
                         if (Captured.Count > 160) Captured.RemoveAt(0);
                     }
+                    // Subkind 5 = enemy (stable game data); pets (2), chocobos (3)
+                    // and trust NPCs (9) must not pollute the capture.
+                    if (autoCapture && (byte)npc.BattleNpcKind == 5)
+                        AutoCapture(npc.NameId, elapsed, npc.Name.ToString(), true);
                     if (c.EnableSync)
                         SnapToBoss(fight, npc.NameId, npc.Name.ToString());
                 }
@@ -102,6 +131,12 @@ public class SyncEngine
                     Captured.Add(new Capture(castId, resolveTime, bc.Name.ToString(), false));
                     if (Captured.Count > 160) Captured.RemoveAt(0);
                 }
+                // Auto capture takes ENEMY casts only (subkind 5): player,
+                // trust-NPC and pet casts are noise for a mechanic timeline
+                // (and would poison anchors).
+                if (autoCapture && bc.MaxHp > 0
+                    && bc is IBattleNpc enemyNpc && (byte)enemyNpc.BattleNpcKind == 5)
+                    AutoCapture(castId, resolveTime, bc.Name.ToString(), false);
 
                 if (c.EnableSync && fight.SyncPoints.Count > 0)
                     OnCastStarted(fight, bc, castId);
