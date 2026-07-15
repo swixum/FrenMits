@@ -19,6 +19,10 @@ public class Configuration : IPluginConfiguration
     // Whether the Sheet View's per-phase "Sheet notes" panel is expanded.
     public bool SheetNotesOpen { get; set; } = true;
 
+    // Color Sheet View mits by type (party / tank / personal). Off by default;
+    // it's a lot of color on a full grid.
+    public bool SheetColorByType { get; set; }
+
     // Built-in fight territories already auto-added to the list, so a newly
     // shipped built-in shows up directly (no button) while a deleted one stays gone.
     public List<uint> SeededTerritories { get; set; } = new();

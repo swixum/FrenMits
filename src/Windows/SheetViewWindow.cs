@@ -839,6 +839,13 @@ public class SheetViewWindow : Window
             ImGui.SetTooltip("Rename a mit across the whole sheet in one go.");
         DrawReplacePopup();
 
+        // Type coloring is opt-in: a full grid of colored text is a lot.
+        ImGui.SameLine(0, 8);
+        var colors = C.SheetColorByType;
+        if (ImGui.Checkbox("Colors##sheetcolors", ref colors)) { C.SheetColorByType = colors; C.Save(); }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Color mits by type (party / tank / personal), using your overlay's mit colors.\nRed cooldown warnings show either way.");
+
         ImGui.SameLine(0, 8);
         var filtered = _phaseFilter.Length > 0 || _filter.Length > 0;
         var shown = _rows.Count(r => !r.Ghost
@@ -857,8 +864,8 @@ public class SheetViewWindow : Window
                 + "Right-click a cell for delete / reset / a per-call offset; right-click a mechanic for notes.\n"
                 + "Orange * = your edit, kept through sheet updates.\n"
                 + "Dim rows are deleted; the undo button restores the sheet's version.\n"
-                + "Mits are colored by type with the overlay's colors; a red cell means that mit\n"
-                + "is planned again before its cooldown can be back.\n"
+                + "A red cell means that mit is planned again before its cooldown can be back.\n"
+                + "Tick Colors to tint mits by type (party / tank / personal, overlay colors).\n"
                 + "Your slot's column is pinned next to Mechanic.\n"
                 + "Drag a column edge to resize it; double-click the edge to fit the text.");
 
@@ -1365,9 +1372,9 @@ public class SheetViewWindow : Window
         var body = cell.Count > 1 ? string.Join("\n", cell.Select(l => l.Action)) : first;
         var label = (custom ? "* " : "") + (body.Length == 0 ? " " : body) + (off ? "  (off)" : "");
 
-        // Text color: your edits stay orange, disabled lines dim, everything
-        // else is colored by mit type with the overlay's configured colors.
-        var kindCol = !custom && !off && first.Length > 0
+        // Text color: your edits stay orange, disabled lines dim, and with the
+        // Colors box ticked the rest is colored by mit type (overlay colors).
+        var kindCol = C.SheetColorByType && !custom && !off && first.Length > 0
             ? MitTypes.Color(MitTypes.Classify(first), C) : 0u;
         var pushed = true;
         if (custom) ImGui.PushStyleColor(ImGuiCol.Text, EditedColor);

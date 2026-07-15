@@ -11,7 +11,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.138";
+    public const string NotesVersion = "1.0.0.139";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -81,7 +81,8 @@ public class WhatsNewWindow : Window
             + "longer overlaps long names. And an Import button now sits next to Share plan, "
             + "so pasting a friend's code happens right where you'd look for it."),
         ("Sheet View, now a real planner",
-            "Mits are colored by type (party / tank / personal, your overlay colors). A cell "
+            "A Colors box tints mits by type (party / tank / personal, your overlay colors; "
+            + "off by default). A cell "
             + "turns red when that mit is planned again before its cooldown can be back. "
             + "A filter box finds every row containing e.g. \"Reprisal\". Your slot's column "
             + "is pinned next to Mechanic, phase tabs show row counts, a corner tag names the "
