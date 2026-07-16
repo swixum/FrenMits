@@ -55,7 +55,7 @@ public class RecapButtonWindow : Window
 
     public override bool DrawConditions()
     {
-        if (!C.ShowRecapButton || Plugin.InCutscene) return false;
+        if (!C.ShowRecapButton || Plugin.CutsceneActive) return false;
         if (Service.Condition[ConditionFlag.InCombat]) return false; // only after the pull ends
         if (_plugin.Recap.PopupDismissed || _plugin.Recap.CapturedAt == default) return false;
         return (DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds < 30; // brief window after a wipe

@@ -37,7 +37,7 @@ public class CombatTimer
         // combat afterwards isn't seen as a new pull; the clock keeps running and
         // resync re-aligns it. (Door bosses transition out of combat WITHOUT a
         // cutscene, so they still reset correctly.)
-        if (Plugin.InCutscene) return;
+        if (Plugin.CutsceneActive) return;
 
         // During a replay the clock is driven by the ReplayEngine, not live combat,
         // so don't let the (out-of-combat) desk state null it.

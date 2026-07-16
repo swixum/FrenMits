@@ -62,7 +62,7 @@ public class CombatTimerWindow : Window
     {
         if (!C.ShowCombatTimer) return false;
         if (C.TestMode) return true;
-        if (Plugin.InCutscene) return false;
+        if (Plugin.CutsceneActive) return false;
         return _plugin.Timer.CombatRunning;
     }
 

@@ -44,7 +44,7 @@ public class CueEngine
             if (fresh) _fired.Clear();
         }
 
-        if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.InCutscene) return;
+        if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.CutsceneActive) return;
 
         // Waiting for the post-cutscene phase re-base to land — stay silent so we
         // don't announce against a drifted clock. Release only when a PHASE anchor

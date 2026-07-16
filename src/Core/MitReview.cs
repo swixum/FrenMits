@@ -27,7 +27,7 @@ public class MitReview
             // running through it, so pausing here (no scan, no state flip) keeps
             // one pull = one log. Treating it as a boundary used to wipe the log
             // at every DMU transition.
-            if (Plugin.InCutscene) return;
+            if (Plugin.CutsceneActive) return;
 
             var running = _plugin.Timer.Running;
             if (running && !_wasRunning) { Current.Clear(); _prevActive.Clear(); }   // pull start

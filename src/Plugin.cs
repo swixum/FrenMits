@@ -748,6 +748,30 @@ public sealed class Plugin : IDalamudPlugin
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
 
+    // The cutscene state everything gameplay-facing should use. The raw game
+    // flags occasionally STICK after a cutscene ends (a known game quirk);
+    // frozen-forever meant a dead timer and hidden overlays until a restart.
+    // A cutscene reading true for 3+ minutes straight is treated as stuck.
+    public static bool CutsceneActive => InCutscene && !CutsceneStuck;
+    public static bool CutsceneStuck { get; private set; }
+    private DateTime? _csSince;
+
+    private void UpdateCutsceneStuck()
+    {
+        if (!InCutscene)
+        {
+            _csSince = null;
+            CutsceneStuck = false;
+            return;
+        }
+        _csSince ??= DateTime.UtcNow;
+        if (!CutsceneStuck && (DateTime.UtcNow - _csSince.Value).TotalSeconds > 180)
+        {
+            CutsceneStuck = true;
+            Service.Log.Warning("[FrenMits] Cutscene flag has been on for 3+ minutes; treating it as stuck so the timer and overlays keep working.");
+        }
+    }
+
     // The running assembly version, e.g. "1.0.0.121". Used for the What's New gate.
     public static string PluginVersion =>
         typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
@@ -766,8 +790,10 @@ public sealed class Plugin : IDalamudPlugin
     public static bool ReplayCutsceneActive;
     public static bool Replaying => ReplayFight != null;
 
-    private bool _frameErrorLogged;
     private bool _firstTickDone;
+    private DateTime _lastFrameErrLog = DateTime.MinValue;
+    public int FrameErrorCount { get; private set; }
+    public DateTime LastFrameErrorAt { get; private set; } = DateTime.MinValue;
     private bool _wasInCombatForTest; // edge detector for the Test-mode auto-off
 
     // Game-state-dependent startup that can't run in the constructor (loader thread).
@@ -804,6 +830,8 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
 
+            UpdateCutsceneStuck();
+
             // A REAL pull always outranks Test mode. Left on, Test would keep
             // the overlays unlocked (click-catching) and visible through
             // cutscenes mid-fight, and a leftover practice preview could even
@@ -836,7 +864,15 @@ public sealed class Plugin : IDalamudPlugin
         }
         catch (Exception ex)
         {
-            if (!_frameErrorLogged) { Service.Log.Error(ex, "FrenMits: framework update error"); _frameErrorLogged = true; }
+            // Rate-limited, not once-ever: a RECURRING throw here silently kills
+            // every engine after the throw point, and we need the log to show it.
+            FrameErrorCount++;
+            LastFrameErrorAt = DateTime.UtcNow;
+            if ((DateTime.UtcNow - _lastFrameErrLog).TotalSeconds >= 60)
+            {
+                _lastFrameErrLog = DateTime.UtcNow;
+                Service.Log.Error(ex, $"FrenMits: framework update error (x{FrameErrorCount} this session)");
+            }
         }
     }
 
@@ -851,7 +887,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void HandleCutsceneBoundary()
     {
-        var inCs = InCutscene;
+        var inCs = CutsceneActive;
         if (inCs && !_wasInCutscene)
         {
             // Log the cutscene window into the active recording so a replay can

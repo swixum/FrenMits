@@ -385,6 +385,11 @@ public class ConfigWindow : Window, IDisposable
             // plugin shows a quiet header.
             if (!C.AudioEnabled) { ImGui.SameLine(0, 18); WarnDot("Audio off"); }
             if (!C.EnableSync) { ImGui.SameLine(0, 18); WarnDot("Resync off"); }
+            if (_plugin.FrameErrorCount > 0 && (DateTime.Now - _plugin.LastFrameErrorAt.ToLocalTime()).TotalMinutes < 5)
+            {
+                ImGui.SameLine(0, 18);
+                WarnDot($"internal errors ({_plugin.FrameErrorCount}): check /xllog");
+            }
         }
         ImGui.EndChild();
         ImGui.PopStyleColor();
