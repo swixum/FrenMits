@@ -37,6 +37,10 @@ public class MitRecap
     public List<string> LastParty { get; private set; } = new();
     public List<Active> Snapshot { get; private set; } = new();
     public DateTime CapturedAt { get; private set; }
+
+    // Where the capture happened, so the recap is only graded against the plan
+    // of the SAME duty (0 = sample data, never graded).
+    public uint Territory { get; private set; }
     public bool PopupDismissed { get; private set; }
     public string BossName { get; private set; } = "";
     public float CaptureElapsed { get; private set; }   // fight time (s) at the capture / wipe
@@ -103,6 +107,7 @@ public class MitRecap
     {
         LastLog = new List<Applied>(Log);
         LastParty = new List<string>(Party);
+        Territory = Service.ClientState.TerritoryType;
         CapturedAt = DateTime.UtcNow;
         PopupDismissed = false;
     }
@@ -156,6 +161,7 @@ public class MitRecap
             Snapshot = snap;
             var f = _plugin.ActiveFight();
             CaptureElapsed = f != null ? _plugin.ElapsedFor(f) : _plugin.Timer.Elapsed;
+            Territory = Service.ClientState.TerritoryType;
             CapturedAt = DateTime.UtcNow;
             PopupDismissed = false;
         }
@@ -269,6 +275,7 @@ public class MitRecap
 
             BossName = Pick(SampleBosses);
             CaptureElapsed = LastLog.Count > 0 ? LastLog[^1].Time + 6 : 0;
+            Territory = 0; // sample data: never graded against a plan
             CapturedAt = DateTime.UtcNow;
             PopupDismissed = false;
         }

@@ -14,7 +14,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.157";
+    public const string NotesVersion = "1.0.0.158";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.158", "The recap now compares reality to the plan: each mechanic lists planned mits that never landed, and partial coverage."),
         ("1.0.0.157", "Press windows: stretch one mit over several hits (right-click a cell) and the sheet computes when to press it, squeeze warnings included."),
         ("1.0.0.156", "Smarter checks: shared cooldowns (Bloodwhetting family) count as one timer, and amber cells flag mits above the duty's level sync."),
         ("1.0.0.155", "Quieter hovers: the official-sheet tooltip lives on the star, and sweep paths wait a beat."),

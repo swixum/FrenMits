@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
@@ -124,6 +125,7 @@ public class RecapWindow : Window
             ImGui.TableHeadersRow();
 
             var ih = ImGui.GetTextLineHeight();
+            var reported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var idx = 0;
             while (idx < events.Count)
             {
@@ -195,8 +197,96 @@ public class RecapWindow : Window
                         ImGui.TextColored(Vec(0xFF81766E), e.Covered[0]);
                     }
                 }
+
+                // The plan-vs-reality delta: what the sheet expected around this
+                // moment that never appeared (or only partially landed). Only
+                // graded when the capture came from THIS duty.
+                if (fight != null && fight.TerritoryId == r.Territory)
+                {
+                    var delta = PlanDelta(fight, group, events, party, reported);
+                    if (delta.Length > 0)
+                    {
+                        ImGui.PushTextWrapPos(0f);
+                        ImGui.TextColored(Vec(Theme.Warn), delta);
+                        ImGui.PopTextWrapPos();
+                    }
+                }
             }
             ImGui.EndTable();
+        }
+    }
+
+    // What the plan expected near this moment that the recap never saw. Only
+    // mits the recap can recognize (tracked status names) are judged, so a
+    // fancy plan label can't produce a phantom "missing". A mit planned by two
+    // slots but seen once is treated as covered: the recap can't tell whose it
+    // was.
+    // Status names that differ from the action the plan wrote down.
+    private static readonly (string StatusPart, string Canon)[] StatusAliases =
+    {
+        ("Expedience", "Expedient"), ("Desperate Measures", "Expedient"),
+        ("Blackest Night", "The Blackest Night"),
+        ("Seraphic", "Seraph"),
+    };
+
+    // Planned actions the recap can never observe (no lasting status).
+    private static readonly HashSet<string> DeltaBlind =
+        new(StringComparer.OrdinalIgnoreCase) { "Second Wind", "Bloodbath", "Equilibrium" };
+
+    private string PlanDelta(FightProfile fight, List<MitRecap.MitEvent> group,
+        List<MitRecap.MitEvent> events, List<string> party, HashSet<string> reported)
+    {
+        var t0 = group[0].Time;
+
+        // "Applied" looks beyond this group: a mit pressed early lands in the
+        // previous group but still satisfies this moment's plan.
+        var applied = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var e in events)
+        {
+            if (MathF.Abs(e.Time - t0) > 15f) continue;
+            applied.Add(e.Mit.Trim());
+            foreach (var pm in Cooldowns.PlanMits(e.Mit)) applied.Add(pm.Name);
+            foreach (var (part, canon) in StatusAliases)
+                if (e.Mit.Contains(part, StringComparison.OrdinalIgnoreCase)) applied.Add(canon);
+        }
+
+        var partial = new List<string>();
+        foreach (var e in group)
+            if (e.Kind == MitTypes.Kind.Party && party.Count is > 1 and <= 8
+                && !e.OnBoss && e.Covered.Count < party.Count)
+                partial.Add($"{e.Mit} {e.Covered.Count}/{party.Count}");
+
+        var missing = new List<string>();
+        foreach (var (slot, line) in PlannedLinesNear(fight, t0))
+            foreach (var pm in Cooldowns.PlanMits(line.Action))
+            {
+                if (applied.Contains(pm.Name)) continue;
+                if (DeltaBlind.Contains(pm.Name)) continue;
+                if (MitTypes.Classify(pm.Name) == MitTypes.Kind.Other) continue; // recap can't see it
+                if (!reported.Add(pm.Name)) continue; // one report per pull, not per adjacent group
+                missing.Add(slot.Length > 0 ? $"{pm.Name} ({slot})" : pm.Name);
+            }
+
+        var parts = new List<string>();
+        if (missing.Count > 0) parts.Add("missing: " + string.Join(", ", missing));
+        if (partial.Count > 0) parts.Add("partial: " + string.Join(", ", partial));
+        return string.Join("   ", parts);
+    }
+
+    // Every slot's planned lines near a moment: the live plan plus each saved
+    // slot. Untouched builtin preview slots are intentionally excluded; the
+    // recap judges against what the group actually planned, not defaults.
+    private static IEnumerable<(string Slot, MitLine Line)> PlannedLinesNear(FightProfile fight, float time)
+    {
+        foreach (var l in fight.Lines)
+            if (l.Enabled && MathF.Abs(l.Time - time) < 9f)
+                yield return (fight.Slot, l);
+        foreach (var kv in fight.SavedSlots)
+        {
+            if (string.Equals(kv.Key, fight.Slot, StringComparison.OrdinalIgnoreCase)) continue;
+            foreach (var l in kv.Value)
+                if (l.Enabled && MathF.Abs(l.Time - time) < 9f)
+                    yield return (kv.Key, l);
         }
     }
 

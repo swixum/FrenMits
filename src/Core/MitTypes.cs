@@ -17,6 +17,7 @@ public static class MitTypes
         "vengeance", "damnation", "bloodwhetting", "nascent flash", "raw intuition",
         "shadow wall", "dark mind", "oblation", "the blackest night", "tbn",
         "sentinel", "guardian", "bulwark", "sheltron", "intervention", "hallowed",
+        "blackest night",
         "heart of stone", "heart of corundum", "nebula", "camouflage", "reprisal",
         "provoke", "shirk", "thrill of battle", "equilibrium", "tank:", "invuln",
     };
@@ -27,7 +28,7 @@ public static class MitTypes
         "feint", "addle", "dismantle", "magick barrier", "tactician", "troubadour",
         "shield samba", "improvisation", "divine veil", "passage of arms", "shake it off",
         "heart of light", "dark missionary", "sacred soil", "kerachole", "holos",
-        "expedient", "temperance", "divine caress", "neutral sect", "collective",
+        "expedient", "expedience", "desperate measures", "temperance", "divine caress", "neutral sect", "collective",
         "plenary", "fey illumination", "seraph", "panhaima", "philosophia", "zoe",
         "succor", "medica", "deployment", "kerakeia", "liturgy", "macrocosmos",
         "spreadlo", "party mit", "kitchen sink", "sun sign", "seraphism", "barrier",
