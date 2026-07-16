@@ -14,7 +14,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.168";
+    public const string NotesVersion = "1.0.0.169";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.169", "The WHM Asylum calls are back. They were never sheet rows (they come from a real clear log), so the v5.0 update dropped them by mistake."),
         ("1.0.0.168", "Dancing Mad updated to mit sheet v5.0. Custom lines, offsets, and per-line settings carry over; the old plan is snapshotted first (History restores it)."),
         ("1.0.0.167", "Duty Recorder replays (A Realm Recorded) now start the timer by themselves: calls play along with the replay, chapter skips included."),
         ("1.0.0.166", "Drag the sheet notes panel taller or shorter by its top edge; the height is remembered."),

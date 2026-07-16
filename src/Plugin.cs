@@ -249,12 +249,12 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v16: Dancing Mad re-baked to the Ikuya sheet v5.0 (Asylum removed
-        // sheet-wide, P3 Reprisal/Addle moves, P4 healer reshuffle, P5 Forsaken
-        // hits renamed and reassigned). The smart merge keeps custom lines AND
-        // now carries per-line tweaks (offsets, disabled state, sounds, colors,
-        // press windows) onto the updated calls. Each fight is snapshotted first,
-        // so History can restore the pre-update plan.
+        // v16: Dancing Mad re-baked to the Ikuya sheet v5.0 (P3 Reprisal/Addle
+        // moves, P4 healer reshuffle, P5 Forsaken hits renamed and reassigned).
+        // The smart merge keeps custom lines AND carries per-line tweaks
+        // (offsets, disabled state, sounds, colors, press windows) onto the
+        // updated calls. Each fight is snapshotted first, so History can restore
+        // the pre-update plan.
         if (Config.Version < 16)
         {
             foreach (var f in Config.Fights)
@@ -262,6 +262,22 @@ public sealed class Plugin : IDalamudPlugin
                     SnapshotPlan(f, "before the sheet v5.0 update");
             SmartRebakeDmu();
             Config.Version = 16;
+            Config.Save();
+        }
+
+        // v17: restore the WHM Asylum calls the v16 bake dropped. Asylum was
+        // never on the Ikuya sheet; it is a FrenMits addition timed from an
+        // FFLogs clear (see DmuData's header note), and the v5.0 sync wrongly
+        // treated it as a sheet removal. Re-run the smart re-bake; the
+        // containment-aware sweep replaces a v16 "Divine Caress" cleanly with
+        // "Divine Caress + Asylum" instead of doubling it, and offsets carry.
+        if (Config.Version < 17)
+        {
+            foreach (var f in Config.Fights)
+                if (f.TerritoryId == Builtin.DmuTerritory)
+                    SnapshotPlan(f, "before restoring the WHM Asylum calls");
+            SmartRebakeDmu();
+            Config.Version = 17;
             Config.Save();
         }
 
@@ -778,14 +794,26 @@ public sealed class Plugin : IDalamudPlugin
                && string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
                && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
+        // Mit parts of a combined call ("Divine Caress + Asylum" -> two parts),
+        // for containment checks between bake versions.
+        static string[] Parts(string action)
+            => action.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        // Every mit named by `a` is also named by `b` (case-insensitive).
+        static bool Covers(MitLine b, MitLine a)
+            => Parts(a.Action).All(p => Parts(b.Action).Contains(p, StringComparer.OrdinalIgnoreCase));
+
         // "Shadows a real call": the same spoken action within a few seconds of a
         // current baked line. A fight never reuses one mit that close (its cooldown
         // is far longer), so anything that shadows a baked call is a stale or
         // duplicate line — drop it so nothing overlaps. Ignores the mechanic label
-        // (the sheet renames/retimes those between versions).
+        // (the sheet renames/retimes those between versions). A line whose mits are
+        // all contained in the baked call ("Divine Caress" vs the baked
+        // "Divine Caress + Asylum") is redundant the same way.
         static bool Shadows(MitLine line, List<MitLine> baked)
             => baked.Any(b => MathF.Abs(b.Time - line.Time) < 6f
-                              && string.Equals(b.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase));
+                              && (string.Equals(b.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase)
+                                  || Covers(b, line)));
 
         // Keep a line only if it does NOT shadow a baked call (no overlap) AND it is
         // either a user-flagged custom or not a recognised old sheet-baked line.
@@ -837,7 +865,8 @@ public sealed class Plugin : IDalamudPlugin
             var near = donors
                 .Where(d => MathF.Abs(d.Time - b.Time) <= 30f
                             && (string.Equals(d.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
-                                || string.Equals(BaseAction(d.Action), BaseAction(b.Action), StringComparison.OrdinalIgnoreCase)))
+                                || string.Equals(BaseAction(d.Action), BaseAction(b.Action), StringComparison.OrdinalIgnoreCase)
+                                || Covers(b, d)))
                 .OrderBy(d => MathF.Abs(d.Time - b.Time))
                 .FirstOrDefault();
             if (near == null) continue;
