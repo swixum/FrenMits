@@ -827,6 +827,10 @@ public class ConfigWindow : Window, IDisposable
             var headerStartX = ImGui.GetCursorPosX();
             var headerLabel = $"{fight.Name}   ({fight.Lines.Count})";
             var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
+            // The star tooltip and the sheet button are drawn ON TOP of this
+            // header row; without allow-overlap the header claims the mouse
+            // first and they can never be hovered or clicked.
+            ImGui.SetItemAllowOverlap();
             if (official)
             {
                 // A framed tree node indents its label one extra FramePadding.X
