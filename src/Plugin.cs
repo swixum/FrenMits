@@ -401,6 +401,10 @@ public sealed class Plugin : IDalamudPlugin
     // the resync anchors — keeping every edit the user has made. Silent, no prompts.
     private void OnTerritoryChanged(uint territory)
     {
+        // A replay-started clock has no combat flag to stop it; leaving the
+        // playback (or any zone) out of combat shuts it down.
+        if (Timer.Running && !InCombat) Timer.Reset();
+
         // Leaving / re-entering the instance resets the door-boss phase to 1.
         _phaseTwo = false;
         _trackedBossEntity = 0;
@@ -860,6 +864,12 @@ public sealed class Plugin : IDalamudPlugin
     // reposition them out of combat or with Live preview.
     public static bool InCombat =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat];
+
+    // Watching a Duty Recorder replay (e.g. via A Realm Recorded). The spectator
+    // never gets a combat flag, so the timer auto-starts from the replay's own
+    // casts instead (SyncEngine.TryPlaybackAutoStart).
+    public static bool InDutyPlayback =>
+        Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
 
     // Replay state (desk testing). When ReplayFight is set the normal pipeline runs
     // against the recording instead of the live instance: ActiveFight resolves to

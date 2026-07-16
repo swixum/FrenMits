@@ -71,7 +71,11 @@ public class SyncEngine
         if (running && !_wasRunning) { Forget(); _lastPullArmed = false; }
         _wasRunning = running;
 
-        if (!running) return;
+        if (!running)
+        {
+            TryPlaybackAutoStart(c);
+            return;
+        }
         // A replay feeds SnapToCast/SnapToBoss itself from the recording; the
         // live object-table scan must stay out of it, or a real NPC in the zone
         // (replaying while standing inside the instance) re-anchors the replay
@@ -142,6 +146,42 @@ public class SyncEngine
                     OnCastStarted(fight, bc, castId);
             }
             catch (NullReferenceException) { /* stale actor this frame; ignore */ }
+        }
+    }
+
+    // Duty-recorder playback (A Realm Recorded and friends): the spectator has
+    // no combat flag, so the timer would never start by itself. Instead, the
+    // first enemy cast matching a resync anchor both starts AND places the
+    // clock; from there the normal anchor pipeline keeps it honest, including
+    // through chapter skips (phase anchors re-base).
+    private void TryPlaybackAutoStart(Configuration c)
+    {
+        if (!Plugin.InDutyPlayback || Plugin.Replaying || !c.EnableSync) return;
+        if (_plugin.ActiveFight() is not { } fight || fight.SyncPoints.Count == 0) return;
+
+        foreach (var obj in Service.ObjectTable)
+        {
+            try
+            {
+                if (obj is not IBattleChara bc || bc.MaxHp == 0 || !bc.IsCasting) continue;
+                if (bc is not IBattleNpc npc || (byte)npc.BattleNpcKind != 5) continue;
+                var castId = bc.CastActionId;
+                if (castId == 0) continue;
+
+                // Earliest anchor for this ability: a replay usually starts at
+                // the beginning or a chapter, and later anchors re-snap anyway.
+                SyncPoint? best = null;
+                foreach (var sp in fight.SyncPoints)
+                    if (sp.Ability == castId && (best == null || sp.Time < best.Time)) best = sp;
+                if (best == null) continue;
+
+                var ttr = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);
+                _plugin.Timer.SyncNow(); // fresh Generation, so cue tracking re-arms
+                _plugin.Timer.SetElapsed(MathF.Max(0f, best.Time - ttr - _plugin.PhaseOffsetFor(fight)));
+                Service.Log.Information($"[FrenMits] Playback: timer started from anchor '{best.Label}' ({best.Time:0.0}s).");
+                return;
+            }
+            catch (NullReferenceException) { /* stale actor; next frame */ }
         }
     }
 
