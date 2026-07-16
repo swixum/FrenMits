@@ -249,6 +249,22 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v16: Dancing Mad re-baked to the Ikuya sheet v5.0 (Asylum removed
+        // sheet-wide, P3 Reprisal/Addle moves, P4 healer reshuffle, P5 Forsaken
+        // hits renamed and reassigned). The smart merge keeps custom lines AND
+        // now carries per-line tweaks (offsets, disabled state, sounds, colors,
+        // press windows) onto the updated calls. Each fight is snapshotted first,
+        // so History can restore the pre-update plan.
+        if (Config.Version < 16)
+        {
+            foreach (var f in Config.Fights)
+                if (f.TerritoryId == Builtin.DmuTerritory)
+                    SnapshotPlan(f, "before the sheet v5.0 update");
+            SmartRebakeDmu();
+            Config.Version = 16;
+            Config.Save();
+        }
+
         // Auto-add any built-in fight the user hasn't been shown yet, so a newly
         // shipped fight (e.g. a fresh savage) appears directly on its tab with no
         // button to click. Tracked per-territory so a deleted built-in stays gone.
@@ -724,9 +740,11 @@ public sealed class Plugin : IDalamudPlugin
 
     // Re-bake the Dancing Mad built-in from the (updated) sheet while KEEPING the
     // custom lines people added. A line is "old sheet-baked" if it matches the
-    // previous bake (the DmuLegacy snapshot); those get replaced by the new bake.
-    // Everything else - anything flagged Custom, or that no longer matches the old
-    // bake - is kept, so custom timers survive the sheet update.
+    // previous bake (the DmuLegacy snapshot); those get replaced by the new bake,
+    // but their per-line tweaks (offset, disabled state, sounds, colors, press
+    // windows) are carried onto the matching new call first. Everything else -
+    // anything flagged Custom, or that no longer matches the old bake - is kept,
+    // so custom timers survive the sheet update.
     public int SmartRebakeDmu()
     {
         var n = 0;
@@ -776,6 +794,56 @@ public sealed class Plugin : IDalamudPlugin
             .ToList();
 
         foreach (var c in customs) c.Custom = true; // flag survivors so future updates keep them cleanly
+
+        // Every line NOT kept above is a sheet-owned line being replaced (or a
+        // shadowing edit of one). Before it goes, carry its per-line tweaks onto
+        // the new baked call it corresponds to, so a sheet update never costs
+        // anyone their offsets or settings. Match the exact same call first;
+        // then the same action nearby (the sheet renames/retimes mechanics);
+        // then the same base action ("Addle" matches "Addle (Exdeath)") nearby.
+        // Each old line donates at most once.
+        var donors = existing.Except(customs).ToList();
+        var matched = new HashSet<MitLine>();
+
+        static string BaseAction(string a)
+        {
+            var i = a.IndexOf('(');
+            return (i > 0 ? a[..i] : a).Trim();
+        }
+        static void Carry(MitLine to, MitLine from)
+        {
+            to.OffsetSeconds = from.OffsetSeconds;
+            to.CoverUntil = from.CoverUntil;
+            to.Enabled = from.Enabled;
+            to.LeadOverride = from.LeadOverride;
+            to.Tts = from.Tts;
+            to.Sound = from.Sound;
+            to.Color = from.Color;
+            to.IconId = from.IconId;
+            if (from.Jobs.Count > 0 && to.Jobs.Count == 0) to.Jobs = new List<string>(from.Jobs);
+        }
+
+        foreach (var b in newBaked) // pass 1: identical calls keep their tweaks
+        {
+            var exact = donors.FirstOrDefault(d => SameBaked(d, b));
+            if (exact == null) continue;
+            donors.Remove(exact);
+            matched.Add(b);
+            Carry(b, exact);
+        }
+        foreach (var b in newBaked) // pass 2: moved / renamed calls
+        {
+            if (matched.Contains(b)) continue;
+            var near = donors
+                .Where(d => MathF.Abs(d.Time - b.Time) <= 30f
+                            && (string.Equals(d.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(BaseAction(d.Action), BaseAction(b.Action), StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(d => MathF.Abs(d.Time - b.Time))
+                .FirstOrDefault();
+            if (near == null) continue;
+            donors.Remove(near);
+            Carry(b, near);
+        }
 
         var result = new List<MitLine>(newBaked);
         result.AddRange(customs);
