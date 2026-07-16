@@ -853,7 +853,27 @@ public class SheetViewWindow : Window
         if (_fight == null || AbortIfStale()) return;
         if (row.Bake == null)
         {
-            Flash("Can't match this row to the sheet (renamed mechanic?). Use the fight page's Reset to sheet instead.");
+            // No baked instance pairs with this row: it's an extra instance the
+            // sheet doesn't have, or a leftover edit under a mechanic name the
+            // sheet renamed. The sheet-true state is "nothing here", so reset
+            // clears the row's lines. Undo brings them back.
+            PushUndo($"remove \"{row.Mechanic}\" (not on the sheet)");
+            var removed = 0;
+            for (var i = 0; i < _slots.Length; i++)
+            {
+                if (row.Cells[i].Count == 0) continue;
+                EnsureBacked(i);
+                foreach (var line in row.Cells[i].ToList())
+                {
+                    _slotLines[i].Remove(line);
+                    removed++;
+                }
+                Resort(i);
+            }
+            if (removed == 0) { PopUndo(); Flash("This row has no lines to remove."); return; }
+            C.Save();
+            _dirty = true;
+            Flash($"Removed {removed} line(s): \"{row.Mechanic}\" isn't on the baked sheet. Undo brings them back.");
             return;
         }
 
@@ -862,7 +882,7 @@ public class SheetViewWindow : Window
         for (var i = 0; i < _slots.Length; i++)
         {
             var slot = _slots[i];
-            var candidates = row.Bake.Cells[i];
+            var candidates = row.Bake!.Cells[i];
             if (row.Cells[i].Count == 0 && candidates.Count == 0) continue;
 
             // Skip slots already exactly on the sheet, so resetting one row
@@ -2825,12 +2845,21 @@ public class SheetViewWindow : Window
     private void ResetCell(Row row, int i)
     {
         if (_fight == null || AbortIfStale()) return;
+        var slot = _slots[i];
         if (row.Bake == null)
         {
-            Flash("Can't match this row to the sheet (renamed mechanic?). Use the fight page's Reset to sheet instead.");
+            // Same idea as ResetRow: no baked pair means the sheet has nothing
+            // here, so reset clears this cell's lines instead of dead-ending.
+            if (row.Cells[i].Count == 0) { Flash($"{slot} has nothing on this row."); return; }
+            PushUndo($"remove {slot}'s \"{row.Mechanic}\"");
+            EnsureBacked(i);
+            foreach (var line in row.Cells[i].ToList()) _slotLines[i].Remove(line);
+            Resort(i);
+            C.Save();
+            _dirty = true;
+            Flash($"{slot}'s \"{row.Mechanic}\" removed: this row isn't on the baked sheet. Undo brings it back.");
             return;
         }
-        var slot = _slots[i];
         var candidates = row.Bake.Cells[i];
         var pristine = row.Cells[i].All(l => !l.Custom)
             && row.Cells[i].Count == candidates.Count
