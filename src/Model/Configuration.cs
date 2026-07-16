@@ -19,6 +19,9 @@ public class Configuration : IPluginConfiguration
     // Whether the Sheet View's per-phase "Sheet notes" panel is expanded.
     public bool SheetNotesOpen { get; set; } = true;
 
+    // Height (px) of the Sheet View notes panel; dragged via its top edge.
+    public float SheetNotesHeight { get; set; } = 150f;
+
     // The fight Sheet View last showed, so it reopens where you left off.
     public string LastSheetFightId { get; set; } = "";
 

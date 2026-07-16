@@ -1010,7 +1010,8 @@ public class SheetViewWindow : Window
 
     // ---- sheet notes (the per-phase "Notes" footer from the sheet's tabs) ----
 
-    private float NotesBodyHeight() => ImGui.GetTextLineHeightWithSpacing() * 7f;
+    private float NotesBodyHeight() => Math.Clamp(C.SheetNotesHeight, 60f, 600f);
+    private const float NotesGripHeight = 6f;
 
     // Vertical space the notes panel takes below the grid, so the table can
     // shrink to make room (header row + the body when expanded).
@@ -1018,13 +1019,32 @@ public class SheetViewWindow : Window
     {
         if (_phaseNotes.Count == 0) return 0f;
         var h = ImGui.GetFrameHeightWithSpacing();
-        if (C.SheetNotesOpen) h += NotesBodyHeight() + ImGui.GetStyle().ItemSpacing.Y;
+        if (C.SheetNotesOpen)
+            h += NotesBodyHeight() + NotesGripHeight + ImGui.GetStyle().ItemSpacing.Y * 2f;
         return h;
     }
 
     private void DrawNotesPanel()
     {
         if (_fight == null || _phaseNotes.Count == 0) return;
+
+        // Drag handle on the panel's top edge: pull it up for more notes, down
+        // for more grid. The height is remembered.
+        if (C.SheetNotesOpen)
+        {
+            ImGui.InvisibleButton("##notesgrip", new Vector2(-1, NotesGripHeight));
+            var gMin = ImGui.GetItemRectMin();
+            var gMax = ImGui.GetItemRectMax();
+            var hot = ImGui.IsItemHovered() || ImGui.IsItemActive();
+            var midY = (gMin.Y + gMax.Y) * 0.5f;
+            ImGui.GetWindowDrawList().AddLine(
+                new Vector2(gMin.X + 4f, midY), new Vector2(gMax.X - 4f, midY),
+                hot ? Theme.Accent : 0x30FFFFFF, hot ? 3f : 2f);
+            if (hot) ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNs);
+            if (ImGui.IsItemActive())
+                C.SheetNotesHeight = Math.Clamp(NotesBodyHeight() - ImGui.GetIO().MouseDelta.Y, 60f, 600f);
+            if (ImGui.IsItemDeactivated()) C.Save();
+        }
 
         ImGui.SetNextItemOpen(C.SheetNotesOpen, ImGuiCond.Always);
         var label = _phaseFilter.Length > 0 ? $"Sheet notes ({_phaseFilter})" : "Sheet notes";
