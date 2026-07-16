@@ -886,15 +886,28 @@ public sealed class Plugin : IDalamudPlugin
             // route another zone's plan into this pull. Placement is an
             // out-of-combat activity; combat switches it off.
             var inCombatNow = InCombat;
-            if (inCombatNow && !_wasInCombatForTest && !Replaying
-                && (Config.TestMode || PreviewFight != null))
+            if (inCombatNow && !_wasInCombatForTest && !Replaying)
             {
-                PreviewFight = null;
-                if (Config.TestMode)
+                if (Config.TestMode || PreviewFight != null)
                 {
-                    Config.TestMode = false;
-                    Config.Save();
-                    Service.Log.Information("[FrenMits] Test mode switched off: a real pull started.");
+                    PreviewFight = null;
+                    if (Config.TestMode)
+                    {
+                        Config.TestMode = false;
+                        Config.Save();
+                        Service.Log.Information("[FrenMits] Test mode switched off: a real pull started.");
+                    }
+                }
+
+                // A pull can never BEGIN inside a cutscene, so combat starting
+                // while the flag reads true proves the flag is stuck (the known
+                // game quirk that hid the overlay while the server bar kept
+                // ticking). Declare it immediately instead of waiting out the
+                // 3-minute failsafe; the state self-clears when the flag drops.
+                if (InCutscene && !CutsceneStuck)
+                {
+                    CutsceneStuck = true;
+                    Service.Log.Warning("[FrenMits] Combat started while the cutscene flag was on; treating the flag as stuck so the overlay shows.");
                 }
             }
             _wasInCombatForTest = inCombatNow;
