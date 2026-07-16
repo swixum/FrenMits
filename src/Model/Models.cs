@@ -21,6 +21,10 @@ public class FightProfile
     // survives resync: + fires every call earlier, - later.
     public float TimerOffset { get; set; }
 
+    // The tank pairing picked in the Tank busters extras card (e.g. "WAR/DRK"),
+    // remembered per fight so the dropdown stays where you set it.
+    public string TankPairing { get; set; } = "";
+
     // The active slot's lines (what the overlay reads + the line table edits).
     public List<MitLine> Lines { get; set; } = new();
 

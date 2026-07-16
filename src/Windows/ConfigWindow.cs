@@ -45,8 +45,6 @@ public class ConfigWindow : Window, IDisposable
     // In-memory line clipboard for the right-click copy / paste / duplicate menu.
     private MitLine? _copiedLine;
 
-    private int _tankComp;
-
     // Plugin icon (group-hug logo), loaded once from the file shipped next to the
     // DLL. Null until found; the Home page falls back to a glyph if it's missing.
     private Dalamud.Interface.Textures.ISharedImmediateTexture? _iconShared;
@@ -1165,11 +1163,18 @@ public class ConfigWindow : Window, IDisposable
 
         BeginCard(FontAwesomeIcon.ShieldAlt, ImGuiColors.TankBlue, "Tank busters", "from Ikuya");
         ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
-        _tankComp = Math.Clamp(_tankComp, 0, comps.Length - 1);
+        // The pick is stored on the fight profile so it's remembered per fight
+        // across sessions (and per character config).
+        var tankComp = Array.IndexOf(comps, fight.TankPairing);
+        if (tankComp < 0) tankComp = 0;
         ImGui.SetNextItemWidth(140f);
-        ImGui.Combo("Tank pairing", ref _tankComp, comps, comps.Length);
+        if (ImGui.Combo("Tank pairing", ref tankComp, comps, comps.Length))
+        {
+            fight.TankPairing = comps[tankComp];
+            C.Save();
+        }
 
-        var comp = comps[_tankComp];
+        var comp = comps[tankComp];
         var myJob = _plugin.ActiveJobAbbreviation();
         foreach (var j in TankMits.Jobs(comp))
         {
