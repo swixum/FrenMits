@@ -122,6 +122,8 @@ public class OverlayWindow : Window
                 _plugin.SheetViewWindow.Open(
                     f != null && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) ? f : null);
             }
+            if (ImGui.MenuItem("Open Mit Tuner"))
+                _plugin.MiniSheetWindow.IsOpen = true;
             ImGui.EndPopup();
         }
 

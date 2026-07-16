@@ -38,6 +38,7 @@ public sealed class Plugin : IDalamudPlugin
     public RecapButtonWindow RecapButtonWindow { get; }
     public RecapWindow RecapWindow { get; }
     public SheetViewWindow SheetViewWindow { get; }
+    public MiniSheetWindow MiniSheetWindow { get; }
 
     private readonly IDtrBarEntry? _dtr;
 
@@ -294,6 +295,7 @@ public sealed class Plugin : IDalamudPlugin
         RecapButtonWindow = new RecapButtonWindow(this);
         RecapWindow = new RecapWindow(this);
         SheetViewWindow = new SheetViewWindow(this);
+        MiniSheetWindow = new MiniSheetWindow(this);
         WhatsNewWindow = new WhatsNewWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
@@ -303,6 +305,7 @@ public sealed class Plugin : IDalamudPlugin
         Windows.AddWindow(RecapButtonWindow);
         Windows.AddWindow(RecapWindow);
         Windows.AddWindow(SheetViewWindow);
+        Windows.AddWindow(MiniSheetWindow);
         Windows.AddWindow(WhatsNewWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
@@ -314,7 +317,7 @@ public sealed class Plugin : IDalamudPlugin
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Open Fren Mits. /fm sheet = the all-slots sheet view, /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer, /fm p4 = practice-jump to a phase."
+            HelpMessage = "Open Fren Mits. /fm sheet = the all-slots sheet view, /fm mini = the pocket mit tuner, /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer, /fm p4 = practice-jump to a phase."
         });
         Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand));
 
@@ -1021,6 +1024,10 @@ public sealed class Plugin : IDalamudPlugin
             case "sheet":
                 if (SheetViewWindow.IsOpen) SheetViewWindow.IsOpen = false;
                 else SheetViewWindow.Open();
+                break;
+            case "mini":
+            case "tuner":
+                MiniSheetWindow.IsOpen = !MiniSheetWindow.IsOpen;
                 break;
             default:
                 var pm = System.Text.RegularExpressions.Regex.Match(args.Trim().ToLowerInvariant(), @"^(?:phase|p)\s*(\d)$");

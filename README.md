@@ -65,6 +65,7 @@ No official sheet? Build your own:
 | --- | --- |
 | `/fm` | Open the config window |
 | `/fm sheet` | Open Sheet View |
+| `/fm mini` | Open the Mit Tuner (pocket sheet with live +/- nudges) |
 | `/fm sync` | Zero the timer to now |
 | `/fm reset` | Clear the timer |
 | `/fm test` | Toggle a sample call for placement |

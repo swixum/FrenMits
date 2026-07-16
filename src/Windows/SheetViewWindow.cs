@@ -1391,6 +1391,9 @@ public class SheetViewWindow : Window
             if (ImGui.MenuItem("Open fight page")) _plugin.ConfigWindow.OpenFightPage(_fight!);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Per-line options, anchors and import tools live there.");
+            if (ImGui.MenuItem("Open Mit Tuner")) _plugin.MiniSheetWindow.IsOpen = true;
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("A pocket version for mid-pull use: the calls around now,\neach with +/- nudges for its offset. Also /fm mini.");
             ImGui.Separator();
             if (ImGui.MenuItem("Color mits by type", "", C.SheetColorByType))
             {
