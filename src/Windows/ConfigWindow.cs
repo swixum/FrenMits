@@ -620,18 +620,9 @@ public class ConfigWindow : Window, IDisposable
     // slot (keeping that slot's own edits).
     private void SelectRoleForAll(string role)
     {
-        C.RoleSelection = role;
-        FightProfile? last = null;
-        foreach (var f in C.Fights)
-        {
-            if (!Builtin.Has(f.TerritoryId)) continue;
-            var slot = Builtin.RoleSlot(f.TerritoryId, role);
-            if (string.IsNullOrEmpty(slot)) continue;
-            Builtin.ApplySlot(f, slot);
-            last = f;
-        }
+        _plugin.SetRoleForAll(role);
+        var last = C.Fights.LastOrDefault(f => Builtin.Has(f.TerritoryId));
         if (last != null) C.DmuSlot = last.Slot;
-        C.Save();
         FlashBuiltin($"Set every fight to {role}.");
     }
 

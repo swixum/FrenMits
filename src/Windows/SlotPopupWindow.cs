@@ -72,6 +72,28 @@ public class SlotPopupWindow : Window
             ImGui.SameLine();
             if (ImGui.Button("OK", new Vector2(50, 0))) IsOpen = false;
 
+            // The global role picker, popup-sized: one pick maps every official
+            // fight to that role's slot (custom sheets have no canonical roles).
+            if (Builtin.Has(_fight.TerritoryId))
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextDisabled("Role:");
+                ImGui.SameLine();
+                var roles = Builtin.Roles;
+                var rIdx = string.IsNullOrEmpty(C.RoleSelection)
+                    ? -1 : Array.IndexOf(roles, C.RoleSelection);
+                ImGui.SetNextItemWidth(120f);
+                if (ImGui.BeginCombo("##rolepick", rIdx >= 0 ? roles[rIdx] : "(pick)"))
+                {
+                    foreach (var role in roles)
+                        if (ImGui.Selectable(role, role == C.RoleSelection))
+                            _plugin.SetRoleForAll(role);
+                    ImGui.EndCombo();
+                }
+                ImGui.SameLine();
+                ImGui.TextDisabled("(every fight)");
+            }
+
             if (string.IsNullOrEmpty(_fight.Slot))
                 ImGui.TextDisabled("No slot picked yet; pick one so the calls know whose column to read.");
         }

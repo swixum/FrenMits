@@ -14,7 +14,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.162";
+    public const string NotesVersion = "1.0.0.163";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.163", "The entry popup gained a role picker: one pick sets every official fight."),
         ("1.0.0.162", "Custom sheets: right-click an empty cell to get mit suggestions (only what's actually available). Optional once-per-entry slot popup (off by default)."),
         ("1.0.0.161", "Fixed: the sheet button on each fight row now actually clicks (the header was swallowing it)."),
         ("1.0.0.160", "The Mit Tuner (/fm mini): a pocket sheet showing the calls around now, with +/- nudges you can click mid-pull."),

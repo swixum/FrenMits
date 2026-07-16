@@ -554,6 +554,21 @@ public sealed class Plugin : IDalamudPlugin
         }
     }
 
+    // Apply a canonical role to every built-in fight (the sidebar's YOUR ROLE
+    // and the entry popup both route here).
+    public void SetRoleForAll(string role)
+    {
+        Config.RoleSelection = role;
+        foreach (var f in Config.Fights)
+        {
+            if (!Builtin.Has(f.TerritoryId)) continue;
+            var slot = Builtin.RoleSlot(f.TerritoryId, role);
+            if (string.IsNullOrEmpty(slot)) continue;
+            Builtin.ApplySlot(f, slot!);
+        }
+        Config.Save();
+    }
+
     // Switch which sheet column is "yours" for a fight: builtin fights load the
     // slot's plan through ApplySlot (keeping each slot's saved edits), custom
     // sheets swap the saved lists directly.
