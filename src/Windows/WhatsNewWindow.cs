@@ -14,7 +14,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.164";
+    public const string NotesVersion = "1.0.0.165";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.165", "Deaths show on their mechanic in the recap. Deleting fights now confirms, snapshots first, and deleted sheets are recoverable."),
         ("1.0.0.164", "The overlay-vanishes bug (server bar fine, center screen empty) now recovers instantly at pull start."),
         ("1.0.0.163", "The entry popup gained a role picker: one pick sets every official fight."),
         ("1.0.0.162", "Custom sheets: right-click an empty cell to get mit suggestions (only what's actually available). Optional once-per-entry slot popup (off by default)."),

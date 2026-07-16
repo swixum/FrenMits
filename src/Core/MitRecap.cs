@@ -42,6 +42,12 @@ public class MitRecap
     // of the SAME duty (0 = sample data, never graded).
     public uint Territory { get; private set; }
     public bool PopupDismissed { get; private set; }
+
+    // Party deaths during the recorded pull (fight time + player), so the
+    // recap can pin deaths to the mechanic where they happened.
+    public List<(float Time, string Name)> LastDeaths { get; private set; } = new();
+    private readonly List<(float Time, string Name)> _deaths = new();
+    private readonly HashSet<string> _dead = new(StringComparer.OrdinalIgnoreCase);
     public string BossName { get; private set; } = "";
     public float CaptureElapsed { get; private set; }   // fight time (s) at the capture / wipe
 
@@ -66,7 +72,8 @@ public class MitRecap
             if (Plugin.CutsceneActive) return;
 
             var running = _plugin.Timer.Running;
-            if (running && !_wasRunning) { Log.Clear(); _active.Clear(); Party.Clear(); BossName = ""; }
+            if (running && !_wasRunning)
+            { Log.Clear(); _active.Clear(); Party.Clear(); _deaths.Clear(); _dead.Clear(); BossName = ""; }
             else if (!running && _wasRunning && Log.Count > 0) FinalizePull(); // pull ended -> freeze recap
             _wasRunning = running;
             if (!running) return;
@@ -85,7 +92,19 @@ public class MitRecap
             foreach (var (src, onBoss, chara) in Sources())
             {
                 if (onBoss) BossName = chara.Name.ToString();
-                else if (!Party.Contains(src)) Party.Add(src);
+                else
+                {
+                    if (!Party.Contains(src)) Party.Add(src);
+                    // Death edge: HP hits zero, recorded once per life.
+                    if (chara.CurrentHp == 0)
+                    {
+                        if (_dead.Add(src)) _deaths.Add((elapsed, src));
+                    }
+                    else
+                    {
+                        _dead.Remove(src);
+                    }
+                }
                 foreach (var m in MitsOn(chara, onBoss))
                 {
                     var key = src + "|" + m.Mit;
@@ -107,6 +126,7 @@ public class MitRecap
     {
         LastLog = new List<Applied>(Log);
         LastParty = new List<string>(Party);
+        LastDeaths = new List<(float, string)>(_deaths);
         Territory = Service.ClientState.TerritoryType;
         CapturedAt = DateTime.UtcNow;
         PopupDismissed = false;
@@ -151,6 +171,7 @@ public class MitRecap
         {
             LastLog = new List<Applied>(Log);
             LastParty = new List<string>(Party);
+            LastDeaths = new List<(float, string)>(_deaths);
             var snap = new List<Active>();
             foreach (var (src, onBoss, chara) in Sources())
             {
@@ -273,6 +294,14 @@ public class MitRecap
                 .Select(a => new Active(a.Icon, a.Mit, a.Source, 4 + rnd.Next(18), a.Kind, a.OnBoss))
                 .ToList();
 
+            if (LastLog.Count > 2)
+            {
+                LastDeaths = new List<(float, string)>
+                {
+                    (LastLog[LastLog.Count / 2].Time + 2f, LastParty.Count > 0 ? LastParty[0] : "Someone"),
+                    (LastLog[^1].Time + 1f, LastParty.Count > 1 ? LastParty[1] : "Someone Else"),
+                };
+            }
             BossName = Pick(SampleBosses);
             CaptureElapsed = LastLog.Count > 0 ? LastLog[^1].Time + 6 : 0;
             Territory = 0; // sample data: never graded against a plan

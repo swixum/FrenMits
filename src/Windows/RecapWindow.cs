@@ -126,6 +126,8 @@ public class RecapWindow : Window
 
             var ih = ImGui.GetTextLineHeight();
             var reported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var deaths = r.LastDeaths.OrderBy(d => d.Time).ToList();
+            var dIdx = 0;
             var idx = 0;
             while (idx < events.Count)
             {
@@ -197,6 +199,15 @@ public class RecapWindow : Window
                         ImGui.TextColored(Vec(0xFF81766E), e.Covered[0]);
                     }
                 }
+
+                // Deaths land on the mechanic they happened during: usually the
+                // whole wipe story in one line.
+                var groupEnd = idx < events.Count ? events[idx].Time : float.MaxValue;
+                var died = new List<string>();
+                while (dIdx < deaths.Count && deaths[dIdx].Time < groupEnd)
+                    died.Add(deaths[dIdx++].Name);
+                if (died.Count > 0)
+                    ImGui.TextColored(Vec(0xFF5050E0), "died: " + string.Join(", ", died));
 
                 // The plan-vs-reality delta: what the sheet expected around this
                 // moment that never appeared (or only partially landed). Only

@@ -1351,6 +1351,7 @@ public class SheetViewWindow : Window
         var openAddRow = false;
         var openBuildPull = false;
         var openLog = false;
+        var openDelete = false;
 
         if (_isCustom)
         {
@@ -1394,6 +1395,11 @@ public class SheetViewWindow : Window
             if (ImGui.MenuItem("Open Mit Tuner")) _plugin.MiniSheetWindow.IsOpen = true;
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("A pocket version for mid-pull use: the calls around now,\neach with +/- nudges for its offset. Also /fm mini.");
+            if (_isCustom)
+            {
+                ImGui.Separator();
+                if (ImGui.MenuItem("Delete this sheet...")) openDelete = true;
+            }
             ImGui.Separator();
             if (ImGui.MenuItem("Color mits by type", "", C.SheetColorByType))
             {
@@ -1419,6 +1425,8 @@ public class SheetViewWindow : Window
             ImGui.OpenPopup("##sheethistory");
         }
         DrawHistoryPopup();
+        if (openDelete) ImGui.OpenPopup("##sheetdelete");
+        DrawDeleteSheetPopup();
         if (_isCustom)
         {
             if (openAddRow) { _rowMech = ""; _rowTime = ""; ImGui.OpenPopup("##addrow"); }
@@ -1489,6 +1497,42 @@ public class SheetViewWindow : Window
         if (on) ImGui.PopStyleColor(3);
     }
 
+    // Deleting a whole custom sheet: confirmed, snapshotted first, undoable
+    // only via History after recreating a sheet in the same duty.
+    private void DrawDeleteSheetPopup()
+    {
+        var open = true;
+        if (!ImGui.BeginPopupModal("##sheetdelete", ref open,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+            return;
+
+        ImGui.TextUnformatted($"Delete \"{_fight!.Name}\"?");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "Every column's plan, rows, notes and learned anchors go with it.");
+        ImGui.TextDisabled("A snapshot is saved first. To recover: recreate a sheet in this duty,");
+        ImGui.TextDisabled("then History > Find this duty's older snapshots.");
+        ImGui.Spacing();
+
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.SetItemDefaultFocus();
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2222C8);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3333DD);
+        if (ImGui.Button("Delete", new Vector2(120, 0)))
+        {
+            var f = _fight!;
+            _plugin.SnapshotPlan(f, "before delete");
+            _undoStack.RemoveAll(u => u.Fight == f);
+            C.Fights.Remove(f);
+            C.Save();
+            _fight = null;
+            _dirty = true;
+            ImGui.CloseCurrentPopup();
+            Flash($"\"{f.Name}\" deleted. A snapshot was kept.");
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.EndPopup();
+    }
+
     // ---- plan snapshots (History) -------------------------------------------
 
     private List<Plugin.SnapshotInfo> _snapList = new();
@@ -1527,6 +1571,19 @@ public class SheetViewWindow : Window
                 Flash(msg);
                 ImGui.CloseCurrentPopup();
             }
+        }
+
+        // Recovery for deleted sheets: their snapshots survive under the old
+        // fight id; find them by duty and restore into THIS sheet.
+        if (_isCustom)
+        {
+            ImGui.Spacing();
+            if (ImGui.SmallButton("Find this duty's older snapshots"))
+                _snapList = _plugin.ListSnapshots(_fight!.Id)
+                    .Concat(_plugin.ListOrphanSnapshots(_fight.TerritoryId, _fight.Id))
+                    .ToList();
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Lists snapshots from sheets you previously deleted in this duty,\nso a deleted sheet can be restored here.");
         }
         ImGui.EndPopup();
     }

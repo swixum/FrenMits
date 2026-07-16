@@ -514,6 +514,37 @@ public sealed class Plugin : IDalamudPlugin
         return list;
     }
 
+    // Snapshots left behind by DELETED fights of this duty (matched by the
+    // territory stored inside each file). Reads every snapshot file, so it
+    // only runs on demand from the History popup's finder button.
+    public List<SnapshotInfo> ListOrphanSnapshots(uint territory, string excludeFightId)
+    {
+        var list = new List<SnapshotInfo>();
+        try
+        {
+            if (territory == 0 || !System.IO.Directory.Exists(SnapshotDir)) return list;
+            foreach (var file in System.IO.Directory.GetFiles(SnapshotDir, "*.json")
+                         .OrderByDescending(f => f))
+            {
+                if (excludeFightId.Length > 0
+                    && System.IO.Path.GetFileName(file).StartsWith(excludeFightId + "_")) continue;
+                try
+                {
+                    var b = Newtonsoft.Json.JsonConvert.DeserializeObject<PlanBackup>(
+                        System.IO.File.ReadAllText(file));
+                    if (b?.Fight != null && b.Fight.TerritoryId == territory)
+                        list.Add(new SnapshotInfo(file, b.When, b.Reason + " [previous sheet]"));
+                }
+                catch { /* one unreadable file shouldn't hide the rest */ }
+            }
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, "FrenMits: orphan snapshot scan failed");
+        }
+        return list;
+    }
+
     // Restore a snapshot file over the target fight (full plan replace).
     public string RestoreSnapshot(FightProfile target, string file)
     {

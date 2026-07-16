@@ -1106,9 +1106,42 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3A3AC8);
-        var deleted = ImGuiComponents.IconButtonWithText(FontAwesomeIcon.TrashAlt, "Delete");
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.TrashAlt, "Delete"))
+            ImGui.OpenPopup("##delfight");
         ImGui.PopStyleColor(2);
-        return !deleted;
+        return !DrawDeleteFightConfirm(fight);
+    }
+
+    // Deleting a fight is the most destructive click in the plugin (a custom
+    // sheet can be hours of work), so it confirms and snapshots first.
+    private bool DrawDeleteFightConfirm(FightProfile fight)
+    {
+        var open = true;
+        if (!ImGui.BeginPopupModal("##delfight", ref open,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+            return false;
+
+        ImGui.TextUnformatted($"Delete \"{fight.Name}\"?");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "Every slot's plan, notes and anchors go with it.");
+        ImGui.TextDisabled("A snapshot is saved first. To recover later: recreate a sheet in the");
+        ImGui.TextDisabled("same duty, then History > Find this duty's older snapshots.");
+        ImGui.Spacing();
+
+        var confirmed = false;
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.SetItemDefaultFocus();
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2222C8);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3333DD);
+        if (ImGui.Button("Delete", new Vector2(120, 0)))
+        {
+            _plugin.SnapshotPlan(fight, "before delete");
+            confirmed = true;
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.EndPopup();
+        return confirmed;
     }
 
     // Fetch potion timings for the current job from top logs, then (only if you
