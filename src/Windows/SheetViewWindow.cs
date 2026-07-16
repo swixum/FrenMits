@@ -2592,6 +2592,11 @@ public class SheetViewWindow : Window
                 if (ImGui.MenuItem("Copy mit")) _cellClip = line.Action;
                 if (ImGui.MenuItem("Delete this mit")) DeleteCellLine(row, i);
             }
+            if (_isCustom && cell.Count == 0 && ImGui.BeginMenu("Suggest a mit"))
+            {
+                DrawSuggestMenu(row, i);
+                ImGui.EndMenu();
+            }
             ImGui.BeginDisabled(_cellClip.Length == 0);
             if (ImGui.MenuItem(_cellClip.Length > 0
                     ? $"Paste mit ({(_cellClip.Length > 24 ? _cellClip[..22] + "..." : _cellClip)})"
@@ -2601,6 +2606,65 @@ public class SheetViewWindow : Window
             if (ImGui.MenuItem("Reset this cell to the sheet")) ResetCell(row, i);
             ImGui.EndPopup();
         }
+    }
+
+    // ---- suggest a mit (custom sheets) --------------------------------------
+    // Which jobs fit a column, by its slot code's role bucket.
+    private static readonly string[] TankJobs = { "WAR", "PLD", "DRK", "GNB" };
+    private static readonly string[] HealJobs = { "WHM", "SCH", "AST", "SGE" };
+    private static readonly string[] DpsJobs = { "MNK", "DRG", "NIN", "SAM", "RPR", "VPR", "BRD", "MCH", "DNC", "BLM", "SMN", "RDM", "PCT" };
+
+    private void DrawSuggestMenu(Row row, int i)
+    {
+        var slot = _slots[i];
+        var jobs = TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? TankJobs
+                 : HealSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? HealJobs
+                 : DpsJobs;
+        var syncLevel = _fight != null ? Cooldowns.DutySyncLevel(_fight.TerritoryId) : 0;
+
+        foreach (var job in jobs)
+        {
+            if (!Cooldowns.JobKits.TryGetValue(job, out var kit)) continue;
+            if (!ImGui.BeginMenu(job)) continue;
+
+            var shownFamilies = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var any = false;
+            foreach (var name in kit)
+            {
+                if (Cooldowns.PlanInfo(name) is not { } pm) continue;
+                if (syncLevel > 0 && pm.Level > syncLevel) continue; // above the duty's sync
+                // One entry per shared-cooldown family: the kit lists the
+                // upgrade first, so the highest legal form wins.
+                if (pm.Family.Length > 0 && !shownFamilies.Add(pm.Family)) continue;
+                var free = MitFreeAt(i, pm, row.Time);
+                ImGui.BeginDisabled(!free);
+                if (ImGui.MenuItem(free ? name : $"{name} (on cooldown here)"))
+                    ApplyCellText(row, i, name);
+                ImGui.EndDisabled();
+                any = true;
+            }
+            if (!any) ImGui.TextDisabled("nothing available");
+            ImGui.EndMenu();
+        }
+    }
+
+    // Is this mit's timer free at `t`, given the column's existing plan? Counts
+    // same-family uses inside one recast on either side against the charges.
+    private bool MitFreeAt(int i, Cooldowns.PlanMit pm, float t)
+    {
+        var nearby = 0;
+        foreach (var l in _slotLines[i])
+        {
+            if (!l.Enabled || MathF.Abs(l.CueTime - t) >= pm.Recast) continue;
+            foreach (var other in Cooldowns.PlanMits(l.Action))
+                if (string.Equals(other.Name, pm.Name, StringComparison.OrdinalIgnoreCase)
+                    || (pm.Family.Length > 0 && other.Family == pm.Family))
+                {
+                    nearby++;
+                    break;
+                }
+        }
+        return nearby < pm.Charges;
     }
 
     // Cell clipboard for right-click copy/paste (a mit's action text).

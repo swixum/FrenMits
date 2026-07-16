@@ -39,6 +39,7 @@ public sealed class Plugin : IDalamudPlugin
     public RecapWindow RecapWindow { get; }
     public SheetViewWindow SheetViewWindow { get; }
     public MiniSheetWindow MiniSheetWindow { get; }
+    public SlotPopupWindow SlotPopupWindow { get; }
 
     private readonly IDtrBarEntry? _dtr;
 
@@ -296,6 +297,7 @@ public sealed class Plugin : IDalamudPlugin
         RecapWindow = new RecapWindow(this);
         SheetViewWindow = new SheetViewWindow(this);
         MiniSheetWindow = new MiniSheetWindow(this);
+        SlotPopupWindow = new SlotPopupWindow(this);
         WhatsNewWindow = new WhatsNewWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
@@ -306,6 +308,7 @@ public sealed class Plugin : IDalamudPlugin
         Windows.AddWindow(RecapWindow);
         Windows.AddWindow(SheetViewWindow);
         Windows.AddWindow(MiniSheetWindow);
+        Windows.AddWindow(SlotPopupWindow);
         Windows.AddWindow(WhatsNewWindow);
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
@@ -409,6 +412,15 @@ public sealed class Plugin : IDalamudPlugin
         PreviewFight = null;
         try { AutoLoadForTerritory(territory); }
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
+
+        // Opt-in slot check-in: once per entry, only for fights that have a
+        // sheet (official, or a custom one the user built).
+        if (Config.ShowSlotPopupOnEntry)
+        {
+            var sheetFight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory
+                && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0));
+            if (sheetFight != null) SlotPopupWindow.OpenFor(sheetFight);
+        }
     }
 
     // Full refresh: rebake every built-in fight's lines fresh from the current
@@ -540,6 +552,24 @@ public sealed class Plugin : IDalamudPlugin
             Service.Log.Warning(ex, "FrenMits: snapshot restore failed");
             return "That snapshot couldn't be read.";
         }
+    }
+
+    // Switch which sheet column is "yours" for a fight: builtin fights load the
+    // slot's plan through ApplySlot (keeping each slot's saved edits), custom
+    // sheets swap the saved lists directly.
+    public void SetSlot(FightProfile fight, string slot)
+    {
+        if (Builtin.Has(fight.TerritoryId))
+        {
+            Builtin.ApplySlot(fight, slot);
+            Config.Save();
+            return;
+        }
+        if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;
+        fight.Slot = slot;
+        fight.Lines = fight.SavedSlots.TryGetValue(slot, out var lines) ? lines : new System.Collections.Generic.List<MitLine>();
+        fight.SavedSlots[slot] = fight.Lines;
+        Config.Save();
     }
 
     // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the

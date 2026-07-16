@@ -579,6 +579,11 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled("applies to every fight");
+
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        var ask = C.ShowSlotPopupOnEntry;
+        if (GreenCheckbox("Ask on duty entry", ref ask)) { C.ShowSlotPopupOnEntry = ask; C.Save(); }
+        Tip("When you enter a fight that has a sheet, a tiny popup shows which slot is yours\nand lets you change it. Shows once per entry; hides when combat starts. Off by default.");
     }
 
     // Both roles are seats of the same pair (MT/OT, or Melee 1/2), so the

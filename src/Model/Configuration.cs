@@ -22,6 +22,10 @@ public class Configuration : IPluginConfiguration
     // The fight Sheet View last showed, so it reopens where you left off.
     public string LastSheetFightId { get; set; } = "";
 
+    // Show a tiny once-per-entry popup naming your slot for the duty's sheet
+    // (official or custom), with a picker to change it. Off by default.
+    public bool ShowSlotPopupOnEntry { get; set; }
+
     // Color Sheet View mits by type (party / tank / personal). Off by default;
     // it's a lot of color on a full grid.
     public bool SheetColorByType { get; set; }

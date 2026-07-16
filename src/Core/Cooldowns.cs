@@ -147,6 +147,35 @@ public static class Cooldowns
         _planByName = map;
     }
 
+    // Each job's mitigation kit (tracked names only), for the custom-sheet
+    // "Suggest a mit" menu. Upgrade forms first, so the menu can show the
+    // highest level-legal member of each shared-cooldown family.
+    public static readonly System.Collections.Generic.Dictionary<string, string[]> JobKits = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["WAR"] = new[] { "Reprisal", "Rampart", "Shake It Off", "Damnation", "Vengeance", "Bloodwhetting", "Raw Intuition", "Thrill of Battle" },
+        ["PLD"] = new[] { "Reprisal", "Rampart", "Divine Veil", "Passage of Arms", "Guardian", "Sentinel", "Holy Sheltron", "Sheltron", "Intervention", "Bulwark" },
+        ["DRK"] = new[] { "Reprisal", "Rampart", "Dark Missionary", "Shadow Wall", "The Blackest Night", "Oblation", "Dark Mind" },
+        ["GNB"] = new[] { "Reprisal", "Rampart", "Heart of Light", "Nebula", "Heart of Corundum", "Heart of Stone", "Camouflage", "Aurora" },
+        ["WHM"] = new[] { "Temperance", "Asylum", "Plenary Indulgence", "Liturgy of the Bell", "Divine Caress" },
+        ["SCH"] = new[] { "Sacred Soil", "Expedient", "Fey Illumination", "Seraph", "Whispering Dawn", "Recitation" },
+        ["AST"] = new[] { "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Exaltation", "Sun Sign" },
+        ["SGE"] = new[] { "Kerachole", "Holos", "Panhaima", "Physis II", "Krasis", "Zoe", "Philosophia" },
+        ["MNK"] = new[] { "Feint" }, ["DRG"] = new[] { "Feint" }, ["NIN"] = new[] { "Feint" },
+        ["SAM"] = new[] { "Feint" }, ["RPR"] = new[] { "Feint" }, ["VPR"] = new[] { "Feint" },
+        ["BRD"] = new[] { "Troubadour" },
+        ["MCH"] = new[] { "Tactician", "Dismantle" },
+        ["DNC"] = new[] { "Shield Samba", "Improvisation" },
+        ["BLM"] = new[] { "Addle" }, ["SMN"] = new[] { "Addle" }, ["PCT"] = new[] { "Addle" },
+        ["RDM"] = new[] { "Addle", "Magick Barrier" },
+    };
+
+    // Static plan data for one tracked mit by exact name, or null.
+    public static PlanMit? PlanInfo(string name)
+    {
+        EnsurePlanMap();
+        return _planByName != null && _planByName.TryGetValue(name, out var pm) ? pm : null;
+    }
+
     // The level a duty syncs players to, or 0 when unknown (no warnings then).
     public static int DutySyncLevel(uint territory)
     {
