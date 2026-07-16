@@ -1429,6 +1429,9 @@ public class SheetViewWindow : Window
             if (ImGui.MenuItem("Plan history...")) openHistory = true;
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Snapshots taken automatically before imports, replaces and\ncolumn pastes; restore any of them.");
+            if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
+            if (!_isCustom && ImGui.IsItemHovered())
+                ImGui.SetTooltip("Reload EVERY column from the baked sheet: all slots' edits and\ndeletions go, including added potion, job and tank lines.\nA snapshot is saved first; Plan > History restores it.");
             if (ImGui.MenuItem("Open fight page")) _plugin.ConfigWindow.OpenFightPage(_fight!);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Per-line options, anchors and import tools live there.");
@@ -1467,6 +1470,10 @@ public class SheetViewWindow : Window
         DrawHistoryPopup();
         if (openDelete) ImGui.OpenPopup("##sheetdelete");
         DrawDeleteSheetPopup();
+        // Deferred like the rest: the request can come from the Plan menu or from
+        // a cell's right-click menu (a different ID scope), so it rides a flag.
+        if (_openResetAll) { _openResetAll = false; ImGui.OpenPopup("##sheetresetall"); }
+        DrawResetAllPopup();
         if (_isCustom)
         {
             if (openAddRow) { _rowMech = ""; _rowTime = ""; ImGui.OpenPopup("##addrow"); }
@@ -2716,8 +2723,48 @@ public class SheetViewWindow : Window
                 ApplyCellText(row, i, _cellClip);
             ImGui.EndDisabled();
             if (ImGui.MenuItem("Reset this cell to the sheet")) ResetCell(row, i);
+            if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
             ImGui.EndPopup();
         }
+    }
+
+    // Set by the Plan menu or a cell context menu; the confirm modal opens from
+    // the toolbar's ID scope on the next pass.
+    private bool _openResetAll;
+
+    // Full reset across every column (same as the fight page's Reset all columns):
+    // snapshot-first, confirmed, and undoable with Ctrl+Z here in the Sheet View.
+    private void DrawResetAllPopup()
+    {
+        var open = true;
+        if (!ImGui.BeginPopupModal("##sheetresetall", ref open,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+            return;
+
+        ImGui.TextUnformatted("Reset every column to the baked sheet?");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "All slots' edits and deletions go, including added potion, job and tank lines.");
+        ImGui.TextDisabled("A snapshot is saved first; Plan > History (or Ctrl+Z) restores it.");
+        ImGui.Spacing();
+
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.SetItemDefaultFocus();
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
+        if (ImGui.Button("Reset every column", new Vector2(180, 0)) && _fight != null)
+        {
+            PushUndo("reset every column");
+            _plugin.SnapshotPlan(_fight, "before Reset all columns");
+            _fight.SavedSlots.Clear();
+            _fight.DeletedCalls.Clear();
+            if (!string.IsNullOrEmpty(_fight.Slot)) Builtin.ResetSlot(_fight, _fight.Slot);
+            C.Save();
+            _dirty = true;
+            Flash("Every column reset to the baked sheet. Plan > History (or Ctrl+Z) restores the old plan.");
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.EndPopup();
     }
 
     // ---- suggest a mit (custom sheets) --------------------------------------
