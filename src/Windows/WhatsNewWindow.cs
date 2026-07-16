@@ -14,7 +14,7 @@ public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show. The panel pops
     // once per NotesVersion, so routine version bumps don't re-trigger it.
-    public const string NotesVersion = "1.0.0.155";
+    public const string NotesVersion = "1.0.0.156";
 
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
@@ -76,6 +76,7 @@ public class WhatsNewWindow : Window
     // Newest first; a few words per release.
     private static readonly (string Version, string Text)[] Notes =
     {
+        ("1.0.0.156", "Smarter checks: shared cooldowns (Bloodwhetting family) count as one timer, and amber cells flag mits above the duty's level sync."),
         ("1.0.0.155", "Quieter hovers: the official-sheet tooltip lives on the star, and sweep paths wait a beat."),
         ("1.0.0.154", "Polish: shorter sheet help, aligned control widths, window positions safe across future renames."),
         ("1.0.0.153", "Practice moved onto each fight's page, one Add fight menu, quieter status header, Refresh from sheet moved off Home."),

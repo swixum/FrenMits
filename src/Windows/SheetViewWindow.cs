@@ -83,6 +83,8 @@ public class SheetViewWindow : Window
     private bool _isCustom;
     // Lines whose mit repeats before its cooldown can be back (message per line).
     private readonly Dictionary<MitLine, string> _conflicts = new();
+    // Lines whose mit is above the duty's level sync (message per line).
+    private readonly Dictionary<MitLine, string> _levelWarns = new();
     // Text filter: show only rows whose mechanic or any mit matches.
     private string _filter = "";
 
@@ -482,53 +484,70 @@ public class SheetViewWindow : Window
     private void FindCooldownConflicts()
     {
         _conflicts.Clear();
+        _levelWarns.Clear();
+        var syncLevel = _fight != null ? Cooldowns.DutySyncLevel(_fight.TerritoryId) : 0;
+
         for (var i = 0; i < _slots.Length; i++)
         {
-            var uses = new Dictionary<string, (Cooldowns.PlanMit Mit, List<(float Time, MitLine Line)> Uses)>(StringComparer.OrdinalIgnoreCase);
+            // Abilities in the same recast GROUP share one timer (Bloodwhetting /
+            // Nascent Flash / Raw Intuition), so group-mates pool their uses.
+            var uses = new Dictionary<string, (float Recast, int Charges, List<(float Time, MitLine Line, string Name)> Uses)>(StringComparer.OrdinalIgnoreCase);
             foreach (var l in _slotLines[i])
             {
                 if (!l.Enabled) continue;
                 foreach (var pm in Cooldowns.PlanMits(l.Action))
                 {
-                    if (!uses.TryGetValue(pm.Name, out var entry))
-                        uses[pm.Name] = entry = (pm, new List<(float, MitLine)>());
-                    entry.Uses.Add((l.Time, l));
+                    if (syncLevel > 0 && pm.Level > syncLevel)
+                    {
+                        var lvlMsg = $"{pm.Name} needs level {pm.Level}; this duty syncs to {syncLevel}.";
+                        _levelWarns[l] = _levelWarns.TryGetValue(l, out var lw) ? lw + "\n" + lvlMsg : lvlMsg;
+                    }
+
+                    var key = pm.Group != 0 ? $"group:{pm.Group}" : pm.Name;
+                    if (!uses.TryGetValue(key, out var entry))
+                        uses[key] = entry = (pm.Recast, pm.Charges, new List<(float, MitLine, string)>());
+                    entry.Uses.Add((l.Time, l, pm.Name));
                 }
             }
 
-            foreach (var (mit, list) in uses.Values)
+            foreach (var (recast, charges, list) in uses.Values)
             {
                 if (list.Count < 2) continue;
                 list.Sort((a, b) => a.Time.CompareTo(b.Time));
 
                 // Serial recharge, like the game: charges regenerate one at a
                 // time, so Oblation @0 and @5 is back at 60 and 120, not 60/65.
-                var max = mit.Charges;
+                var max = charges;
                 var avail = max;
                 var nextAt = float.PositiveInfinity; // when a charge next finishes
-                foreach (var (t, line) in list)
+                var prevName = "";
+                foreach (var (t, line, name) in list)
                 {
                     // Regenerate charges finished by now (1s resync tolerance).
                     while (avail < max && nextAt <= t + 1f)
                     {
                         avail++;
-                        nextAt = avail < max ? nextAt + mit.Recast : float.PositiveInfinity;
+                        nextAt = avail < max ? nextAt + recast : float.PositiveInfinity;
                     }
 
                     if (avail == 0)
                     {
-                        var msg = $"{mit.Name}: not back for another {nextAt - t:0}s here "
-                                + $"({mit.Recast:0}s cooldown" + (max > 1 ? $", {max} charges)." : ").");
+                        var shared = prevName.Length > 0
+                            && !string.Equals(prevName, name, StringComparison.OrdinalIgnoreCase)
+                            ? $"; it shares a cooldown with {prevName}" : "";
+                        var msg = $"{name}: not back for another {nextAt - t:0}s here "
+                                + $"({recast:0}s cooldown" + (max > 1 ? $", {max} charges)" : ")") + shared + ".";
                         _conflicts[line] = _conflicts.TryGetValue(line, out var old) ? old + "\n" + msg : msg;
                         // The plan presumably slips to use the charge the moment
                         // it lands, so its recharge slot is consumed.
-                        nextAt += mit.Recast;
+                        nextAt += recast;
                     }
                     else
                     {
-                        if (avail == max) nextAt = t + mit.Recast; // pipeline starts
+                        if (avail == max) nextAt = t + recast; // pipeline starts
                         avail--;
                     }
+                    prevName = name;
                 }
             }
         }
@@ -1260,7 +1279,7 @@ public class SheetViewWindow : Window
             ImGui.SetTooltip(
                 "Click a time to re-time a mechanic for every slot; click a cell to edit that slot only.\n"
                 + "While editing: Enter moves down, Tab moves right. Ctrl+Z undoes any edit.\n"
-                + "Orange * = your edit (kept through sheet updates); red cell = cooldown conflict; dim = deleted.\n"
+                + "Orange * = your edit; red cell = cooldown conflict; amber = above the duty's level sync; dim = deleted.\n"
                 + "Drag column edges to resize (double-click to fit) or drag headers to reorder.\n"
                 + "Right-click cells, mechanics and column headers; most tools live there.");
 
@@ -2018,6 +2037,7 @@ public class SheetViewWindow : Window
     private static readonly Vector4 NoteBlue = new(0.42f, 0.66f, 0.96f, 1f);
     private const uint YouCellBg = 0x2233AA33;   // faint green tint (ABGR)
     private const uint WarnCellBg = 0x483040E6;  // translucent red: cooldown conflict
+    private const uint LevelCellBg = 0x4820A0E0; // translucent amber: above level sync
 
     // The game font has no glyphs for symbols like a star, pen, or undo arrow
     // (they render as an empty box), so every symbol is drawn with the icon font.
@@ -2395,12 +2415,17 @@ public class SheetViewWindow : Window
         var custom = !_isCustom && !jobOnly && cell.Any(l => l.Custom);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
 
-        // Cooldown conflicts tint the cell red (details go in the tooltip).
+        // Cooldown conflicts tint the cell red; level-sync problems amber
+        // (red wins when both apply). Details go in the tooltip.
         string? warn = null;
+        string? lvl = null;
         foreach (var l in cell)
-            if (_conflicts.TryGetValue(l, out var w))
-                warn = warn == null ? w : warn + "\n" + w;
+        {
+            if (_conflicts.TryGetValue(l, out var w)) warn = warn == null ? w : warn + "\n" + w;
+            if (_levelWarns.TryGetValue(l, out var v)) lvl = lvl == null ? v : lvl + "\n" + v;
+        }
         if (warn != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, WarnCellBg);
+        else if (lvl != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, LevelCellBg);
 
         // Merged cells stack their lines instead of hiding behind a "+1".
         var body = cell.Count > 1 ? string.Join("\n", cell.Select(l => l.Action)) : first;
@@ -2436,9 +2461,10 @@ public class SheetViewWindow : Window
                       + "editing changes the first one only. Fine-tune both on the fight page.";
             if (jobOnly) tip = $"Job extra: only fires for {string.Join("/", cell[0].Jobs)}.\n" + tip;
             if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
+            if (lvl != null) tip = lvl + "\n\n" + tip;
             if (warn != null) tip = warn + "\n\n" + tip;
             // Warnings show immediately; informational tips wait the beat.
-            if (warn != null || DelayedHover()) ImGui.SetTooltip(tip);
+            if (warn != null || lvl != null || DelayedHover()) ImGui.SetTooltip(tip);
         }
 
         // Right-click: quick actions + the per-call offset, sheet-side.

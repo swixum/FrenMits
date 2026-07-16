@@ -73,7 +73,11 @@ public static class Cooldowns
 
     // ---- static planning data (from the game sheets, no combat needed) ----
 
-    public readonly record struct PlanMit(string Name, float Recast, int Charges);
+    // Group: the game's recast group. Abilities sharing a nonzero group share
+    // one cooldown (Bloodwhetting / Nascent Flash / Raw Intuition), so the plan
+    // checker must treat them as the same timer. Level: when the job learns it,
+    // for level-sync warnings.
+    public readonly record struct PlanMit(string Name, float Recast, int Charges, int Group, int Level);
 
     private static Dictionary<string, PlanMit>? _planByName;
 
@@ -92,11 +96,26 @@ public static class Cooldowns
                     if (row == null) continue;
                     var recast = row.Value.Recast100ms / 10f;
                     if (recast <= 5f) continue; // GCD-ish rows aren't worth validating
-                    map[kv.Key] = new PlanMit(kv.Key, recast, Math.Max(1, (int)row.Value.MaxCharges));
+                    map[kv.Key] = new PlanMit(kv.Key, recast,
+                        Math.Max(1, (int)row.Value.MaxCharges),
+                        row.Value.CooldownGroup,
+                        row.Value.ClassJobLevel);
                 }
         }
         catch { }
         _planByName = map;
+    }
+
+    // The level a duty syncs players to, or 0 when unknown (no warnings then).
+    public static int DutySyncLevel(uint territory)
+    {
+        try
+        {
+            var t = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.GetRowOrDefault(territory);
+            var cfc = t?.ContentFinderCondition.ValueNullable;
+            return cfc?.ClassJobLevelSync ?? 0;
+        }
+        catch { return 0; }
     }
 
     // Every tracked mit referenced in an action text ("Sacred Soil + Spreadlo"
