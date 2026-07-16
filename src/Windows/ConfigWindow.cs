@@ -1020,6 +1020,12 @@ public class ConfigWindow : Window, IDisposable
         }
         Tip("Reloads this slot from the baked sheet, discarding only this slot's edits.");
 
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Reset all columns")) ImGui.OpenPopup("##confirm-resetall");
+        Tip("Reloads EVERY column from the baked sheet: all slots' edits and deletions go, "
+            + "including added potion, job and tank lines. A snapshot is saved first, so "
+            + "Sheet View > Plan > History can restore the old plan.");
+
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
             ImGui.SameLine();
@@ -1027,6 +1033,42 @@ public class ConfigWindow : Window, IDisposable
         }
 
         DrawReplaceConfirm(fight, slot);
+        DrawResetAllConfirm(fight, slot);
+    }
+
+    // Full reset across every column, for when single-slot resets aren't enough
+    // (stale edits living in OTHER slots' preview columns). Snapshot-first and
+    // confirmed, so it's safe to reach for.
+    private void DrawResetAllConfirm(FightProfile fight, string slot)
+    {
+        var open = true;
+        if (!ImGui.BeginPopupModal("##confirm-resetall", ref open,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+            return;
+
+        ImGui.TextUnformatted("Reset every column to the baked sheet?");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "All slots' edits and deletions go, including added potion, job and tank lines.");
+        ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
+        ImGui.Spacing();
+
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.SetItemDefaultFocus();
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
+        if (ImGui.Button("Reset every column", new Vector2(180, 0)))
+        {
+            _plugin.SnapshotPlan(fight, "before Reset all columns");
+            fight.SavedSlots.Clear();
+            fight.DeletedCalls.Clear();
+            Builtin.ResetSlot(fight, slot);
+            C.DmuSlot = fight.Slot;
+            C.Save();
+            FlashBuiltin("Every column reset to the baked sheet. History restores the old plan.");
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.EndPopup();
     }
 
     private void DrawReplaceConfirm(FightProfile fight, string slot)
