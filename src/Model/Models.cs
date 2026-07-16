@@ -138,6 +138,11 @@ public class MitLine
     // resync and sheet updates are unaffected. 0 = no shift.
     public float OffsetSeconds { get; set; }
 
+    // Multi-hit coverage: this call must still be ACTIVE at this plan time (the
+    // last hit it covers). 0 = covers only its own moment. Sheet View computes
+    // the valid press window from this plus the buff's duration.
+    public float CoverUntil { get; set; }
+
     // Where this call actually fires on the cue clock.
     public float CueTime => Time - OffsetSeconds;
 

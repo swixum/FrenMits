@@ -26,7 +26,7 @@ public static class Cooldowns
         "Temperance", "Plenary Indulgence", "Asylum", "Liturgy of the Bell", "Divine Caress",
         "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Exaltation", "Sun Sign",
         "Kerachole", "Holos", "Panhaima", "Physis II", "Krasis", "Zoe", "Philosophia",
-        "Magick Barrier", "Addle", "Tactician", "Troubadour", "Shield Samba", "Improvisation",
+        "Magick Barrier", "Addle", "Tactician", "Troubadour", "Shield Samba", "Improvisation", "Dismantle",
     };
 
     private static Dictionary<string, uint>? _byName;
@@ -43,6 +43,9 @@ public static class Cooldowns
                 foreach (var row in sheet)
                 {
                     var n = row.Name.ExtractText();
+                    // Legacy and PvP duplicate rows share names with the real
+                    // action; the real one has a job level and is not PvP.
+                    if (row.ClassJobLevel == 0 || row.IsPvP) continue;
                     if (!string.IsNullOrEmpty(n) && want.Contains(n) && !map.ContainsKey(n))
                         map[n] = row.RowId;
                 }
@@ -73,11 +76,48 @@ public static class Cooldowns
 
     // ---- static planning data (from the game sheets, no combat needed) ----
 
-    // Group: the game's recast group. Abilities sharing a nonzero group share
-    // one cooldown (Bloodwhetting / Nascent Flash / Raw Intuition), so the plan
-    // checker must treat them as the same timer. Level: when the job learns it,
-    // for level-sync warnings.
-    public readonly record struct PlanMit(string Name, float Recast, int Charges, int Group, int Level);
+    // Family: hand-curated shared-cooldown family key ("" = its own timer).
+    // NOT the Action sheet's CooldownGroup: those numbers are per-actor slots
+    // reused across jobs (Temperance and Panhaima collide), so they can never
+    // be used to pool timers. Level: when the job learns it, for level-sync
+    // warnings. Duration: buff uptime in seconds (0 = unknown).
+    public readonly record struct PlanMit(string Name, float Recast, int Charges, string Family, int Level, float Duration);
+
+    private static readonly Dictionary<string, string> SharedFamily = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Raw Intuition"] = "war-heal", ["Bloodwhetting"] = "war-heal", ["Nascent Flash"] = "war-heal",
+        ["Vengeance"] = "war-mit", ["Damnation"] = "war-mit",
+        ["Sentinel"] = "pld-mit", ["Guardian"] = "pld-mit",
+        ["Heart of Stone"] = "gnb-heart", ["Heart of Corundum"] = "gnb-heart",
+        ["Sheltron"] = "pld-oath", ["Holy Sheltron"] = "pld-oath",
+    };
+
+    // Buff durations, hand-curated (7.x values): the game sheets don't expose
+    // status uptime cleanly. 0 / absent = no window math for that mit. Values
+    // are the MITIGATION uptime, not trailing regen ticks.
+    private static readonly Dictionary<string, float> Durations = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Reprisal"] = 15, ["Feint"] = 15, ["Addle"] = 15, ["Dismantle"] = 10,
+        ["Rampart"] = 20, ["Thrill of Battle"] = 10, ["Holmgang"] = 10,
+        ["Bloodwhetting"] = 8, ["Nascent Flash"] = 8, ["Raw Intuition"] = 6,
+        ["Shake It Off"] = 30, ["Vengeance"] = 15, ["Damnation"] = 15,
+        ["Sentinel"] = 15, ["Guardian"] = 15, ["Divine Veil"] = 30,
+        ["Passage of Arms"] = 18, ["Hallowed Ground"] = 10, ["Bulwark"] = 10,
+        ["Sheltron"] = 8, ["Holy Sheltron"] = 8, ["Intervention"] = 8,
+        ["Shadow Wall"] = 15, ["Dark Mind"] = 10, ["Living Dead"] = 10,
+        ["The Blackest Night"] = 7, ["Oblation"] = 10, ["Dark Missionary"] = 15,
+        ["Camouflage"] = 20, ["Nebula"] = 15, ["Superbolide"] = 10,
+        ["Heart of Light"] = 15, ["Heart of Stone"] = 7, ["Heart of Corundum"] = 8, ["Aurora"] = 18,
+        ["Sacred Soil"] = 15, ["Expedient"] = 20, ["Fey Illumination"] = 20, ["Whispering Dawn"] = 21,
+        ["Temperance"] = 20, ["Plenary Indulgence"] = 10, ["Asylum"] = 24,
+        ["Liturgy of the Bell"] = 20, ["Divine Caress"] = 10,
+        ["Collective Unconscious"] = 18, ["Neutral Sect"] = 20, ["Macrocosmos"] = 15,
+        ["Exaltation"] = 8, ["Sun Sign"] = 15,
+        ["Kerachole"] = 15, ["Holos"] = 20, ["Panhaima"] = 15, ["Physis II"] = 15,
+        ["Krasis"] = 10, ["Philosophia"] = 20,
+        ["Magick Barrier"] = 10, ["Tactician"] = 15, ["Troubadour"] = 15,
+        ["Shield Samba"] = 15, ["Improvisation"] = 15,
+    };
 
     private static Dictionary<string, PlanMit>? _planByName;
 
@@ -98,8 +138,9 @@ public static class Cooldowns
                     if (recast <= 5f) continue; // GCD-ish rows aren't worth validating
                     map[kv.Key] = new PlanMit(kv.Key, recast,
                         Math.Max(1, (int)row.Value.MaxCharges),
-                        row.Value.CooldownGroup,
-                        row.Value.ClassJobLevel);
+                        SharedFamily.GetValueOrDefault(kv.Key, ""),
+                        row.Value.ClassJobLevel,
+                        Durations.GetValueOrDefault(kv.Key));
                 }
         }
         catch { }

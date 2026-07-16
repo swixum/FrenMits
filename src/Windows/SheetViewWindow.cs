@@ -85,6 +85,8 @@ public class SheetViewWindow : Window
     private readonly Dictionary<MitLine, string> _conflicts = new();
     // Lines whose mit is above the duty's level sync (message per line).
     private readonly Dictionary<MitLine, string> _levelWarns = new();
+    // Valid press windows ("press between X and Y"), from coverage + squeeze.
+    private readonly Dictionary<MitLine, string> _windows = new();
     // Text filter: show only rows whose mechanic or any mit matches.
     private string _filter = "";
 
@@ -485,6 +487,7 @@ public class SheetViewWindow : Window
     {
         _conflicts.Clear();
         _levelWarns.Clear();
+        _windows.Clear();
         var syncLevel = _fight != null ? Cooldowns.DutySyncLevel(_fight.TerritoryId) : 0;
 
         for (var i = 0; i < _slots.Length; i++)
@@ -503,17 +506,61 @@ public class SheetViewWindow : Window
                         _levelWarns[l] = _levelWarns.TryGetValue(l, out var lw) ? lw + "\n" + lvlMsg : lvlMsg;
                     }
 
-                    var key = pm.Group != 0 ? $"group:{pm.Group}" : pm.Name;
+                    var key = pm.Family.Length > 0 ? $"family:{pm.Family}" : pm.Name;
                     if (!uses.TryGetValue(key, out var entry))
                         uses[key] = entry = (pm.Recast, pm.Charges, new List<(float, MitLine, string)>());
-                    entry.Uses.Add((l.Time, l, pm.Name));
+                    // CUE time, not plan time: a per-call offset genuinely moves
+                    // the press, so it must count in the timer math.
+                    entry.Uses.Add((l.CueTime, l, pm.Name));
                 }
             }
 
             foreach (var (recast, charges, list) in uses.Values)
             {
-                if (list.Count < 2) continue;
                 list.Sort((a, b) => a.Time.CompareTo(b.Time));
+
+                // Press windows: coverage pushes the press EARLIER (the buff
+                // must reach the last covered hit), a same-timer reuse caps how
+                // LATE it can go (squeeze). Charges make squeeze moot.
+                for (var u = 0; u < list.Count; u++)
+                {
+                    var (t, line, name) = list[u];
+                    var pm = Cooldowns.PlanMits(line.Action).FirstOrDefault(m =>
+                        string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
+
+                    var lo = float.NegativeInfinity;
+                    if (line.CoverUntil > t + 0.5f && pm.Duration > 0f)
+                        lo = line.CoverUntil - pm.Duration;
+
+                    var hi = t;
+                    var squeezedBy = "";
+                    if (charges == 1 && u + 1 < list.Count)
+                    {
+                        var next = list[u + 1];
+                        var latest = next.Time - recast;
+                        if (latest < hi) { hi = latest; squeezedBy = $"{next.Name} at {TimeText(next.Time)}"; }
+                    }
+
+                    if (lo > hi + 0.5f)
+                    {
+                        var msg = line.CoverUntil > t + 0.5f && pm.Duration > 0f && lo > t
+                            ? $"{name}'s {pm.Duration:0}s duration can't reach {TimeText(line.CoverUntil)}; press it later or shorten the coverage."
+                            : $"{name} can't cover through {TimeText(line.CoverUntil)} AND be back for {squeezedBy}.";
+                        _conflicts[line] = _conflicts.TryGetValue(line, out var oldMsg) ? oldMsg + "\n" + msg : msg;
+                    }
+                    else if ((lo > float.NegativeInfinity || hi < t - 0.5f) && hi >= 0f)
+                    {
+                        var loText = lo > float.NegativeInfinity ? TimeText(MathF.Max(lo, 0f)) : "any time";
+                        var win = lo > float.NegativeInfinity && hi < t - 0.5f
+                            ? $"Press {name} between {loText} and {TimeText(hi)} (covers through {TimeText(line.CoverUntil)}; needed again for {squeezedBy})."
+                            : lo > float.NegativeInfinity
+                                ? $"Press {name} between {loText} and {TimeText(t)} to cover through {TimeText(line.CoverUntil)}."
+                                : $"Press {name} by {TimeText(hi)}; it's needed again for {squeezedBy}.";
+                        _windows[line] = _windows.TryGetValue(line, out var oldWin) ? oldWin + "\n" + win : win;
+                    }
+                }
+
+                if (list.Count < 2) continue;
 
                 // Serial recharge, like the game: charges regenerate one at a
                 // time, so Oblation @0 and @5 is back at 60 and 120, not 60/65.
@@ -2459,7 +2506,12 @@ public class SheetViewWindow : Window
                     ? $"{first}\nClick to edit {_slots[i]}'s mit (that slot only). Clear the text to remove it."
                     : $"{string.Join("  ·  ", cell.Select(l => l.Action))}\nTwo lines share this moment; "
                       + "editing changes the first one only. Fine-tune both on the fight page.";
+            string? win = null;
+            foreach (var l in cell)
+                if (_windows.TryGetValue(l, out var w0))
+                    win = win == null ? w0 : win + "\n" + w0;
             if (jobOnly) tip = $"Job extra: only fires for {string.Join("/", cell[0].Jobs)}.\n" + tip;
+            if (win != null) tip = win + "\n\n" + tip;
             if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
             if (lvl != null) tip = lvl + "\n\n" + tip;
             if (warn != null) tip = warn + "\n\n" + tip;
@@ -2488,6 +2540,51 @@ public class SheetViewWindow : Window
                     C.Save();
                 }
                 ImGui.TextDisabled("+ fires this one call earlier, - later.");
+
+                // Multi-hit coverage: stretch this mit over later hits; the
+                // tooltip then shows the valid press window.
+                var coverBase = line.CoverUntil > row.Time ? line.CoverUntil : row.Time;
+                var nextRow = _rows.FirstOrDefault(r => !r.Ghost && r.Time > coverBase + 0.5f);
+                ImGui.BeginDisabled(nextRow == null);
+                if (ImGui.MenuItem(nextRow != null
+                        ? $"Cover through {nextRow.Mechanic} ({TimeText(nextRow.Time)})"
+                        : "Cover through next hit") && nextRow != null && !AbortIfStale())
+                {
+                    PushUndo($"extend {row.Mechanic} coverage");
+                    EnsureBacked(i);
+                    line.CoverUntil = nextRow.Time;
+                    C.Save();
+                    _dirty = true;
+                }
+                ImGui.EndDisabled();
+                if (line.CoverUntil > row.Time && ImGui.MenuItem($"Clear coverage (through {TimeText(line.CoverUntil)})") && !AbortIfStale())
+                {
+                    PushUndo($"clear {row.Mechanic} coverage");
+                    EnsureBacked(i);
+                    line.CoverUntil = 0f;
+                    C.Save();
+                    _dirty = true;
+                }
+                if (_windows.TryGetValue(line, out var lineWin))
+                {
+                    var winFirst = lineWin.Split('\n')[0];
+                    ImGui.TextDisabled(winFirst);
+                    // One click to move the CALL to the window's start.
+                    var m = System.Text.RegularExpressions.Regex.Match(winFirst, "between (\\d+):(\\d+)");
+                    if (m.Success)
+                    {
+                        var winStart = int.Parse(m.Groups[1].Value) * 60 + int.Parse(m.Groups[2].Value);
+                        var shift = MathF.Round(row.Time - winStart);
+                        if (shift is > 0f and <= 30f && MathF.Abs(line.OffsetSeconds - shift) >= 0.5f
+                            && ImGui.MenuItem($"Call at window start (+{shift:0}s)") && !AbortIfStale())
+                        {
+                            PushUndo($"offset {row.Mechanic} to window");
+                            EnsureBacked(i);
+                            line.OffsetSeconds = shift;
+                            C.Save();
+                        }
+                    }
+                }
                 ImGui.Separator();
                 if (ImGui.MenuItem("Copy mit")) _cellClip = line.Action;
                 if (ImGui.MenuItem("Delete this mit")) DeleteCellLine(row, i);
