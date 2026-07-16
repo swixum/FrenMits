@@ -1168,7 +1168,7 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##newsheet")) return;
 
-        ImGui.TextDisabled("New custom sheet");
+        PopupHeader("New custom sheet");
         ImGui.SetNextItemWidth(250f);
         ImGui.InputTextWithHint("##nsname", "sheet name (usually the fight)", ref _newName, 64);
         ImGui.SetNextItemWidth(250f);
@@ -1461,6 +1461,7 @@ public class SheetViewWindow : Window
     private void DrawAddRowPopup()
     {
         if (!ImGui.BeginPopup("##addrow")) return;
+        PopupHeader("Add a row");
         ImGui.SetNextItemWidth(200f);
         ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
         ImGui.SetNextItemWidth(200f);
@@ -1561,8 +1562,7 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##sheethistory")) return;
 
-        ImGui.TextDisabled("Plan snapshots (this fight)");
-        ImGui.SameLine(0, 12);
+        PopupHeader("Plan snapshots (this fight)");
         if (ImGui.SmallButton("Snapshot now"))
         {
             _plugin.SnapshotPlan(_fight!, "manual snapshot");
@@ -1668,6 +1668,8 @@ public class SheetViewWindow : Window
     private void DrawBuildFromPullPopup()
     {
         if (!ImGui.BeginPopup("##buildpull")) return;
+
+        PopupHeader("Build from last pull");
 
         // Only offer a capture that came from THIS duty: building duty A's
         // casts into duty B's sheet would replace B's anchors with nonsense.
@@ -1829,6 +1831,8 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##fflogs")) return;
 
+        PopupHeader("Import an FFLogs report");
+
         // Cached report state is per fight: duty A's casts must never sit one
         // click away from being imported into duty B's sheet.
         if (ImGui.IsWindowAppearing() && _flForFight != _fight)
@@ -1986,7 +1990,7 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##sheetreplace")) return;
 
-        ImGui.TextDisabled("Replace a mit across the sheet");
+        PopupHeader("Replace a mit across the sheet");
         ImGui.SetNextItemWidth(230f);
         ImGui.InputTextWithHint("##rfind", "find (e.g. Vengeance)", ref _replFind, 64);
         ImGui.SetNextItemWidth(230f);
@@ -2178,6 +2182,17 @@ public class SheetViewWindow : Window
     {
         using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
             return ImGui.SmallButton(icon.ToIconString() + id);
+    }
+
+    // Header row for the Sheet View popups: a dim title plus a right-aligned X,
+    // so every menu shows a visible way out (Esc and clicking outside still work).
+    private static void PopupHeader(string title)
+    {
+        ImGui.TextDisabled(title);
+        var titleEnd = ImGui.GetItemRectSize().X + 24f;
+        ImGui.SameLine(MathF.Max(ImGui.GetWindowWidth() - 32f, titleEnd));
+        if (IconSmallButton(FontAwesomeIcon.Times, "##closepopup"))
+            ImGui.CloseCurrentPopup();
     }
 
     private bool _editorDrawn; // safety net: an open editor whose row got hidden
