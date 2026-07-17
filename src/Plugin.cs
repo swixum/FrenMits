@@ -977,6 +977,7 @@ public sealed class Plugin : IDalamudPlugin
     public static bool Replaying => ReplayFight != null;
 
     private bool _firstTickDone;
+    private bool _wasInDutyPlayback;
     private DateTime _lastFrameErrLog = DateTime.MinValue;
     public int FrameErrorCount { get; private set; }
     public DateTime LastFrameErrorAt { get; private set; } = DateTime.MinValue;
@@ -1049,6 +1050,16 @@ public sealed class Plugin : IDalamudPlugin
                 }
             }
             _wasInCombatForTest = inCombatNow;
+
+            // Leaving a Duty Recorder playback: the spectator never gets combat
+            // flags, so the replay-started timer would keep ticking on the menus
+            // forever. Stop it the moment playback ends.
+            if (_wasInDutyPlayback && !InDutyPlayback && Timer.Running)
+            {
+                Timer.Reset();
+                Service.Log.Information("[FrenMits] Playback ended; timer stopped.");
+            }
+            _wasInDutyPlayback = InDutyPlayback;
 
             Timer.Update();
             Replay.Update();

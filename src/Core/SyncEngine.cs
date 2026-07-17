@@ -15,6 +15,7 @@ public class SyncEngine
     private readonly Dictionary<uint, uint> _lastCast = new(); // actor -> last seen cast action id
     private readonly HashSet<uint> _seenBoss = new();          // boss NameIds seen this pull
     private bool _wasRunning;
+    private DateTime _playbackEnemyAt = DateTime.UtcNow;       // last live enemy seen (playback watchdog)
     private bool _lastPullArmed; // LastPull cleared once per pull, on its first frame
 
     public string LastSync { get; private set; } = "";
@@ -68,13 +69,30 @@ public class SyncEngine
         // Fresh pull (combat just started): re-arm boss-presence + cast detection so
         // anchors fire again. NOT keyed off Generation, which also bumps on /fm sync.
         var running = _plugin.Timer.Running;
-        if (running && !_wasRunning) { Forget(); _lastPullArmed = false; }
+        if (running && !_wasRunning) { Forget(); _lastPullArmed = false; _playbackEnemyAt = DateTime.UtcNow; }
         _wasRunning = running;
 
         if (!running)
         {
             TryPlaybackAutoStart(c);
             return;
+        }
+
+        // Duty-recorder playback watchdog: the spectator has no combat flag, so
+        // nothing ever stops the clock between the recording's pulls. When every
+        // enemy has been gone a while (wipe faded, loading a chapter), stop the
+        // timer; the auto-start re-arms for the next pull.
+        if (Plugin.InDutyPlayback && !Plugin.Replaying)
+        {
+            // Cutscene time is a phase transition, not a wipe; keep the watchdog
+            // fed so it can't fire the instant the cutscene ends.
+            if (Plugin.CutsceneActive) _playbackEnemyAt = DateTime.UtcNow;
+            else if ((DateTime.UtcNow - _playbackEnemyAt).TotalSeconds > 8)
+            {
+                _plugin.Timer.Reset();
+                Service.Log.Information("[FrenMits] Playback: no enemies for 8s; timer stopped, waiting for the next pull.");
+                return;
+            }
         }
         // A replay feeds SnapToCast/SnapToBoss itself from the recording; the
         // live object-table scan must stay out of it, or a real NPC in the zone
@@ -102,6 +120,11 @@ public class SyncEngine
             // NRE abort the whole framework update.
             try
             {
+                // Feed the playback watchdog: any live enemy means the recording
+                // is mid-pull, so the between-pulls stop must not fire.
+                if (obj is IBattleNpc alive && (byte)alive.BattleNpcKind == 5 && alive.MaxHp > 0 && alive.CurrentHp > 0)
+                    _playbackEnemyAt = DateTime.UtcNow;
+
                 // Boss-presence anchor + capture (cast-free safety net).
                 if (obj is IBattleNpc npc && npc.NameId != 0 && npc.MaxHp > 0 && _seenBoss.Add(npc.NameId))
                 {
@@ -239,8 +262,15 @@ public class SyncEngine
             // (fine drift only) so an early stray cast can't snap the clock far
             // forward onto a later anchor.
             var fwd = sp.IsPhase ? _plugin.Config.SyncForwardWindowSeconds : _plugin.Config.SyncWindowSeconds;
+            // In duty-recorder playback the viewer can reset the pull or seek to
+            // any chapter, so a phase anchor may legitimately sit MINUTES behind
+            // the stale clock; give it an unlimited backward window there. Live
+            // pulls keep the tight window so repeated abilities can't drag the
+            // clock back.
             var bwd = sp.IsPhase
-                ? MathF.Max(_plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncWindowSeconds)
+                ? (Plugin.InDutyPlayback
+                    ? float.MaxValue
+                    : MathF.Max(_plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncWindowSeconds))
                 : _plugin.Config.SyncWindowSeconds;
             var ahead = sp.Time - predictedElapsed; // + => anchor is ahead of the clock
             if (ahead > fwd || ahead < -bwd) continue;
@@ -267,6 +297,12 @@ public class SyncEngine
             AvgDrift = DriftSamples == 0 ? drift : AvgDrift * 0.7f + drift * 0.3f;
             DriftSamples++;
         }
+
+        // A jump backward past any plausible drift is a replayed pull being reset
+        // or seeked, not resync: bump the generation so cue tracking re-arms and
+        // the earlier calls speak again. (Live snaps can never move this far back;
+        // their backward window is capped above.)
+        if (predictedElapsed - best.Time > 90f) _plugin.Timer.SyncNow();
 
         // Snap so that, timeToResolve from now, ElapsedFor == best.Time. SetElapsed
         // sets the raw timer, so subtract the phase offset back out. The fight's
