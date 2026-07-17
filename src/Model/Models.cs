@@ -158,7 +158,59 @@ public class MitLine
     public uint IconId { get; set; }           // pinned game icon id; 0 = infer from action
 
     public bool AppliesTo(string? jobAbbr)
-        => Jobs.Count == 0 || (jobAbbr != null && Jobs.Contains(jobAbbr, StringComparer.OrdinalIgnoreCase));
+        => (Jobs.Count == 0 || (jobAbbr != null && Jobs.Contains(jobAbbr, StringComparer.OrdinalIgnoreCase)))
+           // Job gates written INSIDE the action text ("Party Mit (WAR/PLD)")
+           // also count: on a DRK that call is someone else's press.
+           && (string.IsNullOrEmpty(jobAbbr) || string.IsNullOrWhiteSpace(Action) || ActionFor(jobAbbr).Length > 0);
+
+    // The parts of this call that apply to a job, honoring job qualifiers in the
+    // text: "Reprisal + Party Mit (GNB/DRK)" is "Reprisal" for a WAR, unchanged
+    // for a DRK. A parenthetical counts as a job gate only when every one of its
+    // '/'-separated tokens is a job abbreviation, so hints like "(Optional First
+    // GCD)", "(Chaos)" or "(3x)" never gate anything. Unknown job = everything.
+    public string ActionFor(string? jobAbbr)
+    {
+        if (string.IsNullOrWhiteSpace(Action) || string.IsNullOrEmpty(jobAbbr)) return Action;
+        List<string>? kept = null;
+        var dropped = false;
+        foreach (var raw in Action.Split('+'))
+        {
+            var seg = raw.Trim();
+            if (seg.Length == 0) continue;
+            if (SegmentAppliesTo(seg, jobAbbr!)) (kept ??= new()).Add(seg);
+            else dropped = true;
+        }
+        if (!dropped) return Action; // common case: nothing gated, keep verbatim
+        return kept == null ? "" : string.Join(" + ", kept);
+    }
+
+    private static readonly HashSet<string> JobAbbrs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "PLD", "WAR", "DRK", "GNB", "WHM", "SCH", "AST", "SGE", "MNK", "DRG", "NIN",
+        "SAM", "RPR", "VPR", "BRD", "MCH", "DNC", "BLM", "SMN", "RDM", "PCT", "BLU",
+    };
+
+    private static bool SegmentAppliesTo(string segment, string job)
+    {
+        var i = segment.IndexOf('(');
+        while (i >= 0)
+        {
+            var j = segment.IndexOf(')', i + 1);
+            if (j < 0) break;
+            var tokens = segment.Substring(i + 1, j - i - 1).Split('/');
+            var allJobs = tokens.Length > 0;
+            var mine = false;
+            foreach (var t in tokens)
+            {
+                var tok = t.Trim();
+                if (tok.Length == 0 || !JobAbbrs.Contains(tok)) { allJobs = false; break; }
+                if (string.Equals(tok, job, StringComparison.OrdinalIgnoreCase)) mine = true;
+            }
+            if (allJobs && !mine) return false;
+            i = segment.IndexOf('(', j + 1);
+        }
+        return true;
+    }
 
     public string TimeText
     {

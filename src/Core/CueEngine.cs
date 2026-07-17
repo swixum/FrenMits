@@ -110,10 +110,11 @@ public class CueEngine
         if (!c.TtsEnabled) return;
 
         // Per-line override wins; otherwise speak the action (or mechanic if chosen).
-        // The action is job-resolved so "Party Mit" is spoken as e.g. "Troubadour".
+        // The action is job-filtered (only your segments of a combined call) and
+        // job-resolved so "Party Mit" is spoken as e.g. "Troubadour".
         var fallback = c.TtsSpeakMechanic
-            ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.Action, job) : line.Mechanic)
-            : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.Action, job));
+            ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.ActionFor(job), job) : line.Mechanic)
+            : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.ActionFor(job), job));
         var text = string.IsNullOrWhiteSpace(line.Tts) ? fallback : line.Tts;
         if (string.IsNullOrWhiteSpace(text)) return;
 

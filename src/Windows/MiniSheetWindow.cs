@@ -106,7 +106,7 @@ public class MiniSheetWindow : Window
                 ImGui.AlignTextToFramePadding();
                 var name = string.IsNullOrWhiteSpace(line.Action)
                     ? line.Mechanic
-                    : Icons.DisplayAction(line.Action, job);
+                    : Icons.DisplayAction(line.ActionFor(job), job);
                 ImGui.TextColored(past ? Dim : Bright, name);
                 if (ImGui.IsItemHovered() && !string.IsNullOrWhiteSpace(line.Mechanic))
                     ImGui.SetTooltip(line.Mechanic);

@@ -1196,7 +1196,7 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
 
-        var label = string.IsNullOrWhiteSpace(next.l.Action) ? next.l.Mechanic : next.l.Action;
+        var label = string.IsNullOrWhiteSpace(next.l.Action) ? next.l.Mechanic : next.l.ActionFor(job);
         _dtr.Text = $" {label} {(int)MathF.Ceiling(next.remaining)}s";
         _dtr.Shown = true;
     }

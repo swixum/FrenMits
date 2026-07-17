@@ -134,7 +134,7 @@ public class TimelineWindow : Window
             foreach (var l in upcoming)
             {
                 var inSec = (int)MathF.Round(l.CueTime - elapsed);
-                var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.Action, job);
+                var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.ActionFor(job), job);
                 var icon = C.ShowAbilityIcon ? Icons.For(l, job) : 0u;
                 // Mark a mit that won't be off cooldown by the time it's called:
                 // only the ABILITY dims, so the time and the rest of the line
