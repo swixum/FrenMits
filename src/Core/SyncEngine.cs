@@ -79,18 +79,27 @@ public class SyncEngine
         }
 
         // Duty-recorder playback watchdog: the spectator has no combat flag, so
-        // nothing ever stops the clock between the recording's pulls. When every
-        // enemy has been gone a while (wipe faded, loading a chapter), stop the
-        // timer; the auto-start re-arms for the next pull.
+        // nothing ever stops the clock between the recording's pulls. Two signals
+        // end a viewing: a load screen (chapter jump / pull reset, immediate) and
+        // every enemy being gone for a few seconds (wipe fade). Either stops the
+        // timer; the auto-start then re-locks onto whatever plays next, and the
+        // fresh generation re-arms the calls so they speak again.
         if (Plugin.InDutyPlayback && !Plugin.Replaying)
         {
+            if (Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
+                || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas51])
+            {
+                _plugin.Timer.Reset();
+                Service.Log.Information("[FrenMits] Playback: load screen; timer stopped, waiting for the next pull.");
+                return;
+            }
             // Cutscene time is a phase transition, not a wipe; keep the watchdog
             // fed so it can't fire the instant the cutscene ends.
             if (Plugin.CutsceneActive) _playbackEnemyAt = DateTime.UtcNow;
-            else if ((DateTime.UtcNow - _playbackEnemyAt).TotalSeconds > 8)
+            else if ((DateTime.UtcNow - _playbackEnemyAt).TotalSeconds > 4)
             {
                 _plugin.Timer.Reset();
-                Service.Log.Information("[FrenMits] Playback: no enemies for 8s; timer stopped, waiting for the next pull.");
+                Service.Log.Information("[FrenMits] Playback: no enemies for 4s; timer stopped, waiting for the next pull.");
                 return;
             }
         }
@@ -191,12 +200,16 @@ public class SyncEngine
                 var castId = bc.CastActionId;
                 if (castId == 0) continue;
 
-                // Earliest anchor for this ability: a replay usually starts at
-                // the beginning or a chapter, and later anchors re-snap anyway.
+                // Only start from an ability that appears EXACTLY once in the
+                // timeline. A repeated ability (DMU's Ultimate Embrace anchors
+                // 221/371/378) is ambiguous after a chapter jump; guessing the
+                // earliest instance could start the clock minutes off. Unique
+                // anchors are dense enough that the wait is a few seconds.
                 SyncPoint? best = null;
+                var hits = 0;
                 foreach (var sp in fight.SyncPoints)
-                    if (sp.Ability == castId && (best == null || sp.Time < best.Time)) best = sp;
-                if (best == null) continue;
+                    if (sp.Ability == castId) { best = sp; hits++; }
+                if (best == null || hits != 1) continue;
 
                 var ttr = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);
                 _plugin.Timer.SyncNow(); // fresh Generation, so cue tracking re-arms
@@ -262,15 +275,15 @@ public class SyncEngine
             // (fine drift only) so an early stray cast can't snap the clock far
             // forward onto a later anchor.
             var fwd = sp.IsPhase ? _plugin.Config.SyncForwardWindowSeconds : _plugin.Config.SyncWindowSeconds;
-            // In duty-recorder playback the viewer can reset the pull or seek to
-            // any chapter, so a phase anchor may legitimately sit MINUTES behind
-            // the stale clock; give it an unlimited backward window there. Live
-            // pulls keep the tight window so repeated abilities can't drag the
-            // clock back.
+            // The backward window stays tight even in duty-recorder playback: a
+            // phase anchor's ability can RECAST later in the fight (DMU's
+            // Revolting Ruin III comes back at ~98s), and a wide backward window
+            // would yank the clock to the phase start mid-run. Playback resets
+            // and chapter jumps are handled by the playback watchdog instead: the
+            // load screen / no-enemies gap stops the timer and the auto-start
+            // re-locks onto the new position from scratch.
             var bwd = sp.IsPhase
-                ? (Plugin.InDutyPlayback
-                    ? float.MaxValue
-                    : MathF.Max(_plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncWindowSeconds))
+                ? MathF.Max(_plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncWindowSeconds)
                 : _plugin.Config.SyncWindowSeconds;
             var ahead = sp.Time - predictedElapsed; // + => anchor is ahead of the clock
             if (ahead > fwd || ahead < -bwd) continue;
@@ -297,12 +310,6 @@ public class SyncEngine
             AvgDrift = DriftSamples == 0 ? drift : AvgDrift * 0.7f + drift * 0.3f;
             DriftSamples++;
         }
-
-        // A jump backward past any plausible drift is a replayed pull being reset
-        // or seeked, not resync: bump the generation so cue tracking re-arms and
-        // the earlier calls speak again. (Live snaps can never move this far back;
-        // their backward window is capped above.)
-        if (predictedElapsed - best.Time > 90f) _plugin.Timer.SyncNow();
 
         // Snap so that, timeToResolve from now, ElapsedFor == best.Time. SetElapsed
         // sets the raw timer, so subtract the phase offset back out. The fight's
