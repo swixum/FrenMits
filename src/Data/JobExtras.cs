@@ -50,43 +50,37 @@ public static class JobExtras
                 (789, "Grand Cross"),
                 (922, "Chaotic Flood"),
             }),
-            // Dancer - Curing Waltz (60s recast): a burst heal after the big hits.
+            // Dancer - Curing Waltz (60s recast). Windows from raalm.com m-spec
+            // top-100 kill logs (phase-normalized cluster medians; % = share of
+            // kills pressing there): 89s 81%, 327s 77%, 506s 46%, 760s 84%, 992s 88%.
             new Extra("DNC", "Curing Waltz", 60f, new[]
             {
-                (62, "Light of Judgment"),
-                (131, "Light of Judgment"),
-                (235, "Forsaken"),
-                (342, "Light of Judgement"),
-                (449, "Bowels of Agony (Chaos)"),
-                (513, "Vacuum Wave"),
-                (577, "Shocking Impact/Shockwave"),
-                (704, "Stomp-a-Mole"),
-                (832, "Ultima Upsurge"),
-                (910, "Ultima Repeater"),
+                (87, "Gravitas II (Part I)"),
+                (322, "Towers VIII (Past/Future's End)"),
+                (506, "Ultima Blaster"),
+                (762, "Grand Cross"),
                 (992, "Ultima Repeater"),
-                (1061, "Forsaken (1st Hit)"),
             }),
-            // Machinist - Dismantle (120s recast): boss-damage-down on raidwides.
+            // Machinist - Dismantle (120s recast). raalm top-100 windows: 60s 97%,
+            // 233s 96%, 552s 89%, 906s 61%, 1055s 96%. (Logs split 50/61 between
+            // Death Bolt/Wave and Ultima Repeater for the 4th press - 84s apart,
+            // can't have both on a 120s recast - so the majority pick ships.)
             new Extra("MCH", "Dismantle", 120f, new[]
             {
-                (37, "Mystery Magic"),
-                (186, "Mystery Magic"),
-                (370, "Wings of Destruction"),
-                (506, "Ultima Blaster"),
-                (636, "Thunder III (5th Set)"),
-                (762, "Grand Cross"),
+                (62, "Light of Judgment"),
+                (235, "Forsaken"),
+                (558, "Earthquake"),
                 (910, "Ultima Repeater"),
                 (1061, "Forsaken (1st Hit)"),
             }),
-            // Red Mage - Magick Barrier (120s recast): the raidwides are magic.
+            // Red Mage - Magick Barrier (120s recast). raalm top-100 windows:
+            // 38s 72%, 268s 94%, 516s 95%, 771s 76%, 904s 93%, 1056s 97%.
             new Extra("RDM", "Magick Barrier", 120f, new[]
             {
-                (62, "Light of Judgment"),
-                (235, "Forsaken"),
-                (370, "Wings of Destruction"),
-                (506, "Ultima Blaster"),
-                (636, "Thunder III (5th Set)"),
-                (762, "Grand Cross"),
+                (37, "Mystery Magic"),
+                (270, "Towers III (All Things Ending)"),
+                (517, "Cyclone"),
+                (768, "Inferno/Tsunami"),
                 (910, "Ultima Repeater"),
                 (1061, "Forsaken (1st Hit)"),
             }),
