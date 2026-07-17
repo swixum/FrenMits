@@ -50,6 +50,46 @@ public static class JobExtras
                 (789, "Grand Cross"),
                 (922, "Chaotic Flood"),
             }),
+            // Dancer - Curing Waltz (60s recast): a burst heal after the big hits.
+            new Extra("DNC", "Curing Waltz", 60f, new[]
+            {
+                (62, "Light of Judgment"),
+                (131, "Light of Judgment"),
+                (235, "Forsaken"),
+                (342, "Light of Judgement"),
+                (449, "Bowels of Agony (Chaos)"),
+                (513, "Vacuum Wave"),
+                (577, "Shocking Impact/Shockwave"),
+                (704, "Stomp-a-Mole"),
+                (832, "Ultima Upsurge"),
+                (910, "Ultima Repeater"),
+                (992, "Ultima Repeater"),
+                (1061, "Forsaken (1st Hit)"),
+            }),
+            // Machinist - Dismantle (120s recast): boss-damage-down on raidwides.
+            new Extra("MCH", "Dismantle", 120f, new[]
+            {
+                (37, "Mystery Magic"),
+                (186, "Mystery Magic"),
+                (370, "Wings of Destruction"),
+                (506, "Ultima Blaster"),
+                (636, "Thunder III (5th Set)"),
+                (762, "Grand Cross"),
+                (910, "Ultima Repeater"),
+                (1061, "Forsaken (1st Hit)"),
+            }),
+            // Red Mage - Magick Barrier (120s recast): the raidwides are magic.
+            new Extra("RDM", "Magick Barrier", 120f, new[]
+            {
+                (62, "Light of Judgment"),
+                (235, "Forsaken"),
+                (370, "Wings of Destruction"),
+                (506, "Ultima Blaster"),
+                (636, "Thunder III (5th Set)"),
+                (762, "Grand Cross"),
+                (910, "Ultima Repeater"),
+                (1061, "Forsaken (1st Hit)"),
+            }),
         },
     };
 
