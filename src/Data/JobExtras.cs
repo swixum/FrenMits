@@ -71,28 +71,40 @@ public static class JobExtras
                 (928, "Chaotic Flood"),
                 (1063, "Forsaken (1st Hit)"),
             }),
-            // Machinist - Dismantle (120s recast), 6 presses.
-            // 95/71/36/61/61/96% usage.
+            // Dismantle / Magick Barrier / Tempera Grassa follow the sheet's
+            // "Extras" checkmark column (v5.0 marks 8 rows; the 470s+478s pair is
+            // one press, the 10s buff covers both). 7 presses, exactly filling
+            // the 120s recast. raalm's top logs diverge in P3/P4 (370/534, and
+            // most skip Grand Cross) but the sheet's plan is the plan.
             new Extra("MCH", "Dismantle", 120f, new[]
             {
-                (60, "Light of Judgment"),
-                (230, "Forsaken"),
-                (370, "Wings of Destruction"),
-                (534, "Thunder III (2nd Set)"),
-                (906, "Ultima Repeater"),
-                (1055, "Forsaken (1st Hit)"),
+                (62, "Light of Judgment"),
+                (235, "Forsaken"),
+                (469, "Stray Flames/Tsunami"),
+                (608, "Shocking Impact/Shockwave"),
+                (762, "Grand Cross"),
+                (910, "Ultima Repeater"),
+                (1061, "Forsaken (1st Hit)"),
             }),
-            // Red Mage - Magick Barrier (120s recast), 7 presses.
-            // 72/94/59/43/76/91/97% usage.
             new Extra("RDM", "Magick Barrier", 120f, new[]
             {
-                (38, "Mystery Magic"),
-                (268, "Towers III (All Things Ending)"),
-                (511, "Vacuum Wave"),
-                (634, "Thunder III (5th Set)"),
-                (771, "Inferno/Tsunami"),
-                (904, "Ultima Repeater"),
-                (1056, "Forsaken (1st Hit)"),
+                (62, "Light of Judgment"),
+                (235, "Forsaken"),
+                (469, "Stray Flames/Tsunami"),
+                (608, "Shocking Impact/Shockwave"),
+                (762, "Grand Cross"),
+                (910, "Ultima Repeater"),
+                (1061, "Forsaken (1st Hit)"),
+            }),
+            new Extra("PCT", "Tempera Grassa", 120f, new[]
+            {
+                (62, "Light of Judgment"),
+                (235, "Forsaken"),
+                (469, "Stray Flames/Tsunami"),
+                (608, "Shocking Impact/Shockwave"),
+                (762, "Grand Cross"),
+                (910, "Ultima Repeater"),
+                (1061, "Forsaken (1st Hit)"),
             }),
         },
     };
