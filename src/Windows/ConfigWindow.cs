@@ -1410,7 +1410,7 @@ public class ConfigWindow : Window, IDisposable
         var extra = JobExtras.For(fight.TerritoryId, job);
         if (extra == null) return;
 
-        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job mitigation", "optional, from logs · raalm.com");
+        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job mitigation", "optional");
 
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {extra.Action}");
         ImGui.SameLine(0, 10);
