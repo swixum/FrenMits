@@ -2230,9 +2230,12 @@ public class SheetViewWindow : Window
 
     private bool _editorDrawn; // safety net: an open editor whose row got hidden
 
+    private string? _gridJob; // active job, cached once per frame for cell gating
+
     private void DrawGrid()
     {
         _editorDrawn = false;
+        _gridJob = _plugin.ActiveJobAbbreviation();
         // Hover highlight rides one frame behind: cells set _hoverLive while
         // drawing, and the NEXT frame tints that whole row.
         _hoverLivePrev = _hoverLive;
@@ -2589,6 +2592,11 @@ public class SheetViewWindow : Window
         var jobOnly = cell.Count > 0 && cell.All(l => l.Custom && l.Jobs.Count > 0);
         var custom = !_isCustom && !jobOnly && cell.Any(l => l.Custom);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
+        // Every line here is another job's press (a "(WAR/PLD)" style tag, or a
+        // job-tagged extra): dim it, since it will never fire on your current
+        // job. A cell that is partly yours stays normal.
+        var foreign = !string.IsNullOrEmpty(_gridJob) && cell.Count > 0
+            && cell.All(l => !l.AppliesTo(_gridJob));
 
         // Cooldown conflicts tint the cell red; level-sync problems amber
         // (red wins when both apply). Details go in the tooltip.
@@ -2612,7 +2620,7 @@ public class SheetViewWindow : Window
             ? MitTypes.Color(MitTypes.Classify(first), C) : 0u;
         var pushed = true;
         if (custom) ImGui.PushStyleColor(ImGuiCol.Text, EditedColor);
-        else if (off) ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
+        else if (off || foreign) ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
         else if (kindCol != 0) ImGui.PushStyleColor(ImGuiCol.Text, kindCol);
         else pushed = false;
         var clicked = ImGui.Selectable($"{label}##c{i}", false);
@@ -2639,6 +2647,7 @@ public class SheetViewWindow : Window
                 if (_windows.TryGetValue(l, out var w0))
                     win = win == null ? w0 : win + "\n" + w0;
             if (jobOnly) tip = $"Job extra: only fires for {string.Join("/", cell[0].Jobs)}.\n" + tip;
+            if (foreign) tip = $"Another job's press; it won't fire for you on {_gridJob}.\n" + tip;
             if (win != null) tip = win + "\n\n" + tip;
             if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
             if (lvl != null) tip = lvl + "\n\n" + tip;
