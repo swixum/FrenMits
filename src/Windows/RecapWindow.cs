@@ -268,7 +268,7 @@ public class RecapWindow : Window
                 partial.Add($"{e.Mit} {e.Covered.Count}/{party.Count}");
 
         var missing = new List<string>();
-        foreach (var (slot, line) in PlannedLinesNear(fight, t0))
+        foreach (var (slot, line) in PlannedLinesNear(fight, t0, _plugin.ActiveJobAbbreviation()))
             foreach (var pm in Cooldowns.PlanMits(line.Action))
             {
                 if (applied.Contains(pm.Name)) continue;
@@ -287,16 +287,20 @@ public class RecapWindow : Window
     // Every slot's planned lines near a moment: the live plan plus each saved
     // slot. Untouched builtin preview slots are intentionally excluded; the
     // recap judges against what the group actually planned, not defaults.
-    private static IEnumerable<(string Slot, MitLine Line)> PlannedLinesNear(FightProfile fight, float time)
+    // Job gating: YOUR slot filters precisely by your job ("Party Mit (WAR/PLD)"
+    // is not a DRK's miss). Other slots skip job-gated lines entirely: we can't
+    // know which job sits in that seat, and the recap must never produce a
+    // phantom "missing".
+    private static IEnumerable<(string Slot, MitLine Line)> PlannedLinesNear(FightProfile fight, float time, string? myJob)
     {
         foreach (var l in fight.Lines)
-            if (l.Enabled && MathF.Abs(l.Time - time) < 9f)
+            if (l.Enabled && l.AppliesTo(myJob) && MathF.Abs(l.Time - time) < 9f)
                 yield return (fight.Slot, l);
         foreach (var kv in fight.SavedSlots)
         {
             if (string.Equals(kv.Key, fight.Slot, StringComparison.OrdinalIgnoreCase)) continue;
             foreach (var l in kv.Value)
-                if (l.Enabled && MathF.Abs(l.Time - time) < 9f)
+                if (l.Enabled && l.Jobs.Count == 0 && !l.HasJobGate() && MathF.Abs(l.Time - time) < 9f)
                     yield return (kv.Key, l);
         }
     }

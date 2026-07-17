@@ -212,6 +212,57 @@ public class MitLine
         return true;
     }
 
+    // True when any segment of the action carries a job gate like "(WAR/PLD)",
+    // meaning the call belongs to specific jobs we may not be able to identify.
+    public bool HasJobGate()
+    {
+        if (string.IsNullOrWhiteSpace(Action)) return false;
+        foreach (var raw in Action.Split('+'))
+        {
+            var seg = raw.Trim();
+            if (seg.Length > 0 && JobGateOf(seg).Length > 0) return true;
+        }
+        return false;
+    }
+
+    // The normalized job gate ("PLD/WAR") on the segment of `action` naming
+    // `mit`, or "" when that segment is ungated. Lets the cooldown checker keep
+    // different jobs' variants of one mit on separate timers.
+    public static string JobTagFor(string action, string mit)
+    {
+        foreach (var raw in action.Split('+'))
+        {
+            var seg = raw.Trim();
+            if (seg.Length == 0 || seg.IndexOf(mit, StringComparison.OrdinalIgnoreCase) < 0) continue;
+            return JobGateOf(seg);
+        }
+        return "";
+    }
+
+    // The segment's job gate, normalized (upper-cased, sorted, '/'-joined), or
+    // "" when its parentheticals aren't job lists.
+    private static string JobGateOf(string segment)
+    {
+        var i = segment.IndexOf('(');
+        while (i >= 0)
+        {
+            var j = segment.IndexOf(')', i + 1);
+            if (j < 0) break;
+            var tokens = segment.Substring(i + 1, j - i - 1).Split('/');
+            var jobs = new List<string>();
+            var all = tokens.Length > 0;
+            foreach (var t in tokens)
+            {
+                var tok = t.Trim().ToUpperInvariant();
+                if (tok.Length == 0 || !JobAbbrs.Contains(tok)) { all = false; break; }
+                jobs.Add(tok);
+            }
+            if (all) { jobs.Sort(StringComparer.Ordinal); return string.Join("/", jobs); }
+            i = segment.IndexOf('(', j + 1);
+        }
+        return "";
+    }
+
     public string TimeText
     {
         get

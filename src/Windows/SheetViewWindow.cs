@@ -494,7 +494,7 @@ public class SheetViewWindow : Window
         {
             // Abilities in the same recast GROUP share one timer (Bloodwhetting /
             // Nascent Flash / Raw Intuition), so group-mates pool their uses.
-            var uses = new Dictionary<string, (float Recast, int Charges, List<(float Time, MitLine Line, string Name)> Uses)>(StringComparer.OrdinalIgnoreCase);
+            var uses = new Dictionary<string, (float Recast, int Charges, List<(float Time, MitLine Line, string Name, string Tag)> Uses)>(StringComparer.OrdinalIgnoreCase);
             foreach (var l in _slotLines[i])
             {
                 if (!l.Enabled) continue;
@@ -508,10 +508,18 @@ public class SheetViewWindow : Window
 
                     var key = pm.Family.Length > 0 ? $"family:{pm.Family}" : pm.Name;
                     if (!uses.TryGetValue(key, out var entry))
-                        uses[key] = entry = (pm.Recast, pm.Charges, new List<(float, MitLine, string)>());
+                        uses[key] = entry = (pm.Recast, pm.Charges, new List<(float, MitLine, string, string)>());
                     // CUE time, not plan time: a per-call offset genuinely moves
-                    // the press, so it must count in the timer math.
-                    entry.Uses.Add((l.CueTime, l, pm.Name));
+                    // the press, so it must count in the timer math. The job tag
+                    // rides along: differently-tagged variants ("Party Mit
+                    // (WAR/PLD)" vs "(GNB/DRK)", or a WAR's vs a DRK's tank
+                    // lines) are different players' presses, not one timer.
+                    var tag = MitLine.JobTagFor(l.Action, pm.Name);
+                    if (tag.Length == 0 && l.Jobs.Count > 0)
+                        tag = string.Join("/", l.Jobs
+                            .Select(j2 => j2.ToUpperInvariant())
+                            .OrderBy(j2 => j2, StringComparer.Ordinal));
+                    entry.Uses.Add((l.CueTime, l, pm.Name, tag));
                 }
             }
 
@@ -519,12 +527,39 @@ public class SheetViewWindow : Window
             {
                 list.Sort((a, b) => a.Time.CompareTo(b.Time));
 
+                // Job-tagged variants are different players' presses: "Party Mit
+                // (GNB/DRK)" and "(WAR/PLD)" never share one timer. Run the
+                // check once per tag, each time with that tag's uses plus the
+                // untagged ones (those apply to any job, so they chain with all).
+                var tags = list.Select(u => u.Tag).Where(t2 => t2.Length > 0)
+                    .Distinct().ToList();
+                if (tags.Count == 0) { CheckMitTimer(list, recast, charges); continue; }
+                foreach (var tag in tags)
+                    CheckMitTimer(
+                        list.Where(u => u.Tag.Length == 0 || u.Tag == tag).ToList(),
+                        recast, charges);
+            }
+        }
+    }
+
+    // Never repeat one message on a line (untagged uses run through several
+    // tag groups, and each group would otherwise re-append the same text).
+    private static void AppendOnce(Dictionary<MitLine, string> map, MitLine line, string msg)
+    {
+        if (!map.TryGetValue(line, out var old)) map[line] = msg;
+        else if (!old.Contains(msg, StringComparison.Ordinal)) map[line] = old + "\n" + msg;
+    }
+
+    // One mit timer's worth of uses (same recast group + compatible job tags):
+    // press-window computation and the serial-recharge conflict check.
+    private void CheckMitTimer(List<(float Time, MitLine Line, string Name, string Tag)> list, float recast, int charges)
+    {
                 // Press windows: coverage pushes the press EARLIER (the buff
                 // must reach the last covered hit), a same-timer reuse caps how
                 // LATE it can go (squeeze). Charges make squeeze moot.
                 for (var u = 0; u < list.Count; u++)
                 {
-                    var (t, line, name) = list[u];
+                    var (t, line, name, _) = list[u];
                     var pm = Cooldowns.PlanMits(line.Action).FirstOrDefault(m =>
                         string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
 
@@ -546,7 +581,7 @@ public class SheetViewWindow : Window
                         var msg = line.CoverUntil > t + 0.5f && pm.Duration > 0f && lo > t
                             ? $"{name}'s {pm.Duration:0}s duration can't reach {TimeText(line.CoverUntil)}; press it later or shorten the coverage."
                             : $"{name} can't cover through {TimeText(line.CoverUntil)} AND be back for {squeezedBy}.";
-                        _conflicts[line] = _conflicts.TryGetValue(line, out var oldMsg) ? oldMsg + "\n" + msg : msg;
+                        AppendOnce(_conflicts, line, msg);
                     }
                     else if ((lo > float.NegativeInfinity || hi < t - 0.5f) && hi >= 0f)
                     {
@@ -556,11 +591,11 @@ public class SheetViewWindow : Window
                             : lo > float.NegativeInfinity
                                 ? $"Press {name} between {loText} and {TimeText(t)} to cover through {TimeText(line.CoverUntil)}."
                                 : $"Press {name} by {TimeText(hi)}; it's needed again for {squeezedBy}.";
-                        _windows[line] = _windows.TryGetValue(line, out var oldWin) ? oldWin + "\n" + win : win;
+                        AppendOnce(_windows, line, win);
                     }
                 }
 
-                if (list.Count < 2) continue;
+                if (list.Count < 2) return;
 
                 // Serial recharge, like the game: charges regenerate one at a
                 // time, so Oblation @0 and @5 is back at 60 and 120, not 60/65.
@@ -568,7 +603,7 @@ public class SheetViewWindow : Window
                 var avail = max;
                 var nextAt = float.PositiveInfinity; // when a charge next finishes
                 var prevName = "";
-                foreach (var (t, line, name) in list)
+                foreach (var (t, line, name, _) in list)
                 {
                     // Regenerate charges finished by now (1s resync tolerance).
                     while (avail < max && nextAt <= t + 1f)
@@ -590,7 +625,7 @@ public class SheetViewWindow : Window
                         var msg = $"{name}: not back for another {nextAt - t:0}s here "
                                 + $"({recast:0}s cooldown, pressed at {TimeText(nextAt - recast)}"
                                 + (max > 1 ? $", {max} charges)" : ")") + shared + "." + offNote;
-                        _conflicts[line] = _conflicts.TryGetValue(line, out var old) ? old + "\n" + msg : msg;
+                        AppendOnce(_conflicts, line, msg);
                         // The plan presumably slips to use the charge the moment
                         // it lands, so its recharge slot is consumed.
                         nextAt += recast;
@@ -602,8 +637,6 @@ public class SheetViewWindow : Window
                     }
                     prevName = name;
                 }
-            }
-        }
     }
 
     // Pair each mechanic's live rows with its baked instances, order-preserving

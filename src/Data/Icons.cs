@@ -180,9 +180,12 @@ public static class Icons
     {
         if (line.IconId != 0) return line.IconId;
         if (IsPotion(line)) return PotionIcon(PotionStat(line));
-        var jm = JobMitIcon(line.Action, job);
+        // Only your segments of a combined call: on a WAR, "Reprisal + Party Mit
+        // (GNB/DRK)" should icon as Reprisal, matching the filtered call text.
+        var action = line.ActionFor(job);
+        var jm = JobMitIcon(action, job);
         if (jm != 0) return jm;
-        return ResolveFromText(line.Action);
+        return ResolveFromText(action);
     }
 
     // Generic mit terms -> the per-job ability whose icon to show. Lets a single
