@@ -50,39 +50,49 @@ public static class JobExtras
                 (789, "Grand Cross"),
                 (922, "Chaotic Flood"),
             }),
-            // Dancer - Curing Waltz (60s recast). Windows from raalm.com m-spec
-            // top-100 kill logs (phase-normalized cluster medians; % = share of
-            // kills pressing there): 89s 81%, 327s 77%, 506s 46%, 760s 84%, 992s 88%.
+            // DNC/MCH/RDM schedules below are OPTIMIZED from raalm.com m-spec
+            // top-100 kill logs: every window real players use (>=10% of kills,
+            // phase-normalized medians), then the max number of presses that fits
+            // the recast, preferring the most-used windows. Times are the logs'
+            // actual press moments; % = share of kills pressing there.
+
+            // Dancer - Curing Waltz (60s recast), 10 presses.
+            // 68/60/16/77/17/35/68/75/68/84% usage.
             new Extra("DNC", "Curing Waltz", 60f, new[]
             {
-                (87, "Gravitas II (Part I)"),
-                (322, "Towers VIII (Past/Future's End)"),
-                (506, "Ultima Blaster"),
-                (762, "Grand Cross"),
-                (992, "Ultima Repeater"),
+                (64, "Light of Judgment"),
+                (134, "Light of Judgment"),
+                (196, "Mystery Magic"),
+                (327, "Towers VIII (Past/Future's End)"),
+                (453, "Bowels of Agony (Chaos)"),
+                (519, "Cyclone"),
+                (681, "Shocking Impact/Shockwave"),
+                (781, "Inferno/Tsunami"),
+                (928, "Chaotic Flood"),
+                (1063, "Forsaken (1st Hit)"),
             }),
-            // Machinist - Dismantle (120s recast). raalm top-100 windows: 60s 97%,
-            // 233s 96%, 552s 89%, 906s 61%, 1055s 96%. (Logs split 50/61 between
-            // Death Bolt/Wave and Ultima Repeater for the 4th press - 84s apart,
-            // can't have both on a 120s recast - so the majority pick ships.)
+            // Machinist - Dismantle (120s recast), 6 presses.
+            // 95/71/36/61/61/96% usage.
             new Extra("MCH", "Dismantle", 120f, new[]
             {
-                (62, "Light of Judgment"),
-                (235, "Forsaken"),
-                (558, "Earthquake"),
-                (910, "Ultima Repeater"),
-                (1061, "Forsaken (1st Hit)"),
+                (60, "Light of Judgment"),
+                (230, "Forsaken"),
+                (370, "Wings of Destruction"),
+                (534, "Thunder III (2nd Set)"),
+                (906, "Ultima Repeater"),
+                (1055, "Forsaken (1st Hit)"),
             }),
-            // Red Mage - Magick Barrier (120s recast). raalm top-100 windows:
-            // 38s 72%, 268s 94%, 516s 95%, 771s 76%, 904s 93%, 1056s 97%.
+            // Red Mage - Magick Barrier (120s recast), 7 presses.
+            // 72/94/59/43/76/91/97% usage.
             new Extra("RDM", "Magick Barrier", 120f, new[]
             {
-                (37, "Mystery Magic"),
-                (270, "Towers III (All Things Ending)"),
-                (517, "Cyclone"),
-                (768, "Inferno/Tsunami"),
-                (910, "Ultima Repeater"),
-                (1061, "Forsaken (1st Hit)"),
+                (38, "Mystery Magic"),
+                (268, "Towers III (All Things Ending)"),
+                (511, "Vacuum Wave"),
+                (634, "Thunder III (5th Set)"),
+                (771, "Inferno/Tsunami"),
+                (904, "Ultima Repeater"),
+                (1056, "Forsaken (1st Hit)"),
             }),
         },
     };
