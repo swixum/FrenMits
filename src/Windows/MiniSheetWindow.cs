@@ -135,6 +135,7 @@ public class MiniSheetWindow : Window
     {
         line.OffsetSeconds = Math.Clamp(line.OffsetSeconds + delta, -30f, 30f);
         C.Save();
+        _plugin.SheetViewWindow.MarkPlanDirty(); // keep the sheet's cooldown cells honest
     }
 
     private static readonly Vector4 Bright = new(0.93f, 0.91f, 0.90f, 1f);

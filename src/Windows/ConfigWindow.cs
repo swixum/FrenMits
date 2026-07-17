@@ -38,6 +38,7 @@ public class ConfigWindow : Window, IDisposable
         {
             _editOffLine.OffsetSeconds = Math.Clamp(v, -30f, 30f);
             C.Save();
+            _plugin.SheetViewWindow.MarkPlanDirty();
         }
         _editOffLine = null;
     }
@@ -1586,7 +1587,7 @@ public class ConfigWindow : Window, IDisposable
             if (chip != 0)
                 ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (chip & 0x00FFFFFFu) | 0x55000000u, 0);
             var on = line.Enabled;
-            if (GreenCheckbox("##on", ref on)) { line.Enabled = on; C.Save(); }
+            if (GreenCheckbox("##on", ref on)) { line.Enabled = on; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); }
 
             ImGui.TableNextColumn();
             // Edit time as m:ss. Use a per-edit buffer so partial typing isn't lost.
@@ -1646,6 +1647,7 @@ public class ConfigWindow : Window, IDisposable
                     {
                         line.OffsetSeconds = Math.Clamp(ov, -30f, 30f);
                         C.Save();
+                        _plugin.SheetViewWindow.MarkPlanDirty();
                     }
                     if (_editOffLine == line) _editOffLine = null;
                 }
@@ -1789,6 +1791,7 @@ public class ConfigWindow : Window, IDisposable
         {
             PreserveBakedEdit(fight, line); // pasting over rewrites time/mechanic
             OverwriteLine(line, _copiedLine);
+            _plugin.SheetViewWindow.MarkPlanDirty();
             C.Save();
         }
 
@@ -2912,6 +2915,7 @@ public class ConfigWindow : Window, IDisposable
         {
             line.OffsetSeconds = Math.Clamp(off, -30f, 30f);
             C.Save();
+            _plugin.SheetViewWindow.MarkPlanDirty();
         }
         Tip("Shift only THIS call: + fires it earlier, - later. The plan time stays put and "
             + "resync can't cancel it. A big + offset on a very early call can push it before "

@@ -2660,6 +2660,7 @@ public class SheetViewWindow : Window
                     EnsureBacked(i);
                     line.OffsetSeconds = Math.Clamp(offset, -30f, 30f);
                     C.Save();
+                    _dirty = true; // cooldown math runs on cue times; recompute
                 }
                 ImGui.TextDisabled("+ fires this one call earlier, - later.");
 
@@ -2704,6 +2705,7 @@ public class SheetViewWindow : Window
                             EnsureBacked(i);
                             line.OffsetSeconds = shift;
                             C.Save();
+                            _dirty = true;
                         }
                     }
                 }
@@ -2731,6 +2733,12 @@ public class SheetViewWindow : Window
     // Set by the Plan menu or a cell context menu; the confirm modal opens from
     // the toolbar's ID scope on the next pass.
     private bool _openResetAll;
+
+    // Other windows edit per-line settings in place (offsets from the fight page
+    // or the Mit Tuner, enable toggles, paste-over). The conflict + press-window
+    // math bakes cue times in at Rebuild, so those edits must poke the grid or
+    // the red cooldown cells go stale.
+    public void MarkPlanDirty() => _dirty = true;
 
     // Full reset across every column (same as the fight page's Reset all columns):
     // snapshot-first, confirmed, and undoable with Ctrl+Z here in the Sheet View.
