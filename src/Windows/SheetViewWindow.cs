@@ -582,8 +582,13 @@ public class SheetViewWindow : Window
                         var shared = prevName.Length > 0
                             && !string.Equals(prevName, name, StringComparison.OrdinalIgnoreCase)
                             ? $"; it shares a cooldown with {prevName}" : "";
+                        // Spell out the offset-aware press time, so it's obvious
+                        // the math counted (or didn't get) a per-call offset.
+                        var offNote = line.OffsetSeconds != 0f
+                            ? $" (this call presses at {TimeText(t)}, offset {line.OffsetSeconds:+0.#;-0.#}s counted)"
+                            : "";
                         var msg = $"{name}: not back for another {nextAt - t:0}s here "
-                                + $"({recast:0}s cooldown" + (max > 1 ? $", {max} charges)" : ")") + shared + ".";
+                                + $"({recast:0}s cooldown" + (max > 1 ? $", {max} charges)" : ")") + shared + "." + offNote;
                         _conflicts[line] = _conflicts.TryGetValue(line, out var old) ? old + "\n" + msg : msg;
                         // The plan presumably slips to use the charge the moment
                         // it lands, so its recharge slot is consumed.
