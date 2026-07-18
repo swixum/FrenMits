@@ -213,6 +213,7 @@ public class SheetViewWindow : Window
         public bool Edited;
         public bool Ghost;          // baked instance deleted from every slot
         public bool JobExtra;       // every line is a job-restricted custom (e.g. Nature's Minne)
+        public string?[]? Carry;    // per slot: earlier press whose buff still covers this row
     }
 
     private Row? _editTimeRow;
@@ -478,6 +479,44 @@ public class SheetViewWindow : Window
         }
 
         FindCooldownConflicts();
+        BuildCarryGhosts();
+    }
+
+    // Carry-over ghosts, like the reference sheets' arrows: an empty cell shows
+    // a dim "-> Name" when a buff pressed on an EARLIER row is still up on this
+    // one (real durations, per part), so while building you can SEE what a hit
+    // is already covered by before adding more.
+    private void BuildCarryGhosts()
+    {
+        foreach (var row in _rows) row.Carry = null;
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            var lines = _slotLines[i].Where(l => l.Enabled).OrderBy(l => l.Time).ToList();
+            if (lines.Count == 0) continue;
+            var start = 0;
+            foreach (var row in _rows)
+            {
+                if (row.Ghost || row.Cells.Length <= i || row.Cells[i].Count > 0) continue;
+                // Only lines close enough that any buff could still be up.
+                while (start < lines.Count && lines[start].Time < row.Time - 45f) start++;
+                List<string>? parts = null;
+                for (var k = start; k < lines.Count && lines[k].Time < row.Time - 0.5f; k++)
+                {
+                    var l = lines[k];
+                    foreach (var pm in Cooldowns.PlanMits(l.Action))
+                    {
+                        var end = pm.Duration > 0f ? l.CueTime + pm.Duration : 0f;
+                        if (l.CoverUntil > end) end = l.CoverUntil; // stretched coverage counts
+                        if (row.Time > end + 0.01f) continue;
+                        parts ??= new List<string>();
+                        if (!parts.Contains(pm.Name)) parts.Add(pm.Name);
+                    }
+                }
+                if (parts == null) continue;
+                row.Carry ??= new string?[_slots.Length];
+                row.Carry[i] = "-> " + string.Join(" + ", parts);
+            }
+        }
     }
 
     // Flag any line whose mit is used again before its cooldown (with charges
@@ -551,12 +590,13 @@ public class SheetViewWindow : Window
     }
 
     // One mit timer's worth of uses (same recast group + compatible job tags):
-    // press-window computation and the serial-recharge conflict check.
+    // press-window hints plus the top-down feasibility walk.
     private void CheckMitTimer(List<(float Time, MitLine Line, string Name, string Tag)> list, float recast, int charges)
     {
-                // Press windows: coverage pushes the press EARLIER (the buff
-                // must reach the last covered hit), a same-timer reuse caps how
-                // LATE it can go (squeeze). Charges make squeeze moot.
+                // Press-window HINTS: coverage pushes the press EARLIER (the
+                // buff must reach the last covered hit), a same-timer reuse
+                // caps how LATE it can go. Informational only; the red verdict
+                // comes from the walk below.
                 for (var u = 0; u < list.Count; u++)
                 {
                     var (t, line, name, _) = list[u];
@@ -567,6 +607,15 @@ public class SheetViewWindow : Window
                     if (line.CoverUntil > t + 0.5f && pm.Duration > 0f)
                         lo = line.CoverUntil - pm.Duration;
 
+                    // Coverage the buff can't physically reach even pressed AT
+                    // the hit: that one is wrong on its own, chain or no chain.
+                    if (lo > t + 0.5f)
+                    {
+                        AppendOnce(_conflicts, line,
+                            $"{name}'s {pm.Duration:0}s duration can't reach {TimeText(line.CoverUntil)}; press it later or shorten the coverage.");
+                        continue;
+                    }
+
                     var hi = t;
                     var squeezedBy = "";
                     if (charges == 1 && u + 1 < list.Count)
@@ -576,14 +625,10 @@ public class SheetViewWindow : Window
                         if (latest < hi) { hi = latest; squeezedBy = $"{next.Name} at {TimeText(next.Time)}"; }
                     }
 
-                    if (lo > hi + 0.5f)
-                    {
-                        var msg = line.CoverUntil > t + 0.5f && pm.Duration > 0f && lo > t
-                            ? $"{name}'s {pm.Duration:0}s duration can't reach {TimeText(line.CoverUntil)}; press it later or shorten the coverage."
-                            : $"{name} can't cover through {TimeText(line.CoverUntil)} AND be back for {squeezedBy}.";
-                        AppendOnce(_conflicts, line, msg);
-                    }
-                    else if ((lo > float.NegativeInfinity || hi < t - 0.5f) && hi >= 0f)
+                    // Tension between coverage and the next press is left to
+                    // the walk (the next press may float earlier than its hit).
+                    if (lo > hi + 0.5f) continue;
+                    if ((lo > float.NegativeInfinity || hi < t - 0.5f) && hi >= 0f)
                     {
                         var loText = lo > float.NegativeInfinity ? TimeText(MathF.Max(lo, 0f)) : "any time";
                         var win = lo > float.NegativeInfinity && hi < t - 0.5f
@@ -597,45 +642,80 @@ public class SheetViewWindow : Window
 
                 if (list.Count < 2) return;
 
-                // Serial recharge, like the game: charges regenerate one at a
-                // time, so Oblation @0 and @5 is back at 60 and 120, not 60/65.
-                var max = charges;
-                var avail = max;
-                var nextAt = float.PositiveInfinity; // when a charge next finishes
-                var prevName = "";
+                if (charges > 1)
+                {
+                    // Serial recharge, like the game: charges regenerate one at
+                    // a time, so Oblation @0 and @5 is back at 60 and 120.
+                    var max = charges;
+                    var avail = max;
+                    var nextAt = float.PositiveInfinity; // when a charge next finishes
+                    var prevName = "";
+                    foreach (var (t, line, name, _) in list)
+                    {
+                        while (avail < max && nextAt <= t + 1f)
+                        {
+                            avail++;
+                            nextAt = avail < max ? nextAt + recast : float.PositiveInfinity;
+                        }
+
+                        if (avail == 0)
+                        {
+                            var shared = prevName.Length > 0
+                                && !string.Equals(prevName, name, StringComparison.OrdinalIgnoreCase)
+                                ? $"; it shares a cooldown with {prevName}" : "";
+                            var offNote = line.OffsetSeconds != 0f
+                                ? $" (this call presses at {TimeText(t)}, offset {line.OffsetSeconds:+0.#;-0.#}s counted)"
+                                : "";
+                            AppendOnce(_conflicts, line,
+                                $"{name}: not back for another {nextAt - t:0}s here "
+                                + $"({recast:0}s cooldown, pressed at {TimeText(nextAt - recast)}, {max} charges)"
+                                + shared + "." + offNote);
+                            nextAt += recast;
+                        }
+                        else
+                        {
+                            if (avail == max) nextAt = t + recast;
+                            avail--;
+                        }
+                        prevName = name;
+                    }
+                    return;
+                }
+
+                // Top-down feasibility, first mechanic first - the way you'd
+                // build the plan by hand. Every press is assumed as EARLY as
+                // its buff allows (duration minus 1s before its hit, or the
+                // coverage bound if later), earlier entries are taken as
+                // correct, and a later press only goes red when even then the
+                // button cannot be back. Kerachole at 0:20 and 0:45 is legal
+                // (press the first ~0:10); a third at 1:00 is not.
+                var ready = float.NegativeInfinity;
+                var walkPrev = "";
                 foreach (var (t, line, name, _) in list)
                 {
-                    // Regenerate charges finished by now (1s resync tolerance).
-                    while (avail < max && nextAt <= t + 1f)
+                    var pm = Cooldowns.PlanMits(line.Action).FirstOrDefault(m =>
+                        string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
+                    var lo = pm.Duration > 0f ? t - (pm.Duration - 1f) : t;
+                    if (line.CoverUntil > t + 0.5f && pm.Duration > 0f)
+                        lo = MathF.Max(lo, line.CoverUntil - pm.Duration);
+                    lo = MathF.Min(lo, t); // reach-impossible coverage already flagged
+                    var p = MathF.Max(lo, ready);
+                    if (p > t + 0.5f)
                     {
-                        avail++;
-                        nextAt = avail < max ? nextAt + recast : float.PositiveInfinity;
-                    }
-
-                    if (avail == 0)
-                    {
-                        var shared = prevName.Length > 0
-                            && !string.Equals(prevName, name, StringComparison.OrdinalIgnoreCase)
-                            ? $"; it shares a cooldown with {prevName}" : "";
-                        // Spell out the offset-aware press time, so it's obvious
-                        // the math counted (or didn't get) a per-call offset.
+                        var shared = walkPrev.Length > 0
+                            && !string.Equals(walkPrev, name, StringComparison.OrdinalIgnoreCase)
+                            ? $"; it shares a cooldown with {walkPrev}" : "";
                         var offNote = line.OffsetSeconds != 0f
                             ? $" (this call presses at {TimeText(t)}, offset {line.OffsetSeconds:+0.#;-0.#}s counted)"
                             : "";
-                        var msg = $"{name}: not back for another {nextAt - t:0}s here "
-                                + $"({recast:0}s cooldown, pressed at {TimeText(nextAt - recast)}"
-                                + (max > 1 ? $", {max} charges)" : ")") + shared + "." + offNote;
-                        AppendOnce(_conflicts, line, msg);
-                        // The plan presumably slips to use the charge the moment
-                        // it lands, so its recharge slot is consumed.
-                        nextAt += recast;
+                        AppendOnce(_conflicts, line,
+                            $"{name}: not possible here. Even pressing the earlier ones as early as their buffs allow, "
+                            + $"it is on cooldown until {TimeText(p)} ({recast:0}s cooldown, previous press ~{TimeText(p - recast)})"
+                            + shared + "." + offNote);
+                        // Assume the plan slips to press the moment it's back.
                     }
-                    else
-                    {
-                        if (avail == max) nextAt = t + recast; // pipeline starts
-                        avail--;
-                    }
-                    prevName = name;
+                    ready = p + recast;
+                    walkPrev = name;
                 }
     }
 
@@ -3670,16 +3750,23 @@ public class SheetViewWindow : Window
         if (warn != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, WarnCellBg);
         else if (lvl != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, LevelCellBg);
 
+        // Carry-over ghost: this hit is still inside an earlier press's buff.
+        var carry = cell.Count == 0 && row.Carry != null ? row.Carry[i] : null;
+
         // Merged cells stack their lines instead of hiding behind a "+1".
         var body = cell.Count > 1 ? string.Join("\n", cell.Select(l => l.Action)) : first;
-        var label = (custom ? "* " : "") + (body.Length == 0 ? " " : body) + (off ? "  (off)" : "");
+        var label = (custom ? "* " : "") + (body.Length == 0 ? carry ?? " " : body) + (off ? "  (off)" : "");
 
-        // Text color: your edits stay orange, disabled lines dim, and with the
-        // Colors box ticked the rest is colored by mit type (overlay colors).
+        // Text color: your edits stay orange, disabled lines dim, carry-over
+        // ghosts dimmer still, and with the Colors box ticked the rest is
+        // colored by mit type (overlay colors).
         var kindCol = C.SheetColorByType && !custom && !off && first.Length > 0
             ? MitTypes.Color(MitTypes.Classify(first), C) : 0u;
         var pushed = true;
         if (custom) ImGui.PushStyleColor(ImGuiCol.Text, EditedColor);
+        else if (carry != null)
+            ImGui.PushStyleColor(ImGuiCol.Text,
+                (ImGui.GetColorU32(ImGuiCol.TextDisabled) & 0x00FFFFFF) | 0x78000000);
         else if (off || foreign) ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
         else if (kindCol != 0) ImGui.PushStyleColor(ImGuiCol.Text, kindCol);
         else pushed = false;
@@ -3697,7 +3784,9 @@ public class SheetViewWindow : Window
         {
             _hoverRow = row; _hoverLive = row;
             var tip = cell.Count == 0
-                ? $"Click to add a mit for {_slots[i]} here (that slot only)"
+                ? (carry != null
+                    ? $"Still covered: {carry[3..]} from an earlier row is up through this hit.\nClick to add a mit of your own for {_slots[i]}."
+                    : $"Click to add a mit for {_slots[i]} here (that slot only)")
                 : cell.Count == 1
                     ? $"{first}\nClick to edit {_slots[i]}'s mit (that slot only). Clear the text to remove it."
                     : $"{string.Join("  ·  ", cell.Select(l => l.Action))}\nTwo lines share this moment; "
