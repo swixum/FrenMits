@@ -86,6 +86,16 @@ public static class PotionTimings
     };
 
     // Baked windows for a fight + job, as floats. Empty if none.
+    // The standard 2-minute-meta potion plan for a fight of this length: pot
+    // the opener, then each 6:00 burst (item recast is 270s; bursts land on the
+    // even minutes) while at least half a minute of fight remains.
+    public static List<float> GenericWindows(float fightEnd)
+    {
+        var times = new List<float>();
+        for (var t = 0f; t <= fightEnd - 30f || t == 0f; t += 360f) times.Add(t);
+        return times;
+    }
+
     public static List<float> DefaultsFor(uint territory, string? jobAbbr)
     {
         var slug = BossSlug(territory);

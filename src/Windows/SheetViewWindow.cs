@@ -1204,12 +1204,20 @@ public class SheetViewWindow : Window
     private int _newMySlot;
 
     private static readonly string[] SlotTemplates =
-        { "Full party (MT OT H1 H2 D1-D4)", "Light party (T H D1 D2)", "Custom columns" };
+    {
+        "Full party (MT OT H1 H2 D1-D4)",
+        "Full party, job healers (MT OT WHM AST SCH SGE D1-D4)",
+        "Light party (T H D1 D2)",
+        "Custom columns",
+    };
 
     private string[] TemplateSlots() => _newTemplate switch
     {
         0 => new[] { "MT", "OT", "H1", "H2", "D1", "D2", "D3", "D4" },
-        1 => new[] { "T", "H", "D1", "D2" },
+        // The official sheets' layout: healer columns are job columns, which
+        // also lets Auto-plan use each healer's real kit.
+        1 => new[] { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" },
+        2 => new[] { "T", "H", "D1", "D2" },
         _ => _newSlotsBuf.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                          .Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
     };
@@ -1332,10 +1340,12 @@ public class SheetViewWindow : Window
         ImGui.InputTextWithHint("##nsname", "sheet name (usually the fight)", ref _newName, 64);
         ImGui.SetNextItemWidth(250f);
         ImGui.Combo("##nstpl", ref _newTemplate, SlotTemplates, SlotTemplates.Length);
-        if (_newTemplate == 2)
+        if (_newTemplate == 3)
         {
             ImGui.SetNextItemWidth(250f);
             ImGui.InputTextWithHint("##nscols", "columns, comma-separated (e.g. MT,OT,H1,H2)", ref _newSlotsBuf, 128);
+            ImGui.TextDisabled("Tip: name a column after a job (WHM, MCH...) and Auto-plan");
+            ImGui.TextDisabled("uses that job's real mitigation kit for it.");
         }
         var slots = TemplateSlots();
         if (slots.Length > 0)
@@ -1563,9 +1573,12 @@ public class SheetViewWindow : Window
 
         var added = 0;
         var lastCovered = -9999f;
+        var lastCoveredHurt = 0;
         foreach (var row in rows)
         {
-            if (row.Time - lastCovered < 15f) continue;
+            // Hits inside the previous press's window ride it, UNLESS this one
+            // is graded harder than what that press was sized for.
+            if (row.Time - lastCovered < 15f && row.Hurt <= lastCoveredHurt) continue;
             var have = lists.Values.Count(l => l.Any(x =>
                 MathF.Abs(x.Time - row.Time) < 1f && !string.IsNullOrWhiteSpace(x.Action)));
             // Depth per severity, matching the reference sheets' stacking: the
@@ -1578,7 +1591,7 @@ public class SheetViewWindow : Window
                 _ => perRow,
             };
             var need = target - have;
-            if (need <= 0) { lastCovered = row.Time; continue; }
+            if (need <= 0) { lastCovered = row.Time; lastCoveredHurt = row.Hurt; continue; }
 
             var ready = tools
                 .Where(t => t.ReadyAt <= row.Time + 0.01f)
@@ -1622,7 +1635,7 @@ public class SheetViewWindow : Window
                 }
                 added++;
             }
-            if (byCol.Count > 0 || have > 0) lastCovered = row.Time;
+            if (byCol.Count > 0 || have > 0) { lastCovered = row.Time; lastCoveredHurt = row.Hurt; }
         }
 
         foreach (var l in lists.Values)
@@ -1640,7 +1653,7 @@ public class SheetViewWindow : Window
         if (!ImGui.BeginPopupModal("##autoplan", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
-        PopupHeader("Auto-plan mits", 440f);
+        PopupHeader("Auto-plan mits", 520f);
         if (_fight == null || !_isCustom)
         {
             ImGui.CloseCurrentPopup();

@@ -870,6 +870,7 @@ public class ConfigWindow : Window, IDisposable
                     // reads as offset + line table by default.
                     var job = _plugin.ActiveJobAbbreviation();
                     var hasExtras = PotionTimings.BossSlug(fight.TerritoryId) != null
+                        || (fight.CustomSlots.Count > 0 && fight.CustomRows.Count > 0)
                         || (!string.IsNullOrEmpty(job) && JobExtras.For(fight.TerritoryId, job) != null)
                         || (!string.IsNullOrEmpty(job) && JobExtras.ForCustomSheet(fight, job) != null)
                         || (TankMits.Has(fight.TerritoryId) && IsTankSlot(fight.Slot));
@@ -1331,12 +1332,10 @@ public class ConfigWindow : Window, IDisposable
             }
             if (ImGui.SmallButton($"{slot}##col{slot}") && !active)
             {
-                fight.Slot = slot;
-                // Same swap Sheet View does: the column's saved lines become the
-                // active plan; the fight's current lines stay with their column.
-                if (fight.SavedSlots.TryGetValue(slot, out var saved)) fight.Lines = saved;
-                fight.SavedSlots[slot] = fight.Lines;
-                C.Save();
+                // SetSlot parks the old column's lines and gives a never-picked
+                // column a FRESH list; assigning fight.Lines here instead would
+                // alias two columns to one list.
+                _plugin.SetSlot(fight, slot);
                 _plugin.SheetViewWindow.MarkPlanDirty();
             }
             if (active) ImGui.PopStyleColor(2);
@@ -1392,15 +1391,20 @@ public class ConfigWindow : Window, IDisposable
         }
     }
 
-    // Potions card: baked top-log potion windows for your job with a one-click add.
+    // Potions card: baked top-log potion windows for your job with a one-click
+    // add. Custom sheets get the standard 2-minute burst meta instead: pot the
+    // opener, re-pot each 6:00 burst that fits the fight.
     private void DrawPotionsSection(FightProfile fight)
     {
-        if (PotionTimings.BossSlug(fight.TerritoryId) == null) return;
+        var customPots = PotionTimings.BossSlug(fight.TerritoryId) == null
+            && fight.CustomSlots.Count > 0 && fight.CustomRows.Count > 0;
+        if (PotionTimings.BossSlug(fight.TerritoryId) == null && !customPots) return;
 
         var job = _plugin.ActiveJobAbbreviation();
         var stat = PotionTimings.Stat(job);
 
-        BeginCard(FontAwesomeIcon.Flask, ImGuiColors.DalamudViolet, "Potions", "top-log windows");
+        BeginCard(FontAwesomeIcon.Flask, ImGuiColors.DalamudViolet, "Potions",
+            customPots ? "2-minute burst meta" : "top-log windows");
 
         if (string.IsNullOrEmpty(job) || string.IsNullOrEmpty(stat))
         {
@@ -1409,7 +1413,9 @@ public class ConfigWindow : Window, IDisposable
             return;
         }
 
-        var times = PotionTimings.DefaultsFor(fight.TerritoryId, job);
+        var times = customPots
+            ? PotionTimings.GenericWindows(fight.CustomRows.Max(r => r.Time))
+            : PotionTimings.DefaultsFor(fight.TerritoryId, job);
 
         // Window pills.
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {stat}");
