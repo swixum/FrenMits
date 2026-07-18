@@ -1747,22 +1747,33 @@ public class SheetViewWindow : Window
         var deadlyTimes = rows.Where(r => !r.Buster && r.Hurt >= 3).Select(r => r.Time).ToList();
         var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
 
-        // Hits landing while a buff placed on a row is still up (~18s): the
-        // multi-hit strings where on-damage cooldowns earn their keep.
-        var clusterOf = new Dictionary<CustomRow, int>();
-        for (var i = 0; i < rows.Count; i++)
-        {
-            var c = 1;
-            for (var j = i + 1; j < rows.Count && rows[j].Time <= rows[i].Time + 18f; j++)
-                if (!rows[j].Buster) c++;
-            clusterOf[rows[i]] = c;
-        }
-        var clusterTimes = rows.Where(r => !r.Buster && clusterOf[r] >= 2).Select(r => r.Time).ToList();
-        // Tooltip-aware hold: never blow an on-damage cooldown on a lone hit
-        // when a multi-hit string it could tick through comes up within recast.
+        // Multi-hit strings (Trophy Weapons style: back-to-back-to-back hits):
+        // how many non-buster hits land inside a window opened at t0. This is
+        // what an on-damage cooldown pressed there actually ticks through.
+        int HitsWithin(float t0, float dur)
+            => rows.Count(r2 => !r2.Buster && r2.Time >= t0 - 0.01f && r2.Time <= t0 + dur + 0.01f);
+        // Each on-damage cooldown is judged over its REAL buff window (game
+        // data; ~18s when unknown), so Bell is scored over Bell's duration.
+        static float OnDmgDur(string term)
+            => Cooldowns.PlanInfo(term)?.Duration is { } d and > 5f ? d : 18f;
+        int TickScore(PlanTool t, CustomRow r)
+            => OnDamageMits.Contains(t.Term) ? HitsWithin(r.Time, OnDmgDur(t.Term)) : 0;
+        // Tooltip-aware hold: never spend an on-damage cooldown where it ticks
+        // little when a strictly DENSER string it could ride starts within its
+        // recast - pressing it now is exactly what would rob that string. A
+        // lone hit yields to any 2+ string; a 2-hit string yields to a 3+ one.
         bool HoldForCluster(PlanTool t, CustomRow r)
-            => OnDamageMits.Contains(t.Term) && clusterOf[r] < 2
-               && clusterTimes.Any(ct => ct > r.Time && ct < r.Time + t.Recast);
+        {
+            if (!OnDamageMits.Contains(t.Term)) return false;
+            var floor = Math.Max(2, TickScore(t, r) + 1);
+            return rows.Any(r2 => !r2.Buster && r2.Time > r.Time && r2.Time <= r.Time + t.Recast
+                                  && HitsWithin(r2.Time, OnDmgDur(t.Term)) >= floor);
+        }
+        // A dense string is one big hit split into ticks: a row that OPENS a
+        // 3+ hit string is sized one grade harder, so the plan stacks for the
+        // string's TOTAL damage instead of its first tick.
+        int EffHurt(CustomRow r)
+            => !r.Buster && r.Hurt is 1 or 2 && HitsWithin(r.Time, 18f) >= 3 ? r.Hurt + 1 : r.Hurt;
 
         // How long a planned line's mitigation actually lasts: the shortest
         // buff in it (game data; generic party terms fall back to a Reprisal-ish
@@ -1919,8 +1930,10 @@ public class SheetViewWindow : Window
             // Depth per severity, matching the reference sheets' stacking. The
             // planner decides ungraded rows itself: on a graded sheet they're
             // the leftovers (light); on a fully ungraded sheet they get a solid
-            // baseline and the use-it-or-lose-it pass rolls the rest.
-            var target = row.Hurt switch
+            // baseline and the use-it-or-lose-it pass rolls the rest. Dense
+            // strings size off their effective grade (the whole string's load).
+            var eff = EffHurt(row);
+            var target = eff switch
             {
                 3 => lists.Count,
                 2 => Math.Max(3, lists.Count / 2),
@@ -1959,20 +1972,19 @@ public class SheetViewWindow : Window
             // mit on deadly rows (two of them joined, like the sheets' worst
             // hits), the smallest that does the job on light rows, and on
             // medium rows whatever does not rob an upcoming deadly hit.
-            var byCol = ready.GroupBy(t => t.Slot).Select(g => (row.Hurt switch
+            var byCol = ready.GroupBy(t => t.Slot).Select(g => (eff switch
                 {
-                    // On multi-hit strings the on-damage cooldowns come first;
-                    // they tick every hit there (tooltip behavior).
-                    3 => g.OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
+                    // On multi-hit strings the on-damage cooldowns come first,
+                    // ranked by how many hits they'd tick through (tooltip
+                    // behavior: more ticks = more value).
+                    3 => g.OrderByDescending(t => TickScore(t, row) >= 2 ? TickScore(t, row) : 0)
                           .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
                     1 or 0 => g.OrderBy(t => t.Recast).ThenBy(t => t.Order),
-                    // Hurts rows inside a multi-hit string also lead with the
-                    // on-damage cooldowns; they tick every hit there too.
-                    _ => g.OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
+                    _ => g.OrderByDescending(t => TickScore(t, row) >= 2 ? TickScore(t, row) : 0)
                           .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                           .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
                 }).ToList())
-                .OrderBy(opts => row.Hurt == 2 && StealsFromDeadly(opts[0], row.Time) ? 1 : 0)
+                .OrderBy(opts => eff == 2 && StealsFromDeadly(opts[0], row.Time) ? 1 : 0)
                 .ThenBy(opts => opts[0].LastUse).ThenBy(opts => opts[0].Order)
                 .ToList();
 
@@ -1986,7 +1998,7 @@ public class SheetViewWindow : Window
                     // One player CAN layer several of their own mits on one
                     // mechanic: deadly hits stack up to three per cell (the
                     // sheets' triple cells), hurts pairs, light takes one.
-                    if (set.Count >= (row.Hurt >= 3 ? 3 : row.Hurt >= 2 ? 2 : 1)) break;
+                    if (set.Count >= (eff >= 3 ? 3 : eff >= 2 ? 2 : 1)) break;
                     if (DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)) continue;
                     set.Add(t);
                 }
@@ -2026,19 +2038,19 @@ public class SheetViewWindow : Window
                     .Where(t => !(DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)))
                     .Where(t => row.Hurt >= 2 || !StealsFromDeadly(t, row.Time))
                     .Where(t => row.Hurt >= 3 || !HoldForCluster(t, row))
-                    .OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
+                    .OrderByDescending(t => TickScore(t, row) >= 2 ? TickScore(t, row) : 0)
                     .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                     .ThenBy(t => t.Recast).ThenBy(t => t.Order);
                 // Deadly hits stack up to three from one player, hurts pairs,
                 // and on lighter hits a QUICK second tool (60s or less) may
                 // still join, so the short-recast kit pieces roll instead of
                 // queuing behind one cell per row.
-                var satCap = row.Hurt >= 3 ? 3 : 2;
+                var satCap = eff >= 3 ? 3 : 2;
                 var picks = new List<PlanTool>();
                 foreach (var t in satOrder)
                 {
                     if (picks.Count >= satCap) break;
-                    if (picks.Count == 1 && row.Hurt < 2 && t.Recast > 60f) break;
+                    if (picks.Count == 1 && eff < 2 && t.Recast > 60f) break;
                     picks.Add(t);
                 }
                 if (picks.Count == 0) continue;
