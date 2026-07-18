@@ -1858,7 +1858,11 @@ public class SheetViewWindow : Window
             // Save the big buttons for the big hits.
             if (row.Hurt is 1 or 0)
                 ready.RemoveAll(t => StealsFromDeadly(t, row.Time));
-            ready.RemoveAll(t => HoldForCluster(t, row));
+            // The cluster hold never keeps anything from a DEADLY hit: a lone
+            // deadly is worth a Bell/Panhaima burst, and Macrocosmos compiles
+            // one huge hit at full value (its tooltip counts damage, not hits).
+            if (row.Hurt < 3)
+                ready.RemoveAll(t => HoldForCluster(t, row));
 
             // Enemy debuffs don't stack from two sources: one Reprisal, one
             // Feint, one Addle per hit, party-wide; the sheets rotate WHO casts
@@ -1882,7 +1886,10 @@ public class SheetViewWindow : Window
                     3 => g.OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
                           .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
                     1 or 0 => g.OrderBy(t => t.Recast).ThenBy(t => t.Order),
-                    _ => g.OrderBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
+                    // Hurts rows inside a multi-hit string also lead with the
+                    // on-damage cooldowns; they tick every hit there too.
+                    _ => g.OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
+                          .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                           .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
                 }).ToList())
                 .OrderBy(opts => row.Hurt == 2 && StealsFromDeadly(opts[0], row.Time) ? 1 : 0)
@@ -1938,7 +1945,7 @@ public class SheetViewWindow : Window
                     .Where(t => t.ReadyAt <= row.Time + 0.01f)
                     .Where(t => !(DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)))
                     .Where(t => row.Hurt >= 2 || !StealsFromDeadly(t, row.Time))
-                    .Where(t => !HoldForCluster(t, row))
+                    .Where(t => row.Hurt >= 3 || !HoldForCluster(t, row))
                     .OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
                     .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                     .ThenBy(t => t.Recast).ThenBy(t => t.Order);
