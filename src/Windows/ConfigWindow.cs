@@ -428,7 +428,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
         if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
-        if (NavItem(FontAwesomeIcon.ListUl, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
+        if (NavItem(FontAwesomeIcon.Stream, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
         ImGui.Spacing();
