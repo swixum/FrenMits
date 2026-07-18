@@ -315,6 +315,17 @@ public sealed class Plugin : IDalamudPlugin
         var slotsRenamed = false;
         foreach (var f in Config.Fights)
             slotsRenamed |= SlotNames.NormalizeFight(f);
+        // Pinned Sheet View columns are plain strings in the config; rename
+        // them too or pre-standard pins ("MT", "D3") silently stop matching.
+        for (var i = 0; i < Config.SheetPinnedSlots.Count; i++)
+        {
+            var canon = SlotNames.Canon(Config.SheetPinnedSlots[i]);
+            if (!string.Equals(canon, Config.SheetPinnedSlots[i], StringComparison.Ordinal))
+            { Config.SheetPinnedSlots[i] = canon; slotsRenamed = true; }
+        }
+        for (var i = Config.SheetPinnedSlots.Count - 1; i > 0; i--)
+            if (Config.SheetPinnedSlots.Take(i).Contains(Config.SheetPinnedSlots[i], StringComparer.OrdinalIgnoreCase))
+            { Config.SheetPinnedSlots.RemoveAt(i); slotsRenamed = true; }
         if (slotsRenamed) Config.Save();
 
         // Auto-add any built-in fight the user hasn't been shown yet, so a newly
@@ -1310,7 +1321,11 @@ public sealed class Plugin : IDalamudPlugin
     private void UpdateDtr()
     {
         if (_dtr == null) return;
-        if (!Config.ShowDtrBar || !Timer.Running || ActiveFight() is not { } fight || fight.TimelineOnly)
+        if (!Config.ShowDtrBar || !Timer.Running || ActiveFight() is not { } fight || fight.TimelineOnly
+            // Same silence rules as the overlay and cues: during a phase
+            // cutscene (and until the post-cutscene resync lands) the clock is
+            // known-drifted, so don't count calls down against it.
+            || CutsceneActive || Cues.Holding)
         {
             _dtr.Shown = false;
             return;
@@ -1448,6 +1463,10 @@ public sealed class Plugin : IDalamudPlugin
         if (!Config.TestMode) { Config.TestMode = true; Config.Save(); }
         var raw = time - 6f - fight.TimerOffset - PhaseOffsetFor(fight);
         Timer.SetElapsed(MathF.Max(0f, raw));
+        // SetElapsed doesn't bump Generation and the clock lands mid-sheet, so
+        // the fresh-pull check never re-arms: without this, jumping to the same
+        // phase a second time would play no audio.
+        Cues.Rearm();
     }
 
     public void StopPractice()

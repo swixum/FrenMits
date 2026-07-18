@@ -76,8 +76,9 @@ public class ConfigWindow : Window, IDisposable
 
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme" };
 
-    // Every group a fight can file under (the sidebar's order).
-    private static readonly string[] FightTypes = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
+    // Every group a fight can file under (the sidebar's order). Legacy
+    // "Raids"/"Other" categories display and file as Extreme (CategoryOf).
+    private static readonly string[] FightTypes = { "Ultimate", "Savage", "Extreme" };
 
     // The sidebar group a fight belongs to. Built-ins use their baked category;
     // any fight whose stored category is no longer a tab (e.g. the removed Raids /
@@ -1160,7 +1161,7 @@ public class ConfigWindow : Window, IDisposable
             fight.Category = FightTypes[ci];
             C.Save();
         }
-        Tip("Ultimate / Savage / Extreme / Raids / Other: which sidebar group this fight files under.");
+        Tip("Ultimate / Savage / Extreme: which sidebar group this fight files under.");
 
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);

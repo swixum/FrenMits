@@ -122,9 +122,13 @@ public class TimelineWindow : Window
 
         // Show lines that are beyond their lead window (a line inside its lead is on
         // the main call, so it isn't duplicated here) and within the look-ahead.
+        // Universal timelines have NO main call (the overlay is gated off), so
+        // their lines stay listed through the lead instead of vanishing early.
         var upcoming = fight.OrderedLines
             .Where(l => l.Enabled && l.AppliesTo(job)
-                        && l.CueTime - elapsed > (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds)
+                        && l.CueTime - elapsed > (fight.TimelineOnly
+                            ? -C.HoldSeconds
+                            : l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds)
                         && l.CueTime - elapsed <= C.UpcomingLookaheadSeconds)
             .OrderBy(l => l.CueTime) // fire order, so offsets can't cut the soonest call
             .Take(Math.Max(0, C.UpcomingCount))
@@ -185,8 +189,23 @@ public class TimelineWindow : Window
     private List<SheetTimeline.MechRow> BoardRows(FightProfile fight)
     {
         // Cheap change fingerprint so plan edits show up even mid-combat
-        // (Auto-plan / a line added from Sheet View during a pull).
+        // (Auto-plan / a line added from Sheet View during a pull). Counts
+        // alone miss equal-count edits (retime, rename, delete-one-add-one),
+        // so fold times and actions in - including the OTHER columns' stashes,
+        // which feed the board's rows too.
         var stamp = fight.Lines.Count * 31 + fight.CustomRows.Count;
+        unchecked
+        {
+            foreach (var l in fight.Lines)
+                stamp = stamp * 31 + (int)(l.Time * 8f) + l.Action.Length;
+            foreach (var r in fight.CustomRows)
+                stamp = stamp * 31 + (int)(r.Time * 8f) + r.Hurt;
+            foreach (var kv in fight.SavedSlots)
+            {
+                stamp = stamp * 17 + kv.Value.Count;
+                foreach (var l in kv.Value) stamp = stamp * 31 + (int)(l.Time * 8f);
+            }
+        }
         var stale = _boardFightId != fight.Id
                     || _boardGen != _plugin.Timer.Generation
                     || _boardStamp != stamp

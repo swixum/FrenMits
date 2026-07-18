@@ -33,26 +33,25 @@ public class CueEngine
         if (_plugin.Timer.Generation != _generation)
         {
             _generation = _plugin.Timer.Generation;
-            // Freshness is judged on the SHEET clock, not the cue clock: a positive
-            // timer offset would otherwise read "10s in" at pull start and never
-            // re-arm the fired-set.
-            var fresh = _plugin.ActiveFight() is not { } genFight || _plugin.ElapsedFor(genFight) < 5f;
+            // Freshness is judged on the RAW timer, not a sheet clock: the
+            // door-boss phase offset (M12S P2 = +420s) would otherwise read
+            // "7 minutes in" at every P2 repull and never re-arm the fired-set,
+            // silencing every already-spoken call for the rest of the session.
+            var fresh = _plugin.Timer.Elapsed < 5f;
             if (fresh) _fired.Clear();
         }
 
-        if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.CutsceneActive) return;
-
         // Waiting for the post-cutscene phase re-base to land — stay silent so we
-        // don't announce against a drifted clock. Release only when a PHASE anchor
+        // don't announce against a drifted clock. Release when a PHASE anchor
         // snaps the clock (a mid-phase mechanic resync isn't enough to trust the
-        // new phase yet) or the timeout passes.
-        if (_holding)
-        {
-            if (_plugin.Sync.PhaseSyncGeneration != _holdPhaseGen || DateTime.UtcNow >= _holdUntil)
-                _holding = false;
-            else
-                return;
-        }
+        // new phase yet) or the timeout passes. This runs BEFORE the audio gate:
+        // Holding also hides the overlay and board, so with audio off it would
+        // otherwise latch forever after the first cutscene.
+        if (_holding && (_plugin.Sync.PhaseSyncGeneration != _holdPhaseGen || DateTime.UtcNow >= _holdUntil))
+            _holding = false;
+
+        if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.CutsceneActive) return;
+        if (_holding) return;
 
         if (_plugin.ActiveFight() is not { } fight) return;
         if (fight.TimelineOnly) return; // universal timelines are silent
@@ -86,6 +85,11 @@ public class CueEngine
     private bool _holding;
     private int _holdPhaseGen;
     private DateTime _holdUntil;
+
+    // Re-arm every cue. A practice phase-jump parks the clock mid-sheet with
+    // SetElapsed (no Generation bump, elapsed far from 0), so without this a
+    // second jump to the same phase would stay silent.
+    public void Rearm() => _fired.Clear();
 
     public void HoldForResync(int phaseGen, double maxSeconds)
     {

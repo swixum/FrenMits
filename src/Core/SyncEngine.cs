@@ -72,6 +72,14 @@ public class SyncEngine
             return;
         }
 
+        // Custom sheets get a hands-free capture of every pull so Sheet View's
+        // "Build from pull" can turn a wipe into rows + anchors. Resolved up
+        // front because the playback watchdog needs to know whether the enemy
+        // scan below is actually running.
+        var fight = _plugin.ActiveFight();
+        var autoCapture = fight != null && fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId);
+        var scanning = fight != null && (c.EnableSync || autoCapture);
+
         // Duty-recorder playback watchdog: the spectator has no combat flag, so
         // nothing ever stops the clock between the recording's pulls. Two signals
         // end a viewing: a load screen (chapter jump / pull reset, immediate) and
@@ -90,19 +98,17 @@ public class SyncEngine
             // Cutscene time is a phase transition, not a wipe; keep the watchdog
             // fed so it can't fire the instant the cutscene ends.
             if (Plugin.CutsceneActive) _playbackEnemyAt = DateTime.UtcNow;
-            else if ((DateTime.UtcNow - _playbackEnemyAt).TotalSeconds > 4)
+            // Judge "no enemies" only while the scan below is feeding the
+            // watchdog; otherwise a manually started clock (resync off, or no
+            // profile for the duty) would be killed 4s in with enemies visible.
+            else if (scanning && (DateTime.UtcNow - _playbackEnemyAt).TotalSeconds > 4)
             {
                 _plugin.Timer.Reset();
                 Service.Log.Information("[FrenMits] Playback: no enemies for 4s; timer stopped, waiting for the next pull.");
                 return;
             }
         }
-        if (_plugin.ActiveFight() is not { } fight) return;
-
-        // Custom sheets get a hands-free capture of every pull so Sheet View's
-        // "Build from pull" can turn a wipe into rows + anchors.
-        var autoCapture = fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId);
-        if (!c.EnableSync && !autoCapture) return;
+        if (fight == null || !scanning) return;
 
         // Work in the same clock the overlay reads (includes any door-boss phase
         // offset), so anchors line up in both phases.

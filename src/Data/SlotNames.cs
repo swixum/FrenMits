@@ -96,8 +96,15 @@ public static class SlotNames
 
         // The active slot's lines must stay aliased into the stash under the
         // (possibly renamed) key, or the next slot switch would lose edits.
+        // If the merge above kept a FULLER plan for that key (rename collision),
+        // adopt it as the live plan instead of clobbering it with the smaller.
         if (changed && !string.IsNullOrEmpty(fight.Slot))
+        {
+            if (fight.SavedSlots.TryGetValue(fight.Slot, out var winner)
+                && !ReferenceEquals(winner, fight.Lines) && winner.Count > fight.Lines.Count)
+                fight.Lines = winner;
             fight.SavedSlots[fight.Slot] = fight.Lines;
+        }
 
         return changed;
     }

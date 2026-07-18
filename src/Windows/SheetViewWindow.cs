@@ -498,7 +498,8 @@ public class SheetViewWindow : Window
             {
                 if (row.Ghost || row.Cells.Length <= i || row.Cells[i].Count > 0) continue;
                 // Only lines close enough that any buff could still be up.
-                while (start < lines.Count && lines[start].Time < row.Time - 45f) start++;
+                while (start < lines.Count && lines[start].Time < row.Time - 45f
+                       && lines[start].CoverUntil < row.Time - 0.5f) start++;
                 List<string>? parts = null;
                 for (var k = start; k < lines.Count && lines[k].Time < row.Time - 0.5f; k++)
                 {
@@ -1324,11 +1325,12 @@ public class SheetViewWindow : Window
     }
 
     private string _newZoneBuf = "";
-    private int _newCat = 4;
+    private int _newCat = 2;
     private bool _newCatTouched;
 
-    // Where the sheet files in the sidebar. Same list the fight picker groups by.
-    private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
+    // Where the sheet files in the sidebar (Raids/Other were retired; legacy
+    // sheets carrying them still group under their old name in the picker).
+    private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme" };
 
     // Best guess from the duty's name; the user's own pick always wins.
     private static int GuessCategory(string dutyName)
@@ -1337,7 +1339,7 @@ public class SheetViewWindow : Window
         if (dutyName.Contains("(Savage)", StringComparison.OrdinalIgnoreCase)) return 1;
         if (dutyName.Contains("(Extreme)", StringComparison.OrdinalIgnoreCase)
             || dutyName.StartsWith("The Minstrel's Ballad", StringComparison.OrdinalIgnoreCase)) return 2;
-        return 4;
+        return 2;
     }
 
     // True when the id is a real TerritoryType row (a typo'd id would bind the
@@ -1444,7 +1446,7 @@ public class SheetViewWindow : Window
         if (ImGui.Combo("fight type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
             _newCatTouched = true;
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Ultimate / Savage / Extreme / Raids / Other: which sidebar group the\nsheet files under. Auto-guessed from the duty name; your pick wins.");
+            ImGui.SetTooltip("Ultimate / Savage / Extreme: which sidebar group the sheet files\nunder. Auto-guessed from the duty name; your pick wins.");
 
         // The zone the sheet binds to: prefilled with where you stand, or type a
         // zone id, or type a duty name and pick it from the matches.
@@ -1725,7 +1727,7 @@ public class SheetViewWindow : Window
         public string Slot = "";
         public string Term = "";
         public float Recast;
-        public float ReadyAt;
+        public float ReadyAt = -9999f; // ready even for pre-pull (negative-time) rows
         public float LastUse = -9999f;
         public int Order;
     }
@@ -1825,12 +1827,14 @@ public class SheetViewWindow : Window
         // rows and the personal presses on heavy raid hits, so the plan can
         // never ask for a Rampart that a buster already spent.
         var tanks = fight.CustomSlots.Where(IsTankColumn).ToList();
-        var invulnAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
-        var rampartAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
-        var shortAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+        // -9999 not 0: pre-pull (negative-time) rows must see everything ready.
+        var invulnAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
+        var rampartAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
+        var shortAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         const float ShortRecast = 25f;
         var rot = 0;
         var lastTb = -9999f;
+        var lastTbHurt = 0;
         var lastTbLines = new List<MitLine>();
         var busterTimes = rows.Where(r => r.Buster && r.Hurt >= 2).Select(r => r.Time).ToList();
 
@@ -1840,7 +1844,10 @@ public class SheetViewWindow : Window
             {
                 // ---- tank-buster lane: the sheets' tank-tab pattern --------
                 if (tanks.Count == 0) continue;
-                if (row.Time - lastTb < 10f)
+                // Ride only an EQUAL-OR-HARDER previous buster: a deadly buster
+                // 8s after a light one must still get its invuln, not coast on
+                // a short mit sized for the light hit.
+                if (row.Time - lastTb < 10f && row.Hurt <= lastTbHurt)
                 {
                     foreach (var l in lastTbLines)
                         if (l.CoverUntil < row.Time && row.Time <= l.Time + LineCover(l) + 0.01f)
@@ -1851,6 +1858,7 @@ public class SheetViewWindow : Window
                 if (tanks.Any(t2 => lists[t2].Any(x => MathF.Abs(x.Time - row.Time) < 1f)))
                 {
                     lastTb = row.Time;
+                    lastTbHurt = row.Hurt;
                     lastTbLines = new List<MitLine>();
                     continue;
                 }
@@ -1911,6 +1919,7 @@ public class SheetViewWindow : Window
                     }
                 }
                 lastTb = row.Time;
+                lastTbHurt = row.Hurt;
                 continue;
             }
             // Hits inside the previous press's window ride it, UNLESS this one
@@ -1919,7 +1928,11 @@ public class SheetViewWindow : Window
             // the game data). Riding presses get a press window (CoverUntil)
             // capped to what each buff can truly cover, so the grid never
             // promises coverage a 10s buff cannot deliver.
-            if (row.Time - lastCovered < 15f && row.Hurt <= lastCoveredHurt
+            // Ride on EFFECTIVE grades (same scale the sizing below uses), so a
+            // row that OPENS a dense string breaks out of the previous press's
+            // window and gets stacked for the whole string.
+            var eff = EffHurt(row);
+            if (row.Time - lastCovered < 15f && eff <= lastCoveredHurt
                 && (lastAdded.Count == 0 || lastAdded.Any(l => row.Time <= l.Time + LineCover(l) + 0.01f)))
             {
                 foreach (var l in lastAdded)
@@ -1934,7 +1947,6 @@ public class SheetViewWindow : Window
             // the leftovers (light); on a fully ungraded sheet they get a solid
             // baseline and the use-it-or-lose-it pass rolls the rest. Dense
             // strings size off their effective grade (the whole string's load).
-            var eff = EffHurt(row);
             var target = eff switch
             {
                 3 => lists.Count,
@@ -1966,7 +1978,7 @@ public class SheetViewWindow : Window
             var claimed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var l in lists.Values)
                 foreach (var x in l)
-                    if (MathF.Abs(x.Time - row.Time) < 1f)
+                    if (x.Time <= row.Time + 1f && row.Time - x.Time < 10f)
                         foreach (var d in DebuffMits)
                             if (x.Action.Contains(d, StringComparison.OrdinalIgnoreCase)) claimed.Add(d);
 
@@ -2118,7 +2130,7 @@ public class SheetViewWindow : Window
             if (rowLines.Count > 0 || have > 0)
             {
                 lastCovered = row.Time;
-                lastCoveredHurt = row.Hurt;
+                lastCoveredHurt = eff; // effective: a string-opener press covers the string
                 lastAdded = rowLines;
             }
         }

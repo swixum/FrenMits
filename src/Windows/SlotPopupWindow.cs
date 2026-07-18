@@ -72,7 +72,10 @@ public class SlotPopupWindow : Window
                 foreach (var slot in _slots)
                     if (ImGui.Selectable(slot, slot.Equals(current, StringComparison.OrdinalIgnoreCase))
                         && !slot.Equals(current, StringComparison.OrdinalIgnoreCase))
+                    {
                         _plugin.SetSlot(_fight, slot);
+                        _plugin.SheetViewWindow.MarkPlanDirty(); // background grid follows
+                    }
                 ImGui.EndCombo();
             }
 
@@ -111,7 +114,10 @@ public class SlotPopupWindow : Window
                     foreach (var role in Builtin.Roles)
                         if (ImGui.Selectable(role, string.Equals(role, C.RoleSelection, StringComparison.OrdinalIgnoreCase))
                             && !string.Equals(role, C.RoleSelection, StringComparison.OrdinalIgnoreCase))
+                        {
                             _plugin.SetRoleForAll(role);
+                            _plugin.SheetViewWindow.MarkPlanDirty(); // background grid follows
+                        }
                     ImGui.EndCombo();
                 }
                 ImGui.SameLine();

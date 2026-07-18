@@ -89,7 +89,12 @@ public class OverlayWindow : Window
 
     public override bool DrawConditions()
     {
-        if (C.TestMode) return true;
+        // Test mode shows the placement sample anywhere - but never render a
+        // universal (board-only) timeline's lines as center calls: with the
+        // clock running (duty-recorder playback starts it with no combat flag
+        // to auto-off Test mode) that would leak every boss mechanic here.
+        if (C.TestMode)
+            return _plugin.ActiveFight() is not { TimelineOnly: true } || !_plugin.Timer.Running;
         if (Plugin.CutsceneActive) return false; // hide while a cutscene is playing
         if (_plugin.Cues.Holding) return false; // and until the post-cutscene resync lands
         if (_plugin.ActiveFight() is not { } fight) return false;
