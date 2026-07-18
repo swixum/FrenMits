@@ -428,7 +428,6 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
         if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
-        if (NavItem(FontAwesomeIcon.Stream, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
         ImGui.Spacing();
@@ -440,6 +439,7 @@ public class ConfigWindow : Window, IDisposable
             _plugin.SheetViewWindow.Open(
                 fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
         }
+        if (NavItem(FontAwesomeIcon.Stream, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
         if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
