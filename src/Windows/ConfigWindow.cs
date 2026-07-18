@@ -427,7 +427,6 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
-        if (NavItem(FontAwesomeIcon.Stopwatch, "Timer", null, _nav == NavKind.Timer)) _nav = NavKind.Timer;
         if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
         if (NavItem(FontAwesomeIcon.ListUl, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
@@ -634,7 +633,6 @@ public class ConfigWindow : Window, IDisposable
         switch (_nav)
         {
             case NavKind.Home: DrawHomePage(); break;
-            case NavKind.Timer: DrawTimerTab(); break;
             case NavKind.Display: DrawDisplayTab(); break;
             case NavKind.NextMits: DrawNextMitsPage(); break;
             case NavKind.Audio: DrawAudioTab(); break;
@@ -2166,19 +2164,6 @@ public class ConfigWindow : Window, IDisposable
     {
         var fight = _plugin.ActiveFight();
 
-        if (Section("Timing", true))
-        {
-            var warn = C.WarningSeconds;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Show ahead by (s)", ref warn, 1f, 12f, "%.1f")) { C.WarningSeconds = warn; C.Save(); }
-            Tip("How early a call appears before its mit time. Per-line leads override this.");
-            var hold = C.HoldSeconds;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Hold on screen (s)", ref hold, 0f, 6f, "%.1f")) { C.HoldSeconds = hold; C.Save(); }
-            Tip("How long a call stays up after its time passes.");
-            C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
-        }
-
         if (Section("Clock", true))
         {
             ImGui.TextUnformatted($"Elapsed: {(_plugin.Timer.Running ? _plugin.Timer.Elapsed.ToString("0.0") + "s" : "not running")}");
@@ -2651,6 +2636,20 @@ public class ConfigWindow : Window, IDisposable
         // use the "Test" toggle in the header (always visible).
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this tab to defaults.");
+
+        if (Section("Timing", true))
+        {
+            var warn = C.WarningSeconds;
+            ImGui.SetNextItemWidth(150f);
+            if (ImGui.SliderFloat("Show ahead", ref warn, 1f, 12f, "%.1fs")) { C.WarningSeconds = warn; C.Save(); }
+            Tip("How early a call appears before its mit time. Per-line leads override this.");
+            ImGui.SameLine(0, 18);
+            var hold = C.HoldSeconds;
+            ImGui.SetNextItemWidth(150f);
+            if (ImGui.SliderFloat("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.Save(); }
+            Tip("How long a call stays up after its time passes.");
+            C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
+        }
 
         if (Section("Placement", true))
         {
