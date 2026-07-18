@@ -1275,9 +1275,40 @@ public class SheetViewWindow : Window
         return found;
     }
 
+
+    // Duties whose boss has this id (a BNpcBase DataId, the id the game exposes
+    // on the boss object), as (zone id, duty name). Lets a sheet be bound by
+    // boss id when the zone id is the hard thing to know.
+    private static List<(uint Terr, string Name)> BossDuties(uint bossId)
+    {
+        var found = new List<(uint, string)>();
+        try
+        {
+            var cfcs = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.ContentFinderCondition>();
+            var ics = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.InstanceContent>();
+            if (cfcs != null && ics != null)
+                foreach (var row in cfcs)
+                {
+                    if (row.ContentLinkType != 1) continue; // 1 = InstanceContent
+                    var ic = ics.GetRowOrDefault(row.Content.RowId);
+                    if (ic == null || ic.Value.BNpcBaseBoss.RowId != bossId) continue;
+                    var terr = row.TerritoryType.RowId;
+                    var name = row.Name.ExtractText();
+                    if (terr == 0 || string.IsNullOrWhiteSpace(name)) continue;
+                    found.Add((terr, name));
+                }
+        }
+        catch { /* sheet hiccup: lookup just returns nothing */ }
+        return found;
+    }
+
     private void DrawNewSheetPopup()
     {
-        if (!ImGui.BeginPopup("##newsheet")) return;
+        // Modal so a stray click outside cannot dismiss the form; the X,
+        // Escape, or its own buttons close it.
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##newsheet", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("New custom sheet", 380f);
         ImGui.SetNextItemWidth(250f);
@@ -1300,7 +1331,7 @@ public class SheetViewWindow : Window
         // The zone the sheet binds to: prefilled with where you stand, or type a
         // zone id, or type a duty name and pick it from the matches.
         ImGui.SetNextItemWidth(250f);
-        ImGui.InputTextWithHint("zone##nszone", "zone id, or search by duty name", ref _newZoneBuf, 64);
+        ImGui.InputTextWithHint("zone##nszone", "zone id, boss id, or duty name", ref _newZoneBuf, 64);
 
         var buf = _newZoneBuf.Trim();
         uint terr = 0;
@@ -1326,7 +1357,17 @@ public class SheetViewWindow : Window
         }
         else if (!ZoneExists(terr))
         {
-            ImGui.TextColored(ImGuiColors.DalamudYellow, $"{terr} is not a real zone id.");
+            // Not a zone: maybe it is a boss id. Picking a hit fills the zone in.
+            var byBoss = BossDuties(terr);
+            if (byBoss.Count > 0)
+            {
+                ImGui.TextDisabled("that boss id belongs to:");
+                foreach (var (t, name) in byBoss)
+                    if (ImGui.Selectable($"{name}  ({t})##nsb{t}", false, ImGuiSelectableFlags.DontClosePopups))
+                        _newZoneBuf = t.ToString();
+            }
+            else
+                ImGui.TextColored(ImGuiColors.DalamudYellow, $"{terr} is not a zone id or boss id.");
             zoneBlocked = true;
         }
         else if (Builtin.Has(terr))
@@ -1602,7 +1643,11 @@ public class SheetViewWindow : Window
 
     private void DrawAddRowPopup()
     {
-        if (!ImGui.BeginPopup("##addrow")) return;
+        // Modal so a stray click outside cannot dismiss the form; the X,
+        // Escape, or its own buttons close it.
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##addrow", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
         PopupHeader("Add a row", 320f);
         ImGui.SetNextItemWidth(200f);
         ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
@@ -1702,7 +1747,11 @@ public class SheetViewWindow : Window
 
     private void DrawHistoryPopup()
     {
-        if (!ImGui.BeginPopup("##sheethistory")) return;
+        // Modal so a stray click outside cannot dismiss the form; the X,
+        // Escape, or its own buttons close it.
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##sheethistory", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Plan snapshots (this fight)", 440f);
         if (ImGui.SmallButton("Snapshot now"))
@@ -1809,7 +1858,11 @@ public class SheetViewWindow : Window
 
     private void DrawBuildFromPullPopup()
     {
-        if (!ImGui.BeginPopup("##buildpull")) return;
+        // Modal so a stray click outside cannot dismiss the form; the X,
+        // Escape, or its own buttons close it.
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##buildpull", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Build from last pull", 400f);
 
@@ -1971,7 +2024,11 @@ public class SheetViewWindow : Window
 
     private void DrawFFLogsPopup()
     {
-        if (!ImGui.BeginPopup("##fflogs")) return;
+        // Modal so a stray click outside cannot dismiss the form; the X,
+        // Escape, or its own buttons close it.
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##fflogs", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Import an FFLogs report", 460f);
 
@@ -2130,7 +2187,11 @@ public class SheetViewWindow : Window
 
     private void DrawReplacePopup()
     {
-        if (!ImGui.BeginPopup("##sheetreplace")) return;
+        // Modal so a stray click outside cannot dismiss the form; the X,
+        // Escape, or its own buttons close it.
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##sheetreplace", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Replace a mit across the sheet", 420f);
         ImGui.SetNextItemWidth(230f);
