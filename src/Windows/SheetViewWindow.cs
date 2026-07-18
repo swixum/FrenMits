@@ -1355,8 +1355,10 @@ public class SheetViewWindow : Window
             ImGui.Combo("your column##nsmine", ref _newMySlot, slots, slots.Length);
         }
         ImGui.SetNextItemWidth(250f);
-        if (ImGui.Combo("type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
+        if (ImGui.Combo("fight type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
             _newCatTouched = true;
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Ultimate / Savage / Extreme / Raids / Other: which sidebar group the\nsheet files under. Auto-guessed from the duty name; your pick wins.");
 
         // The zone the sheet binds to: prefilled with where you stand, or type a
         // zone id, or type a duty name and pick it from the matches.
@@ -1369,12 +1371,20 @@ public class SheetViewWindow : Window
         if (buf.Length > 0 && !uint.TryParse(buf, out terr))
         {
             // Name search: picking a match drops its zone id into the field.
-            var matches = SearchDuties(buf, 6);
+            // The list scrolls in a fixed box so a broad search ("savage") can
+            // never grow the popup past the screen.
+            var matches = SearchDuties(buf, 40);
             if (matches.Count == 0)
                 ImGui.TextDisabled("no duty matches that name");
-            foreach (var (t, name) in matches)
-                if (ImGui.Selectable($"{name}  ({t})##nsz{t}", false, ImGuiSelectableFlags.DontClosePopups))
-                    _newZoneBuf = t.ToString();
+            else
+            {
+                var h = MathF.Min(150f, matches.Count * ImGui.GetTextLineHeightWithSpacing() + 10f);
+                if (ImGui.BeginChild("##nszlist", new Vector2(356f, h), true))
+                    foreach (var (t, name) in matches)
+                        if (ImGui.Selectable($"{name}  ({t})##nsz{t}", false, ImGuiSelectableFlags.DontClosePopups))
+                            _newZoneBuf = t.ToString();
+                ImGui.EndChild();
+            }
             zoneBlocked = true; // until a match is picked or an id typed
         }
         else if (terr == 0)
@@ -1392,9 +1402,12 @@ public class SheetViewWindow : Window
             if (byBoss.Count > 0)
             {
                 ImGui.TextDisabled("that boss id belongs to:");
-                foreach (var (t, name) in byBoss)
-                    if (ImGui.Selectable($"{name}  ({t})##nsb{t}", false, ImGuiSelectableFlags.DontClosePopups))
-                        _newZoneBuf = t.ToString();
+                var h = MathF.Min(150f, byBoss.Count * ImGui.GetTextLineHeightWithSpacing() + 10f);
+                if (ImGui.BeginChild("##nsblist", new Vector2(356f, h), true))
+                    foreach (var (t, name) in byBoss)
+                        if (ImGui.Selectable($"{name}  ({t})##nsb{t}", false, ImGuiSelectableFlags.DontClosePopups))
+                            _newZoneBuf = t.ToString();
+                ImGui.EndChild();
             }
             else
                 ImGui.TextColored(ImGuiColors.DalamudYellow, $"{terr} is not a zone id or boss id.");
