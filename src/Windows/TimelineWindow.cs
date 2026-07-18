@@ -270,10 +270,12 @@ public class TimelineWindow : Window
             if (mine[i].Count > 0 && !mine[i].Any(InWindow))
                 nextIdx = i;
 
-        var rowGap = Math.Clamp(C.UpcomingBoardRowGap, 0f, 16f);
+        // Negative spacing pulls bars into each other (overlap look).
+        var rowGap = Math.Clamp(C.UpcomingBoardRowGap, -8f, 16f);
         for (var i = 0; i < visible.Count; i++)
         {
             if (i > 0 && rowGap > 0f) ImGui.Dummy(new Vector2(1f, rowGap));
+            else if (i > 0 && rowGap < 0f) ImGui.SetCursorPosY(ImGui.GetCursorPosY() + rowGap);
             var r = visible[i];
             var rem = r.Time - elapsed;
             var useNow = mine[i].Count > 0 && mine[i].Any(InWindow);

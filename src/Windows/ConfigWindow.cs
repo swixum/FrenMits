@@ -2813,42 +2813,37 @@ public class ConfigWindow : Window, IDisposable
     private void DrawNextMitsPage()
     {
         SeparatorText("Next Mits & Timeline");
-        ImGui.TextWrapped("Your window of what's coming: every upcoming mechanic as a countdown bar with "
-                          + "the mits planned for it underneath. Your next press glows gold, then turns green the "
-                          + "moment the main call fires.");
+        ImGui.TextWrapped("Every upcoming mechanic as a countdown bar, with the planned mits underneath. "
+                          + "Gold is your next press; green means press it now, in step with the main call.");
         ImGui.Spacing();
-        C.ShowUpcoming = CfgCheck("Show the next-mits window", C.ShowUpcoming);
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset Next Mits")) ResetNextMitsDefaults();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset everything on this page to the FrenMits defaults.");
 
-        ImGui.Spacing();
+        // One control strip: the things you touch most, on two tight rows.
+        C.ShowUpcoming = CfgCheck("Show the window", C.ShowUpcoming);
+        ImGui.SameLine(0, 16);
         if (ImGuiComponents.IconButtonWithText(_nextMitsPreview ? FontAwesomeIcon.Stop : FontAwesomeIcon.Play,
-                _nextMitsPreview ? "Stop preview" : "Preview on screen"))
+                _nextMitsPreview ? "Stop preview" : "Preview"))
             _nextMitsPreview = !_nextMitsPreview;
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Plays a looping Dancing Mad sample in the real window, right where it sits in fights.\n"
+                             + "Unlock and drag it to place it; every change below shows there live.");
+        ImGui.SameLine(0, 8);
+        if (ImGui.SmallButton("Reset position"))
+        {
+            C.TimelinePosition = new Vector2(0.5f, 0.62f);
+            C.Save();
+            _plugin.TimelineWindow.RequestReposition();
+        }
+        ImGui.SameLine(0, 8);
+        if (ImGui.SmallButton("Reset all")) ResetNextMitsDefaults();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Everything on this page back to the FrenMits defaults.");
+
+        C.TimelineLocked = CfgCheck("Lock the window (click-through)", C.TimelineLocked);
         ImGui.SameLine();
-        ImGui.TextDisabled(_nextMitsPreview
-            ? "Playing a Dancing Mad sample in the real window - drag it to place it, tweak anything below."
-            : "Plays a looping Dancing Mad sample in the real window, right where it sits in fights.");
+        ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move; auto-locks in combat)");
         if (_nextMitsPreview) _plugin.TimelineWindow.PingScreenPreview();
         ImGui.Spacing();
 
         if (!C.ShowUpcoming) return;
-
-        if (Section("Placement", true))
-        {
-            C.TimelineLocked = CfgCheck("Lock the window (click-through)", C.TimelineLocked);
-            ImGui.SameLine();
-            if (ImGui.Button("Reset position"))
-            {
-                C.TimelinePosition = new Vector2(0.5f, 0.62f);
-                C.Save();
-                _plugin.TimelineWindow.RequestReposition();
-            }
-            ImGui.SameLine();
-            ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move)");
-            ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
-        }
 
         var boardStyle = Math.Clamp(C.UpcomingStyle, 0, 1) == 1;
 
@@ -2861,66 +2856,75 @@ public class ConfigWindow : Window, IDisposable
                 "Mechanic board (every hit, countdown bars)",
             };
             ImGui.SetNextItemWidth(320f);
-            if (ImGui.Combo("Style", ref style, styles, styles.Length)) { C.UpcomingStyle = style; C.Save(); }
+            if (ImGui.Combo("##nmstyle", ref style, styles, styles.Length)) { C.UpcomingStyle = style; C.Save(); }
             boardStyle = style == 1;
 
             if (boardStyle)
             {
-                C.UpcomingBoardOnlyMine = CfgCheck("Only show hits you have a press for", C.UpcomingBoardOnlyMine);
-                ImGui.TextDisabled("Off = the whole fight shows, with your mits highlighted on their rows.");
                 var brows = C.UpcomingBoardRows;
-                ImGui.SetNextItemWidth(120f);
+                ImGui.SetNextItemWidth(150f);
                 if (ImGui.SliderInt("Rows", ref brows, 3, 12)) { C.UpcomingBoardRows = brows; C.Save(); }
-                HelpMarker("How many mechanic bars show at once.");
+                ImGui.SameLine(0, 18);
                 var blook = C.UpcomingBoardLookaheadSeconds;
-                ImGui.SetNextItemWidth(160f);
-                if (ImGui.SliderFloat("Look-ahead (s)", ref blook, 15f, 180f, "%.0f")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
-                HelpMarker("How far into the future the board shows. Bars are full at this edge and empty at the hit.");
+                ImGui.SetNextItemWidth(150f);
+                if (ImGui.SliderFloat("Look-ahead", ref blook, 15f, 180f, "%.0fs")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
+                HelpMarker("How many bars at once, and how far ahead the board looks: bars are full at that edge, empty at the hit.");
+
                 var bw = C.UpcomingBoardWidth;
-                ImGui.SetNextItemWidth(200f);
+                ImGui.SetNextItemWidth(150f);
                 if (ImGui.SliderFloat("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
-                C.UpcomingShowHeader = CfgCheck("Header above the bars", C.UpcomingShowHeader);
+                ImGui.SameLine(0, 18);
+                var upPx = C.UpcomingFontSizePx;
+                ImGui.SetNextItemWidth(150f);
+                if (ImGui.SliderFloat("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+
+                C.UpcomingBoardOnlyMine = CfgCheck("Only hits I have a press for", C.UpcomingBoardOnlyMine);
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Off = the whole fight shows, with your mits highlighted on their rows.");
+                ImGui.SameLine(300f);
+                C.UpcomingShowHeader = CfgCheck("Header:", C.UpcomingShowHeader);
                 if (C.UpcomingShowHeader)
                 {
-                    ImGui.Indent();
-                    C.UpcomingHeaderTitle = CfgCheck("Fight name", C.UpcomingHeaderTitle);
-                    C.UpcomingHeaderClock = CfgCheck("Fight clock", C.UpcomingHeaderClock);
-                    C.UpcomingHeaderRule = CfgCheck("Accent underline", C.UpcomingHeaderRule);
-                    ImGui.Unindent();
+                    ImGui.SameLine(0, 10);
+                    C.UpcomingHeaderTitle = CfgCheck("Name", C.UpcomingHeaderTitle);
+                    ImGui.SameLine(0, 10);
+                    C.UpcomingHeaderClock = CfgCheck("Clock", C.UpcomingHeaderClock);
+                    ImGui.SameLine(0, 10);
+                    C.UpcomingHeaderRule = CfgCheck("Underline", C.UpcomingHeaderRule);
                 }
             }
             else
             {
                 var count = C.UpcomingCount;
-                ImGui.SetNextItemWidth(120f);
-                if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
+                ImGui.SetNextItemWidth(150f);
+                if (ImGui.SliderInt("Lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
+                ImGui.SameLine(0, 18);
                 var look = C.UpcomingLookaheadSeconds;
-                ImGui.SetNextItemWidth(160f);
-                if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
-            }
+                ImGui.SetNextItemWidth(150f);
+                if (ImGui.SliderFloat("Look-ahead", ref look, 5f, 90f, "%.0fs")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
 
-            var upPx = C.UpcomingFontSizePx;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
-            if (!boardStyle)
-            {
-                // The board paints its own colors (gold next / green now);
-                // this tint is the compact list's.
+                var upPx = C.UpcomingFontSizePx;
+                ImGui.SetNextItemWidth(150f);
+                if (ImGui.SliderFloat("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+                ImGui.SameLine(0, 18);
                 var upCol = ColorToVec4(C.OverlayColorUpcoming);
-                if (ImGui.ColorEdit4("Text color", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
+                if (ImGui.ColorEdit4("Text color", ref upCol, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
             }
         }
 
-        if (boardStyle && Section("Appearance", true))
+        if (boardStyle && Section("Look", true))
         {
-            ImGui.TextDisabled("Watch the preview while you tweak - every change shows there live.");
-
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextDisabled("Colors");
+            ImGui.SameLine(0, 12);
             BoardColor("Accent", "The board's base color: stripe, drain fill, header.",
                 () => C.UpcomingBoardAccentColor, v => C.UpcomingBoardAccentColor = v);
-            BoardColor("Next press", "Your next mit's row.",
+            ImGui.SameLine(0, 14);
+            BoardColor("Next", "Your next mit's row (gold by default).",
                 () => C.UpcomingBoardNextColor, v => C.UpcomingBoardNextColor = v);
-            BoardColor("Press now", "The row whose call is firing.",
+            ImGui.SameLine(0, 14);
+            BoardColor("Now", "The row whose call is firing (green by default).",
                 () => C.UpcomingBoardNowColor, v => C.UpcomingBoardNowColor = v);
+            ImGui.SameLine(0, 16);
             if (ImGui.SmallButton("Reset colors"))
             {
                 C.UpcomingBoardAccentColor = 0xFFF6823B;
@@ -2929,43 +2933,44 @@ public class ConfigWindow : Window, IDisposable
                 C.Save();
             }
 
-            ImGui.Spacing();
             var op = (int)MathF.Round(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 100f);
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderInt("Background opacity", ref op, 0, 100, "%d%%"))
-            { C.UpcomingBoardBgOpacity = op / 100f; C.Save(); }
+            ImGui.SetNextItemWidth(150f);
+            if (ImGui.SliderInt("Opacity", ref op, 0, 100, "%d%%")) { C.UpcomingBoardBgOpacity = op / 100f; C.Save(); }
+            ImGui.SameLine(0, 18);
             var pad = C.UpcomingBoardBarPad;
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Bar thickness", ref pad, 2f, 24f, "+%.0f px")) { C.UpcomingBoardBarPad = pad; C.Save(); }
-            HelpMarker("Extra bar height beyond the text, so bars can be chunky or slim.");
-            var gap = C.UpcomingBoardRowGap;
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Row spacing", ref gap, 0f, 16f, "%.0f px")) { C.UpcomingBoardRowGap = gap; C.Save(); }
-            var rnd = C.UpcomingBoardRounding;
-            ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("Corner rounding", ref rnd, 0f, 12f, "%.0f px")) { C.UpcomingBoardRounding = rnd; C.Save(); }
+            ImGui.SetNextItemWidth(150f);
+            if (ImGui.SliderFloat("Thickness", ref pad, 2f, 24f, "+%.0f px")) { C.UpcomingBoardBarPad = pad; C.Save(); }
 
-            ImGui.Spacing();
+            var gap = C.UpcomingBoardRowGap;
+            ImGui.SetNextItemWidth(150f);
+            if (ImGui.SliderFloat("Row spacing", ref gap, -8f, 16f, "%.0f px")) { C.UpcomingBoardRowGap = gap; C.Save(); }
+            HelpMarker("Below zero pulls the bars into each other for an overlapped look.");
+            ImGui.SameLine(0, 18);
+            var rnd = C.UpcomingBoardRounding;
+            ImGui.SetNextItemWidth(150f);
+            if (ImGui.SliderFloat("Rounding", ref rnd, 0f, 12f, "%.0f px")) { C.UpcomingBoardRounding = rnd; C.Save(); }
+
             C.UpcomingBoardStripe = CfgCheck("Accent stripe on the left edge", C.UpcomingBoardStripe);
-            C.UpcomingBoardDrain = CfgCheck("Bars drain as the hit gets closer", C.UpcomingBoardDrain);
-            ImGui.TextDisabled("Unticked, bars FILL toward the hit instead - urgency reads either way.");
+            ImGui.SameLine(300f);
+            C.UpcomingBoardDrain = CfgCheck("Bars drain toward the hit", C.UpcomingBoardDrain);
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Unticked, bars FILL toward the hit instead.");
+        }
+
+        if (boardStyle && Section("On the rows", true))
+        {
+            C.UpcomingBoardTimeText = CfgCheck("Countdown seconds", C.UpcomingBoardTimeText);
+            ImGui.SameLine(300f);
+            C.UpcomingBoardShowActions = CfgCheck("Planned mits", C.UpcomingBoardShowActions);
+            C.UpcomingBoardShowNotes = CfgCheck("Sheet notes (highlighted row)", C.UpcomingBoardShowNotes);
+            ImGui.SameLine(300f);
+            C.UpcomingBoardShowSeverity = CfgCheck("Severity marks (! !! !!!)", C.UpcomingBoardShowSeverity);
         }
 
         if (Section("Every duty", true))
         {
             C.UniversalTimelines = CfgCheck("Run a boss timeline in every duty (no sheet needed)", C.UniversalTimelines);
-            ImGui.TextDisabled("Dungeons, trials, raids: the board lists the bosses' casts and resyncs off");
-            ImGui.TextDisabled("them, even where no mit sheet exists. No mits, no audio, just the timeline.");
-            ImGui.TextDisabled("A real sheet or fight for the duty always takes over automatically.");
-        }
-
-        if (boardStyle && Section("Details on the rows", true))
-        {
-            C.UpcomingBoardTimeText = CfgCheck("Show the countdown seconds on each bar", C.UpcomingBoardTimeText);
-            ImGui.TextDisabled("The draining bar still shows the time even with the number off.");
-            C.UpcomingBoardShowActions = CfgCheck("Show the planned mits under their rows", C.UpcomingBoardShowActions);
-            C.UpcomingBoardShowNotes = CfgCheck("Show sheet notes under the highlighted row", C.UpcomingBoardShowNotes);
-            C.UpcomingBoardShowSeverity = CfgCheck("Show severity marks from graded sheets (! !! !!!)", C.UpcomingBoardShowSeverity);
+            ImGui.TextDisabled("Dungeons, trials, raids: the board lists the bosses' casts even with no sheet.");
+            ImGui.TextDisabled("No mits, no audio; a real sheet always takes over automatically.");
         }
     }
 
