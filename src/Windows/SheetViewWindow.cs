@@ -1061,6 +1061,10 @@ public class SheetViewWindow : Window
             Undo();
 
         DrawToolbar();
+        // The toolbar's delete popup can remove the sheet mid-frame; bail out
+        // before the grid touches the gone fight. Next frame lands on the
+        // fight picker (or the next sheet) via the null handling up top.
+        if (_fight == null) return;
         ImGui.Spacing();
         DrawGrid();
         DrawNotesPanel();
@@ -2301,6 +2305,9 @@ public class SheetViewWindow : Window
         DrawHistoryPopup();
         if (openDelete) ImGui.OpenPopup("##sheetdelete");
         DrawDeleteSheetPopup();
+        // Deleting the sheet nulls _fight mid-frame: stop the toolbar here so
+        // nothing after it can touch the gone fight this frame.
+        if (_fight == null) return;
         // Deferred like the rest: the request can come from the Plan menu or from
         // a cell's right-click menu (a different ID scope), so it rides a flag.
         if (_openResetAll) { _openResetAll = false; ImGui.OpenPopup("##sheetresetall"); }
