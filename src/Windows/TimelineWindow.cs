@@ -270,11 +270,14 @@ public class TimelineWindow : Window
             var accent = useNow ? BoardGreen : isNext ? BoardGold : 0u;
 
             // A row with no mechanic label (a bare user timer) is named by the
-            // press itself, so its action doesn't repeat underneath.
+            // press itself, so its action doesn't repeat underneath. Someone
+            // else's bare timer falls back to the action stored on the row.
             var name = r.Mechanic;
             var bareTimer = string.IsNullOrWhiteSpace(name);
-            if (bareTimer && mine[i].Count > 0)
-                name = Icons.DisplayAction(mine[i][0].ActionFor(job), job);
+            if (bareTimer)
+                name = mine[i].Count > 0
+                    ? Icons.DisplayAction(mine[i][0].ActionFor(job), job)
+                    : r.Fallback;
 
             BoardBar(name, rem, look, width, accent, r.Hurt);
 

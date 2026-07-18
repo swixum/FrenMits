@@ -22,6 +22,9 @@ public static class SheetTimeline
         public string Mechanic = "";
         public int Hurt;    // 0 unknown, 1 light, 2 hurts, 3 deadly (custom sheets)
         public bool Buster; // custom sheets: lands on a tank, not the party
+        // For rows with no mechanic label (bare user timers): the first line's
+        // action, so the board never shows a nameless bar.
+        public string Fallback = "";
     }
 
     public static bool MechEquals(string a, string b)
@@ -54,6 +57,8 @@ public static class SheetTimeline
                 // Job extras ride ~1s ahead of their mechanic; plain sheet lines
                 // own the row's time so the countdown lands on the hit itself.
                 if (l.Jobs.Count == 0) row.Time = MathF.Max(row.Time, l.Time);
+                if (row.Fallback.Length == 0 && !string.IsNullOrWhiteSpace(l.Action))
+                    row.Fallback = l.Action;
             }
         }
 
