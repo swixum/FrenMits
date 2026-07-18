@@ -2969,10 +2969,9 @@ public class ConfigWindow : Window, IDisposable
         }
     }
 
-    // On-screen preview toggle for the Next Mits page. Starts ON so opening
-    // the page immediately shows the real window playing; not saved - a fresh
-    // settings visit always starts previewing again.
-    private bool _nextMitsPreview = true;
+    // On-screen preview toggle for the Next Mits page. Starts OFF; the Play
+    // button starts it. Not saved - each settings visit starts quiet.
+    private bool _nextMitsPreview;
 
     // A compact color row: swatch-style picker plus a label and hover help.
     private void BoardColor(string label, string help, Func<uint> get, Action<uint> set)
