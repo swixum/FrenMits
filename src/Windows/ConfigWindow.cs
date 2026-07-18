@@ -871,6 +871,7 @@ public class ConfigWindow : Window, IDisposable
                     var job = _plugin.ActiveJobAbbreviation();
                     var hasExtras = PotionTimings.BossSlug(fight.TerritoryId) != null
                         || (!string.IsNullOrEmpty(job) && JobExtras.For(fight.TerritoryId, job) != null)
+                        || (!string.IsNullOrEmpty(job) && JobExtras.ForCustomSheet(fight, job) != null)
                         || (TankMits.Has(fight.TerritoryId) && IsTankSlot(fight.Slot));
                     if (hasExtras && Section("Extras: potions, job mits, tank busters", false))
                     {
@@ -1461,7 +1462,12 @@ public class ConfigWindow : Window, IDisposable
     {
         var job = _plugin.ActiveJobAbbreviation();
         if (string.IsNullOrEmpty(job)) return; // also lets the compiler see job is non-null below
+        // Baked schedule for built-ins; for a custom sheet, computed from its
+        // own rows (hardest-graded hits first). Optional either way, exactly
+        // like the Ikuya sheets' Extras column.
+        var custom = false;
         var extra = JobExtras.For(fight.TerritoryId, job);
+        if (extra == null && (extra = JobExtras.ForCustomSheet(fight, job)) != null) custom = true;
         if (extra == null) return;
 
         BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job mitigation", "optional");
@@ -1469,6 +1475,8 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {extra.Action}");
         ImGui.SameLine(0, 10);
         ImGui.TextDisabled($"{extra.Lines.Length} casts, spaced to its {extra.Recast:0}s recast");
+        if (custom)
+            ImGui.TextDisabled("Spots picked from this sheet's rows, hardest-graded hits first.");
 
         ImGui.Spacing();
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);

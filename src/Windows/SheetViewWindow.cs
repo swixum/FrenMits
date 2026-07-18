@@ -1618,6 +1618,8 @@ public class SheetViewWindow : Window
             ImGui.TextDisabled("Tip: import an FFLogs log and rows get graded by real unmitigated damage;");
         if (gradedRows == 0)
             ImGui.TextDisabled("graded rows then set their own depth (deadly 3, hurts 2, light 1).");
+        ImGui.TextDisabled("Job-specific cooldowns (Dismantle, Curing Waltz, ...) stay optional");
+        ImGui.TextDisabled("extras on the fight page, like the sheet's Extras column.");
         ImGui.Spacing();
         ImGui.SetNextItemWidth(160f);
         ImGui.SliderInt("mits per hit", ref _autoPlanPerRow, 1, 3);
