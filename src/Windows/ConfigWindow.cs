@@ -740,6 +740,30 @@ public class ConfigWindow : Window, IDisposable
         _expandFightId = fight.Id;
     }
 
+    // The expansion a fight's zone belongs to, straight from the game data
+    // (TerritoryType.ExVersion; 0 = ARR through 5 = Dawntrail). Correct for
+    // anything a user adds too, no table to maintain. uint.MaxValue = unknown.
+    private static uint ExpansionOf(FightProfile f)
+    {
+        try
+        {
+            var t = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.GetRowOrDefault(f.TerritoryId);
+            return t?.ExVersion.RowId ?? uint.MaxValue;
+        }
+        catch { return uint.MaxValue; }
+    }
+
+    private static string ExpansionName(uint ex)
+    {
+        try
+        {
+            var name = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.ExVersion>()?.GetRowOrDefault(ex)?.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(name)) return name!;
+        }
+        catch { /* fall through */ }
+        return "Other";
+    }
+
     private void DrawFightCategoryPage(string category)
     {
         var fights = C.Fights.Where(f => CategoryOf(f) == category).ToList();
@@ -754,9 +778,31 @@ public class ConfigWindow : Window, IDisposable
             return;
         }
 
+        // Group by expansion, newest first (unknown zones sink to the bottom).
+        // The little headers only appear once the page actually spans more than
+        // one expansion; a single-expansion list stays exactly as it was.
+        fights = fights
+            .OrderByDescending(f => ExpansionOf(f) == uint.MaxValue ? -1L : ExpansionOf(f))
+            .ToList();
+        var showEx = fights.Select(ExpansionOf).Distinct().Count() > 1;
+        var lastEx = uint.MaxValue - 1; // sentinel that matches no real value
+
         FightProfile? toDelete = null;
         foreach (var fight in fights)
         {
+            if (showEx)
+            {
+                var ex = ExpansionOf(fight);
+                if (ex != lastEx)
+                {
+                    lastEx = ex;
+                    ImGui.Spacing();
+                    ImGui.TextColored(new Vector4(0.55f, 0.75f, 0.98f, 1f),
+                        ex == uint.MaxValue ? "Other" : ExpansionName(ex));
+                    ImGui.Spacing();
+                }
+            }
+
             ImGui.PushID(fight.Id);
 
             // Enable toggle + an expandable dropdown per fight.
