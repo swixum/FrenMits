@@ -1220,6 +1220,8 @@ public class SheetViewWindow : Window
         _newTemplate = 0;
         _newSlotsBuf = "";
         _newMySlot = 0;
+        _newCat = 4; // "Other" until the duty name suggests better
+        _newCatTouched = false;
         // Prefill with the zone you're standing in; editable, so a sheet can be
         // made for any duty from anywhere.
         var here = (uint)Service.ClientState.TerritoryType;
@@ -1228,6 +1230,21 @@ public class SheetViewWindow : Window
     }
 
     private string _newZoneBuf = "";
+    private int _newCat = 4;
+    private bool _newCatTouched;
+
+    // Where the sheet files in the sidebar. Same list the fight picker groups by.
+    private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
+
+    // Best guess from the duty's name; the user's own pick always wins.
+    private static int GuessCategory(string dutyName)
+    {
+        if (dutyName.Contains("(Ultimate)", StringComparison.OrdinalIgnoreCase)) return 0;
+        if (dutyName.Contains("(Savage)", StringComparison.OrdinalIgnoreCase)) return 1;
+        if (dutyName.Contains("(Extreme)", StringComparison.OrdinalIgnoreCase)
+            || dutyName.StartsWith("The Minstrel's Ballad", StringComparison.OrdinalIgnoreCase)) return 2;
+        return 4;
+    }
 
     // True when the id is a real TerritoryType row (a typo'd id would bind the
     // sheet to a zone that can never fire).
@@ -1327,6 +1344,9 @@ public class SheetViewWindow : Window
             ImGui.SetNextItemWidth(250f);
             ImGui.Combo("your column##nsmine", ref _newMySlot, slots, slots.Length);
         }
+        ImGui.SetNextItemWidth(250f);
+        if (ImGui.Combo("type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
+            _newCatTouched = true;
 
         // The zone the sheet binds to: prefilled with where you stand, or type a
         // zone id, or type a duty name and pick it from the matches.
@@ -1386,20 +1406,21 @@ public class SheetViewWindow : Window
             var label = ZoneLabel(terr);
             var here = terr == (uint)Service.ClientState.TerritoryType ? " - you're here" : "";
             ImGui.TextDisabled($"Binds to {(label.Length > 0 ? label : $"zone {terr}")}{here}; the calls fire there.");
+            if (!_newCatTouched) _newCat = GuessCategory(label);
         }
 
         var ok = !zoneBlocked && _newName.Trim().Length > 0 && slots.Length is > 0 and <= 12;
         ImGui.BeginDisabled(!ok);
         if (ImGui.Button("Create", new Vector2(110, 0)))
         {
-            CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr);
+            CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr, NewSheetCategories[_newCat]);
             ImGui.CloseCurrentPopup();
         }
         ImGui.EndDisabled();
         ImGui.EndPopup();
     }
 
-    private void CreateCustomSheet(string name, string[] slots, string mySlot, uint terr)
+    private void CreateCustomSheet(string name, string[] slots, string mySlot, uint terr, string category)
     {
         // A fight for this zone already exists: UPGRADE it into a sheet instead
         // of adding a duplicate profile (ActiveFight and imports take the first
@@ -1408,6 +1429,7 @@ public class SheetViewWindow : Window
         if (existing != null)
         {
             existing.CustomSlots = slots.ToList();
+            existing.Category = category;
             if (string.IsNullOrEmpty(existing.Slot)
                 || !slots.Contains(existing.Slot, StringComparer.OrdinalIgnoreCase))
                 existing.Slot = mySlot;
@@ -1425,7 +1447,7 @@ public class SheetViewWindow : Window
         {
             Name = name,
             TerritoryId = terr,
-            Category = "Other",
+            Category = category,
             CustomSlots = slots.ToList(),
             Slot = mySlot,
         };
