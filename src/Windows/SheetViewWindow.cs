@@ -997,7 +997,7 @@ public class SheetViewWindow : Window
         {
             ImGui.TextDisabled("No fight to show yet.");
             ImGui.Spacing();
-            if (ImGui.Button("New sheet (this zone)")) OpenNewSheetPopup();
+            if (ImGui.Button("New sheet...")) OpenNewSheetPopup();
             DrawNewSheetPopup();
             return;
         }
@@ -1142,7 +1142,7 @@ public class SheetViewWindow : Window
         ImGui.SetNextItemWidth(230f);
         // Popup sized to the longest fight name plus the slot tag (so nothing
         // overlaps), and height-capped so a long list scrolls.
-        var nameW = ImGui.CalcTextSize("+ New sheet (this zone)...").X;
+        var nameW = ImGui.CalcTextSize("+ New sheet...").X;
         foreach (var f in fights) nameW = MathF.Max(nameW, ImGui.CalcTextSize(f.Name).X);
         var popupW = nameW + 96f;
         ImGui.SetNextWindowSizeConstraints(new Vector2(popupW, 0f), new Vector2(popupW, 340f));
@@ -1188,7 +1188,7 @@ public class SheetViewWindow : Window
             ImGui.Separator();
             ImGui.Spacing();
             // OpenPopup can't run inside the combo (wrong ID scope); flag it.
-            if (ImGui.Selectable("+ New sheet (this zone)...")) openNew = true;
+            if (ImGui.Selectable("+ New sheet...")) openNew = true;
             ImGui.EndCombo();
         }
         if (openNew) OpenNewSheetPopup();
@@ -1220,14 +1220,66 @@ public class SheetViewWindow : Window
         _newTemplate = 0;
         _newSlotsBuf = "";
         _newMySlot = 0;
+        // Prefill with the zone you're standing in; editable, so a sheet can be
+        // made for any duty from anywhere.
+        var here = (uint)Service.ClientState.TerritoryType;
+        _newZoneBuf = here != 0 ? here.ToString() : "";
         ImGui.OpenPopup("##newsheet");
+    }
+
+    private string _newZoneBuf = "";
+
+    // True when the id is a real TerritoryType row (a typo'd id would bind the
+    // sheet to a zone that can never fire).
+    private static bool ZoneExists(uint terr)
+    {
+        try { return Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.HasRow(terr) == true; }
+        catch { return false; }
+    }
+
+    // Friendly label for a zone id: the duty's name when it is a duty, else the
+    // map's place name, else "".
+    private static string ZoneLabel(uint terr)
+    {
+        try
+        {
+            var tt = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.GetRowOrDefault(terr);
+            if (tt == null) return "";
+            var duty = tt.Value.ContentFinderCondition.ValueNullable?.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(duty)) return duty!;
+            return tt.Value.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+        }
+        catch { return ""; }
+    }
+
+    // Duties whose name contains the query, as (zone id, duty name).
+    private static List<(uint Terr, string Name)> SearchDuties(string query, int max)
+    {
+        var found = new List<(uint, string)>();
+        try
+        {
+            var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.ContentFinderCondition>();
+            if (sheet != null)
+                foreach (var row in sheet)
+                {
+                    var name = row.Name.ExtractText();
+                    if (string.IsNullOrWhiteSpace(name)) continue;
+                    if (!name.Contains(query, StringComparison.OrdinalIgnoreCase)) continue;
+                    var terr = row.TerritoryType.RowId;
+                    if (terr == 0) continue;
+                    found.Add((terr, name));
+                    if (found.Count >= max) break;
+                }
+        }
+        catch { /* sheet hiccup: search just returns nothing */ }
+        return found;
     }
 
     private void DrawNewSheetPopup()
     {
         if (!ImGui.BeginPopup("##newsheet")) return;
 
-        PopupHeader("New custom sheet");
+        PopupHeader("New custom sheet", 380f);
         ImGui.SetNextItemWidth(250f);
         ImGui.InputTextWithHint("##nsname", "sheet name (usually the fight)", ref _newName, 64);
         ImGui.SetNextItemWidth(250f);
@@ -1245,30 +1297,54 @@ public class SheetViewWindow : Window
             ImGui.Combo("your column##nsmine", ref _newMySlot, slots, slots.Length);
         }
 
-        var terr = (uint)Service.ClientState.TerritoryType;
+        // The zone the sheet binds to: prefilled with where you stand, or type a
+        // zone id, or type a duty name and pick it from the matches.
+        ImGui.SetNextItemWidth(250f);
+        ImGui.InputTextWithHint("zone##nszone", "zone id, or search by duty name", ref _newZoneBuf, 64);
+
+        var buf = _newZoneBuf.Trim();
+        uint terr = 0;
         var zoneBlocked = false;
-        if (terr == 0)
+        if (buf.Length > 0 && !uint.TryParse(buf, out terr))
+        {
+            // Name search: picking a match drops its zone id into the field.
+            var matches = SearchDuties(buf, 6);
+            if (matches.Count == 0)
+                ImGui.TextDisabled("no duty matches that name");
+            foreach (var (t, name) in matches)
+                if (ImGui.Selectable($"{name}  ({t})##nsz{t}", false, ImGuiSelectableFlags.DontClosePopups))
+                    _newZoneBuf = t.ToString();
+            zoneBlocked = true; // until a match is picked or an id typed
+        }
+        else if (terr == 0)
         {
             // A zone-less sheet can never fire (and re-imports of its code would
             // stack duplicates, since imports match by territory).
             ImGui.TextColored(ImGuiColors.DalamudYellow,
-                "You're not in a duty. Stand in the duty and create the sheet there.");
+                "You're not in a duty. Type the duty's name or zone id above.");
+            zoneBlocked = true;
+        }
+        else if (!ZoneExists(terr))
+        {
+            ImGui.TextColored(ImGuiColors.DalamudYellow, $"{terr} is not a real zone id.");
             zoneBlocked = true;
         }
         else if (Builtin.Has(terr))
         {
             ImGui.TextColored(ImGuiColors.DalamudYellow,
-                "This zone already has an official sheet; edit that one instead.");
+                "That zone already has an official sheet; edit that one instead.");
             zoneBlocked = true;
         }
         else if (C.Fights.FirstOrDefault(f => f.TerritoryId == terr) is { } already)
         {
-            ImGui.TextDisabled($"\"{already.Name}\" already covers this zone: Create adds these");
+            ImGui.TextDisabled($"\"{already.Name}\" already covers that zone: Create adds these");
             ImGui.TextDisabled("columns to it (its current lines become your column).");
         }
         else
         {
-            ImGui.TextDisabled("Binds to the zone you're standing in; the calls fire there.");
+            var label = ZoneLabel(terr);
+            var here = terr == (uint)Service.ClientState.TerritoryType ? " - you're here" : "";
+            ImGui.TextDisabled($"Binds to {(label.Length > 0 ? label : $"zone {terr}")}{here}; the calls fire there.");
         }
 
         var ok = !zoneBlocked && _newName.Trim().Length > 0 && slots.Length is > 0 and <= 12;
@@ -1527,7 +1603,7 @@ public class SheetViewWindow : Window
     private void DrawAddRowPopup()
     {
         if (!ImGui.BeginPopup("##addrow")) return;
-        PopupHeader("Add a row");
+        PopupHeader("Add a row", 320f);
         ImGui.SetNextItemWidth(200f);
         ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
         ImGui.SetNextItemWidth(200f);
@@ -1628,7 +1704,7 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##sheethistory")) return;
 
-        PopupHeader("Plan snapshots (this fight)");
+        PopupHeader("Plan snapshots (this fight)", 440f);
         if (ImGui.SmallButton("Snapshot now"))
         {
             _plugin.SnapshotPlan(_fight!, "manual snapshot");
@@ -1735,7 +1811,7 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##buildpull")) return;
 
-        PopupHeader("Build from last pull");
+        PopupHeader("Build from last pull", 400f);
 
         // Only offer a capture that came from THIS duty: building duty A's
         // casts into duty B's sheet would replace B's anchors with nonsense.
@@ -1897,7 +1973,7 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##fflogs")) return;
 
-        PopupHeader("Import an FFLogs report");
+        PopupHeader("Import an FFLogs report", 460f);
 
         // Cached report state is per fight: duty A's casts must never sit one
         // click away from being imported into duty B's sheet.
@@ -2056,7 +2132,7 @@ public class SheetViewWindow : Window
     {
         if (!ImGui.BeginPopup("##sheetreplace")) return;
 
-        PopupHeader("Replace a mit across the sheet");
+        PopupHeader("Replace a mit across the sheet", 420f);
         ImGui.SetNextItemWidth(230f);
         ImGui.InputTextWithHint("##rfind", "find (e.g. Vengeance)", ref _replFind, 64);
         ImGui.SetNextItemWidth(230f);
@@ -2252,11 +2328,15 @@ public class SheetViewWindow : Window
 
     // Header row for the Sheet View popups: a dim title plus a right-aligned X,
     // so every menu shows a visible way out (Esc and clicking outside still work).
-    private static void PopupHeader(string title)
+    // Title + close X for a popup. `width` pins the header row's span: the X
+    // must NOT be placed from the live window width, because in an auto-resizing
+    // popup that feeds the window its own width plus padding every frame and it
+    // balloons across the whole screen.
+    private static void PopupHeader(string title, float width)
     {
         ImGui.TextDisabled(title);
         var titleEnd = ImGui.GetItemRectSize().X + 24f;
-        ImGui.SameLine(MathF.Max(ImGui.GetWindowWidth() - 32f, titleEnd));
+        ImGui.SameLine(MathF.Max(width - 22f, titleEnd));
         if (IconSmallButton(FontAwesomeIcon.Times, "##closepopup"))
             ImGui.CloseCurrentPopup();
     }
