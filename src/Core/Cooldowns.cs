@@ -27,6 +27,7 @@ public static class Cooldowns
         "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Exaltation", "Sun Sign",
         "Kerachole", "Holos", "Panhaima", "Physis II", "Krasis", "Zoe", "Philosophia",
         "Magick Barrier", "Addle", "Tactician", "Troubadour", "Shield Samba", "Improvisation", "Dismantle",
+        "Tempera Grassa", "Seraphism", "Earthly Star", "Celestial Opposition",
     };
 
     private static Dictionary<string, uint>? _byName;
@@ -117,6 +118,8 @@ public static class Cooldowns
         ["Krasis"] = 10, ["Philosophia"] = 20,
         ["Magick Barrier"] = 10, ["Tactician"] = 15, ["Troubadour"] = 15,
         ["Shield Samba"] = 15, ["Improvisation"] = 15,
+        ["Tempera Grassa"] = 10, ["Seraphism"] = 20,
+        ["Earthly Star"] = 20, ["Celestial Opposition"] = 15,
     };
 
     private static Dictionary<string, PlanMit>? _planByName;
@@ -157,15 +160,16 @@ public static class Cooldowns
         ["DRK"] = new[] { "Reprisal", "Rampart", "Dark Missionary", "Shadow Wall", "The Blackest Night", "Oblation", "Dark Mind" },
         ["GNB"] = new[] { "Reprisal", "Rampart", "Heart of Light", "Nebula", "Heart of Corundum", "Heart of Stone", "Camouflage", "Aurora" },
         ["WHM"] = new[] { "Temperance", "Asylum", "Plenary Indulgence", "Liturgy of the Bell", "Divine Caress" },
-        ["SCH"] = new[] { "Sacred Soil", "Expedient", "Fey Illumination", "Seraph", "Whispering Dawn", "Recitation" },
-        ["AST"] = new[] { "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Exaltation", "Sun Sign" },
+        ["SCH"] = new[] { "Sacred Soil", "Expedient", "Seraphism", "Fey Illumination", "Seraph", "Whispering Dawn", "Recitation" },
+        ["AST"] = new[] { "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Earthly Star", "Celestial Opposition", "Exaltation", "Sun Sign" },
         ["SGE"] = new[] { "Kerachole", "Holos", "Panhaima", "Physis II", "Krasis", "Zoe", "Philosophia" },
         ["MNK"] = new[] { "Feint" }, ["DRG"] = new[] { "Feint" }, ["NIN"] = new[] { "Feint" },
         ["SAM"] = new[] { "Feint" }, ["RPR"] = new[] { "Feint" }, ["VPR"] = new[] { "Feint" },
         ["BRD"] = new[] { "Troubadour" },
         ["MCH"] = new[] { "Tactician", "Dismantle" },
         ["DNC"] = new[] { "Shield Samba", "Improvisation" },
-        ["BLM"] = new[] { "Addle" }, ["SMN"] = new[] { "Addle" }, ["PCT"] = new[] { "Addle" },
+        ["BLM"] = new[] { "Addle" }, ["SMN"] = new[] { "Addle" },
+        ["PCT"] = new[] { "Addle", "Tempera Grassa" },
         ["RDM"] = new[] { "Addle", "Magick Barrier" },
     };
 

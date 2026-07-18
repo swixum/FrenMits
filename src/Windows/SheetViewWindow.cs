@@ -1649,17 +1649,18 @@ public class SheetViewWindow : Window
             ["DRK"] = new[] { ("Reprisal", 60f), ("Dark Missionary", 90f) },
             ["GNB"] = new[] { ("Reprisal", 60f), ("Heart of Light", 90f) },
             ["WHM"] = new[] { ("Temperance", 120f), ("Liturgy of the Bell", 180f), ("Asylum", 90f), ("Plenary Indulgence", 60f) },
-            ["SCH"] = new[] { ("Expedient", 120f), ("Seraph", 120f), ("Fey Illumination", 120f), ("Whispering Dawn", 60f), ("Sacred Soil", 30f) },
-            ["AST"] = new[] { ("Neutral Sect", 120f), ("Macrocosmos", 180f), ("Collective Unconscious", 60f) },
+            ["SCH"] = new[] { ("Expedient", 120f), ("Seraphism", 180f), ("Seraph", 120f), ("Fey Illumination", 120f), ("Whispering Dawn", 60f), ("Sacred Soil", 30f) },
+            ["AST"] = new[] { ("Neutral Sect", 120f), ("Macrocosmos", 180f), ("Earthly Star", 60f), ("Collective Unconscious", 60f), ("Celestial Opposition", 60f) },
             ["SGE"] = new[] { ("Holos", 120f), ("Panhaima", 120f), ("Philosophia", 180f), ("Physis II", 60f), ("Kerachole", 30f) },
             ["MNK"] = new[] { ("Feint", 90f) }, ["DRG"] = new[] { ("Feint", 90f) },
             ["NIN"] = new[] { ("Feint", 90f) }, ["SAM"] = new[] { ("Feint", 90f) },
             ["RPR"] = new[] { ("Feint", 90f) }, ["VPR"] = new[] { ("Feint", 90f) },
             ["BRD"] = new[] { ("Troubadour", 90f) },
-            ["MCH"] = new[] { ("Tactician", 90f) },
+            ["MCH"] = new[] { ("Tactician", 90f), ("Dismantle", 120f) },
             ["DNC"] = new[] { ("Shield Samba", 90f) },
             ["BLM"] = new[] { ("Addle", 90f) }, ["SMN"] = new[] { ("Addle", 90f) },
-            ["RDM"] = new[] { ("Addle", 90f) }, ["PCT"] = new[] { ("Addle", 90f) },
+            ["RDM"] = new[] { ("Addle", 90f), ("Magick Barrier", 120f) },
+            ["PCT"] = new[] { ("Addle", 90f), ("Tempera Grassa", 120f) },
         };
 
     // A column's toolset. A column NAMED for a job (WHM, SGE, MCH...) plans

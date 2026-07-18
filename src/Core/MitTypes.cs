@@ -32,6 +32,7 @@ public static class MitTypes
         "plenary", "fey illumination", "seraph", "panhaima", "philosophia", "zoe",
         "succor", "medica", "deployment", "kerakeia", "liturgy", "macrocosmos",
         "spreadlo", "party mit", "kitchen sink", "sun sign", "seraphism", "barrier",
+        "tempera", "earthly star", "celestial opposition", "asylum", "whispering dawn", "physis",
     };
 
     private static readonly string[] PersonalWords =
