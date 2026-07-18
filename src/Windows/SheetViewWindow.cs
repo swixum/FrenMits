@@ -1604,6 +1604,14 @@ public class SheetViewWindow : Window
     private static readonly HashSet<string> TankJobAbbrs = new(StringComparer.OrdinalIgnoreCase)
         { "WAR", "PLD", "DRK", "GNB" };
 
+    // Cooldowns whose TOOLTIP says their value scales with the NUMBER of
+    // damage instances while active: Liturgy of the Bell heals on each hit
+    // taken, Panhaima re-shields as its stacks break, Macrocosmos compiles
+    // damage taken and heals it back. They belong on multi-hit strings; on a
+    // lone hit most of their effect never triggers.
+    private static readonly HashSet<string> OnDamageMits = new(StringComparer.OrdinalIgnoreCase)
+        { "Liturgy of the Bell", "Panhaima", "Macrocosmos" };
+
     private static bool IsTankColumn(string slot)
     {
         var t = slot.Trim().ToUpperInvariant();
@@ -1654,6 +1662,23 @@ public class SheetViewWindow : Window
         var deadlyTimes = rows.Where(r => r.Hurt >= 3).Select(r => r.Time).ToList();
         var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
 
+        // Hits landing while a buff placed on a row is still up (~18s): the
+        // multi-hit strings where on-damage cooldowns earn their keep.
+        var clusterOf = new Dictionary<CustomRow, int>();
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var c = 1;
+            for (var j = i + 1; j < rows.Count && rows[j].Time <= rows[i].Time + 18f; j++)
+                if (!rows[j].Buster) c++;
+            clusterOf[rows[i]] = c;
+        }
+        var clusterTimes = rows.Where(r => !r.Buster && clusterOf[r] >= 2).Select(r => r.Time).ToList();
+        // Tooltip-aware hold: never blow an on-damage cooldown on a lone hit
+        // when a multi-hit string it could tick through comes up within recast.
+        bool HoldForCluster(PlanTool t, CustomRow r)
+            => OnDamageMits.Contains(t.Term) && clusterOf[r] < 2
+               && clusterTimes.Any(ct => ct > r.Time && ct < r.Time + t.Recast);
+
         // How long a planned line's mitigation actually lasts: the shortest
         // buff in it (game data; generic party terms fall back to a Reprisal-ish
         // 15s, the short tank generics to their real ~8-10s).
@@ -1696,9 +1721,99 @@ public class SheetViewWindow : Window
         var lastCovered = -9999f;
         var lastCoveredHurt = 0;
         var lastAdded = new List<MitLine>(); // this run's presses at lastCovered
+
+        // Tank personal timers: ONE timeline per tank, shared between buster
+        // rows and the personal presses on heavy raid hits, so the plan can
+        // never ask for a Rampart that a buster already spent.
+        var tanks = fight.CustomSlots.Where(IsTankColumn).ToList();
+        var invulnAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+        var rampartAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+        var shortAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+        const float ShortRecast = 25f;
+        var rot = 0;
+        var lastTb = -9999f;
+        var lastTbLines = new List<MitLine>();
+        var busterTimes = rows.Where(r => r.Buster && r.Hurt >= 2).Select(r => r.Time).ToList();
+
         foreach (var row in rows)
         {
-            if (row.Buster) continue; // the tank lane below owns these
+            if (row.Buster)
+            {
+                // ---- tank-buster lane: the sheets' tank-tab pattern --------
+                if (tanks.Count == 0) continue;
+                if (row.Time - lastTb < 10f)
+                {
+                    foreach (var l in lastTbLines)
+                        if (l.CoverUntil < row.Time && row.Time <= l.Time + LineCover(l) + 0.01f)
+                            l.CoverUntil = row.Time;
+                    continue;
+                }
+                // A cell the user already filled on any tank = handled.
+                if (tanks.Any(t2 => lists[t2].Any(x => MathF.Abs(x.Time - row.Time) < 1f)))
+                {
+                    lastTb = row.Time;
+                    lastTbLines = new List<MitLine>();
+                    continue;
+                }
+
+                var activeTank = tanks[rot % tanks.Count];
+                rot++;
+                var srdy = shortAt[activeTank] <= row.Time;
+                string? act = null;
+                if (row.Hurt >= 3 && invulnAt[activeTank] <= row.Time)
+                {
+                    act = TankTerm(activeTank, "Invulnerability");
+                    invulnAt[activeTank] = row.Time + 420f; // slowest invuln; never a dead call
+                }
+                else if (rampartAt[activeTank] <= row.Time && row.Hurt >= 2)
+                {
+                    act = srdy ? "Rampart + " + TankTerm(activeTank, "Short Mit") : "Rampart";
+                    rampartAt[activeTank] = row.Time + 90f;
+                    if (srdy) shortAt[activeTank] = row.Time + ShortRecast;
+                }
+                else if (srdy)
+                {
+                    act = TankTerm(activeTank, "Short Mit");
+                    shortAt[activeTank] = row.Time + ShortRecast;
+                }
+                else if (rampartAt[activeTank] <= row.Time)
+                {
+                    act = "Rampart";
+                    rampartAt[activeTank] = row.Time + 90f;
+                }
+
+                lastTbLines = new List<MitLine>();
+                if (act != null)
+                {
+                    var mine = new MitLine
+                    {
+                        Time = row.Time, Mechanic = row.Mechanic, Action = act,
+                        Enabled = true, Custom = true,
+                    };
+                    lists[activeTank].Add(mine);
+                    added++;
+                    lastTbLines.Add(mine);
+                }
+                if (row.Hurt >= 2 && tanks.Count > 1)
+                {
+                    var co = tanks[rot % tanks.Count];
+                    if (shortAt[co] <= row.Time)
+                    {
+                        var buddy = new MitLine
+                        {
+                            Time = row.Time, Mechanic = row.Mechanic,
+                            Action = TankTerm(co, "Buddy Mit"),
+                            Enabled = true, Custom = true,
+                        };
+                        lists[co].Add(buddy);
+                        added++;
+                        lastTbLines.Add(buddy);
+                        shortAt[co] = row.Time + ShortRecast;
+                    }
+                }
+                lastTb = row.Time;
+                continue;
+            }
             // Hits inside the previous press's window ride it, UNLESS this one
             // is graded harder than what that press was sized for, or none of
             // our presses' buffs actually last this long (real durations from
@@ -1740,6 +1855,7 @@ public class SheetViewWindow : Window
             // Save the big buttons for the big hits.
             if (row.Hurt is 1 or 0)
                 ready.RemoveAll(t => StealsFromDeadly(t, row.Time));
+            ready.RemoveAll(t => HoldForCluster(t, row));
 
             // Enemy debuffs don't stack from two sources: one Reprisal, one
             // Feint, one Addle per hit, party-wide; the sheets rotate WHO casts
@@ -1758,7 +1874,10 @@ public class SheetViewWindow : Window
             // medium rows whatever does not rob an upcoming deadly hit.
             var byCol = ready.GroupBy(t => t.Slot).Select(g => (row.Hurt switch
                 {
-                    3 => g.OrderByDescending(t => t.Recast).ThenBy(t => t.Order),
+                    // On multi-hit strings the on-damage cooldowns come first;
+                    // they tick every hit there (tooltip behavior).
+                    3 => g.OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
+                          .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
                     1 or 0 => g.OrderBy(t => t.Recast).ThenBy(t => t.Order),
                     _ => g.OrderBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                           .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
@@ -1803,104 +1922,81 @@ public class SheetViewWindow : Window
                 lastCoveredHurt = row.Hurt;
                 lastAdded = rowLines;
             }
-        }
 
-        // ---- tank-buster lane: the sheets' tank-tab pattern ----------------
-        // Alternate which tank takes each buster. The taker gets an invuln on
-        // deadly ones (when one is back), else Rampart + their short mit; the
-        // co-tank sends Buddy Mit on anything that hurts. Multi-hit busters
-        // within 10s ride one press with a stamped window.
-        var tanks = fight.CustomSlots.Where(IsTankColumn).ToList();
-        if (tanks.Count > 0)
-        {
-            var invulnAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
-            var rampartAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
-            // One short-mit timer per tank, consumed by "Short Mit" AND "Buddy
-            // Mit" alike: they are the same button on DRK/GNB and share a
-            // recast family on WAR, so planning both inside ~25s would ask for
-            // a press the game cannot give.
-            var shortAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
-            const float ShortRecast = 25f;
-            var rot = 0;
-            var lastTb = -9999f;
-            var lastTbLines = new List<MitLine>();
-            foreach (var row in rows)
+            // Saturation: the sheets' use-it-or-lose-it rule. Any cooldown
+            // that is back, not owed to an upcoming deadly hit, and not a
+            // debuff already on this hit goes on it NOW, so healer kits roll
+            // continuously instead of sitting unused between big moments.
+            foreach (var g in tools.GroupBy(t => t.Slot))
             {
-                if (!row.Buster) continue;
-                if (row.Time - lastTb < 10f)
+                var col = lists[g.Key];
+                if (col.Any(x => MathF.Abs(x.Time - row.Time) < 1f)) continue; // cell taken
+                if (col.Any(x => row.Time - x.Time > 0.5f && row.Time - x.Time < 12f)) continue; // just pressed: ride it
+                var picks = g
+                    .Where(t => t.ReadyAt <= row.Time + 0.01f)
+                    .Where(t => !(DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)))
+                    .Where(t => !StealsFromDeadly(t, row.Time))
+                    .Where(t => !HoldForCluster(t, row))
+                    .OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
+                    .ThenBy(t => t.Recast).ThenBy(t => t.Order)
+                    .Take(row.Hurt >= 2 ? 2 : 1) // paired cells on hard hits, sheet-style
+                    .ToList();
+                if (picks.Count == 0) continue;
+                var sat = new MitLine
                 {
-                    foreach (var l in lastTbLines)
-                        if (l.CoverUntil < row.Time && row.Time <= l.Time + LineCover(l) + 0.01f)
-                            l.CoverUntil = row.Time;
-                    continue;
-                }
-                // A cell the user already filled on any tank = this buster is handled.
-                if (tanks.Any(t2 => lists[t2].Any(x => MathF.Abs(x.Time - row.Time) < 1f)))
+                    Time = row.Time,
+                    Mechanic = row.Mechanic,
+                    Action = string.Join(" + ", picks.Select(t => t.Term)),
+                    Enabled = true,
+                    Custom = true,
+                };
+                col.Add(sat);
+                rowLines.Add(sat); // its buffs cover ridden hits like any press
+                added++;
+                foreach (var t in picks)
                 {
-                    lastTb = row.Time;
-                    lastTbLines = new List<MitLine>();
-                    continue;
+                    if (DebuffMits.Contains(t.Term)) claimed.Add(t.Term);
+                    t.ReadyAt = row.Time + t.Recast;
+                    t.LastUse = row.Time;
                 }
+            }
 
-                var active = tanks[rot % tanks.Count];
-                rot++;
-                var shortReady = shortAt[active] <= row.Time;
-                string? act = null;
-                if (row.Hurt >= 3 && invulnAt[active] <= row.Time)
+            // Tank personals on heavy raid hits, tank-tab style (Rampart and
+            // the short mit on the big raid moments), sharing the buster
+            // lane's timers and never robbing an upcoming buster.
+            if (row.Hurt >= 2)
+                foreach (var tk in tanks)
                 {
-                    act = TankTerm(active, "Invulnerability");
-                    invulnAt[active] = row.Time + 420f; // the slowest invuln; never a dead call
-                }
-                else if (rampartAt[active] <= row.Time && row.Hurt >= 2)
-                {
-                    act = shortReady
-                        ? "Rampart + " + TankTerm(active, "Short Mit")
-                        : "Rampart";
-                    rampartAt[active] = row.Time + 90f;
-                    if (shortReady) shortAt[active] = row.Time + ShortRecast;
-                }
-                else if (shortReady)
-                {
-                    act = TankTerm(active, "Short Mit");
-                    shortAt[active] = row.Time + ShortRecast;
-                }
-                else if (rampartAt[active] <= row.Time)
-                {
-                    act = "Rampart";
-                    rampartAt[active] = row.Time + 90f;
-                }
-
-                lastTbLines = new List<MitLine>();
-                if (act != null)
-                {
-                    var mine = new MitLine
+                    var canRampart = rampartAt[tk] <= row.Time
+                        && !busterTimes.Any(tb => tb > row.Time && tb < row.Time + 90f);
+                    var canShort = shortAt[tk] <= row.Time
+                        && !busterTimes.Any(tb => tb > row.Time && tb < row.Time + ShortRecast);
+                    if (!canRampart && !canShort) continue;
+                    var col = lists[tk];
+                    var mineLine = col.FirstOrDefault(x => MathF.Abs(x.Time - row.Time) < 1f);
+                    if (mineLine != null && !rowLines.Contains(mineLine)) continue; // user's cell
+                    var parts = new List<string>();
+                    if (canRampart) { parts.Add("Rampart"); rampartAt[tk] = row.Time + 90f; }
+                    if (canShort) { parts.Add(TankTerm(tk, "Short Mit")); shortAt[tk] = row.Time + ShortRecast; }
+                    if (mineLine != null)
                     {
-                        Time = row.Time, Mechanic = row.Mechanic, Action = act,
-                        Enabled = true, Custom = true,
-                    };
-                    lists[active].Add(mine);
-                    added++;
-                    lastTbLines.Add(mine);
-                }
-                if (row.Hurt >= 2 && tanks.Count > 1)
-                {
-                    var co = tanks[rot % tanks.Count];
-                    if (shortAt[co] <= row.Time)
+                        mineLine.Action += " + " + string.Join(" + ", parts);
+                    }
+                    else
                     {
-                        var buddy = new MitLine
+                        var pl = new MitLine
                         {
-                            Time = row.Time, Mechanic = row.Mechanic,
-                            Action = TankTerm(co, "Buddy Mit"),
-                            Enabled = true, Custom = true,
+                            Time = row.Time,
+                            Mechanic = row.Mechanic,
+                            Action = string.Join(" + ", parts),
+                            Enabled = true,
+                            Custom = true,
                         };
-                        lists[co].Add(buddy);
+                        col.Add(pl);
+                        rowLines.Add(pl);
                         added++;
-                        lastTbLines.Add(buddy);
-                        shortAt[co] = row.Time + ShortRecast;
                     }
                 }
-                lastTb = row.Time;
-            }
         }
 
         foreach (var l in lists.Values)
@@ -1942,6 +2038,10 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("Planned the way the official sheets play it: deadly hits stack the whole");
         ImGui.TextDisabled("party (healers pair big mits), hurts takes about half, light gets one");
         ImGui.TextDisabled("press, and long cooldowns are saved for the big hits so they line up.");
+        ImGui.TextDisabled("Everything else keeps rolling: a cooldown that is back and not owed to");
+        ImGui.TextDisabled("a deadly hit goes on the next hit, so healer kits never sit unused.");
+        ImGui.TextDisabled("Tooltips are respected: on-damage cooldowns (Liturgy of the Bell,");
+        ImGui.TextDisabled("Panhaima, Macrocosmos) are held for multi-hit strings where they tick.");
         ImGui.TextDisabled("Reprisal/Feint/Addle are never doubled on one hit; sources rotate instead.");
         ImGui.TextDisabled("Buster rows get the tanks' own plan: the taker alternates, deadly ones");
         ImGui.TextDisabled("draw an invuln, the rest Rampart + short mit, co-tank sends Buddy Mit.");
@@ -1979,7 +2079,9 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("extras on the fight page, like the sheet's Extras column.");
         ImGui.Spacing();
         ImGui.SetNextItemWidth(160f);
-        ImGui.SliderInt("mits per hit", ref _autoPlanPerRow, 1, 3);
+        ImGui.SliderInt("priority mits per hit", ref _autoPlanPerRow, 1, 3);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("The guaranteed depth on ungraded hits. On top of it, every cooldown\nthat is back keeps rolling onto the next hit (use it or lose it).");
         ImGui.Spacing();
 
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
