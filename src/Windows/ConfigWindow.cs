@@ -815,7 +815,7 @@ public class ConfigWindow : Window, IDisposable
             // from the community sheet. Icon font, since the text font has no star.
             var official = Builtin.Has(fight.TerritoryId);
             var headerStartX = ImGui.GetCursorPosX();
-            var headerLabel = $"{fight.Name}   ({fight.Lines.Count})";
+            var headerLabel = fight.Name;
             var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
             // The star tooltip and the sheet button are drawn ON TOP of this
             // header row; without allow-overlap the header claims the mouse
