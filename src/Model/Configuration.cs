@@ -98,6 +98,21 @@ public class Configuration : IPluginConfiguration
     // Off by default, so the whole fight shows with your presses highlighted.
     public bool UpcomingBoardOnlyMine { get; set; }
 
+    // Board appearance (all defaults = the FrenMits look). Colors are ABGR;
+    // a zeroed color falls back to the theme default so nothing can vanish.
+    public uint UpcomingBoardAccentColor { get; set; } = 0xFFF6823B; // stripe/fill/header (FrenMits blue)
+    public uint UpcomingBoardNextColor { get; set; } = 0xFF28BEFF;   // your next press (gold)
+    public uint UpcomingBoardNowColor { get; set; } = 0xFF64DC64;    // press it now (green)
+    public float UpcomingBoardBgOpacity { get; set; } = 0.85f;       // bar background opacity
+    public float UpcomingBoardRounding { get; set; } = 5f;           // bar corner rounding (px)
+    public float UpcomingBoardBarPad { get; set; } = 8f;             // bar thickness beyond the text (px)
+    public float UpcomingBoardRowGap { get; set; } = 4f;             // space between rows (px)
+    public bool UpcomingBoardStripe { get; set; } = true;            // left accent stripe on each bar
+    public bool UpcomingBoardDrain { get; set; } = true;             // true = bar drains as the hit nears
+    public bool UpcomingBoardShowActions { get; set; } = true;       // presses under the rows
+    public bool UpcomingBoardShowNotes { get; set; } = true;         // sheet notes under gold/green rows
+    public bool UpcomingBoardShowSeverity { get; set; } = true;      // !/!!/!!! marks from graded sheets
+
     // The next-mits timeline lives in its own window with its own placement.
     public bool TimelineLocked { get; set; }
     public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);
