@@ -1345,7 +1345,7 @@ public class ConfigWindow : Window, IDisposable
         var job = _plugin.ActiveJobAbbreviation();
         var stat = PotionTimings.Stat(job);
 
-        BeginCard(FontAwesomeIcon.Flask, ImGuiColors.DalamudViolet, "Potions", "top-log windows · raalm.com / Lorrgs");
+        BeginCard(FontAwesomeIcon.Flask, ImGuiColors.DalamudViolet, "Potions", "top-log windows");
 
         if (string.IsNullOrEmpty(job) || string.IsNullOrEmpty(stat))
         {
