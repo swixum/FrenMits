@@ -2741,15 +2741,16 @@ public class ConfigWindow : Window, IDisposable
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset Next Mits")) ResetNextMitsDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset everything on this page to the FrenMits defaults.");
 
-        if (Section("Preview", true))
-        {
-            ImGui.TextWrapped("While this page is open, the real window is playing on screen at its actual spot: "
-                              + "Dancing Mad's opener on the MT column, looping. Unlock it below and drag it to "
-                              + "place it; every setting you change shows there instantly.");
-            ImGui.TextDisabled("Collapse this section to hide the preview.");
-            // Keep the on-screen preview alive while the page is visible.
-            _plugin.TimelineWindow.PingScreenPreview();
-        }
+        ImGui.Spacing();
+        if (ImGuiComponents.IconButtonWithText(_nextMitsPreview ? FontAwesomeIcon.Stop : FontAwesomeIcon.Play,
+                _nextMitsPreview ? "Stop preview" : "Preview on screen"))
+            _nextMitsPreview = !_nextMitsPreview;
+        ImGui.SameLine();
+        ImGui.TextDisabled(_nextMitsPreview
+            ? "Playing a Dancing Mad sample in the real window - drag it to place it, tweak anything below."
+            : "Plays a looping Dancing Mad sample in the real window, right where it sits in fights.");
+        if (_nextMitsPreview) _plugin.TimelineWindow.PingScreenPreview();
+        ImGui.Spacing();
 
         if (!C.ShowUpcoming) return;
 
@@ -2868,6 +2869,11 @@ public class ConfigWindow : Window, IDisposable
             C.UpcomingBoardShowSeverity = CfgCheck("Show severity marks from graded sheets (! !! !!!)", C.UpcomingBoardShowSeverity);
         }
     }
+
+    // On-screen preview toggle for the Next Mits page. Starts ON so opening
+    // the page immediately shows the real window playing; not saved - a fresh
+    // settings visit always starts previewing again.
+    private bool _nextMitsPreview = true;
 
     // A compact color row: swatch-style picker plus a label and hover help.
     private void BoardColor(string label, string help, Func<uint> get, Action<uint> set)
