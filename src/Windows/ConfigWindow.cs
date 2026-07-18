@@ -440,9 +440,9 @@ public class ConfigWindow : Window, IDisposable
     {
         ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
-        // The FrenMits accent (same orange the selected row uses), so the
-        // headings tie into the theme instead of reading muddy brown.
-        ImGui.TextColored(new Vector4(0.96f, 0.51f, 0.23f, 1f), text);
+        // Soft sky blue (same family as the user-created badge): cool headings
+        // against the warm orange selection reads cleaner than orange-on-orange.
+        ImGui.TextColored(new Vector4(0.55f, 0.75f, 0.98f, 1f), text);
         ImGui.Spacing();
     }
 
