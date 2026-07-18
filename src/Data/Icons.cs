@@ -37,6 +37,7 @@ public static class Icons
         ["provoke"] = "Provoke", ["shirk"] = "Shirk", ["rescue"] = "Rescue",
         ["interrupt"] = "Interject", ["interject"] = "Interject",
         ["reprisal"] = "Reprisal", ["feint"] = "Feint", ["addle"] = "Addle",
+        ["tbn"] = "The Blackest Night", // the sheet's tank tabs abbreviate it
         ["knockback"] = "Arm's Length", ["kb"] = "Arm's Length", ["arms length"] = "Arm's Length",
         ["bait"] = "Cast", // fisher's rod, a stand-in for baiting
     };

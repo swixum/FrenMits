@@ -19,36 +19,39 @@ public static class JobExtras
     {
         [Builtin.DmuTerritory] = new[]
         {
-            // Bard - Nature's Minne (120s recast)
+            // Bard - Nature's Minne (120s recast). Anchored to sheet v5.0 rows;
+            // the last press moved from Fell Forces (3x) to Forsaken (1st Hit)
+            // because the re-timed Chaotic Flood (928) leaves Minne on cooldown
+            // at 1045.
             new Extra("BRD", "Nature's Minne", 120f, new[]
             {
                 (63, "Light of Judgment"),
-                (249, "Towers I"),
-                (451, "Bowels of Agony (Chaos)"),
+                (250, "Towers I"),
+                (450, "Bowels of Agony (Chaos)"),
                 (637, "Thunder III (5th Set)"),
-                (789, "Grand Cross"),
-                (922, "Chaotic Flood"),
-                (1046, "Fell Forces (3x)"),
+                (793, "Grand Cross"),
+                (928, "Chaotic Flood"),
+                (1062, "Forsaken (1st Hit)"),
             }),
-            // Monk - Mantra (90s recast)
+            // Monk - Mantra (90s recast), sheet v5.0 rows.
             new Extra("MNK", "Mantra", 90f, new[]
             {
                 (88, "Gravitas II (Part I)"),
-                (237, "Forsaken"),
-                (451, "Bowels of Agony (Chaos)"),
-                (544, "The Decisive Battle"),
+                (236, "Forsaken"),
+                (450, "Bowels of Agony (Chaos)"),
+                (545, "The Decisive Battle"),
                 (650, "Black Holes III (6th Tether Set)"),
-                (765, "Inferno/Tsunami"),
-                (905, "Ultima Repeater"),
+                (769, "Inferno/Tsunami"),
+                (911, "Ultima Repeater"),
             }),
-            // Paladin - Passage of Arms (120s recast)
+            // Paladin - Passage of Arms (120s recast), sheet v5.0 rows.
             new Extra("PLD", "Passage of Arms", 120f, new[]
             {
                 (63, "Light of Judgment"),
-                (342, "Light of Judgement"),
-                (609, "Shocking Impact"),
-                (789, "Grand Cross"),
-                (922, "Chaotic Flood"),
+                (343, "Light of Judgement"),
+                (609, "Shocking Impact/Shockwave"),
+                (793, "Grand Cross"),
+                (928, "Chaotic Flood"),
             }),
             // DNC/MCH/RDM schedules below are OPTIMIZED from raalm.com m-spec
             // top-100 kill logs: every window real players use (>=10% of kills,

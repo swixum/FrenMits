@@ -281,6 +281,23 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v18: the sheet v5.0 also reworked the per-pairing tank tabs (explicit
+        // ability names instead of "90s/40%/Short Mit", a new Black Holes IV
+        // row, the P2 Wings of Destruction/Ultimate Embrace rows split) and
+        // re-timed several BRD/MNK/PLD job-mitigation anchors. Upgrade lines
+        // users already added from those cards: extras move to their new times
+        // in place, and tank plans matching the old bake are swapped for the
+        // new one with per-line tweaks carried over. Edited lines are kept.
+        if (Config.Version < 18)
+        {
+            foreach (var f in Config.Fights)
+                if (f.TerritoryId == Builtin.DmuTerritory)
+                    SnapshotPlan(f, "before the v5.0 tank and job-mitigation update");
+            UpgradeDmuTankAndExtraLines();
+            Config.Version = 18;
+            Config.Save();
+        }
+
         // Auto-add any built-in fight the user hasn't been shown yet, so a newly
         // shipped fight (e.g. a fresh savage) appears directly on its tab with no
         // button to click. Tracked per-territory so a deleted built-in stays gone.
@@ -877,6 +894,120 @@ public sealed class Plugin : IDalamudPlugin
         var result = new List<MitLine>(newBaked);
         result.AddRange(customs);
         return result.OrderBy(l => l.Time).ToList();
+    }
+
+    // The BRD/MNK/PLD job-mitigation anchors that moved when they were re-timed
+    // to sheet v5.0 rows (old time/mechanic -> new). Unchanged anchors are not
+    // listed; a user-edited line matches nothing here and is left alone.
+    private static readonly (string Job, string Action, float OldTime, string OldMech, float NewTime, string NewMech)[] DmuExtraMoves =
+    {
+        ("BRD", "Nature's Minne", 249, "Towers I", 250, "Towers I"),
+        ("BRD", "Nature's Minne", 451, "Bowels of Agony (Chaos)", 450, "Bowels of Agony (Chaos)"),
+        ("BRD", "Nature's Minne", 789, "Grand Cross", 793, "Grand Cross"),
+        ("BRD", "Nature's Minne", 922, "Chaotic Flood", 928, "Chaotic Flood"),
+        ("BRD", "Nature's Minne", 1046, "Fell Forces (3x)", 1062, "Forsaken (1st Hit)"),
+        ("MNK", "Mantra", 237, "Forsaken", 236, "Forsaken"),
+        ("MNK", "Mantra", 451, "Bowels of Agony (Chaos)", 450, "Bowels of Agony (Chaos)"),
+        ("MNK", "Mantra", 544, "The Decisive Battle", 545, "The Decisive Battle"),
+        ("MNK", "Mantra", 765, "Inferno/Tsunami", 769, "Inferno/Tsunami"),
+        ("MNK", "Mantra", 905, "Ultima Repeater", 911, "Ultima Repeater"),
+        ("PLD", "Passage of Arms", 342, "Light of Judgement", 343, "Light of Judgement"),
+        ("PLD", "Passage of Arms", 609, "Shocking Impact", 609, "Shocking Impact/Shockwave"),
+        ("PLD", "Passage of Arms", 789, "Grand Cross", 793, "Grand Cross"),
+        ("PLD", "Passage of Arms", 922, "Chaotic Flood", 928, "Chaotic Flood"),
+    };
+
+    // One-time v18 upgrade: bring already-added DMU tank-buster plans and the
+    // BRD/MNK/PLD job-mitigation lines up to the sheet v5.0 data. Safe to run
+    // twice: already-upgraded lines match nothing and come out unchanged.
+    private void UpgradeDmuTankAndExtraLines()
+    {
+        foreach (var f in Config.Fights)
+        {
+            if (f.TerritoryId != Builtin.DmuTerritory) continue;
+            UpgradeDmuSet(f, f.Lines);
+            foreach (var key in new List<string>(f.SavedSlots.Keys))
+                UpgradeDmuSet(f, f.SavedSlots[key]);
+        }
+        Config.Save();
+    }
+
+    private static void UpgradeDmuSet(FightProfile fight, List<MitLine> lines)
+    {
+        // Job-mitigation extras: re-time in place, keeping every per-line tweak.
+        foreach (var l in lines)
+            foreach (var m in DmuExtraMoves)
+                if (MathF.Abs(l.Time - m.OldTime) < 0.5f
+                    && string.Equals(l.Action, m.Action, StringComparison.OrdinalIgnoreCase)
+                    && l.Mechanic == m.OldMech
+                    && l.Jobs.Contains(m.Job, StringComparer.OrdinalIgnoreCase))
+                {
+                    l.Time = m.NewTime;
+                    l.Mechanic = m.NewMech;
+                    break;
+                }
+
+        // Tank-buster plans (the card adds them as "Tank:" lines tagged to one job).
+        foreach (var job in new[] { "WAR", "PLD", "DRK", "GNB" })
+        {
+            var mine = lines.Where(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
+                                        && l.Jobs.Count == 1
+                                        && string.Equals(l.Jobs[0], job, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (mine.Count == 0) continue;
+
+            // Which pairing's old plan did these come from? Count exact matches
+            // against each old bake; the remembered dropdown pick breaks ties.
+            string? comp = null;
+            var matched = new List<MitLine>();
+            foreach (var c in TankMits.Comps(Builtin.DmuTerritory))
+            {
+                if (!TankMits.Jobs(c).Contains(job)) continue;
+                var old = TankMitsLegacy.DmuFor(c, job);
+                var hits = mine.Where(l => old.Any(e =>
+                    MathF.Abs(l.Time - e.Time) < 0.5f
+                    && l.Mechanic == $"Tank: {e.Mechanic}"
+                    && l.Action == e.Action)).ToList();
+                if (hits.Count > matched.Count
+                    || (hits.Count == matched.Count && hits.Count > 0 && c == fight.TankPairing))
+                {
+                    comp = c;
+                    matched = hits;
+                }
+            }
+            if (comp == null || matched.Count == 0) continue; // fully hand-edited: hands off
+
+            // Swap the unedited old lines for the new plan; edited lines stay,
+            // and win over a new entry landing on the same moment.
+            foreach (var l in matched) lines.Remove(l);
+            var kept = lines.Where(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
+                                        && l.Jobs.Count == 1
+                                        && string.Equals(l.Jobs[0], job, StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var e in TankMits.For(Builtin.DmuTerritory, comp, job))
+            {
+                if (kept.Any(k => MathF.Abs(k.Time - e.Time) < 1f)) continue;
+                var donor = matched.FirstOrDefault(d => MathF.Abs(d.Time - e.Time) < 0.5f);
+                lines.Add(new MitLine
+                {
+                    Time = e.Time,
+                    Mechanic = $"Tank: {e.Mechanic}",
+                    Action = e.Action,
+                    Jobs = new List<string> { job },
+                    Custom = true,
+                    Enabled = donor?.Enabled ?? true,
+                    OffsetSeconds = donor?.OffsetSeconds ?? 0f,
+                    CoverUntil = donor?.CoverUntil ?? 0f,
+                    LeadOverride = donor?.LeadOverride ?? 0f,
+                    Tts = donor?.Tts ?? "",
+                    Sound = donor?.Sound ?? true,
+                    Color = donor?.Color ?? 0,
+                    IconId = donor?.IconId ?? 0,
+                });
+            }
+        }
+
+        var sorted = lines.OrderBy(l => l.Time).ToList();
+        lines.Clear();
+        lines.AddRange(sorted);
     }
 
     public void AutoLoadForTerritory(uint territory)
