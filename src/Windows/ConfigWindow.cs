@@ -416,11 +416,6 @@ public class ConfigWindow : Window, IDisposable
         }
 
         ImGui.Spacing();
-        SidebarHeading("SETTINGS");
-        if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
-        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
-
-        ImGui.Spacing();
         SidebarHeading("TOOLS");
         // Sheet View is a window, not a page: the nav item opens it directly.
         if (NavItem(FontAwesomeIcon.Table, "Sheet View", null, false))
@@ -433,8 +428,12 @@ public class ConfigWindow : Window, IDisposable
         if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
         if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
-        DrawSidebarJob();
-        DrawSidebarRole();
+        ImGui.Spacing();
+        SidebarHeading("SETTINGS");
+        if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
+        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
+
+        DrawSidebarSetup();
     }
 
     private static void SidebarHeading(string text)
@@ -483,24 +482,33 @@ public class ConfigWindow : Window, IDisposable
         return clicked;
     }
 
-    private void DrawSidebarJob()
+    // Job + role in one compact block. The role pick applies to every built-in
+    // fight, mapping to whatever slot that fight uses for the role (e.g. Melee 1
+    // -> D1 in DMU, M1 in FRU). A green check shows when every built-in fight is
+    // on that role's slot.
+    private void DrawSidebarSetup()
     {
         ImGui.Spacing();
-        SidebarHeading("YOUR JOB");
+        SidebarHeading("YOUR SETUP");
 
+        // Job row.
         var options = new List<string> { "Auto (current job)" };
         options.AddRange(Jobs.Abbreviations);
-        var idx = C.JobSelection == "Auto"
+        var jobIdx = C.JobSelection == "Auto"
             ? 0
             : Math.Max(0, Array.IndexOf(Jobs.Abbreviations, C.JobSelection) + 1);
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Job");
+        ImGui.SameLine(48f);
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 12);
-        if (ImGui.Combo("##sbjob", ref idx, options.ToArray(), options.Count))
+        if (ImGui.Combo("##sbjob", ref jobIdx, options.ToArray(), options.Count))
         {
-            C.JobSelection = idx == 0 ? "Auto" : Jobs.Abbreviations[idx - 1];
+            C.JobSelection = jobIdx == 0 ? "Auto" : Jobs.Abbreviations[jobIdx - 1];
             C.Save();
         }
+        Tip($"The job your mits and calls are read for. Active now: {_plugin.ActiveJobAbbreviation() ?? "?"}.");
 
         // One click to pin whatever you're playing right now - no list-diving.
         // Hidden on Auto: Auto already follows the live job, so pinning from
@@ -510,7 +518,7 @@ public class ConfigWindow : Window, IDisposable
             && !string.Equals(C.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(C.JobSelection, live, StringComparison.OrdinalIgnoreCase))
         {
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 48f);
             if (ImGui.SmallButton($"Use current ({live})"))
             {
                 C.JobSelection = live;
@@ -519,37 +527,31 @@ public class ConfigWindow : Window, IDisposable
             Tip("Pin your job with one click instead of picking it from the list.");
         }
 
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
-        ImGui.TextDisabled($"active: {_plugin.ActiveJobAbbreviation() ?? "?"}");
-    }
-
-    // Global sheet-role pick: one choice applies to every built-in fight, mapping
-    // to whatever slot that fight uses for the role (e.g. Melee 1 -> D1 in DMU, M1
-    // in FRU). A green check shows when every built-in fight is on that role's slot.
-    private void DrawSidebarRole()
-    {
-        ImGui.Spacing();
-        SidebarHeading("YOUR ROLE");
-
+        // Role row.
         var roles = Builtin.Roles;
         var labels = new List<string> { "(pick a role)" };
         labels.AddRange(roles);
-        var idx = string.IsNullOrEmpty(C.RoleSelection) ? 0 : Math.Max(0, Array.IndexOf(roles, C.RoleSelection) + 1);
+        var roleIdx = string.IsNullOrEmpty(C.RoleSelection) ? 0 : Math.Max(0, Array.IndexOf(roles, C.RoleSelection) + 1);
 
         var active = !string.IsNullOrEmpty(C.RoleSelection) && RoleActiveEverywhere(C.RoleSelection);
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Role");
+        ImGui.SameLine(48f);
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 12 - (active ? 24 : 0));
-        if (ImGui.Combo("##sbrole", ref idx, labels.ToArray(), labels.Count))
+        if (ImGui.Combo("##sbrole", ref roleIdx, labels.ToArray(), labels.Count))
         {
-            if (idx == 0) { C.RoleSelection = ""; C.Save(); }
-            else SelectRoleForAll(roles[idx - 1]);
+            if (roleIdx == 0) { C.RoleSelection = ""; C.Save(); }
+            else SelectRoleForAll(roles[roleIdx - 1]);
         }
+        Tip("One pick sets your slot in every fight that has a sheet.");
         if (active)
         {
             ImGui.SameLine();
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(ImGuiColors.HealerGreen, FontAwesomeIcon.Check.ToIconString());
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Every fight is on this role's slot.");
         }
 
         // One click to match the role to the job you're playing right now, same
@@ -561,16 +563,13 @@ public class ConfigWindow : Window, IDisposable
             && !string.Equals(C.RoleSelection, liveRole, StringComparison.OrdinalIgnoreCase)
             && !SameSeatGroup(C.RoleSelection, liveRole))
         {
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 48f);
             if (ImGui.SmallButton($"Use current ({liveRole})"))
                 SelectRoleForAll(liveRole);
             Tip("Set the role from your current job with one click. Tanks and melee "
                 + "land on the first seat (Main Tank / Melee 1); pick Off Tank or "
                 + "Melee 2 from the list if that's your spot.");
         }
-
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
-        ImGui.TextDisabled("applies to every fight");
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         var ask = C.ShowSlotPopupOnEntry;
