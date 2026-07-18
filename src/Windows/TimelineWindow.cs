@@ -166,14 +166,16 @@ public class TimelineWindow : Window
     // turns green, matching the moment the main call fires. Row notes from the
     // sheet ride under the highlighted row.
 
-    // Board palette (ABGR).
-    private const uint BoardBarBack = 0xC01A1512;
-    private const uint BoardBarFill = 0xB89E703A;
-    private const uint BoardBarBorder = 0x26FFFFFF;
-    private const uint BoardGold = 0xFF28BEFF;
-    private const uint BoardGreen = 0xFF69EB5F;
-    private const uint BoardBright = 0xFFF8F4F0;
-    private const uint BoardMuted = 0xFFC4BAB2;
+    // Board palette (ABGR) - FrenMits' own look: the near-black panels and blue
+    // accent from the config window's theme, at over-game friendly alphas.
+    private const uint BoardBarBack = 0xD914110E;   // Theme.PanelBg, slightly translucent
+    private const uint BoardBarBorder = 0x66594A3F; // soft slate border
+    private const uint BoardAccent = 0xFFF6823B;    // FrenMits blue (#3B82F6)
+    private const uint BoardFill = 0x4DF6823B;      // drain fill: the accent at ~30%
+    private const uint BoardGold = 0xFF28BEFF;      // your next press
+    private const uint BoardGreen = 0xFF64DC64;     // press it now
+    private const uint BoardBright = 0xFFECE8E6;    // Theme text
+    private const uint BoardMuted = 0xFFA89A90;     // muted gray
 
     // The fight's full mechanic list is derived from every column of its sheet,
     // so it's cached: rebuilt when the fight or pull changes, and refreshed out
@@ -302,13 +304,28 @@ public class TimelineWindow : Window
     {
         var dl = ImGui.GetWindowDrawList();
         var pos = ImGui.GetCursorScreenPos();
+        var lineH = ImGui.GetTextLineHeight();
         var clock = TimeText(MathF.Max(0f, elapsed));
         var clockW = ImGui.CalcTextSize(clock).X;
-        dl.PushClipRect(pos, pos + new Vector2(MathF.Max(40f, width - clockW - 10f), ImGui.GetTextLineHeight() + 2f), true);
-        BoardText(dl, pos, 0xFFFFFFFF, name);
+
+        // The little FrenMits tick: an accent diamond in front of the name.
+        // Sized and spaced off the font so big overlay fonts don't collide.
+        var d = MathF.Max(3.5f, lineH * 0.18f);
+        var c = new Vector2(pos.X + d + 1f, MathF.Round(pos.Y + lineH * 0.5f));
+        dl.AddQuadFilled(c + new Vector2(0f, -d), c + new Vector2(d, 0f),
+            c + new Vector2(0f, d), c + new Vector2(-d, 0f), BoardAccent);
+
+        var nameX = 2f * d + 8f;
+        dl.PushClipRect(pos, pos + new Vector2(MathF.Max(40f, width - clockW - 10f), lineH + 2f), true);
+        BoardText(dl, pos + new Vector2(nameX, 0f), BoardBright, name);
         dl.PopClipRect();
-        BoardText(dl, pos + new Vector2(width - clockW, 0f), BoardMuted, clock);
-        ImGui.Dummy(new Vector2(width, ImGui.GetTextLineHeight() + 5f));
+        BoardText(dl, new Vector2(pos.X + width - clockW, pos.Y), BoardAccent, clock);
+
+        // A thin accent rule under the header, fading out to the right.
+        var y = pos.Y + lineH + 3f;
+        dl.AddRectFilledMultiColor(new Vector2(pos.X, y), new Vector2(pos.X + width, y + 2f),
+            BoardAccent, 0x00F6823B, 0x00F6823B, BoardAccent);
+        ImGui.Dummy(new Vector2(width, lineH + 9f));
     }
 
     private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt)
@@ -319,18 +336,23 @@ public class TimelineWindow : Window
         var p0 = ImGui.GetCursorScreenPos();
         var p1 = p0 + new Vector2(width, barH);
 
-        dl.AddRectFilled(p0, p1, BoardBarBack, 4f);
+        dl.AddRectFilled(p0, p1, BoardBarBack, 5f);
         // The fill drains as the hit approaches: full at the look-ahead edge,
         // empty at the hit, so bar length IS time at a glance.
         var frac = Math.Clamp(rem / look, 0f, 1f);
         if (frac > 0.004f)
         {
-            var fill = accent == 0 ? BoardBarFill : (accent & 0x00FFFFFF) | 0x73000000;
+            var fill = accent == 0 ? BoardFill : (accent & 0x00FFFFFF) | 0x4D000000;
             // Mid-drain the fill's leading edge is a straight cut, not a pill.
             var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
-            dl.AddRectFilled(p0, new Vector2(p0.X + width * frac, p1.Y), fill, 4f, corners);
+            dl.AddRectFilled(p0, new Vector2(p0.X + width * frac, p1.Y), fill, 5f, corners);
         }
-        dl.AddRect(p0, p1, BoardBarBorder, 4f);
+        // The FrenMits signature: a slim stripe on the left edge - the accent
+        // blue normally, gold/green when the row is yours, pulsing at go time.
+        var stripe = accent == 0 ? (BoardAccent & 0x00FFFFFF) | 0xB3000000 : accent;
+        if (accent == BoardGreen && C.PulseWhenImminent && rem < 1.5f) stripe = Pulse(stripe);
+        dl.AddRectFilled(p0, new Vector2(p0.X + 3f, p1.Y), stripe, 5f, ImDrawFlags.RoundCornersLeft);
+        dl.AddRect(p0, p1, BoardBarBorder, 5f);
 
         var textCol = accent == 0 ? BoardBright : accent;
         var textY = p0.Y + (barH - lineH) * 0.5f;
@@ -339,12 +361,12 @@ public class TimelineWindow : Window
 
         // Clip the name so a long mechanic can't run under the countdown.
         dl.PushClipRect(p0, new Vector2(p1.X - timeW - 14f, p1.Y), true);
-        BoardText(dl, new Vector2(p0.X + 8f, textY), textCol, name);
+        BoardText(dl, new Vector2(p0.X + 10f, textY), textCol, name);
         // Severity marks from a graded custom sheet: ! light, !! hurts, !!! deadly.
         if (hurt > 0)
         {
             var markCol = hurt >= 3 ? 0xFF4646FFu : hurt == 2 ? 0xFF008CFFu : 0xFF00D7FFu;
-            BoardText(dl, new Vector2(p0.X + 8f + ImGui.CalcTextSize(name).X + 6f, textY),
+            BoardText(dl, new Vector2(p0.X + 10f + ImGui.CalcTextSize(name).X + 6f, textY),
                 markCol, new string('!', Math.Min(3, hurt)));
         }
         dl.PopClipRect();
@@ -361,6 +383,10 @@ public class TimelineWindow : Window
         {
             var text = Icons.DisplayAction(l.ActionFor(job), job);
             if (string.IsNullOrWhiteSpace(text)) continue;
+            // Off-row presses take the mit-type tint (party/tank/personal),
+            // dimmed so gold/green still own the eye. Same colors as the call.
+            if (accent == 0 && C.ColorByMitType && MitTypes.Color(MitTypes.Classify(text, l.Mechanic), C) is not 0 and var tc)
+                accent = (tc & 0x00FFFFFF) | 0xC8000000;
             // Cooldown-aware: flag a press that won't be back up by ITS call
             // moment (the cue clock, so per-line offsets are honored).
             if (C.CooldownAwareCalls && Cooldowns.Remaining(l.Action) is { } cd && cd > l.CueTime - elapsed + 0.5f)
@@ -377,7 +403,7 @@ public class TimelineWindow : Window
     {
         var color = accent == 0 ? BoardMuted : accent;
         var startX = ImGui.GetCursorPosX();
-        ImGui.SetCursorPosX(startX + 8f);
+        ImGui.SetCursorPosX(startX + 10f);
         if (iconId != 0)
         {
             var lineH = ImGui.GetTextLineHeight();
@@ -392,10 +418,23 @@ public class TimelineWindow : Window
     private void BoardNote(string note, float width)
     {
         var startX = ImGui.GetCursorPosX();
-        ImGui.SetCursorPosX(startX + 8f);
+        ImGui.SetCursorPosX(startX + 10f);
         ImGui.PushTextWrapPos(startX + width - 4f);
         DrawText(note, (BoardMuted & 0x00FFFFFF) | 0xA0000000);
         ImGui.PopTextWrapPos();
+    }
+
+    // Brightness oscillation for the go-time stripe, preserving alpha (same
+    // rhythm as the main call's imminent pulse).
+    private static uint Pulse(uint abgr)
+    {
+        var t = MathF.Sin((float)ImGui.GetTime() * 12f) * 0.5f + 0.5f;
+        var factor = 0.55f + 0.45f * t;
+        var a = abgr & 0xFF000000;
+        var b = (uint)(((abgr >> 16) & 0xFF) * factor) & 0xFF;
+        var g = (uint)(((abgr >> 8) & 0xFF) * factor) & 0xFF;
+        var r = (uint)((abgr & 0xFF) * factor) & 0xFF;
+        return a | (b << 16) | (g << 8) | r;
     }
 
     // Draw-list text with the overlay's readability shadow.
@@ -432,7 +471,8 @@ public class TimelineWindow : Window
         }
         ImGui.Dummy(new Vector2(1f, 4f));
         BoardBar("Big raidwide", 31f, look, width, 0u, 2);
-        BoardActionText("Party Mit", C.ShowAbilityIcon ? Icons.ResolveFromText("Addle") : 0u, 0u, width);
+        var partyTint = C.ColorByMitType ? (C.MitColorParty & 0x00FFFFFF) | 0xC8000000 : 0u;
+        BoardActionText("Party Mit", C.ShowAbilityIcon ? Icons.ResolveFromText("Addle") : 0u, partyTint, width);
     }
 
     private void Row(uint iconId, string prefix, string name, bool dimName = false)
