@@ -399,28 +399,16 @@ public class ConfigWindow : Window, IDisposable
         _ => FontAwesomeIcon.LayerGroup,
     };
 
-    // A quiet tint per sidebar icon so the nav reads at a glance; labels stay
-    // neutral so it never turns loud.
-    private static Vector4 CategoryColor(string cat) => cat switch
-    {
-        "Ultimate" => new Vector4(0.98f, 0.82f, 0.35f, 1f),  // gold crown
-        "Savage" => new Vector4(0.92f, 0.46f, 0.46f, 1f),    // red skull
-        "Extreme" => new Vector4(0.97f, 0.60f, 0.30f, 1f),   // fire orange
-        _ => new Vector4(0.74f, 0.77f, 0.82f, 1f),
-    };
-
     private void DrawSidebar()
     {
-        if (NavItem(FontAwesomeIcon.Home, "Home", null, _nav == NavKind.Home,
-                new Vector4(0.96f, 0.62f, 0.33f, 1f))) _nav = NavKind.Home;
+        if (NavItem(FontAwesomeIcon.Home, "Home", null, _nav == NavKind.Home)) _nav = NavKind.Home;
 
         ImGui.Spacing();
         SidebarHeading("FIGHTS");
         foreach (var cat in Categories)
         {
             var count = C.Fights.Count(f => CategoryOf(f) == cat);
-            if (NavItem(CategoryIcon(cat), cat, count, _nav == NavKind.Fights && _navCategory == cat,
-                    CategoryColor(cat)))
+            if (NavItem(CategoryIcon(cat), cat, count, _nav == NavKind.Fights && _navCategory == cat))
             {
                 _nav = NavKind.Fights;
                 _navCategory = cat;
@@ -430,26 +418,20 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("TOOLS");
         // Sheet View is a window, not a page: the nav item opens it directly.
-        if (NavItem(FontAwesomeIcon.Table, "Sheet View", null, false,
-                new Vector4(0.55f, 0.84f, 0.56f, 1f)))
+        if (NavItem(FontAwesomeIcon.Table, "Sheet View", null, false))
         {
             var fight = _plugin.ActiveFight();
             _plugin.SheetViewWindow.Open(
                 fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
         }
-        if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits & Timeline", null, _nav == NavKind.NextMits,
-                new Vector4(0.96f, 0.55f, 0.26f, 1f))) _nav = NavKind.NextMits;
-        if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer,
-                new Vector4(0.48f, 0.74f, 0.97f, 1f))) _nav = NavKind.CombatTimer;
-        if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap,
-                new Vector4(0.74f, 0.65f, 0.95f, 1f))) _nav = NavKind.PartyRecap;
+        if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
+        if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
+        if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
-        if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display,
-                new Vector4(0.46f, 0.83f, 0.87f, 1f))) _nav = NavKind.Display;
-        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio,
-                new Vector4(0.90f, 0.62f, 0.82f, 1f))) _nav = NavKind.Audio;
+        if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
+        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
         DrawSidebarSetup();
     }
@@ -462,7 +444,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
-    private bool NavItem(FontAwesomeIcon icon, string label, int? count, bool selected, Vector4? iconColor = null)
+    private bool NavItem(FontAwesomeIcon icon, string label, int? count, bool selected)
     {
         var startX = ImGui.GetCursorPosX();
         var startY = ImGui.GetCursorPosY();
@@ -478,14 +460,12 @@ public class ConfigWindow : Window, IDisposable
         var endX = ImGui.GetCursorPosX();
         var endY = ImGui.GetCursorPosY();
         var col = selected ? new Vector4(1f, 1f, 1f, 1f) : new Vector4(0.74f, 0.77f, 0.82f, 1f);
-        // Icons keep their own tint; selection brightens the label to white.
-        var iconCol = iconColor ?? col;
 
         // Icon (icon font) + label drawn over the selectable row.
         ImGui.SameLine();
         ImGui.SetCursorPos(new Vector2(startX + 10, startY + 6));
         using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-            ImGui.TextColored(iconCol, icon.ToIconString());
+            ImGui.TextColored(col, icon.ToIconString());
         ImGui.SameLine();
         ImGui.SetCursorPos(new Vector2(startX + 36, startY + 6));
         ImGui.TextColored(col, label);
