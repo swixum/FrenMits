@@ -149,9 +149,14 @@ public static class JobExtras
 
         // On a graded sheet, extras go only where the fight actually hurts;
         // ungraded sheets fall back to every row (recast still spaces them out).
-        var candidates = fight.CustomRows.Any(r => r.Hurt > 0)
-            ? fight.CustomRows.Where(r => r.Hurt > 0)
+        // Busters are the tanks' problem, so party extras skip them when the
+        // sheet has anything else to spend on.
+        var pool = fight.CustomRows.Any(r => !r.Buster)
+            ? fight.CustomRows.Where(r => !r.Buster).ToList()
             : fight.CustomRows;
+        var candidates = pool.Any(r => r.Hurt > 0)
+            ? pool.Where(r => r.Hurt > 0)
+            : pool;
         var picked = new List<(float Time, string Mechanic)>();
         foreach (var row in candidates.OrderByDescending(r => r.Hurt).ThenBy(r => r.Time))
         {

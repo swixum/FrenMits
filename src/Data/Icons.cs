@@ -209,6 +209,17 @@ public static class Icons
                 ["WAR"] = "Nascent Flash", ["PLD"] = "Intervention",
                 ["DRK"] = "The Blackest Night", ["GNB"] = "Heart of Corundum",
             },
+            // Tank-buster generics (Auto-plan and the tank tabs speak these).
+            ["Short Mit"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["WAR"] = "Bloodwhetting", ["PLD"] = "Holy Sheltron",
+                ["DRK"] = "The Blackest Night", ["GNB"] = "Heart of Corundum",
+            },
+            ["Invulnerability"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["WAR"] = "Holmgang", ["PLD"] = "Hallowed Ground",
+                ["DRK"] = "Living Dead", ["GNB"] = "Superbolide",
+            },
         };
 
     // The active job's ability for a generic mit term in the action, honoring an

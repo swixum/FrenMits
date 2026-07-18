@@ -1601,6 +1601,32 @@ public class SheetViewWindow : Window
     private static readonly HashSet<string> DebuffMits = new(StringComparer.OrdinalIgnoreCase)
         { "Reprisal", "Feint", "Addle", "Dismantle" };
 
+    private static readonly HashSet<string> TankJobAbbrs = new(StringComparer.OrdinalIgnoreCase)
+        { "WAR", "PLD", "DRK", "GNB" };
+
+    private static bool IsTankColumn(string slot)
+    {
+        var t = slot.Trim().ToUpperInvariant();
+        return t is "MT" or "OT" or "T" or "T1" or "T2" or "TANK" || TankJobAbbrs.Contains(t);
+    }
+
+    // Buster-lane generics, spelled out for a column NAMED after a tank job
+    // (an MT/OT column keeps the generic, which resolves per player at call time).
+    private static readonly Dictionary<string, Dictionary<string, string>> TankTermByJob =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Invulnerability"] = new(StringComparer.OrdinalIgnoreCase)
+            { ["WAR"] = "Holmgang", ["PLD"] = "Hallowed Ground", ["DRK"] = "Living Dead", ["GNB"] = "Superbolide" },
+            ["Short Mit"] = new(StringComparer.OrdinalIgnoreCase)
+            { ["WAR"] = "Bloodwhetting", ["PLD"] = "Holy Sheltron", ["DRK"] = "The Blackest Night", ["GNB"] = "Heart of Corundum" },
+            ["Buddy Mit"] = new(StringComparer.OrdinalIgnoreCase)
+            { ["WAR"] = "Nascent Flash", ["PLD"] = "Intervention", ["DRK"] = "The Blackest Night", ["GNB"] = "Heart of Corundum" },
+        };
+
+    private static string TankTerm(string slot, string term)
+        => TankTermByJob.TryGetValue(term, out var map) && map.TryGetValue(slot.Trim(), out var real)
+            ? real : term;
+
     private sealed class PlanTool
     {
         public string Slot = "";
@@ -1629,10 +1655,15 @@ public class SheetViewWindow : Window
         var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
 
         // How long a planned line's mitigation actually lasts: the shortest
-        // buff in it (game data; generic terms fall back to a Reprisal-ish 15s).
+        // buff in it (game data; generic party terms fall back to a Reprisal-ish
+        // 15s, the short tank generics to their real ~8-10s).
         static float LineCover(MitLine l) => l.Action
             .Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(part => Cooldowns.PlanInfo(part)?.Duration is { } d and > 0f ? d : 15f)
+            .Select(part => Cooldowns.PlanInfo(part)?.Duration is { } d and > 0f ? d
+                : part.Equals("Short Mit", StringComparison.OrdinalIgnoreCase) ? 8f
+                : part.Equals("Buddy Mit", StringComparison.OrdinalIgnoreCase) ? 8f
+                : part.Equals("Invulnerability", StringComparison.OrdinalIgnoreCase) ? 10f
+                : 15f)
             .DefaultIfEmpty(15f).Min();
 
         var tools = new List<PlanTool>();
@@ -1667,6 +1698,7 @@ public class SheetViewWindow : Window
         var lastAdded = new List<MitLine>(); // this run's presses at lastCovered
         foreach (var row in rows)
         {
+            if (row.Buster) continue; // the tank lane below owns these
             // Hits inside the previous press's window ride it, UNLESS this one
             // is graded harder than what that press was sized for, or none of
             // our presses' buffs actually last this long (real durations from
@@ -1773,6 +1805,81 @@ public class SheetViewWindow : Window
             }
         }
 
+        // ---- tank-buster lane: the sheets' tank-tab pattern ----------------
+        // Alternate which tank takes each buster. The taker gets an invuln on
+        // deadly ones (when one is back), else Rampart + their short mit; the
+        // co-tank sends Buddy Mit on anything that hurts. Multi-hit busters
+        // within 10s ride one press with a stamped window.
+        var tanks = fight.CustomSlots.Where(IsTankColumn).ToList();
+        if (tanks.Count > 0)
+        {
+            var invulnAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+            var rampartAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+            var rot = 0;
+            var lastTb = -9999f;
+            var lastTbLines = new List<MitLine>();
+            foreach (var row in rows)
+            {
+                if (!row.Buster) continue;
+                if (row.Time - lastTb < 10f)
+                {
+                    foreach (var l in lastTbLines)
+                        if (l.CoverUntil < row.Time && row.Time <= l.Time + LineCover(l) + 0.01f)
+                            l.CoverUntil = row.Time;
+                    continue;
+                }
+                // A cell the user already filled on any tank = this buster is handled.
+                if (tanks.Any(t2 => lists[t2].Any(x => MathF.Abs(x.Time - row.Time) < 1f)))
+                {
+                    lastTb = row.Time;
+                    lastTbLines = new List<MitLine>();
+                    continue;
+                }
+
+                var active = tanks[rot % tanks.Count];
+                rot++;
+                string act;
+                if (row.Hurt >= 3 && invulnAt[active] <= row.Time)
+                {
+                    act = TankTerm(active, "Invulnerability");
+                    invulnAt[active] = row.Time + 420f; // the slowest invuln; never a dead call
+                }
+                else if (rampartAt[active] <= row.Time)
+                {
+                    act = row.Hurt >= 2
+                        ? "Rampart + " + TankTerm(active, "Short Mit")
+                        : TankTerm(active, "Short Mit");
+                    if (row.Hurt >= 2) rampartAt[active] = row.Time + 90f;
+                }
+                else
+                {
+                    act = TankTerm(active, "Short Mit");
+                }
+                var mine = new MitLine
+                {
+                    Time = row.Time, Mechanic = row.Mechanic, Action = act,
+                    Enabled = true, Custom = true,
+                };
+                lists[active].Add(mine);
+                added++;
+                lastTbLines = new List<MitLine> { mine };
+                if (row.Hurt >= 2 && tanks.Count > 1)
+                {
+                    var co = tanks[rot % tanks.Count];
+                    var buddy = new MitLine
+                    {
+                        Time = row.Time, Mechanic = row.Mechanic,
+                        Action = TankTerm(co, "Buddy Mit"),
+                        Enabled = true, Custom = true,
+                    };
+                    lists[co].Add(buddy);
+                    added++;
+                    lastTbLines.Add(buddy);
+                }
+                lastTb = row.Time;
+            }
+        }
+
         foreach (var l in lists.Values)
         {
             var sorted = l.OrderBy(x => x.Time).ToList();
@@ -1813,6 +1920,8 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("party (healers pair big mits), hurts takes about half, light gets one");
         ImGui.TextDisabled("press, and long cooldowns are saved for the big hits so they line up.");
         ImGui.TextDisabled("Reprisal/Feint/Addle are never doubled on one hit; sources rotate instead.");
+        ImGui.TextDisabled("Buster rows get the tanks' own plan: the taker alternates, deadly ones");
+        ImGui.TextDisabled("draw an invuln, the rest Rampart + short mit, co-tank sends Buddy Mit.");
         ImGui.TextDisabled("Columns named for a job (WHM, SGE, MCH...) plan with that job's real");
         ImGui.TextDisabled("kit; other role columns (MT, D3...) get terms that speak as each");
         ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
@@ -2402,15 +2511,19 @@ public class SheetViewWindow : Window
         PushUndo($"build from {source}");
         _plugin.SnapshotPlan(_fight, $"before build from {source}");
 
-        // Severity from the log's real damage: each ability's hardest
-        // unmitigated hit, graded against the fight's hardest RAIDWIDE. Busters
-        // (an ability that only ever hit a player or two) are excluded from the
-        // yardstick and capped below deadly: they are the tanks' problem, not a
-        // stack-the-party moment.
-        var maxDmg = 0L;
+        // Severity from the log's real damage. Raidwides (hit the party) and
+        // busters (only ever hit a player or two) are graded on SEPARATE
+        // scales: each against the hardest of its own kind, so a 400k buster
+        // neither drowns the raidwide scale nor reads as a party-mit moment.
+        var maxDmg = 0L;   // hardest raidwide
+        var maxTb = 0L;    // hardest buster
         if (damage is { Count: > 0 })
             foreach (var e in events)
-                if (damage.TryGetValue(e.Id, out var d) && d.Targets > 3 && d.Worst > maxDmg) maxDmg = d.Worst;
+                if (damage.TryGetValue(e.Id, out var d))
+                {
+                    if (d.Targets > 3) { if (d.Worst > maxDmg) maxDmg = d.Worst; }
+                    else if (d.Worst > maxTb) maxTb = d.Worst;
+                }
 
         var addedRows = 0;
         var graded = 0;
@@ -2418,22 +2531,23 @@ public class SheetViewWindow : Window
             foreach (var e in events)
             {
                 var hurt = 0;
+                var buster = false;
                 if (damage != null && damage.TryGetValue(e.Id, out var d))
                 {
-                    hurt = HurtLevel(d.Worst, maxDmg);
-                    if (d.Targets <= 3 && hurt > 2) hurt = 2;
+                    buster = d.Targets > 0 && d.Targets <= 3;
+                    hurt = HurtLevel(d.Worst, buster ? maxTb : maxDmg);
                 }
                 // A row that already exists still learns its grade from the log.
                 var existing = _fight.CustomRows.FirstOrDefault(cr =>
                     MechEquals(cr.Mechanic, e.Name) && MathF.Abs(cr.Time - e.Time) < 2f);
                 if (existing != null)
                 {
-                    if (existing.Hurt == 0 && hurt > 0) { existing.Hurt = hurt; graded++; }
+                    if (existing.Hurt == 0 && hurt > 0) { existing.Hurt = hurt; existing.Buster = buster; graded++; }
                     continue;
                 }
                 if (_rows.Any(r => !r.Ghost && MechEquals(r.Mechanic, e.Name) && MathF.Abs(r.Time - e.Time) < 2f))
                     continue;
-                _fight.CustomRows.Add(new CustomRow { Time = MathF.Round(e.Time), Mechanic = e.Name, Hurt = hurt });
+                _fight.CustomRows.Add(new CustomRow { Time = MathF.Round(e.Time), Mechanic = e.Name, Hurt = hurt, Buster = buster });
                 if (hurt > 0) graded++;
                 addedRows++;
             }
@@ -3183,6 +3297,12 @@ public class SheetViewWindow : Window
                     }
                 }
                 ImGui.TextDisabled("Auto-plan depth: deadly 3 mits, hurts 2, light 1.");
+                var tb = cr.Buster;
+                if (ImGui.Checkbox("Tank buster (tanks' own plan, not party mits)", ref tb))
+                {
+                    cr.Buster = tb;
+                    C.Save();
+                }
             }
             ImGui.EndPopup();
         }
@@ -3193,6 +3313,14 @@ public class SheetViewWindow : Window
         }
         if (_isCustom)
         {
+            // Buster tag: this row is planned by the tank lane, not party mits.
+            if (CustomRowFor(row) is { Buster: true })
+            {
+                ImGui.SameLine(0, 6);
+                ImGui.TextColored(ImGuiColors.TankBlue, "buster");
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Hits one tank or two, not the party. Auto-plan gives it the tanks'\nown plan (invuln or Rampart + short mit, Buddy Mit from the co-tank).\nRight-click the mechanic to change.");
+            }
             // The severity grade, visible at a glance (right-click to change).
             if (CustomRowFor(row) is { Hurt: > 0 } gr)
             {

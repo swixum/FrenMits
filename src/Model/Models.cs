@@ -95,6 +95,12 @@ public class CustomRow
     // Set by hand (row's right-click menu) or from a log's unmitigated damage;
     // Auto-plan stacks mitigation deeper on harder hits.
     public int Hurt { get; set; }
+
+    // Tank buster: the hit lands on one tank or two, not the party. Detected
+    // from a log's target counts or set by hand; Auto-plan gives these the
+    // tanks' own plan (Rampart / short mits / invulns, alternating tanks)
+    // instead of party mitigation.
+    public bool Buster { get; set; }
 }
 
 // A note attached to one mechanic row on the sheet, matched by mechanic label +
