@@ -407,7 +407,8 @@ public class ConfigWindow : Window, IDisposable
         SidebarHeading("FIGHTS");
         foreach (var cat in Categories)
         {
-            if (NavItem(CategoryIcon(cat), cat, _nav == NavKind.Fights && _navCategory == cat))
+            var count = C.Fights.Count(f => CategoryOf(f) == cat);
+            if (NavItem(CategoryIcon(cat), cat, _nav == NavKind.Fights && _navCategory == cat, count))
             {
                 _nav = NavKind.Fights;
                 _navCategory = cat;
@@ -445,7 +446,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
-    private bool NavItem(FontAwesomeIcon icon, string label, bool selected)
+    private bool NavItem(FontAwesomeIcon icon, string label, bool selected, int? count = null)
     {
         var startX = ImGui.GetCursorPosX();
         var startY = ImGui.GetCursorPosY();
@@ -470,6 +471,14 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         ImGui.SetCursorPos(new Vector2(startX + 36, startY + 6));
         ImGui.TextColored(col, label);
+
+        if (count is { } n)
+        {
+            var txt = n.ToString();
+            ImGui.SameLine();
+            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10, startY + 6));
+            ImGui.TextDisabled(txt);
+        }
 
         ImGui.SetCursorPos(new Vector2(endX, endY)); // resume normal flow below the row
         return clicked;
@@ -779,28 +788,22 @@ public class ConfigWindow : Window, IDisposable
         }
 
         // Group by expansion, newest first (unknown zones sink to the bottom).
-        // The little headers only appear once the page actually spans more than
-        // one expansion; a single-expansion list stays exactly as it was.
         fights = fights
             .OrderByDescending(f => ExpansionOf(f) == uint.MaxValue ? -1L : ExpansionOf(f))
             .ToList();
-        var showEx = fights.Select(ExpansionOf).Distinct().Count() > 1;
         var lastEx = uint.MaxValue - 1; // sentinel that matches no real value
 
         FightProfile? toDelete = null;
         foreach (var fight in fights)
         {
-            if (showEx)
+            var ex = ExpansionOf(fight);
+            if (ex != lastEx)
             {
-                var ex = ExpansionOf(fight);
-                if (ex != lastEx)
-                {
-                    lastEx = ex;
-                    ImGui.Spacing();
-                    ImGui.TextColored(new Vector4(0.55f, 0.75f, 0.98f, 1f),
-                        ex == uint.MaxValue ? "Other" : ExpansionName(ex));
-                    ImGui.Spacing();
-                }
+                lastEx = ex;
+                ImGui.Spacing();
+                ImGui.TextColored(new Vector4(0.55f, 0.75f, 0.98f, 1f),
+                    ex == uint.MaxValue ? "Other" : ExpansionName(ex));
+                ImGui.Spacing();
             }
 
             ImGui.PushID(fight.Id);
