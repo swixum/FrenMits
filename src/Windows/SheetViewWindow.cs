@@ -1489,17 +1489,65 @@ public class SheetViewWindow : Window
 
     private bool _openAutoPlan;
     private int _autoPlanPerRow = 2;
-    private readonly Dictionary<string, int> _autoPlanHealer = new(StringComparer.OrdinalIgnoreCase);
     private static readonly string[] HealerJobs = { "WHM", "AST", "SCH", "SGE" };
 
-    // Generic healer seats (H1, H2, H...) on this sheet: the one column kind
-    // whose real kit we cannot know without asking, because the four healer
-    // jobs' cooldowns barely overlap.
+    // Generic healer seats (H1, H2, H...) on this sheet: the four healer jobs'
+    // kits barely overlap, so these seats cannot be planned honestly by name.
     private List<string> GenericHealerCols()
         => _fight == null ? new List<string>() : _fight.CustomSlots
             .Where(sl => sl.Trim().ToUpperInvariant().StartsWith("H")
                          && !JobPartyKit.ContainsKey(sl.Trim()))
             .ToList();
+
+    // Turn generic healer seats into ALL FOUR healer job columns, the way the
+    // official sheets carry WHM/AST/SCH/SGE side by side so any comp finds its
+    // column. Your own seat becomes your own job (lines and active column
+    // follow); leftover jobs slot in right after. Runs inside Auto-plan's undo.
+    private void ExpandHealerSeats(FightProfile fight)
+    {
+        var seats = GenericHealerCols();
+        if (seats.Count == 0) return;
+        var jobs = HealerJobs.Where(j => !fight.CustomSlots.Contains(j, StringComparer.OrdinalIgnoreCase)).ToList();
+        if (jobs.Count == 0) return;
+
+        var assign = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var myJob = _plugin.ActiveJobAbbreviation();
+        if (myJob != null
+            && jobs.Contains(myJob, StringComparer.OrdinalIgnoreCase)
+            && seats.Contains(fight.Slot, StringComparer.OrdinalIgnoreCase))
+        {
+            assign[fight.Slot] = myJob.ToUpperInvariant();
+            jobs.RemoveAll(j => string.Equals(j, myJob, StringComparison.OrdinalIgnoreCase));
+        }
+        foreach (var seat in seats)
+        {
+            if (assign.ContainsKey(seat) || jobs.Count == 0) continue;
+            assign[seat] = jobs[0];
+            jobs.RemoveAt(0);
+        }
+
+        var lastHealerIdx = -1;
+        foreach (var (seat, job) in assign)
+        {
+            var idx = fight.CustomSlots.FindIndex(sl => string.Equals(sl, seat, StringComparison.OrdinalIgnoreCase));
+            if (idx < 0) continue;
+            fight.CustomSlots[idx] = job;
+            lastHealerIdx = Math.Max(lastHealerIdx, idx);
+            if (fight.SavedSlots.TryGetValue(seat, out var moved))
+            {
+                fight.SavedSlots.Remove(seat);
+                fight.SavedSlots[job] = moved;
+            }
+            if (string.Equals(fight.Slot, seat, StringComparison.OrdinalIgnoreCase)) fight.Slot = job;
+        }
+        // The healer jobs no seat was left for still get their column, so the
+        // sheet covers every healer like the official ones do.
+        foreach (var job in jobs)
+        {
+            if (fight.CustomSlots.Count >= 12) break;
+            fight.CustomSlots.Insert(lastHealerIdx >= 0 ? ++lastHealerIdx : fight.CustomSlots.Count, job);
+        }
+    }
 
     // Each job's CORE party-wide mitigation for auto-planning, mirroring what
     // the reference sheets put in their main columns: personal mits live in the
@@ -1770,28 +1818,17 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
 
         // Healer seats: the four healer jobs' kits barely overlap, so the
-        // sheets plan healers per JOB. Ask who heals, then plan their real
-        // cooldowns (Temperance, Sacred Soil, Kerachole...) in those columns.
+        // sheets carry a column per healer JOB. Planning expands the seats.
         var healerCols = GenericHealerCols();
         if (healerCols.Count > 0)
         {
             ImGui.Spacing();
-            ImGui.TextUnformatted("Who heals this fight?");
-            ImGui.SameLine(0, 8);
-            ImGui.TextDisabled("each healer job has its own cooldowns");
-            var di = 0;
-            foreach (var col in healerCols)
-            {
-                if (!_autoPlanHealer.ContainsKey(col)) _autoPlanHealer[col] = di == 0 ? 0 : 2; // WHM + SCH default
-                var sel = _autoPlanHealer[col];
-                if (di > 0) ImGui.SameLine(0, 14);
-                ImGui.SetNextItemWidth(96f);
-                if (ImGui.Combo($"{col}##aph{col}", ref sel, HealerJobs, HealerJobs.Length))
-                    _autoPlanHealer[col] = sel;
-                di++;
-            }
-            ImGui.TextDisabled("Planning renames these columns to the picked jobs, sheet-style, so");
-            ImGui.TextDisabled("every future plan and re-plan knows exactly whose kit is whose.");
+            ImGui.TextColored(ImGuiColors.HealerGreen,
+                "Healer seats become WHM, AST, SCH and SGE columns, like the official");
+            ImGui.TextColored(ImGuiColors.HealerGreen,
+                "sheets: every healer job gets its real cooldowns planned. Pick your");
+            ImGui.TextColored(ImGuiColors.HealerGreen,
+                "own column AFTER planning, from the column headers or fight page.");
         }
         var noKit = _fight.CustomSlots.Where(sl => PoolFor(sl).Length == 0).ToList();
         if (noKit.Count > 0)
@@ -1819,26 +1856,17 @@ public class SheetViewWindow : Window
         {
             PushUndo("auto-plan mits");
             _plugin.SnapshotPlan(_fight, "before auto-plan");
-            // Healer seats become job columns first (the sheets' convention).
-            foreach (var col in healerCols)
-            {
-                var hj = HealerJobs[Math.Clamp(_autoPlanHealer.GetValueOrDefault(col), 0, HealerJobs.Length - 1)];
-                if (_fight.CustomSlots.Contains(hj, StringComparer.OrdinalIgnoreCase)) continue; // taken: keep the seat name
-                var idx = _fight.CustomSlots.FindIndex(sl => string.Equals(sl, col, StringComparison.OrdinalIgnoreCase));
-                if (idx < 0) continue;
-                _fight.CustomSlots[idx] = hj;
-                if (_fight.SavedSlots.TryGetValue(col, out var moved))
-                {
-                    _fight.SavedSlots.Remove(col);
-                    _fight.SavedSlots[hj] = moved;
-                }
-                if (string.Equals(_fight.Slot, col, StringComparison.OrdinalIgnoreCase)) _fight.Slot = hj;
-            }
+            // Healer seats become ALL FOUR healer job columns first (the
+            // sheets' convention), so every healer's kit is covered.
+            ExpandHealerSeats(_fight);
             var n = AutoPlanMits(_fight, _autoPlanPerRow);
             C.Save();
             _dirty = true;
+            var healersNote = healerCols.Count > 0
+                ? " Healer columns are per job now; pick yours from its header (right-click) or the fight page."
+                : "";
             Flash(n > 0
-                ? $"Planned {n} calls. Undo (Ctrl+Z) or Plan > History reverts."
+                ? $"Planned {n} calls. Undo (Ctrl+Z) or Plan > History reverts.{healersNote}"
                 : "Nothing to add: every row is already covered.");
             ImGui.CloseCurrentPopup();
         }
