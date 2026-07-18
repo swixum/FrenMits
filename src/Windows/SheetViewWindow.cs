@@ -1656,11 +1656,14 @@ public class SheetViewWindow : Window
             ["NIN"] = new[] { ("Feint", 90f) }, ["SAM"] = new[] { ("Feint", 90f) },
             ["RPR"] = new[] { ("Feint", 90f) }, ["VPR"] = new[] { ("Feint", 90f) },
             ["BRD"] = new[] { ("Troubadour", 90f) },
-            ["MCH"] = new[] { ("Tactician", 90f), ("Dismantle", 120f) },
+            // Dismantle / Magick Barrier / Tempera Grassa are deliberately NOT
+            // here: they are JobExtras (per-job add-on cards with their own
+            // log-derived schedules), and extras stay extras.
+            ["MCH"] = new[] { ("Tactician", 90f) },
             ["DNC"] = new[] { ("Shield Samba", 90f) },
             ["BLM"] = new[] { ("Addle", 90f) }, ["SMN"] = new[] { ("Addle", 90f) },
-            ["RDM"] = new[] { ("Addle", 90f), ("Magick Barrier", 120f) },
-            ["PCT"] = new[] { ("Addle", 90f), ("Tempera Grassa", 120f) },
+            ["RDM"] = new[] { ("Addle", 90f) },
+            ["PCT"] = new[] { ("Addle", 90f) },
         };
 
     // A column's toolset. A column NAMED for a job (WHM, SGE, MCH...) plans
