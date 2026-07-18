@@ -752,14 +752,21 @@ public class ConfigWindow : Window, IDisposable
     // The expansion a fight's zone belongs to, straight from the game data
     // (TerritoryType.ExVersion; 0 = ARR through 5 = Dawntrail). Correct for
     // anything a user adds too, no table to maintain. uint.MaxValue = unknown.
+    // Cached per territory - this runs inside the per-frame sort.
+    private static readonly Dictionary<uint, uint> ExCache = new();
+
     private static uint ExpansionOf(FightProfile f)
     {
+        if (ExCache.TryGetValue(f.TerritoryId, out var hit)) return hit;
+        uint ex;
         try
         {
             var t = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.GetRowOrDefault(f.TerritoryId);
-            return t?.ExVersion.RowId ?? uint.MaxValue;
+            ex = t?.ExVersion.RowId ?? uint.MaxValue;
         }
-        catch { return uint.MaxValue; }
+        catch { ex = uint.MaxValue; }
+        ExCache[f.TerritoryId] = ex;
+        return ex;
     }
 
     private static string ExpansionName(uint ex)

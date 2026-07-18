@@ -645,6 +645,9 @@ public sealed class Plugin : IDalamudPlugin
             // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
             if (!string.IsNullOrEmpty(target.Slot) && target.SavedSlots.ContainsKey(target.Slot))
                 target.SavedSlots[target.Slot] = target.Lines;
+            // Snapshots taken before the column standard carry MT/OT/D1-style
+            // names; bring them onto the standard right away.
+            SlotNames.NormalizeFight(target);
             Config.Save();
             return $"Restored the {b.When:MMM d, h:mm tt} snapshot ({b.Reason}).";
         }

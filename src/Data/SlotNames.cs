@@ -81,6 +81,12 @@ public static class SlotNames
             if (!string.Equals(c, fight.CustomSlots[i], StringComparison.Ordinal))
             { fight.CustomSlots[i] = c; changed = true; }
         }
+        // Two old names can land on one standard name (a sheet with both MT
+        // and T1 columns): drop the later duplicate; the stashes for both keys
+        // were already merged by the rename above.
+        for (var i = fight.CustomSlots.Count - 1; i > 0; i--)
+            if (fight.CustomSlots.Take(i).Contains(fight.CustomSlots[i], StringComparer.OrdinalIgnoreCase))
+            { fight.CustomSlots.RemoveAt(i); changed = true; }
 
         foreach (var d in fight.DeletedCalls)
         {
