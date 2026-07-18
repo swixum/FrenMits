@@ -5,6 +5,9 @@
 // EXCEPTION: the WHM Asylum calls are a FrenMits addition timed from an FFLogs
 // clear; the sheet never lists Asylum. Keep them when syncing future sheet
 // versions (they are the " + Asylum" / "Asylum" entries in the WHM column).
+// EXCEPTION: the sheet's P2 row at 221 is misspelled "Ultimate Embrance"; it is
+// deliberately baked corrected as "Ultimate Embrace". Keep the correction when
+// syncing future sheet versions (a diff will show it as a change; it isn't).
 // Resync ability ids are cross-referenced from the cactbot
 // dancing_mad timeline (07-dt/ultimate): every sheet mechanic is matched to its
 // cactbot cast in fight order, gated to its phase's timeline offset, and stamped
@@ -40,7 +43,7 @@ public static class DmuData
         new(165, "P1", "Double-Trouble Trap", 0xBCF2, new[]{"", "", "Temperance", "Neutral Sect", "", "", "", "", "", ""}),
         new(173, "P1", "Indulgent Will", 0xBAB5, new[]{"", "", "Divine Caress", "Sun Sign", "Sacred Soil", "Kerachole", "", "", "", ""}),
         new(187, "P1", "Mystery Magic", 0xBA94, new[]{"", "Reprisal", "", "", "", "", "", "", "", ""}),
-        new(221, "P2", "Ultimate Embrance", 0xC24C, new[]{"", "", "Assist Tanks", "", "Spreadlo", "Holos", "", "Feint", "", ""}),
+        new(221, "P2", "Ultimate Embrace", 0xC24C, new[]{"", "", "Assist Tanks", "", "Spreadlo", "Holos", "", "Feint", "", ""}),
         new(236, "P2", "Forsaken", 0xBABC, new[]{"Reprisal", "Party Mit", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil", "Kerachole + Zoe Shields", "Feint", "", "Party Mit", "Addle"}),
         new(250, "P2", "Towers I", 0xBABE, new[]{"", "", "Asylum", "", "Seraph + Fey Illumination", "Panhaima", "", "", "", ""}),
         new(260, "P2", "Towers II (Past/Future's End)", 0xBABE, new[]{"", "", "", "", "Seraph", "", "", "", "", ""}),

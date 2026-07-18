@@ -298,6 +298,19 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v19: the sheet's "Ultimate Embrance" typo (P2, 3:41) is now baked
+        // corrected as "Ultimate Embrace". Re-run the smart re-bake so existing
+        // plans pick up the fixed name; per-line tweaks carry over as usual.
+        if (Config.Version < 19)
+        {
+            foreach (var f in Config.Fights)
+                if (f.TerritoryId == Builtin.DmuTerritory)
+                    SnapshotPlan(f, "before the Ultimate Embrace typo fix");
+            SmartRebakeDmu();
+            Config.Version = 19;
+            Config.Save();
+        }
+
         // Auto-add any built-in fight the user hasn't been shown yet, so a newly
         // shipped fight (e.g. a fresh savage) appears directly on its tab with no
         // button to click. Tracked per-territory so a deleted built-in stays gone.
