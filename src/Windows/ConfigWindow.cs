@@ -68,7 +68,7 @@ public class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Timer, Display, Audio, PartyRecap, CombatTimer }
+    private enum NavKind { Home, Fights, Timer, Display, NextMits, Audio, PartyRecap, CombatTimer }
     private NavKind _nav = NavKind.Home;
     private int _anchorFight = -1; // target fight for anchor building
     private string _recName = "";  // name for saving the current capture
@@ -429,6 +429,7 @@ public class ConfigWindow : Window, IDisposable
         SidebarHeading("SETTINGS");
         if (NavItem(FontAwesomeIcon.Stopwatch, "Timer", null, _nav == NavKind.Timer)) _nav = NavKind.Timer;
         if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
+        if (NavItem(FontAwesomeIcon.ListUl, "Next Mits", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
         ImGui.Spacing();
@@ -635,6 +636,7 @@ public class ConfigWindow : Window, IDisposable
             case NavKind.Home: DrawHomePage(); break;
             case NavKind.Timer: DrawTimerTab(); break;
             case NavKind.Display: DrawDisplayTab(); break;
+            case NavKind.NextMits: DrawNextMitsPage(); break;
             case NavKind.Audio: DrawAudioTab(); break;
             case NavKind.PartyRecap: DrawPartyRecapPage(); break;
             case NavKind.CombatTimer: DrawCombatTimerPage(); break;
@@ -2719,67 +2721,93 @@ public class ConfigWindow : Window, IDisposable
 
         if (Section("Next-mits timeline (separate window)"))
         {
-            C.ShowUpcoming = CfgCheck("Show the next-mits timeline window", C.ShowUpcoming);
-            ImGui.TextDisabled("The main call only shows the imminent mit; everything still coming up lists here.");
-            if (C.ShowUpcoming)
+            // The timeline grew into its own thing; it lives on its own page now.
+            ImGui.TextDisabled("The upcoming-mits board has its own page: Next Mits in the sidebar.");
+            if (ImGui.Button("Open Next Mits settings")) _nav = NavKind.NextMits;
+        }
+    }
+
+    // ---- Next Mits board ---------------------------------------------------
+
+    private void DrawNextMitsPage()
+    {
+        SeparatorText("Next Mits");
+        ImGui.TextWrapped("Your window of what's coming: every upcoming mechanic as a draining countdown bar with "
+                          + "the mits planned for it underneath. Your next press glows gold, then turns green the "
+                          + "moment the main call fires.");
+        ImGui.Spacing();
+        C.ShowUpcoming = CfgCheck("Show the next-mits window", C.ShowUpcoming);
+
+        if (Section("Preview", true))
+        {
+            ImGui.TextDisabled("A live sample: Dancing Mad's opener on the MT column, on a looping clock.");
+            ImGui.Spacing();
+            _plugin.TimelineWindow.DrawSettingsPreview();
+            ImGui.Spacing();
+        }
+
+        if (!C.ShowUpcoming) return;
+
+        if (Section("Placement", true))
+        {
+            C.TimelineLocked = CfgCheck("Lock the window (click-through)", C.TimelineLocked);
+            ImGui.SameLine();
+            if (ImGui.Button("Reset position"))
             {
-                C.TimelineLocked = CfgCheck("Lock timeline (click-through)", C.TimelineLocked);
-                ImGui.SameLine();
-                if (ImGui.Button("Reset position"))
-                {
-                    C.TimelinePosition = new Vector2(0.5f, 0.62f);
-                    C.Save();
-                    _plugin.TimelineWindow.RequestReposition();
-                }
-                ImGui.SameLine();
-                ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move)");
-                ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
+                C.TimelinePosition = new Vector2(0.5f, 0.62f);
+                C.Save();
+                _plugin.TimelineWindow.RequestReposition();
+            }
+            ImGui.SameLine();
+            ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move)");
+            ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
+        }
 
-                var style = Math.Clamp(C.UpcomingStyle, 0, 1);
-                var styles = new[]
-                {
-                    "Compact list (just your next calls)",
-                    "Mechanic board (every hit, countdown bars)",
-                };
-                ImGui.SetNextItemWidth(320f);
-                if (ImGui.Combo("Style", ref style, styles, styles.Length)) { C.UpcomingStyle = style; C.Save(); }
+        if (Section("Style", true))
+        {
+            var style = Math.Clamp(C.UpcomingStyle, 0, 1);
+            var styles = new[]
+            {
+                "Compact list (just your next calls)",
+                "Mechanic board (every hit, countdown bars)",
+            };
+            ImGui.SetNextItemWidth(320f);
+            if (ImGui.Combo("Style", ref style, styles, styles.Length)) { C.UpcomingStyle = style; C.Save(); }
 
-                if (style == 1)
-                {
-                    ImGui.TextDisabled("Every upcoming mechanic gets a draining bar; your presses show under their rows.");
-                    C.UpcomingBoardOnlyMine = CfgCheck("Only show hits you have a press for", C.UpcomingBoardOnlyMine);
-                    ImGui.TextDisabled("Off = the whole fight shows, with your mits highlighted on their rows.");
-                    var brows = C.UpcomingBoardRows;
-                    ImGui.SetNextItemWidth(120f);
-                    if (ImGui.SliderInt("Board rows", ref brows, 3, 12)) { C.UpcomingBoardRows = brows; C.Save(); }
-                    var blook = C.UpcomingBoardLookaheadSeconds;
-                    ImGui.SetNextItemWidth(160f);
-                    if (ImGui.SliderFloat("Look-ahead (s)", ref blook, 15f, 180f, "%.0f")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
-                    var bw = C.UpcomingBoardWidth;
-                    ImGui.SetNextItemWidth(200f);
-                    if (ImGui.SliderFloat("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
-                    C.UpcomingShowHeader = CfgCheck("Show fight name + clock above the bars", C.UpcomingShowHeader);
-                }
-                else
-                {
-                    var count = C.UpcomingCount;
-                    ImGui.SetNextItemWidth(120f);
-                    if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
-                    var look = C.UpcomingLookaheadSeconds;
-                    ImGui.SetNextItemWidth(160f);
-                    if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
-                }
+            if (style == 1)
+            {
+                C.UpcomingBoardOnlyMine = CfgCheck("Only show hits you have a press for", C.UpcomingBoardOnlyMine);
+                ImGui.TextDisabled("Off = the whole fight shows, with your mits highlighted on their rows.");
+                var brows = C.UpcomingBoardRows;
+                ImGui.SetNextItemWidth(120f);
+                if (ImGui.SliderInt("Board rows", ref brows, 3, 12)) { C.UpcomingBoardRows = brows; C.Save(); }
+                var blook = C.UpcomingBoardLookaheadSeconds;
+                ImGui.SetNextItemWidth(160f);
+                if (ImGui.SliderFloat("Look-ahead (s)", ref blook, 15f, 180f, "%.0f")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
+                var bw = C.UpcomingBoardWidth;
+                ImGui.SetNextItemWidth(200f);
+                if (ImGui.SliderFloat("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
+                C.UpcomingShowHeader = CfgCheck("Show fight name + clock above the bars", C.UpcomingShowHeader);
+            }
+            else
+            {
+                var count = C.UpcomingCount;
+                ImGui.SetNextItemWidth(120f);
+                if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
+                var look = C.UpcomingLookaheadSeconds;
+                ImGui.SetNextItemWidth(160f);
+                if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
+            }
 
-                var upPx = C.UpcomingFontSizePx;
-                ImGui.SetNextItemWidth(220f);
-                if (ImGui.SliderFloat("Timeline text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
-                if (style == 0)
-                {
-                    // The board paints its own colors (gold next / green now);
-                    // this tint is the compact list's.
-                    var upCol = ColorToVec4(C.OverlayColorUpcoming);
-                    if (ImGui.ColorEdit4("Timeline text color", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
-                }
+            var upPx = C.UpcomingFontSizePx;
+            ImGui.SetNextItemWidth(220f);
+            if (ImGui.SliderFloat("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+            if (style == 0)
+            {
+                // The board paints its own colors (gold next / green now);
+                // this tint is the compact list's.
+                var upCol = ColorToVec4(C.OverlayColorUpcoming);
+                if (ImGui.ColorEdit4("Text color", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
             }
         }
     }

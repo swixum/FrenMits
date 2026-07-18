@@ -208,12 +208,13 @@ public class TimelineWindow : Window
 
     private static readonly List<MitLine> NoLines = new();
 
-    private void DrawBoard(FightProfile fight, string? job, float elapsed)
+    private void DrawBoard(FightProfile fight, string? job, float elapsed,
+        List<SheetTimeline.MechRow>? rowsOverride = null, float? widthOverride = null)
     {
         var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
-        var width = MathF.Max(180f, C.UpcomingBoardWidth);
+        var width = widthOverride ?? MathF.Max(180f, C.UpcomingBoardWidth);
         // A just-hit row lingers 2s at "now" so it doesn't vanish mid-press.
-        var windowRows = BoardRows(fight)
+        var windowRows = (rowsOverride ?? BoardRows(fight))
             .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
             .ToList();
 
@@ -452,6 +453,59 @@ public class TimelineWindow : Window
     {
         var t = (int)MathF.Round(seconds);
         return $"{t / 60}:{t % 60:00}";
+    }
+
+    // ---- settings-page preview ---------------------------------------------
+    // A live example drawn inside the settings window: Dancing Mad's real rows
+    // with the MT column's presses, on a looping clock, so the bars drain, go
+    // gold, and fire green exactly like a pull. Rows are built once and kept
+    // separate from the live board's cache.
+    private FightProfile? _previewFight;
+    private List<SheetTimeline.MechRow>? _previewRows;
+
+    public void DrawSettingsPreview()
+    {
+        _previewFight ??= new FightProfile
+        {
+            TerritoryId = Builtin.DmuTerritory,
+            Name = "Dancing Mad (UMAD)",
+            Slot = "MT",
+            Lines = Builtin.BuildLines(Builtin.DmuTerritory, "MT"),
+        };
+        _previewRows ??= SheetTimeline.Build(_previewFight);
+
+        // Loop DMU's opener: sweeps through Light of Judgment and Gravitas II
+        // so a press goes gold, fires green, and lingers every pass.
+        var elapsed = 45f + (float)(ImGui.GetTime() % 62.0);
+        var width = MathF.Min(MathF.Max(180f, C.UpcomingBoardWidth),
+            MathF.Max(220f, ImGui.GetContentRegionAvail().X - 8f));
+
+        using var _ = PushFont(C.UpcomingFontSizePx);
+        if (C.UpcomingStyle == 1)
+        {
+            DrawBoard(_previewFight, null, elapsed, _previewRows, width);
+            return;
+        }
+
+        // Compact list style: the same DMU moment, classic look.
+        var upcoming = _previewFight.OrderedLines
+            .Where(l => l.Enabled
+                        && l.CueTime - elapsed > C.WarningSeconds
+                        && l.CueTime - elapsed <= C.UpcomingLookaheadSeconds)
+            .OrderBy(l => l.CueTime)
+            .Take(Math.Max(1, C.UpcomingCount))
+            .ToList();
+        if (upcoming.Count == 0)
+        {
+            ImGui.TextDisabled("(quiet moment - the list shows again when a call is coming)");
+            return;
+        }
+        foreach (var l in upcoming)
+        {
+            var inSec = (int)MathF.Round(l.CueTime - elapsed);
+            var nm = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.Action, null);
+            Row(C.ShowAbilityIcon ? Icons.For(l, null) : 0u, $"+{inSec}s  ", nm);
+        }
     }
 
     // Placement preview for Live preview mode: a static sample board.
