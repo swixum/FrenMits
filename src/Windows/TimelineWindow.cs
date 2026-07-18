@@ -181,18 +181,24 @@ public class TimelineWindow : Window
     private List<SheetTimeline.MechRow> _board = new();
     private string _boardFightId = "";
     private int _boardGen = -1;
+    private int _boardStamp = -1;
     private DateTime _boardBuiltAt = DateTime.MinValue;
 
     private List<SheetTimeline.MechRow> BoardRows(FightProfile fight)
     {
+        // Cheap change fingerprint so plan edits show up even mid-combat
+        // (Auto-plan / a line added from Sheet View during a pull).
+        var stamp = fight.Lines.Count * 31 + fight.CustomRows.Count;
         var stale = _boardFightId != fight.Id
                     || _boardGen != _plugin.Timer.Generation
+                    || _boardStamp != stamp
                     || (!Plugin.InCombat && (DateTime.Now - _boardBuiltAt).TotalSeconds > 4);
         if (stale)
         {
             _board = SheetTimeline.Build(fight);
             _boardFightId = fight.Id;
             _boardGen = _plugin.Timer.Generation;
+            _boardStamp = stamp;
             _boardBuiltAt = DateTime.Now;
         }
         return _board;
@@ -249,15 +255,18 @@ public class TimelineWindow : Window
         }
 
         var mine = visible.Select(MineFor).ToList();
-        float LeadFor(int i) => mine[i].Count == 0
-            ? C.WarningSeconds
-            : mine[i].Min(l => l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds);
+
+        // Green matches the main call EXACTLY: a press is "now" when it enters
+        // its warning window on the cue clock, so per-line offsets (a call set
+        // to fire early or late) keep the board and the big call in lockstep.
+        bool InWindow(MitLine l)
+            => l.CueTime - elapsed <= (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds);
 
         // Gold marks your next press that isn't already green: while a call is
         // in (or just past) its window, the one after it keeps its own marker.
         var nextIdx = -1;
         for (var i = 0; i < visible.Count && nextIdx < 0; i++)
-            if (mine[i].Count > 0 && visible[i].Time - elapsed > LeadFor(i))
+            if (mine[i].Count > 0 && !mine[i].Any(InWindow))
                 nextIdx = i;
 
         for (var i = 0; i < visible.Count; i++)
@@ -265,7 +274,7 @@ public class TimelineWindow : Window
             if (i > 0) ImGui.Dummy(new Vector2(1f, 4f));
             var r = visible[i];
             var rem = r.Time - elapsed;
-            var useNow = mine[i].Count > 0 && rem <= LeadFor(i);
+            var useNow = mine[i].Count > 0 && mine[i].Any(InWindow);
             var isNext = i == nextIdx;
             var accent = useNow ? BoardGreen : isNext ? BoardGold : 0u;
 
@@ -282,7 +291,7 @@ public class TimelineWindow : Window
             BoardBar(name, rem, look, width, accent, r.Hurt);
 
             if (!bareTimer && mine[i].Count > 0)
-                BoardActions(mine[i], job, rem, width, accent);
+                BoardActions(mine[i], job, elapsed, width, accent);
 
             if ((useNow || isNext) && NoteText(fight, r) is { Length: > 0 } note)
                 BoardNote(note, width);
@@ -317,7 +326,9 @@ public class TimelineWindow : Window
         if (frac > 0.004f)
         {
             var fill = accent == 0 ? BoardBarFill : (accent & 0x00FFFFFF) | 0x73000000;
-            dl.AddRectFilled(p0, new Vector2(p0.X + width * frac, p1.Y), fill, 4f);
+            // Mid-drain the fill's leading edge is a straight cut, not a pill.
+            var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
+            dl.AddRectFilled(p0, new Vector2(p0.X + width * frac, p1.Y), fill, 4f, corners);
         }
         dl.AddRect(p0, p1, BoardBarBorder, 4f);
 
@@ -342,7 +353,7 @@ public class TimelineWindow : Window
         ImGui.Dummy(new Vector2(width, barH));
     }
 
-    private void BoardActions(List<MitLine> mine, string? job, float rem, float width, uint accent)
+    private void BoardActions(List<MitLine> mine, string? job, float elapsed, float width, uint accent)
     {
         var parts = new List<string>();
         var icon = 0u;
@@ -350,8 +361,9 @@ public class TimelineWindow : Window
         {
             var text = Icons.DisplayAction(l.ActionFor(job), job);
             if (string.IsNullOrWhiteSpace(text)) continue;
-            // Cooldown-aware: flag a press that won't be back up by the hit.
-            if (C.CooldownAwareCalls && Cooldowns.Remaining(l.Action) is { } cd && cd > rem + 0.5f)
+            // Cooldown-aware: flag a press that won't be back up by ITS call
+            // moment (the cue clock, so per-line offsets are honored).
+            if (C.CooldownAwareCalls && Cooldowns.Remaining(l.Action) is { } cd && cd > l.CueTime - elapsed + 0.5f)
                 text += " (cd)";
             if (!parts.Contains(text)) parts.Add(text);
             // Icon from the first line that actually contributes text.
