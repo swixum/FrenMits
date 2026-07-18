@@ -31,7 +31,18 @@ jobs:
         run: |
           $dev = "$env:AppData\XIVLauncher\addon\Hooks\dev"
           New-Item -ItemType Directory -Force -Path $dev | Out-Null
-          Invoke-WebRequest -Uri "https://goatcorp.github.io/dalamud-distrib/stg/latest.zip" -OutFile dalamud.zip
+          # The distrib server flakes now and then; retry instead of failing the build.
+          $ok = $false
+          foreach ($try in 1..5) {
+            try {
+              Invoke-WebRequest -Uri "https://goatcorp.github.io/dalamud-distrib/stg/latest.zip" -OutFile dalamud.zip
+              $ok = $true; break
+            } catch {
+              Write-Host "Download attempt $try failed: $($_.Exception.Message)"
+              Start-Sleep -Seconds (10 * $try)
+            }
+          }
+          if (-not $ok) { throw "Dalamud download failed after 5 attempts." }
           Expand-Archive -Path dalamud.zip -DestinationPath $dev -Force
 
       - name: Build
