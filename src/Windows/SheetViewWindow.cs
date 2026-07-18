@@ -1896,8 +1896,10 @@ public class SheetViewWindow : Window
                 var set = new List<PlanTool>();
                 foreach (var t in opts)
                 {
-                    // Hard hits take paired cells (sheet-style), light ones one.
-                    if (set.Count >= (row.Hurt >= 2 ? 2 : 1)) break;
+                    // One player CAN layer several of their own mits on one
+                    // mechanic: deadly hits stack up to three per cell (the
+                    // sheets' triple cells), hurts pairs, light takes one.
+                    if (set.Count >= (row.Hurt >= 3 ? 3 : row.Hurt >= 2 ? 2 : 1)) break;
                     if (DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)) continue;
                     set.Add(t);
                 }
@@ -1940,14 +1942,15 @@ public class SheetViewWindow : Window
                     .OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
                     .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                     .ThenBy(t => t.Recast).ThenBy(t => t.Order);
-                // Paired cells on hard hits, sheet-style; on lighter hits a
-                // QUICK second tool (60s or less) may still join, so the
-                // short-recast kit pieces roll instead of queuing behind one
-                // cell per row.
+                // Deadly hits stack up to three from one player, hurts pairs,
+                // and on lighter hits a QUICK second tool (60s or less) may
+                // still join, so the short-recast kit pieces roll instead of
+                // queuing behind one cell per row.
+                var satCap = row.Hurt >= 3 ? 3 : 2;
                 var picks = new List<PlanTool>();
                 foreach (var t in satOrder)
                 {
-                    if (picks.Count >= 2) break;
+                    if (picks.Count >= satCap) break;
                     if (picks.Count == 1 && row.Hurt < 2 && t.Recast > 60f) break;
                     picks.Add(t);
                 }
