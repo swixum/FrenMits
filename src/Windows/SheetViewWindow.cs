@@ -1492,7 +1492,6 @@ public class SheetViewWindow : Window
     // ---- auto-plan mits (custom sheets) -------------------------------------
 
     private bool _openAutoPlan;
-    private int _autoPlanPerRow = 2;
     private static readonly string[] HealerJobs = { "WHM", "AST", "SCH", "SGE" };
 
     // Generic healer seats (H1, H2, H...) on this sheet: the four healer jobs'
@@ -1653,17 +1652,19 @@ public class SheetViewWindow : Window
     // - Deadly hits stack the whole party (every column contributes; healers
     //   and named-job columns may pair two mits, "Plenary Indulgence + Asylum"
     //   style). Hurts takes about half the party; light takes one press;
-    //   ungraded rows follow the slider.
+    //   ungraded rows the planner sizes itself from how graded the sheet is.
     // - Big cooldowns are saved for big hits: a long mit is not spent on a
     //   light row when a deadly row lands inside its recast.
     // - Every press respects its recast (the game's own numbers when
     //   available), the load rotates least-recently-used first, hits within
     //   15s share one press, and cells you wrote are never touched.
-    private int AutoPlanMits(FightProfile fight, int perRow)
+    private int AutoPlanMits(FightProfile fight)
     {
         var rows = fight.CustomRows.OrderBy(r => r.Time).ToList();
         if (rows.Count == 0) return 0;
-        var deadlyTimes = rows.Where(r => r.Hurt >= 3).Select(r => r.Time).ToList();
+        // Deadly PARTY hits only: a deadly buster is the tanks' problem, so it
+        // must never hold the party's big cooldowns hostage.
+        var deadlyTimes = rows.Where(r => !r.Buster && r.Hurt >= 3).Select(r => r.Time).ToList();
         var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
 
         // Hits landing while a buff placed on a row is still up (~18s): the
@@ -1725,6 +1726,7 @@ public class SheetViewWindow : Window
         var lastCovered = -9999f;
         var lastCoveredHurt = 0;
         var lastAdded = new List<MitLine>(); // this run's presses at lastCovered
+        var ungradedTarget = rows.Any(r => r.Hurt > 0) ? 1 : Math.Max(2, lists.Count / 3);
 
         // Tank personal timers: ONE timeline per tank, shared between buster
         // rows and the personal presses on heavy raid hits, so the plan can
@@ -1834,23 +1836,20 @@ public class SheetViewWindow : Window
             }
             var have = lists.Values.Count(l => l.Any(x =>
                 MathF.Abs(x.Time - row.Time) < 1f && !string.IsNullOrWhiteSpace(x.Action)));
-            // Depth per severity, matching the reference sheets' stacking: the
-            // slider only drives ungraded rows.
+            // Depth per severity, matching the reference sheets' stacking. The
+            // planner decides ungraded rows itself: on a graded sheet they're
+            // the leftovers (light); on a fully ungraded sheet they get a solid
+            // baseline and the use-it-or-lose-it pass rolls the rest.
             var target = row.Hurt switch
             {
                 3 => lists.Count,
                 2 => Math.Max(3, lists.Count / 2),
                 1 => 1,
-                _ => perRow,
+                _ => ungradedTarget,
             };
+            // A row already at target still runs the later passes: covered
+            // priority-wise is not the same as cooldowns rolling.
             var need = target - have;
-            if (need <= 0)
-            {
-                lastCovered = row.Time;
-                lastCoveredHurt = row.Hurt;
-                lastAdded.Clear(); // that coverage is the user's, not ours to extend
-                continue;
-            }
 
             var ready = tools
                 .Where(t => t.ReadyAt <= row.Time + 0.01f)
@@ -1897,7 +1896,8 @@ public class SheetViewWindow : Window
                 var set = new List<PlanTool>();
                 foreach (var t in opts)
                 {
-                    if (set.Count >= (row.Hurt >= 3 ? 2 : 1)) break;
+                    // Hard hits take paired cells (sheet-style), light ones one.
+                    if (set.Count >= (row.Hurt >= 2 ? 2 : 1)) break;
                     if (DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)) continue;
                     set.Add(t);
                 }
@@ -1920,31 +1920,37 @@ public class SheetViewWindow : Window
                 }
                 added++;
             }
-            if (rowLines.Count > 0 || have > 0)
-            {
-                lastCovered = row.Time;
-                lastCoveredHurt = row.Hurt;
-                lastAdded = rowLines;
-            }
 
             // Saturation: the sheets' use-it-or-lose-it rule. Any cooldown
             // that is back, not owed to an upcoming deadly hit, and not a
             // debuff already on this hit goes on it NOW, so healer kits roll
             // continuously instead of sitting unused between big moments.
+            // Hard rows (2+) may spend even the big buttons, exactly like the
+            // targeted pass: harder-now beats maybe-later, non-stealing first.
             foreach (var g in tools.GroupBy(t => t.Slot))
             {
                 var col = lists[g.Key];
                 if (col.Any(x => MathF.Abs(x.Time - row.Time) < 1f)) continue; // cell taken
                 if (col.Any(x => row.Time - x.Time > 0.5f && row.Time - x.Time < 12f)) continue; // just pressed: ride it
-                var picks = g
+                var satOrder = g
                     .Where(t => t.ReadyAt <= row.Time + 0.01f)
                     .Where(t => !(DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)))
-                    .Where(t => !StealsFromDeadly(t, row.Time))
+                    .Where(t => row.Hurt >= 2 || !StealsFromDeadly(t, row.Time))
                     .Where(t => !HoldForCluster(t, row))
                     .OrderByDescending(t => clusterOf[row] >= 2 && OnDamageMits.Contains(t.Term) ? 1 : 0)
-                    .ThenBy(t => t.Recast).ThenBy(t => t.Order)
-                    .Take(row.Hurt >= 2 ? 2 : 1) // paired cells on hard hits, sheet-style
-                    .ToList();
+                    .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
+                    .ThenBy(t => t.Recast).ThenBy(t => t.Order);
+                // Paired cells on hard hits, sheet-style; on lighter hits a
+                // QUICK second tool (60s or less) may still join, so the
+                // short-recast kit pieces roll instead of queuing behind one
+                // cell per row.
+                var picks = new List<PlanTool>();
+                foreach (var t in satOrder)
+                {
+                    if (picks.Count >= 2) break;
+                    if (picks.Count == 1 && row.Hurt < 2 && t.Recast > 60f) break;
+                    picks.Add(t);
+                }
                 if (picks.Count == 0) continue;
                 var sat = new MitLine
                 {
@@ -2001,6 +2007,16 @@ public class SheetViewWindow : Window
                         added++;
                     }
                 }
+
+            // Coverage bookkeeping AFTER every pass, so a row covered only by
+            // saturation or tank personals still starts a ride window and its
+            // buffs get CoverUntil stamps on the hits they carry.
+            if (rowLines.Count > 0 || have > 0)
+            {
+                lastCovered = row.Time;
+                lastCoveredHurt = row.Hurt;
+                lastAdded = rowLines;
+            }
         }
 
         foreach (var l in lists.Values)
@@ -2074,18 +2090,13 @@ public class SheetViewWindow : Window
         if (gradedRows > 0)
             ImGui.TextDisabled($"{gradedRows} row(s) are graded by how hard they hit (log damage or your own");
         if (gradedRows > 0)
-            ImGui.TextDisabled("grades) and set their own depth. The slider covers ungraded rows.");
+            ImGui.TextDisabled("grades); the planner sets stacking depth from the grades on its own.");
         else
             ImGui.TextDisabled("Tip: import an FFLogs log and rows get graded by real unmitigated");
         if (gradedRows == 0)
             ImGui.TextDisabled("damage; graded rows then set their own stacking depth.");
         ImGui.TextDisabled("Job-specific cooldowns (Dismantle, Curing Waltz, ...) stay optional");
         ImGui.TextDisabled("extras on the fight page, like the sheet's Extras column.");
-        ImGui.Spacing();
-        ImGui.SetNextItemWidth(160f);
-        ImGui.SliderInt("priority mits per hit", ref _autoPlanPerRow, 1, 3);
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("The guaranteed depth on ungraded hits. On top of it, every cooldown\nthat is back keeps rolling onto the next hit (use it or lose it).");
         ImGui.Spacing();
 
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
@@ -2097,7 +2108,7 @@ public class SheetViewWindow : Window
             // Healer seats become ALL FOUR healer job columns first (the
             // sheets' convention), so every healer's kit is covered.
             ExpandHealerSeats(_fight);
-            var n = AutoPlanMits(_fight, _autoPlanPerRow);
+            var n = AutoPlanMits(_fight);
             C.Save();
             _dirty = true;
             var healersNote = healerCols.Count > 0
