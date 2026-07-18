@@ -1815,6 +1815,12 @@ public class SheetViewWindow : Window
         {
             var invulnAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
             var rampartAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+            // One short-mit timer per tank, consumed by "Short Mit" AND "Buddy
+            // Mit" alike: they are the same button on DRK/GNB and share a
+            // recast family on WAR, so planning both inside ~25s would ask for
+            // a press the game cannot give.
+            var shortAt = tanks.ToDictionary(t2 => t2, _ => 0f, StringComparer.OrdinalIgnoreCase);
+            const float ShortRecast = 25f;
             var rot = 0;
             var lastTb = -9999f;
             var lastTbLines = new List<MitLine>();
@@ -1838,43 +1844,60 @@ public class SheetViewWindow : Window
 
                 var active = tanks[rot % tanks.Count];
                 rot++;
-                string act;
+                var shortReady = shortAt[active] <= row.Time;
+                string? act = null;
                 if (row.Hurt >= 3 && invulnAt[active] <= row.Time)
                 {
                     act = TankTerm(active, "Invulnerability");
                     invulnAt[active] = row.Time + 420f; // the slowest invuln; never a dead call
                 }
-                else if (rampartAt[active] <= row.Time)
+                else if (rampartAt[active] <= row.Time && row.Hurt >= 2)
                 {
-                    act = row.Hurt >= 2
+                    act = shortReady
                         ? "Rampart + " + TankTerm(active, "Short Mit")
-                        : TankTerm(active, "Short Mit");
-                    if (row.Hurt >= 2) rampartAt[active] = row.Time + 90f;
+                        : "Rampart";
+                    rampartAt[active] = row.Time + 90f;
+                    if (shortReady) shortAt[active] = row.Time + ShortRecast;
                 }
-                else
+                else if (shortReady)
                 {
                     act = TankTerm(active, "Short Mit");
+                    shortAt[active] = row.Time + ShortRecast;
                 }
-                var mine = new MitLine
+                else if (rampartAt[active] <= row.Time)
                 {
-                    Time = row.Time, Mechanic = row.Mechanic, Action = act,
-                    Enabled = true, Custom = true,
-                };
-                lists[active].Add(mine);
-                added++;
-                lastTbLines = new List<MitLine> { mine };
+                    act = "Rampart";
+                    rampartAt[active] = row.Time + 90f;
+                }
+
+                lastTbLines = new List<MitLine>();
+                if (act != null)
+                {
+                    var mine = new MitLine
+                    {
+                        Time = row.Time, Mechanic = row.Mechanic, Action = act,
+                        Enabled = true, Custom = true,
+                    };
+                    lists[active].Add(mine);
+                    added++;
+                    lastTbLines.Add(mine);
+                }
                 if (row.Hurt >= 2 && tanks.Count > 1)
                 {
                     var co = tanks[rot % tanks.Count];
-                    var buddy = new MitLine
+                    if (shortAt[co] <= row.Time)
                     {
-                        Time = row.Time, Mechanic = row.Mechanic,
-                        Action = TankTerm(co, "Buddy Mit"),
-                        Enabled = true, Custom = true,
-                    };
-                    lists[co].Add(buddy);
-                    added++;
-                    lastTbLines.Add(buddy);
+                        var buddy = new MitLine
+                        {
+                            Time = row.Time, Mechanic = row.Mechanic,
+                            Action = TankTerm(co, "Buddy Mit"),
+                            Enabled = true, Custom = true,
+                        };
+                        lists[co].Add(buddy);
+                        added++;
+                        lastTbLines.Add(buddy);
+                        shortAt[co] = row.Time + ShortRecast;
+                    }
                 }
                 lastTb = row.Time;
             }
