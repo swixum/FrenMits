@@ -429,7 +429,7 @@ public class ConfigWindow : Window, IDisposable
             _plugin.SheetViewWindow.Open(
                 fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
         }
-        if (NavItem(FontAwesomeIcon.Stream, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
+        if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
         if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
@@ -789,8 +789,12 @@ public class ConfigWindow : Window, IDisposable
                 + ImGui.GetStyle().FramePadding.X + ImGui.CalcTextSize(headerLabel).X + 8f);
             ImGui.AlignTextToFramePadding();
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            {
+                if (!official) ImGui.SetWindowFontScale(0.8f);
                 ImGui.TextColored(official ? GoldStar : UserBlue,
                     (official ? FontAwesomeIcon.Star : FontAwesomeIcon.User).ToIconString());
+                if (!official) ImGui.SetWindowFontScale(1f);
+            }
             // The tooltip lives on the symbol, not the whole header: sweeping
             // the fight list stays silent, hovering the symbol explains it.
             if (ImGui.IsItemHovered())
