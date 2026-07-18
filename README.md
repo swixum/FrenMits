@@ -3,61 +3,49 @@
 # Fren Mits
 
 Turn a mitigation sheet into clean on-screen call-outs. Pick your job and Fren Mits
-tells you exactly which mit to press with a center-screen countdown. Per fight,
-synced to combat, and fully editable.
+tells you exactly which mit to press, per fight, synced to combat, fully editable.
 
 > It's mits with frens.
 
 ## Installation
 
-Fren Mits is still in beta testing, but it's available to use right now:
-
-1. In Dalamud, open **Settings** (`/xlsettings`) and go to **Experimental**.
+1. In Dalamud, open **Settings** (`/xlsettings`) > **Experimental**.
 2. Under **Custom Plugin Repositories**, add:
 
    ```
    https://swixum.github.io/FrenMits/repo.json
    ```
 
-3. Save, then find **Fren Mits** in the plugin installer (`/xlplugins`) and install it.
+3. Save, then install **Fren Mits** from the plugin installer (`/xlplugins`).
 
-Updates arrive automatically through the repo. Being a beta, things move fast;
-if something breaks, an update is usually already on the way.
+Beta: updates arrive automatically through the repo.
 
 ## Features
 
-- Per-fight timelines that auto-load when you enter the zone. Only the fight you're in fires.
-- Smart sync. The clock starts on the pull and resyncs on boss casts, and your edits are kept.
-- Job and role aware, so each line only shows for the jobs it targets.
-- Center-screen countdown with a crisp font, custom colors and text, drop shadow, and free placement.
-- Optional voice cues using free online neural voices (Aria, Guy, Jenny) or any Windows voice.
-- Ability icons on every call, plus optional potion windows, tank-buster plans, and job-specific extras.
-- Party Mit Recap after every pull: what landed, who it covered (7/8 with names), and what never went out.
-- Timer offsets per fight and per call, so "just this one earlier" is one click.
+- Per-fight timelines that auto-load in the zone, start on the pull, resync on boss casts, and keep your edits.
+- Center-screen countdown call with ability icons, crisp custom fonts and colors, and free placement.
+- **Next Mits board**: every upcoming mechanic as a draining countdown bar with your presses underneath. Gold marks your next mit, green means press it now, in lockstep with the main call. Fully customizable (colors, bars, header, your-mits-only), with a live preview in settings, or switch to a compact list.
+- Job and role aware; per-fight and per-call timer offsets.
+- Optional voice cues: free online neural voices or any Windows voice.
+- Party Mit Recap after every pull: what landed, who it covered, what never went out.
+- Potion windows, tank-buster plans, and optional job extras per fight.
 
 ## Sheet View
 
-The whole raid plan as one spreadsheet, in game. Rows are the fight's mechanics,
-columns are all the slots, and your column is the live plan your overlay calls.
+The whole raid plan as one spreadsheet, in game. Rows are mechanics, columns are
+slots, and your column is what the overlay calls.
 
-- Edit like a spreadsheet: click cells, Enter moves down, Tab moves right, Ctrl+Z undoes anything.
-- Re-time a mechanic for every slot at once by clicking its time.
-- The sheet's own phase notes appear at the bottom, and you can write per-mechanic notes of your own.
-- Cooldown checking: a cell turns red when a mit is planned again before it can be back.
-- Filter, search and replace across the whole plan; pin, resize and reorder columns.
-- Plan history: automatic snapshots before imports and bulk changes, restorable any time.
-- Share plan copies one code to your clipboard; friends import it and their fight updates in place.
-- Export the grid as text that pastes straight into Google Sheets, Excel, or Discord.
+- Edit like a spreadsheet: Enter moves down, Tab moves right, Ctrl+Z undoes anything; re-time a mechanic for every slot at once.
+- Cooldown checking: a cell turns red when a mit is planned before it can be back.
+- Phase notes and your own per-mechanic notes; filter, search and replace; pinned columns.
+- Automatic plan snapshots with one-click restore; share codes for friends; export straight to Google Sheets, Excel, or Discord.
 
 ## Custom sheets for any fight
 
-No official sheet? Build your own:
-
-- **New sheet** creates a blank grid bound to the duty you're standing in, with the column layout you pick.
-- **Build from pull** turns your own pulls into the timeline: every boss cast is captured automatically,
-  and one click makes it mechanic rows plus resync anchors. Wipe, build, prog further, build again.
-- **Import log** builds the sheet from any FFLogs report link: pick the kill, and its casts become rows
-  and anchors so you can prep a fight before ever entering. One-time free API client setup.
+- **New sheet**: a blank grid for any duty (search by name, zone, or boss).
+- **Build from pull**: your own pulls become the timeline, casts captured automatically.
+- **Import log**: any FFLogs report becomes rows, resync anchors, and damage grades.
+- **Auto-plan**: one click plans every column's cooldowns like the reference sheets. Hits are graded by real unmitigated damage and where players actually pressed; deadly hits stack deep, debuffs rotate one per hit, tanks get a buster plan with invuln swaps, and every kit rolls so nothing sits unused.
 
 ## Commands
 
