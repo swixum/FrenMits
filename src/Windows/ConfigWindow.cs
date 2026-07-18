@@ -1329,32 +1329,113 @@ public class ConfigWindow : Window, IDisposable
 
     private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
 
-    // Custom sheets: pick your column right on the fight page too (same switch
-    // Sheet View offers), so a custom fight has the same options as a built-in.
+    // Custom sheets: the same "Your slot" row the built-in fights get, so a
+    // custom fight reads exactly like an official one on its page.
     private void DrawCustomColumnRow(FightProfile fight)
     {
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextDisabled("Column:");
-        Tip("Which column of this sheet is YOURS; that column's lines are what the overlay calls.");
-        foreach (var slot in fight.CustomSlots)
+        var slots = fight.CustomSlots.ToArray();
+        if (slots.Length == 0) return;
+        var idx = Array.FindIndex(slots, s => string.Equals(s, fight.Slot, StringComparison.OrdinalIgnoreCase));
+
+        ImGui.SetNextItemWidth(170f);
+        // idx -1 (no column picked yet) shows an empty preview until they pick.
+        if (ImGui.Combo("Your slot##customslot", ref idx, slots, slots.Length)
+            && idx >= 0 && !string.Equals(slots[idx], fight.Slot, StringComparison.OrdinalIgnoreCase))
         {
-            ImGui.SameLine(0, 4);
-            var active = string.Equals(fight.Slot, slot, StringComparison.OrdinalIgnoreCase);
-            if (active)
-            {
-                ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
-                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-            }
-            if (ImGui.SmallButton($"{slot}##col{slot}") && !active)
-            {
-                // SetSlot parks the old column's lines and gives a never-picked
-                // column a FRESH list; assigning fight.Lines here instead would
-                // alias two columns to one list.
-                _plugin.SetSlot(fight, slot);
-                _plugin.SheetViewWindow.MarkPlanDirty();
-            }
-            if (active) ImGui.PopStyleColor(2);
+            // SetSlot parks the old column's lines and gives a never-picked
+            // column a FRESH list; assigning fight.Lines here instead would
+            // alias two columns to one list.
+            _plugin.SetSlot(fight, slots[idx]);
+            _plugin.SheetViewWindow.MarkPlanDirty();
         }
+        Tip("Which column of this sheet is YOURS; that column's lines are what the overlay calls.");
+        var slot = idx >= 0 ? slots[idx] : slots[0];
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Reset this column")) ImGui.OpenPopup("##confirm-customreset");
+        Tip("Empties this column's mits. The rows, grades and notes stay; a snapshot is saved first.");
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Reset all columns")) ImGui.OpenPopup("##confirm-customresetall");
+        Tip("Empties EVERY column's mits; rows, grades and notes stay. A snapshot is saved first, "
+            + "so Sheet View > Plan > History can restore the old plan.");
+
+        if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
+        }
+
+        DrawCustomResetConfirm(fight, slot);
+        DrawCustomResetAllConfirm(fight);
+    }
+
+    private void ClearCustomColumn(FightProfile fight, string slot)
+    {
+        // Clear IN PLACE: Sheet View and SavedSlots share these list objects.
+        if (string.Equals(slot, fight.Slot, StringComparison.OrdinalIgnoreCase)) fight.Lines.Clear();
+        if (fight.SavedSlots.TryGetValue(slot, out var saved)) saved.Clear();
+    }
+
+    private void DrawCustomResetConfirm(FightProfile fight, string slot)
+    {
+        var open = true;
+        if (!ImGui.BeginPopupModal("##confirm-customreset", ref open,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+            return;
+
+        ImGui.TextUnformatted($"Empty the {slot} column?");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "Its mits go; the sheet's rows, grades and notes stay.");
+        ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
+        ImGui.Spacing();
+
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.SetItemDefaultFocus();
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
+        if (ImGui.Button("Empty this column", new Vector2(160, 0)))
+        {
+            _plugin.SnapshotPlan(fight, $"before reset {slot}");
+            ClearCustomColumn(fight, slot);
+            C.Save();
+            _plugin.SheetViewWindow.MarkPlanDirty();
+            FlashBuiltin($"{slot} emptied. History restores the old plan.");
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.EndPopup();
+    }
+
+    private void DrawCustomResetAllConfirm(FightProfile fight)
+    {
+        var open = true;
+        if (!ImGui.BeginPopupModal("##confirm-customresetall", ref open,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+            return;
+
+        ImGui.TextUnformatted("Empty every column of this sheet?");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "All columns' mits go; the rows, grades and notes stay.");
+        ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
+        ImGui.Spacing();
+
+        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        ImGui.SetItemDefaultFocus();
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
+        if (ImGui.Button("Empty every column", new Vector2(170, 0)))
+        {
+            _plugin.SnapshotPlan(fight, "before reset all columns");
+            fight.Lines.Clear();
+            foreach (var saved in fight.SavedSlots.Values) saved.Clear();
+            C.Save();
+            _plugin.SheetViewWindow.MarkPlanDirty();
+            FlashBuiltin("Every column emptied. History restores the old plan.");
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.EndPopup();
     }
 
     private int _pracRowIdx;
