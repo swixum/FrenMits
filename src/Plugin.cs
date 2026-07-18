@@ -24,8 +24,6 @@ public sealed class Plugin : IDalamudPlugin
     public CueEngine Cues { get; }
     public SyncEngine Sync { get; }
     public FFLogsClient FFLogs { get; } = new();
-    public ReplayEngine Replay { get; }
-    public MitReview Review { get; }
     public MitRecap Recap { get; }
     public Diagnostics Diag { get; }
     public readonly WindowSystem Windows = new("FrenMits");
@@ -346,8 +344,6 @@ public sealed class Plugin : IDalamudPlugin
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
-        Replay = new ReplayEngine(this);
-        Review = new MitReview(this);
         Recap = new MitRecap(this);
         Diag = new Diagnostics(this);
         ConfigWindow = new ConfigWindow(this);
@@ -1067,8 +1063,7 @@ public sealed class Plugin : IDalamudPlugin
     // call-outs and cues are suppressed — you can't act, and the clock self-corrects
     // on the next resync anchor when it ends.
     public static bool InCutscene =>
-        ReplayCutsceneActive
-        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
+        Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
 
@@ -1111,14 +1106,6 @@ public sealed class Plugin : IDalamudPlugin
     // casts instead (SyncEngine.TryPlaybackAutoStart).
     public static bool InDutyPlayback =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
-
-    // Replay state (desk testing). When ReplayFight is set the normal pipeline runs
-    // against the recording instead of the live instance: ActiveFight resolves to
-    // it, the live timer/territory gates step aside, and ReplayCutsceneActive
-    // drives InCutscene from the recorded cutscene windows.
-    public static FightProfile? ReplayFight;
-    public static bool ReplayCutsceneActive;
-    public static bool Replaying => ReplayFight != null;
 
     private bool _firstTickDone;
     private bool _wasInDutyPlayback;
@@ -1169,7 +1156,7 @@ public sealed class Plugin : IDalamudPlugin
             // route another zone's plan into this pull. Placement is an
             // out-of-combat activity; combat switches it off.
             var inCombatNow = InCombat;
-            if (inCombatNow && !_wasInCombatForTest && !Replaying)
+            if (inCombatNow && !_wasInCombatForTest)
             {
                 if (Config.TestMode || PreviewFight != null)
                 {
@@ -1207,8 +1194,6 @@ public sealed class Plugin : IDalamudPlugin
 
             RefreshAutoFight();
             Timer.Update();
-            Replay.Update();
-            Review.Update();
             Recap.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
@@ -1243,20 +1228,8 @@ public sealed class Plugin : IDalamudPlugin
     private void HandleCutsceneBoundary()
     {
         var inCs = CutsceneActive;
-        if (inCs && !_wasInCutscene)
+        if (!inCs && _wasInCutscene)
         {
-            // Log the cutscene window into the active recording so a replay can
-            // reproduce it (skip the replay's own synthetic flag).
-            if (Sync.Recording && !Replaying && ActiveFight() is { } rf)
-                Sync.CutsceneMarks.Add(new PullRecording.RecEvent
-                { Time = ElapsedFor(rf), Type = PullRecording.Kind.CutsceneStart });
-        }
-        else if (!inCs && _wasInCutscene)
-        {
-            if (Sync.Recording && !Replaying && ActiveFight() is { } rf)
-                Sync.CutsceneMarks.Add(new PullRecording.RecEvent
-                { Time = ElapsedFor(rf), Type = PullRecording.Kind.CutsceneEnd });
-
             Sync.Forget();
             if (Config.EnableSync)
                 Cues.HoldForResync(Sync.PhaseSyncGeneration, 25.0);
@@ -1305,8 +1278,8 @@ public sealed class Plugin : IDalamudPlugin
         => _phaseTwo && fight.TerritoryId == Builtin.M12sTerritory ? M12sData.Phase2Offset : 0f;
 
     // The sheet clock: where the fight actually is on the timeline. Owned by the
-    // resync engine; everything internal (sync matching, anchor capture, mit
-    // review, recordings, diagnostics) reads this one.
+    // resync engine; everything internal (sync matching, pull capture,
+    // diagnostics) reads this one.
     public float ElapsedFor(FightProfile fight)
         => Timer.Elapsed + PhaseOffsetFor(fight);
 
@@ -1414,7 +1387,6 @@ public sealed class Plugin : IDalamudPlugin
 
     public FightProfile? ActiveFight()
     {
-        if (Replaying) return ReplayFight;
         var territory = Service.ClientState.TerritoryType;
         foreach (var fight in Config.Fights)
             if (fight.Enabled && fight.TerritoryId == territory)
@@ -1471,10 +1443,6 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        // Never leave replay state latched across a reload.
-        ReplayFight = null;
-        ReplayCutsceneActive = false;
-
         Service.Log.Information($"[FrenMits] dispose - live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;

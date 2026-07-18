@@ -19,10 +19,6 @@ public class CueEngine
         _audio = audio;
     }
 
-    // Re-arm every cue. Needed when a replay rebases the clock mid-sheet: the
-    // fresh-pull check below (elapsed < 5s) can't recognize that as a new run.
-    public void Rearm() => _fired.Clear();
-
     public void Update()
     {
         var c = _plugin.Config;
@@ -60,7 +56,7 @@ public class CueEngine
 
         if (_plugin.ActiveFight() is not { } fight) return;
         if (fight.TimelineOnly) return; // universal timelines are silent
-        if (c.OnlyInTargetTerritory && !Plugin.Replaying && fight.TerritoryId != Service.ClientState.TerritoryType) return;
+        if (c.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 
         var job = _plugin.ActiveJobAbbreviation();
         // Cue clock: sheet time + the fight's timer offset, so calls shift as set.

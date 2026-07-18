@@ -68,12 +68,8 @@ public class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Timer, Display, NextMits, Audio, PartyRecap, CombatTimer }
+    private enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer }
     private NavKind _nav = NavKind.Home;
-    private int _anchorFight = -1; // target fight for anchor building
-    private string _recName = "";  // name for saving the current capture
-    private int _replayPick;       // selected saved recording
-    private string[] _recordings = System.Array.Empty<string>();
     private string _navCategory = "Ultimate";
 
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme" };
@@ -109,14 +105,6 @@ public class ConfigWindow : Window, IDisposable
     }
 
     public void Dispose() { }
-
-    // Open the config straight to the Party Mit Recap page (the on-screen button).
-    public void OpenPartyRecap()
-    {
-        _nav = NavKind.PartyRecap;
-        IsOpen = true;
-    }
-
 
     // Window-level theming (background, title, border) must be applied before the
     // window begins, so it lives in PreDraw/PostDraw.
@@ -732,9 +720,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.Dummy(new Vector2(0, 10));
         }
 
-        // Action row: just GitHub. The destructive "Refresh from sheet" lives
-        // with the other maintenance tools (Timer > Anchors & diagnostics), not
-        // one misclick away from the landing page.
+        // Action row: just GitHub.
         var ghW = IconBtnWidth(FontAwesomeIcon.ExternalLinkAlt, "GitHub");
         Center(ghW);
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ExternalLinkAlt, "GitHub"))
@@ -747,44 +733,10 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled(ver);
     }
 
-    private void DrawRefreshConfirm()
-    {
-        var open = true;
-        if (!ImGui.BeginPopupModal("##refreshall", ref open,
-                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
-            return;
-
-        ImGui.TextUnformatted("Rebake every built-in fight from the sheet?");
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "This discards your line edits and any added potion / tank lines.");
-        ImGui.TextColored(ImGuiColors.DalamudRed, "This can't be undone.");
-        ImGui.Spacing();
-
-        // Cancel is leftmost and holds default focus, so a stray click or Enter
-        // dismisses rather than wiping everything. Refresh is styled red (danger).
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
-        ImGui.SetItemDefaultFocus();
-        ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2222C8);        // red (ABGR)
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3333DD);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0xFF1A1AB0);
-        if (ImGui.Button("Refresh", new Vector2(120, 0)))
-        {
-            var n = _plugin.ResetAllBuiltins();
-            _homeMsg = $"Refreshed {n} fight(s) from the sheet.";
-            _homeMsgAt = DateTime.Now;
-            ImGui.CloseCurrentPopup();
-        }
-        ImGui.PopStyleColor(3);
-        ImGui.EndPopup();
-    }
-
-    private string _homeMsg = "";
-    private DateTime _homeMsgAt = DateTime.MinValue;
-
     // ---- Fights page ------------------------------------------------------
 
-    // Jump from Sheet View straight to a fight's page (per-line options,
-    // anchors, import tools all live there).
+    // Jump from Sheet View straight to a fight's page (per-line options and
+    // import tools live there).
     public void OpenFightPage(FightProfile fight)
     {
         IsOpen = true;
@@ -2158,345 +2110,7 @@ public class ConfigWindow : Window, IDisposable
         return string.IsNullOrWhiteSpace(header) ? "" : $" ({Trunc(header, 14)})";
     }
 
-    // ---- Timer / Display tabs -------------------------------------------
-
-    private void DrawTimerTab()
-    {
-        var fight = _plugin.ActiveFight();
-
-        if (Section("Clock", true))
-        {
-            ImGui.TextUnformatted($"Elapsed: {(_plugin.Timer.Running ? _plugin.Timer.Elapsed.ToString("0.0") + "s" : "not running")}");
-            if (ImGui.Button("Reset")) _plugin.Timer.Reset();
-            Tip("Clear the clock. It auto-starts on combat; /fm sync still zeroes it manually if ever needed.");
-        }
-
-        if (Section("Resync", true))
-        {
-            C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
-            Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time, correcting phase drift from kill speed.");
-            C.Diagnostics = CfgCheck("Write per-pull diagnostics file", C.Diagnostics);
-            Tip("Saves a resync + cue log per pull to the plugin's diagnostics/ folder. Local only; nothing is sent anywhere. Use it to check resync accuracy.");
-            if (ImGui.TreeNode("Advanced windows"))
-            {
-                var win = C.SyncWindowSeconds;
-                ImGui.SetNextItemWidth(220f);
-                if (ImGui.SliderFloat("Mechanic window (s)", ref win, 2f, 20f, "%.0f")) { C.SyncWindowSeconds = win; C.Save(); }
-                Tip("Tight window for fine drift correction on a normal mechanic.");
-                var pwin = C.SyncPhaseWindowSeconds;
-                ImGui.SetNextItemWidth(220f);
-                if (ImGui.SliderFloat("Phase window (s)", ref pwin, 15f, 120f, "%.0f")) { C.SyncPhaseWindowSeconds = pwin; C.Save(); }
-                Tip("Wider window so a phase that starts well off the sheet's nominal time still locks on.");
-                ImGui.TreePop();
-            }
-
-            ImGui.Spacing();
-            ImGui.TextDisabled($"Last sync: {(_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-")}");
-            if (fight is { SyncPoints.Count: > 0 })
-            {
-                var phases = fight.SyncPoints.Count(s => s.IsPhase);
-                ImGui.TextDisabled($"This fight: {fight.SyncPoints.Count} anchors ({phases} phase). Build more below.");
-            }
-        }
-
-        // The old Anchors tab, tucked away: capture tables and desk-test replay
-        // are expert tools most people never open.
-        if (Section("Anchors & diagnostics (advanced)", false))
-            DrawAnchorsContent();
-    }
-
-    // ---- Anchors tool (lives under Timer > Anchors & diagnostics) ----------
-
-    private void DrawAnchorsContent()
-    {
-        // Maintenance: full rebake of every built-in fight from the sheet data.
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Sync, "Refresh from sheet"))
-            ImGui.OpenPopup("##refreshall");
-        Tip("Rebake every built-in fight from the sheet, discarding line edits and any added potion / tank lines.");
-        DrawRefreshConfirm();
-        if ((DateTime.Now - _homeMsgAt).TotalSeconds < 5 && _homeMsg.Length > 0)
-        {
-            ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.ParsedGreen, _homeMsg);
-        }
-        ImGui.Spacing();
-
-        ImGui.TextWrapped("Record a clean pull, then promote boss casts to anchors so the timeline keeps re-syncing "
-                          + "through every phase (great for phases public timelines don't cover, like DMU P4-P5). "
-                          + "Anchors are saved per fight.");
-
-        // Target fight: defaults to the one you're in, but you can build for any.
-        var fights = C.Fights;
-        if (fights.Count == 0)
-        {
-            ImGui.Spacing();
-            ImGui.TextDisabled("Add a fight first (Fights tab).");
-            return;
-        }
-        var active = _plugin.ActiveFight();
-        if (_anchorFight < 0 || _anchorFight >= fights.Count)
-            _anchorFight = active != null ? Math.Max(0, fights.IndexOf(active)) : 0;
-
-        var names = fights.Select(f => active == f ? $"{f.Name}  (you're here)" : f.Name).ToArray();
-        ImGui.SetNextItemWidth(280f);
-        ImGui.Combo("Target fight", ref _anchorFight, names, names.Length);
-        var target = fights[_anchorFight];
-
-        // --- Capture ---
-        if (Section("Capture a pull", true))
-        {
-            var rec = _plugin.Sync.Recording;
-            ImGui.PushStyleColor(ImGuiCol.Text, rec ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudGrey);
-            if (GreenCheckbox("Recording boss casts", ref rec)) _plugin.Sync.Recording = rec;
-            ImGui.PopStyleColor();
-            ImGui.SameLine();
-            ImGui.TextDisabled($"{_plugin.Sync.Captured.Count} captured");
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Clear")) { _plugin.Sync.Captured.Clear(); _plugin.Sync.CutsceneMarks.Clear(); }
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Export"))
-            {
-                var sb = new System.Text.StringBuilder();
-                sb.AppendLine("# FrenMits capture  (time_s\tability\tcaster\tkind)");
-                foreach (var cc in _plugin.Sync.Captured)
-                    sb.AppendLine($"{cc.Time:0.0}\t{(cc.IsBoss ? $"boss:{cc.Id}" : $"0x{cc.Id:X}")}\t{cc.Caster}\t{(cc.IsBoss ? "appear" : "cast")}");
-                ImGui.SetClipboardText(sb.ToString());
-            }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy all captures (time + ids) to paste/share for baking.");
-
-            ImGui.TextDisabled("Tick on, do a clean pull (or replay), then add casts below as anchors.");
-
-            if (_plugin.Sync.Captured.Count > 0 &&
-                ImGui.BeginTable("##caps", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
-                    new Vector2(0, 220)))
-            {
-                ImGui.TableSetupScrollFreeze(0, 1);
-                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
-                ImGui.TableSetupColumn("Ability", ImGuiTableColumnFlags.WidthFixed, 90);
-                ImGui.TableSetupColumn("Caster", ImGuiTableColumnFlags.WidthStretch, 1);
-                ImGui.TableSetupColumn("Add anchor", ImGuiTableColumnFlags.WidthFixed, 130);
-                ImGui.TableHeadersRow();
-
-                for (var i = _plugin.Sync.Captured.Count - 1; i >= 0; i--)
-                {
-                    var cap = _plugin.Sync.Captured[i];
-                    ImGui.TableNextRow();
-                    ImGui.PushID(i);
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{(int)cap.Time / 60}:{(int)cap.Time % 60:00}");
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(cap.IsBoss ? $"boss {cap.Id}" : $"0x{cap.Id:X}");
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(cap.Caster);
-                    ImGui.TableNextColumn();
-                    if (cap.IsBoss)
-                    {
-                        if (ImGui.SmallButton("+ boss")) AddBossAnchor(target, cap);
-                    }
-                    else
-                    {
-                        if (ImGui.SmallButton("+ phase")) AddAnchor(target, cap, true);
-                        ImGui.SameLine();
-                        if (ImGui.SmallButton("+ mech")) AddAnchor(target, cap, false);
-                    }
-                    ImGui.PopID();
-                }
-                ImGui.EndTable();
-            }
-        }
-
-        // --- Save / replay a pull (desk testing) ---
-        if (Section("Record & replay (desk test)", false))
-        {
-            ImGui.TextWrapped("Tick \"Recording\" above, do a pull (casts and cutscenes are captured), then save it here. "
-                              + "Replay it any time to watch the overlay, cues and cutscene handling line up, no instance needed.");
-
-            ImGui.SetNextItemWidth(220f);
-            ImGui.InputTextWithHint("##recname", "recording name", ref _recName, 64);
-            ImGui.SameLine();
-            var canSave = _plugin.Sync.Captured.Count > 0 || _plugin.Sync.CutsceneMarks.Count > 0;
-            if (!canSave) ImGui.BeginDisabled();
-            if (ImGui.Button("Save capture"))
-            {
-                var rec = PullRecording.FromCapture(
-                    string.IsNullOrWhiteSpace(_recName) ? $"{target.Name} pull" : _recName,
-                    target.TerritoryId, target.Name,
-                    _plugin.Sync.Captured, _plugin.Sync.CutsceneMarks);
-                rec.Save();
-                _recordings = PullRecording.List().ToArray();
-                FlashBuiltin($"Saved recording with {rec.Events.Count} events.");
-            }
-            if (!canSave) ImGui.EndDisabled();
-
-            ImGui.Spacing();
-            if (_recordings.Length == 0) _recordings = PullRecording.List().ToArray();
-            if (ImGui.SmallButton("Refresh")) _recordings = PullRecording.List().ToArray();
-            ImGui.SameLine();
-            if (_recordings.Length == 0)
-            {
-                ImGui.TextDisabled("No saved recordings yet.");
-            }
-            else
-            {
-                _replayPick = Math.Clamp(_replayPick, 0, _recordings.Length - 1);
-                ImGui.SetNextItemWidth(220f);
-                ImGui.Combo("##replaypick", ref _replayPick, _recordings, _recordings.Length);
-
-                if (_plugin.Replay.Playing)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
-                    if (ImGui.Button("Stop replay")) _plugin.Replay.Stop();
-                    ImGui.PopStyleColor();
-                }
-                else if (ImGui.Button("Play"))
-                {
-                    var rec = PullRecording.Load(_recordings[_replayPick]);
-                    if (rec != null) _plugin.Replay.Start(rec);
-                }
-                ImGui.SameLine();
-                if (ImGui.SmallButton("Delete"))
-                {
-                    PullRecording.Delete(_recordings[_replayPick]);
-                    _recordings = PullRecording.List().ToArray();
-                    _replayPick = 0;
-                }
-            }
-
-            if (_plugin.Replay.Status.Length > 0)
-                ImGui.TextDisabled(_plugin.Replay.Status);
-        }
-
-        // --- Last pull: mits you used ---
-        if (Section("Last pull: mits you used", false))
-        {
-            var review = _plugin.Review.Last;
-            if (review.Count == 0)
-            {
-                ImGui.TextDisabled("Do a pull; the mits you use (and when) are logged here to compare against the plan.");
-            }
-            else if (ImGui.BeginTable("##review", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
-                         new Vector2(0, 200)))
-            {
-                ImGui.TableSetupScrollFreeze(0, 1);
-                ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
-                ImGui.TableSetupColumn("Mit", ImGuiTableColumnFlags.WidthStretch, 1);
-                ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, 80);
-                ImGui.TableHeadersRow();
-                foreach (var u in review)
-                {
-                    ImGui.TableNextRow();
-                    ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)u.Time / 60}:{(int)u.Time % 60:00}");
-                    ImGui.TableNextColumn();
-                    var col = MitTypes.Color(u.Kind, C);
-                    if (col != 0) ImGui.PushStyleColor(ImGuiCol.Text, col);
-                    ImGui.TextUnformatted(u.Name);
-                    if (col != 0) ImGui.PopStyleColor();
-                    ImGui.TableNextColumn(); ImGui.TextDisabled(u.Kind.ToString());
-                }
-                ImGui.EndTable();
-            }
-        }
-
-        // --- Current anchors on the target fight ---
-        if (Section($"Current anchors on {target.Name}", true))
-        {
-            var total = target.SyncPoints.Count + target.BossAnchors.Count;
-            if (total == 0)
-            {
-                ImGui.TextDisabled("None yet. Add some from a capture above.");
-            }
-            else
-            {
-                var phases = target.SyncPoints.Count(s => s.IsPhase);
-                ImGui.TextDisabled($"{target.SyncPoints.Count} cast ({phases} phase) + {target.BossAnchors.Count} boss.");
-                ImGui.SameLine();
-                ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
-                if (ImGui.SmallButton("Clear all")) { target.SyncPoints.Clear(); target.BossAnchors.Clear(); C.Save(); }
-                ImGui.PopStyleColor();
-
-                if (ImGui.BeginTable("##anchors", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY,
-                        new Vector2(0, 200)))
-                {
-                    ImGui.TableSetupScrollFreeze(0, 1);
-                    ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 60);
-                    ImGui.TableSetupColumn("Trigger", ImGuiTableColumnFlags.WidthFixed, 90);
-                    ImGui.TableSetupColumn("Kind / label", ImGuiTableColumnFlags.WidthStretch, 1);
-                    ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 30);
-                    ImGui.TableHeadersRow();
-
-                    SyncPoint? rmSp = null;
-                    BossAnchor? rmBa = null;
-                    var n = 0;
-                    foreach (var sp in target.SyncPoints.OrderBy(s => s.Time))
-                    {
-                        ImGui.TableNextRow(); ImGui.PushID(n++);
-                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)sp.Time / 60}:{(int)sp.Time % 60:00}");
-                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"0x{sp.Ability:X}");
-                        ImGui.TableNextColumn(); ImGui.TextUnformatted((sp.IsPhase ? "phase  " : "mech  ") + sp.Label);
-                        ImGui.TableNextColumn(); if (ImGui.SmallButton("X")) rmSp = sp;
-                        ImGui.PopID();
-                    }
-                    foreach (var ba in target.BossAnchors.OrderBy(b => b.Time))
-                    {
-                        ImGui.TableNextRow(); ImGui.PushID(n++);
-                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"{(int)ba.Time / 60}:{(int)ba.Time % 60:00}");
-                        ImGui.TableNextColumn(); ImGui.TextUnformatted($"boss {ba.NameId}");
-                        ImGui.TableNextColumn(); ImGui.TextUnformatted("boss  " + ba.Label);
-                        ImGui.TableNextColumn(); if (ImGui.SmallButton("X")) rmBa = ba;
-                        ImGui.PopID();
-                    }
-                    ImGui.EndTable();
-
-                    if (rmSp != null) { target.SyncPoints.Remove(rmSp); C.Save(); }
-                    if (rmBa != null) { target.BossAnchors.Remove(rmBa); C.Save(); }
-                }
-            }
-            ImGui.TextDisabled("Last sync: " + (_plugin.Sync.LastSync.Length > 0 ? _plugin.Sync.LastSync : "-"));
-
-            // Self-tuning readout: how well the baked timeline matches your pace.
-            if (_plugin.Sync.DriftSamples >= 3)
-            {
-                var drift = _plugin.Sync.AvgDrift;
-                // drift + = the clock reads past the sheet time when a mechanic
-                // actually resolves, i.e. mechanics land late vs the sheet, i.e.
-                // the group runs behind it. Calls between anchors then fire early,
-                // so the corrective shift is -drift (calls later), folded into the
-                // offset the cue clock reads.
-                var dir = drift > 0 ? "behind" : "ahead of";
-                ImGui.TextDisabled($"Timeline fit: your group runs {Math.Abs(drift):0.0}s {dir} the sheet (avg of {_plugin.Sync.DriftSamples} corrections).");
-                if (Math.Abs(drift) >= 1.5f)
-                {
-                    ImGui.SameLine();
-                    if (ImGui.SmallButton($"Shift {target.Name} by {-drift:+0.0;-0.0}s"))
-                    {
-                        target.TimerOffset = Math.Clamp(target.TimerOffset - drift, -30f, 30f);
-                        C.Save();
-                        FlashBuiltin($"Nudged timer offset by {-drift:+0.0;-0.0}s to match your pace.");
-                    }
-                }
-            }
-        }
-    }
-
-    private void AddAnchor(FightProfile fight, SyncEngine.Capture cap, bool isPhase)
-    {
-        fight.SyncPoints.RemoveAll(s => s.Ability == cap.Id && MathF.Abs(s.Time - cap.Time) < 4f);
-        fight.SyncPoints.Add(new SyncPoint
-        {
-            Ability = cap.Id,
-            Time = cap.Time,
-            IsPhase = isPhase,
-            Label = $"{cap.Caster} (captured)"
-        });
-        C.Save();
-    }
-
-    private void AddBossAnchor(FightProfile fight, SyncEngine.Capture cap)
-    {
-        fight.BossAnchors.RemoveAll(b => b.NameId == cap.Id);
-        fight.BossAnchors.Add(new BossAnchor { NameId = cap.Id, Time = cap.Time, Label = $"{cap.Caster} (captured)" });
-        C.Save();
-    }
+    // ---- Display tab ------------------------------------------------------
 
     private void ResetDisplayDefaults()
     {
@@ -2649,6 +2263,10 @@ public class ConfigWindow : Window, IDisposable
             if (ImGui.SliderFloat("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.Save(); }
             Tip("How long a call stays up after its time passes.");
             C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
+            C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
+            Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time, correcting phase drift from kill speed.");
+            C.Diagnostics = CfgCheck("Write per-pull diagnostics file", C.Diagnostics);
+            Tip("Saves a resync + cue log per pull to the plugin's diagnostics/ folder. Local only; nothing is sent anywhere.");
         }
 
         if (Section("Placement", true))

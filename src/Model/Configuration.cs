@@ -68,7 +68,6 @@ public class Configuration : IPluginConfiguration
     // Overlay appearance.
     public float OverlayFontSizePx { get; set; } = 40f;     // crisp font size for the call
     public float UpcomingFontSizePx { get; set; } = 20f;    // crisp font size for upcoming list
-    public float OverlayFontScale { get; set; } = 2.4f;     // fallback scale if font build is unavailable
     public string OverlayFontFamily { get; set; } = "Default"; // "Default" or a Windows font name
     public bool OverlayFontBold { get; set; }
     public bool OverlayFontItalic { get; set; }
@@ -227,7 +226,6 @@ public class Configuration : IPluginConfiguration
 
     // Overlay placement. When not locked it can be dragged.
     public bool OverlayLocked { get; set; }
-    public bool UseCustomPosition { get; set; }
     public Vector2 OverlayPosition { get; set; } = new(0.5f, 0.35f); // fractions of the screen
 
     // Set when the on-disk config existed but could not be loaded. We keep working

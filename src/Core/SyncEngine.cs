@@ -33,12 +33,6 @@ public class SyncEngine
     public float AvgDrift { get; private set; }
     public int DriftSamples { get; private set; }
 
-    // Capture mode: record every boss cast / first boss appearance (with the
-    // time it lands on the current clock) so anchors for phases with no public
-    // timeline can be built from a real pull.
-    public bool Recording { get; set; }
-    public readonly List<Capture> Captured = new();
-    public readonly List<PullRecording.RecEvent> CutsceneMarks = new(); // cutscene enter/exit while recording
     public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss);
 
     // Automatic capture for CUSTOM sheets: every enemy cast of the current/last
@@ -84,7 +78,7 @@ public class SyncEngine
         // every enemy being gone for a few seconds (wipe fade). Either stops the
         // timer; the auto-start then re-locks onto whatever plays next, and the
         // fresh generation re-arms the calls so they speak again.
-        if (Plugin.InDutyPlayback && !Plugin.Replaying)
+        if (Plugin.InDutyPlayback)
         {
             if (Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
                 || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas51])
@@ -103,22 +97,16 @@ public class SyncEngine
                 return;
             }
         }
-        // A replay feeds SnapToCast/SnapToBoss itself from the recording; the
-        // live object-table scan must stay out of it, or a real NPC in the zone
-        // (replaying while standing inside the instance) re-anchors the replay
-        // clock mid-run.
-        if (Plugin.Replaying) return;
         if (_plugin.ActiveFight() is not { } fight) return;
 
-        // Custom sheets get a hands-free capture of every pull; official fights
-        // only record when the Anchors page's capture toggle is on.
+        // Custom sheets get a hands-free capture of every pull so Sheet View's
+        // "Build from pull" can turn a wipe into rows + anchors.
         var autoCapture = fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId);
-        if (!c.EnableSync && !Recording && !autoCapture) return;
+        if (!c.EnableSync && !autoCapture) return;
 
         // Work in the same clock the overlay reads (includes any door-boss phase
         // offset), so anchors line up in both phases.
         var elapsed = _plugin.ElapsedFor(fight);
-        var phaseOffset = _plugin.PhaseOffsetFor(fight);
 
         foreach (var obj in Service.ObjectTable)
         {
@@ -137,11 +125,6 @@ public class SyncEngine
                 // Boss-presence anchor + capture (cast-free safety net).
                 if (obj is IBattleNpc npc && npc.NameId != 0 && npc.MaxHp > 0 && _seenBoss.Add(npc.NameId))
                 {
-                    if (Recording)
-                    {
-                        Captured.Add(new Capture(npc.NameId, elapsed, npc.Name.ToString(), true));
-                        if (Captured.Count > 160) Captured.RemoveAt(0);
-                    }
                     // Subkind 5 = enemy (stable game data); pets (2), chocobos (3)
                     // and trust NPCs (9) must not pollute the capture.
                     if (autoCapture && (byte)npc.BattleNpcKind == 5)
@@ -162,11 +145,6 @@ public class SyncEngine
                 var timeToResolve = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);
                 var resolveTime = elapsed + timeToResolve;
 
-                if (Recording && bc.MaxHp > 0)
-                {
-                    Captured.Add(new Capture(castId, resolveTime, bc.Name.ToString(), false));
-                    if (Captured.Count > 160) Captured.RemoveAt(0);
-                }
                 // Auto capture takes ENEMY casts only (subkind 5): player,
                 // trust-NPC and pet casts are noise for a mechanic timeline
                 // (and would poison anchors).
@@ -188,7 +166,7 @@ public class SyncEngine
     // through chapter skips (phase anchors re-base).
     private void TryPlaybackAutoStart(Configuration c)
     {
-        if (!Plugin.InDutyPlayback || Plugin.Replaying || !c.EnableSync) return;
+        if (!Plugin.InDutyPlayback || !c.EnableSync) return;
         if (_plugin.ActiveFight() is not { } fight || fight.SyncPoints.Count == 0) return;
 
         foreach (var obj in Service.ObjectTable)
@@ -229,9 +207,8 @@ public class SyncEngine
     }
 
     // Snap to the boss-appearance anchor for this NameId, if the fight has one.
-    // Public so a replay can drive it without a live game object. Returns true if
-    // it snapped.
-    public bool SnapToBoss(FightProfile fight, uint nameId, string casterName = "")
+    // Returns true if it snapped.
+    private bool SnapToBoss(FightProfile fight, uint nameId, string casterName = "")
     {
         var elapsed = _plugin.ElapsedFor(fight);
         foreach (var ba in fight.BossAnchors)
@@ -247,10 +224,9 @@ public class SyncEngine
     }
 
     // Snap the clock so a cast of `actionId` resolving `timeToResolve` from now
-    // lands on its scripted time. Public so a replay can feed recorded casts
-    // (with timeToResolve 0, i.e. at their recorded resolve moment). Returns true
-    // if a matching anchor snapped the clock.
-    public bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
+    // lands on its scripted time. Returns true if a matching anchor snapped the
+    // clock.
+    private bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
     {
         if (fight.SyncPoints.Count == 0) return false;
         var elapsed = _plugin.ElapsedFor(fight);

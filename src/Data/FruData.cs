@@ -85,8 +85,7 @@ public static class FruData
         return points;
     }
 
-    // Phase bosses resolved by name (phase times). Unresolved names are
-    // skipped; capture them from a pull on the Timer tab.
+    // Phase bosses resolved by name (phase times). Unresolved names are skipped.
     public static List<BossAnchor> BossAnchors()
     {
         var list = new List<BossAnchor>();
