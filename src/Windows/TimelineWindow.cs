@@ -219,8 +219,10 @@ public class TimelineWindow : Window
         // Attach each of your presses to its single NEAREST row, so a mechanic
         // repeating a few seconds apart can't show one press under both bars.
         // The 2.5s window still catches job extras riding ~1s off their row.
+        // Universal (timeline-only) duties have no presses at all: every bar
+        // stays neutral instead of the whole fight lighting up gold.
         var mineByRow = new Dictionary<SheetTimeline.MechRow, List<MitLine>>();
-        foreach (var l in fight.OrderedLines)
+        foreach (var l in fight.TimelineOnly ? Enumerable.Empty<MitLine>() : fight.OrderedLines)
         {
             if (!l.Enabled || !l.AppliesTo(job)) continue;
             if (l.Time < elapsed - 6f || l.Time > elapsed + look + 4f) continue;

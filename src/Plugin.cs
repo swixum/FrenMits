@@ -1205,6 +1205,7 @@ public sealed class Plugin : IDalamudPlugin
             }
             _wasInDutyPlayback = InDutyPlayback;
 
+            RefreshAutoFight();
             Timer.Update();
             Replay.Update();
             Review.Update();
@@ -1320,7 +1321,7 @@ public sealed class Plugin : IDalamudPlugin
     private void UpdateDtr()
     {
         if (_dtr == null) return;
-        if (!Config.ShowDtrBar || !Timer.Running || ActiveFight() is not { } fight)
+        if (!Config.ShowDtrBar || !Timer.Running || ActiveFight() is not { } fight || fight.TimelineOnly)
         {
             _dtr.Shown = false;
             return;
@@ -1418,8 +1419,37 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var fight in Config.Fights)
             if (fight.Enabled && fight.TerritoryId == territory)
                 return fight;
+        // No sheet for this duty: the baked universal timeline (board + combat
+        // timer only) steps in, so a timeline runs in every instanced duty.
+        if (Config.UniversalTimelines && _autoFight != null && _autoFight.TerritoryId == territory)
+            return _autoFight;
         if (Config.TestMode && PreviewFight != null) return PreviewFight;
         return null;
+    }
+
+    // The in-memory timeline-only fight for the current territory (never saved).
+    private FightProfile? _autoFight;
+    private uint _autoFightTerritory = uint.MaxValue;
+
+    // Cheap per-frame check: (re)build the auto fight when the territory
+    // changes. Only duties with NO profile of their own get one, so a real
+    // sheet or user fight always wins.
+    private int _autoFightsStamp = -1;
+
+    private void RefreshAutoFight()
+    {
+        var territory = Service.ClientState.TerritoryType;
+        // Re-check when the zone changes OR the fights list does (adding a
+        // sheet mid-instance stands the auto timeline down; deleting the only
+        // sheet brings it back).
+        if (territory == _autoFightTerritory && Config.Fights.Count == _autoFightsStamp) return;
+        _autoFightTerritory = territory;
+        _autoFightsStamp = Config.Fights.Count;
+        _autoFight = Config.Fights.Any(f => f.TerritoryId == territory)
+            ? null
+            : UniversalTimelines.Build(territory);
+        if (_autoFight != null)
+            Service.Log.Information($"[FrenMits] universal timeline armed for \"{_autoFight.Name}\" ({territory}).");
     }
 
     // Practice phase-jump: preview a fight's phase by parking the clock ~6s before

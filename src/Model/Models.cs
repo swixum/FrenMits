@@ -56,6 +56,11 @@ public class FightProfile
     // clock snaps to Time. Ideal for phases with no public ability timeline.
     public List<BossAnchor> BossAnchors { get; set; } = new();
 
+    // Timeline-only: an auto-generated boss timeline for a duty with no sheet
+    // (never saved to the config). The Next Mits board and combat timer run;
+    // the call overlay, audio cues and server-info bar stay silent.
+    public bool TimelineOnly { get; set; }
+
     // Custom sheets (non-builtin fights): the column layout of a user-made
     // sheet. Non-empty = this fight shows in Sheet View like an official one.
     public List<string> CustomSlots { get; set; } = new();

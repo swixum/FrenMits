@@ -99,6 +99,11 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingHeaderRule { get; set; } = true;    // accent underline
     // Board style: the countdown seconds on the right of each bar.
     public bool UpcomingBoardTimeText { get; set; } = true;
+
+    // Run a boss timeline in EVERY instanced duty, even without a sheet: the
+    // board lists the bosses' casts (no mits, no audio). Baked data covers
+    // nearly every dungeon, trial and raid.
+    public bool UniversalTimelines { get; set; } = true;
     // Board style: trim the board to just the rows you have a press for.
     // Off by default, so the whole fight shows with your presses highlighted.
     public bool UpcomingBoardOnlyMine { get; set; }

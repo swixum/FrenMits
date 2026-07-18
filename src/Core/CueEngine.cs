@@ -59,6 +59,7 @@ public class CueEngine
         }
 
         if (_plugin.ActiveFight() is not { } fight) return;
+        if (fight.TimelineOnly) return; // universal timelines are silent
         if (c.OnlyInTargetTerritory && !Plugin.Replaying && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 
         var job = _plugin.ActiveJobAbbreviation();

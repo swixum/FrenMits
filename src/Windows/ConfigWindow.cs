@@ -2951,6 +2951,14 @@ public class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled("Unticked, bars FILL toward the hit instead - urgency reads either way.");
         }
 
+        if (Section("Every duty", true))
+        {
+            C.UniversalTimelines = CfgCheck("Run a boss timeline in every duty (no sheet needed)", C.UniversalTimelines);
+            ImGui.TextDisabled("Dungeons, trials, raids: the board lists the bosses' casts and resyncs off");
+            ImGui.TextDisabled("them, even where no mit sheet exists. No mits, no audio, just the timeline.");
+            ImGui.TextDisabled("A real sheet or fight for the duty always takes over automatically.");
+        }
+
         if (boardStyle && Section("Details on the rows", true))
         {
             C.UpcomingBoardTimeText = CfgCheck("Show the countdown seconds on each bar", C.UpcomingBoardTimeText);
@@ -2981,7 +2989,7 @@ public class ConfigWindow : Window, IDisposable
         C.UpcomingStyle = 1; C.UpcomingBoardRows = 8; C.UpcomingBoardLookaheadSeconds = 60f;
         C.UpcomingBoardWidth = 340f; C.UpcomingShowHeader = true; C.UpcomingBoardOnlyMine = false;
         C.UpcomingHeaderTitle = true; C.UpcomingHeaderClock = true; C.UpcomingHeaderRule = true;
-        C.UpcomingBoardTimeText = true;
+        C.UpcomingBoardTimeText = true; C.UniversalTimelines = true;
         C.UpcomingBoardAccentColor = 0xFFF6823B; C.UpcomingBoardNextColor = 0xFF28BEFF;
         C.UpcomingBoardNowColor = 0xFF64DC64; C.UpcomingBoardBgOpacity = 0.85f;
         C.UpcomingBoardRounding = 5f; C.UpcomingBoardBarPad = 8f; C.UpcomingBoardRowGap = 4f;

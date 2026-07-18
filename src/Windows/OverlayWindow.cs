@@ -93,6 +93,7 @@ public class OverlayWindow : Window
         if (Plugin.CutsceneActive) return false; // hide while a cutscene is playing
         if (_plugin.Cues.Holding) return false; // and until the post-cutscene resync lands
         if (_plugin.ActiveFight() is not { } fight) return false;
+        if (fight.TimelineOnly) return false; // board-only: no center call
         if (C.OnlyInTargetTerritory && !Plugin.Replaying && fight.TerritoryId != Service.ClientState.TerritoryType) return false;
         return _plugin.Timer.Running;
     }
