@@ -401,14 +401,13 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawSidebar()
     {
-        if (NavItem(FontAwesomeIcon.Home, "Home", null, _nav == NavKind.Home)) _nav = NavKind.Home;
+        if (NavItem(FontAwesomeIcon.Home, "Home", _nav == NavKind.Home)) _nav = NavKind.Home;
 
         ImGui.Spacing();
         SidebarHeading("FIGHTS");
         foreach (var cat in Categories)
         {
-            var count = C.Fights.Count(f => CategoryOf(f) == cat);
-            if (NavItem(CategoryIcon(cat), cat, count, _nav == NavKind.Fights && _navCategory == cat))
+            if (NavItem(CategoryIcon(cat), cat, _nav == NavKind.Fights && _navCategory == cat))
             {
                 _nav = NavKind.Fights;
                 _navCategory = cat;
@@ -418,20 +417,20 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("TOOLS");
         // Sheet View is a window, not a page: the nav item opens it directly.
-        if (NavItem(FontAwesomeIcon.Table, "Sheet View", null, false))
+        if (NavItem(FontAwesomeIcon.Table, "Sheet View", false))
         {
             var fight = _plugin.ActiveFight();
             _plugin.SheetViewWindow.Open(
                 fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
         }
-        if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
-        if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", null, _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
-        if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", null, _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
+        if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits & Timeline", _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
+        if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
+        if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
-        if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
-        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
+        if (NavItem(FontAwesomeIcon.Desktop, "Display", _nav == NavKind.Display)) _nav = NavKind.Display;
+        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
         DrawSidebarSetup();
     }
@@ -446,7 +445,7 @@ public class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
-    private bool NavItem(FontAwesomeIcon icon, string label, int? count, bool selected)
+    private bool NavItem(FontAwesomeIcon icon, string label, bool selected)
     {
         var startX = ImGui.GetCursorPosX();
         var startY = ImGui.GetCursorPosY();
@@ -471,14 +470,6 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         ImGui.SetCursorPos(new Vector2(startX + 36, startY + 6));
         ImGui.TextColored(col, label);
-
-        if (count is { } n)
-        {
-            var txt = n.ToString();
-            ImGui.SameLine();
-            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10, startY + 6));
-            ImGui.TextDisabled(txt);
-        }
 
         ImGui.SetCursorPos(new Vector2(endX, endY)); // resume normal flow below the row
         return clicked;
