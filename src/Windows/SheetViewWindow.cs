@@ -1524,6 +1524,11 @@ public class SheetViewWindow : Window
         };
     }
 
+    // Mits that land as a debuff ON THE ENEMY: a second source on the same hit
+    // is wasted, so the planner allows one of each per hit, party-wide.
+    private static readonly HashSet<string> DebuffMits = new(StringComparer.OrdinalIgnoreCase)
+        { "Reprisal", "Feint", "Addle", "Dismantle" };
+
     private sealed class PlanTool
     {
         public string Slot = "";
@@ -1574,11 +1579,19 @@ public class SheetViewWindow : Window
         var added = 0;
         var lastCovered = -9999f;
         var lastCoveredHurt = 0;
+        var lastAdded = new List<MitLine>(); // this run's presses at lastCovered
         foreach (var row in rows)
         {
             // Hits inside the previous press's window ride it, UNLESS this one
-            // is graded harder than what that press was sized for.
-            if (row.Time - lastCovered < 15f && row.Hurt <= lastCoveredHurt) continue;
+            // is graded harder than what that press was sized for. The presses
+            // doing the riding get a press window (CoverUntil) so the grid
+            // shows they must still be active here.
+            if (row.Time - lastCovered < 15f && row.Hurt <= lastCoveredHurt)
+            {
+                foreach (var l in lastAdded)
+                    if (l.CoverUntil < row.Time) l.CoverUntil = row.Time;
+                continue;
+            }
             var have = lists.Values.Count(l => l.Any(x =>
                 MathF.Abs(x.Time - row.Time) < 1f && !string.IsNullOrWhiteSpace(x.Action)));
             // Depth per severity, matching the reference sheets' stacking: the
@@ -1591,7 +1604,13 @@ public class SheetViewWindow : Window
                 _ => perRow,
             };
             var need = target - have;
-            if (need <= 0) { lastCovered = row.Time; lastCoveredHurt = row.Hurt; continue; }
+            if (need <= 0)
+            {
+                lastCovered = row.Time;
+                lastCoveredHurt = row.Hurt;
+                lastAdded.Clear(); // that coverage is the user's, not ours to extend
+                continue;
+            }
 
             var ready = tools
                 .Where(t => t.ReadyAt <= row.Time + 0.01f)
@@ -1601,41 +1620,68 @@ public class SheetViewWindow : Window
             if (row.Hurt is 1 or 0)
                 ready.RemoveAll(t => StealsFromDeadly(t, row.Time));
 
-            // One entry per column: the biggest ready mit on deadly rows (two
-            // of them joined, like the sheets' worst hits), the smallest that
-            // does the job on light rows, LRU-rotated in between.
-            var byCol = ready.GroupBy(t => t.Slot).Select(g =>
-            {
-                var opts = row.Hurt switch
+            // Enemy debuffs don't stack from two sources: one Reprisal, one
+            // Feint, one Addle per hit, party-wide; the sheets rotate WHO casts
+            // them and the LRU ordering reproduces that. Seed with whatever the
+            // user already wrote on this row.
+            var claimed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var l in lists.Values)
+                foreach (var x in l)
+                    if (MathF.Abs(x.Time - row.Time) < 1f)
+                        foreach (var d in DebuffMits)
+                            if (x.Action.Contains(d, StringComparison.OrdinalIgnoreCase)) claimed.Add(d);
+
+            // Per column, its candidates in preference order: the biggest ready
+            // mit on deadly rows (two of them joined, like the sheets' worst
+            // hits), the smallest that does the job on light rows, and on
+            // medium rows whatever does not rob an upcoming deadly hit.
+            var byCol = ready.GroupBy(t => t.Slot).Select(g => (row.Hurt switch
                 {
                     3 => g.OrderByDescending(t => t.Recast).ThenBy(t => t.Order),
                     1 or 0 => g.OrderBy(t => t.Recast).ThenBy(t => t.Order),
                     _ => g.OrderBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                           .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
-                };
-                return opts.Take(row.Hurt >= 3 ? 2 : 1).ToList();
-            })
-            .OrderBy(set => set[0].LastUse).ThenBy(set => set[0].Order)
-            .Take(need).ToList();
+                }).ToList())
+                .OrderBy(opts => row.Hurt == 2 && StealsFromDeadly(opts[0], row.Time) ? 1 : 0)
+                .ThenBy(opts => opts[0].LastUse).ThenBy(opts => opts[0].Order)
+                .ToList();
 
-            foreach (var set in byCol)
+            var rowLines = new List<MitLine>();
+            foreach (var opts in byCol)
             {
-                lists[set[0].Slot].Add(new MitLine
+                if (rowLines.Count >= need) break;
+                var set = new List<PlanTool>();
+                foreach (var t in opts)
+                {
+                    if (set.Count >= (row.Hurt >= 3 ? 2 : 1)) break;
+                    if (DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)) continue;
+                    set.Add(t);
+                }
+                if (set.Count == 0) continue;
+                var line = new MitLine
                 {
                     Time = row.Time,
                     Mechanic = row.Mechanic,
                     Action = string.Join(" + ", set.Select(t => t.Term)),
                     Enabled = true,
                     Custom = true,
-                });
+                };
+                lists[set[0].Slot].Add(line);
+                rowLines.Add(line);
                 foreach (var t in set)
                 {
+                    if (DebuffMits.Contains(t.Term)) claimed.Add(t.Term);
                     t.ReadyAt = row.Time + t.Recast;
                     t.LastUse = row.Time;
                 }
                 added++;
             }
-            if (byCol.Count > 0 || have > 0) { lastCovered = row.Time; lastCoveredHurt = row.Hurt; }
+            if (rowLines.Count > 0 || have > 0)
+            {
+                lastCovered = row.Time;
+                lastCoveredHurt = row.Hurt;
+                lastAdded = rowLines;
+            }
         }
 
         foreach (var l in lists.Values)
@@ -1677,6 +1723,7 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("Planned the way the official sheets play it: deadly hits stack the whole");
         ImGui.TextDisabled("party (healers pair big mits), hurts takes about half, light gets one");
         ImGui.TextDisabled("press, and long cooldowns are saved for the big hits so they line up.");
+        ImGui.TextDisabled("Reprisal/Feint/Addle are never doubled on one hit; sources rotate instead.");
         ImGui.TextDisabled("Columns named for a job (WHM, SGE, MCH...) plan with that job's real");
         ImGui.TextDisabled("kit; role columns (MT, H1, D3...) get terms that speak as each");
         ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");

@@ -144,8 +144,13 @@ public static class JobExtras
         var kit = Kit.FirstOrDefault(k => string.Equals(k.Job, job, StringComparison.OrdinalIgnoreCase));
         if (kit.Job == null) return null;
 
+        // On a graded sheet, extras go only where the fight actually hurts;
+        // ungraded sheets fall back to every row (recast still spaces them out).
+        var candidates = fight.CustomRows.Any(r => r.Hurt > 0)
+            ? fight.CustomRows.Where(r => r.Hurt > 0)
+            : fight.CustomRows;
         var picked = new List<(float Time, string Mechanic)>();
-        foreach (var row in fight.CustomRows.OrderByDescending(r => r.Hurt).ThenBy(r => r.Time))
+        foreach (var row in candidates.OrderByDescending(r => r.Hurt).ThenBy(r => r.Time))
         {
             if (picked.Any(p => MathF.Abs(p.Time - row.Time) < kit.Recast)) continue;
             picked.Add((row.Time, row.Mechanic));
