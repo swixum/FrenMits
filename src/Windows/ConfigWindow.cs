@@ -2441,7 +2441,7 @@ public class ConfigWindow : Window, IDisposable
         C.PulseWhenImminent = true; C.ShowBackground = false; C.BackgroundColor = 0xB0000000;
         C.WarningSeconds = 3f; C.HoldSeconds = 2f;
         C.UpcomingStyle = 1; C.UpcomingBoardRows = 8; C.UpcomingBoardLookaheadSeconds = 60f;
-        C.UpcomingBoardWidth = 340f; C.UpcomingShowHeader = true;
+        C.UpcomingBoardWidth = 340f; C.UpcomingShowHeader = true; C.UpcomingBoardOnlyMine = false;
         C.OverlayPosition = new Vector2(0.5f, 0.35f);
         C.Save();
         _plugin.OverlayWindow.RequestReposition();
@@ -2747,6 +2747,8 @@ public class ConfigWindow : Window, IDisposable
                 if (style == 1)
                 {
                     ImGui.TextDisabled("Every upcoming mechanic gets a draining bar; your presses show under their rows.");
+                    C.UpcomingBoardOnlyMine = CfgCheck("Only show hits you have a press for", C.UpcomingBoardOnlyMine);
+                    ImGui.TextDisabled("Off = the whole fight shows, with your mits highlighted on their rows.");
                     var brows = C.UpcomingBoardRows;
                     ImGui.SetNextItemWidth(120f);
                     if (ImGui.SliderInt("Board rows", ref brows, 3, 12)) { C.UpcomingBoardRows = brows; C.Save(); }

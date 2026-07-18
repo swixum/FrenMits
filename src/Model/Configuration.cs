@@ -94,6 +94,9 @@ public class Configuration : IPluginConfiguration
     public float UpcomingBoardWidth { get; set; } = 340f;
     // Board style: fight name + fight clock header above the bars.
     public bool UpcomingShowHeader { get; set; } = true;
+    // Board style: trim the board to just the rows you have a press for.
+    // Off by default, so the whole fight shows with your presses highlighted.
+    public bool UpcomingBoardOnlyMine { get; set; }
 
     // The next-mits timeline lives in its own window with its own placement.
     public bool TimelineLocked { get; set; }

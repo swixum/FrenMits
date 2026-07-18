@@ -198,17 +198,49 @@ public class TimelineWindow : Window
         return _board;
     }
 
+    private static readonly List<MitLine> NoLines = new();
+
     private void DrawBoard(FightProfile fight, string? job, float elapsed)
     {
         var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
         var width = MathF.Max(180f, C.UpcomingBoardWidth);
         // A just-hit row lingers 2s at "now" so it doesn't vanish mid-press.
-        var visible = BoardRows(fight)
+        var windowRows = BoardRows(fight)
             .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
-            .Take(Math.Max(1, C.UpcomingBoardRows))
             .ToList();
 
         if (C.UpcomingShowHeader) DrawBoardHeader(fight.Name, elapsed, width);
+
+        // Attach each of your presses to its single NEAREST row, so a mechanic
+        // repeating a few seconds apart can't show one press under both bars.
+        // The 2.5s window still catches job extras riding ~1s off their row.
+        var mineByRow = new Dictionary<SheetTimeline.MechRow, List<MitLine>>();
+        foreach (var l in fight.OrderedLines)
+        {
+            if (!l.Enabled || !l.AppliesTo(job)) continue;
+            if (l.Time < elapsed - 6f || l.Time > elapsed + look + 4f) continue;
+            SheetTimeline.MechRow? best = null;
+            var bestGap = 2.5f;
+            foreach (var r in windowRows)
+            {
+                var gap = MathF.Abs(l.Time - r.Time);
+                if (gap < bestGap && SheetTimeline.MechEquals(l.Mechanic, r.Mechanic)) { best = r; bestGap = gap; }
+            }
+            if (best == null) continue;
+            if (!mineByRow.TryGetValue(best, out var list)) mineByRow[best] = list = new List<MitLine>();
+            list.Add(l);
+        }
+
+        List<MitLine> MineFor(SheetTimeline.MechRow r)
+            => mineByRow.TryGetValue(r, out var list) ? list : NoLines;
+
+        // "Just my own mits": trim to the rows you actually press on, BEFORE
+        // the row cap, so your later presses aren't crowded out by other hits.
+        var visible = (C.UpcomingBoardOnlyMine
+                ? windowRows.Where(r => MineFor(r).Count > 0)
+                : windowRows)
+            .Take(Math.Max(1, C.UpcomingBoardRows))
+            .ToList();
 
         if (visible.Count == 0)
         {
@@ -216,11 +248,7 @@ public class TimelineWindow : Window
             return;
         }
 
-        var myLines = fight.OrderedLines.Where(l => l.Enabled && l.AppliesTo(job)).ToList();
-        var mine = visible
-            .Select(r => myLines.Where(l => SheetTimeline.MechEquals(l.Mechanic, r.Mechanic)
-                                            && MathF.Abs(l.Time - r.Time) < 2.5f).ToList())
-            .ToList();
+        var mine = visible.Select(MineFor).ToList();
         float LeadFor(int i) => mine[i].Count == 0
             ? C.WarningSeconds
             : mine[i].Min(l => l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds);
@@ -314,6 +342,7 @@ public class TimelineWindow : Window
     private void BoardActions(List<MitLine> mine, string? job, float rem, float width, uint accent)
     {
         var parts = new List<string>();
+        var icon = 0u;
         foreach (var l in mine)
         {
             var text = Icons.DisplayAction(l.ActionFor(job), job);
@@ -322,9 +351,10 @@ public class TimelineWindow : Window
             if (C.CooldownAwareCalls && Cooldowns.Remaining(l.Action) is { } cd && cd > rem + 0.5f)
                 text += " (cd)";
             if (!parts.Contains(text)) parts.Add(text);
+            // Icon from the first line that actually contributes text.
+            if (icon == 0 && C.ShowAbilityIcon) icon = Icons.For(l, job);
         }
         if (parts.Count == 0) return;
-        var icon = C.ShowAbilityIcon ? Icons.For(mine[0], job) : 0u;
         BoardActionText(string.Join(" + ", parts), icon, accent, width);
     }
 
@@ -378,10 +408,13 @@ public class TimelineWindow : Window
         if (C.UpcomingShowHeader) DrawBoardHeader("FrenMits", 2f, width);
         BoardBar("Heavy raidwide", 9f, look, width, BoardGold, 0);
         BoardActionText("Reprisal", C.ShowAbilityIcon ? Icons.ResolveFromText("Reprisal") : 0u, BoardGold, width);
-        ImGui.Dummy(new Vector2(1f, 4f));
-        BoardBar("Tank buster", 16f, look, width, 0u, 0);
-        ImGui.Dummy(new Vector2(1f, 4f));
-        BoardBar("Adds spawn", 24f, look, width, 0u, 0);
+        if (!C.UpcomingBoardOnlyMine)
+        {
+            ImGui.Dummy(new Vector2(1f, 4f));
+            BoardBar("Tank buster", 16f, look, width, 0u, 0);
+            ImGui.Dummy(new Vector2(1f, 4f));
+            BoardBar("Adds spawn", 24f, look, width, 0u, 0);
+        }
         ImGui.Dummy(new Vector2(1f, 4f));
         BoardBar("Big raidwide", 31f, look, width, 0u, 2);
         BoardActionText("Party Mit", C.ShowAbilityIcon ? Icons.ResolveFromText("Addle") : 0u, 0u, width);
