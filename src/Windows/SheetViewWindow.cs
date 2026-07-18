@@ -2462,6 +2462,17 @@ public class SheetViewWindow : Window
 
     private readonly record struct BuildEvent(uint Id, float Time, string Name, bool Anchorable);
 
+    private static readonly HashSet<string> InvulnNames = new(StringComparer.OrdinalIgnoreCase)
+        { "Holmgang", "Hallowed Ground", "Living Dead", "Superbolide" };
+
+    private static readonly HashSet<string> TankPersonalNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Rampart", "Bloodwhetting", "Nascent Flash", "The Blackest Night", "Oblation",
+        "Holy Sheltron", "Intervention", "Heart of Corundum", "Aurora",
+        "Vengeance", "Damnation", "Sentinel", "Guardian", "Camouflage", "Nebula",
+        "Thrill of Battle", "Dark Mind", "Bulwark",
+    };
+
     // Grade an ability's hardest unmitigated hit against the fight's hardest
     // RAIDWIDE (busters are excluded from the yardstick): the top band is
     // deadly, the middle hurts, anything known is at least light. Bands are
@@ -2497,7 +2508,8 @@ public class SheetViewWindow : Window
     }
 
     private void ApplyBuild(List<BuildEvent> events, bool rows, bool anchors, string source,
-        Dictionary<uint, FFLogsClient.AbilityDamage>? damage = null)
+        Dictionary<uint, FFLogsClient.AbilityDamage>? damage = null,
+        List<FFLogsClient.MitPress>? mitPresses = null)
     {
         // Custom sheets only: replacing a BUILTIN fight's anchors would destroy
         // the official ones (unreachable via UI today; cheap insurance).
@@ -2552,6 +2564,57 @@ public class SheetViewWindow : Window
                 addedRows++;
             }
 
+        // Second signal: where the log's PLAYERS pressed their mits. A press
+        // belongs to the next hit it precedes (within 20s). Party-wide stacking
+        // raises the row's grade; tank-personal clusters without party stacking
+        // mean a buster, and an invuln means a deadly one. Inference only ever
+        // raises: a dead party's mistakes must not talk a real hit down.
+        if (rows && mitPresses is { Count: > 0 })
+        {
+            var allRows = _fight.CustomRows.OrderBy(r => r.Time).ToList();
+            if (allRows.Count > 0)
+            {
+                var party = new Dictionary<CustomRow, int>();
+                var tank = new Dictionary<CustomRow, int>();
+                var invuln = new Dictionary<CustomRow, int>();
+                foreach (var press in mitPresses)
+                {
+                    var name = ActionName(press.AbilityId);
+                    if (name.Length == 0) continue;
+                    // nearest row this press could be FOR: the first hit within
+                    // 20s after the button.
+                    CustomRow? target = null;
+                    foreach (var r in allRows)
+                    {
+                        if (r.Time < press.Time - 1f) continue;
+                        if (r.Time > press.Time + 20f) break;
+                        target = r;
+                        break;
+                    }
+                    if (target == null) continue;
+                    if (InvulnNames.Contains(name)) invuln[target] = invuln.GetValueOrDefault(target) + 1;
+                    else if (TankPersonalNames.Contains(name)) tank[target] = tank.GetValueOrDefault(target) + 1;
+                    else party[target] = party.GetValueOrDefault(target) + 1;
+                }
+                foreach (var r in allRows)
+                {
+                    var pv = party.GetValueOrDefault(r);
+                    var tv = tank.GetValueOrDefault(r);
+                    var iv = invuln.GetValueOrDefault(r);
+                    var before = (r.Hurt, r.Buster);
+                    if (pv >= 9) r.Hurt = Math.Max(r.Hurt, 3);
+                    else if (pv >= 6) r.Hurt = Math.Max(r.Hurt, 2);
+                    else if (pv >= 3) r.Hurt = Math.Max(r.Hurt, 1);
+                    if (pv <= 2 && (iv >= 1 || tv >= 2))
+                    {
+                        r.Buster = true;
+                        r.Hurt = Math.Max(r.Hurt, iv >= 1 ? 3 : 2);
+                    }
+                    if (before != (r.Hurt, r.Buster)) graded++;
+                }
+            }
+        }
+
         var anchorCount = 0;
         var noAnchorable = anchors && !events.Any(e => e.Anchorable);
         if (anchors && noAnchorable)
@@ -2605,7 +2668,9 @@ public class SheetViewWindow : Window
 
         C.Save();
         _dirty = true;
-        var gradeNote = graded > 0 ? $" {graded} row(s) graded by how hard they hit." : "";
+        var gradeNote = graded > 0
+            ? $" {graded} row(s) graded from the damage and where its players pressed their mits."
+            : "";
         Flash(noAnchorable
             ? $"Built from {source}: {addedRows} new row(s).{gradeNote} No cast-bar casts found, so existing anchors were left untouched."
             : $"Built from {source}: {addedRows} new row(s), {anchorCount} anchor(s).{gradeNote} "
@@ -2625,6 +2690,7 @@ public class SheetViewWindow : Window
     private int _flPick;
     private List<FFLogsClient.LogCast>? _flCasts;
     private Dictionary<uint, FFLogsClient.AbilityDamage>? _flDamage;
+    private List<FFLogsClient.MitPress>? _flMits;
     private int _flCastsForFight = -1;
     private string _flIdBuf = "";
     private string _flSecretBuf = "";
@@ -2647,6 +2713,7 @@ public class SheetViewWindow : Window
             _flFights = null;
             _flCasts = null;
             _flDamage = null;
+            _flMits = null;
             _flCastsForFight = -1;
             _flStatus = "";
             _flForFight = _fight;
@@ -2707,6 +2774,7 @@ public class SheetViewWindow : Window
             {
                 _flCasts = null; // picked a different fight: refetch its casts
                 _flDamage = null;
+                _flMits = null;
                 _flCastsForFight = -1;
             }
 
@@ -2729,7 +2797,7 @@ public class SheetViewWindow : Window
                 {
                     var events = SiftEvents(_flCasts.OrderBy(c => c.Time)
                         .Select(c => (c.AbilityId, c.Time, Anchorable: c.HasCastBar)));
-                    ApplyBuild(events, _bpRows, _bpAnchors, "the log", _flDamage);
+                    ApplyBuild(events, _bpRows, _bpAnchors, "the log", _flDamage, _flMits);
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.EndDisabled();
@@ -2780,12 +2848,17 @@ public class SheetViewWindow : Window
             try
             {
                 var casts = await _plugin.FFLogs.GetCastsAsync(id, secret, code, fight);
-                // Damage grades are a bonus: a fetch hiccup must not block the import.
+                // Damage grades and the players' mit presses are bonuses: a
+                // fetch hiccup must not block the import.
                 Dictionary<uint, FFLogsClient.AbilityDamage>? dmg = null;
                 try { dmg = await _plugin.FFLogs.GetDamageAsync(id, secret, code, fight); }
                 catch (Exception dex) { Service.Log.Warning(dex, "FrenMits: FFLogs damage fetch failed"); }
+                List<FFLogsClient.MitPress>? mits = null;
+                try { mits = await _plugin.FFLogs.GetMitCastsAsync(id, secret, code, fight); }
+                catch (Exception mex) { Service.Log.Warning(mex, "FrenMits: FFLogs mit-press fetch failed"); }
                 _flCasts = casts;
                 _flDamage = dmg;
+                _flMits = mits;
                 _flCastsForFight = fight.Id;
                 _flStatus = "";
             }

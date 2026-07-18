@@ -194,4 +194,60 @@ public sealed class FFLogsClient
         return worst.ToDictionary(kv => kv.Key,
             kv => new AbilityDamage(kv.Value, targets.TryGetValue(kv.Key, out var t) ? t.Count : 0));
     }
+
+    // The PLAYERS' mitigation presses: when the log's party actually hit their
+    // defensive buttons. Auto-plan infers from these (a stacked moment is a
+    // real hit, tank-personal clusters mean a buster) without copying their
+    // timings. Server-side filtered to mit names only, so the volume stays tiny.
+    public sealed record MitPress(uint AbilityId, float Time);
+
+    private static readonly string[] MitNames =
+    {
+        "Reprisal", "Feint", "Addle", "Dismantle",
+        "Shake It Off", "Divine Veil", "Dark Missionary", "Heart of Light",
+        "Temperance", "Liturgy of the Bell", "Asylum", "Plenary Indulgence",
+        "Collective Unconscious", "Neutral Sect", "Macrocosmos",
+        "Sacred Soil", "Expedient", "Fey Illumination", "Summon Seraph", "Whispering Dawn",
+        "Kerachole", "Holos", "Panhaima", "Physis II", "Philosophia",
+        "Magick Barrier", "Troubadour", "Tactician", "Shield Samba",
+        "Nature's Minne", "Mantra", "Curing Waltz", "Tempera Grassa", "Passage of Arms",
+        "Rampart", "Bloodwhetting", "Nascent Flash", "The Blackest Night", "Oblation",
+        "Holy Sheltron", "Intervention", "Heart of Corundum", "Aurora",
+        "Vengeance", "Damnation", "Sentinel", "Guardian", "Camouflage", "Nebula",
+        "Thrill of Battle", "Dark Mind", "Bulwark",
+        "Holmgang", "Hallowed Ground", "Living Dead", "Superbolide",
+    };
+
+    public async Task<List<MitPress>> GetMitCastsAsync(string clientId, string secret, string code, FightInfo fight)
+    {
+        const string q = @"query($code:String!,$fid:Int!,$start:Float!,$end:Float!,$filter:String!){reportData{report(code:$code){
+            events(fightIDs:[$fid],dataType:Casts,hostilityType:Friendlies,filterExpression:$filter,
+                   startTime:$start,endTime:$end,limit:10000)
+            {data nextPageTimestamp}}}}";
+        var filter = "ability.name IN (" + string.Join(", ", MitNames.Select(n => $"\"{n}\"")) + ")";
+
+        var presses = new List<MitPress>();
+        var start = fight.StartMs;
+        for (var page = 0; page < 4; page++)
+        {
+            var j = await QueryAsync(clientId, secret, q,
+                new { code, fid = fight.Id, start, end = fight.EndMs, filter }).ConfigureAwait(false);
+            var ev = j["data"]?["reportData"]?["report"]?["events"];
+            if (ev?["data"] is not JArray data) break;
+
+            foreach (var e in data)
+            {
+                if (e["type"]?.ToString() != "cast") continue;
+                var rawId = e["abilityGameID"]?.Value<long>() ?? 0;
+                if (rawId <= 0 || rawId > uint.MaxValue) continue;
+                var t = (float)(((e["timestamp"]?.Value<double>() ?? 0) - fight.StartMs) / 1000.0);
+                presses.Add(new MitPress((uint)rawId, t));
+            }
+
+            var next = ev["nextPageTimestamp"];
+            if (next == null || next.Type == JTokenType.Null) break;
+            start = next.Value<double>();
+        }
+        return presses;
+    }
 }
