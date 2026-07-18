@@ -863,6 +863,7 @@ public class ConfigWindow : Window, IDisposable
                 else
                 {
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
+                    else if (fight.CustomSlots.Count > 0) DrawCustomColumnRow(fight);
                     DrawFightOffsetRow(fight);
                     DrawPracticeRow(fight);
                     // Optional add-ons live behind one fold, so an expanded fight
@@ -1311,12 +1312,65 @@ public class ConfigWindow : Window, IDisposable
 
     private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
 
+    // Custom sheets: pick your column right on the fight page too (same switch
+    // Sheet View offers), so a custom fight has the same options as a built-in.
+    private void DrawCustomColumnRow(FightProfile fight)
+    {
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Column:");
+        Tip("Which column of this sheet is YOURS; that column's lines are what the overlay calls.");
+        foreach (var slot in fight.CustomSlots)
+        {
+            ImGui.SameLine(0, 4);
+            var active = string.Equals(fight.Slot, slot, StringComparison.OrdinalIgnoreCase);
+            if (active)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
+            }
+            if (ImGui.SmallButton($"{slot}##col{slot}") && !active)
+            {
+                fight.Slot = slot;
+                // Same swap Sheet View does: the column's saved lines become the
+                // active plan; the fight's current lines stay with their column.
+                if (fight.SavedSlots.TryGetValue(slot, out var saved)) fight.Lines = saved;
+                fight.SavedSlots[slot] = fight.Lines;
+                C.Save();
+                _plugin.SheetViewWindow.MarkPlanDirty();
+            }
+            if (active) ImGui.PopStyleColor(2);
+        }
+    }
+
+    private int _pracRowIdx;
+
     // Practice, contextual: one row of phase-jump buttons inside the fight it
-    // belongs to (the old Practice page, dissolved).
+    // belongs to (the old Practice page, dissolved). Custom sheets have no baked
+    // phases, so they practice from any of their own rows instead.
     private void DrawPracticeRow(FightProfile fight)
     {
         var phases = Builtin.PhaseStarts(fight.TerritoryId);
-        if (phases.Count == 0) return;
+        if (phases.Count == 0)
+        {
+            var rows = fight.CustomRows.OrderBy(r => r.Time).ToList();
+            if (rows.Count == 0) return;
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextDisabled("Practice:");
+            Tip("Jump the overlay to a row to preview and place its calls; no pull needed.\nPicking a row turns on Test Mode; Stop (or a real pull) ends it.");
+            _pracRowIdx = Math.Clamp(_pracRowIdx, 0, rows.Count - 1);
+            var labels = rows.Select(r => $"{Mmss(r.Time)}  {r.Mechanic}").ToArray();
+            ImGui.SameLine(0, 6);
+            ImGui.SetNextItemWidth(240f);
+            ImGui.Combo("##pracrow", ref _pracRowIdx, labels, labels.Length);
+            ImGui.SameLine(0, 4);
+            if (ImGui.SmallButton("Go##pracrow")) _plugin.PracticeJump(fight, rows[_pracRowIdx].Time);
+            if (Plugin.PreviewFight == fight && C.TestMode)
+            {
+                ImGui.SameLine(0, 8);
+                if (ImGui.SmallButton("Stop##pracrow")) _plugin.StopPractice();
+            }
+            return;
+        }
 
         ImGui.AlignTextToFramePadding();
         ImGui.TextDisabled("Practice:");

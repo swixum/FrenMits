@@ -1414,6 +1414,7 @@ public class SheetViewWindow : Window
         if (ImGui.Button("Create", new Vector2(110, 0)))
         {
             CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr, NewSheetCategories[_newCat]);
+            _openAutoPlan = true; // offer the mit auto-planner right away
             ImGui.CloseCurrentPopup();
         }
         ImGui.EndDisabled();
@@ -1459,6 +1460,170 @@ public class SheetViewWindow : Window
         _filter = "";
         _dirty = true;
         Flash($"\"{name}\" created. Build > Add row adds mechanics; click cells to write mits; Share plan sends it to friends.");
+    }
+
+    // ---- auto-plan mits (custom sheets) -------------------------------------
+
+    private bool _openAutoPlan;
+    private int _autoPlanPerRow = 2;
+
+    // Column name -> role, from the usual party-slot spellings.
+    private static string RoleOf(string slot) => slot.Trim().ToUpperInvariant() switch
+    {
+        "MT" or "OT" or "T" or "T1" or "T2" or "TANK" => "tank",
+        "D1" or "D2" or "M1" or "M2" or "MELEE" or "D" or "DPS" => "melee",
+        "D3" or "R1" => "ranged",
+        "D4" or "R2" => "caster",
+        var h when h.StartsWith("H") => "healer",
+        _ => "",
+    };
+
+    // What a role contributes, as generic terms the plugin already resolves to
+    // the player's real ability at call time ("Party Mit" -> Troubadour on BRD).
+    // Healers are deliberately absent: their mit kits are too job-specific for a
+    // generic call to be honest.
+    private static (string Term, float Recast)[] PoolFor(string role) => role switch
+    {
+        "tank" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
+        "melee" => new[] { ("Feint", 90f) },
+        "ranged" => new[] { ("Party Mit", 90f) },
+        "caster" => new[] { ("Addle", 90f), ("Party Mit", 120f) },
+        _ => Array.Empty<(string, float)>(),
+    };
+
+    private sealed class PlanTool
+    {
+        public string Slot = "";
+        public string Term = "";
+        public float Recast;
+        public float ReadyAt;
+        public float LastUse = -9999f;
+        public int Order;
+    }
+
+    // Greedy planner over the sheet's rows: each uncovered hit gets up to
+    // `perRow` calls from whichever tools are off cooldown, least-recently-used
+    // column first so the load spreads. Hits within 15s of a covered one count
+    // as covered (one press rides them all). Existing cells are never touched.
+    private int AutoPlanMits(FightProfile fight, int perRow)
+    {
+        var rows = fight.CustomRows.OrderBy(r => r.Time).ToList();
+        if (rows.Count == 0) return 0;
+
+        var tools = new List<PlanTool>();
+        var lists = new Dictionary<string, List<MitLine>>(StringComparer.OrdinalIgnoreCase);
+        var order = 0;
+        foreach (var slot in fight.CustomSlots)
+        {
+            if (!fight.SavedSlots.TryGetValue(slot, out var list))
+            {
+                list = string.Equals(slot, fight.Slot, StringComparison.OrdinalIgnoreCase)
+                    ? fight.Lines : new List<MitLine>();
+                fight.SavedSlots[slot] = list;
+            }
+            lists[slot] = list;
+            foreach (var (term, recast) in PoolFor(RoleOf(slot)))
+                tools.Add(new PlanTool { Slot = slot, Term = term, Recast = recast, Order = order++ });
+        }
+        if (tools.Count == 0) return 0;
+
+        var added = 0;
+        var lastCovered = -9999f;
+        foreach (var row in rows)
+        {
+            if (row.Time - lastCovered < 15f) continue;
+            var have = lists.Values.Count(l => l.Any(x =>
+                MathF.Abs(x.Time - row.Time) < 1f && !string.IsNullOrWhiteSpace(x.Action)));
+            var need = perRow - have;
+            if (need <= 0) { lastCovered = row.Time; continue; }
+
+            var picks = tools
+                .Where(t => t.ReadyAt <= row.Time + 0.01f)
+                .Where(t => !lists[t.Slot].Any(x => MathF.Abs(x.Time - row.Time) < 1f))
+                .GroupBy(t => t.Slot)
+                .Select(g => g.OrderBy(t => t.Order).First()) // one call per column per row
+                .OrderBy(t => t.LastUse).ThenBy(t => t.Order)  // spread the load
+                .Take(need).ToList();
+            foreach (var t in picks)
+            {
+                lists[t.Slot].Add(new MitLine
+                {
+                    Time = row.Time,
+                    Mechanic = row.Mechanic,
+                    Action = t.Term,
+                    Enabled = true,
+                    Custom = true,
+                });
+                t.ReadyAt = row.Time + t.Recast;
+                t.LastUse = row.Time;
+                added++;
+            }
+            if (picks.Count > 0 || have > 0) lastCovered = row.Time;
+        }
+
+        foreach (var l in lists.Values)
+        {
+            var sorted = l.OrderBy(x => x.Time).ToList();
+            l.Clear();
+            l.AddRange(sorted);
+        }
+        return added;
+    }
+
+    private void DrawAutoPlanPopup()
+    {
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##autoplan", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
+
+        PopupHeader("Auto-plan mits", 440f);
+        if (_fight == null || !_isCustom)
+        {
+            ImGui.CloseCurrentPopup();
+            ImGui.EndPopup();
+            return;
+        }
+        if (_fight.CustomRows.Count == 0)
+        {
+            ImGui.TextUnformatted("Want the mits planned for you? Add the mechanics first.");
+            ImGui.TextDisabled("Build > Add row (or Build from pull / Import FFLogs log) creates the");
+            ImGui.TextDisabled("rows; then Build > Auto-plan mits fills every column with cooldowns");
+            ImGui.TextDisabled("that line up: spaced to their recasts, spread across the party.");
+            ImGui.Spacing();
+            if (ImGui.Button("Got it", new Vector2(110, 0))) ImGui.CloseCurrentPopup();
+            ImGui.EndPopup();
+            return;
+        }
+
+        ImGui.TextUnformatted($"Fill the grid with party cooldowns for {_fight.CustomRows.Count} rows?");
+        ImGui.TextDisabled("Tanks: Reprisal + Party Mit - melee: Feint - phys ranged: Party Mit -");
+        ImGui.TextDisabled("casters: Addle + Party Mit. Generic terms call out as each player's");
+        ImGui.TextDisabled("own ability. Every press respects its recast, the load rotates so no");
+        ImGui.TextDisabled("one is drained, hits within 15s share one press, and cells you wrote");
+        ImGui.TextDisabled("are never overwritten. Healer columns are left to the healers.");
+        ImGui.Spacing();
+        ImGui.SetNextItemWidth(160f);
+        ImGui.SliderInt("mits per hit", ref _autoPlanPerRow, 1, 3);
+        ImGui.Spacing();
+
+        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
+        if (ImGui.Button("Plan mits", new Vector2(110, 0)))
+        {
+            PushUndo("auto-plan mits");
+            _plugin.SnapshotPlan(_fight, "before auto-plan");
+            var n = AutoPlanMits(_fight, _autoPlanPerRow);
+            C.Save();
+            _dirty = true;
+            Flash(n > 0
+                ? $"Planned {n} calls. Undo (Ctrl+Z) or Plan > History reverts."
+                : "Nothing to add: every row is already covered.");
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.PopStyleColor(2);
+        ImGui.SameLine();
+        if (ImGui.Button("Not now", new Vector2(110, 0))) ImGui.CloseCurrentPopup();
+        ImGui.EndPopup();
     }
 
     private void PickCustomSlot(string slot)
@@ -1582,6 +1747,10 @@ public class SheetViewWindow : Window
                 if (ImGui.MenuItem("Add row...")) openAddRow = true;
                 if (ImGui.MenuItem("Build from pull...")) openBuildPull = true;
                 if (ImGui.MenuItem("Import FFLogs log...")) openLog = true;
+                ImGui.Separator();
+                if (ImGui.MenuItem("Auto-plan mits...")) _openAutoPlan = true;
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Fills the grid with party cooldowns for every row: spaced to each\nrecast, rotated across columns, never overwriting your own cells.");
                 ImGui.EndPopup();
             }
         }
@@ -1660,6 +1829,9 @@ public class SheetViewWindow : Window
             DrawBuildFromPullPopup();
             if (openLog) ImGui.OpenPopup("##fflogs");
             DrawFFLogsPopup();
+            // Also set right after Create, so a fresh sheet offers the plan.
+            if (_openAutoPlan) { _openAutoPlan = false; ImGui.OpenPopup("##autoplan"); }
+            DrawAutoPlanPopup();
         }
     }
 
