@@ -92,8 +92,13 @@ public class Configuration : IPluginConfiguration
     public float UpcomingBoardLookaheadSeconds { get; set; } = 60f;
     // Board style: bar width in px.
     public float UpcomingBoardWidth { get; set; } = 340f;
-    // Board style: fight name + fight clock header above the bars.
+    // Board style: the header above the bars, with each piece toggleable.
     public bool UpcomingShowHeader { get; set; } = true;
+    public bool UpcomingHeaderTitle { get; set; } = true;   // fight name (+ the accent diamond)
+    public bool UpcomingHeaderClock { get; set; } = true;   // fight clock on the right
+    public bool UpcomingHeaderRule { get; set; } = true;    // accent underline
+    // Board style: the countdown seconds on the right of each bar.
+    public bool UpcomingBoardTimeText { get; set; } = true;
     // Board style: trim the board to just the rows you have a press for.
     // Off by default, so the whole fight shows with your presses highlighted.
     public bool UpcomingBoardOnlyMine { get; set; }

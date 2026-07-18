@@ -2798,7 +2798,15 @@ public class ConfigWindow : Window, IDisposable
                 var bw = C.UpcomingBoardWidth;
                 ImGui.SetNextItemWidth(200f);
                 if (ImGui.SliderFloat("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
-                C.UpcomingShowHeader = CfgCheck("Fight name + clock above the bars", C.UpcomingShowHeader);
+                C.UpcomingShowHeader = CfgCheck("Header above the bars", C.UpcomingShowHeader);
+                if (C.UpcomingShowHeader)
+                {
+                    ImGui.Indent();
+                    C.UpcomingHeaderTitle = CfgCheck("Fight name", C.UpcomingHeaderTitle);
+                    C.UpcomingHeaderClock = CfgCheck("Fight clock", C.UpcomingHeaderClock);
+                    C.UpcomingHeaderRule = CfgCheck("Accent underline", C.UpcomingHeaderRule);
+                    ImGui.Unindent();
+                }
             }
             else
             {
@@ -2864,6 +2872,8 @@ public class ConfigWindow : Window, IDisposable
 
         if (boardStyle && Section("Details on the rows", true))
         {
+            C.UpcomingBoardTimeText = CfgCheck("Show the countdown seconds on each bar", C.UpcomingBoardTimeText);
+            ImGui.TextDisabled("The draining bar still shows the time even with the number off.");
             C.UpcomingBoardShowActions = CfgCheck("Show the planned mits under their rows", C.UpcomingBoardShowActions);
             C.UpcomingBoardShowNotes = CfgCheck("Show sheet notes under the highlighted row", C.UpcomingBoardShowNotes);
             C.UpcomingBoardShowSeverity = CfgCheck("Show severity marks from graded sheets (! !! !!!)", C.UpcomingBoardShowSeverity);
@@ -2889,6 +2899,8 @@ public class ConfigWindow : Window, IDisposable
         C.ShowUpcoming = true;
         C.UpcomingStyle = 1; C.UpcomingBoardRows = 8; C.UpcomingBoardLookaheadSeconds = 60f;
         C.UpcomingBoardWidth = 340f; C.UpcomingShowHeader = true; C.UpcomingBoardOnlyMine = false;
+        C.UpcomingHeaderTitle = true; C.UpcomingHeaderClock = true; C.UpcomingHeaderRule = true;
+        C.UpcomingBoardTimeText = true;
         C.UpcomingBoardAccentColor = 0xFFF6823B; C.UpcomingBoardNextColor = 0xFF28BEFF;
         C.UpcomingBoardNowColor = 0xFF64DC64; C.UpcomingBoardBgOpacity = 0.85f;
         C.UpcomingBoardRounding = 5f; C.UpcomingBoardBarPad = 8f; C.UpcomingBoardRowGap = 4f;

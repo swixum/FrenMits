@@ -214,7 +214,7 @@ public class TimelineWindow : Window
             .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
             .ToList();
 
-        if (C.UpcomingShowHeader) DrawBoardHeader(fight.Name, elapsed, width);
+        if (HeaderVisible) DrawBoardHeader(fight.Name, elapsed, width);
 
         // Attach each of your presses to its single NEAREST row, so a mechanic
         // repeating a few seconds apart can't show one press under both bars.
@@ -299,33 +299,52 @@ public class TimelineWindow : Window
         }
     }
 
+    // True when the header has anything left to draw.
+    private bool HeaderVisible => C.UpcomingShowHeader
+        && (C.UpcomingHeaderTitle || C.UpcomingHeaderClock || C.UpcomingHeaderRule);
+
     private void DrawBoardHeader(string name, float elapsed, float width)
     {
         var dl = ImGui.GetWindowDrawList();
         var pos = ImGui.GetCursorScreenPos();
         var lineH = ImGui.GetTextLineHeight();
-        var clock = TimeText(MathF.Max(0f, elapsed));
-        var clockW = ImGui.CalcTextSize(clock).X;
-
-        // The little FrenMits tick: an accent diamond in front of the name.
-        // Sized and spaced off the font so big overlay fonts don't collide.
         var accent = AccentCol;
-        var d = MathF.Max(3.5f, lineH * 0.18f);
-        var c = new Vector2(pos.X + d + 1f, MathF.Round(pos.Y + lineH * 0.5f));
-        dl.AddQuadFilled(c + new Vector2(0f, -d), c + new Vector2(d, 0f),
-            c + new Vector2(0f, d), c + new Vector2(-d, 0f), accent);
+        var textH = C.UpcomingHeaderTitle || C.UpcomingHeaderClock ? lineH : 0f;
 
-        var nameX = 2f * d + 8f;
-        dl.PushClipRect(pos, pos + new Vector2(MathF.Max(40f, width - clockW - 10f), lineH + 2f), true);
-        BoardText(dl, pos + new Vector2(nameX, 0f), BoardBright, name);
-        dl.PopClipRect();
-        BoardText(dl, new Vector2(pos.X + width - clockW, pos.Y), accent, clock);
+        var clockW = 0f;
+        if (C.UpcomingHeaderClock)
+        {
+            var clock = TimeText(MathF.Max(0f, elapsed));
+            clockW = ImGui.CalcTextSize(clock).X;
+            BoardText(dl, new Vector2(pos.X + width - clockW, pos.Y), accent, clock);
+        }
 
-        // A thin accent rule under the header, fading out to the right.
-        var y = pos.Y + lineH + 3f;
-        dl.AddRectFilledMultiColor(new Vector2(pos.X, y), new Vector2(pos.X + width, y + 2f),
-            accent, accent & 0x00FFFFFF, accent & 0x00FFFFFF, accent);
-        ImGui.Dummy(new Vector2(width, lineH + 9f));
+        if (C.UpcomingHeaderTitle)
+        {
+            // The little FrenMits tick: an accent diamond in front of the name.
+            // Sized and spaced off the font so big overlay fonts don't collide.
+            var d = MathF.Max(3.5f, lineH * 0.18f);
+            var c = new Vector2(pos.X + d + 1f, MathF.Round(pos.Y + lineH * 0.5f));
+            dl.AddQuadFilled(c + new Vector2(0f, -d), c + new Vector2(d, 0f),
+                c + new Vector2(0f, d), c + new Vector2(-d, 0f), accent);
+
+            var nameX = 2f * d + 8f;
+            var clipW = C.UpcomingHeaderClock ? MathF.Max(40f, width - clockW - 10f) : width;
+            dl.PushClipRect(pos, pos + new Vector2(clipW, lineH + 2f), true);
+            BoardText(dl, pos + new Vector2(nameX, 0f), BoardBright, name);
+            dl.PopClipRect();
+        }
+
+        var h = textH;
+        if (C.UpcomingHeaderRule)
+        {
+            // A thin accent rule under the header, fading out to the right.
+            var y = pos.Y + textH + (textH > 0f ? 3f : 0f);
+            dl.AddRectFilledMultiColor(new Vector2(pos.X, y), new Vector2(pos.X + width, y + 2f),
+                accent, accent & 0x00FFFFFF, accent & 0x00FFFFFF, accent);
+            h += (textH > 0f ? 3f : 0f) + 2f;
+        }
+        ImGui.Dummy(new Vector2(width, h + 4f));
     }
 
     private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false)
@@ -364,10 +383,11 @@ public class TimelineWindow : Window
         var textCol = accent == 0 ? BoardBright : accent;
         var textY = p0.Y + (barH - lineH) * 0.5f;
         var timeText = rem < 0f ? "now" : $"{MathF.Ceiling(rem):0}s";
-        var timeW = ImGui.CalcTextSize(timeText).X;
+        var timeW = C.UpcomingBoardTimeText ? ImGui.CalcTextSize(timeText).X : 0f;
 
-        // Clip the name so a long mechanic can't run under the countdown.
-        dl.PushClipRect(p0, new Vector2(p1.X - timeW - 14f, p1.Y), true);
+        // Clip the name so a long mechanic can't run under the countdown
+        // (or off the bar, when the countdown text is hidden).
+        dl.PushClipRect(p0, new Vector2(p1.X - (timeW > 0f ? timeW + 14f : 8f), p1.Y), true);
         BoardText(dl, new Vector2(p0.X + 10f, textY), textCol, name);
         // Severity marks from a graded custom sheet: ! light, !! hurts, !!! deadly.
         if (C.UpcomingBoardShowSeverity && hurt > 0)
@@ -378,7 +398,8 @@ public class TimelineWindow : Window
         }
         dl.PopClipRect();
 
-        BoardText(dl, new Vector2(p1.X - timeW - 8f, textY), textCol, timeText);
+        if (C.UpcomingBoardTimeText)
+            BoardText(dl, new Vector2(p1.X - timeW - 8f, textY), textCol, timeText);
         ImGui.Dummy(new Vector2(width, barH));
     }
 
