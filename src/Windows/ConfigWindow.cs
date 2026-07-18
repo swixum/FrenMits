@@ -17,6 +17,8 @@ public class ConfigWindow : Window, IDisposable
 
     // Official-sheet star color (drawn with the icon font).
     private static readonly Vector4 GoldStar = new(0.98f, 0.82f, 0.35f, 1f);
+    // User-created fight marker color.
+    private static readonly Vector4 UserBlue = new(0.55f, 0.75f, 0.98f, 1f);
 
     private int _selectedFight;
 
@@ -781,20 +783,18 @@ public class ConfigWindow : Window, IDisposable
             // header row; without allow-overlap the header claims the mouse
             // first and they can never be hovered or clicked.
             ImGui.SetItemAllowOverlap();
-            if (official)
-            {
-                // A framed tree node indents its label one extra FramePadding.X
-                // beyond GetTreeNodeToLabelSpacing().
-                ImGui.SameLine(headerStartX + ImGui.GetTreeNodeToLabelSpacing()
-                    + ImGui.GetStyle().FramePadding.X + ImGui.CalcTextSize(headerLabel).X + 8f);
-                ImGui.AlignTextToFramePadding();
-                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-                    ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
-                // The tooltip lives on the star, not the whole header: sweeping
-                // the fight list stays silent, hovering the symbol explains it.
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Official sheet.");
-            }
+            // A framed tree node indents its label one extra FramePadding.X
+            // beyond GetTreeNodeToLabelSpacing().
+            ImGui.SameLine(headerStartX + ImGui.GetTreeNodeToLabelSpacing()
+                + ImGui.GetStyle().FramePadding.X + ImGui.CalcTextSize(headerLabel).X + 8f);
+            ImGui.AlignTextToFramePadding();
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                ImGui.TextColored(official ? GoldStar : UserBlue,
+                    (official ? FontAwesomeIcon.Star : FontAwesomeIcon.User).ToIconString());
+            // The tooltip lives on the symbol, not the whole header: sweeping
+            // the fight list stays silent, hovering the symbol explains it.
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(official ? "Official sheet." : "User created.");
             // Quick jump into Sheet View for any fight that has a sheet.
             if (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0)
             {
