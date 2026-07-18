@@ -90,6 +90,11 @@ public class CustomRow
 {
     public float Time { get; set; }
     public string Mechanic { get; set; } = "";
+
+    // How hard the hit is unmitigated: 0 unknown, 1 light, 2 hurts, 3 deadly.
+    // Set by hand (row's right-click menu) or from a log's unmitigated damage;
+    // Auto-plan stacks mitigation deeper on harder hits.
+    public int Hurt { get; set; }
 }
 
 // A note attached to one mechanic row on the sheet, matched by mechanic label +

@@ -199,7 +199,9 @@ public static class Icons
                 ["WAR"] = "Shake It Off", ["PLD"] = "Divine Veil",
                 ["DRK"] = "Dark Missionary", ["GNB"] = "Heart of Light",
                 ["BRD"] = "Troubadour", ["MCH"] = "Tactician", ["DNC"] = "Shield Samba",
-                ["RDM"] = "Magick Barrier",
+                ["RDM"] = "Magick Barrier", ["PCT"] = "Tempera Grassa",
+                ["WHM"] = "Temperance", ["AST"] = "Neutral Sect",
+                ["SCH"] = "Sacred Soil", ["SGE"] = "Kerachole",
             },
             // The sheet's "use your single-target mit on your co-tank" call.
             ["Buddy Mit"] = new(StringComparer.OrdinalIgnoreCase)

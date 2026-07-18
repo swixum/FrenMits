@@ -1488,6 +1488,10 @@ public class SheetViewWindow : Window
         "melee" => new[] { ("Feint", 90f) },
         "ranged" => new[] { ("Party Mit", 90f) },
         "caster" => new[] { ("Addle", 90f), ("Party Mit", 120f) },
+        // Healer party mits differ per job (Temperance / Neutral Sect / Sacred
+        // Soil / Kerachole); the generic term resolves at call time, spaced to
+        // the slowest of them so no job is ever asked for a dead button.
+        "healer" => new[] { ("Party Mit", 120f) },
         _ => Array.Empty<(string, float)>(),
     };
 
@@ -1534,7 +1538,10 @@ public class SheetViewWindow : Window
             if (row.Time - lastCovered < 15f) continue;
             var have = lists.Values.Count(l => l.Any(x =>
                 MathF.Abs(x.Time - row.Time) < 1f && !string.IsNullOrWhiteSpace(x.Action)));
-            var need = perRow - have;
+            // A graded row sets its own depth from how hard it hits; the
+            // slider only covers ungraded rows.
+            var target = row.Hurt switch { 3 => 3, 2 => 2, 1 => 1, _ => perRow };
+            var need = target - have;
             if (need <= 0) { lastCovered = row.Time; continue; }
 
             var picks = tools
@@ -1595,12 +1602,22 @@ public class SheetViewWindow : Window
             return;
         }
 
+        var gradedRows = _fight.CustomRows.Count(r => r.Hurt > 0);
         ImGui.TextUnformatted($"Fill the grid with party cooldowns for {_fight.CustomRows.Count} rows?");
         ImGui.TextDisabled("Tanks: Reprisal + Party Mit - melee: Feint - phys ranged: Party Mit -");
-        ImGui.TextDisabled("casters: Addle + Party Mit. Generic terms call out as each player's");
-        ImGui.TextDisabled("own ability. Every press respects its recast, the load rotates so no");
-        ImGui.TextDisabled("one is drained, hits within 15s share one press, and cells you wrote");
-        ImGui.TextDisabled("are never overwritten. Healer columns are left to the healers.");
+        ImGui.TextDisabled("casters: Addle + Party Mit - healers: Party Mit. Generic terms call");
+        ImGui.TextDisabled("out as each player's own ability. Every press respects its recast,");
+        ImGui.TextDisabled("the load rotates so no one is drained, hits within 15s share one");
+        ImGui.TextDisabled("press, and cells you wrote are never overwritten.");
+        ImGui.Spacing();
+        if (gradedRows > 0)
+            ImGui.TextDisabled($"{gradedRows} row(s) are graded by how hard they hit (log damage or your own");
+        if (gradedRows > 0)
+            ImGui.TextDisabled("grades): deadly stacks 3 mits, hurts 2, light 1. The slider covers the rest.");
+        else
+            ImGui.TextDisabled("Tip: import an FFLogs log and rows get graded by real unmitigated damage;");
+        if (gradedRows == 0)
+            ImGui.TextDisabled("graded rows then set their own depth (deadly 3, hurts 2, light 1).");
         ImGui.Spacing();
         ImGui.SetNextItemWidth(160f);
         ImGui.SliderInt("mits per hit", ref _autoPlanPerRow, 1, 3);
@@ -1823,7 +1840,7 @@ public class SheetViewWindow : Window
         DrawResetAllPopup();
         if (_isCustom)
         {
-            if (openAddRow) { _rowMech = ""; _rowTime = ""; ImGui.OpenPopup("##addrow"); }
+            if (openAddRow) { _rowMech = ""; _rowTime = ""; _rowHurt = 0; ImGui.OpenPopup("##addrow"); }
             DrawAddRowPopup();
             if (openBuildPull) ImGui.OpenPopup("##buildpull");
             DrawBuildFromPullPopup();
@@ -1847,12 +1864,16 @@ public class SheetViewWindow : Window
         ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
         ImGui.SetNextItemWidth(200f);
         ImGui.InputTextWithHint("##artime", "time (m:ss or seconds)", ref _rowTime, 16);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.Combo("hits##arhurt", ref _rowHurt, HurtChoices, HurtChoices.Length);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("How hard the hit is unmitigated. Auto-plan stacks mitigation deeper\non harder hits; log imports grade this automatically from real damage.");
         var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
         ImGui.BeginDisabled(!okRow);
         if (ImGui.Button("Add row", new Vector2(110, 0)))
         {
             SheetImport.TryParseTime(_rowTime, out var t);
-            AddCustomRow(_rowMech.Trim(), t);
+            AddCustomRow(_rowMech.Trim(), t, _rowHurt);
             ImGui.CloseCurrentPopup();
         }
         ImGui.EndDisabled();
@@ -1997,8 +2018,16 @@ public class SheetViewWindow : Window
 
     private string _rowMech = "";
     private string _rowTime = "";
+    private int _rowHurt;
 
-    private void AddCustomRow(string mech, float time)
+    // Combo labels for CustomRow.Hurt (index == the stored value).
+    private static readonly string[] HurtChoices = { "not graded", "light", "hurts", "deadly" };
+
+    private CustomRow? CustomRowFor(Row row)
+        => _fight?.CustomRows.FirstOrDefault(cr =>
+            MechEquals(cr.Mechanic, row.Mechanic) && MathF.Abs(cr.Time - row.Time) < 2f);
+
+    private void AddCustomRow(string mech, float time, int hurt = 0)
     {
         if (_fight == null || AbortIfStale()) return;
         if (_rows.Any(r => !r.Ghost && MechEquals(r.Mechanic, mech) && MathF.Abs(r.Time - time) < 2f))
@@ -2007,7 +2036,7 @@ public class SheetViewWindow : Window
             return;
         }
         PushUndo($"add \"{mech}\" row");
-        _fight.CustomRows.Add(new CustomRow { Time = time, Mechanic = mech });
+        _fight.CustomRows.Add(new CustomRow { Time = time, Mechanic = mech, Hurt = hurt });
         C.Save();
         _dirty = true;
         Flash($"\"{mech}\" added at {TimeText(time)}. Click its cells to write mits.");
@@ -2091,6 +2120,14 @@ public class SheetViewWindow : Window
 
     private readonly record struct BuildEvent(uint Id, float Time, string Name, bool Anchorable);
 
+    // Grade an ability's hardest unmitigated hit against the fight's hardest:
+    // the top band is deadly, the middle hurts, anything known is at least light.
+    private static int HurtLevel(long dmg, long max)
+        => dmg <= 0 || max <= 0 ? 0
+         : dmg >= max * 0.55 ? 3
+         : dmg >= max * 0.25 ? 2
+         : 1;
+
     private void BuildFromPull(List<SyncEngine.Capture> casts, bool rows, bool anchors)
     {
         // Live captures come from cast bars, so every one is anchorable.
@@ -2114,7 +2151,8 @@ public class SheetViewWindow : Window
         return events;
     }
 
-    private void ApplyBuild(List<BuildEvent> events, bool rows, bool anchors, string source)
+    private void ApplyBuild(List<BuildEvent> events, bool rows, bool anchors, string source,
+        Dictionary<uint, long>? damage = null)
     {
         // Custom sheets only: replacing a BUILTIN fight's anchors would destroy
         // the official ones (unreachable via UI today; cheap insurance).
@@ -2128,15 +2166,31 @@ public class SheetViewWindow : Window
         PushUndo($"build from {source}");
         _plugin.SnapshotPlan(_fight, $"before build from {source}");
 
+        // Severity from the log's real damage: each ability's hardest
+        // unmitigated hit, graded against the fight's hardest.
+        var maxDmg = 0L;
+        if (damage is { Count: > 0 })
+            foreach (var e in events)
+                if (damage.TryGetValue(e.Id, out var d) && d > maxDmg) maxDmg = d;
+
         var addedRows = 0;
+        var graded = 0;
         if (rows)
             foreach (var e in events)
             {
+                var hurt = damage != null && damage.TryGetValue(e.Id, out var d) ? HurtLevel(d, maxDmg) : 0;
+                // A row that already exists still learns its grade from the log.
+                var existing = _fight.CustomRows.FirstOrDefault(cr =>
+                    MechEquals(cr.Mechanic, e.Name) && MathF.Abs(cr.Time - e.Time) < 2f);
+                if (existing != null)
+                {
+                    if (existing.Hurt == 0 && hurt > 0) { existing.Hurt = hurt; graded++; }
+                    continue;
+                }
                 if (_rows.Any(r => !r.Ghost && MechEquals(r.Mechanic, e.Name) && MathF.Abs(r.Time - e.Time) < 2f))
                     continue;
-                if (_fight.CustomRows.Any(cr => MechEquals(cr.Mechanic, e.Name) && MathF.Abs(cr.Time - e.Time) < 2f))
-                    continue;
-                _fight.CustomRows.Add(new CustomRow { Time = MathF.Round(e.Time), Mechanic = e.Name });
+                _fight.CustomRows.Add(new CustomRow { Time = MathF.Round(e.Time), Mechanic = e.Name, Hurt = hurt });
+                if (hurt > 0) graded++;
                 addedRows++;
             }
 
@@ -2184,7 +2238,7 @@ public class SheetViewWindow : Window
             anchorCount = points.Count;
         }
 
-        if (addedRows == 0 && anchorCount == 0)
+        if (addedRows == 0 && anchorCount == 0 && graded == 0)
         {
             PopUndo();
             Flash("Nothing new there (rows already covered, anchors unticked).");
@@ -2193,9 +2247,10 @@ public class SheetViewWindow : Window
 
         C.Save();
         _dirty = true;
+        var gradeNote = graded > 0 ? $" {graded} row(s) graded by how hard they hit." : "";
         Flash(noAnchorable
-            ? $"Built from {source}: {addedRows} new row(s). No cast-bar casts found, so existing anchors were left untouched."
-            : $"Built from {source}: {addedRows} new row(s), {anchorCount} anchor(s). "
+            ? $"Built from {source}: {addedRows} new row(s).{gradeNote} No cast-bar casts found, so existing anchors were left untouched."
+            : $"Built from {source}: {addedRows} new row(s), {anchorCount} anchor(s).{gradeNote} "
               + "Build again any time; anchors past this build's end are kept.");
     }
 
@@ -2211,6 +2266,7 @@ public class SheetViewWindow : Window
     private List<FFLogsClient.FightInfo>? _flFights;
     private int _flPick;
     private List<FFLogsClient.LogCast>? _flCasts;
+    private Dictionary<uint, long>? _flDamage;
     private int _flCastsForFight = -1;
     private string _flIdBuf = "";
     private string _flSecretBuf = "";
@@ -2232,6 +2288,7 @@ public class SheetViewWindow : Window
         {
             _flFights = null;
             _flCasts = null;
+            _flDamage = null;
             _flCastsForFight = -1;
             _flStatus = "";
             _flForFight = _fight;
@@ -2291,6 +2348,7 @@ public class SheetViewWindow : Window
             if (ImGui.Combo("##flfight", ref _flPick, labels, labels.Length))
             {
                 _flCasts = null; // picked a different fight: refetch its casts
+                _flDamage = null;
                 _flCastsForFight = -1;
             }
 
@@ -2313,7 +2371,7 @@ public class SheetViewWindow : Window
                 {
                     var events = SiftEvents(_flCasts.OrderBy(c => c.Time)
                         .Select(c => (c.AbilityId, c.Time, Anchorable: c.HasCastBar)));
-                    ApplyBuild(events, _bpRows, _bpAnchors, "the log");
+                    ApplyBuild(events, _bpRows, _bpAnchors, "the log", _flDamage);
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.EndDisabled();
@@ -2364,7 +2422,12 @@ public class SheetViewWindow : Window
             try
             {
                 var casts = await _plugin.FFLogs.GetCastsAsync(id, secret, code, fight);
+                // Damage grades are a bonus: a fetch hiccup must not block the import.
+                Dictionary<uint, long>? dmg = null;
+                try { dmg = await _plugin.FFLogs.GetDamageAsync(id, secret, code, fight); }
+                catch (Exception dex) { Service.Log.Warning(dex, "FrenMits: FFLogs damage fetch failed"); }
                 _flCasts = casts;
+                _flDamage = dmg;
                 _flCastsForFight = fight.Id;
                 _flStatus = "";
             }
@@ -2860,6 +2923,23 @@ public class SheetViewWindow : Window
             if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84)))
                 SaveNote(row, _noteBuf);
             ImGui.TextDisabled("Saved as you type. Clear the text to remove the note.");
+            // Custom rows also grade how hard the hit is here; Auto-plan reads it.
+            if (_isCustom && CustomRowFor(row) is { } cr)
+            {
+                ImGui.Separator();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextDisabled("Hits:");
+                for (var h = 0; h < HurtChoices.Length; h++)
+                {
+                    ImGui.SameLine(0, 6);
+                    if (ImGui.RadioButton($"{HurtChoices[h]}##hurt{h}", cr.Hurt == h) && cr.Hurt != h)
+                    {
+                        cr.Hurt = h;
+                        C.Save();
+                    }
+                }
+                ImGui.TextDisabled("Auto-plan depth: deadly 3 mits, hurts 2, light 1.");
+            }
             ImGui.EndPopup();
         }
         if (NoteFor(row) != null)
@@ -2869,6 +2949,20 @@ public class SheetViewWindow : Window
         }
         if (_isCustom)
         {
+            // The severity grade, visible at a glance (right-click to change).
+            if (CustomRowFor(row) is { Hurt: > 0 } gr)
+            {
+                ImGui.SameLine(0, 6);
+                var (mark, color) = gr.Hurt switch
+                {
+                    3 => ("!!!", 0xFF4444E0u),
+                    2 => ("!!", 0xFF3BA8F0u),
+                    _ => ("!", 0xFF9BA0A6u),
+                };
+                ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(color), mark);
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip($"Hits {HurtChoices[gr.Hurt]} unmitigated. Right-click the mechanic to regrade;\nAuto-plan stacks {gr.Hurt} mit(s) here.");
+            }
             // Custom-sheet rows are all yours; the only row action is delete.
             ImGui.SameLine(0, 6);
             if (IconSmallButton(FontAwesomeIcon.Times, "##delrow")) DeleteCustomRow(row);

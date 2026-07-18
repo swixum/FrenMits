@@ -150,4 +150,40 @@ public sealed class FFLogsClient
                 casts[i] = casts[i] with { HasCastBar = true };
         return casts;
     }
+
+    // The hardest single hit each enemy ability landed on anyone, keyed by
+    // ability id. unmitigatedAmount is what the hit would have done with NO
+    // mitigation up, exactly the "how hard does this hurt" number Auto-plan
+    // grades rows with.
+    public async Task<Dictionary<uint, long>> GetDamageAsync(string clientId, string secret, string code, FightInfo fight)
+    {
+        const string q = @"query($code:String!,$fid:Int!,$start:Float!,$end:Float!){reportData{report(code:$code){
+            events(fightIDs:[$fid],dataType:DamageTaken,startTime:$start,endTime:$end,limit:10000)
+            {data nextPageTimestamp}}}}";
+
+        var worst = new Dictionary<uint, long>();
+        var start = fight.StartMs;
+        for (var page = 0; page < 6; page++)
+        {
+            var j = await QueryAsync(clientId, secret, q,
+                new { code, fid = fight.Id, start, end = fight.EndMs }).ConfigureAwait(false);
+            var ev = j["data"]?["reportData"]?["report"]?["events"];
+            if (ev?["data"] is not JArray data) break;
+
+            foreach (var e in data)
+            {
+                var rawId = e["abilityGameID"]?.Value<long>() ?? 0;
+                if (rawId <= 0 || rawId > uint.MaxValue) continue;
+                var amt = e["unmitigatedAmount"]?.Value<long>() ?? e["amount"]?.Value<long>() ?? 0;
+                if (amt <= 0) continue;
+                var id = (uint)rawId;
+                if (!worst.TryGetValue(id, out var cur) || amt > cur) worst[id] = amt;
+            }
+
+            var next = ev["nextPageTimestamp"];
+            if (next == null || next.Type == JTokenType.Null) break;
+            start = next.Value<double>();
+        }
+        return worst;
+    }
 }
