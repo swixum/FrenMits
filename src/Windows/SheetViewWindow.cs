@@ -2299,6 +2299,7 @@ public class SheetViewWindow : Window
                 "Click a time to re-time a mechanic for every slot; click a cell to edit that slot only.\n"
                 + "While editing: Enter moves down, Tab moves right. Ctrl+Z undoes any edit.\n"
                 + "Orange * = your edit; red cell = cooldown conflict; amber = above the duty's level sync; dim = deleted.\n"
+                + "A faint -> means an earlier press's buff still covers that hit (carry-over).\n"
                 + "Drag column edges to resize (double-click to fit) or drag headers to reorder.\n"
                 + "Right-click cells, mechanics and column headers; most tools live there.");
 
