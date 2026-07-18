@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
@@ -80,19 +79,43 @@ public class SlotPopupWindow : Window
             ImGui.SameLine();
             if (ImGui.Button("OK", new Vector2(50, 0))) IsOpen = false;
 
-            // One question, not two: instead of a separate role picker asking the
-            // same thing again, the picked slot can be carried to every fight.
-            if (Builtin.Has(_fight.TerritoryId) && !string.IsNullOrEmpty(_fight.Slot))
+            // Job pick, same one the sidebar owns: which job the mits and calls
+            // are read for.
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextDisabled("Job:");
+            ImGui.SameLine(58f);
+            var jobPreview = C.JobSelection == "Auto" ? "Auto (current job)" : C.JobSelection;
+            ImGui.SetNextItemWidth(120f);
+            if (ImGui.BeginCombo("##jobpick", jobPreview))
             {
-                var role = Builtin.Roles.FirstOrDefault(r => string.Equals(
-                    Builtin.RoleSlot(_fight.TerritoryId, r), _fight.Slot, StringComparison.OrdinalIgnoreCase));
-                if (role != null && !string.Equals(C.RoleSelection, role, StringComparison.OrdinalIgnoreCase))
+                if (ImGui.Selectable("Auto (current job)", C.JobSelection == "Auto") && C.JobSelection != "Auto")
+                { C.JobSelection = "Auto"; C.Save(); }
+                foreach (var job in Jobs.Abbreviations)
+                    if (ImGui.Selectable(job, string.Equals(job, C.JobSelection, StringComparison.OrdinalIgnoreCase))
+                        && !string.Equals(job, C.JobSelection, StringComparison.OrdinalIgnoreCase))
+                    { C.JobSelection = job; C.Save(); }
+                ImGui.EndCombo();
+            }
+
+            // Role pick, popup-sized: one pick maps every official fight to that
+            // role's slot (custom sheets have no canonical roles).
+            if (Builtin.Has(_fight.TerritoryId))
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextDisabled("Role:");
+                ImGui.SameLine(58f);
+                var rolePreview = string.IsNullOrEmpty(C.RoleSelection) ? "(pick)" : C.RoleSelection;
+                ImGui.SetNextItemWidth(120f);
+                if (ImGui.BeginCombo("##rolepick", rolePreview))
                 {
-                    if (ImGui.SmallButton($"Use {role} in every fight"))
-                        _plugin.SetRoleForAll(role);
-                    if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip("Sets this role's slot in every fight that has a sheet, so you only pick once.");
+                    foreach (var role in Builtin.Roles)
+                        if (ImGui.Selectable(role, string.Equals(role, C.RoleSelection, StringComparison.OrdinalIgnoreCase))
+                            && !string.Equals(role, C.RoleSelection, StringComparison.OrdinalIgnoreCase))
+                            _plugin.SetRoleForAll(role);
+                    ImGui.EndCombo();
                 }
+                ImGui.SameLine();
+                ImGui.TextDisabled("(every fight)");
             }
 
             if (string.IsNullOrEmpty(_fight.Slot))
