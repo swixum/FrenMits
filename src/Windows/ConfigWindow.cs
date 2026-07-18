@@ -2588,17 +2588,18 @@ public class ConfigWindow : Window, IDisposable
         {
             C.CombatTimerLocked = CfgCheck("Lock position (click-through)", C.CombatTimerLocked);
             ImGui.SameLine();
-            ImGui.TextDisabled(C.CombatTimerLocked ? "locked, unlock to drag" : "drag it, or use the sliders");
-            ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Test preview.");
+            ImGui.TextDisabled(C.CombatTimerLocked ? "(unlock to drag)" : "(drag it, or use the sliders; auto-locks in combat)");
 
             var pos = C.CombatTimerPosition;
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
             { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SameLine(0, 18);
+            ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
             { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
-            if (ImGui.Button("Center top"))
+            ImGui.SameLine(0, 12);
+            if (ImGui.SmallButton("Center top"))
             {
                 C.CombatTimerPosition = new Vector2(0.5f, 0.08f);
                 C.Save();
@@ -2610,8 +2611,9 @@ public class ConfigWindow : Window, IDisposable
         {
             var fonts = FontManager.FamilyNames;
             var fIdx = Math.Max(0, Array.IndexOf(fonts, C.CombatTimerFontFamily));
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SetNextItemWidth(200f);
             if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.CombatTimerFontFamily = fonts[fIdx]; C.Save(); }
+            ImGui.SameLine(0, 12);
             var bold = C.CombatTimerFontBold;
             if (GreenCheckbox("Bold", ref bold)) { C.CombatTimerFontBold = bold; C.Save(); }
             ImGui.SameLine();
@@ -2620,24 +2622,25 @@ public class ConfigWindow : Window, IDisposable
             if (C.CombatTimerFontFamily == "Default" && (C.CombatTimerFontBold || C.CombatTimerFontItalic))
             {
                 ImGui.SameLine();
-                ImGui.TextDisabled("(pick a font for bold/italic)");
+                ImGui.TextDisabled("(pick a font)");
             }
             var px = C.CombatTimerFontSizePx;
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Text size", ref px, 12f, 120f, "%.0f px")) { C.CombatTimerFontSizePx = px; C.Save(); }
         }
 
         if (Section("Colors", true))
         {
             var col = ColorToVec4(C.CombatTimerColor);
-            if (ImGui.ColorEdit4("Text color", ref col)) { C.CombatTimerColor = Vec4ToColor(col); C.Save(); }
+            if (ImGui.ColorEdit4("Text color", ref col, ImGuiColorEditFlags.NoInputs)) { C.CombatTimerColor = Vec4ToColor(col); C.Save(); }
 
             C.CombatTimerShowBackground = CfgCheck("Draw a background box", C.CombatTimerShowBackground);
             if (C.CombatTimerShowBackground)
             {
+                ImGui.SameLine(0, 14);
                 var bg = ColorToVec4(C.CombatTimerBackgroundColor);
-                if (ImGui.ColorEdit4("Background color", ref bg)) { C.CombatTimerBackgroundColor = Vec4ToColor(bg); C.Save(); }
-                ImGui.TextDisabled("Drag the alpha channel down for a translucent box.");
+                if (ImGui.ColorEdit4("Color##ctbg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.CombatTimerBackgroundColor = Vec4ToColor(bg); C.Save(); }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
         }
     }
@@ -2653,17 +2656,18 @@ public class ConfigWindow : Window, IDisposable
         {
             C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
             ImGui.SameLine();
-            ImGui.TextDisabled(C.OverlayLocked ? "locked, unlock to drag" : "drag it, or use the sliders");
-            ImGui.TextDisabled("Auto-locks in combat; use Live preview or the sliders to move it during a pull.");
+            ImGui.TextDisabled(C.OverlayLocked ? "(unlock to drag)" : "(drag it, or use the sliders; auto-locks in combat)");
 
             var pos = C.OverlayPosition;
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
             { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SameLine(0, 18);
+            ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
             { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
-            if (ImGui.Button("Center"))
+            ImGui.SameLine(0, 12);
+            if (ImGui.SmallButton("Center"))
             {
                 C.OverlayPosition = new Vector2(0.5f, 0.35f);
                 C.Save();
@@ -2675,8 +2679,9 @@ public class ConfigWindow : Window, IDisposable
         {
             var fonts = FontManager.FamilyNames;
             var fIdx = Math.Max(0, Array.IndexOf(fonts, C.OverlayFontFamily));
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SetNextItemWidth(200f);
             if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.OverlayFontFamily = fonts[fIdx]; C.Save(); }
+            ImGui.SameLine(0, 12);
             var bold = C.OverlayFontBold;
             if (GreenCheckbox("Bold", ref bold)) { C.OverlayFontBold = bold; C.Save(); }
             ImGui.SameLine();
@@ -2685,22 +2690,22 @@ public class ConfigWindow : Window, IDisposable
             if (C.OverlayFontFamily == "Default" && (C.OverlayFontBold || C.OverlayFontItalic))
             {
                 ImGui.SameLine();
-                ImGui.TextDisabled("(pick a font for bold/italic)");
+                ImGui.TextDisabled("(pick a font)");
             }
-            var align = C.OverlayTextAlign;
-            ImGui.SetNextItemWidth(140f);
-            if (ImGui.Combo("Alignment", ref align, new[] { "Left", "Center", "Right" }, 3))
-            { C.OverlayTextAlign = align; C.Save(); }
-
             var callPx = C.OverlayFontSizePx;
-            ImGui.SetNextItemWidth(220f);
-            if (ImGui.SliderFloat("Call text size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
+            ImGui.SetNextItemWidth(150f);
+            if (ImGui.SliderFloat("Call size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
+            ImGui.SameLine(0, 18);
+            var align = C.OverlayTextAlign;
+            ImGui.SetNextItemWidth(110f);
+            if (ImGui.Combo("Align", ref align, new[] { "Left", "Center", "Right" }, 3))
+            { C.OverlayTextAlign = align; C.Save(); }
             // The timeline's own text size + color live with the timeline toggle in
             // the "Next-mits timeline" section below.
             if (C.ShowAbilityIcon)
             {
                 var iconScale = C.IconScale;
-                ImGui.SetNextItemWidth(220f);
+                ImGui.SetNextItemWidth(150f);
                 if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
             }
         }
@@ -2749,13 +2754,14 @@ public class ConfigWindow : Window, IDisposable
         if (Section("Colors"))
         {
             var imminent = ColorToVec4(C.OverlayColorImminent);
-            if (ImGui.ColorEdit4("Counting down", ref imminent)) { C.OverlayColorImminent = Vec4ToColor(imminent); C.Save(); }
+            if (ImGui.ColorEdit4("Counting down", ref imminent, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorImminent = Vec4ToColor(imminent); C.Save(); }
+            ImGui.SameLine(0, 14);
             var active = ColorToVec4(C.OverlayColorActive);
-            if (ImGui.ColorEdit4("Active (NOW)", ref active)) { C.OverlayColorActive = Vec4ToColor(active); C.Save(); }
+            if (ImGui.ColorEdit4("NOW", ref active, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorActive = Vec4ToColor(active); C.Save(); }
+            ImGui.SameLine(0, 14);
             var mechCol = ColorToVec4(C.OverlayColorMechanic);
-            if (ImGui.ColorEdit4("Mechanic line", ref mechCol)) { C.OverlayColorMechanic = Vec4ToColor(mechCol); C.Save(); }
-            // The timeline list color lives with the timeline toggle in the
-            // "Next-mits timeline" section below.
+            if (ImGui.ColorEdit4("Mechanic", ref mechCol, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorMechanic = Vec4ToColor(mechCol); C.Save(); }
+            ImGui.SameLine(0, 16);
             if (ImGui.SmallButton("Reset colors"))
             {
                 C.OverlayColorImminent = 0xFF55FFFF; C.OverlayColorActive = 0xFF55FF55;
@@ -2769,22 +2775,25 @@ public class ConfigWindow : Window, IDisposable
             if (C.ColorByMitType)
             {
                 var party = ColorToVec4(C.MitColorParty);
-                if (ImGui.ColorEdit4("Party mit", ref party)) { C.MitColorParty = Vec4ToColor(party); C.Save(); }
+                if (ImGui.ColorEdit4("Party mit", ref party, ImGuiColorEditFlags.NoInputs)) { C.MitColorParty = Vec4ToColor(party); C.Save(); }
+                ImGui.SameLine(0, 14);
                 var tank = ColorToVec4(C.MitColorTank);
-                if (ImGui.ColorEdit4("Tank cooldown", ref tank)) { C.MitColorTank = Vec4ToColor(tank); C.Save(); }
+                if (ImGui.ColorEdit4("Tank", ref tank, ImGuiColorEditFlags.NoInputs)) { C.MitColorTank = Vec4ToColor(tank); C.Save(); }
+                ImGui.SameLine(0, 14);
                 var personal = ColorToVec4(C.MitColorPersonal);
-                if (ImGui.ColorEdit4("Personal", ref personal)) { C.MitColorPersonal = Vec4ToColor(personal); C.Save(); }
+                if (ImGui.ColorEdit4("Personal", ref personal, ImGuiColorEditFlags.NoInputs)) { C.MitColorPersonal = Vec4ToColor(personal); C.Save(); }
             }
         }
 
         if (Section("Countdown bar"))
         {
-            C.ShowProgressBar = CfgCheck("Show countdown bar under the call", C.ShowProgressBar);
+            C.ShowProgressBar = CfgCheck("Countdown bar under the call", C.ShowProgressBar);
             if (C.ShowProgressBar)
             {
+                ImGui.SameLine(0, 14);
                 var barH = C.ProgressBarHeight;
-                ImGui.SetNextItemWidth(220f);
-                if (ImGui.SliderFloat("Bar height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
+                ImGui.SetNextItemWidth(140f);
+                if (ImGui.SliderFloat("Height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
             }
             C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);
         }
@@ -2794,9 +2803,10 @@ public class ConfigWindow : Window, IDisposable
             C.ShowBackground = CfgCheck("Draw a background box", C.ShowBackground);
             if (C.ShowBackground)
             {
+                ImGui.SameLine(0, 14);
                 var bg = ColorToVec4(C.BackgroundColor);
-                if (ImGui.ColorEdit4("Background color", ref bg)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
-                ImGui.TextDisabled("Drag the alpha channel down for a translucent box.");
+                if (ImGui.ColorEdit4("Color##overlaybg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
         }
 
@@ -3077,10 +3087,11 @@ public class ConfigWindow : Window, IDisposable
             }
 
             var rate = C.TtsRate;
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderInt("Speed", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
+            ImGui.SameLine(0, 18);
             var vol = C.TtsVolume;
-            ImGui.SetNextItemWidth(220f);
+            ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderInt("Volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
 
             ImGui.Spacing();
