@@ -1467,33 +1467,52 @@ public class SheetViewWindow : Window
     private bool _openAutoPlan;
     private int _autoPlanPerRow = 2;
 
-    // Column name -> role, from the usual party-slot spellings.
-    private static string RoleOf(string slot) => slot.Trim().ToUpperInvariant() switch
-    {
-        "MT" or "OT" or "T" or "T1" or "T2" or "TANK" => "tank",
-        "D1" or "D2" or "M1" or "M2" or "MELEE" or "D" or "DPS" => "melee",
-        "D3" or "R1" => "ranged",
-        "D4" or "R2" => "caster",
-        var h when h.StartsWith("H") => "healer",
-        _ => "",
-    };
+    // Each job's CORE party-wide mitigation for auto-planning, mirroring what
+    // the reference sheets put in their main columns: personal mits live in the
+    // tank tabs, and extras-card abilities (Dismantle, Magick Barrier, Nature's
+    // Minne, ...) stay optional extras. Recasts here are fallbacks; the game's
+    // own numbers (Cooldowns.PlanInfo) win when available.
+    private static readonly Dictionary<string, (string Name, float Recast)[]> JobPartyKit =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["WAR"] = new[] { ("Reprisal", 60f), ("Shake It Off", 90f) },
+            ["PLD"] = new[] { ("Reprisal", 60f), ("Divine Veil", 90f) },
+            ["DRK"] = new[] { ("Reprisal", 60f), ("Dark Missionary", 90f) },
+            ["GNB"] = new[] { ("Reprisal", 60f), ("Heart of Light", 90f) },
+            ["WHM"] = new[] { ("Temperance", 120f), ("Liturgy of the Bell", 180f), ("Asylum", 90f), ("Plenary Indulgence", 60f) },
+            ["SCH"] = new[] { ("Expedient", 120f), ("Seraph", 120f), ("Fey Illumination", 120f), ("Whispering Dawn", 60f), ("Sacred Soil", 30f) },
+            ["AST"] = new[] { ("Neutral Sect", 120f), ("Macrocosmos", 180f), ("Collective Unconscious", 60f) },
+            ["SGE"] = new[] { ("Holos", 120f), ("Panhaima", 120f), ("Philosophia", 180f), ("Physis II", 60f), ("Kerachole", 30f) },
+            ["MNK"] = new[] { ("Feint", 90f) }, ["DRG"] = new[] { ("Feint", 90f) },
+            ["NIN"] = new[] { ("Feint", 90f) }, ["SAM"] = new[] { ("Feint", 90f) },
+            ["RPR"] = new[] { ("Feint", 90f) }, ["VPR"] = new[] { ("Feint", 90f) },
+            ["BRD"] = new[] { ("Troubadour", 90f) },
+            ["MCH"] = new[] { ("Tactician", 90f) },
+            ["DNC"] = new[] { ("Shield Samba", 90f) },
+            ["BLM"] = new[] { ("Addle", 90f) }, ["SMN"] = new[] { ("Addle", 90f) },
+            ["RDM"] = new[] { ("Addle", 90f) }, ["PCT"] = new[] { ("Addle", 90f) },
+        };
 
-    // What a role contributes, as generic terms the plugin already resolves to
-    // the player's real ability at call time ("Party Mit" -> Troubadour on BRD).
-    // Healers are deliberately absent: their mit kits are too job-specific for a
-    // generic call to be honest.
-    private static (string Term, float Recast)[] PoolFor(string role) => role switch
+    // A column's toolset. A column NAMED for a job (WHM, SGE, MCH...) plans
+    // with that job's real party kit; a role column (MT, H1, D3...) gets the
+    // generic terms that resolve per job at call time.
+    private static (string Term, float Recast)[] PoolFor(string slot)
     {
-        "tank" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
-        "melee" => new[] { ("Feint", 90f) },
-        "ranged" => new[] { ("Party Mit", 90f) },
-        "caster" => new[] { ("Addle", 90f), ("Party Mit", 120f) },
-        // Healer party mits differ per job (Temperance / Neutral Sect / Sacred
-        // Soil / Kerachole); the generic term resolves at call time, spaced to
-        // the slowest of them so no job is ever asked for a dead button.
-        "healer" => new[] { ("Party Mit", 120f) },
-        _ => Array.Empty<(string, float)>(),
-    };
+        var t = slot.Trim().ToUpperInvariant();
+        if (JobPartyKit.TryGetValue(t, out var kit))
+            return kit.Select(k => (k.Name, Cooldowns.PlanInfo(k.Name)?.Recast is { } r and > 5f ? r : k.Recast)).ToArray();
+        return t switch
+        {
+            "MT" or "OT" or "T" or "T1" or "T2" or "TANK" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
+            "D1" or "D2" or "M1" or "M2" or "MELEE" or "D" or "DPS" => new[] { ("Feint", 90f) },
+            "D3" or "R1" => new[] { ("Party Mit", 90f) },
+            "D4" or "R2" => new[] { ("Addle", 90f), ("Party Mit", 120f) },
+            // Healer party mits differ per job; the generic term resolves at
+            // call time, spaced to the slowest of them so the button is never dead.
+            var h when h.StartsWith("H") => new[] { ("Party Mit", 120f) },
+            _ => Array.Empty<(string, float)>(),
+        };
+    }
 
     private sealed class PlanTool
     {
@@ -1505,14 +1524,21 @@ public class SheetViewWindow : Window
         public int Order;
     }
 
-    // Greedy planner over the sheet's rows: each uncovered hit gets up to
-    // `perRow` calls from whichever tools are off cooldown, least-recently-used
-    // column first so the load spreads. Hits within 15s of a covered one count
-    // as covered (one press rides them all). Existing cells are never touched.
+    // The planner, patterned on how the reference sheets actually play:
+    // - Deadly hits stack the whole party (every column contributes; healers
+    //   and named-job columns may pair two mits, "Plenary Indulgence + Asylum"
+    //   style). Hurts takes about half the party; light takes one press;
+    //   ungraded rows follow the slider.
+    // - Big cooldowns are saved for big hits: a long mit is not spent on a
+    //   light row when a deadly row lands inside its recast.
+    // - Every press respects its recast (the game's own numbers when
+    //   available), the load rotates least-recently-used first, hits within
+    //   15s share one press, and cells you wrote are never touched.
     private int AutoPlanMits(FightProfile fight, int perRow)
     {
         var rows = fight.CustomRows.OrderBy(r => r.Time).ToList();
         if (rows.Count == 0) return 0;
+        var deadlyTimes = rows.Where(r => r.Hurt >= 3).Select(r => r.Time).ToList();
 
         var tools = new List<PlanTool>();
         var lists = new Dictionary<string, List<MitLine>>(StringComparer.OrdinalIgnoreCase);
@@ -1526,10 +1552,14 @@ public class SheetViewWindow : Window
                 fight.SavedSlots[slot] = list;
             }
             lists[slot] = list;
-            foreach (var (term, recast) in PoolFor(RoleOf(slot)))
+            foreach (var (term, recast) in PoolFor(slot))
                 tools.Add(new PlanTool { Slot = slot, Term = term, Recast = recast, Order = order++ });
         }
         if (tools.Count == 0) return 0;
+
+        // Spending this tool now would steal it from an upcoming deadly hit.
+        bool StealsFromDeadly(PlanTool t, float now)
+            => t.Recast >= 100f && deadlyTimes.Any(td => td > now && td < now + t.Recast);
 
         var added = 0;
         var lastCovered = -9999f;
@@ -1538,34 +1568,61 @@ public class SheetViewWindow : Window
             if (row.Time - lastCovered < 15f) continue;
             var have = lists.Values.Count(l => l.Any(x =>
                 MathF.Abs(x.Time - row.Time) < 1f && !string.IsNullOrWhiteSpace(x.Action)));
-            // A graded row sets its own depth from how hard it hits; the
-            // slider only covers ungraded rows.
-            var target = row.Hurt switch { 3 => 3, 2 => 2, 1 => 1, _ => perRow };
+            // Depth per severity, matching the reference sheets' stacking: the
+            // slider only drives ungraded rows.
+            var target = row.Hurt switch
+            {
+                3 => lists.Count,
+                2 => Math.Max(3, lists.Count / 2),
+                1 => 1,
+                _ => perRow,
+            };
             var need = target - have;
             if (need <= 0) { lastCovered = row.Time; continue; }
 
-            var picks = tools
+            var ready = tools
                 .Where(t => t.ReadyAt <= row.Time + 0.01f)
                 .Where(t => !lists[t.Slot].Any(x => MathF.Abs(x.Time - row.Time) < 1f))
-                .GroupBy(t => t.Slot)
-                .Select(g => g.OrderBy(t => t.Order).First()) // one call per column per row
-                .OrderBy(t => t.LastUse).ThenBy(t => t.Order)  // spread the load
-                .Take(need).ToList();
-            foreach (var t in picks)
+                .ToList();
+            // Save the big buttons for the big hits.
+            if (row.Hurt is 1 or 0)
+                ready.RemoveAll(t => StealsFromDeadly(t, row.Time));
+
+            // One entry per column: the biggest ready mit on deadly rows (two
+            // of them joined, like the sheets' worst hits), the smallest that
+            // does the job on light rows, LRU-rotated in between.
+            var byCol = ready.GroupBy(t => t.Slot).Select(g =>
             {
-                lists[t.Slot].Add(new MitLine
+                var opts = row.Hurt switch
+                {
+                    3 => g.OrderByDescending(t => t.Recast).ThenBy(t => t.Order),
+                    1 or 0 => g.OrderBy(t => t.Recast).ThenBy(t => t.Order),
+                    _ => g.OrderBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
+                          .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
+                };
+                return opts.Take(row.Hurt >= 3 ? 2 : 1).ToList();
+            })
+            .OrderBy(set => set[0].LastUse).ThenBy(set => set[0].Order)
+            .Take(need).ToList();
+
+            foreach (var set in byCol)
+            {
+                lists[set[0].Slot].Add(new MitLine
                 {
                     Time = row.Time,
                     Mechanic = row.Mechanic,
-                    Action = t.Term,
+                    Action = string.Join(" + ", set.Select(t => t.Term)),
                     Enabled = true,
                     Custom = true,
                 });
-                t.ReadyAt = row.Time + t.Recast;
-                t.LastUse = row.Time;
+                foreach (var t in set)
+                {
+                    t.ReadyAt = row.Time + t.Recast;
+                    t.LastUse = row.Time;
+                }
                 added++;
             }
-            if (picks.Count > 0 || have > 0) lastCovered = row.Time;
+            if (byCol.Count > 0 || have > 0) lastCovered = row.Time;
         }
 
         foreach (var l in lists.Values)
@@ -1604,20 +1661,21 @@ public class SheetViewWindow : Window
 
         var gradedRows = _fight.CustomRows.Count(r => r.Hurt > 0);
         ImGui.TextUnformatted($"Fill the grid with party cooldowns for {_fight.CustomRows.Count} rows?");
-        ImGui.TextDisabled("Tanks: Reprisal + Party Mit - melee: Feint - phys ranged: Party Mit -");
-        ImGui.TextDisabled("casters: Addle + Party Mit - healers: Party Mit. Generic terms call");
-        ImGui.TextDisabled("out as each player's own ability. Every press respects its recast,");
-        ImGui.TextDisabled("the load rotates so no one is drained, hits within 15s share one");
-        ImGui.TextDisabled("press, and cells you wrote are never overwritten.");
+        ImGui.TextDisabled("Planned the way the official sheets play it: deadly hits stack the whole");
+        ImGui.TextDisabled("party (healers pair big mits), hurts takes about half, light gets one");
+        ImGui.TextDisabled("press, and long cooldowns are saved for the big hits so they line up.");
+        ImGui.TextDisabled("Columns named for a job (WHM, SGE, MCH...) plan with that job's real");
+        ImGui.TextDisabled("kit; role columns (MT, H1, D3...) get terms that speak as each");
+        ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
         ImGui.Spacing();
         if (gradedRows > 0)
             ImGui.TextDisabled($"{gradedRows} row(s) are graded by how hard they hit (log damage or your own");
         if (gradedRows > 0)
-            ImGui.TextDisabled("grades): deadly stacks 3 mits, hurts 2, light 1. The slider covers the rest.");
+            ImGui.TextDisabled("grades) and set their own depth. The slider covers ungraded rows.");
         else
-            ImGui.TextDisabled("Tip: import an FFLogs log and rows get graded by real unmitigated damage;");
+            ImGui.TextDisabled("Tip: import an FFLogs log and rows get graded by real unmitigated");
         if (gradedRows == 0)
-            ImGui.TextDisabled("graded rows then set their own depth (deadly 3, hurts 2, light 1).");
+            ImGui.TextDisabled("damage; graded rows then set their own stacking depth.");
         ImGui.TextDisabled("Job-specific cooldowns (Dismantle, Curing Waltz, ...) stay optional");
         ImGui.TextDisabled("extras on the fight page, like the sheet's Extras column.");
         ImGui.Spacing();
