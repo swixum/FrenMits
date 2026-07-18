@@ -2262,11 +2262,6 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.Save(); }
             Tip("How long a call stays up after its time passes.");
-            C.OnlyInTargetTerritory = CfgCheck("Only run in the fight's territory", C.OnlyInTargetTerritory);
-            C.EnableSync = CfgCheck("Resync the clock on boss casts", C.EnableSync);
-            Tip("When a known boss ability casts, the clock snaps so it resolves on its scripted time, correcting phase drift from kill speed.");
-            C.Diagnostics = CfgCheck("Write per-pull diagnostics file", C.Diagnostics);
-            Tip("Saves a resync + cue log per pull to the plugin's diagnostics/ folder. Local only; nothing is sent anywhere.");
         }
 
         if (Section("Placement", true))
