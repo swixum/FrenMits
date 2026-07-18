@@ -1489,6 +1489,17 @@ public class SheetViewWindow : Window
 
     private bool _openAutoPlan;
     private int _autoPlanPerRow = 2;
+    private readonly Dictionary<string, int> _autoPlanHealer = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly string[] HealerJobs = { "WHM", "AST", "SCH", "SGE" };
+
+    // Generic healer seats (H1, H2, H...) on this sheet: the one column kind
+    // whose real kit we cannot know without asking, because the four healer
+    // jobs' cooldowns barely overlap.
+    private List<string> GenericHealerCols()
+        => _fight == null ? new List<string>() : _fight.CustomSlots
+            .Where(sl => sl.Trim().ToUpperInvariant().StartsWith("H")
+                         && !JobPartyKit.ContainsKey(sl.Trim()))
+            .ToList();
 
     // Each job's CORE party-wide mitigation for auto-planning, mirroring what
     // the reference sheets put in their main columns: personal mits live in the
@@ -1755,8 +1766,33 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("press, and long cooldowns are saved for the big hits so they line up.");
         ImGui.TextDisabled("Reprisal/Feint/Addle are never doubled on one hit; sources rotate instead.");
         ImGui.TextDisabled("Columns named for a job (WHM, SGE, MCH...) plan with that job's real");
-        ImGui.TextDisabled("kit; role columns (MT, H1, D3...) get terms that speak as each");
+        ImGui.TextDisabled("kit; other role columns (MT, D3...) get terms that speak as each");
         ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
+
+        // Healer seats: the four healer jobs' kits barely overlap, so the
+        // sheets plan healers per JOB. Ask who heals, then plan their real
+        // cooldowns (Temperance, Sacred Soil, Kerachole...) in those columns.
+        var healerCols = GenericHealerCols();
+        if (healerCols.Count > 0)
+        {
+            ImGui.Spacing();
+            ImGui.TextUnformatted("Who heals this fight?");
+            ImGui.SameLine(0, 8);
+            ImGui.TextDisabled("each healer job has its own cooldowns");
+            var di = 0;
+            foreach (var col in healerCols)
+            {
+                if (!_autoPlanHealer.ContainsKey(col)) _autoPlanHealer[col] = di == 0 ? 0 : 2; // WHM + SCH default
+                var sel = _autoPlanHealer[col];
+                if (di > 0) ImGui.SameLine(0, 14);
+                ImGui.SetNextItemWidth(96f);
+                if (ImGui.Combo($"{col}##aph{col}", ref sel, HealerJobs, HealerJobs.Length))
+                    _autoPlanHealer[col] = sel;
+                di++;
+            }
+            ImGui.TextDisabled("Planning renames these columns to the picked jobs, sheet-style, so");
+            ImGui.TextDisabled("every future plan and re-plan knows exactly whose kit is whose.");
+        }
         var noKit = _fight.CustomSlots.Where(sl => PoolFor(sl).Length == 0).ToList();
         if (noKit.Count > 0)
             ImGui.TextColored(ImGuiColors.DalamudYellow,
@@ -1783,6 +1819,21 @@ public class SheetViewWindow : Window
         {
             PushUndo("auto-plan mits");
             _plugin.SnapshotPlan(_fight, "before auto-plan");
+            // Healer seats become job columns first (the sheets' convention).
+            foreach (var col in healerCols)
+            {
+                var hj = HealerJobs[Math.Clamp(_autoPlanHealer.GetValueOrDefault(col), 0, HealerJobs.Length - 1)];
+                if (_fight.CustomSlots.Contains(hj, StringComparer.OrdinalIgnoreCase)) continue; // taken: keep the seat name
+                var idx = _fight.CustomSlots.FindIndex(sl => string.Equals(sl, col, StringComparison.OrdinalIgnoreCase));
+                if (idx < 0) continue;
+                _fight.CustomSlots[idx] = hj;
+                if (_fight.SavedSlots.TryGetValue(col, out var moved))
+                {
+                    _fight.SavedSlots.Remove(col);
+                    _fight.SavedSlots[hj] = moved;
+                }
+                if (string.Equals(_fight.Slot, col, StringComparison.OrdinalIgnoreCase)) _fight.Slot = hj;
+            }
             var n = AutoPlanMits(_fight, _autoPlanPerRow);
             C.Save();
             _dirty = true;
