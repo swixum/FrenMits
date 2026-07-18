@@ -2740,10 +2740,12 @@ public class ConfigWindow : Window, IDisposable
 
         if (Section("Preview", true))
         {
-            ImGui.TextDisabled("A live sample: Dancing Mad's opener on the MT column, on a looping clock.");
-            ImGui.Spacing();
-            _plugin.TimelineWindow.DrawSettingsPreview();
-            ImGui.Spacing();
+            ImGui.TextWrapped("While this page is open, the real window is playing on screen at its actual spot: "
+                              + "Dancing Mad's opener on the MT column, looping. Unlock it below and drag it to "
+                              + "place it; every setting you change shows there instantly.");
+            ImGui.TextDisabled("Collapse this section to hide the preview.");
+            // Keep the on-screen preview alive while the page is visible.
+            _plugin.TimelineWindow.PingScreenPreview();
         }
 
         if (!C.ShowUpcoming) return;

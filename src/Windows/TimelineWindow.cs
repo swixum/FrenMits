@@ -81,6 +81,9 @@ public class TimelineWindow : Window
 
     public override bool DrawConditions()
     {
+        // The settings page's on-screen preview: while the Next Mits page is
+        // open, the REAL window shows and plays a sample at its actual spot.
+        if (ScreenPreviewing) return true;
         if (!C.ShowUpcoming) return false;
         if (C.TestMode) return true;
         if (Plugin.CutsceneActive) return false; // hide while a cutscene is playing
@@ -94,21 +97,11 @@ public class TimelineWindow : Window
     {
         SavePositionIfDragged();
 
-        if (C.TestMode && !_plugin.Timer.Running)
+        // Both preview paths (the header's Live preview and the Next Mits
+        // settings page) play the same real sample in the real window.
+        if ((C.TestMode || ScreenPreviewing) && !_plugin.Timer.Running)
         {
-            using (PushFont(C.UpcomingFontSizePx))
-            {
-                if (C.UpcomingStyle == 1)
-                {
-                    DrawBoardPreview();
-                }
-                else
-                {
-                    Row(Icons.ResolveFromText("Addle"), "+12s  ", "Addle");
-                    Row(Icons.ResolveFromText("Rampart"), "+28s  ", "Rampart");
-                    Row(Icons.ResolveFromText("Reprisal"), "+41s  ", "Reprisal", true);
-                }
-            }
+            DrawDmuSample();
             return;
         }
 
@@ -455,15 +448,23 @@ public class TimelineWindow : Window
         return $"{t / 60}:{t % 60:00}";
     }
 
-    // ---- settings-page preview ---------------------------------------------
-    // A live example drawn inside the settings window: Dancing Mad's real rows
-    // with the MT column's presses, on a looping clock, so the bars drain, go
-    // gold, and fire green exactly like a pull. Rows are built once and kept
-    // separate from the live board's cache.
+    // ---- on-screen preview -------------------------------------------------
+    // The Next Mits settings page pings this every frame it's open; while the
+    // pings are fresh, the REAL window shows on screen and plays a sample, so
+    // you're placing and styling the actual thing. Stops within a blink of
+    // leaving the page or closing settings. A running pull always wins.
+    private DateTime _screenPreviewPing = DateTime.MinValue;
+    public void PingScreenPreview() => _screenPreviewPing = DateTime.Now;
+    private bool ScreenPreviewing => (DateTime.Now - _screenPreviewPing).TotalSeconds < 0.3;
+
+    // The sample both previews play: Dancing Mad's real rows with the MT
+    // column's presses, looping through the opener so bars drain, a press goes
+    // gold, fires green, and lingers - exactly like a pull. Rows are built
+    // once and kept separate from the live board's cache.
     private FightProfile? _previewFight;
     private List<SheetTimeline.MechRow>? _previewRows;
 
-    public void DrawSettingsPreview()
+    private void DrawDmuSample()
     {
         _previewFight ??= new FightProfile
         {
@@ -474,16 +475,14 @@ public class TimelineWindow : Window
         };
         _previewRows ??= SheetTimeline.Build(_previewFight);
 
-        // Loop DMU's opener: sweeps through Light of Judgment and Gravitas II
-        // so a press goes gold, fires green, and lingers every pass.
+        // Loop DMU's opener: Double-Trouble Trap, Light of Judgment and both
+        // Gravitas II hits pass through every sweep.
         var elapsed = 45f + (float)(ImGui.GetTime() % 62.0);
-        var width = MathF.Min(MathF.Max(180f, C.UpcomingBoardWidth),
-            MathF.Max(220f, ImGui.GetContentRegionAvail().X - 8f));
 
         using var _ = PushFont(C.UpcomingFontSizePx);
         if (C.UpcomingStyle == 1)
         {
-            DrawBoard(_previewFight, null, elapsed, _previewRows, width);
+            DrawBoard(_previewFight, null, elapsed, _previewRows);
             return;
         }
 
@@ -497,7 +496,8 @@ public class TimelineWindow : Window
             .ToList();
         if (upcoming.Count == 0)
         {
-            ImGui.TextDisabled("(quiet moment - the list shows again when a call is coming)");
+            // Quiet stretch of the loop: keep something visible for placement.
+            Row(0u, "", "(next mits show here)", true);
             return;
         }
         foreach (var l in upcoming)
@@ -506,27 +506,6 @@ public class TimelineWindow : Window
             var nm = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.Action, null);
             Row(C.ShowAbilityIcon ? Icons.For(l, null) : 0u, $"+{inSec}s  ", nm);
         }
-    }
-
-    // Placement preview for Live preview mode: a static sample board.
-    private void DrawBoardPreview()
-    {
-        var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
-        var width = MathF.Max(180f, C.UpcomingBoardWidth);
-        if (C.UpcomingShowHeader) DrawBoardHeader("FrenMits", 2f, width);
-        BoardBar("Heavy raidwide", 9f, look, width, BoardGold, 0);
-        BoardActionText("Reprisal", C.ShowAbilityIcon ? Icons.ResolveFromText("Reprisal") : 0u, BoardGold, width);
-        if (!C.UpcomingBoardOnlyMine)
-        {
-            ImGui.Dummy(new Vector2(1f, 4f));
-            BoardBar("Tank buster", 16f, look, width, 0u, 0);
-            ImGui.Dummy(new Vector2(1f, 4f));
-            BoardBar("Adds spawn", 24f, look, width, 0u, 0);
-        }
-        ImGui.Dummy(new Vector2(1f, 4f));
-        BoardBar("Big raidwide", 31f, look, width, 0u, 2);
-        var partyTint = C.ColorByMitType ? (C.MitColorParty & 0x00FFFFFF) | 0xC8000000 : 0u;
-        BoardActionText("Party Mit", C.ShowAbilityIcon ? Icons.ResolveFromText("Addle") : 0u, partyTint, width);
     }
 
     private void Row(uint iconId, string prefix, string name, bool dimName = false)
