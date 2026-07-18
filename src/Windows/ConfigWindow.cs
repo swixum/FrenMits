@@ -843,7 +843,7 @@ public class ConfigWindow : Window, IDisposable
                 // The tooltip lives on the star, not the whole header: sweeping
                 // the fight list stays silent, hovering the symbol explains it.
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Official sheet; updates automatically.");
+                    ImGui.SetTooltip("Official sheet.");
             }
             // Quick jump into Sheet View for any fight that has a sheet.
             if (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0)
@@ -1138,7 +1138,7 @@ public class ConfigWindow : Window, IDisposable
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Official sheet; updates automatically.");
+                ImGui.SetTooltip("Official sheet.");
             ImGui.SameLine(0, 5);
             ImGui.TextUnformatted(fight.Name);
             ImGui.SameLine(0, 8);
