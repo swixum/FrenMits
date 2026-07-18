@@ -2440,6 +2440,8 @@ public class ConfigWindow : Window, IDisposable
         C.TextShadow = true; C.ShowProgressBar = true; C.ProgressBarHeight = 6f;
         C.PulseWhenImminent = true; C.ShowBackground = false; C.BackgroundColor = 0xB0000000;
         C.WarningSeconds = 3f; C.HoldSeconds = 2f;
+        C.UpcomingStyle = 1; C.UpcomingBoardRows = 8; C.UpcomingBoardLookaheadSeconds = 60f;
+        C.UpcomingBoardWidth = 340f; C.UpcomingShowHeader = true;
         C.OverlayPosition = new Vector2(0.5f, 0.35f);
         C.Save();
         _plugin.OverlayWindow.RequestReposition();
@@ -2733,18 +2735,49 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move)");
                 ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
 
-                var count = C.UpcomingCount;
-                ImGui.SetNextItemWidth(120f);
-                if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
-                var look = C.UpcomingLookaheadSeconds;
-                ImGui.SetNextItemWidth(160f);
-                if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
+                var style = Math.Clamp(C.UpcomingStyle, 0, 1);
+                var styles = new[]
+                {
+                    "Compact list (just your next calls)",
+                    "Mechanic board (every hit, countdown bars)",
+                };
+                ImGui.SetNextItemWidth(320f);
+                if (ImGui.Combo("Style", ref style, styles, styles.Length)) { C.UpcomingStyle = style; C.Save(); }
+
+                if (style == 1)
+                {
+                    ImGui.TextDisabled("Every upcoming mechanic gets a draining bar; your presses show under their rows.");
+                    var brows = C.UpcomingBoardRows;
+                    ImGui.SetNextItemWidth(120f);
+                    if (ImGui.SliderInt("Board rows", ref brows, 3, 12)) { C.UpcomingBoardRows = brows; C.Save(); }
+                    var blook = C.UpcomingBoardLookaheadSeconds;
+                    ImGui.SetNextItemWidth(160f);
+                    if (ImGui.SliderFloat("Look-ahead (s)", ref blook, 15f, 180f, "%.0f")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
+                    var bw = C.UpcomingBoardWidth;
+                    ImGui.SetNextItemWidth(200f);
+                    if (ImGui.SliderFloat("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
+                    C.UpcomingShowHeader = CfgCheck("Show fight name + clock above the bars", C.UpcomingShowHeader);
+                }
+                else
+                {
+                    var count = C.UpcomingCount;
+                    ImGui.SetNextItemWidth(120f);
+                    if (ImGui.SliderInt("Timeline lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
+                    var look = C.UpcomingLookaheadSeconds;
+                    ImGui.SetNextItemWidth(160f);
+                    if (ImGui.SliderFloat("Look-ahead (s)", ref look, 5f, 90f, "%.0f")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
+                }
 
                 var upPx = C.UpcomingFontSizePx;
                 ImGui.SetNextItemWidth(220f);
                 if (ImGui.SliderFloat("Timeline text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
-                var upCol = ColorToVec4(C.OverlayColorUpcoming);
-                if (ImGui.ColorEdit4("Timeline text color", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
+                if (style == 0)
+                {
+                    // The board paints its own colors (gold next / green now);
+                    // this tint is the compact list's.
+                    var upCol = ColorToVec4(C.OverlayColorUpcoming);
+                    if (ImGui.ColorEdit4("Timeline text color", ref upCol)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
+                }
             }
         }
     }

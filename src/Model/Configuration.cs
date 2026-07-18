@@ -82,6 +82,19 @@ public class Configuration : IPluginConfiguration
     public int UpcomingCount { get; set; } = 3;
     public float UpcomingLookaheadSeconds { get; set; } = 30f;
 
+    // Next-mits timeline style: 1 = mechanic board (every upcoming hit as a
+    // countdown bar with your presses underneath), 0 = compact list of just
+    // your own calls (the original look).
+    public int UpcomingStyle { get; set; } = 1;
+    // Board style: how many mechanic bars show at once.
+    public int UpcomingBoardRows { get; set; } = 8;
+    // Board style: its own look-ahead window (the bars drain across this span).
+    public float UpcomingBoardLookaheadSeconds { get; set; } = 60f;
+    // Board style: bar width in px.
+    public float UpcomingBoardWidth { get; set; } = 340f;
+    // Board style: fight name + fight clock header above the bars.
+    public bool UpcomingShowHeader { get; set; } = true;
+
     // The next-mits timeline lives in its own window with its own placement.
     public bool TimelineLocked { get; set; }
     public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);

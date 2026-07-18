@@ -98,9 +98,16 @@ public class TimelineWindow : Window
         {
             using (PushFont(C.UpcomingFontSizePx))
             {
-                Row(Icons.ResolveFromText("Addle"), "+12s  ", "Addle");
-                Row(Icons.ResolveFromText("Rampart"), "+28s  ", "Rampart");
-                Row(Icons.ResolveFromText("Reprisal"), "+41s  ", "Reprisal", true);
+                if (C.UpcomingStyle == 1)
+                {
+                    DrawBoardPreview();
+                }
+                else
+                {
+                    Row(Icons.ResolveFromText("Addle"), "+12s  ", "Addle");
+                    Row(Icons.ResolveFromText("Rampart"), "+28s  ", "Rampart");
+                    Row(Icons.ResolveFromText("Reprisal"), "+41s  ", "Reprisal", true);
+                }
             }
             return;
         }
@@ -112,6 +119,13 @@ public class TimelineWindow : Window
         // Cue clock, same as the main call overlay, so the hand-off between this
         // list and the live call stays seamless when a timer offset is set.
         var elapsed = _plugin.CueClockFor(fight);
+
+        if (C.UpcomingStyle == 1)
+        {
+            using (PushFont(C.UpcomingFontSizePx))
+                DrawBoard(fight, job, elapsed);
+            return;
+        }
 
         // Show lines that are beyond their lead window (a line inside its lead is on
         // the main call, so it isn't duplicated here) and within the look-ahead.
@@ -143,6 +157,234 @@ public class TimelineWindow : Window
                     && Cooldowns.Remaining(l.Action) is { } cd && cd > (l.CueTime - elapsed) + 0.5f;
                 Row(icon, $"+{inSec}s  ", name + (notReady ? "  (cd)" : ""), notReady);
             }
+    }
+
+    // ---- mechanic board ----------------------------------------------------
+    // The board style: every upcoming mechanic is a draining countdown bar
+    // (name left, seconds right), with YOUR presses written under the rows they
+    // belong to. Your next press glows gold; when its warning window opens it
+    // turns green, matching the moment the main call fires. Row notes from the
+    // sheet ride under the highlighted row.
+
+    // Board palette (ABGR).
+    private const uint BoardBarBack = 0xC01A1512;
+    private const uint BoardBarFill = 0xB89E703A;
+    private const uint BoardBarBorder = 0x26FFFFFF;
+    private const uint BoardGold = 0xFF28BEFF;
+    private const uint BoardGreen = 0xFF69EB5F;
+    private const uint BoardBright = 0xFFF8F4F0;
+    private const uint BoardMuted = 0xFFC4BAB2;
+
+    // The fight's full mechanic list is derived from every column of its sheet,
+    // so it's cached: rebuilt when the fight or pull changes, and refreshed out
+    // of combat so sheet edits show up while you're arranging things.
+    private List<SheetTimeline.MechRow> _board = new();
+    private string _boardFightId = "";
+    private int _boardGen = -1;
+    private DateTime _boardBuiltAt = DateTime.MinValue;
+
+    private List<SheetTimeline.MechRow> BoardRows(FightProfile fight)
+    {
+        var stale = _boardFightId != fight.Id
+                    || _boardGen != _plugin.Timer.Generation
+                    || (!Plugin.InCombat && (DateTime.Now - _boardBuiltAt).TotalSeconds > 4);
+        if (stale)
+        {
+            _board = SheetTimeline.Build(fight);
+            _boardFightId = fight.Id;
+            _boardGen = _plugin.Timer.Generation;
+            _boardBuiltAt = DateTime.Now;
+        }
+        return _board;
+    }
+
+    private void DrawBoard(FightProfile fight, string? job, float elapsed)
+    {
+        var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
+        var width = MathF.Max(180f, C.UpcomingBoardWidth);
+        // A just-hit row lingers 2s at "now" so it doesn't vanish mid-press.
+        var visible = BoardRows(fight)
+            .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
+            .Take(Math.Max(1, C.UpcomingBoardRows))
+            .ToList();
+
+        if (C.UpcomingShowHeader) DrawBoardHeader(fight.Name, elapsed, width);
+
+        if (visible.Count == 0)
+        {
+            ImGui.Dummy(new Vector2(width, 1f));
+            return;
+        }
+
+        var myLines = fight.OrderedLines.Where(l => l.Enabled && l.AppliesTo(job)).ToList();
+        var mine = visible
+            .Select(r => myLines.Where(l => SheetTimeline.MechEquals(l.Mechanic, r.Mechanic)
+                                            && MathF.Abs(l.Time - r.Time) < 2.5f).ToList())
+            .ToList();
+        float LeadFor(int i) => mine[i].Count == 0
+            ? C.WarningSeconds
+            : mine[i].Min(l => l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds);
+
+        // Gold marks your next press that isn't already green: while a call is
+        // in (or just past) its window, the one after it keeps its own marker.
+        var nextIdx = -1;
+        for (var i = 0; i < visible.Count && nextIdx < 0; i++)
+            if (mine[i].Count > 0 && visible[i].Time - elapsed > LeadFor(i))
+                nextIdx = i;
+
+        for (var i = 0; i < visible.Count; i++)
+        {
+            if (i > 0) ImGui.Dummy(new Vector2(1f, 4f));
+            var r = visible[i];
+            var rem = r.Time - elapsed;
+            var useNow = mine[i].Count > 0 && rem <= LeadFor(i);
+            var isNext = i == nextIdx;
+            var accent = useNow ? BoardGreen : isNext ? BoardGold : 0u;
+
+            // A row with no mechanic label (a bare user timer) is named by the
+            // press itself, so its action doesn't repeat underneath.
+            var name = r.Mechanic;
+            var bareTimer = string.IsNullOrWhiteSpace(name);
+            if (bareTimer && mine[i].Count > 0)
+                name = Icons.DisplayAction(mine[i][0].ActionFor(job), job);
+
+            BoardBar(name, rem, look, width, accent, r.Hurt);
+
+            if (!bareTimer && mine[i].Count > 0)
+                BoardActions(mine[i], job, rem, width, accent);
+
+            if ((useNow || isNext) && NoteText(fight, r) is { Length: > 0 } note)
+                BoardNote(note, width);
+        }
+    }
+
+    private void DrawBoardHeader(string name, float elapsed, float width)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var pos = ImGui.GetCursorScreenPos();
+        var clock = TimeText(MathF.Max(0f, elapsed));
+        var clockW = ImGui.CalcTextSize(clock).X;
+        dl.PushClipRect(pos, pos + new Vector2(MathF.Max(40f, width - clockW - 10f), ImGui.GetTextLineHeight() + 2f), true);
+        BoardText(dl, pos, 0xFFFFFFFF, name);
+        dl.PopClipRect();
+        BoardText(dl, pos + new Vector2(width - clockW, 0f), BoardMuted, clock);
+        ImGui.Dummy(new Vector2(width, ImGui.GetTextLineHeight() + 5f));
+    }
+
+    private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        var barH = MathF.Round(lineH + 8f);
+        var p0 = ImGui.GetCursorScreenPos();
+        var p1 = p0 + new Vector2(width, barH);
+
+        dl.AddRectFilled(p0, p1, BoardBarBack, 4f);
+        // The fill drains as the hit approaches: full at the look-ahead edge,
+        // empty at the hit, so bar length IS time at a glance.
+        var frac = Math.Clamp(rem / look, 0f, 1f);
+        if (frac > 0.004f)
+        {
+            var fill = accent == 0 ? BoardBarFill : (accent & 0x00FFFFFF) | 0x73000000;
+            dl.AddRectFilled(p0, new Vector2(p0.X + width * frac, p1.Y), fill, 4f);
+        }
+        dl.AddRect(p0, p1, BoardBarBorder, 4f);
+
+        var textCol = accent == 0 ? BoardBright : accent;
+        var textY = p0.Y + (barH - lineH) * 0.5f;
+        var timeText = rem < 0f ? "now" : $"{MathF.Ceiling(rem):0}s";
+        var timeW = ImGui.CalcTextSize(timeText).X;
+
+        // Clip the name so a long mechanic can't run under the countdown.
+        dl.PushClipRect(p0, new Vector2(p1.X - timeW - 14f, p1.Y), true);
+        BoardText(dl, new Vector2(p0.X + 8f, textY), textCol, name);
+        // Severity marks from a graded custom sheet: ! light, !! hurts, !!! deadly.
+        if (hurt > 0)
+        {
+            var markCol = hurt >= 3 ? 0xFF4646FFu : hurt == 2 ? 0xFF008CFFu : 0xFF00D7FFu;
+            BoardText(dl, new Vector2(p0.X + 8f + ImGui.CalcTextSize(name).X + 6f, textY),
+                markCol, new string('!', Math.Min(3, hurt)));
+        }
+        dl.PopClipRect();
+
+        BoardText(dl, new Vector2(p1.X - timeW - 8f, textY), textCol, timeText);
+        ImGui.Dummy(new Vector2(width, barH));
+    }
+
+    private void BoardActions(List<MitLine> mine, string? job, float rem, float width, uint accent)
+    {
+        var parts = new List<string>();
+        foreach (var l in mine)
+        {
+            var text = Icons.DisplayAction(l.ActionFor(job), job);
+            if (string.IsNullOrWhiteSpace(text)) continue;
+            // Cooldown-aware: flag a press that won't be back up by the hit.
+            if (C.CooldownAwareCalls && Cooldowns.Remaining(l.Action) is { } cd && cd > rem + 0.5f)
+                text += " (cd)";
+            if (!parts.Contains(text)) parts.Add(text);
+        }
+        if (parts.Count == 0) return;
+        var icon = C.ShowAbilityIcon ? Icons.For(mine[0], job) : 0u;
+        BoardActionText(string.Join(" + ", parts), icon, accent, width);
+    }
+
+    private void BoardActionText(string text, uint iconId, uint accent, float width)
+    {
+        var color = accent == 0 ? BoardMuted : accent;
+        var startX = ImGui.GetCursorPosX();
+        ImGui.SetCursorPosX(startX + 8f);
+        if (iconId != 0)
+        {
+            var lineH = ImGui.GetTextLineHeight();
+            Icons.Draw(iconId, new Vector2(lineH, lineH));
+            ImGui.SameLine(0, 5f);
+        }
+        ImGui.PushTextWrapPos(startX + width - 4f);
+        DrawText(text, color);
+        ImGui.PopTextWrapPos();
+    }
+
+    private void BoardNote(string note, float width)
+    {
+        var startX = ImGui.GetCursorPosX();
+        ImGui.SetCursorPosX(startX + 8f);
+        ImGui.PushTextWrapPos(startX + width - 4f);
+        DrawText(note, (BoardMuted & 0x00FFFFFF) | 0xA0000000);
+        ImGui.PopTextWrapPos();
+    }
+
+    // Draw-list text with the overlay's readability shadow.
+    private void BoardText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
+    {
+        if (C.TextShadow) dl.AddText(pos + new Vector2(1.5f, 1.5f), 0xE0000000, text);
+        dl.AddText(pos, color, text);
+    }
+
+    private static string NoteText(FightProfile fight, SheetTimeline.MechRow r)
+        => fight.Notes.FirstOrDefault(n => SheetTimeline.MechEquals(n.Mechanic, r.Mechanic)
+                                           && MathF.Abs(n.Time - r.Time) < 4f)?.Text ?? "";
+
+    private static string TimeText(float seconds)
+    {
+        var t = (int)MathF.Round(seconds);
+        return $"{t / 60}:{t % 60:00}";
+    }
+
+    // Placement preview for Live preview mode: a static sample board.
+    private void DrawBoardPreview()
+    {
+        var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
+        var width = MathF.Max(180f, C.UpcomingBoardWidth);
+        if (C.UpcomingShowHeader) DrawBoardHeader("FrenMits", 2f, width);
+        BoardBar("Heavy raidwide", 9f, look, width, BoardGold, 0);
+        BoardActionText("Reprisal", C.ShowAbilityIcon ? Icons.ResolveFromText("Reprisal") : 0u, BoardGold, width);
+        ImGui.Dummy(new Vector2(1f, 4f));
+        BoardBar("Tank buster", 16f, look, width, 0u, 0);
+        ImGui.Dummy(new Vector2(1f, 4f));
+        BoardBar("Adds spawn", 24f, look, width, 0u, 0);
+        ImGui.Dummy(new Vector2(1f, 4f));
+        BoardBar("Big raidwide", 31f, look, width, 0u, 2);
+        BoardActionText("Party Mit", C.ShowAbilityIcon ? Icons.ResolveFromText("Addle") : 0u, 0u, width);
     }
 
     private void Row(uint iconId, string prefix, string name, bool dimName = false)
