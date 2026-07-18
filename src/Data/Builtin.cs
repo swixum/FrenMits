@@ -53,32 +53,28 @@ public static class Builtin
         return "Other";
     }
 
-    public static string[] Slots(uint territory) => territory switch
-    {
-        FruTerritory => FruData.Slots,
-        M12sTerritory => M12sData.Slots,
-        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.Slots,
-        _ => DmuData.Slots,
-    };
+    // Every built-in sheet presents the ONE standard column set (SlotNames);
+    // the data files' native labels are translated in BuildLines.
+    public static string[] Slots(uint territory) => SlotNames.Standard;
 
     // Canonical cross-fight roles for the global role picker. One pick maps to
-    // whatever slot code each fight uses for that role (DMU/M12S use MT/OT/D1..,
-    // FRU uses T1/T2/M1../R/Caster), so it applies sensibly everywhere.
+    // the standard slot code (aliases kept so custom sheets that still name a
+    // column MT/D1-style resolve too).
     public static readonly string[] Roles =
         { "Main Tank", "Off Tank", "WHM", "AST", "SCH", "SGE", "Melee 1", "Melee 2", "Phys Ranged", "Caster" };
 
     static readonly Dictionary<string, string[]> RoleSlotCodes = new()
     {
-        ["Main Tank"] = new[] { "MT", "T1" },
-        ["Off Tank"] = new[] { "OT", "T2" },
+        ["Main Tank"] = new[] { "T1", "MT" },
+        ["Off Tank"] = new[] { "T2", "OT" },
         ["WHM"] = new[] { "WHM" },
         ["AST"] = new[] { "AST" },
         ["SCH"] = new[] { "SCH" },
         ["SGE"] = new[] { "SGE" },
-        ["Melee 1"] = new[] { "D1", "M1" },
-        ["Melee 2"] = new[] { "D2", "M2" },
-        ["Phys Ranged"] = new[] { "D3", "R" },
-        ["Caster"] = new[] { "D4", "Caster" },
+        ["Melee 1"] = new[] { "M1", "D1" },
+        ["Melee 2"] = new[] { "M2", "D2" },
+        ["Phys Ranged"] = new[] { "R1", "D3", "R" },
+        ["Caster"] = new[] { "R2", "D4", "Caster" },
     };
 
     // The slot code a given fight uses for a canonical role, or null if it has none.
@@ -115,12 +111,14 @@ public static class Builtin
         _ => phase,
     };
 
+    // Accepts the standard slot names (or any alias) and translates to each
+    // data file's native labels.
     public static List<MitLine> BuildLines(uint territory, string slot) => territory switch
     {
-        FruTerritory => FruData.BuildLines(slot),
-        M12sTerritory => M12sData.BuildLines(slot),
-        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BuildLines(territory, slot),
-        _ => DmuData.BuildLines(slot),
+        FruTerritory => FruData.BuildLines(SlotNames.ToFru(slot)),
+        M12sTerritory => M12sData.BuildLines(SlotNames.ToLegacy(slot)),
+        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BuildLines(territory, SlotNames.ToLegacy(slot)),
+        _ => DmuData.BuildLines(SlotNames.ToLegacy(slot)),
     };
 
     public static List<SyncPoint> SyncPoints(uint territory) => territory switch
@@ -293,10 +291,10 @@ public static class Builtin
 
             var prefs = job.Role switch
             {
-                JobRole.Tank => new[] { "MT", "T1", "OT", "T2" },
-                JobRole.Melee => new[] { "D1", "M1", "D2", "M2" },
-                JobRole.PhysicalRanged => new[] { "D3", "R" },
-                JobRole.Caster => new[] { "D4", "Caster" },
+                JobRole.Tank => new[] { "T1", "MT", "T2", "OT" },
+                JobRole.Melee => new[] { "M1", "D1", "M2", "D2" },
+                JobRole.PhysicalRanged => new[] { "R1", "D3", "R" },
+                JobRole.Caster => new[] { "R2", "D4", "Caster" },
                 _ => Array.Empty<string>(),
             };
             foreach (var p in prefs)

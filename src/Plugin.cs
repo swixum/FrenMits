@@ -309,6 +309,14 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // Slot names run through the standard (T1/T2, M1/M2, R1/R2 - see
+        // SlotNames) on EVERY load: cheap, idempotent, and it also catches
+        // fights imported from plan codes made on older versions.
+        var slotsRenamed = false;
+        foreach (var f in Config.Fights)
+            slotsRenamed |= SlotNames.NormalizeFight(f);
+        if (slotsRenamed) Config.Save();
+
         // Auto-add any built-in fight the user hasn't been shown yet, so a newly
         // shipped fight (e.g. a fresh savage) appears directly on its tab with no
         // button to click. Tracked per-territory so a deleted built-in stays gone.
@@ -711,6 +719,9 @@ public sealed class Plugin : IDalamudPlugin
 
             var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
             if (fight == null) return (null, false, "That plan code couldn't be read.");
+            // Codes from older versions carry MT/OT/D1-style names; standardize
+            // before matching so slots line up with the receiver's (normalized) data.
+            SlotNames.NormalizeFight(fight);
 
             // A same-territory import UPDATES the existing profile instead of
             // adding a duplicate: a second profile for one territory never fires
@@ -809,9 +820,11 @@ public sealed class Plugin : IDalamudPlugin
 
     private static List<MitLine> MergeDmuSlot(FightProfile fight, string slot, List<MitLine> existing)
     {
-        var oldBaked = DmuLegacy.BuildLines(slot);
+        // The DMU data files stay keyed by their native MT/OT/D1-style labels.
+        var native = SlotNames.ToLegacy(slot);
+        var oldBaked = DmuLegacy.BuildLines(native);
         // Deleted calls stay deleted through a sheet re-bake too.
-        var newBaked = DmuData.BuildLines(slot)
+        var newBaked = DmuData.BuildLines(native)
             .Where(b => !Builtin.IsDeleted(fight, slot, b)).ToList();
 
         // Exact match against the previous bake (time + action + mechanic).

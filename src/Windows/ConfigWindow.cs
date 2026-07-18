@@ -945,17 +945,15 @@ public class ConfigWindow : Window, IDisposable
     };
 
     // Friendly names for the raw sheet-slot codes shown in the slot picker.
-    private static string SlotLabel(string code) => code switch
+    private static string SlotLabel(string code) => SlotNames.Canon(code) switch
     {
-        "D1" or "M1" => "Melee 1",
-        "D2" or "M2" => "Melee 2",
-        "D3" or "R" => "Phys Ranged",
-        "D4" => "Caster",
-        "MT" => "Main Tank",
-        "OT" => "Off Tank",
-        "T1" => "Tank 1",
-        "T2" => "Tank 2",
-        _ => code,
+        "M1" => "Melee 1",
+        "M2" => "Melee 2",
+        "R1" => "Phys Ranged",
+        "R2" => "Caster",
+        "T1" => "Main Tank",
+        "T2" => "Off Tank",
+        var c => c,
     };
 
     private string _builtinMsg = "";

@@ -1289,20 +1289,22 @@ public class SheetViewWindow : Window
 
     private static readonly string[] SlotTemplates =
     {
-        "Full party (MT OT H1 H2 D1-D4)",
-        "Full party, job healers (MT OT WHM AST SCH SGE D1-D4)",
-        "Light party (T H D1 D2)",
+        "Full party (T1 T2 H1 H2 M1 M2 R1 R2)",
+        "Full party, job healers (T1 T2 WHM AST SCH SGE M1 M2 R1 R2)",
+        "Light party (T H M1 M2)",
         "Custom columns",
     };
 
     private string[] TemplateSlots() => _newTemplate switch
     {
-        0 => new[] { "MT", "OT", "H1", "H2", "D1", "D2", "D3", "D4" },
+        0 => new[] { "T1", "T2", "H1", "H2", "M1", "M2", "R1", "R2" },
         // The official sheets' layout: healer columns are job columns, which
         // also lets Auto-plan use each healer's real kit.
-        1 => new[] { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" },
-        2 => new[] { "T", "H", "D1", "D2" },
+        1 => new[] { "T1", "T2", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" },
+        2 => new[] { "T", "H", "M1", "M2" },
+        // Hand-typed columns still run through the standard names.
         _ => _newSlotsBuf.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                         .Select(SlotNames.Canon)
                          .Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
     };
 

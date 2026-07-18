@@ -508,8 +508,8 @@ public class TimelineWindow : Window
         {
             TerritoryId = Builtin.DmuTerritory,
             Name = "Dancing Mad (UMAD)",
-            Slot = "MT",
-            Lines = Builtin.BuildLines(Builtin.DmuTerritory, "MT"),
+            Slot = "T1",
+            Lines = Builtin.BuildLines(Builtin.DmuTerritory, "T1"),
         };
         _previewRows ??= SheetTimeline.Build(_previewFight);
 
