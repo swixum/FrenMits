@@ -2810,12 +2810,6 @@ public class ConfigWindow : Window, IDisposable
             }
         }
 
-        if (Section("Next-mits timeline (separate window)"))
-        {
-            // The timeline grew into its own thing; it lives on its own page now.
-            ImGui.TextDisabled("The upcoming-mits board has its own page: Next Mits & Timeline in the sidebar.");
-            if (ImGui.Button("Open Next Mits & Timeline settings")) _nav = NavKind.NextMits;
-        }
     }
 
     // ---- Next Mits board ---------------------------------------------------
