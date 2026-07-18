@@ -123,15 +123,15 @@ public static class JobExtras
     // Each job's optional extra ability, for sheets we have no baked schedule
     // for. Mirrors the Ikuya sheets' "Extras" column: never part of the core
     // plan, offered as a one-click opt-in add.
-    private static readonly (string Job, string Action, float Recast)[] Kit =
+    private static readonly (string Job, string Action, float Recast, int Level)[] Kit =
     {
-        ("BRD", "Nature's Minne", 120f),
-        ("MNK", "Mantra", 90f),
-        ("PLD", "Passage of Arms", 120f),
-        ("DNC", "Curing Waltz", 60f),
-        ("MCH", "Dismantle", 120f),
-        ("RDM", "Magick Barrier", 120f),
-        ("PCT", "Tempera Grassa", 120f),
+        ("BRD", "Nature's Minne", 120f, 66),
+        ("MNK", "Mantra", 90f, 42),
+        ("PLD", "Passage of Arms", 120f, 70),
+        ("DNC", "Curing Waltz", 60f, 52),
+        ("MCH", "Dismantle", 120f, 62),
+        ("RDM", "Magick Barrier", 120f, 86),
+        ("PCT", "Tempera Grassa", 120f, 88),
     };
 
     // Extras for a CUSTOM sheet, computed from its own rows: presses land on
@@ -143,6 +143,9 @@ public static class JobExtras
         if (string.IsNullOrEmpty(job) || fight.CustomRows.Count == 0) return null;
         var kit = Kit.FirstOrDefault(k => string.Equals(k.Job, job, StringComparison.OrdinalIgnoreCase));
         if (kit.Job == null) return null;
+        // Old synced duties: never suggest an ability the sync level locks out.
+        var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
+        if (sync > 0 && kit.Level > sync) return null;
 
         // On a graded sheet, extras go only where the fight actually hurts;
         // ungraded sheets fall back to every row (recast still spaces them out).

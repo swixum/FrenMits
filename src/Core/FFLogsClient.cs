@@ -151,17 +151,22 @@ public sealed class FFLogsClient
         return casts;
     }
 
-    // The hardest single hit each enemy ability landed on anyone, keyed by
-    // ability id. unmitigatedAmount is what the hit would have done with NO
-    // mitigation up, exactly the "how hard does this hurt" number Auto-plan
-    // grades rows with.
-    public async Task<Dictionary<uint, long>> GetDamageAsync(string clientId, string secret, string code, FightInfo fight)
+    // Per enemy ability: the hardest single hit it landed on anyone
+    // (unmitigatedAmount = what it would do with NO mitigation up) and how many
+    // DISTINCT players it ever hit. The pair is what Auto-plan grades rows
+    // with: the amount says how hard, the target count separates raidwides
+    // (hit everyone; party mits) from busters (hit a tank or two; not a
+    // stack-the-party moment).
+    public sealed record AbilityDamage(long Worst, int Targets);
+
+    public async Task<Dictionary<uint, AbilityDamage>> GetDamageAsync(string clientId, string secret, string code, FightInfo fight)
     {
         const string q = @"query($code:String!,$fid:Int!,$start:Float!,$end:Float!){reportData{report(code:$code){
             events(fightIDs:[$fid],dataType:DamageTaken,startTime:$start,endTime:$end,limit:10000)
             {data nextPageTimestamp}}}}";
 
         var worst = new Dictionary<uint, long>();
+        var targets = new Dictionary<uint, HashSet<long>>();
         var start = fight.StartMs;
         for (var page = 0; page < 6; page++)
         {
@@ -178,12 +183,15 @@ public sealed class FFLogsClient
                 if (amt <= 0) continue;
                 var id = (uint)rawId;
                 if (!worst.TryGetValue(id, out var cur) || amt > cur) worst[id] = amt;
+                var tgt = e["targetID"]?.Value<long>() ?? -1;
+                if (tgt >= 0) (targets.TryGetValue(id, out var set) ? set : targets[id] = new()).Add(tgt);
             }
 
             var next = ev["nextPageTimestamp"];
             if (next == null || next.Type == JTokenType.Null) break;
             start = next.Value<double>();
         }
-        return worst;
+        return worst.ToDictionary(kv => kv.Key,
+            kv => new AbilityDamage(kv.Value, targets.TryGetValue(kv.Key, out var t) ? t.Count : 0));
     }
 }

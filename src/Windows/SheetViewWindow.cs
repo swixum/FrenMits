@@ -1554,6 +1554,14 @@ public class SheetViewWindow : Window
         var rows = fight.CustomRows.OrderBy(r => r.Time).ToList();
         if (rows.Count == 0) return 0;
         var deadlyTimes = rows.Where(r => r.Hurt >= 3).Select(r => r.Time).ToList();
+        var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
+
+        // How long a planned line's mitigation actually lasts: the shortest
+        // buff in it (game data; generic terms fall back to a Reprisal-ish 15s).
+        static float LineCover(MitLine l) => l.Action
+            .Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => Cooldowns.PlanInfo(part)?.Duration is { } d and > 0f ? d : 15f)
+            .DefaultIfEmpty(15f).Min();
 
         var tools = new List<PlanTool>();
         var lists = new Dictionary<string, List<MitLine>>(StringComparer.OrdinalIgnoreCase);
@@ -1568,7 +1576,12 @@ public class SheetViewWindow : Window
             }
             lists[slot] = list;
             foreach (var (term, recast) in PoolFor(slot))
+            {
+                // Old synced duties: skip anything the sync level locks out
+                // (generic terms carry no level and always pass).
+                if (sync > 0 && Cooldowns.PlanInfo(term)?.Level is { } lv and > 0 && lv > sync) continue;
                 tools.Add(new PlanTool { Slot = slot, Term = term, Recast = recast, Order = order++ });
+            }
         }
         if (tools.Count == 0) return 0;
 
@@ -1583,13 +1596,17 @@ public class SheetViewWindow : Window
         foreach (var row in rows)
         {
             // Hits inside the previous press's window ride it, UNLESS this one
-            // is graded harder than what that press was sized for. The presses
-            // doing the riding get a press window (CoverUntil) so the grid
-            // shows they must still be active here.
-            if (row.Time - lastCovered < 15f && row.Hurt <= lastCoveredHurt)
+            // is graded harder than what that press was sized for, or none of
+            // our presses' buffs actually last this long (real durations from
+            // the game data). Riding presses get a press window (CoverUntil)
+            // capped to what each buff can truly cover, so the grid never
+            // promises coverage a 10s buff cannot deliver.
+            if (row.Time - lastCovered < 15f && row.Hurt <= lastCoveredHurt
+                && (lastAdded.Count == 0 || lastAdded.Any(l => row.Time <= l.Time + LineCover(l) + 0.01f)))
             {
                 foreach (var l in lastAdded)
-                    if (l.CoverUntil < row.Time) l.CoverUntil = row.Time;
+                    if (l.CoverUntil < row.Time && row.Time <= l.Time + LineCover(l) + 0.01f)
+                        l.CoverUntil = row.Time;
                 continue;
             }
             var have = lists.Values.Count(l => l.Any(x =>
@@ -1727,6 +1744,10 @@ public class SheetViewWindow : Window
         ImGui.TextDisabled("Columns named for a job (WHM, SGE, MCH...) plan with that job's real");
         ImGui.TextDisabled("kit; role columns (MT, H1, D3...) get terms that speak as each");
         ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
+        var noKit = _fight.CustomSlots.Where(sl => PoolFor(sl).Length == 0).ToList();
+        if (noKit.Count > 0)
+            ImGui.TextColored(ImGuiColors.DalamudYellow,
+                $"No kit for: {string.Join(", ", noKit)}. Rename to a job (WHM) or role (H1, D3) to include them.");
         ImGui.Spacing();
         if (gradedRows > 0)
             ImGui.TextDisabled($"{gradedRows} row(s) are graded by how hard they hit (log damage or your own");
@@ -2240,12 +2261,15 @@ public class SheetViewWindow : Window
 
     private readonly record struct BuildEvent(uint Id, float Time, string Name, bool Anchorable);
 
-    // Grade an ability's hardest unmitigated hit against the fight's hardest:
-    // the top band is deadly, the middle hurts, anything known is at least light.
+    // Grade an ability's hardest unmitigated hit against the fight's hardest
+    // RAIDWIDE (busters are excluded from the yardstick): the top band is
+    // deadly, the middle hurts, anything known is at least light. Bands are
+    // tuned for that clean scale; a hit within three quarters of the worst
+    // raidwide deserves the full stack.
     private static int HurtLevel(long dmg, long max)
         => dmg <= 0 || max <= 0 ? 0
-         : dmg >= max * 0.55 ? 3
-         : dmg >= max * 0.25 ? 2
+         : dmg >= max * 0.75 ? 3
+         : dmg >= max * 0.40 ? 2
          : 1;
 
     private void BuildFromPull(List<SyncEngine.Capture> casts, bool rows, bool anchors)
@@ -2272,7 +2296,7 @@ public class SheetViewWindow : Window
     }
 
     private void ApplyBuild(List<BuildEvent> events, bool rows, bool anchors, string source,
-        Dictionary<uint, long>? damage = null)
+        Dictionary<uint, FFLogsClient.AbilityDamage>? damage = null)
     {
         // Custom sheets only: replacing a BUILTIN fight's anchors would destroy
         // the official ones (unreachable via UI today; cheap insurance).
@@ -2287,18 +2311,26 @@ public class SheetViewWindow : Window
         _plugin.SnapshotPlan(_fight, $"before build from {source}");
 
         // Severity from the log's real damage: each ability's hardest
-        // unmitigated hit, graded against the fight's hardest.
+        // unmitigated hit, graded against the fight's hardest RAIDWIDE. Busters
+        // (an ability that only ever hit a player or two) are excluded from the
+        // yardstick and capped below deadly: they are the tanks' problem, not a
+        // stack-the-party moment.
         var maxDmg = 0L;
         if (damage is { Count: > 0 })
             foreach (var e in events)
-                if (damage.TryGetValue(e.Id, out var d) && d > maxDmg) maxDmg = d;
+                if (damage.TryGetValue(e.Id, out var d) && d.Targets > 3 && d.Worst > maxDmg) maxDmg = d.Worst;
 
         var addedRows = 0;
         var graded = 0;
         if (rows)
             foreach (var e in events)
             {
-                var hurt = damage != null && damage.TryGetValue(e.Id, out var d) ? HurtLevel(d, maxDmg) : 0;
+                var hurt = 0;
+                if (damage != null && damage.TryGetValue(e.Id, out var d))
+                {
+                    hurt = HurtLevel(d.Worst, maxDmg);
+                    if (d.Targets <= 3 && hurt > 2) hurt = 2;
+                }
                 // A row that already exists still learns its grade from the log.
                 var existing = _fight.CustomRows.FirstOrDefault(cr =>
                     MechEquals(cr.Mechanic, e.Name) && MathF.Abs(cr.Time - e.Time) < 2f);
@@ -2386,7 +2418,7 @@ public class SheetViewWindow : Window
     private List<FFLogsClient.FightInfo>? _flFights;
     private int _flPick;
     private List<FFLogsClient.LogCast>? _flCasts;
-    private Dictionary<uint, long>? _flDamage;
+    private Dictionary<uint, FFLogsClient.AbilityDamage>? _flDamage;
     private int _flCastsForFight = -1;
     private string _flIdBuf = "";
     private string _flSecretBuf = "";
@@ -2543,7 +2575,7 @@ public class SheetViewWindow : Window
             {
                 var casts = await _plugin.FFLogs.GetCastsAsync(id, secret, code, fight);
                 // Damage grades are a bonus: a fetch hiccup must not block the import.
-                Dictionary<uint, long>? dmg = null;
+                Dictionary<uint, FFLogsClient.AbilityDamage>? dmg = null;
                 try { dmg = await _plugin.FFLogs.GetDamageAsync(id, secret, code, fight); }
                 catch (Exception dex) { Service.Log.Warning(dex, "FrenMits: FFLogs damage fetch failed"); }
                 _flCasts = casts;
