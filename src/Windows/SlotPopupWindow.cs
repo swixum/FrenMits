@@ -62,36 +62,37 @@ public class SlotPopupWindow : Window
             ImGui.TextDisabled("Your slot:");
             ImGui.SameLine();
 
-            var idx = Math.Max(0, Array.FindIndex(_slots,
-                s => s.Equals(_fight.Slot, StringComparison.OrdinalIgnoreCase)));
+            // No slot yet must SHOW as no slot ("(pick)"), never as the first
+            // entry: a combo that pre-displays MT reads as already saved, so
+            // picking that same entry did nothing and OK saved nothing either.
+            var current = _fight.Slot ?? "";
+            var preview = string.IsNullOrEmpty(current) ? "(pick)" : current;
             ImGui.SetNextItemWidth(90f);
-            if (ImGui.Combo("##slotpick", ref idx, _slots, _slots.Length)
-                && !string.Equals(_slots[idx], _fight.Slot, StringComparison.OrdinalIgnoreCase))
-                _plugin.SetSlot(_fight, _slots[idx]);
+            if (ImGui.BeginCombo("##slotpick", preview))
+            {
+                foreach (var slot in _slots)
+                    if (ImGui.Selectable(slot, slot.Equals(current, StringComparison.OrdinalIgnoreCase))
+                        && !slot.Equals(current, StringComparison.OrdinalIgnoreCase))
+                        _plugin.SetSlot(_fight, slot);
+                ImGui.EndCombo();
+            }
 
             ImGui.SameLine();
             if (ImGui.Button("OK", new Vector2(50, 0))) IsOpen = false;
 
-            // The global role picker, popup-sized: one pick maps every official
-            // fight to that role's slot (custom sheets have no canonical roles).
-            if (Builtin.Has(_fight.TerritoryId))
+            // One question, not two: instead of a separate role picker asking the
+            // same thing again, the picked slot can be carried to every fight.
+            if (Builtin.Has(_fight.TerritoryId) && !string.IsNullOrEmpty(_fight.Slot))
             {
-                ImGui.AlignTextToFramePadding();
-                ImGui.TextDisabled("Role:");
-                ImGui.SameLine();
-                var roles = Builtin.Roles;
-                var rIdx = string.IsNullOrEmpty(C.RoleSelection)
-                    ? -1 : Array.IndexOf(roles, C.RoleSelection);
-                ImGui.SetNextItemWidth(120f);
-                if (ImGui.BeginCombo("##rolepick", rIdx >= 0 ? roles[rIdx] : "(pick)"))
+                var role = Builtin.Roles.FirstOrDefault(r => string.Equals(
+                    Builtin.RoleSlot(_fight.TerritoryId, r), _fight.Slot, StringComparison.OrdinalIgnoreCase));
+                if (role != null && !string.Equals(C.RoleSelection, role, StringComparison.OrdinalIgnoreCase))
                 {
-                    foreach (var role in roles)
-                        if (ImGui.Selectable(role, role == C.RoleSelection))
-                            _plugin.SetRoleForAll(role);
-                    ImGui.EndCombo();
+                    if (ImGui.SmallButton($"Use {role} in every fight"))
+                        _plugin.SetRoleForAll(role);
+                    if (ImGui.IsItemHovered())
+                        ImGui.SetTooltip("Sets this role's slot in every fight that has a sheet, so you only pick once.");
                 }
-                ImGui.SameLine();
-                ImGui.TextDisabled("(every fight)");
             }
 
             if (string.IsNullOrEmpty(_fight.Slot))
