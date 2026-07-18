@@ -440,7 +440,9 @@ public class ConfigWindow : Window, IDisposable
     {
         ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
-        ImGui.TextColored(new Vector4(0.80f, 0.58f, 0.38f, 1f), text);
+        // The FrenMits accent (same orange the selected row uses), so the
+        // headings tie into the theme instead of reading muddy brown.
+        ImGui.TextColored(new Vector4(0.96f, 0.51f, 0.23f, 1f), text);
         ImGui.Spacing();
     }
 
