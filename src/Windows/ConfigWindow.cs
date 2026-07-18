@@ -429,7 +429,7 @@ public class ConfigWindow : Window, IDisposable
         SidebarHeading("SETTINGS");
         if (NavItem(FontAwesomeIcon.Stopwatch, "Timer", null, _nav == NavKind.Timer)) _nav = NavKind.Timer;
         if (NavItem(FontAwesomeIcon.Desktop, "Display", null, _nav == NavKind.Display)) _nav = NavKind.Display;
-        if (NavItem(FontAwesomeIcon.ListUl, "Next Mits", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
+        if (NavItem(FontAwesomeIcon.ListUl, "Next Mits & Timeline", null, _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", null, _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
         ImGui.Spacing();
@@ -2722,8 +2722,8 @@ public class ConfigWindow : Window, IDisposable
         if (Section("Next-mits timeline (separate window)"))
         {
             // The timeline grew into its own thing; it lives on its own page now.
-            ImGui.TextDisabled("The upcoming-mits board has its own page: Next Mits in the sidebar.");
-            if (ImGui.Button("Open Next Mits settings")) _nav = NavKind.NextMits;
+            ImGui.TextDisabled("The upcoming-mits board has its own page: Next Mits & Timeline in the sidebar.");
+            if (ImGui.Button("Open Next Mits & Timeline settings")) _nav = NavKind.NextMits;
         }
     }
 
@@ -2731,7 +2731,7 @@ public class ConfigWindow : Window, IDisposable
 
     private void DrawNextMitsPage()
     {
-        SeparatorText("Next Mits");
+        SeparatorText("Next Mits & Timeline");
         ImGui.TextWrapped("Your window of what's coming: every upcoming mechanic as a countdown bar with "
                           + "the mits planned for it underneath. Your next press glows gold, then turns green the "
                           + "moment the main call fires.");
