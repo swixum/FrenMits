@@ -54,24 +54,41 @@ public class RecapWindow : Window
     {
         var r = _plugin.Recap;
 
-        if (Button("Capture now")) r.Capture();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Snapshot the mits up right now (before the boss resets).");
-        ImGui.SameLine();
-        if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text; paste it into Discord or your notes.");
-        ImGui.SameLine();
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(Vec(0xFF81766E), r.CapturedAt == default
-            ? "no capture yet"
-            : $"captured {(int)(DateTime.UtcNow - r.CapturedAt).TotalSeconds}s ago");
-
         if (!r.HasData)
         {
+            // Empty state: say what will appear here and how to get it, and
+            // offer the sample so the window can be judged without a wipe.
             ImGui.Spacing();
-            ImGui.TextColored(Vec(0xFF81766E), "Do a pull; the boss's mits, the party's cooldowns and");
-            ImGui.TextColored(Vec(0xFF81766E), "anything missing will show here.");
+            ImGui.TextColored(Vec(Theme.Accent), "No pull recorded yet");
+            ImGui.Spacing();
+            if (C.RecapEnabled)
+            {
+                ImGui.TextColored(Vec(0xFF81766E), "Do a pull; the boss's mits, the party's cooldowns and");
+                ImGui.TextColored(Vec(0xFF81766E), "anything missing will show here after it ends.");
+            }
+            else
+            {
+                ImGui.TextColored(Vec(0xFF81766E), "The recap is switched off. Enable it on the");
+                ImGui.TextColored(Vec(0xFF81766E), "Party Mit Recap page of the FrenMits settings.");
+            }
+            ImGui.Spacing();
+            if (Button("Load sample pull")) r.LoadSample();
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fill the recap with a fake pull to see how everything reads.");
             return;
         }
+
+        // ---- header: boss + wipe time, Copy on the right -------------------
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(Vec(Theme.Accent), string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName);
+        if (r.CaptureElapsed > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(Vec(0xFF81766E), $"·  ended {Mmss(r.CaptureElapsed)} in");
+        }
+        var copyW = ImGui.CalcTextSize("Copy").X + ImGui.GetStyle().FramePadding.X * 2;
+        ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 12, ImGui.GetContentRegionMax().X - copyW));
+        if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text; paste it into Discord or your notes.");
 
         // Pull history: the last few wipes stay browsable, newest first, so a
         // fix can be checked against the pull it was made for.
@@ -99,25 +116,28 @@ public class RecapWindow : Window
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Newer pull");
         }
 
-        // Boss name + fight time of the capture.
+        // At a glance: one chip per question a raid lead asks after a wipe.
+        // Green = fine, amber/red = look closer; the sections below hold the
+        // detail in the same order.
         ImGui.Dummy(new Vector2(0, 2));
-        ImGui.TextColored(Vec(Theme.Accent), string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName);
-        if (r.CaptureElapsed > 0)
-        {
-            ImGui.SameLine();
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(Vec(0xFF81766E), $"·  {(int)r.CaptureElapsed / 60}:{(int)r.CaptureElapsed % 60:00} in");
-        }
-
-        // Headline: missing standard raid mits.
-        ImGui.Spacing();
         var missed = r.NotSeen();
-        if (missed.Count == 0)
+        Chip("raid mits", $"{MitRecap.StandardRaidMits.Length - missed.Count}/{MitRecap.StandardRaidMits.Length}",
+            missed.Count == 0 ? Theme.Good : Theme.Warn);
+        ImGui.SameLine(0, 6);
+        Chip("deaths", r.LastDeaths.Count.ToString(), r.LastDeaths.Count == 0 ? Theme.Good : 0xFF5050E0);
+        if (r.Shown.PlanTotal > 0)
         {
-            ImGui.TextColored(Vec(Theme.Good), "All four standard raid mits landed this pull.");
+            ImGui.SameLine(0, 6);
+            Chip("on plan", $"{r.Shown.PlanGood}/{r.Shown.PlanTotal}",
+                r.Shown.PlanGood == r.Shown.PlanTotal ? Theme.Good : Theme.Warn);
         }
-        else
+        ImGui.SameLine(0, 6);
+        Chip("unused CDs", r.Shown.Unused.Count.ToString(), r.Shown.Unused.Count == 0 ? Theme.Good : Theme.Warn);
+
+        // Missing standard raid mits, spelled out.
+        if (missed.Count > 0)
         {
+            ImGui.Spacing();
             ImGui.TextColored(Vec(Theme.Warn), "Never landed:  " + string.Join("   ", missed));
             ImGui.TextColored(Vec(0xFF81766E), "comp-dependent: no caster = no Addle, no MCH = no Dismantle");
         }
@@ -163,8 +183,8 @@ public class RecapWindow : Window
             }
         }
 
-        // What's up at the capture.
-        Header("Up at capture");
+        // What was still running when the pull ended.
+        Header("Still up at the end");
         if (r.Snapshot.Count == 0) ImGui.TextColored(Vec(0xFF81766E), "Nothing was active.");
         else foreach (var m in r.Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
         {
@@ -177,7 +197,20 @@ public class RecapWindow : Window
 
         // Full timeline: ONE row per mechanic, its mits inline with coverage
         // counts, so a wipe reads at a glance instead of as a long scroll.
-        Header("Applied this pull");
+        Header("Timeline");
+        ImGui.TextColored(Vec(0xFF81766E), "mit colors:");
+        foreach (var (kind, label) in new[]
+                 {
+                     (MitTypes.Kind.Party, "party"), (MitTypes.Kind.Tank, "tank"),
+                     (MitTypes.Kind.Personal, "personal"),
+                 })
+        {
+            ImGui.SameLine();
+            var kc = MitTypes.Color(kind, C);
+            ImGui.TextColored(kc != 0 ? Vec(kc) : Vec(0xFFECE8E6), label);
+        }
+        ImGui.SameLine();
+        ImGui.TextColored(Vec(0xFF81766E), "· 7/8 = party coverage, hover for names");
         var events = r.LastEvents();
         var party = r.LastParty;
         var fight = _plugin.ActiveFight();
@@ -388,6 +421,24 @@ public class RecapWindow : Window
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), text.ToUpperInvariant());
         ImGui.Spacing();
     }
+
+    // Small stat pill for the at-a-glance row: grey label, colored value.
+    private static void Chip(string label, string value, uint valueColor)
+    {
+        var pad = new Vector2(8, 3);
+        var lSz = ImGui.CalcTextSize(label);
+        var vSz = ImGui.CalcTextSize(value);
+        var size = new Vector2(lSz.X + vSz.X + 5 + pad.X * 2, ImGui.GetTextLineHeight() + pad.Y * 2);
+        var p = ImGui.GetCursorScreenPos();
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddRectFilled(p, p + size, Theme.PanelBg, 5f);
+        dl.AddRect(p, p + size, 0xFF2F2724, 5f);
+        dl.AddText(p + pad, 0xFF81766E, label);
+        dl.AddText(p + pad + new Vector2(lSz.X + 5, 0), valueColor, value);
+        ImGui.Dummy(size);
+    }
+
+    private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
 
     private static bool Button(string label) => ImGui.Button(label);
     private static Vector4 Vec(uint abgr) => new(

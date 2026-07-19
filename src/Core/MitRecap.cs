@@ -81,6 +81,9 @@ public class MitRecap
     public DateTime CapturedAt => History.Count > 0 ? History[0].CapturedAt : default;
     public uint Territory => Shown.Territory;
     public bool PopupDismissed { get; private set; }
+    // True while a config-page preview is showing: lets the popup appear for
+    // placement even when the recap itself is switched off.
+    public bool Previewing { get; private set; }
     public List<Death> LastDeaths => Shown.Deaths;
     public string BossName => Shown.BossName;
     public float CaptureElapsed => Shown.CaptureElapsed;
@@ -96,7 +99,7 @@ public class MitRecap
     private Guid _pullId = Guid.NewGuid();
 
     // Hide the post-wipe popup without clearing the recap data.
-    public void Dismiss() => PopupDismissed = true;
+    public void Dismiss() { PopupDismissed = true; Previewing = false; }
 
     public MitRecap(Plugin plugin) => _plugin = plugin;
 
@@ -104,7 +107,7 @@ public class MitRecap
     {
         try
         {
-            if (!_plugin.Config.RecapAutoCapture) { _wasRunning = false; return; }
+            if (!_plugin.Config.RecapEnabled) { _wasRunning = false; return; }
             // Only track inside an actual duty/instance — never in the open world,
             // hunts, cities, etc.
             if (!InDuty()) { _wasRunning = false; return; }
@@ -194,6 +197,7 @@ public class MitRecap
     {
         Push(BuildPull(_snapLive));
         PopupDismissed = false;
+        Previewing = false;
     }
 
     private PullRecap BuildPull(List<Active> snapshot)
@@ -220,8 +224,8 @@ public class MitRecap
         return pr;
     }
 
-    // Newest first; a mid-pull "Capture now" of the same pull upgrades in place
-    // instead of duplicating it when the wipe freeze lands moments later.
+    // Newest first; a re-freeze of the same pull upgrades in place instead of
+    // duplicating it.
     private void Push(PullRecap p)
     {
         var i = History.FindIndex(h => h.PullId == p.PullId);
@@ -484,32 +488,13 @@ public class MitRecap
         return events;
     }
 
-    // Manual capture ("Capture now") — re-scans the current state right now.
-    public void Capture()
-    {
-        try
-        {
-            var snap = new List<Active>();
-            foreach (var (src, onBoss, chara) in Sources())
-            {
-                if (onBoss) _liveBoss = chara.Name.ToString();
-                foreach (var m in MitsOn(chara, onBoss))
-                    snap.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
-            }
-            var f = _plugin.ActiveFight();
-            _liveElapsed = f != null ? _plugin.ElapsedFor(f) : _plugin.Timer.Elapsed;
-            Push(BuildPull(snap));
-            PopupDismissed = false;
-        }
-        catch { /* ignore */ }
-    }
-
     // Make the popup + window appear now (for placing them) without real data.
     public void ShowTestPopup()
     {
         if (History.Count == 0) LoadSample();
         if (History.Count > 0) History[0].CapturedAt = DateTime.UtcNow;
         PopupDismissed = false;
+        Previewing = true;
     }
 
     private static bool InDuty()
@@ -678,7 +663,7 @@ public class MitRecap
         if (Snapshot.Count > 0)
         {
             sb.AppendLine();
-            sb.AppendLine("Up at capture:");
+            sb.AppendLine("Still up at the end:");
             foreach (var m in Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
                 sb.AppendLine($"  {m.Mit} - {(m.OnBoss ? "on boss" : m.Source)} ({m.Remaining:0}s)");
         }

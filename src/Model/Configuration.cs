@@ -128,12 +128,10 @@ public class Configuration : IPluginConfiguration
     public bool TimelineLocked { get; set; }
     public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);
 
-    // Capture the recap automatically every pull (always on unless unticked) so you
-    // never have to trigger it by hand.
-    public bool RecapAutoCapture { get; set; } = true;
-    // Auto-show the "Mit Recap" popup after every wipe. Off by default (opt-in);
-    // when on it always appears. Both the popup and the recap window are movable.
-    public bool ShowRecapButton { get; set; } = false;
+    // Party Mit Recap master switch. Off by default; when on, every pull is
+    // tracked automatically and a small "Mit Recap" popup offers the recap
+    // after each wipe. Both the popup and the recap window are movable.
+    public bool RecapEnabled { get; set; }
     public Vector2 RecapPopupPosition { get; set; } = new(0.5f, 0.28f);
     public bool RecapPopupLocked { get; set; }
 

@@ -6,7 +6,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The small post-wipe popup: when "auto-show recap" is on it appears after every
+// The small post-wipe popup: when the recap is enabled it appears after every
 // pull ends, offering to open the recap window. Themed to match the plugin, with
 // an accent border + button. Movable (drag it; position saved) or lockable.
 public class RecapButtonWindow : Window
@@ -55,7 +55,9 @@ public class RecapButtonWindow : Window
 
     public override bool DrawConditions()
     {
-        if (!C.ShowRecapButton || Plugin.CutsceneActive) return false;
+        // Previewing from the config page shows the popup for placement even
+        // while the recap itself is switched off.
+        if ((!C.RecapEnabled && !_plugin.Recap.Previewing) || Plugin.CutsceneActive) return false;
         if (Service.Condition[ConditionFlag.InCombat]) return false; // only after the pull ends
         if (_plugin.Recap.PopupDismissed || _plugin.Recap.CapturedAt == default) return false;
         return (DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds < 30; // brief window after a wipe

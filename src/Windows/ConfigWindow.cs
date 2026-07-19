@@ -2229,13 +2229,10 @@ public class ConfigWindow : Window, IDisposable
                           + "mits never landed.");
         ImGui.Spacing();
 
-        C.RecapAutoCapture = CfgCheck("Auto-capture the recap every pull", C.RecapAutoCapture);
-        Tip("On by default: the recap is captured automatically as you fight, so you never have to trigger it. Untick to turn the whole tool off.");
+        C.RecapEnabled = CfgCheck("Enable Party Mit Recap", C.RecapEnabled);
+        Tip("Off by default. When on, every pull is tracked automatically and a small \"Mit Recap\" popup offers the recap after each wipe.");
 
-        C.ShowRecapButton = CfgCheck("Show the recap popup after every wipe", C.ShowRecapButton);
-        Tip("When on, a small \"Mit Recap\" popup appears after every pull ends so you can open the recap. Off = it never appears.");
-
-        if (C.ShowRecapButton)
+        if (C.RecapEnabled)
         {
             var locked = C.RecapPopupLocked;
             if (GreenCheckbox("Lock popup position", ref locked)) { C.RecapPopupLocked = locked; _plugin.RecapButtonWindow.RequestReposition(); C.Save(); }
@@ -2249,17 +2246,13 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Preview"))
         {
-            // A real capture previews better than the fake one, and must not be
+            // A real pull previews better than the fake one, and must not be
             // clobbered just to drag windows around.
-            if (_plugin.Recap.CapturedAt == default) _plugin.Recap.LoadSample();
+            if (!_plugin.Recap.HasData) _plugin.Recap.LoadSample();
             _plugin.Recap.ShowTestPopup();          // popup appears so it can be dragged
             _plugin.RecapWindow.IsOpen = true;      // window opens for placement too
         }
-        Tip("Fills the recap with a fake pull and pops up the window + popup, so you can see the look and drag everything into place without wiping.");
-        ImGui.SameLine();
-        ImGui.TextDisabled(_plugin.Recap.CapturedAt == default
-            ? "no capture yet"
-            : $"last captured {(int)(DateTime.UtcNow - _plugin.Recap.CapturedAt).TotalSeconds}s ago");
+        Tip("Fills the recap with a sample pull and pops up the window + popup, so you can see the look and drag everything into place without wiping.");
     }
 
     private void DrawCombatTimerPage()
