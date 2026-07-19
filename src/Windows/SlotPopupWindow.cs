@@ -100,9 +100,8 @@ public class SlotPopupWindow : Window
                 ImGui.EndCombo();
             }
 
-            // Role pick, popup-sized: one pick maps every official fight to that
-            // role's slot (custom sheets have no canonical roles).
-            if (Builtin.Has(_fight.TerritoryId))
+            // Role pick, popup-sized: one pick maps every fight with a sheet to
+            // that role's slot - custom sheets speak the standard codes too.
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.TextDisabled("Role:");

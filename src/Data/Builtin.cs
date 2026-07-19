@@ -63,14 +63,16 @@ public static class Builtin
     public static readonly string[] Roles =
         { "Main Tank", "Off Tank", "WHM", "AST", "SCH", "SGE", "Melee 1", "Melee 2", "Phys Ranged", "Caster" };
 
+    // Healer roles carry the seat-group fallback (WHM/AST sit H1, SCH/SGE sit
+    // H2) for custom sheets that use bare H1/H2 healer columns.
     static readonly Dictionary<string, string[]> RoleSlotCodes = new()
     {
         ["Main Tank"] = new[] { "T1", "MT" },
         ["Off Tank"] = new[] { "T2", "OT" },
-        ["WHM"] = new[] { "WHM" },
-        ["AST"] = new[] { "AST" },
-        ["SCH"] = new[] { "SCH" },
-        ["SGE"] = new[] { "SGE" },
+        ["WHM"] = new[] { "WHM", "H1" },
+        ["AST"] = new[] { "AST", "H1" },
+        ["SCH"] = new[] { "SCH", "H2" },
+        ["SGE"] = new[] { "SGE", "H2" },
         ["Melee 1"] = new[] { "M1", "D1" },
         ["Melee 2"] = new[] { "M2", "D2" },
         ["Phys Ranged"] = new[] { "R1", "D3", "R" },
@@ -79,11 +81,17 @@ public static class Builtin
 
     // The slot code a given fight uses for a canonical role, or null if it has none.
     public static string? RoleSlot(uint territory, string role)
+        => RoleSlotIn(Slots(territory), role);
+
+    // Same, resolved against ANY sheet's column list (custom sheets included -
+    // since the slot standard they speak the same codes). Returns the sheet's
+    // own column string so the caller can apply it verbatim.
+    public static string? RoleSlotIn(IReadOnlyList<string> slots, string role)
     {
         if (string.IsNullOrEmpty(role) || !RoleSlotCodes.TryGetValue(role, out var codes)) return null;
-        var slots = Slots(territory);
         foreach (var c in codes)
-            if (slots.Contains(c, StringComparer.OrdinalIgnoreCase)) return c;
+            foreach (var s in slots)
+                if (string.Equals(s, c, StringComparison.OrdinalIgnoreCase)) return s;
         return null;
     }
 
@@ -281,28 +289,36 @@ public static class Builtin
     {
         var slots = Slots(territory);
         if (slots.Length == 0) return "";
+        var hit = DefaultSlotForJobIn(slots, jobAbbr);
+        return hit.Length > 0 ? hit : slots[0];
+    }
 
-        var info = Jobs.ByAbbreviation(jobAbbr);
-        if (info is { } job)
+    // Same guess against ANY sheet's column list. Unlike the built-in wrapper
+    // above there is NO first-column fallback: "" means no confident match, so
+    // a custom sheet asks (entry popup) instead of guessing someone's seat.
+    public static string DefaultSlotForJobIn(IReadOnlyList<string> slots, string? jobAbbr)
+    {
+        if (slots.Count == 0 || Jobs.ByAbbreviation(jobAbbr) is not { } job) return "";
+
+        // Healers map to their own column (or their H1/H2 seat group).
+        if (job.Role == JobRole.Healer)
+            return RoleSlotIn(slots, job.Abbreviation) ?? "";
+
+        // Any job whose own abbreviation is a column maps directly.
+        foreach (var s in slots)
+            if (string.Equals(s, job.Abbreviation, StringComparison.OrdinalIgnoreCase)) return s;
+
+        var prefs = job.Role switch
         {
-            // Healers (and any role whose own abbreviation is a column) map directly.
-            var own = slots.FirstOrDefault(s => string.Equals(s, job.Abbreviation, StringComparison.OrdinalIgnoreCase));
-            if (own != null) return own;
-
-            var prefs = job.Role switch
-            {
-                JobRole.Tank => new[] { "T1", "MT", "T2", "OT" },
-                JobRole.Melee => new[] { "M1", "D1", "M2", "D2" },
-                JobRole.PhysicalRanged => new[] { "R1", "D3", "R" },
-                JobRole.Caster => new[] { "R2", "D4", "Caster" },
-                _ => Array.Empty<string>(),
-            };
-            foreach (var p in prefs)
-            {
-                var hit = slots.FirstOrDefault(s => string.Equals(s, p, StringComparison.OrdinalIgnoreCase));
-                if (hit != null) return hit;
-            }
-        }
-        return slots[0];
+            JobRole.Tank => new[] { "T1", "MT", "T2", "OT" },
+            JobRole.Melee => new[] { "M1", "D1", "M2", "D2" },
+            JobRole.PhysicalRanged => new[] { "R1", "D3", "R" },
+            JobRole.Caster => new[] { "R2", "D4", "Caster" },
+            _ => Array.Empty<string>(),
+        };
+        foreach (var p in prefs)
+            foreach (var s in slots)
+                if (string.Equals(s, p, StringComparison.OrdinalIgnoreCase)) return s;
+        return "";
     }
 }

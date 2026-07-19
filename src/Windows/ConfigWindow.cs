@@ -602,12 +602,18 @@ public class ConfigWindow : Window, IDisposable
         };
     }
 
-    // True if every built-in fight is currently on the slot this role maps to.
+    // True if every fight with a sheet is currently on the slot this role maps
+    // to. A sheet with no column for the role can't disagree, so it passes.
     private bool RoleActiveEverywhere(string role)
     {
-        var fights = C.Fights.Where(f => Builtin.Has(f.TerritoryId)).ToList();
+        var fights = C.Fights.Where(f => Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0).ToList();
         return fights.Count > 0 && fights.All(f =>
-            string.Equals(f.Slot, Builtin.RoleSlot(f.TerritoryId, role), StringComparison.OrdinalIgnoreCase));
+        {
+            var want = Builtin.Has(f.TerritoryId)
+                ? Builtin.RoleSlot(f.TerritoryId, role)
+                : Builtin.RoleSlotIn(f.CustomSlots, role);
+            return want == null || string.Equals(f.Slot, want, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     // Apply the chosen role to every built-in fight, loading each one's matching

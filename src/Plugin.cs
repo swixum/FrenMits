@@ -676,17 +676,25 @@ public sealed class Plugin : IDalamudPlugin
         }
     }
 
-    // Apply a canonical role to every built-in fight (the sidebar's YOUR ROLE
-    // and the entry popup both route here).
+    // Apply a canonical role to every fight that has a sheet (the sidebar's
+    // YOUR ROLE and the entry popup both route here). Custom sheets speak the
+    // same slot codes since the standard, so they follow the pick too.
     public void SetRoleForAll(string role)
     {
         Config.RoleSelection = role;
         foreach (var f in Config.Fights)
         {
-            if (!Builtin.Has(f.TerritoryId)) continue;
-            var slot = Builtin.RoleSlot(f.TerritoryId, role);
-            if (string.IsNullOrEmpty(slot)) continue;
-            Builtin.ApplySlot(f, slot!);
+            if (Builtin.Has(f.TerritoryId))
+            {
+                var slot = Builtin.RoleSlot(f.TerritoryId, role);
+                if (!string.IsNullOrEmpty(slot)) Builtin.ApplySlot(f, slot!);
+            }
+            else if (f.CustomSlots.Count > 0)
+            {
+                // A sheet without a column for this role just keeps its pick.
+                var slot = Builtin.RoleSlotIn(f.CustomSlots, role);
+                if (slot != null) SwapCustomSlot(f, slot);
+            }
         }
         Config.Save();
     }
@@ -702,11 +710,18 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
             return;
         }
+        SwapCustomSlot(fight, slot);
+        Config.Save();
+    }
+
+    // The custom-sheet half of SetSlot: stash the current column, make the
+    // target's saved list live (Lines IS SavedSlots[Slot], the alias invariant).
+    private void SwapCustomSlot(FightProfile fight, string slot)
+    {
         if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;
         fight.Slot = slot;
         fight.Lines = fight.SavedSlots.TryGetValue(slot, out var lines) ? lines : new System.Collections.Generic.List<MitLine>();
         fight.SavedSlots[slot] = fight.Lines;
-        Config.Save();
     }
 
     // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
@@ -1055,7 +1070,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void AutoLoadForTerritory(uint territory)
     {
-        if (!Builtin.Has(territory)) return;
+        if (!Builtin.Has(territory)) { AutoSlotCustomSheet(territory); return; }
 
         // Prefer the enabled profile so this matches what ActiveFight will
         // actually drive when duplicates exist (first enabled wins there too).
@@ -1089,6 +1104,35 @@ public sealed class Plugin : IDalamudPlugin
         Config.Save();
 
         Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {fight.Slot}, +{added} lines.");
+    }
+
+    // Custom sheets follow the sidebar Role/Job on zone-in the same way
+    // built-ins do - but only when no valid column is picked yet; a column you
+    // chose by hand always stays.
+    private void AutoSlotCustomSheet(uint territory)
+    {
+        var fight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory && f.CustomSlots.Count > 0);
+        if (fight == null) return;
+        if (!string.IsNullOrEmpty(fight.Slot)
+            && fight.CustomSlots.Contains(fight.Slot, StringComparer.OrdinalIgnoreCase)) return;
+
+        var slot = PreferredDefaultSlotIn(fight.CustomSlots);
+        if (slot.Length == 0) return; // no confident match: the entry popup asks
+
+        SwapCustomSlot(fight, slot);
+        Config.Save();
+        Service.Log.Information($"FrenMits auto-slot: \"{fight.Name}\" -> {slot}.");
+    }
+
+    // PreferredDefaultSlot against an arbitrary column list: role pick first,
+    // then best-guess by job; "" when there is nothing safe to guess (unknown
+    // job, or the sheet has no matching column).
+    private string PreferredDefaultSlotIn(System.Collections.Generic.IReadOnlyList<string> slots)
+    {
+        var roleSlot = Builtin.RoleSlotIn(slots, Config.RoleSelection);
+        if (!string.IsNullOrEmpty(roleSlot)) return roleSlot!;
+        if (LocalPlayer is { } p && Jobs.ByRowId(p.ClassJob.RowId) is null) return "";
+        return Builtin.DefaultSlotForJobIn(slots, ActiveJobAbbreviation());
     }
 
     // Default slot for a fight with none picked yet: the global role pick (if set
