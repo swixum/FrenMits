@@ -233,7 +233,7 @@ public class TimelineWindow : Window
             .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
             .ToList();
 
-        if (HeaderVisible) DrawBoardHeader(fight.Name, elapsed, width);
+        if (HeaderVisible) DrawBoardHeader(fight, elapsed, width);
 
         // Attach each of your presses to its single NEAREST row, so a mechanic
         // repeating a few seconds apart can't show one press under both bars.
@@ -326,7 +326,7 @@ public class TimelineWindow : Window
     private bool HeaderVisible => C.UpcomingShowHeader
         && (C.UpcomingHeaderTitle || C.UpcomingHeaderClock || C.UpcomingHeaderRule);
 
-    private void DrawBoardHeader(string name, float elapsed, float width)
+    private void DrawBoardHeader(FightProfile fight, float elapsed, float width)
     {
         var dl = ImGui.GetWindowDrawList();
         var pos = ImGui.GetCursorScreenPos();
@@ -342,6 +342,27 @@ public class TimelineWindow : Window
             BoardText(dl, new Vector2(pos.X + width - clockW, pos.Y), accent, clock);
         }
 
+        // Your seat, as a little badge left of the clock ("T1 · WAR").
+        var badgeW = 0f;
+        if (C.UpcomingHeaderSlot && !fight.TimelineOnly && !string.IsNullOrEmpty(fight.Slot))
+        {
+            var job = _plugin.ActiveJobAbbreviation();
+            var btext = job != null && !string.Equals(job, fight.Slot, StringComparison.OrdinalIgnoreCase)
+                ? $"{fight.Slot} · {job}" : fight.Slot;
+            var ts = ImGui.CalcTextSize(btext);
+            var padX = 6f;
+            var bx = pos.X + width - clockW - (C.UpcomingHeaderClock ? 10f : 0f) - ts.X - padX * 2f;
+            if (bx > pos.X + 60f) // only when the header has room for it
+            {
+                var r0 = new Vector2(bx, pos.Y - 1f);
+                var r1 = new Vector2(bx + ts.X + padX * 2f, pos.Y + lineH + 1f);
+                dl.AddRectFilled(r0, r1, 0xB0000000 | BoardPanelRgb, 4f);
+                dl.AddRect(r0, r1, (accent & 0x00FFFFFF) | 0x66000000, 4f);
+                BoardText(dl, new Vector2(bx + padX, pos.Y), accent, btext);
+                badgeW = ts.X + padX * 2f + 8f;
+            }
+        }
+
         if (C.UpcomingHeaderTitle)
         {
             // The little FrenMits tick: an accent diamond in front of the name.
@@ -352,9 +373,10 @@ public class TimelineWindow : Window
                 c + new Vector2(0f, d), c + new Vector2(-d, 0f), accent);
 
             var nameX = 2f * d + 8f;
-            var clipW = C.UpcomingHeaderClock ? MathF.Max(40f, width - clockW - 10f) : width;
+            var clipW = C.UpcomingHeaderClock || badgeW > 0f
+                ? MathF.Max(40f, width - clockW - badgeW - 10f) : width;
             dl.PushClipRect(pos, pos + new Vector2(clipW, lineH + 2f), true);
-            BoardText(dl, pos + new Vector2(nameX, 0f), BoardBright, name);
+            BoardText(dl, pos + new Vector2(nameX, 0f), BoardBright, fight.Name);
             dl.PopClipRect();
         }
 
@@ -366,6 +388,22 @@ public class TimelineWindow : Window
             dl.AddRectFilledMultiColor(new Vector2(pos.X, y), new Vector2(pos.X + width, y + 2f),
                 accent, accent & 0x00FFFFFF, accent & 0x00FFFFFF, accent);
             h += (textH > 0f ? 3f : 0f) + 2f;
+        }
+
+        // Trust line: what the clock last locked onto, for a few seconds after
+        // each resync snap, fading out as it goes.
+        if (C.UpcomingHeaderSync && _plugin.Sync.LastSyncNice.Length > 0)
+        {
+            var age = (float)(DateTime.UtcNow - _plugin.Sync.LastSyncAt).TotalSeconds;
+            if (age >= 0f && age < 8f && _plugin.Timer.Running)
+            {
+                var alpha = (byte)(age < 6f ? 0xA8 : (int)(0xA8 * (8f - age) / 2f));
+                var col = ((uint)alpha << 24) | (BoardMuted & 0x00FFFFFF);
+                dl.PushClipRect(new Vector2(pos.X, pos.Y + h + 2f), new Vector2(pos.X + width, pos.Y + h + 2f + lineH), true);
+                BoardText(dl, new Vector2(pos.X, pos.Y + h + 2f), col, "synced · " + _plugin.Sync.LastSyncNice);
+                dl.PopClipRect();
+                h += lineH + 2f;
+            }
         }
         ImGui.Dummy(new Vector2(width, h + 4f));
     }
@@ -430,6 +468,7 @@ public class TimelineWindow : Window
     {
         var parts = new List<string>();
         var icon = 0u;
+        var cdWarn = false;
         foreach (var l in mine)
         {
             var text = Icons.DisplayAction(l.ActionFor(job), job);
@@ -441,12 +480,16 @@ public class TimelineWindow : Window
             // Cooldown-aware: flag a press that won't be back up by ITS call
             // moment (the cue clock, so per-line offsets are honored).
             if (C.CooldownAwareCalls && Cooldowns.Remaining(l.Action) is { } cd && cd > l.CueTime - elapsed + 0.5f)
-                text += " (cd)";
+            { text += " (cd)"; cdWarn = true; }
             if (!parts.Contains(text)) parts.Add(text);
             // Icon from the first line that actually contributes text.
             if (icon == 0 && C.ShowAbilityIcon) icon = Icons.For(l, job);
         }
         if (parts.Count == 0) return;
+        // A press that won't be back in time BLINKS between two warning reds,
+        // so it catches the eye mid-fight instead of hiding in muted text.
+        if (cdWarn)
+            accent = ImGui.GetTime() % 0.9 < 0.45 ? 0xFF4646FF : 0xFF3535B4;
         BoardActionText(string.Join(" + ", parts), icon, accent, width);
     }
 
@@ -497,7 +540,10 @@ public class TimelineWindow : Window
 
     private static string NoteText(FightProfile fight, SheetTimeline.MechRow r)
         => fight.Notes.FirstOrDefault(n => SheetTimeline.MechEquals(n.Mechanic, r.Mechanic)
-                                           && MathF.Abs(n.Time - r.Time) < 4f)?.Text ?? "";
+                                           && MathF.Abs(n.Time - r.Time) < 4f)?.Text
+           // Baked press guidance steps in when the sheet itself has no note
+           // for this row (built-in knowledge, ships with the plugin).
+           ?? (fight.TerritoryId == Builtin.DmuTerritory ? DmuData.PressNote(r.Mechanic) : "");
 
     private static string TimeText(float seconds)
     {

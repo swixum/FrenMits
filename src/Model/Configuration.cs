@@ -96,6 +96,8 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingHeaderTitle { get; set; } = true;   // fight name (+ the accent diamond)
     public bool UpcomingHeaderClock { get; set; } = true;   // fight clock on the right
     public bool UpcomingHeaderRule { get; set; } = true;    // accent underline
+    public bool UpcomingHeaderSlot { get; set; } = true;    // your slot + job badge
+    public bool UpcomingHeaderSync { get; set; } = true;    // brief "synced" note after a resync
     // Board style: the countdown seconds on the right of each bar.
     public bool UpcomingBoardTimeText { get; set; } = true;
 

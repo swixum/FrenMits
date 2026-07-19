@@ -128,6 +128,27 @@ public static class DmuData
     // The "Notes" footer from each phase tab of the sheet, shown at the bottom of
     // the Sheet View. Footnote superscripts are written as "1)" and glyphs the
     // game font can't render are spelled out; otherwise the text is the sheet's.
+    // Short play guidance for key mechanics, shown under a board row when it
+    // goes gold/green and the sheet itself carries no note there. Hard-won
+    // timing knowledge, kept to one line each.
+    public static string PressNote(string mechanic)
+    {
+        var m = (mechanic ?? "").Trim();
+        foreach (var (key, note) in PressNotes)
+            if (m.Contains(key, StringComparison.OrdinalIgnoreCase)) return note;
+        return "";
+    }
+
+    private static readonly (string Key, string Note)[] PressNotes =
+    {
+        ("Ultimate Embrace", "Shield the tank just before it - OT early, MT during the cast."),
+        ("Bowels of Agony", "Prep right after the textbox clears; this covers the autos into Stray Flames/Tsunami too."),
+        ("The Decisive Battle", "Holding Exdeath? Reprisal BOTH bosses before this ends."),
+        ("Stray Apocalypse", "Re-press two GCDs after it so everything is back for Forsaken."),
+        ("Celestriad", "Press during the castbar; the towers after need the coverage."),
+        ("Forsaken", "The wall. Everything the party has goes here."),
+    };
+
     public static string PhaseNotes(string phase) => phase switch
     {
         "P1" => "All mechanics require shields!\n"

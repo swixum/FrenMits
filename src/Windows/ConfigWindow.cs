@@ -2557,6 +2557,12 @@ public class ConfigWindow : Window, IDisposable
                     C.UpcomingHeaderClock = CfgCheck("Clock", C.UpcomingHeaderClock);
                     ImGui.SameLine(0, 10);
                     C.UpcomingHeaderRule = CfgCheck("Underline", C.UpcomingHeaderRule);
+                    ImGui.SameLine(0, 14);
+                    C.UpcomingHeaderSlot = CfgCheck("Slot badge", C.UpcomingHeaderSlot);
+                    Tip("Your seat and job ('T1 · WAR') as a small badge in the header.");
+                    ImGui.SameLine(0, 14);
+                    C.UpcomingHeaderSync = CfgCheck("Synced note", C.UpcomingHeaderSync);
+                    Tip("Shows what the clock last locked onto for a few seconds after each resync.");
                 }
             }
             else
@@ -2660,6 +2666,7 @@ public class ConfigWindow : Window, IDisposable
         C.UpcomingStyle = 1; C.UpcomingBoardRows = 8; C.UpcomingBoardLookaheadSeconds = 60f;
         C.UpcomingBoardWidth = 340f; C.UpcomingShowHeader = true; C.UpcomingBoardOnlyMine = false;
         C.UpcomingHeaderTitle = true; C.UpcomingHeaderClock = true; C.UpcomingHeaderRule = true;
+        C.UpcomingHeaderSlot = true; C.UpcomingHeaderSync = true;
         C.UpcomingBoardTimeText = true; C.UniversalTimelines = true;
         C.UpcomingBoardAccentColor = 0xFFF6823B; C.UpcomingBoardNextColor = 0xFF28BEFF;
         C.UpcomingBoardNowColor = 0xFF64DC64; C.UpcomingBoardBgOpacity = 0.85f;

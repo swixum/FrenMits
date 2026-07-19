@@ -20,6 +20,11 @@ public class SyncEngine
 
     public string LastSync { get; private set; } = "";
 
+    // Short human-readable form of the last snap + when it landed, for the
+    // board's little trust line ("synced - P2 Ultimate Embrace").
+    public string LastSyncNice { get; private set; } = "";
+    public DateTime LastSyncAt { get; private set; } = DateTime.MinValue;
+
     // Bumps whenever a phase anchor (or boss-appearance anchor) re-bases the clock.
     // The cue engine watches this to know a fresh phase has actually started after
     // a cutscene, rather than releasing on any minor mid-phase drift correction.
@@ -222,6 +227,8 @@ public class SyncEngine
             {
                 _plugin.Timer.SetElapsed(ba.Time - _plugin.PhaseOffsetFor(fight));
                 LastSync = $"[boss] {(casterName.Length > 0 ? casterName : nameId.ToString())} -> {ba.Time:0.0}s (was {elapsed:0.0})";
+                LastSyncNice = string.IsNullOrWhiteSpace(ba.Label) ? casterName : ba.Label;
+                LastSyncAt = DateTime.UtcNow;
                 PhaseSyncGeneration++;
                 _plugin.Diag.Sync(LastSync, elapsed, true);
                 return true;
@@ -300,6 +307,8 @@ public class SyncEngine
         var desiredElapsedNow = best.Time - timeToResolve - _plugin.PhaseOffsetFor(fight);
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
+        LastSyncNice = best.Label;
+        LastSyncAt = DateTime.UtcNow;
         if (best.IsPhase) PhaseSyncGeneration++;
         _plugin.Diag.Sync(LastSync, elapsed, best.IsPhase);
         return true;
