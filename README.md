@@ -26,6 +26,7 @@ if something breaks, an update is usually already on the way.
 
 - Big countdown call for your next mit: ability icons, crisp fonts and colors, place it anywhere.
 - **Next Mits board**: upcoming mechanics as draining countdown bars with your presses underneath. Gold is your next mit, green means press it now.
+- **Mit timeline**: your own calls as a compact running list, ticking down in order through the whole pull, pinned wherever you want it.
 - **A timeline in every duty**: nearly every instanced duty in the game gets a live boss timeline, no sheet needed. Auto-loads on zone-in, starts on the pull, resyncs on boss casts.
 - Optional voice cues: free online neural voices or any Windows voice.
 - **Party Mit Recap** after each pull: what went out, who it covered, what never did.
