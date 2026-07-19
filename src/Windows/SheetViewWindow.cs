@@ -1734,6 +1734,11 @@ public class SheetViewWindow : Window
         public float ReadyAt = -9999f; // ready even for pre-pull (negative-time) rows
         public float LastUse = -9999f;
         public int Order;
+        // Float-early state: the last SOLO line this run planned for this tool,
+        // and how many seconds it could still move earlier (bounded by its buff
+        // still covering its own row, and by when the tool was ready before it).
+        public MitLine? LastLine;
+        public float FloatSlack;
     }
 
     // The planner, patterned on how the reference sheets actually play:
@@ -1817,9 +1822,64 @@ public class SheetViewWindow : Window
         }
         if (tools.Count == 0) return 0;
 
+        // Cooldowns the USER already spent: a hand-written Bell at 1:00 means
+        // the planner's Bell isn't back until 4:00. Without this seeding the
+        // plan could double-book a cooldown against cells it didn't write.
+        static bool ActionHas(string action, string term)
+            => action.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Any(part => string.Equals(part, term, StringComparison.OrdinalIgnoreCase));
+        foreach (var t in tools)
+            foreach (var x in lists[t.Slot])
+            {
+                if (string.IsNullOrWhiteSpace(x.Action) || !ActionHas(x.Action, t.Term)) continue;
+                var back = x.Time + t.Recast;
+                if (back > t.ReadyAt) { t.ReadyAt = back; t.LastUse = x.Time; t.LastLine = null; }
+            }
+
         // Spending this tool now would steal it from an upcoming deadly hit.
+        // 75s catches the 90s workhorses too (Feint, Addle, the party mits):
+        // burning one on a LIGHT hit inside the window of a deadly hit is the
+        // classic wasted press the sheets never make.
         bool StealsFromDeadly(PlanTool t, float now)
-            => t.Recast >= 100f && deadlyTimes.Any(td => td > now && td < now + t.Recast);
+            => t.Recast >= 75f && deadlyTimes.Any(td => td > now && td < now + t.Recast);
+
+        // Press-early bridging, the way the sheets play it: when a tool misses
+        // a hit by a few seconds, its PREVIOUS press (if it was a solo line
+        // this run wrote and nothing rides it yet) floats earlier - the buff
+        // still covers its own row from the tail end - so the recast comes
+        // back in time. "Kerachole at :10 covers the :20 hit AND is back for
+        // the :45 one."
+        float BuffDur(PlanTool t)
+            => Cooldowns.PlanInfo(t.Term)?.Duration is { } d and > 0f ? d : 15f;
+        bool CanReach(PlanTool t, float time)
+            => t.ReadyAt <= time + 0.01f
+               || (t.LastLine is { CoverUntil: <= 0f } && t.ReadyAt - time <= t.FloatSlack + 0.01f);
+        void ApplyFloat(PlanTool t, float time)
+        {
+            var shift = t.ReadyAt - time;
+            if (shift <= 0.01f) return;
+            var l = t.LastLine!;
+            l.CoverUntil = l.Time;   // the buff still covers its own row
+            l.Time -= shift;
+            t.FloatSlack -= shift;
+            t.ReadyAt -= shift;
+        }
+        void NotePress(PlanTool t, MitLine line, float time, int setSize)
+        {
+            // Only a solo line can float later: shifting a combined line would
+            // silently retime every other mit written into it.
+            if (setSize == 1)
+            {
+                t.LastLine = line;
+                // How far this press can later move earlier: the buff must
+                // still cover its own row (D-1) and the tool must have been
+                // ready that early.
+                t.FloatSlack = MathF.Min(BuffDur(t) - 1f, MathF.Max(0f, time - t.ReadyAt));
+            }
+            else t.LastLine = null;
+            t.ReadyAt = time + t.Recast;
+            t.LastUse = time;
+        }
 
         var added = 0;
         var lastCovered = -9999f;
@@ -1836,6 +1896,21 @@ public class SheetViewWindow : Window
         var rampartAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         var shortAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         const float ShortRecast = 25f;
+        // Tank cooldowns the user already wrote into cells count against the
+        // shared timelines too, same as the party seeding above.
+        var invulnNames = new[] { "Invulnerability", "Holmgang", "Hallowed Ground", "Living Dead", "Superbolide" };
+        var shortNames = new[] { "Short Mit", "Buddy Mit", "Bloodwhetting", "Nascent Flash", "Holy Sheltron", "Intervention", "The Blackest Night", "Heart of Corundum" };
+        foreach (var tk in tanks)
+            foreach (var x in lists[tk])
+            {
+                if (string.IsNullOrWhiteSpace(x.Action)) continue;
+                if (invulnNames.Any(n => ActionHas(x.Action, n)))
+                    invulnAt[tk] = MathF.Max(invulnAt[tk], x.Time + 420f);
+                if (ActionHas(x.Action, "Rampart"))
+                    rampartAt[tk] = MathF.Max(rampartAt[tk], x.Time + 90f);
+                if (shortNames.Any(n => ActionHas(x.Action, n)))
+                    shortAt[tk] = MathF.Max(shortAt[tk], x.Time + ShortRecast);
+            }
         var rot = 0;
         var lastTb = -9999f;
         var lastTbHurt = 0;
@@ -1963,7 +2038,7 @@ public class SheetViewWindow : Window
             var need = target - have;
 
             var ready = tools
-                .Where(t => t.ReadyAt <= row.Time + 0.01f)
+                .Where(t => CanReach(t, row.Time))
                 .Where(t => !lists[t.Slot].Any(x => MathF.Abs(x.Time - row.Time) < 1f))
                 .ToList();
             // Save the big buttons for the big hits.
@@ -2034,8 +2109,8 @@ public class SheetViewWindow : Window
                 foreach (var t in set)
                 {
                     if (DebuffMits.Contains(t.Term)) claimed.Add(t.Term);
-                    t.ReadyAt = row.Time + t.Recast;
-                    t.LastUse = row.Time;
+                    ApplyFloat(t, row.Time);
+                    NotePress(t, line, row.Time, set.Count);
                 }
                 added++;
             }
@@ -2052,7 +2127,7 @@ public class SheetViewWindow : Window
                 if (col.Any(x => MathF.Abs(x.Time - row.Time) < 1f)) continue; // cell taken
                 if (col.Any(x => row.Time - x.Time > 0.5f && row.Time - x.Time < 12f)) continue; // just pressed: ride it
                 var satOrder = g
-                    .Where(t => t.ReadyAt <= row.Time + 0.01f)
+                    .Where(t => CanReach(t, row.Time))
                     .Where(t => !(DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)))
                     .Where(t => row.Hurt >= 2 || !StealsFromDeadly(t, row.Time))
                     .Where(t => row.Hurt >= 3 || !HoldForCluster(t, row))
@@ -2086,8 +2161,8 @@ public class SheetViewWindow : Window
                 foreach (var t in picks)
                 {
                     if (DebuffMits.Contains(t.Term)) claimed.Add(t.Term);
-                    t.ReadyAt = row.Time + t.Recast;
-                    t.LastUse = row.Time;
+                    ApplyFloat(t, row.Time);
+                    NotePress(t, sat, row.Time, picks.Count);
                 }
             }
 
