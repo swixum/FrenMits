@@ -73,6 +73,26 @@ public class RecapWindow : Window
             return;
         }
 
+        // Pull history: the last few wipes stay browsable, newest first, so a
+        // fix can be checked against the pull it was made for.
+        if (r.History.Count > 1)
+        {
+            ImGui.Spacing();
+            ImGui.BeginDisabled(r.View >= r.History.Count - 1);
+            if (Button("<")) r.View = Math.Min(r.View + 1, r.History.Count - 1);
+            ImGui.EndDisabled();
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextColored(Vec(Theme.Accent),
+                r.View == 0 ? "latest pull" : $"{r.View} pull{(r.View == 1 ? "" : "s")} back");
+            ImGui.SameLine();
+            ImGui.TextColored(Vec(0xFF81766E), $"({r.History.Count} kept)");
+            ImGui.SameLine();
+            ImGui.BeginDisabled(r.View <= 0);
+            if (Button(">")) r.View = Math.Max(0, r.View - 1);
+            ImGui.EndDisabled();
+        }
+
         // Boss name + fight time of the capture.
         ImGui.Dummy(new Vector2(0, 2));
         ImGui.TextColored(Vec(Theme.Accent), string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName);
@@ -94,6 +114,19 @@ public class RecapWindow : Window
         {
             ImGui.TextColored(Vec(Theme.Warn), "Never landed:  " + string.Join("   ", missed));
             ImGui.TextColored(Vec(0xFF81766E), "comp-dependent: no caster = no Addle, no MCH = no Dismantle");
+        }
+
+        // Cooldowns that sat unused all pull - the most actionable line a
+        // raid lead can read after a wipe.
+        if (r.Shown.Unused.Count > 0)
+        {
+            Header("Left on the table");
+            foreach (var (who, mit, note) in r.Shown.Unused)
+            {
+                ImGui.TextColored(Vec(Theme.Warn), mit);
+                ImGui.SameLine();
+                ImGui.TextColored(Vec(0xFF81766E), $"· {who} · {note}");
+            }
         }
 
         // What's up at the capture.
@@ -206,11 +239,19 @@ public class RecapWindow : Window
                 // Deaths land on the mechanic they happened during: usually the
                 // whole wipe story in one line.
                 var groupEnd = idx < events.Count ? events[idx].Time : float.MaxValue;
-                var died = new List<string>();
                 while (dIdx < deaths.Count && deaths[dIdx].Time < groupEnd)
-                    died.Add(deaths[dIdx++].Name);
-                if (died.Count > 0)
-                    ImGui.TextColored(Vec(0xFF5050E0), "died: " + string.Join(", ", died));
+                {
+                    // Each death carries its story: how fast they dropped and
+                    // what they still had running (or that nothing was up).
+                    var d = deaths[dIdx++];
+                    ImGui.TextColored(Vec(0xFF5050E0), $"died: {d.Name}");
+                    var story = new List<string>();
+                    if (d.FromPct > 0f && d.Seconds > 0f)
+                        story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
+                    story.Add(d.Had.Length > 0 ? "had " + d.Had : "nothing up");
+                    ImGui.SameLine();
+                    ImGui.TextColored(Vec(0xFF81766E), "· " + string.Join(" · ", story));
+                }
 
                 // The plan-vs-reality delta: what the sheet expected around this
                 // moment that never appeared (or only partially landed). Only

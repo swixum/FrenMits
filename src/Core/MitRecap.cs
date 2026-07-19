@@ -28,28 +28,63 @@ public class MitRecap
     public sealed record Applied(float Time, string Mit, string Source, MitTypes.Kind Kind, bool OnBoss, uint Icon);
     public sealed record Active(uint Icon, string Mit, string Source, float Remaining, MitTypes.Kind Kind, bool OnBoss);
 
+    // A death with its story: what the player still had running just before,
+    // and how fast they went from healthy to dead (both from the same 4 Hz
+    // status/HP sweep - no game hooks).
+    public readonly record struct Death(float Time, string Name, string Had, float FromPct, float Seconds);
+
+    // One frozen pull. The recap keeps a short history of these so the last
+    // few wipes stay comparable ("did we fix it?") instead of each wipe
+    // overwriting the one before.
+    public sealed class PullRecap
+    {
+        public Guid PullId;
+        public List<Applied> Log = new();
+        public List<string> Party = new();
+        public Dictionary<string, string> Jobs = new(StringComparer.OrdinalIgnoreCase); // name -> job abbr
+        public List<Death> Deaths = new();
+        public List<Active> Snapshot = new();
+        public string BossName = "";
+        public float CaptureElapsed;
+        public uint Territory;
+        public DateTime CapturedAt;
+        // Party cooldowns that sat unused: (who, mit, why it counts).
+        public List<(string Who, string Mit, string Note)> Unused = new();
+    }
+
     public List<Applied> Log { get; } = new();
-    public List<Applied> LastLog { get; private set; } = new();
 
-    // Party roster this pull / at the last freeze, so coverage ("7/8") can name
-    // exactly who was missing a party mit, not just count.
+    // Party roster this pull, so coverage ("7/8") can name exactly who was
+    // missing a party mit, not just count.
     public List<string> Party { get; } = new();
-    public List<string> LastParty { get; private set; } = new();
+
+    // Frozen pulls, newest first. View picks which one the window shows.
+    public List<PullRecap> History { get; } = new();
+    public int View;
+    private const int MaxHistory = 6;
+    private static readonly PullRecap Empty = new();
+    public PullRecap Shown => History.Count > 0 ? History[Math.Clamp(View, 0, History.Count - 1)] : Empty;
+
+    // Facade over the shown pull (keeps the window/popup call sites simple).
+    public List<Applied> LastLog => Shown.Log;
+    public List<string> LastParty => Shown.Party;
     public List<Active> Snapshot { get; private set; } = new();
-    public DateTime CapturedAt { get; private set; }
-
-    // Where the capture happened, so the recap is only graded against the plan
-    // of the SAME duty (0 = sample data, never graded).
-    public uint Territory { get; private set; }
+    public DateTime CapturedAt => History.Count > 0 ? History[0].CapturedAt : default;
+    public uint Territory => Shown.Territory;
     public bool PopupDismissed { get; private set; }
+    public List<Death> LastDeaths => Shown.Deaths;
+    public string BossName => Shown.BossName;
+    public float CaptureElapsed => Shown.CaptureElapsed;
 
-    // Party deaths during the recorded pull (fight time + player), so the
-    // recap can pin deaths to the mechanic where they happened.
-    public List<(float Time, string Name)> LastDeaths { get; private set; } = new();
-    private readonly List<(float Time, string Name)> _deaths = new();
+    // Live-pull tracking state.
+    private readonly List<Death> _deaths = new();
     private readonly HashSet<string> _dead = new(StringComparer.OrdinalIgnoreCase);
-    public string BossName { get; private set; } = "";
-    public float CaptureElapsed { get; private set; }   // fight time (s) at the capture / wipe
+    private readonly Dictionary<string, string> _jobs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<string>> _lastMits = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<(float T, float Pct)>> _hp = new(StringComparer.OrdinalIgnoreCase);
+    private string _liveBoss = "";
+    private float _liveElapsed;
+    private Guid _pullId = Guid.NewGuid();
 
     // Hide the post-wipe popup without clearing the recap data.
     public void Dismiss() => PopupDismissed = true;
@@ -73,7 +108,11 @@ public class MitRecap
 
             var running = _plugin.Timer.Running;
             if (running && !_wasRunning)
-            { Log.Clear(); _active.Clear(); Party.Clear(); _deaths.Clear(); _dead.Clear(); BossName = ""; }
+            {
+                Log.Clear(); _active.Clear(); Party.Clear(); _deaths.Clear(); _dead.Clear();
+                _jobs.Clear(); _lastMits.Clear(); _hp.Clear(); _liveBoss = "";
+                _pullId = Guid.NewGuid();
+            }
             else if (!running && _wasRunning && Log.Count > 0) FinalizePull(); // pull ended -> freeze recap
             _wasRunning = running;
             if (!running) return;
@@ -85,25 +124,42 @@ public class MitRecap
 
             var fight = _plugin.ActiveFight();
             var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
-            CaptureElapsed = elapsed;
+            _liveElapsed = elapsed;
             var now = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var live = new List<Active>();
 
             foreach (var (src, onBoss, chara) in Sources())
             {
-                if (onBoss) BossName = chara.Name.ToString();
+                if (onBoss) _liveBoss = chara.Name.ToString();
                 else
                 {
                     if (!Party.Contains(src)) Party.Add(src);
-                    // Death edge: HP hits zero, recorded once per life.
+                    if (!_jobs.ContainsKey(src) && chara is IPlayerCharacter pc
+                        && Jobs.ByRowId(pc.ClassJob.RowId) is { } ji)
+                        _jobs[src] = ji.Abbreviation;
+
+                    // Death edge: HP hits zero, recorded once per life, with the
+                    // story attached (what they had up, how fast they dropped).
+                    // The dead keep their last-alive HP/mits frozen for that.
                     if (chara.CurrentHp == 0)
                     {
-                        if (_dead.Add(src)) _deaths.Add((elapsed, src));
+                        if (_dead.Add(src)) _deaths.Add(MakeDeath(elapsed, src));
+                        continue;
                     }
-                    else
-                    {
-                        _dead.Remove(src);
-                    }
+                    _dead.Remove(src);
+
+                    // Short HP trace (~12s at 4 Hz) feeding the death story.
+                    var pct = chara.MaxHp > 0 ? chara.CurrentHp / (float)chara.MaxHp : 0f;
+                    if (!_hp.TryGetValue(src, out var ring)) ring = _hp[src] = new List<(float, float)>();
+                    ring.Add((elapsed, pct));
+                    if (ring.Count > 48) ring.RemoveAt(0);
+                }
+
+                List<string>? mine = null;
+                if (!onBoss)
+                {
+                    if (!_lastMits.TryGetValue(src, out mine)) mine = _lastMits[src] = new List<string>();
+                    mine.Clear();
                 }
                 foreach (var m in MitsOn(chara, onBoss))
                 {
@@ -111,25 +167,127 @@ public class MitRecap
                     now.Add(key);
                     if (_active.Add(key)) Log.Add(new Applied(elapsed, m.Mit, src, m.Kind, onBoss, m.Icon));
                     live.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
+                    mine?.Add(m.Mit);
                 }
             }
             _active.RemoveWhere(k => !now.Contains(k)); // dropped -> can log again on re-apply
-            Snapshot = live; // keep "what's up" current, so the wipe snapshot has the boss mits
-                             // from the last live moment (the boss resets the instant combat ends)
+            _snapLive = live; // keep "what's up" current, so the wipe snapshot has the boss mits
+                              // from the last live moment (the boss resets the instant combat ends)
         }
         catch { /* never disturb the tick */ }
     }
 
-    // Freeze the recap when a pull ends: keep the live Snapshot (the boss has reset
-    // by now) and copy the timeline.
+    private List<Active> _snapLive = new();
+
+    // Freeze the recap when a pull ends: keep the live snapshot (the boss has
+    // reset by now), copy the timeline and run the after-action analysis.
     private void FinalizePull()
     {
-        LastLog = new List<Applied>(Log);
-        LastParty = new List<string>(Party);
-        LastDeaths = new List<(float, string)>(_deaths);
-        Territory = Service.ClientState.TerritoryType;
-        CapturedAt = DateTime.UtcNow;
+        Push(BuildPull(_snapLive));
         PopupDismissed = false;
+    }
+
+    private PullRecap BuildPull(List<Active> snapshot)
+    {
+        var pr = new PullRecap
+        {
+            PullId = _pullId,
+            Log = new List<Applied>(Log),
+            Party = new List<string>(Party),
+            Jobs = new Dictionary<string, string>(_jobs, StringComparer.OrdinalIgnoreCase),
+            Deaths = new List<Death>(_deaths),
+            Snapshot = new List<Active>(snapshot),
+            BossName = _liveBoss,
+            CaptureElapsed = _liveElapsed,
+            Territory = Service.ClientState.TerritoryType,
+            CapturedAt = DateTime.UtcNow,
+        };
+        pr.Unused = ComputeUnused(pr);
+        return pr;
+    }
+
+    // Newest first; a mid-pull "Capture now" of the same pull upgrades in place
+    // instead of duplicating it when the wipe freeze lands moments later.
+    private void Push(PullRecap p)
+    {
+        var i = History.FindIndex(h => h.PullId == p.PullId);
+        if (i >= 0) History.RemoveAt(i);
+        History.Insert(0, p);
+        while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
+        View = 0;
+    }
+
+    // The death story from the frozen last-alive state: what was still running
+    // on them, and how fast they went from healthy to dead.
+    private Death MakeDeath(float t, string name)
+    {
+        var had = _lastMits.TryGetValue(name, out var lm) && lm.Count > 0
+            ? string.Join(", ", lm.Take(4)) : "";
+        var from = 0f; var secs = 0f;
+        if (_hp.TryGetValue(name, out var ring) && ring.Count > 0)
+        {
+            // The most recent healthy-ish moment; failing that, the best HP we
+            // saw in the trace window.
+            (float T, float Pct)? healthy = null;
+            for (var i = ring.Count - 1; i >= 0; i--)
+                if (ring[i].Pct >= 0.7f) { healthy = ring[i]; break; }
+            var pick = healthy ?? ring.OrderByDescending(x => x.Pct).First();
+            from = pick.Pct;
+            secs = MathF.Max(0.1f, t - pick.T);
+        }
+        return new Death(t, name, had, from, secs);
+    }
+
+    // Follow-up abilities that only exist inside another cooldown's window; a
+    // "never used" nag for them would just duplicate the parent's.
+    private static readonly HashSet<string> DependentMits = new(StringComparer.OrdinalIgnoreCase)
+        { "Divine Caress", "Sun Sign" };
+
+    // Party-facing cooldowns that sat unused all pull (or came back long before
+    // the wipe and never went out again). Job-unique names make presence in the
+    // log attributable; a job appearing twice in the roster is skipped - the
+    // recap can't tell whose press it saw.
+    private static List<(string Who, string Mit, string Note)> ComputeUnused(PullRecap p)
+    {
+        var res = new List<(string, string, string)>();
+        try
+        {
+            var dupJobs = p.Jobs.Values
+                .GroupBy(j => j, StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var (name, job) in p.Jobs)
+            {
+                if (dupJobs.Contains(job)) continue;
+                if (!Cooldowns.JobKits.TryGetValue(job, out var kit)) continue;
+                foreach (var mit in kit)
+                {
+                    if (DependentMits.Contains(mit)) continue;
+                    if (MitTypes.Classify(mit) != MitTypes.Kind.Party) continue;
+                    var recast = Cooldowns.PlanInfo(mit)?.Recast ?? 0f;
+                    if (recast < 45f) continue; // short rollers are never "wasted"
+                    var times = p.Log.Where(a => !a.OnBoss
+                            && string.Equals(a.Mit, mit, StringComparison.OrdinalIgnoreCase))
+                        .Select(a => a.Time).ToList();
+                    if (times.Count == 0)
+                    {
+                        // Only nag once the pull was long enough to have used it.
+                        if (p.CaptureElapsed >= recast * 0.9f)
+                            res.Add((name, mit, "never used"));
+                    }
+                    else
+                    {
+                        var idle = p.CaptureElapsed - times.Max() - recast;
+                        if (idle >= 20f) res.Add((name, mit, $"was back {(int)idle}s before the end"));
+                    }
+                }
+            }
+        }
+        catch { /* analysis is optional garnish */ }
+        return res.OrderBy(r => r.Item3 == "never used" ? 0 : 1)
+            .ThenBy(r => r.Item2, StringComparer.OrdinalIgnoreCase)
+            .Take(10).ToList();
     }
 
     // ---- aggregation for the recap window ---------------------------------
@@ -169,30 +327,26 @@ public class MitRecap
     {
         try
         {
-            LastLog = new List<Applied>(Log);
-            LastParty = new List<string>(Party);
-            LastDeaths = new List<(float, string)>(_deaths);
             var snap = new List<Active>();
             foreach (var (src, onBoss, chara) in Sources())
             {
-                if (onBoss) BossName = chara.Name.ToString();
+                if (onBoss) _liveBoss = chara.Name.ToString();
                 foreach (var m in MitsOn(chara, onBoss))
                     snap.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
             }
-            Snapshot = snap;
             var f = _plugin.ActiveFight();
-            CaptureElapsed = f != null ? _plugin.ElapsedFor(f) : _plugin.Timer.Elapsed;
-            Territory = Service.ClientState.TerritoryType;
-            CapturedAt = DateTime.UtcNow;
+            _liveElapsed = f != null ? _plugin.ElapsedFor(f) : _plugin.Timer.Elapsed;
+            Push(BuildPull(snap));
             PopupDismissed = false;
         }
         catch { /* ignore */ }
     }
 
-    // Make the popup + window appear now (for placing them) without touching data.
+    // Make the popup + window appear now (for placing them) without real data.
     public void ShowTestPopup()
     {
-        CapturedAt = DateTime.UtcNow;
+        if (History.Count == 0) LoadSample();
+        if (History.Count > 0) History[0].CapturedAt = DateTime.UtcNow;
         PopupDismissed = false;
     }
 
@@ -287,25 +441,36 @@ public class MitRecap
                                  .Take(comp.Count - 1 - rnd.Next(0, 3)))
                         log.Add(new Applied(t + 0.3f, mit, member, kind, false, SampleIcon(mit)));
             }
-            LastLog = log.OrderBy(a => a.Time).ToList();
-            LastParty = comp.ToList(); // sample roster, so coverage renders too
-
-            Snapshot = LastLog.OrderBy(_ => rnd.Next()).Take(3 + rnd.Next(3))
+            var sampleLog = log.OrderBy(a => a.Time).ToList();
+            var pr = new PullRecap
+            {
+                PullId = Guid.NewGuid(),
+                Log = sampleLog,
+                Party = comp.ToList(), // sample roster, so coverage renders too
+                BossName = Pick(SampleBosses),
+                CaptureElapsed = sampleLog.Count > 0 ? sampleLog[^1].Time + 6 : 0,
+                Territory = 0, // sample data: never graded against a plan
+                CapturedAt = DateTime.UtcNow,
+            };
+            // Sample jobs by full name, so the unused-cooldown analysis previews
+            // with the real logic.
+            foreach (var job in comp)
+                if (Jobs.All.FirstOrDefault(j => string.Equals(j.Name, job, StringComparison.OrdinalIgnoreCase)) is { RowId: > 0 } ji)
+                    pr.Jobs[job] = ji.Abbreviation;
+            pr.Snapshot = sampleLog.OrderBy(_ => rnd.Next()).Take(3 + rnd.Next(3))
                 .Select(a => new Active(a.Icon, a.Mit, a.Source, 4 + rnd.Next(18), a.Kind, a.OnBoss))
                 .ToList();
-
-            if (LastLog.Count > 2)
+            if (sampleLog.Count > 2)
             {
-                LastDeaths = new List<(float, string)>
+                pr.Deaths = new List<Death>
                 {
-                    (LastLog[LastLog.Count / 2].Time + 2f, LastParty.Count > 0 ? LastParty[0] : "Someone"),
-                    (LastLog[^1].Time + 1f, LastParty.Count > 1 ? LastParty[1] : "Someone Else"),
+                    new(sampleLog[sampleLog.Count / 2].Time + 2f, comp.Count > 0 ? comp[0] : "Someone",
+                        "Rampart, Sacred Soil", 0.86f, 3.4f),
+                    new(sampleLog[^1].Time + 1f, comp.Count > 1 ? comp[1] : "Someone Else", "", 0.97f, 1.8f),
                 };
             }
-            BossName = Pick(SampleBosses);
-            CaptureElapsed = LastLog.Count > 0 ? LastLog[^1].Time + 6 : 0;
-            Territory = 0; // sample data: never graded against a plan
-            CapturedAt = DateTime.UtcNow;
+            pr.Unused = ComputeUnused(pr);
+            Push(pr);
             PopupDismissed = false;
         }
         catch { /* ignore */ }
@@ -332,7 +497,7 @@ public class MitRecap
             .Where(s => !LastLog.Any(a => a.OnBoss && a.Mit.Contains(s, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
-    public bool HasData => LastLog.Count > 0 || Snapshot.Count > 0;
+    public bool HasData => History.Count > 0;
 
     // A plain-text recap for the clipboard (paste into Discord / notes).
     public string ToText()
@@ -354,6 +519,24 @@ public class MitRecap
             sb.AppendLine("Up at capture:");
             foreach (var m in Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
                 sb.AppendLine($"  {m.Mit} - {(m.OnBoss ? "on boss" : m.Source)} ({m.Remaining:0}s)");
+        }
+
+        if (LastDeaths.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Deaths:");
+            foreach (var d in LastDeaths.OrderBy(d => d.Time))
+                sb.AppendLine($"  {(int)d.Time / 60}:{(int)d.Time % 60:00}  {d.Name}"
+                    + (d.FromPct > 0 ? $"  ({(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s)" : "")
+                    + (d.Had.Length > 0 ? $"  had {d.Had}" : "  nothing up"));
+        }
+
+        if (Shown.Unused.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Left on the table:");
+            foreach (var (who, mit, note) in Shown.Unused)
+                sb.AppendLine($"  {mit} - {who}: {note}");
         }
 
         if (LastLog.Count > 0)
