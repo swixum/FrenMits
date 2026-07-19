@@ -50,7 +50,16 @@ public class MitRecap
         public DateTime CapturedAt;
         // Party cooldowns that sat unused: (who, mit, why it counts, icon).
         public List<(string Who, string Mit, string Note, uint Icon)> Unused = new();
+        // Plan vs. actual: how many planned presses were graded, how many
+        // landed on plan, and the ones that didn't (late or never seen).
+        public int PlanTotal;
+        public int PlanGood;
+        public List<PlanHit> PlanProblems = new();
     }
+
+    // One planned press that went wrong: never seen, or up Delta seconds after
+    // the mechanic it was planned for.
+    public readonly record struct PlanHit(float Time, string Mit, string Mechanic, float Delta, bool Missed, uint Icon);
 
     public List<Applied> Log { get; } = new();
 
@@ -203,6 +212,11 @@ public class MitRecap
             CapturedAt = DateTime.UtcNow,
         };
         pr.Unused = ComputeUnused(pr);
+        // Grade the plan NOW, while this is still the active fight: a browsed
+        // history entry keeps its grades after you leave the zone.
+        var fight = _plugin.ActiveFight();
+        if (fight is { TimelineOnly: false } && fight.TerritoryId == pr.Territory)
+            ComputePlanCheck(pr, fight, _plugin.ActiveJobAbbreviation());
         return pr;
     }
 
@@ -288,6 +302,154 @@ public class MitRecap
         return res.OrderBy(r => r.Item3 == "never used" ? 0 : 1)
             .ThenBy(r => r.Item2, StringComparer.OrdinalIgnoreCase)
             .Take(10).ToList();
+    }
+
+    // ---- plan vs. actual ---------------------------------------------------
+
+    // Status names that differ from the action the plan wrote down.
+    public static readonly (string StatusPart, string Canon)[] StatusAliases =
+    {
+        ("Expedience", "Expedient"), ("Desperate Measures", "Expedient"),
+        ("Blackest Night", "The Blackest Night"),
+        ("Seraphic", "Seraph"),
+        // Upgrade pairs, both directions: a synced player's status keeps the
+        // old name while the sheet may write the new one, and vice versa.
+        ("Damnation", "Vengeance"), ("Vengeance", "Damnation"),
+        ("Guardian", "Sentinel"), ("Sentinel", "Guardian"),
+        ("Great Nebula", "Nebula"), ("Nebula", "Great Nebula"),
+        ("Shadowed Vigil", "Shadow Wall"), ("Shadow Wall", "Shadowed Vigil"),
+        ("Bloodwhetting", "Raw Intuition"), ("Raw Intuition", "Bloodwhetting"),
+    };
+
+    // Planned actions the recap can never observe (no lasting status).
+    public static readonly HashSet<string> DeltaBlind =
+        new(StringComparer.OrdinalIgnoreCase) { "Second Wind", "Bloodbath", "Equilibrium" };
+
+    // Every slot's planned lines: the live plan (job-filtered to yours) plus
+    // each saved slot (job-gated lines skipped there - we can't know which job
+    // sits in that seat, and the grading must never invent a phantom miss).
+    // Untouched builtin preview slots are intentionally absent from SavedSlots.
+    public static IEnumerable<(string Slot, MitLine Line)> PlannedLines(FightProfile fight, string? myJob)
+    {
+        foreach (var l in fight.Lines)
+            if (l.Enabled && l.AppliesTo(myJob))
+                yield return (fight.Slot, l);
+        foreach (var kv in fight.SavedSlots)
+        {
+            if (string.Equals(kv.Key, fight.Slot, StringComparison.OrdinalIgnoreCase)) continue;
+            foreach (var l in kv.Value)
+                if (l.Enabled && l.Jobs.Count == 0 && !l.HasJobGate())
+                    yield return (kv.Key, l);
+        }
+    }
+
+    // Grade the sheet against the pull: every observable planned press either
+    // landed around its moment (early is fine - that's how mits work), landed
+    // late, or never went out. "Kerachole 4s late on Forsaken" instead of a
+    // pile of raw timestamps.
+    private static void ComputePlanCheck(PullRecap p, FightProfile fight, string? myJob)
+    {
+        try
+        {
+            if (p.Log.Count == 0) return;
+
+            // What the plan expects: observable, comp-possible presses, deduped
+            // when two slots plan the same mit at the same moment (the recap
+            // can't tell whose press it saw - one sighting satisfies both).
+            var planned = new List<(float Time, string Name, string Mechanic)>();
+            foreach (var (_, line) in PlannedLines(fight, myJob))
+            {
+                if (line.Time > p.CaptureElapsed - 1f) continue; // pull ended first
+                foreach (var pm in Cooldowns.PlanMits(line.Action))
+                {
+                    if (DeltaBlind.Contains(pm.Name)) continue;
+                    if (!(IsBossMit(pm.Name) || IsPartyMit(pm.Name))) continue; // recap can't see it
+                    if (!CompHas(p, pm.Name)) continue; // nobody here plays it tonight
+                    if (planned.Any(x => string.Equals(x.Name, pm.Name, StringComparison.OrdinalIgnoreCase)
+                                         && MathF.Abs(x.Time - line.Time) < 3f)) continue;
+                    planned.Add((line.Time, pm.Name, line.Mechanic.Trim()));
+                }
+            }
+            if (planned.Count == 0) return;
+            planned.Sort((a, b) => a.Time.CompareTo(b.Time));
+
+            // Actual uses: log applications folded to one use per press (a
+            // party buff seen on 8 members is one press; two tanks' Ramparts
+            // stay two), keyed by every name the status can satisfy.
+            var uses = new Dictionary<string, List<(float T, uint Icon)>>(StringComparer.OrdinalIgnoreCase);
+            var cluster = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
+            foreach (var a in p.Log.OrderBy(a => a.Time))
+                foreach (var name in NamesFor(a.Mit))
+                {
+                    var key = a.Kind == MitTypes.Kind.Party || a.OnBoss ? name : name + "|" + a.Source;
+                    if (cluster.TryGetValue(key, out var lt) && a.Time - lt <= 6f) { cluster[key] = a.Time; continue; }
+                    cluster[key] = a.Time;
+                    if (!uses.TryGetValue(name, out var list)) list = uses[name] = new List<(float, uint)>();
+                    list.Add((a.Time, a.Icon));
+                }
+
+            // Claim the nearest unclaimed use for each planned press, in plan
+            // order, so "Kerachole at 1:40 and 3:20" grades as two presses.
+            var claimed = new Dictionary<string, HashSet<int>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (t, name, mech) in planned)
+            {
+                p.PlanTotal++;
+                var best = -1; var bestAbs = float.MaxValue; (float T, uint Icon) hit = default;
+                if (uses.TryGetValue(name, out var list))
+                {
+                    if (!claimed.TryGetValue(name, out var taken)) taken = claimed[name] = new HashSet<int>();
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        if (taken.Contains(i)) continue;
+                        var d = list[i].T - t;
+                        if (d < -25f || d > 12f) continue; // early presses cover; way-late is a miss
+                        if (MathF.Abs(d) < bestAbs) { bestAbs = MathF.Abs(d); best = i; hit = list[i]; }
+                    }
+                    if (best >= 0) claimed[name].Add(best);
+                }
+                if (best < 0)
+                    p.PlanProblems.Add(new PlanHit(t, name, mech, 0f, true, IconFor(name)));
+                else if (hit.T - t > 1.5f)
+                    p.PlanProblems.Add(new PlanHit(t, name, mech, hit.T - t, false, hit.Icon));
+                else p.PlanGood++;
+            }
+            p.PlanProblems.Sort((a, b) => a.Time.CompareTo(b.Time));
+        }
+        catch { p.PlanTotal = 0; p.PlanGood = 0; p.PlanProblems.Clear(); }
+    }
+
+    // Every plan-vocabulary name a logged status can satisfy: itself, any
+    // tracked mit its text word-matches, and the pre-rename aliases.
+    private static IEnumerable<string> NamesFor(string statusName)
+    {
+        yield return statusName.Trim();
+        foreach (var pm in Cooldowns.PlanMits(statusName)) yield return pm.Name;
+        foreach (var (part, canon) in StatusAliases)
+            if (statusName.Contains(part, StringComparison.OrdinalIgnoreCase)) yield return canon;
+    }
+
+    // Whether anyone in this party plays a job that owns the mit. Unknown
+    // owners pass - the plan is trusted over an incomplete kit table.
+    private static bool CompHas(PullRecap p, string mit)
+    {
+        var known = false;
+        foreach (var (job, kit) in Cooldowns.JobKits)
+            foreach (var k in kit)
+                if (k.Contains(mit, StringComparison.OrdinalIgnoreCase)
+                    || mit.Contains(k, StringComparison.OrdinalIgnoreCase))
+                {
+                    known = true;
+                    if (p.Jobs.Values.Contains(job, StringComparer.OrdinalIgnoreCase)) return true;
+                    break;
+                }
+        return !known;
+    }
+
+    private static readonly Dictionary<string, uint> IconCache = new(StringComparer.OrdinalIgnoreCase);
+    private static uint IconFor(string mit)
+    {
+        if (IconCache.TryGetValue(mit, out var i)) return i;
+        return IconCache[mit] = SampleIcon(mit);
     }
 
     // ---- aggregation for the recap window ---------------------------------
@@ -529,6 +691,16 @@ public class MitRecap
                 sb.AppendLine($"  {(int)d.Time / 60}:{(int)d.Time % 60:00}  {d.Name}"
                     + (d.FromPct > 0 ? $"  ({(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s)" : "")
                     + (d.Had.Length > 0 ? $"  had {d.Had}" : "  nothing up"));
+        }
+
+        if (Shown.PlanTotal > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine($"Plan check: {Shown.PlanGood} of {Shown.PlanTotal} planned mits went out on plan.");
+            foreach (var h in Shown.PlanProblems)
+                sb.AppendLine($"  {(int)h.Time / 60}:{(int)h.Time % 60:00}  {h.Mit}"
+                    + (h.Missed ? " - never went out" : $" - {h.Delta:0}s late")
+                    + (h.Mechanic.Length > 0 ? $" ({h.Mechanic})" : ""));
         }
 
         if (Shown.Unused.Count > 0)

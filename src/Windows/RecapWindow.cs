@@ -122,6 +122,32 @@ public class RecapWindow : Window
             ImGui.TextColored(Vec(0xFF81766E), "comp-dependent: no caster = no Addle, no MCH = no Dismantle");
         }
 
+        // Plan vs. actual: the sheet graded against the pull. Late and missing
+        // presses read as one-line stories; on-plan presses just count.
+        if (r.Shown.PlanTotal > 0)
+        {
+            Header("Plan check");
+            var good = r.Shown.PlanGood;
+            var total = r.Shown.PlanTotal;
+            ImGui.TextColored(good == total ? Vec(Theme.Good) : Vec(0xFFECE8E6),
+                good == total
+                    ? $"All {total} planned mits went out on plan."
+                    : $"{good} of {total} planned mits went out on plan.");
+            var plh = ImGui.GetTextLineHeight();
+            foreach (var h in r.Shown.PlanProblems.Take(10))
+            {
+                if (h.Icon != 0) { Icons.Draw(h.Icon, new Vector2(plh, plh)); ImGui.SameLine(0, 6); }
+                ImGui.TextColored(h.Missed ? Vec(0xFF5050E0) : Vec(Theme.Warn), h.Mit);
+                ImGui.SameLine();
+                ImGui.TextColored(Vec(0xFF81766E),
+                    $"· {(int)h.Time / 60}:{(int)h.Time % 60:00}"
+                    + (h.Missed ? " · never went out" : $" · {h.Delta:0}s late")
+                    + (h.Mechanic.Length > 0 ? $" · {h.Mechanic}" : ""));
+            }
+            if (r.Shown.PlanProblems.Count > 10)
+                ImGui.TextColored(Vec(0xFF81766E), $"+{r.Shown.PlanProblems.Count - 10} more in Copy");
+        }
+
         // Cooldowns that sat unused all pull - the most actionable line a
         // raid lead can read after a wipe.
         if (r.Shown.Unused.Count > 0)
@@ -286,18 +312,8 @@ public class RecapWindow : Window
     // mits the recap can recognize (tracked status names) are judged, so a
     // fancy plan label can't produce a phantom "missing". A mit planned by two
     // slots but seen once is treated as covered: the recap can't tell whose it
-    // was.
-    // Status names that differ from the action the plan wrote down.
-    private static readonly (string StatusPart, string Canon)[] StatusAliases =
-    {
-        ("Expedience", "Expedient"), ("Desperate Measures", "Expedient"),
-        ("Blackest Night", "The Blackest Night"),
-        ("Seraphic", "Seraph"),
-    };
-
-    // Planned actions the recap can never observe (no lasting status).
-    private static readonly HashSet<string> DeltaBlind =
-        new(StringComparer.OrdinalIgnoreCase) { "Second Wind", "Bloodbath", "Equilibrium" };
+    // was. Alias and blind-spot tables live in MitRecap, shared with the
+    // capture-time plan check.
 
     private string PlanDelta(FightProfile fight, List<MitRecap.MitEvent> group,
         List<MitRecap.MitEvent> events, List<string> party, HashSet<string> reported)
@@ -312,7 +328,7 @@ public class RecapWindow : Window
             if (MathF.Abs(e.Time - t0) > 15f) continue;
             applied.Add(e.Mit.Trim());
             foreach (var pm in Cooldowns.PlanMits(e.Mit)) applied.Add(pm.Name);
-            foreach (var (part, canon) in StatusAliases)
+            foreach (var (part, canon) in MitRecap.StatusAliases)
                 if (e.Mit.Contains(part, StringComparison.OrdinalIgnoreCase)) applied.Add(canon);
         }
 
@@ -327,7 +343,7 @@ public class RecapWindow : Window
             foreach (var pm in Cooldowns.PlanMits(line.Action))
             {
                 if (applied.Contains(pm.Name)) continue;
-                if (DeltaBlind.Contains(pm.Name)) continue;
+                if (MitRecap.DeltaBlind.Contains(pm.Name)) continue;
                 if (MitTypes.Classify(pm.Name) == MitTypes.Kind.Other) continue; // recap can't see it
                 if (!reported.Add(pm.Name)) continue; // one report per pull, not per adjacent group
                 missing.Add(slot.Length > 0 ? $"{pm.Name} ({slot})" : pm.Name);
@@ -339,26 +355,10 @@ public class RecapWindow : Window
         return string.Join("   ", parts);
     }
 
-    // Every slot's planned lines near a moment: the live plan plus each saved
-    // slot. Untouched builtin preview slots are intentionally excluded; the
-    // recap judges against what the group actually planned, not defaults.
-    // Job gating: YOUR slot filters precisely by your job ("Party Mit (WAR/PLD)"
-    // is not a DRK's miss). Other slots skip job-gated lines entirely: we can't
-    // know which job sits in that seat, and the recap must never produce a
-    // phantom "missing".
+    // Every slot's planned lines near a moment - the shared iterator in
+    // MitRecap, narrowed to a 9s window around the group.
     private static IEnumerable<(string Slot, MitLine Line)> PlannedLinesNear(FightProfile fight, float time, string? myJob)
-    {
-        foreach (var l in fight.Lines)
-            if (l.Enabled && l.AppliesTo(myJob) && MathF.Abs(l.Time - time) < 9f)
-                yield return (fight.Slot, l);
-        foreach (var kv in fight.SavedSlots)
-        {
-            if (string.Equals(kv.Key, fight.Slot, StringComparison.OrdinalIgnoreCase)) continue;
-            foreach (var l in kv.Value)
-                if (l.Enabled && l.Jobs.Count == 0 && !l.HasJobGate() && MathF.Abs(l.Time - time) < 9f)
-                    yield return (kv.Key, l);
-        }
-    }
+        => MitRecap.PlannedLines(fight, myJob).Where(x => MathF.Abs(x.Line.Time - time) < 9f);
 
     // The plan mechanic nearest this moment (within a window), so recap rows can
     // group under the same names the calls used. Empty when no fight is active
