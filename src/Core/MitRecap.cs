@@ -48,8 +48,8 @@ public class MitRecap
         public float CaptureElapsed;
         public uint Territory;
         public DateTime CapturedAt;
-        // Party cooldowns that sat unused: (who, mit, why it counts).
-        public List<(string Who, string Mit, string Note)> Unused = new();
+        // Party cooldowns that sat unused: (who, mit, why it counts, icon).
+        public List<(string Who, string Mit, string Note, uint Icon)> Unused = new();
     }
 
     public List<Applied> Log { get; } = new();
@@ -247,9 +247,9 @@ public class MitRecap
     // the wipe and never went out again). Job-unique names make presence in the
     // log attributable; a job appearing twice in the roster is skipped - the
     // recap can't tell whose press it saw.
-    private static List<(string Who, string Mit, string Note)> ComputeUnused(PullRecap p)
+    private static List<(string Who, string Mit, string Note, uint Icon)> ComputeUnused(PullRecap p)
     {
-        var res = new List<(string, string, string)>();
+        var res = new List<(string, string, string, uint)>();
         try
         {
             var dupJobs = p.Jobs.Values
@@ -274,12 +274,12 @@ public class MitRecap
                     {
                         // Only nag once the pull was long enough to have used it.
                         if (p.CaptureElapsed >= recast * 0.9f)
-                            res.Add((name, mit, "never used"));
+                            res.Add((name, mit, "never used", SampleIcon(mit)));
                     }
                     else
                     {
                         var idle = p.CaptureElapsed - times.Max() - recast;
-                        if (idle >= 20f) res.Add((name, mit, $"was back {(int)idle}s before the end"));
+                        if (idle >= 20f) res.Add((name, mit, $"was back {(int)idle}s before the end", SampleIcon(mit)));
                     }
                 }
             }
@@ -535,7 +535,7 @@ public class MitRecap
         {
             sb.AppendLine();
             sb.AppendLine("Left on the table:");
-            foreach (var (who, mit, note) in Shown.Unused)
+            foreach (var (who, mit, note, _) in Shown.Unused)
                 sb.AppendLine($"  {mit} - {who}: {note}");
         }
 

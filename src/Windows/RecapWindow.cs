@@ -79,18 +79,24 @@ public class RecapWindow : Window
         {
             ImGui.Spacing();
             ImGui.BeginDisabled(r.View >= r.History.Count - 1);
-            if (Button("<")) r.View = Math.Min(r.View + 1, r.History.Count - 1);
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                if (ImGui.SmallButton(FontAwesomeIcon.ChevronLeft.ToIconString() + "##pullolder"))
+                    r.View = Math.Min(r.View + 1, r.History.Count - 1);
             ImGui.EndDisabled();
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Older pull");
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.TextColored(Vec(Theme.Accent),
-                r.View == 0 ? "latest pull" : $"{r.View} pull{(r.View == 1 ? "" : "s")} back");
+                r.View == 0 ? "Latest pull" : $"{r.View} pull{(r.View == 1 ? "" : "s")} back");
             ImGui.SameLine();
-            ImGui.TextColored(Vec(0xFF81766E), $"({r.History.Count} kept)");
+            ImGui.TextColored(Vec(0xFF81766E), $"· {r.History.Count} kept");
             ImGui.SameLine();
             ImGui.BeginDisabled(r.View <= 0);
-            if (Button(">")) r.View = Math.Max(0, r.View - 1);
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                if (ImGui.SmallButton(FontAwesomeIcon.ChevronRight.ToIconString() + "##pullnewer"))
+                    r.View = Math.Max(0, r.View - 1);
             ImGui.EndDisabled();
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Newer pull");
         }
 
         // Boss name + fight time of the capture.
@@ -121,8 +127,10 @@ public class RecapWindow : Window
         if (r.Shown.Unused.Count > 0)
         {
             Header("Left on the table");
-            foreach (var (who, mit, note) in r.Shown.Unused)
+            var lh = ImGui.GetTextLineHeight();
+            foreach (var (who, mit, note, icon) in r.Shown.Unused)
             {
+                if (icon != 0) { Icons.Draw(icon, new Vector2(lh, lh)); ImGui.SameLine(0, 6); }
                 ImGui.TextColored(Vec(Theme.Warn), mit);
                 ImGui.SameLine();
                 ImGui.TextColored(Vec(0xFF81766E), $"· {who} · {note}");
@@ -244,7 +252,10 @@ public class RecapWindow : Window
                     // Each death carries its story: how fast they dropped and
                     // what they still had running (or that nothing was up).
                     var d = deaths[dIdx++];
-                    ImGui.TextColored(Vec(0xFF5050E0), $"died: {d.Name}");
+                    using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                        ImGui.TextColored(Vec(0xFF5050E0), FontAwesomeIcon.SkullCrossbones.ToIconString());
+                    ImGui.SameLine(0, 5);
+                    ImGui.TextColored(Vec(0xFF5050E0), d.Name);
                     var story = new List<string>();
                     if (d.FromPct > 0f && d.Seconds > 0f)
                         story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
