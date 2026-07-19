@@ -1739,6 +1739,9 @@ public class SheetViewWindow : Window
         // still covering its own row, and by when the tool was ready before it).
         public MitLine? LastLine;
         public float FloatSlack;
+        // Times the USER's own cells press this tool; the planner may not land
+        // inside any of their recast windows (either direction).
+        public List<float> UserTimes = new();
     }
 
     // The planner, patterned on how the reference sheets actually play:
@@ -1822,19 +1825,36 @@ public class SheetViewWindow : Window
         }
         if (tools.Count == 0) return 0;
 
-        // Cooldowns the USER already spent: a hand-written Bell at 1:00 means
-        // the planner's Bell isn't back until 4:00. Without this seeding the
-        // plan could double-book a cooldown against cells it didn't write.
+        // Cooldowns the USER already spent: a hand-written Bell at 4:00 blocks
+        // the planner from any press whose recast would overlap it - in either
+        // direction - while the stretch clear of it stays fair game, the same
+        // way the red-check reasons. Word-boundary matched so an annotated
+        // cell ("Kerachole ASAP") still counts as a Kerachole press.
         static bool ActionHas(string action, string term)
-            => action.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .Any(part => string.Equals(part, term, StringComparison.OrdinalIgnoreCase));
-        foreach (var t in tools)
-            foreach (var x in lists[t.Slot])
+        {
+            var i = action.IndexOf(term, StringComparison.OrdinalIgnoreCase);
+            while (i >= 0)
             {
-                if (string.IsNullOrWhiteSpace(x.Action) || !ActionHas(x.Action, t.Term)) continue;
-                var back = x.Time + t.Recast;
-                if (back > t.ReadyAt) { t.ReadyAt = back; t.LastUse = x.Time; t.LastLine = null; }
+                var after = i + term.Length;
+                if ((i == 0 || !char.IsLetter(action[i - 1]))
+                    && (after >= action.Length || !char.IsLetter(action[after]))) return true;
+                i = action.IndexOf(term, i + 1, StringComparison.OrdinalIgnoreCase);
             }
+            return false;
+        }
+        foreach (var t in tools)
+        {
+            foreach (var x in lists[t.Slot])
+                if (!string.IsNullOrWhiteSpace(x.Action) && ActionHas(x.Action, t.Term))
+                    t.UserTimes.Add(x.Time);
+            t.UserTimes.Sort();
+        }
+        static bool UserBlocked(PlanTool t, float time)
+        {
+            foreach (var u in t.UserTimes)
+                if (time > u - t.Recast + 0.01f && time < u + t.Recast - 0.01f) return true;
+            return false;
+        }
 
         // Spending this tool now would steal it from an upcoming deadly hit.
         // 75s catches the 90s workhorses too (Feint, Addle, the party mits):
@@ -1852,8 +1872,21 @@ public class SheetViewWindow : Window
         float BuffDur(PlanTool t)
             => Cooldowns.PlanInfo(t.Term)?.Duration is { } d and > 0f ? d : 15f;
         bool CanReach(PlanTool t, float time)
-            => t.ReadyAt <= time + 0.01f
-               || (t.LastLine is { CoverUntil: <= 0f } && t.ReadyAt - time <= t.FloatSlack + 0.01f);
+        {
+            if (UserBlocked(t, time)) return false;
+            if (t.ReadyAt <= time + 0.01f) return true;
+            // Bridging float: only a solo line this run wrote, that nothing
+            // rides yet (CoverUntil vs its OWN time - a pull-time ride stamps
+            // 0), landing clear of user windows and other cells.
+            var l = t.LastLine;
+            if (l == null || l.CoverUntil > l.Time - 0.01f) return false;
+            var shift = t.ReadyAt - time;
+            if (shift > t.FloatSlack + 0.01f) return false;
+            var dest = l.Time - shift;
+            if (UserBlocked(t, dest)) return false;
+            if (lists[t.Slot].Any(x => !ReferenceEquals(x, l) && MathF.Abs(x.Time - dest) < 1f)) return false;
+            return true;
+        }
         void ApplyFloat(PlanTool t, float time)
         {
             var shift = t.ReadyAt - time;
@@ -1896,21 +1929,28 @@ public class SheetViewWindow : Window
         var rampartAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         var shortAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         const float ShortRecast = 25f;
-        // Tank cooldowns the user already wrote into cells count against the
-        // shared timelines too, same as the party seeding above.
+        // Tank cooldowns the user already wrote into cells: same window rule
+        // as the party seeding - the planner may not land inside their recast
+        // in either direction, but the clear stretches stay usable.
         var invulnNames = new[] { "Invulnerability", "Holmgang", "Hallowed Ground", "Living Dead", "Superbolide" };
         var shortNames = new[] { "Short Mit", "Buddy Mit", "Bloodwhetting", "Nascent Flash", "Holy Sheltron", "Intervention", "The Blackest Night", "Heart of Corundum" };
+        var invulnUser = tanks.ToDictionary(t2 => t2, _ => new List<float>(), StringComparer.OrdinalIgnoreCase);
+        var rampartUser = tanks.ToDictionary(t2 => t2, _ => new List<float>(), StringComparer.OrdinalIgnoreCase);
+        var shortUser = tanks.ToDictionary(t2 => t2, _ => new List<float>(), StringComparer.OrdinalIgnoreCase);
         foreach (var tk in tanks)
             foreach (var x in lists[tk])
             {
                 if (string.IsNullOrWhiteSpace(x.Action)) continue;
-                if (invulnNames.Any(n => ActionHas(x.Action, n)))
-                    invulnAt[tk] = MathF.Max(invulnAt[tk], x.Time + 420f);
-                if (ActionHas(x.Action, "Rampart"))
-                    rampartAt[tk] = MathF.Max(rampartAt[tk], x.Time + 90f);
-                if (shortNames.Any(n => ActionHas(x.Action, n)))
-                    shortAt[tk] = MathF.Max(shortAt[tk], x.Time + ShortRecast);
+                if (invulnNames.Any(n => ActionHas(x.Action, n))) invulnUser[tk].Add(x.Time);
+                if (ActionHas(x.Action, "Rampart")) rampartUser[tk].Add(x.Time);
+                if (shortNames.Any(n => ActionHas(x.Action, n))) shortUser[tk].Add(x.Time);
             }
+        static bool WindowFree(List<float> users, float time, float recast)
+        {
+            foreach (var u in users)
+                if (time > u - recast + 0.01f && time < u + recast - 0.01f) return false;
+            return true;
+        }
         var rot = 0;
         var lastTb = -9999f;
         var lastTbHurt = 0;
@@ -1944,14 +1984,14 @@ public class SheetViewWindow : Window
 
                 var activeTank = tanks[rot % tanks.Count];
                 rot++;
-                var srdy = shortAt[activeTank] <= row.Time;
+                var srdy = shortAt[activeTank] <= row.Time && WindowFree(shortUser[activeTank], row.Time, ShortRecast);
                 string? act = null;
-                if (row.Hurt >= 3 && invulnAt[activeTank] <= row.Time)
+                if (row.Hurt >= 3 && invulnAt[activeTank] <= row.Time && WindowFree(invulnUser[activeTank], row.Time, 420f))
                 {
                     act = TankTerm(activeTank, "Invulnerability");
                     invulnAt[activeTank] = row.Time + 420f; // slowest invuln; never a dead call
                 }
-                else if (rampartAt[activeTank] <= row.Time && row.Hurt >= 2)
+                else if (rampartAt[activeTank] <= row.Time && WindowFree(rampartUser[activeTank], row.Time, 90f) && row.Hurt >= 2)
                 {
                     act = srdy ? "Rampart + " + TankTerm(activeTank, "Short Mit") : "Rampart";
                     rampartAt[activeTank] = row.Time + 90f;
@@ -1962,7 +2002,7 @@ public class SheetViewWindow : Window
                     act = TankTerm(activeTank, "Short Mit");
                     shortAt[activeTank] = row.Time + ShortRecast;
                 }
-                else if (rampartAt[activeTank] <= row.Time)
+                else if (rampartAt[activeTank] <= row.Time && WindowFree(rampartUser[activeTank], row.Time, 90f))
                 {
                     act = "Rampart";
                     rampartAt[activeTank] = row.Time + 90f;
@@ -1983,7 +2023,7 @@ public class SheetViewWindow : Window
                 if (row.Hurt >= 2 && tanks.Count > 1)
                 {
                     var co = tanks[rot % tanks.Count];
-                    if (shortAt[co] <= row.Time)
+                    if (shortAt[co] <= row.Time && WindowFree(shortUser[co], row.Time, ShortRecast))
                     {
                         var buddy = new MitLine
                         {
@@ -2041,8 +2081,9 @@ public class SheetViewWindow : Window
                 .Where(t => CanReach(t, row.Time))
                 .Where(t => !lists[t.Slot].Any(x => MathF.Abs(x.Time - row.Time) < 1f))
                 .ToList();
-            // Save the big buttons for the big hits.
-            if (row.Hurt is 1 or 0)
+            // Save the big buttons for the big hits (effective grade: a row
+            // opening a dense string counts as the string, not its first tick).
+            if (eff is 1 or 0)
                 ready.RemoveAll(t => StealsFromDeadly(t, row.Time));
             // The cluster hold never keeps anything from a DEADLY hit: a lone
             // deadly is worth a Bell/Panhaima burst, and Macrocosmos compiles
@@ -2129,7 +2170,7 @@ public class SheetViewWindow : Window
                 var satOrder = g
                     .Where(t => CanReach(t, row.Time))
                     .Where(t => !(DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)))
-                    .Where(t => row.Hurt >= 2 || !StealsFromDeadly(t, row.Time))
+                    .Where(t => eff >= 2 || !StealsFromDeadly(t, row.Time))
                     .Where(t => row.Hurt >= 3 || !HoldForCluster(t, row))
                     .OrderByDescending(t => TickScore(t, row) >= 2 ? TickScore(t, row) : 0)
                     .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
@@ -2173,8 +2214,10 @@ public class SheetViewWindow : Window
                 foreach (var tk in tanks)
                 {
                     var canRampart = rampartAt[tk] <= row.Time
+                        && WindowFree(rampartUser[tk], row.Time, 90f)
                         && !busterTimes.Any(tb => tb > row.Time && tb < row.Time + 90f);
                     var canShort = shortAt[tk] <= row.Time
+                        && WindowFree(shortUser[tk], row.Time, ShortRecast)
                         && !busterTimes.Any(tb => tb > row.Time && tb < row.Time + ShortRecast);
                     if (!canRampart && !canShort) continue;
                     var col = lists[tk];
@@ -2186,6 +2229,10 @@ public class SheetViewWindow : Window
                     if (mineLine != null)
                     {
                         mineLine.Action += " + " + string.Join(" + ", parts);
+                        // No longer a solo press: floating it later would
+                        // silently retime the parts just appended.
+                        foreach (var t2 in tools)
+                            if (ReferenceEquals(t2.LastLine, mineLine)) t2.LastLine = null;
                     }
                     else
                     {

@@ -1478,6 +1478,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        Diag.FlushOnDispose();
         Service.Log.Information($"[FrenMits] dispose - live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;

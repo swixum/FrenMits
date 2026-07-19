@@ -95,8 +95,13 @@ public class MitBarWindow : Window
         var cur = ImGui.GetWindowPos();
         var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);
         var frac = (center - vp.WorkPos) / vp.WorkSize;
-        if ((frac - C.MitBarPosition).LengthSquared() > 0.0000001f) { C.MitBarPosition = frac; C.Save(); }
+        if ((frac - C.MitBarPosition).LengthSquared() > 0.0000001f) { C.MitBarPosition = frac; _posDirty = true; }
+        // ONE disk write when the drag ends - not sixty full-config saves a
+        // second while the window is being moved.
+        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
     }
+
+    private bool _posDirty;
 
     private IDisposable PushFont(float sizePx)
     {

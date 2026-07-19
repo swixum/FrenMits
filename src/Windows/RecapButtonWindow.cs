@@ -106,8 +106,13 @@ public class RecapButtonWindow : Window
         var cur = ImGui.GetWindowPos();
         var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);
         var frac = (center - vp.WorkPos) / vp.WorkSize;
-        if ((frac - C.RecapPopupPosition).LengthSquared() > 0.0000001f) { C.RecapPopupPosition = frac; C.Save(); }
+        if ((frac - C.RecapPopupPosition).LengthSquared() > 0.0000001f) { C.RecapPopupPosition = frac; _posDirty = true; }
+        // ONE disk write when the drag ends - not sixty full-config saves a
+        // second while the window is being moved.
+        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
     }
+
+    private bool _posDirty;
 
     private static Vector4 Vec(uint abgr) => new(
         (abgr & 0xFF) / 255f, ((abgr >> 8) & 0xFF) / 255f, ((abgr >> 16) & 0xFF) / 255f, ((abgr >> 24) & 0xFF) / 255f);

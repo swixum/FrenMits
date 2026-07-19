@@ -114,6 +114,9 @@ public class RecapWindow : Window
         var events = r.LastEvents();
         var party = r.LastParty;
         var fight = _plugin.ActiveFight();
+        // The pull being shown may be from another zone (wipe, then teleport
+        // out): its rows must not be grouped under THIS zone's mechanic names.
+        if (fight != null && fight.TerritoryId != r.Territory) fight = null;
         if (ImGui.BeginTable("##recapwin", 3,
                 ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX,
                 new Vector2(0, 0)))

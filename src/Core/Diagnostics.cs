@@ -45,6 +45,13 @@ public class Diagnostics
         }
     }
 
+    // Plugin unload/update mid-pull (or during the end debounce): write what
+    // we have instead of silently dropping the pull record.
+    public void FlushOnDispose()
+    {
+        if (_active || _pendingEnd) End();
+    }
+
     private void Begin()
     {
         _lines.Clear();

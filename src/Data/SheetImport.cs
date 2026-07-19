@@ -11,7 +11,11 @@ public static class SheetImport
 {
     public static List<string[]> ParseGrid(string raw, out char delimiter)
     {
-        delimiter = raw.Contains('\t') ? '\t' : ',';
+        // Counted, not first-hit: one stray tab inside a comma CSV must not
+        // flip the whole paste to tab-separated.
+        var tabs = 0; var commas = 0;
+        foreach (var ch in raw) { if (ch == '\t') tabs++; else if (ch == ',') commas++; }
+        delimiter = tabs >= commas && tabs > 0 ? '\t' : ',';
         var rows = new List<string[]>();
         foreach (var line in raw.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
         {

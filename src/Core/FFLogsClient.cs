@@ -119,6 +119,7 @@ public sealed class FFLogsClient
         var castBar = new HashSet<uint>();
         var casts = new List<LogCast>();
         var start = fight.StartMs;
+        var more = false;
         for (var page = 0; page < 6; page++)
         {
             var j = await QueryAsync(clientId, secret, q,
@@ -140,9 +141,11 @@ public sealed class FFLogsClient
             }
 
             var next = ev["nextPageTimestamp"];
-            if (next == null || next.Type == JTokenType.Null) break;
+            if (next == null || next.Type == JTokenType.Null) { more = false; break; }
             start = next.Value<double>();
+            more = true;
         }
+        if (more) Service.Log.Warning("[FrenMits] FFLogs import hit the page cap; a very long fight may be partially imported.");
 
         // Stamp cast-bar knowledge onto the resolve events.
         for (var i = 0; i < casts.Count; i++)
@@ -168,6 +171,7 @@ public sealed class FFLogsClient
         var worst = new Dictionary<uint, long>();
         var targets = new Dictionary<uint, HashSet<long>>();
         var start = fight.StartMs;
+        var more = false;
         for (var page = 0; page < 6; page++)
         {
             var j = await QueryAsync(clientId, secret, q,
@@ -188,9 +192,11 @@ public sealed class FFLogsClient
             }
 
             var next = ev["nextPageTimestamp"];
-            if (next == null || next.Type == JTokenType.Null) break;
+            if (next == null || next.Type == JTokenType.Null) { more = false; break; }
             start = next.Value<double>();
+            more = true;
         }
+        if (more) Service.Log.Warning("[FrenMits] FFLogs import hit the page cap; a very long fight may be partially imported.");
         return worst.ToDictionary(kv => kv.Key,
             kv => new AbilityDamage(kv.Value, targets.TryGetValue(kv.Key, out var t) ? t.Count : 0));
     }
@@ -228,6 +234,7 @@ public sealed class FFLogsClient
 
         var presses = new List<MitPress>();
         var start = fight.StartMs;
+        var more = false;
         for (var page = 0; page < 4; page++)
         {
             var j = await QueryAsync(clientId, secret, q,
@@ -245,9 +252,11 @@ public sealed class FFLogsClient
             }
 
             var next = ev["nextPageTimestamp"];
-            if (next == null || next.Type == JTokenType.Null) break;
+            if (next == null || next.Type == JTokenType.Null) { more = false; break; }
             start = next.Value<double>();
+            more = true;
         }
+        if (more) Service.Log.Warning("[FrenMits] FFLogs import hit the page cap; a very long fight may be partially imported.");
         return presses;
     }
 }
