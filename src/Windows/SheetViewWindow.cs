@@ -1381,10 +1381,12 @@ public class SheetViewWindow : Window
                     var terr = row.TerritoryType.RowId;
                     if (terr == 0) continue;
                     found.Add((terr, name));
-                    if (found.Count >= max) break;
                 }
         }
         catch { /* sheet hiccup: search just returns nothing */ }
+        // Over the cap, keep the NEWEST rows: a broad query used to fill every
+        // slot with ARR-era content and bury the current tier off the list.
+        if (found.Count > max) found.RemoveRange(0, found.Count - max);
         return found;
     }
 

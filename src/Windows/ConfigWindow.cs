@@ -911,11 +911,17 @@ public class ConfigWindow : Window, IDisposable
             ImGui.OpenPopup("##addfight");
         if (!ImGui.BeginPopup("##addfight")) return;
 
-        if (ImGui.MenuItem("New blank fight (this zone)"))
+        // A blank fight in an official-sheet zone would be a locked, never-firing
+        // duplicate of the built-in (ActiveFight takes the first match), so the
+        // item goes disabled there.
+        var zone = Service.ClientState.TerritoryType;
+        if (Builtin.Has(zone))
+            ImGui.MenuItem("New blank fight (this zone has an official sheet)", false);
+        else if (ImGui.MenuItem("New blank fight (this zone)"))
             AddFight(new FightProfile
             {
                 Name = "New fight",
-                TerritoryId = Service.ClientState.TerritoryType,
+                TerritoryId = zone,
                 Category = category,
             });
         if (ImGui.MenuItem("Paste fight code from clipboard")) ImportFightFromClipboard();
@@ -1129,11 +1135,22 @@ public class ConfigWindow : Window, IDisposable
                    + "pull. The timer auto-starts on combat and resets on a wipe / duty end.");
     }
 
+    // Set when a zone edit is refused (official-sheet zone); shows a warning
+    // line under the territory controls for a few seconds.
+    private double _zoneRejectUntil;
+
+    // The canonical profile for a built-in zone: first in the list, like
+    // ActiveFight resolves. A stray DUPLICATE on a built-in zone (old configs
+    // could produce one) stays a normal editable fight so it can be deleted.
+    private bool IsOfficial(FightProfile f)
+        => Builtin.Has(f.TerritoryId)
+           && ReferenceEquals(C.Fights.FirstOrDefault(x => x.TerritoryId == f.TerritoryId), f);
+
     private bool DrawFightEditor(FightProfile fight)
     {
         // Built-in fights (the ones shipped with the plugin) are locked: their name
         // can't be edited and they can't be deleted. Only user-added fights can.
-        if (Builtin.Has(fight.TerritoryId))
+        if (IsOfficial(fight))
         {
             ImGui.AlignTextToFramePadding();
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
@@ -1620,7 +1637,7 @@ public class ConfigWindow : Window, IDisposable
         if (!Section("Manage & advanced")) return;
         ImGui.Indent(10f);
 
-        var locked = Builtin.Has(fight.TerritoryId);
+        var locked = IsOfficial(fight);
         if (!locked)  // duplicating a built-in would make a same-zone copy that's then locked
         {
             if (ImGui.Button("Duplicate"))
@@ -1631,7 +1648,10 @@ public class ConfigWindow : Window, IDisposable
                     TerritoryId = fight.TerritoryId,
                     Category = fight.Category,
                     TimerOffset = fight.TimerOffset,
-                    Enabled = fight.Enabled,
+                    // The copy starts disabled: with both live, the original
+                    // would keep winning the zone and edits to the copy would
+                    // silently never fire. Enable whichever should be live.
+                    Enabled = false,
                     Slot = fight.Slot,
                     Lines = fight.Lines.Select(CloneLine).ToList(),
                     // Deep-copy the rest too: for a custom fight the hand-built
@@ -1650,6 +1670,8 @@ public class ConfigWindow : Window, IDisposable
                     { Time = cr.Time, Mechanic = cr.Mechanic }).ToList(),
                 });
             }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("The copy starts disabled - enable whichever version should be live.");
             ImGui.SameLine();
         }
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Upload, "Export to clipboard")) ExportFight(fight);
@@ -1661,15 +1683,25 @@ public class ConfigWindow : Window, IDisposable
         ImGui.BeginDisabled(locked); // a built-in's zone is fixed
         var territory = (int)fight.TerritoryId;
         ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputInt("Territory id", ref territory)) { fight.TerritoryId = (uint)Math.Max(0, territory); C.Save(); }
+        // Official-sheet zones are refused here: pointing a custom fight at one
+        // creates a duplicate that never fires (the built-in wins the zone).
+        if (ImGui.InputInt("Territory id", ref territory))
+        {
+            var target = (uint)Math.Max(0, territory);
+            if (Builtin.Has(target) && target != fight.TerritoryId) _zoneRejectUntil = ImGui.GetTime() + 4;
+            else { fight.TerritoryId = target; C.Save(); }
+        }
         ImGui.SameLine();
         if (ImGui.Button($"Use current zone ({Service.ClientState.TerritoryType})"))
         {
-            fight.TerritoryId = Service.ClientState.TerritoryType;
-            C.Save();
+            var target = Service.ClientState.TerritoryType;
+            if (Builtin.Has(target) && target != fight.TerritoryId) _zoneRejectUntil = ImGui.GetTime() + 4;
+            else { fight.TerritoryId = target; C.Save(); }
         }
         var zoneName = TerritoryName(fight.TerritoryId);
         if (!string.IsNullOrEmpty(zoneName)) { ImGui.SameLine(); ImGui.TextDisabled(zoneName); }
+        if (ImGui.GetTime() < _zoneRejectUntil)
+            ImGui.TextColored(new Vector4(0.95f, 0.75f, 0.35f, 1f), "That zone already has an official sheet - it can't be assigned to a custom fight.");
         ImGui.EndDisabled();
 
         ImGui.TextDisabled("Timer offset now lives at the top of this fight, above the mit sections.");

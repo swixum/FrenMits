@@ -43,6 +43,10 @@ public static class UniversalTimelines
                 if (z["s"] is JArray ss)
                     foreach (var a in ss)
                         zone.Syncs.Add(((float)a[0]!, (uint)a[1]!, (int)a[2]! != 0));
+                // The board walks entries in list order; don't trust the file
+                // to be time-sorted (older bakes weren't for branching fights).
+                zone.Entries.Sort((a, b) => a.Time.CompareTo(b.Time));
+                zone.Syncs.Sort((a, b) => a.Time.CompareTo(b.Time));
                 _zones[terr] = zone;
             }
             Service.Log.Information($"[FrenMits] universal timelines loaded: {_zones.Count} duties");

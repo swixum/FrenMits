@@ -228,14 +228,6 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // Migrate the old M12S placeholder zone (1320) to the real one (1327).
-        foreach (var f in Config.Fights)
-            if (f.TerritoryId == 1320)
-            {
-                f.TerritoryId = Builtin.M12sTerritory;
-                f.Category = "Savage";
-            }
-
         // v15: stored fight names may carry an em dash from an older seed, which
         // the game font renders as an empty box. Normalize to a plain hyphen.
         if (Config.Version < 15)
@@ -306,6 +298,21 @@ public sealed class Plugin : IDalamudPlugin
                     SnapshotPlan(f, "before the Ultimate Embrace typo fix");
             SmartRebakeDmu();
             Config.Version = 19;
+            Config.Save();
+        }
+
+        // v20: migrate the old M12S placeholder zone (1320) to the real one
+        // (1327). Gated so it runs once - 1320 is a real duty, and an ungated
+        // remap would silently steal any custom sheet a user builds there.
+        if (Config.Version < 20)
+        {
+            foreach (var f in Config.Fights)
+                if (f.TerritoryId == 1320)
+                {
+                    f.TerritoryId = Builtin.M12sTerritory;
+                    f.Category = "Savage";
+                }
+            Config.Version = 20;
             Config.Save();
         }
 
@@ -1050,7 +1057,10 @@ public sealed class Plugin : IDalamudPlugin
     {
         if (!Builtin.Has(territory)) return;
 
-        var fight = Config.Fights.FirstOrDefault(f => f.TerritoryId == territory);
+        // Prefer the enabled profile so this matches what ActiveFight will
+        // actually drive when duplicates exist (first enabled wins there too).
+        var fight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory)
+                    ?? Config.Fights.FirstOrDefault(f => f.TerritoryId == territory);
         if (fight == null)
         {
             fight = new FightProfile { Name = Builtin.Name(territory), TerritoryId = territory };
@@ -1065,6 +1075,15 @@ public sealed class Plugin : IDalamudPlugin
             ? fight.Slot
             : PreferredDefaultSlot(territory);
 
+        // No safe guess (player is on a job the plugin doesn't know yet, likely
+        // a new expansion's): don't bake someone else's seat - the entry popup
+        // asks for a slot instead.
+        if (slot.Length == 0)
+        {
+            Service.Log.Information($"FrenMits auto-load: territory {territory}, unknown job - waiting for a slot pick.");
+            return;
+        }
+
         var added = Builtin.ApplySlot(fight, slot);
         Config.DmuSlot = fight.Slot;
         Config.Save();
@@ -1078,7 +1097,13 @@ public sealed class Plugin : IDalamudPlugin
     private string PreferredDefaultSlot(uint territory)
     {
         var roleSlot = Builtin.RoleSlot(territory, Config.RoleSelection);
-        return !string.IsNullOrEmpty(roleSlot) ? roleSlot! : Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
+        if (!string.IsNullOrEmpty(roleSlot)) return roleSlot!;
+        // A logged-in player on a job missing from the Jobs table (a brand-new
+        // job) gets NO guess: "" tells callers to skip the bake rather than
+        // hand a fresh 8.0 job the main tank's calls. No player yet (login
+        // screen) keeps the generic first-seat default as before.
+        if (LocalPlayer is { } p && Jobs.ByRowId(p.ClassJob.RowId) is null) return "";
+        return Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
     }
 
     // Local player via the object table (index 0); IClientState.LocalPlayer was
@@ -1156,7 +1181,9 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (fight.Lines.Count == 0 && Builtin.Has(fight.TerritoryId))
             {
-                Builtin.ApplySlot(fight, PreferredDefaultSlot(fight.TerritoryId));
+                var slot = PreferredDefaultSlot(fight.TerritoryId);
+                if (slot.Length == 0) continue; // unknown job: no safe seat to guess
+                Builtin.ApplySlot(fight, slot);
                 prebaked = true;
             }
         }
@@ -1422,11 +1449,14 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var fight in Config.Fights)
             if (fight.Enabled && fight.TerritoryId == territory)
                 return fight;
+        // A practice phase-jump beats the universal timeline: the user explicitly
+        // asked to preview a fight, and the auto board would otherwise swallow it
+        // in every duty that has baked data.
+        if (Config.TestMode && PreviewFight != null) return PreviewFight;
         // No sheet for this duty: the baked universal timeline (board + combat
         // timer only) steps in, so a timeline runs in every instanced duty.
         if (Config.UniversalTimelines && _autoFight != null && _autoFight.TerritoryId == territory)
             return _autoFight;
-        if (Config.TestMode && PreviewFight != null) return PreviewFight;
         return null;
     }
 
@@ -1444,10 +1474,17 @@ public sealed class Plugin : IDalamudPlugin
         var territory = Service.ClientState.TerritoryType;
         // Re-check when the zone changes OR the fights list does (adding a
         // sheet mid-instance stands the auto timeline down; deleting the only
-        // sheet brings it back).
-        if (territory == _autoFightTerritory && Config.Fights.Count == _autoFightsStamp) return;
+        // sheet brings it back). The stamp folds in each fight's zone and
+        // enabled flag so retargeting or toggling a fight re-evaluates too -
+        // count alone missed both and left a stale board up.
+        var stamp = Config.Fights.Count;
+        foreach (var f in Config.Fights)
+            stamp = stamp * 31 + (int)f.TerritoryId * 2 + (f.Enabled ? 1 : 0);
+        if (territory == _autoFightTerritory && stamp == _autoFightsStamp) return;
         _autoFightTerritory = territory;
-        _autoFightsStamp = Config.Fights.Count;
+        _autoFightsStamp = stamp;
+        // Enabled is deliberately ignored here: a profile you disabled means
+        // "keep this duty silent", not "show me the generic board instead".
         _autoFight = Config.Fights.Any(f => f.TerritoryId == territory)
             ? null
             : UniversalTimelines.Build(territory);

@@ -200,11 +200,9 @@ public class MitLine
         return kept == null ? "" : string.Join(" + ", kept);
     }
 
-    private static readonly HashSet<string> JobAbbrs = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "PLD", "WAR", "DRK", "GNB", "WHM", "SCH", "AST", "SGE", "MNK", "DRG", "NIN",
-        "SAM", "RPR", "VPR", "BRD", "MCH", "DNC", "BLM", "SMN", "RDM", "PCT", "BLU",
-    };
+    // Derived from the master job table so a new job added there is recognized
+    // as a gate token here automatically - a second hand-kept list drifted.
+    private static readonly HashSet<string> JobAbbrs = new(FrenMits.Jobs.Abbreviations, StringComparer.OrdinalIgnoreCase);
 
     private static bool SegmentAppliesTo(string segment, string job)
     {
