@@ -139,20 +139,15 @@ public class RecapWindow : Window
         {
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Warn), "Never landed:  " + string.Join("   ", missed));
-            ImGui.TextColored(Theme.V(Theme.Muted), "comp-dependent: no caster = no Addle, no MCH = no Dismantle");
         }
 
-        // Coverage timeline: the whole pull as one scrubbable bar - the shape of
-        // where the party's mitigation held and where it ran dry, faster to read
-        // than the rows below. Hover any moment to inspect it.
+        // Coverage timeline: the whole pull as one chart - where the party's
+        // mitigation stacked (tall/green) and where it thinned (low/red), deaths
+        // marked. Hover any moment for the detail.
         Widgets.SectionHeader("Coverage timeline");
         DrawScrubber(r);
-        ImGui.TextColored(Theme.V(Theme.Muted), "band:");
-        ImGui.SameLine(0, 5); ImGui.TextColored(Theme.V(Theme.Danger), "dry");
-        ImGui.SameLine(0, 3); ImGui.TextColored(Theme.V(Theme.Muted), "→");
-        ImGui.SameLine(0, 3); ImGui.TextColored(Theme.V(Theme.Good), "covered");
-        ImGui.SameLine(0, 8); ImGui.TextColored(Theme.V(0xFF3EA9D6u), "· boss");
-        ImGui.SameLine(0, 6); ImGui.TextColored(Theme.V(0xFFA8B63Fu), "party");
+        ImGui.TextColored(Theme.V(Theme.Muted), "tall & green = more mit up · dips = thin ·");
+        ImGui.SameLine(0, 5); ImGui.TextColored(Theme.V(Theme.Danger), "red = deaths");
         ImGui.SameLine(0, 6); ImGui.TextColored(Theme.V(Theme.Muted), "· hover to inspect");
 
         // Plan vs. actual: the sheet graded against the pull. Late and missing
@@ -187,30 +182,37 @@ public class RecapWindow : Window
         {
             Widgets.SectionHeader("Left on the table");
             var lh = ImGui.GetTextLineHeight();
-            foreach (var (who, mit, note, icon) in r.Shown.Unused)
+            foreach (var (who, mit, note, icon) in r.Shown.Unused.Take(4))
             {
                 if (icon != 0) { Icons.Draw(icon, new Vector2(lh, lh)); ImGui.SameLine(0, 6); }
                 ImGui.TextColored(Theme.V(Theme.Warn), mit);
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted), $"· {who} · {note}");
             }
+            if (r.Shown.Unused.Count > 4)
+                ImGui.TextColored(Theme.V(Theme.Muted), $"+{r.Shown.Unused.Count - 4} more in Copy");
         }
 
-        // What was still running when the pull ended.
-        Widgets.SectionHeader("Still up at the end");
-        if (r.Snapshot.Count == 0) ImGui.TextColored(Theme.V(Theme.Muted), "Nothing was active.");
-        else foreach (var m in r.Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
+        // What was still running when the pull ended (skipped when nothing was up,
+        // so the section doesn't take space just to say "nothing").
+        if (r.Snapshot.Count > 0)
         {
-            if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, 6); }
-            var col = MitTypes.Color(m.Kind, C);
-            ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), m.Mit);
-            ImGui.SameLine();
-            ImGui.TextColored(Theme.V(Theme.Muted), $"· {m.Source} · {m.Remaining:0}s");
+            Widgets.SectionHeader("Still up at the end");
+            foreach (var m in r.Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
+            {
+                if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, 6); }
+                var col = MitTypes.Color(m.Kind, C);
+                ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), m.Mit);
+                ImGui.SameLine();
+                ImGui.TextColored(Theme.V(Theme.Muted), $"· {m.Source} · {m.Remaining:0}s");
+            }
         }
 
-        // Full timeline: ONE row per mechanic, its mits inline with coverage
-        // counts, so a wipe reads at a glance instead of as a long scroll.
-        Widgets.SectionHeader("Timeline");
+        // Full per-mechanic detail, collapsed by default: the chart above is the
+        // at-a-glance view, so the long table only opens when you want the exact
+        // rows. It's the last thing drawn, so a closed header just ends the body.
+        ImGui.Dummy(new Vector2(0, 2));
+        if (!ImGui.CollapsingHeader("Timeline details")) return;
         ImGui.TextColored(Theme.V(Theme.Muted), "mit colors:");
         foreach (var (kind, label) in new[]
                  {
@@ -430,10 +432,11 @@ public class RecapWindow : Window
         _ => 0.05f,
     };
 
-    // The at-a-glance coverage bar. Draws a heat band (green held / red ran dry)
-    // over one lane per boss debuff and party mit, with mechanic ticks, death
-    // markers, a time axis and a hover playhead. All via the window draw-list so
-    // it themes exactly like the rest of the recap.
+    // The at-a-glance coverage chart: an area whose HEIGHT and COLOR both show how
+    // much mitigation was up across the pull - tall/green where mits stacked, low/
+    // red where coverage thinned - with death markers and mechanic ticks. It's
+    // normalized to the pull's own peak so the shape is always readable, and the
+    // per-mit detail lives in the table below. Hover for a moment-by-moment read.
     private void DrawScrubber(MitRecap r)
     {
         var evs = r.LastEvents();
@@ -447,110 +450,89 @@ public class RecapWindow : Window
         var fight = _plugin.ActiveFight();
         if (fight != null && fight.TerritoryId != r.Territory) fight = null; // another zone: no mechanic names
 
-        float Coverage(float t)
+        float Cover(float t)
         {
             var s = 0f;
             foreach (var e in evs)
                 if (t >= e.Time && t < e.Time + MitDur(e)) s += MitWeight(e);
-            return MathF.Min(1f, s);
+            return s;
         }
 
-        // Lanes: boss debuffs first, then the party-wide cooldowns most-used
-        // first, capped so the bar stays compact.
-        List<(string Name, uint Col, List<(float A, float B)> Wins)> Build(IEnumerable<MitRecap.MitEvent> src, uint col)
-            => src.GroupBy(e => e.Mit, StringComparer.OrdinalIgnoreCase)
-                  .Select(g => (g.Key, col, g.Select(e => (e.Time, e.Time + MitDur(e))).ToList()))
-                  .ToList();
-        var lanes = Build(evs.Where(e => e.OnBoss), LaneBoss);
-        var party = Build(evs.Where(e => !e.OnBoss && e.Kind == MitTypes.Kind.Party), LaneParty)
-            .OrderByDescending(l => l.Wins.Sum(w => w.B - w.A)).ToList();
-        const int partyCap = 6;
-        var extra = Math.Max(0, party.Count - partyCap);
-        lanes.AddRange(party.Take(partyCap));
-        if (lanes.Count == 0) { ImGui.TextColored(Theme.V(Theme.Muted), "No tracked mits this pull."); return; }
-
-        // Mechanic ticks from the matched plan (deduped within 8s).
-        var ticks = new List<float>();
-        if (fight != null)
-            foreach (var l in fight.Lines.OrderBy(l => l.Time))
-                if (l.Time > 0 && l.Time <= dur && !string.IsNullOrWhiteSpace(l.Mechanic)
-                    && !ticks.Any(x => MathF.Abs(x - l.Time) < 8f))
-                    ticks.Add(l.Time);
-
         // ---- geometry ----
-        const float padL = 96f, padR = 8f, bandH = 34f, laneH = 13f, axisH = 16f, topPad = 4f;
+        const float padL = 10f, padR = 10f, bandH = 54f, axisH = 15f;
+        var hasDeaths = r.LastDeaths.Count > 0;
+        var topPad = hasDeaths ? 15f : 6f; // room for death name labels above the band
         var width = ImGui.GetContentRegionAvail().X;
         var plotW = MathF.Max(60f, width - padL - padR);
-        var height = topPad + bandH + 8f + lanes.Count * laneH + 6f + axisH;
+        var height = topPad + bandH + 5f + axisH;
         var origin = ImGui.GetCursorScreenPos();
         ImGui.InvisibleButton("##scrubber", new Vector2(width, height));
         var hovered = ImGui.IsItemHovered();
         var dl = ImGui.GetWindowDrawList();
-        var th = ImGui.GetTextLineHeight();
 
-        float X(float t) => origin.X + padL + MathF.Max(0f, MathF.Min(dur, t)) / dur * plotW;
+        var left = origin.X + padL;
+        var right = left + plotW;
         var bandTop = origin.Y + topPad;
         var bandBot = bandTop + bandH;
+        float X(float t) => left + Math.Clamp(t, 0f, dur) / dur * plotW;
 
-        // coverage heat band
-        var bandRight = origin.X + padL + plotW;
-        for (var px = 0f; px < plotW; px += 3f)
-            dl.AddRectFilled(
-                new Vector2(origin.X + padL + px, bandTop),
-                new Vector2(MathF.Min(origin.X + padL + px + 3.2f, bandRight), bandBot),
-                CovColor(Coverage(px / plotW * dur)));
-        dl.AddRect(new Vector2(origin.X + padL, bandTop), new Vector2(origin.X + padL + plotW, bandBot), 0xFF2A2320u, 3f);
-        dl.AddText(new Vector2(origin.X + padL - 6 - ImGui.CalcTextSize("coverage").X, bandTop + bandH / 2 - th / 2), Theme.Muted, "coverage");
+        // normalize to the pull's own peak so the area always uses the full range
+        var peak = 0.25f;
+        for (var px = 0f; px <= plotW; px += 2f) peak = MathF.Max(peak, Cover(px / plotW * dur));
 
-        // mechanic ticks: small notches on the band's top edge (names live in the
-        // tooltip) so they mark timing without fighting the coverage colors.
-        foreach (var t in ticks)
-            dl.AddLine(new Vector2(X(t), bandTop - 2), new Vector2(X(t), bandTop + 4), 0xB0D8D2CBu, 1f);
+        // panel + a faint half-height gridline
+        dl.AddRectFilled(new Vector2(left, bandTop), new Vector2(right, bandBot), 0xFF17120Fu, 3f);
+        dl.AddLine(new Vector2(left, bandTop + bandH * 0.5f), new Vector2(right, bandTop + bandH * 0.5f), 0x18FFFFFFu, 1f);
 
-        // lanes
-        var laneY = bandBot + 8f;
-        foreach (var (name, col, wins) in lanes)
+        // coverage area: bar height + color both encode how mitigated the party was
+        for (var px = 0f; px < plotW; px += 1f)
         {
-            var cy = laneY + laneH / 2f;
-            var label = Trunc(name, 12);
-            dl.AddText(new Vector2(origin.X + padL - 6 - ImGui.CalcTextSize(label).X, cy - th / 2), col, label);
-            dl.AddRectFilled(new Vector2(origin.X + padL, cy - 1), new Vector2(origin.X + padL + plotW, cy + 1), 0xFF211B18u);
-            foreach (var (a, b) in wins)
-            {
-                var xa = X(a); var xb = X(b);
-                if (xb <= origin.X + padL) continue;
-                dl.AddRectFilled(new Vector2(xa, laneY + 2), new Vector2(MathF.Max(xa + 3f, xb), laneY + laneH - 2), col, 3f);
-            }
-            laneY += laneH;
+            var c = MathF.Min(1f, Cover((px + 0.5f) / plotW * dur) / peak);
+            var x0 = left + px;
+            dl.AddRectFilled(new Vector2(x0, bandBot - c * bandH), new Vector2(x0 + 1.3f, bandBot), CovColor(c));
+        }
+        dl.AddRect(new Vector2(left, bandTop), new Vector2(right, bandBot), 0xFF2A2320u, 3f);
+
+        // mechanic ticks along the base (names live in the tooltip)
+        if (fight != null)
+        {
+            var seen = new List<float>();
+            foreach (var l in fight.Lines.OrderBy(l => l.Time))
+                if (l.Time > 0 && l.Time <= dur && !string.IsNullOrWhiteSpace(l.Mechanic)
+                    && !seen.Any(x => MathF.Abs(x - l.Time) < 8f))
+                {
+                    seen.Add(l.Time);
+                    dl.AddLine(new Vector2(X(l.Time), bandBot - 4), new Vector2(X(l.Time), bandBot), 0x99D8D2CBu, 1f);
+                }
         }
 
-        // death markers: a red line through the lanes + a notch under the band
+        // deaths: a bright red line, a dot, and the name above the band
         foreach (var d in r.LastDeaths)
         {
             var dx = X(d.Time);
-            dl.AddLine(new Vector2(dx, bandTop), new Vector2(dx, laneY), Theme.Danger, 1f);
-            dl.AddTriangleFilled(new Vector2(dx - 3.5f, bandBot + 1), new Vector2(dx + 3.5f, bandBot + 1), new Vector2(dx, bandBot + 5), Theme.Danger);
+            dl.AddLine(new Vector2(dx, bandTop - (hasDeaths ? 9f : 0f)), new Vector2(dx, bandBot), Theme.Danger, 1.5f);
+            if (hasDeaths)
+            {
+                dl.AddCircleFilled(new Vector2(dx, bandTop - 9f), 2.5f, Theme.Danger);
+                dl.AddText(new Vector2(dx + 4, bandTop - 15f), Theme.Danger, Trunc(d.Name, 8));
+            }
         }
 
-        // axis
-        var axisY = laneY + 6f;
-        dl.AddLine(new Vector2(origin.X + padL, axisY), new Vector2(origin.X + padL + plotW, axisY), 0xFF2A2320u, 1f);
+        // time axis
+        var axisY = bandBot + 5f;
         for (var t = 0f; t <= dur; t += 60f)
         {
-            dl.AddLine(new Vector2(X(t), axisY), new Vector2(X(t), axisY + 3), Theme.Muted, 1f);
-            dl.AddText(new Vector2(X(t) + 2, axisY + 2), Theme.Muted, $"{(int)t / 60}:{(int)t % 60:00}");
+            dl.AddLine(new Vector2(X(t), bandBot), new Vector2(X(t), axisY), 0xFF3A302Bu, 1f);
+            dl.AddText(new Vector2(X(t) + 2, axisY), Theme.Muted, $"{(int)t / 60}:{(int)t % 60:00}");
         }
 
         // hover: playhead + tooltip
         if (hovered)
         {
-            var t = MathF.Max(0f, MathF.Min(dur, (ImGui.GetMousePos().X - origin.X - padL) / plotW * dur));
-            dl.AddLine(new Vector2(X(t), bandTop - 3), new Vector2(X(t), axisY), Theme.Accent, 1f);
-            ScrubTooltip(r, evs, fight, t, Coverage(t));
+            var t = Math.Clamp((ImGui.GetMousePos().X - left) / plotW * dur, 0f, dur);
+            dl.AddLine(new Vector2(X(t), bandTop - topPad + 2), new Vector2(X(t), axisY), Theme.Accent, 1f);
+            ScrubTooltip(r, evs, fight, t, MathF.Min(1f, Cover(t) / peak));
         }
-
-        if (extra > 0)
-            ImGui.TextColored(Theme.V(Theme.Muted), $"+{extra} more party mit{(extra == 1 ? "" : "s")} in the timeline below");
     }
 
     // The hover read-out for one instant of the pull: time, mechanic, coverage,
@@ -561,13 +543,18 @@ public class RecapWindow : Window
         ImGui.TextColored(Theme.V(Theme.Accent), $"{(int)t / 60}:{(int)t % 60:00}");
         var mech = MechanicFor(fight, t);
         if (mech.Length > 0) { ImGui.SameLine(); ImGui.TextColored(Theme.V(Theme.Muted), "· " + mech); }
-        ImGui.TextColored(Theme.V(CovColor(cov)), $"coverage {(int)MathF.Round(cov * 100f)}%");
 
         var up = evs.Where(e => t >= e.Time && t < e.Time + MitDur(e))
             .Where(e => e.OnBoss || e.Kind == MitTypes.Kind.Party)
             .OrderByDescending(e => e.OnBoss).ToList();
-        if (up.Count == 0) ImGui.TextColored(Theme.V(Theme.Danger), "nothing mitigating");
-        else
+        // Qualitative read of the coverage at this instant (relative to the pull).
+        var (word, wc) = up.Count == 0 ? ("nothing up", Theme.Danger)
+            : cov >= 0.66f ? ("well covered", Theme.Good)
+            : cov >= 0.33f ? ("partial cover", Theme.Warn)
+            : ("thin cover", Theme.Danger);
+        ImGui.TextColored(Theme.V(wc), word);
+
+        if (up.Count > 0)
         {
             ImGui.Spacing();
             foreach (var e in up)
