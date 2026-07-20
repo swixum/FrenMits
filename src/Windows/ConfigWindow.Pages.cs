@@ -373,6 +373,7 @@ public partial class ConfigWindow
                 if (ImGui.SliderFloat("Look-ahead", ref blook, 15f, 180f, "%.0fs")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
                 HelpMarker("How many bars at once, and how far ahead the board looks: bars are full at that edge, empty at the hit.");
 
+                ImGui.Spacing();
                 var bw = C.UpcomingBoardWidth;
                 ImGui.SetNextItemWidth(150f);
                 if (ImGui.SliderFloat("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
@@ -381,6 +382,7 @@ public partial class ConfigWindow
                 ImGui.SetNextItemWidth(150f);
                 if (ImGui.SliderFloat("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
 
+                ImGui.Spacing();
                 C.UpcomingBoardOnlyMine = CfgCheck("Only hits I have a press for", C.UpcomingBoardOnlyMine);
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Off = the whole fight shows, with your mits highlighted on their rows.");
                 ImGui.SameLine(300f);
@@ -442,6 +444,7 @@ public partial class ConfigWindow
                 C.Save();
             }
 
+            ImGui.Spacing();
             var op = (int)MathF.Round(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 100f);
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderInt("Opacity", ref op, 0, 100, "%d%%")) { C.UpcomingBoardBgOpacity = op / 100f; C.Save(); }
@@ -450,6 +453,7 @@ public partial class ConfigWindow
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Thickness", ref pad, 2f, 24f, "+%.0f px")) { C.UpcomingBoardBarPad = pad; C.Save(); }
 
+            ImGui.Spacing();
             var gap = C.UpcomingBoardRowGap;
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Row spacing", ref gap, -8f, 16f, "%.0f px")) { C.UpcomingBoardRowGap = gap; C.Save(); }
@@ -459,6 +463,7 @@ public partial class ConfigWindow
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Rounding", ref rnd, 0f, 12f, "%.0f px")) { C.UpcomingBoardRounding = rnd; C.Save(); }
 
+            ImGui.Spacing();
             C.UpcomingBoardStripe = CfgCheck("Accent stripe on the left edge", C.UpcomingBoardStripe);
             ImGui.SameLine(300f);
             C.UpcomingBoardDrain = CfgCheck("Bars drain toward the hit", C.UpcomingBoardDrain);
@@ -467,14 +472,18 @@ public partial class ConfigWindow
 
         if (boardStyle && Section("On the rows", true))
         {
+            // Two tidy columns, each row on its own line with a little breathing
+            // room. (The left column splits at 300px; keep two per row, no more.)
             C.UpcomingBoardTimeText = CfgCheck("Countdown seconds", C.UpcomingBoardTimeText);
             ImGui.SameLine(300f);
             C.UpcomingBoardShowActions = CfgCheck("Planned mits", C.UpcomingBoardShowActions);
+            ImGui.Spacing();
             C.UpcomingBoardShowNotes = CfgCheck("Sheet notes (highlighted row)", C.UpcomingBoardShowNotes);
             ImGui.SameLine(300f);
             C.UpcomingBoardShowSeverity = CfgCheck("Severity marks (! !! !!!)", C.UpcomingBoardShowSeverity);
-            ImGui.SameLine(300f);
+            ImGui.Spacing();
             C.UpcomingBoardShowType = CfgCheck("Hit-type icons (raidwide / buster)", C.UpcomingBoardShowType);
+            Tip("A small icon on each row: cyan people = raidwide, orange shield = tank buster.");
         }
 
         if (Section("Every duty", true))
