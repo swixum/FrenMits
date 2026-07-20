@@ -521,7 +521,7 @@ public partial class ConfigWindow : Window, IDisposable
             && !string.Equals(C.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(C.JobSelection, live, StringComparison.OrdinalIgnoreCase))
         {
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 48f);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8f);
             if (ImGui.SmallButton($"Use current ({live})"))
             {
                 C.JobSelection = live;
@@ -566,7 +566,7 @@ public partial class ConfigWindow : Window, IDisposable
             && !string.Equals(C.RoleSelection, liveRole, StringComparison.OrdinalIgnoreCase)
             && !SameSeatGroup(C.RoleSelection, liveRole))
         {
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 48f);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8f);
             if (ImGui.SmallButton($"Use current ({liveRole})"))
                 SelectRoleForAll(liveRole);
             Tip("Set the role from your current job with one click. Tanks and melee "
