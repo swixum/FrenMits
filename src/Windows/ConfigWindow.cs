@@ -808,8 +808,9 @@ public partial class ConfigWindow : Window, IDisposable
         var lastEx = uint.MaxValue - 1; // sentinel that matches no real value
 
         FightProfile? toDelete = null;
-        foreach (var fight in fights)
+        for (int i = 0; i < fights.Count; i++)
         {
+            var fight = fights[i];
             var ex = ExpansionOf(fight);
             if (ex != lastEx)
             {
@@ -821,6 +822,12 @@ public partial class ConfigWindow : Window, IDisposable
             }
 
             ImGui.PushID(fight.Id);
+
+            // Drag handle: reorder fights within their expansion group. The list
+            // is drawn from a stable sort of C.Fights, so swapping two same-group
+            // fights in C.Fights is all it takes - the display and save follow.
+            DrawReorderGrip(fights, i);
+            ImGui.SameLine();
 
             // Enable toggle + an expandable dropdown per fight.
             var enabled = fight.Enabled;
@@ -906,6 +913,43 @@ public partial class ConfigWindow : Window, IDisposable
         }
 
         if (toDelete != null) { C.Fights.Remove(toDelete); C.Save(); }
+    }
+
+    // A small grip you drag up/down to reorder a fight within its expansion
+    // group. Only same-group neighbours swap: crossing a group line does
+    // nothing, since the group header sort would just snap it back.
+    private void DrawReorderGrip(List<FightProfile> shown, int i)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Button, 0u);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0x22FFFFFFu);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0x33FFFFFFu);
+        ImGui.PushStyleColor(ImGuiCol.Text, Theme.Muted);
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.Button(FontAwesomeIcon.GripVertical.ToIconString() + "##grip",
+                new Vector2(18f, ImGui.GetFrameHeight()));
+        ImGui.PopStyleColor(4);
+
+        var held = ImGui.IsItemActive();
+        if (held || ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNs);
+        if (ImGui.IsItemHovered() && !held) ImGui.SetTooltip("Drag to reorder");
+
+        if (!held) return;
+        var dy = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left).Y;
+        // Wait for a real drag past half a row before swapping, so a click or
+        // tiny wobble on the grip never nudges the order.
+        if (MathF.Abs(dy) < ImGui.GetFrameHeightWithSpacing() * 0.5f) return;
+
+        var j = i + (dy < 0 ? -1 : 1);
+        if (j < 0 || j >= shown.Count) return;
+        if (ExpansionOf(shown[j]) != ExpansionOf(shown[i])) return;
+
+        var a = C.Fights.IndexOf(shown[i]);
+        var b = C.Fights.IndexOf(shown[j]);
+        if (a < 0 || b < 0) return;
+        (C.Fights[a], C.Fights[b]) = (C.Fights[b], C.Fights[a]);
+        (shown[i], shown[j]) = (shown[j], shown[i]); // keep this frame's list in step
+        ImGui.ResetMouseDragDelta();
+        C.Save();
     }
 
     // One menu instead of a button row that grows every tier: blank fight,

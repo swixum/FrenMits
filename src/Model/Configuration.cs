@@ -128,6 +128,7 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingBoardShowActions { get; set; } = true;       // presses under the rows
     public bool UpcomingBoardShowNotes { get; set; } = true;         // sheet notes under gold/green rows
     public bool UpcomingBoardShowSeverity { get; set; } = true;      // !/!!/!!! marks from graded sheets
+    public bool UpcomingBoardShowType { get; set; } = true;          // raidwide / tank-buster icon per row
 
     // The next-mits timeline lives in its own window with its own placement.
     public bool TimelineLocked { get; set; }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
@@ -167,6 +168,8 @@ public class TimelineWindow : Window
     // accent from the config window's theme, at over-game friendly alphas.
     private const uint BoardBarBorder = 0x66594A3F; // soft slate border
     private const uint BoardBright = 0xFFECE8E6;    // Theme text
+    private const uint BoardRaidCol = 0xFFE0C860;   // raidwide: cool cyan-blue
+    private const uint BoardBusterCol = 0xFF4090F0; // tank buster: warm orange
     private const uint BoardMuted = 0xFFA89A90;     // muted gray
     private const uint BoardPanelRgb = 0x0014110E;  // Theme.PanelBg, opacity applied on top
 
@@ -312,7 +315,7 @@ public class TimelineWindow : Window
                     ? Icons.DisplayAction(mine[i][0].ActionFor(job), job)
                     : r.Fallback;
 
-            BoardBar(name, rem, look, width, accent, r.Hurt, pulse);
+            BoardBar(name, rem, look, width, accent, r.Hurt, pulse, RowKind(r, bareTimer));
 
             if (C.UpcomingBoardShowActions && !bareTimer && mine[i].Count > 0)
                 BoardActions(mine[i], job, elapsed, width, accent);
@@ -408,7 +411,7 @@ public class TimelineWindow : Window
         ImGui.Dummy(new Vector2(width, h + 4f));
     }
 
-    private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false)
+    private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false, int kind = 0)
     {
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
@@ -426,10 +429,21 @@ public class TimelineWindow : Window
         if (!C.UpcomingBoardDrain) frac = 1f - frac;
         if (frac > 0.004f)
         {
-            var fill = ((accent == 0 ? AccentCol : accent) & 0x00FFFFFF) | 0x4D000000;
-            // Mid-way the fill's leading edge is a straight cut, not a pill.
+            var baseCol = (accent == 0 ? AccentCol : accent) & 0x00FFFFFF;
+            var edgeX = p0.X + width * frac;
+            // Brighter than before (was ~30% alpha, hard to read over the game):
+            // a solid base plus a gradient that peaks at the moving edge, so the
+            // sweep pops without washing out the text on top.
             var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
-            dl.AddRectFilled(p0, new Vector2(p0.X + width * frac, p1.Y), fill, round, corners);
+            dl.AddRectFilled(p0, new Vector2(edgeX, p1.Y), baseCol | 0x66000000, round, corners);
+            dl.AddRectFilledMultiColor(p0, new Vector2(edgeX, p1.Y),
+                baseCol | 0x14000000, baseCol | 0x7A000000, baseCol | 0x7A000000, baseCol | 0x14000000);
+            // A crisp bright edge rides the boundary so the countdown is obvious
+            // at a glance. Hidden right at the ends, where it would just double
+            // the bar's own border.
+            if (frac > 0.02f && frac < 0.985f)
+                dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
+                    new Vector2(edgeX + 0.5f, p1.Y - 1f), baseCol | 0xF0000000);
         }
         // The FrenMits signature: a slim stripe on the left edge - the accent
         // blue normally, gold/green when the row is yours, pulsing at go time.
@@ -443,25 +457,85 @@ public class TimelineWindow : Window
 
         var textCol = accent == 0 ? BoardBright : accent;
         var textY = p0.Y + (barH - lineH) * 0.5f;
-        var timeText = rem < 0f ? "now" : $"{MathF.Ceiling(rem):0}s";
+        var isNow = rem < 0f;
+        var timeText = isNow ? "NOW" : $"{MathF.Ceiling(rem):0}s";
         var timeW = C.UpcomingBoardTimeText ? ImGui.CalcTextSize(timeText).X : 0f;
+
+        // A little icon marks what the hit is: raidwide (party) or tank buster.
+        // Left of the name, so the name and countdown keep their spots.
+        var nameX = p0.X + 10f;
+        if (C.UpcomingBoardShowType && kind > 0)
+        {
+            var isz = lineH * 0.82f;
+            BoardIcon(dl, new Vector2(nameX + isz * 0.5f, p0.Y + barH * 0.5f), isz,
+                kind == 2 ? BoardBusterCol : BoardRaidCol,
+                kind == 2 ? FontAwesomeIcon.Shield : FontAwesomeIcon.Users);
+            nameX += isz + 6f;
+        }
 
         // Clip the name so a long mechanic can't run under the countdown
         // (or off the bar, when the countdown text is hidden).
         dl.PushClipRect(p0, new Vector2(p1.X - (timeW > 0f ? timeW + 14f : 8f), p1.Y), true);
-        BoardText(dl, new Vector2(p0.X + 10f, textY), textCol, name);
+        BoardText(dl, new Vector2(nameX, textY), textCol, name);
         // Severity marks from a graded custom sheet: ! light, !! hurts, !!! deadly.
         if (C.UpcomingBoardShowSeverity && hurt > 0)
         {
             var markCol = hurt >= 3 ? 0xFF4646FFu : hurt == 2 ? 0xFF008CFFu : 0xFF00D7FFu;
-            BoardText(dl, new Vector2(p0.X + 10f + ImGui.CalcTextSize(name).X + 6f, textY),
+            BoardText(dl, new Vector2(nameX + ImGui.CalcTextSize(name).X + 6f, textY),
                 markCol, new string('!', Math.Min(3, hurt)));
         }
         dl.PopClipRect();
 
         if (C.UpcomingBoardTimeText)
-            BoardText(dl, new Vector2(p1.X - timeW - 8f, textY), textCol, timeText);
+        {
+            var tp = new Vector2(p1.X - timeW - 8f, textY);
+            // At go time, "NOW" gets a filled accent badge that flashes (when
+            // pulsing is on) so the press moment is impossible to miss. Solid
+            // badge when pulsing is off, so it's still louder than plain text.
+            if (isNow && accent != 0)
+            {
+                var beat = pulse ? MathF.Sin((float)ImGui.GetTime() * 10f) * 0.5f + 0.5f : 1f;
+                var badge = (accent & 0x00FFFFFF) | ((uint)(0x40 + 0xA0 * beat) << 24);
+                dl.AddRectFilled(tp - new Vector2(5f, 2f),
+                    new Vector2(tp.X + timeW + 5f, tp.Y + lineH + 2f), badge, 4f);
+                BoardText(dl, tp, 0xFFFFFFFFu, timeText);
+            }
+            else
+                BoardText(dl, tp, textCol, timeText);
+        }
         ImGui.Dummy(new Vector2(width, barH));
+    }
+
+    // What kind of hit a row is, for its board icon: 2 = tank buster, 1 =
+    // raidwide (party damage), 0 = no icon. Explicit tags win (custom sheets and
+    // log import set Buster/Hurt); otherwise we guess from the mechanic name so
+    // built-in fights still show something. A bare user timer stays iconless.
+    private static int RowKind(SheetTimeline.MechRow r, bool bareTimer)
+    {
+        if (r.Buster) return 2;
+        if (r.Hurt > 0) return 1;
+        if (bareTimer) return 0;
+        var n = r.Mechanic.ToLowerInvariant();
+        if (n.Contains("buster") || n.Contains("cleave")) return 2;
+        if (n.Contains("enrage")) return 0; // lethal, not something you mit
+        return 1; // a named mechanic on a mit board is there because it hits
+    }
+
+    // Draw a FontAwesome glyph into the draw list, centered on `center` and sized
+    // to `size`. The board renders through the draw list (not ImGui widgets), so
+    // we borrow the icon font for the one glyph and scale it to the board font.
+    private void BoardIcon(ImDrawListPtr dl, Vector2 center, float size, uint col, FontAwesomeIcon icon)
+    {
+        var glyph = icon.ToIconString();
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            var font = ImGui.GetFont();
+            var ts = ImGui.CalcTextSize(glyph);
+            var w = font.FontSize > 0f ? ts.X * (size / font.FontSize) : ts.X;
+            var pos = new Vector2(center.X - w * 0.5f, center.Y - size * 0.5f);
+            if (C.TextShadow) dl.AddText(font, size, pos + new Vector2(1f, 1f), 0xC0000000, glyph);
+            dl.AddText(font, size, pos, col, glyph);
+        }
     }
 
     private void BoardActions(List<MitLine> mine, string? job, float elapsed, float width, uint accent)
