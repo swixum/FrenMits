@@ -75,18 +75,13 @@ public class RecapButtonWindow : Window
         var h = ImGui.GetTextLineHeight();
         dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(3, h), Theme.Accent, 2f);
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
-        ImGui.TextColored(Vec(Theme.Accent), "Mit Recap ready");
+        ImGui.TextColored(Theme.V(Theme.Accent), "Mit Recap ready");
 
         ImGui.Spacing();
 
         // Accent "View recap" button.
-        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, Theme.AccentHover);
-        ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFFFFFu);
-        var view = ImGui.Button("View recap");
-        ImGui.PopStyleColor(4);
-        if (view) _plugin.RecapWindow.IsOpen = !_plugin.RecapWindow.IsOpen; // toggle: click again to close
+        if (Widgets.AccentButton("View recap"))
+            _plugin.RecapWindow.IsOpen = !_plugin.RecapWindow.IsOpen; // toggle: click again to close
 
         ImGui.SameLine();
         if (ImGui.Button("Dismiss")) _plugin.Recap.Dismiss();
@@ -94,7 +89,7 @@ public class RecapButtonWindow : Window
         {
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(Vec(0xFF81766E), "drag to move");
+            ImGui.TextColored(Theme.V(Theme.Muted), "drag to move");
         }
 
         ImGui.PopStyleVar();
@@ -116,6 +111,4 @@ public class RecapButtonWindow : Window
 
     private bool _posDirty;
 
-    private static Vector4 Vec(uint abgr) => new(
-        (abgr & 0xFF) / 255f, ((abgr >> 8) & 0xFF) / 255f, ((abgr >> 16) & 0xFF) / 255f, ((abgr >> 24) & 0xFF) / 255f);
 }

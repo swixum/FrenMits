@@ -120,33 +120,45 @@ public static class JobExtras
             ? null
             : For(territory).FirstOrDefault(e => string.Equals(e.Job, job, StringComparison.OrdinalIgnoreCase));
 
-    // Each job's optional extra ability, for sheets we have no baked schedule
+    // Each job's optional extra abilities, for sheets we have no baked schedule
     // for. Mirrors the Ikuya sheets' "Extras" column: never part of the core
-    // plan, offered as a one-click opt-in add.
+    // plan (they stay out of the auto-planner kit), offered as a one-click
+    // opt-in add. A job may list more than one (e.g. DNC rolls both Curing
+    // Waltz and Improvisation); each is placed independently.
     private static readonly (string Job, string Action, float Recast, int Level)[] Kit =
     {
         ("BRD", "Nature's Minne", 120f, 66),
         ("MNK", "Mantra", 90f, 42),
         ("PLD", "Passage of Arms", 120f, 70),
         ("DNC", "Curing Waltz", 60f, 52),
+        ("DNC", "Improvisation", 120f, 80),
         ("MCH", "Dismantle", 120f, 62),
         ("RDM", "Magick Barrier", 120f, 86),
         ("PCT", "Tempera Grassa", 120f, 88),
     };
 
-    // Extras for a CUSTOM sheet, computed from its own rows: presses land on
-    // the hardest-graded hits first, then whatever else still fits the recast
-    // (the "best spot, nothing wasted" rule the baked schedules follow).
-    // Null when the job has no extra ability or the sheet has no rows.
-    public static Extra? ForCustomSheet(FightProfile fight, string? job)
+    // Every universal-kit extra for a CUSTOM sheet, each computed from its own
+    // rows: presses land on the hardest-graded hits first, then whatever else
+    // still fits the recast (the "best spot, nothing wasted" rule the baked
+    // schedules follow). Empty when the job has no extras or the sheet has no
+    // rows.
+    public static IReadOnlyList<Extra> ForCustomSheet(FightProfile fight, string? job)
     {
-        if (string.IsNullOrEmpty(job) || fight.CustomRows.Count == 0) return null;
-        var kit = Kit.FirstOrDefault(k => string.Equals(k.Job, job, StringComparison.OrdinalIgnoreCase));
-        if (kit.Job == null) return null;
+        if (string.IsNullOrEmpty(job) || fight.CustomRows.Count == 0) return Array.Empty<Extra>();
         // Old synced duties: never suggest an ability the sync level locks out.
         var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
-        if (sync > 0 && kit.Level > sync) return null;
+        var result = new List<Extra>();
+        foreach (var kit in Kit.Where(k => string.Equals(k.Job, job, StringComparison.OrdinalIgnoreCase)))
+        {
+            if (sync > 0 && kit.Level > sync) continue;
+            if (ComputeExtra(fight, kit) is { } e) result.Add(e);
+        }
+        return result;
+    }
 
+    // Place one kit ability across a custom sheet's rows.
+    private static Extra? ComputeExtra(FightProfile fight, (string Job, string Action, float Recast, int Level) kit)
+    {
         // On a graded sheet, extras go only where the fight actually hurts;
         // ungraded sheets fall back to every row (recast still spaces them out).
         // Busters are the tanks' problem, so party extras skip them when the
@@ -166,5 +178,20 @@ public static class JobExtras
         var lines = picked.OrderBy(p => p.Time)
             .Select(p => ((int)MathF.Round(p.Time), p.Mechanic)).ToArray();
         return lines.Length == 0 ? null : new Extra(kit.Job, kit.Action, kit.Recast, lines);
+    }
+
+    // Everything to offer on the fight page for this job: the baked schedule(s)
+    // for a built-in zone, plus any universal-kit ability computed from a
+    // custom sheet's own rows (baked wins on a name clash).
+    public static IReadOnlyList<Extra> AllFor(FightProfile fight, string? job)
+    {
+        if (string.IsNullOrEmpty(job)) return Array.Empty<Extra>();
+        var result = For(fight.TerritoryId)
+            .Where(e => string.Equals(e.Job, job, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        foreach (var e in ForCustomSheet(fight, job))
+            if (!result.Any(r => string.Equals(r.Action, e.Action, StringComparison.OrdinalIgnoreCase)))
+                result.Add(e);
+        return result;
     }
 }

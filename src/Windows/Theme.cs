@@ -1,18 +1,43 @@
+using System.Numerics;
 using Dalamud.Bindings.ImGui;
 
 namespace FrenMits.Windows;
 
 // A cohesive dark theme for the config window, inspired by clean panel-based
 // plugin UIs: near-black backgrounds, soft borders, rounded controls and a single
-// blue accent for anything interactive. Colors are packed ABGR (0xAABBGGRR).
+// blue accent for anything interactive.
+//
+// Colors are packed ABGR (0xAABBGGRR) - the byte order ImGui wants - so the hex
+// reads back-to-front from CSS. Each constant carries its #RRGGBB so the intended
+// color is legible without decoding the bytes. Use the named roles below and the
+// V() converter instead of re-typing raw hex at call sites.
 internal static class Theme
 {
-    public const uint Accent = 0xFFF6823B;       // #3B82F6 blue
+    // --- chrome (fixed regardless of colorblind mode) --------------------
+    public const uint Accent = 0xFFF6823B;       // #3B82F6 blue - interactive things
     public const uint AccentHover = 0xFFFAA560;   // #60A5FA
-    public const uint AccentText = 0xFFFFFFFF;
-    public const uint PanelBg = 0xFF14110E;       // card background
-    public const uint Good = 0xFF4FB45A;          // saved / on (green)
-    public const uint Warn = 0xFF3BC0F0;          // amber-ish notice
+    public const uint AccentText = 0xFFFFFFFF;    // white text on the accent
+    public const uint PanelBg = 0xFF14110E;       // #0E1114 card background
+
+    // --- text roles ------------------------------------------------------
+    public const uint TextBright = 0xFFECE8E6;    // #E6E8EC primary text
+    public const uint Muted = 0xFF81766E;         // #6E7681 secondary / detail text
+
+    // --- status roles (hue carries meaning, so they switch to an
+    //     Okabe-Ito colorblind-safe set when the user turns it on) --------
+
+    // When true, status colors avoid the red/green pairing that reads the
+    // same under the common forms of color blindness. Set from Configuration.
+    public static bool Colorblind;
+
+    public static uint Good => Colorblind ? 0xFF739E00 : 0xFF4FB45A;   // #5AB44F green -> #009E73 bluish-green
+    public static uint Warn => Colorblind ? 0xFF009FE6 : 0xFF3BC0F0;   // #F0C03B amber -> #E69F00 orange
+    public static uint Danger => Colorblind ? 0xFFA779CC : 0xFF5050E0; // #E05050 red   -> #CC79A7 reddish-purple
+
+    // ABGR -> ImGui Vector4. The one place packed colors become floats, so no
+    // window has to re-derive the conversion.
+    public static Vector4 V(uint abgr) => new(
+        (abgr & 0xFF) / 255f, ((abgr >> 8) & 0xFF) / 255f, ((abgr >> 16) & 0xFF) / 255f, ((abgr >> 24) & 0xFF) / 255f);
 
     // Window-scope colors — must be pushed before ImGui.Begin (in PreDraw).
     private static readonly (ImGuiCol Col, uint Val)[] WindowColors =
@@ -29,8 +54,8 @@ internal static class Theme
     // Widget-scope colors — fine to push inside Draw().
     private static readonly (ImGuiCol Col, uint Val)[] WidgetColors =
     {
-        (ImGuiCol.Text,               0xFFECE8E6),
-        (ImGuiCol.TextDisabled,       0xFF81766E),
+        (ImGuiCol.Text,               TextBright),
+        (ImGuiCol.TextDisabled,       Muted),
         (ImGuiCol.ChildBg,            0x00000000),
         (ImGuiCol.FrameBg,            0xFF241D1A),
         (ImGuiCol.FrameBgHovered,     0xFF332723),

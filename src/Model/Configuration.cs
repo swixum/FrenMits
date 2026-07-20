@@ -33,6 +33,11 @@ public class Configuration : IPluginConfiguration
     // it's a lot of color on a full grid.
     public bool SheetColorByType { get; set; }
 
+    // Colorblind-safe status colors: swaps the green/amber/red status palette for
+    // an Okabe-Ito set (bluish-green / orange / reddish-purple) that stays
+    // distinguishable under the common forms of color blindness. Off by default.
+    public bool ColorblindMode { get; set; }
+
     // Slot codes the user pinned in Sheet View (right-click a column header).
     // Pinned columns ride next to Mechanic inside the frozen area.
     public List<string> SheetPinnedSlots { get; set; } = new();

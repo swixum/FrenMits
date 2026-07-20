@@ -47,6 +47,7 @@ public sealed class Plugin : IDalamudPlugin
 
         Config = LoadConfig();
         Config.Fights ??= new();
+        FrenMits.Windows.Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
 
         // v2: split the upcoming list into its own timeline window and switch the
         // main call to the clean "Raidwide (3.3)" countdown shown 3s ahead.
