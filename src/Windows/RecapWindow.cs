@@ -459,9 +459,9 @@ public class RecapWindow : Window
         }
 
         // ---- geometry ----
-        const float padL = 10f, padR = 10f, bandH = 54f, axisH = 15f;
+        const float padL = 10f, padR = 10f, bandH = 58f, axisH = 15f;
         var hasDeaths = r.LastDeaths.Count > 0;
-        var topPad = hasDeaths ? 15f : 6f; // room for death name labels above the band
+        var topPad = hasDeaths ? 16f : 6f; // room for the death labels above the band
         var width = ImGui.GetContentRegionAvail().X;
         var plotW = MathF.Max(60f, width - padL - padR);
         var height = topPad + bandH + 5f + axisH;
@@ -475,23 +475,34 @@ public class RecapWindow : Window
         var bandTop = origin.Y + topPad;
         var bandBot = bandTop + bandH;
         float X(float t) => left + Math.Clamp(t, 0f, dur) / dur * plotW;
+        float Y(float c) => bandBot - c * bandH;
 
-        // normalize to the pull's own peak so the area always uses the full range
+        // Sample coverage once per pixel and normalize to the pull's own peak, so
+        // the curve always uses the full height regardless of absolute values.
+        var samples = Math.Max(2, (int)plotW);
+        var cs = new float[samples + 1];
         var peak = 0.25f;
-        for (var px = 0f; px <= plotW; px += 2f) peak = MathF.Max(peak, Cover(px / plotW * dur));
+        for (var i = 0; i <= samples; i++) { cs[i] = Cover((float)i / samples * dur); peak = MathF.Max(peak, cs[i]); }
+        for (var i = 0; i <= samples; i++) cs[i] = MathF.Min(1f, cs[i] / peak);
 
-        // panel + a faint half-height gridline
-        dl.AddRectFilled(new Vector2(left, bandTop), new Vector2(right, bandBot), 0xFF17120Fu, 3f);
-        dl.AddLine(new Vector2(left, bandTop + bandH * 0.5f), new Vector2(right, bandTop + bandH * 0.5f), 0x18FFFFFFu, 1f);
+        // panel + faint quarter gridlines to gauge height
+        dl.AddRectFilled(new Vector2(left, bandTop), new Vector2(right, bandBot), 0xFF17120Fu, 4f);
+        for (var g = 1; g <= 3; g++)
+            dl.AddLine(new Vector2(left, bandTop + bandH * g / 4f), new Vector2(right, bandTop + bandH * g / 4f), 0x0EFFFFFFu, 1f);
 
-        // coverage area: bar height + color both encode how mitigated the party was
-        for (var px = 0f; px < plotW; px += 1f)
+        // coverage area: a vertical-gradient fill (bright at the curve, fading to
+        // the baseline) under a crisp, slightly-brightened top stroke.
+        for (var i = 0; i < samples; i++)
         {
-            var c = MathF.Min(1f, Cover((px + 0.5f) / plotW * dur) / peak);
-            var x0 = left + px;
-            dl.AddRectFilled(new Vector2(x0, bandBot - c * bandH), new Vector2(x0 + 1.3f, bandBot), CovColor(c));
+            var x0 = left + (float)i / samples * plotW;
+            var x1 = left + (float)(i + 1) / samples * plotW;
+            var c = (cs[i] + cs[i + 1]) * 0.5f;
+            var top = CovColor(c);
+            var bot = (top & 0x00FFFFFFu) | 0x2C000000u; // same hue, faded toward the panel
+            dl.AddRectFilledMultiColor(new Vector2(x0, Y(c)), new Vector2(x1 + 0.6f, bandBot), top, top, bot, bot);
+            dl.AddLine(new Vector2(x0, Y(cs[i])), new Vector2(x1, Y(cs[i + 1])), LerpColor(top, 0xFFFFFFFFu, 0.22f), 1.6f);
         }
-        dl.AddRect(new Vector2(left, bandTop), new Vector2(right, bandBot), 0xFF2A2320u, 3f);
+        dl.AddRect(new Vector2(left, bandTop), new Vector2(right, bandBot), 0xFF2A2320u, 4f);
 
         // mechanic ticks along the base (names live in the tooltip)
         if (fight != null)
@@ -502,19 +513,25 @@ public class RecapWindow : Window
                     && !seen.Any(x => MathF.Abs(x - l.Time) < 8f))
                 {
                     seen.Add(l.Time);
-                    dl.AddLine(new Vector2(X(l.Time), bandBot - 4), new Vector2(X(l.Time), bandBot), 0x99D8D2CBu, 1f);
+                    dl.AddLine(new Vector2(X(l.Time), bandBot - 4), new Vector2(X(l.Time), bandBot), 0x88D8D2CBu, 1f);
                 }
         }
 
-        // deaths: a bright red line, a dot, and the name above the band
-        foreach (var d in r.LastDeaths)
+        // deaths: cluster close ones so labels never stack; red line + dot + label
+        if (hasDeaths)
         {
-            var dx = X(d.Time);
-            dl.AddLine(new Vector2(dx, bandTop - (hasDeaths ? 9f : 0f)), new Vector2(dx, bandBot), Theme.Danger, 1.5f);
-            if (hasDeaths)
+            var clusters = new List<(float T, List<string> Names)>();
+            foreach (var d in r.LastDeaths.OrderBy(d => d.Time))
+                if (clusters.Count > 0 && d.Time - clusters[^1].T < 6f) clusters[^1].Names.Add(d.Name);
+                else clusters.Add((d.Time, new List<string> { d.Name }));
+            foreach (var (ct, names) in clusters)
             {
-                dl.AddCircleFilled(new Vector2(dx, bandTop - 9f), 2.5f, Theme.Danger);
-                dl.AddText(new Vector2(dx + 4, bandTop - 15f), Theme.Danger, Trunc(d.Name, 8));
+                var dx = X(ct);
+                dl.AddLine(new Vector2(dx, bandTop - 9f), new Vector2(dx, bandBot), Theme.Danger, 1.5f);
+                dl.AddCircleFilled(new Vector2(dx, bandTop - 9f), 2.6f, Theme.Danger);
+                var lbl = names.Count == 1 ? Trunc(names[0], 9) : $"{names.Count} deaths";
+                var lx = MathF.Min(dx + 4f, right - ImGui.CalcTextSize(lbl).X);
+                dl.AddText(new Vector2(lx, bandTop - 16f), Theme.Danger, lbl);
             }
         }
 
@@ -526,12 +543,16 @@ public class RecapWindow : Window
             dl.AddText(new Vector2(X(t) + 2, axisY), Theme.Muted, $"{(int)t / 60}:{(int)t % 60:00}");
         }
 
-        // hover: playhead + tooltip
+        // hover: a playhead, a marker dot riding the curve, and the tooltip
         if (hovered)
         {
             var t = Math.Clamp((ImGui.GetMousePos().X - left) / plotW * dur, 0f, dur);
-            dl.AddLine(new Vector2(X(t), bandTop - topPad + 2), new Vector2(X(t), axisY), Theme.Accent, 1f);
-            ScrubTooltip(r, evs, fight, t, MathF.Min(1f, Cover(t) / peak));
+            var cN = MathF.Min(1f, Cover(t) / peak);
+            var cx = X(t);
+            dl.AddLine(new Vector2(cx, bandTop - 4f), new Vector2(cx, axisY), (Theme.Accent & 0x00FFFFFFu) | 0xB0000000u, 1f);
+            dl.AddCircleFilled(new Vector2(cx, Y(cN)), 3f, Theme.Accent);
+            dl.AddCircle(new Vector2(cx, Y(cN)), 3.4f, 0xFFFFFFFFu);
+            ScrubTooltip(r, evs, fight, t, cN);
         }
     }
 
