@@ -253,6 +253,11 @@ public class TimelineWindow : Window
         return -1f;
     }
 
+    // How long before the boss becomes targetable the green "Targetable" heads-up
+    // replaces the neutral "Cutscene" row. Before this, a long lull reads as the
+    // cutscene you're sitting through; inside it you get the get-ready-to-resume cue.
+    private const float TargetableHeadsup = 10f;
+
     private void DrawBoard(FightProfile fight, string? job, float elapsed,
         List<SheetTimeline.MechRow>? rowsOverride = null, float? widthOverride = null)
     {
@@ -367,6 +372,15 @@ public class TimelineWindow : Window
                 : r.Mechanic == "Targetable" ? 5
                 : RowKind(r, bareTimer);
             if (kind == 3) name = $"DPS check ({gateTgt * 100f:0}%)";
+            // A targetable still more than the heads-up window away reads as the
+            // cutscene / downtime you're sitting through, not a green "you can hit
+            // it" tick. Only its last few seconds - boss about to return, get ready
+            // to resume - flip to the green Targetable cue.
+            if (kind == 5 && rem > TargetableHeadsup)
+            {
+                kind = 6;
+                name = "Cutscene";
+            }
             BoardBar(name, rem, look, width, accent, r.Hurt, pulse, kind);
 
             if (C.UpcomingBoardShowActions && !bareTimer && mine[i].Count > 0)
@@ -510,7 +524,7 @@ public class TimelineWindow : Window
         // toward full as the hit lands - some folks read urgency that way.
         var frac = Math.Clamp(rem / look, 0f, 1f);
         if (!C.UpcomingBoardDrain) frac = 1f - frac;
-        if (frac > 0.004f && kind != 4 && kind != 5) // no drain fill on the lull markers
+        if (frac > 0.004f && kind != 4 && kind != 5 && kind != 6) // no drain fill on the lull markers
         {
             var baseCol = (accent == 0 ? AccentCol : accent) & 0x00FFFFFF;
             var edgeX = p0.X + width * frac;
@@ -537,6 +551,7 @@ public class TimelineWindow : Window
                 3 => 0xFF4646FFu,   // at-risk: red
                 4 => 0xFF9AA0A8u,   // untargetable: slate
                 5 => 0xFF7BD88Bu,   // targetable: green
+                6 => 0xFFB48C96u,   // cutscene / downtime: muted lavender
                 _ => accent == 0 ? (AccentCol & 0x00FFFFFF) | 0xB3000000 : accent,
             };
             if (pulse) stripe = Pulse(stripe);
@@ -549,6 +564,7 @@ public class TimelineWindow : Window
             3 => 0xFF6B6BF5u,   // at-risk: soft red
             4 => 0xFF9AA0A8u,   // untargetable: cool slate
             5 => 0xFF7BD88Bu,   // targetable: soft green
+            6 => 0xFFB48C96u,   // cutscene / downtime: muted lavender
             _ => accent == 0 ? BoardBright : accent,
         };
         var textY = p0.Y + (barH - lineH) * 0.5f;
@@ -565,7 +581,7 @@ public class TimelineWindow : Window
         var showIcon = kind switch
         {
             2 => C.UpcomingBoardShowType,
-            3 or 4 or 5 => true,
+            3 or 4 or 5 or 6 => true,
             _ => false,
         };
         if (showIcon)
@@ -575,6 +591,7 @@ public class TimelineWindow : Window
                 3 => (FontAwesomeIcon.Skull, 0xFF4646FFu),
                 4 => (FontAwesomeIcon.Ban, 0xFF9AA0A8u),
                 5 => (FontAwesomeIcon.Crosshairs, 0xFF7BD88Bu),
+                6 => (FontAwesomeIcon.Film, 0xFFB48C96u),
                 _ => (FontAwesomeIcon.Shield, BoardBusterCol),
             };
             var isz = lineH * 0.82f;
