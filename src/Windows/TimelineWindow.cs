@@ -337,13 +337,10 @@ public class TimelineWindow : Window
                     ? Icons.DisplayAction(mine[i][0].ActionFor(job), job)
                     : r.Fallback;
 
-            // Row kind: lull markers (untargetable/targetable), an at-risk mit whose
-            // cooldown won't be back in time (skull), or the mechanic's own hit type.
-            var couldFail = C.CooldownAwareCalls && mine[i].Count > 0
-                && mine[i].Any(l => Cooldowns.Remaining(l.Action) is { } cd && cd > l.CueTime - elapsed + 0.5f);
+            // Row kind: lull markers (untargetable/targetable) or the mechanic's own
+            // hit type. (Kind 3 = the mechanic-fail skull, wired to its trigger below.)
             var kind = r.Mechanic == "Untargetable" ? 4
                 : r.Mechanic == "Targetable" ? 5
-                : couldFail ? 3
                 : RowKind(r, bareTimer);
             BoardBar(name, rem, look, width, accent, r.Hurt, pulse, kind);
 
