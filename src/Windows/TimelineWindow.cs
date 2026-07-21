@@ -219,6 +219,23 @@ public class TimelineWindow : Window
     }
 
     private static readonly List<MitLine> NoLines = new();
+    private static readonly List<SheetTimeline.MechRow> NoRows = new();
+
+    // Learned downtimes as inline board rows: an "untargetable" entry when the boss
+    // goes away and a "targetable" one when it returns, so both count down on the
+    // board like a mechanic (cactbot's --untargetable-- / --targetable--).
+    private List<SheetTimeline.MechRow> DowntimeRows(FightProfile fight)
+    {
+        if (!C.LearnedDowntimes.TryGetValue(fight.TerritoryId.ToString(), out var list) || list.Count == 0)
+            return NoRows;
+        var rows = new List<SheetTimeline.MechRow>(list.Count * 2);
+        foreach (var w in list)
+        {
+            rows.Add(new SheetTimeline.MechRow { Time = w.Start, Mechanic = "untargetable" });
+            rows.Add(new SheetTimeline.MechRow { Time = w.Start + w.Duration, Mechanic = "targetable" });
+        }
+        return rows;
+    }
 
     private void DrawBoard(FightProfile fight, string? job, float elapsed,
         List<SheetTimeline.MechRow>? rowsOverride = null, float? widthOverride = null)
@@ -226,13 +243,17 @@ public class TimelineWindow : Window
         var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
         var width = widthOverride ?? MathF.Max(180f, C.UpcomingBoardWidth);
         // A just-hit row lingers 2s at "now" so it doesn't vanish mid-press.
-        var windowRows = (rowsOverride ?? BoardRows(fight))
+        var windowRows = (rowsOverride ?? BoardRows(fight)).Concat(DowntimeRows(fight))
             .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
+            .OrderBy(r => r.Time)
             .ToList();
 
         if (HeaderVisible) DrawBoardHeader(fight, elapsed, width);
 
-        if (_plugin.DowntimeActive) DrawDowntimeBanner(width);
+        // Learned downtimes ride inline as their own rows (untargetable / targetable),
+        // cactbot-style. The banner is only the fallback while we're still LEARNING a
+        // lull the first time (no row exists yet).
+        if (_plugin.DowntimeActive && _plugin.DowntimeRemaining < 0f) DrawDowntimeBanner(width);
 
         // Attach each of your presses to its single NEAREST row, so a mechanic
         // repeating a few seconds apart can't show one press under both bars.
@@ -311,7 +332,9 @@ public class TimelineWindow : Window
                     ? Icons.DisplayAction(mine[i][0].ActionFor(job), job)
                     : r.Fallback;
 
-            BoardBar(name, rem, look, width, accent, r.Hurt, pulse, RowKind(r, bareTimer));
+            // Downtime markers ride dimmed, no icon, no press, just name + countdown.
+            var isDown = r.Mechanic is "untargetable" or "targetable";
+            BoardBar(name, rem, look, width, accent, r.Hurt, pulse, isDown ? 0 : RowKind(r, bareTimer), isDown);
 
             if (C.UpcomingBoardShowActions && !bareTimer && mine[i].Count > 0)
                 BoardActions(mine[i], job, elapsed, width, accent);
@@ -453,7 +476,7 @@ public class TimelineWindow : Window
         ImGui.Dummy(new Vector2(1f, 4f));
     }
 
-    private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false, int kind = 0)
+    private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false, int kind = 0, bool muted = false)
     {
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
@@ -497,7 +520,7 @@ public class TimelineWindow : Window
         }
         dl.AddRect(p0, p1, BoardBarBorder, round);
 
-        var textCol = accent == 0 ? BoardBright : accent;
+        var textCol = muted ? BoardMuted : accent == 0 ? BoardBright : accent;
         var textY = p0.Y + (barH - lineH) * 0.5f;
         var isNow = rem < 0f;
         // Under 3s, count down with one decimal so the last moments read finely
