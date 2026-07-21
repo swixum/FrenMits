@@ -96,7 +96,7 @@ public static class Downtimes
         new() { Start = 336, Duration = 29,  Learn = true }, // P2 Light Rampant (cactbot 335.7 -> 364.9)
         new() { Start = 675, Duration = 6,   Learn = true }, // P3 Memory's End enrage check (cactbot 675.4 -> 680.8)
         new() { Start = 779, Duration = 50,  Learn = true }, // P4 Crystallize Time (cactbot 779.3 -> 829.4)
-        new() { Start = 857, Duration = 173, Learn = true }, // P4 -> P5 Pandora cutscene (cactbot ~856 -> 1029.6)
+        new() { Start = 857, Duration = 173, Learn = true, Cutscene = true }, // P4 -> P5 Pandora cutscene (cactbot ~856 -> 1029.6)
     };
 
     // The five older ultimates share the same story: their Ikuya sheet clock is
@@ -131,7 +131,7 @@ public static class Downtimes
         new() { Start = 240, Duration = 16, Learn = true }, // P2 Ifrit Crimson Cyclone [nudged]
         new() { Start = 272, Duration = 8,  Learn = true }, // P3 Titan Geocrush
         new() { Start = 325, Duration = 8,  Learn = true }, // P3 Titan Geocrush
-        new() { Start = 429, Duration = 40, Learn = true }, // P4 -> P5 Ultima cinematic
+        new() { Start = 429, Duration = 40, Learn = true, Cutscene = true }, // P4 -> P5 Ultima cinematic
         new() { Start = 496, Duration = 20, Learn = true }, // P5 Ultimate Predation
         new() { Start = 668, Duration = 40, Learn = true }, // P5 Ultimate Suppression
     };
