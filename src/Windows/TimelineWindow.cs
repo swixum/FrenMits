@@ -338,10 +338,14 @@ public class TimelineWindow : Window
                     : r.Fallback;
 
             // Row kind: lull markers (untargetable/targetable) or the mechanic's own
-            // hit type. (Kind 3 = the mechanic-fail skull, wired to its trigger below.)
-            var kind = r.Mechanic == "Untargetable" ? 4
+            // hit type. An upcoming Untargetable turns into a "push it or fail"
+            // skull once the boss is low (the phase gate is a DPS check then): its
+            // countdown is the time-to-fail.
+            var lowHp = _plugin.BossHpFraction is > 0f and <= 0.15f;
+            var kind = r.Mechanic == "Untargetable" ? (lowHp ? 3 : 4)
                 : r.Mechanic == "Targetable" ? 5
                 : RowKind(r, bareTimer);
+            if (kind == 3) name = "DPS check";
             BoardBar(name, rem, look, width, accent, r.Hurt, pulse, kind);
 
             if (C.UpcomingBoardShowActions && !bareTimer && mine[i].Count > 0)

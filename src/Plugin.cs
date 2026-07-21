@@ -1213,21 +1213,24 @@ public sealed class Plugin : IDalamudPlugin
     private float _downtimeStartElapsed;
     private float _downtimeKnownDur = -1f;
 
+    // The current boss's HP as a 0..1 fraction (-1 when there's no boss). Feeds
+    // the timeline's "push it or fail" skull near a phase gate.
+    public float BossHpFraction { get; private set; } = -1f;
+
     private void UpdateDowntime()
     {
+        IBattleNpc? boss = null;
+        foreach (var o in Service.ObjectTable)
+            if (o is IBattleNpc n && (byte)n.BattleNpcKind == 5 && n.MaxHp > 1_000_000
+                && (boss is null || n.MaxHp > boss.MaxHp))
+                boss = n;
+        BossHpFraction = boss is { MaxHp: > 0 } ? (float)boss.CurrentHp / boss.MaxHp : -1f;
+
         var down = false;
         if (Timer.Running)
         {
             if (CutsceneActive) down = true;
-            else
-            {
-                IBattleNpc? boss = null;
-                foreach (var o in Service.ObjectTable)
-                    if (o is IBattleNpc n && (byte)n.BattleNpcKind == 5 && n.MaxHp > 1_000_000
-                        && (boss is null || n.MaxHp > boss.MaxHp))
-                        boss = n;
-                if (boss is { IsTargetable: false }) down = true;
-            }
+            else if (boss is { IsTargetable: false }) down = true;
         }
 
         if (down && !DowntimeActive)
