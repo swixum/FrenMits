@@ -126,6 +126,16 @@ public class BossAnchor
     public string Label { get; set; } = "";
 }
 
+// A lull learned from a pull: at Start seconds into the fight the boss went
+// untargetable and stayed that way for Duration seconds. Lets the timeline count
+// down to "targetable" on later pulls instead of only measuring as it happens.
+[Serializable]
+public class DowntimeWindow
+{
+    public float Start { get; set; }
+    public float Duration { get; set; }
+}
+
 [Serializable]
 public class SyncPoint
 {

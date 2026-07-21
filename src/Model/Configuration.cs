@@ -38,6 +38,10 @@ public class Configuration : IPluginConfiguration
     // distinguishable under the common forms of color blindness. Off by default.
     public bool ColorblindMode { get; set; }
 
+    // Learned downtime lengths per territory (key = territory id as string): filled
+    // the first time you see each lull, then the timeline counts down to targetable.
+    public Dictionary<string, List<DowntimeWindow>> LearnedDowntimes { get; set; } = new();
+
     // Slot codes the user pinned in Sheet View (right-click a column header).
     // Pinned columns ride next to Mechanic inside the frozen area.
     public List<string> SheetPinnedSlots { get; set; } = new();

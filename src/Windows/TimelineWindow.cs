@@ -81,8 +81,8 @@ public class TimelineWindow : Window
         if (ScreenPreviewing) return true;
         if (!C.ShowUpcoming) return false;
         if (C.TestMode) return true;
-        if (Plugin.CutsceneActive) return false; // hide while a cutscene is playing
-        if (_plugin.Cues.Holding) return false; // and until the post-cutscene resync lands
+        // Stays up through cutscenes and the post-cutscene resync now, so a
+        // downtime (with its countdown) reads on the board instead of vanishing.
         if (_plugin.ActiveFight() is not { } fight) return false;
         if (C.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return false;
         return _plugin.Timer.Running;
@@ -438,12 +438,16 @@ public class TimelineWindow : Window
         dl.AddRect(p0, p1, BoardBarBorder, round);
 
         var cy = p0.Y + (barH - lineH) * 0.5f;
-        BoardText(dl, new Vector2(p0.X + 10f, cy), BoardMuted, "Downtime (not targetable)");
+        // Once we've learned this lull's length, count DOWN to targetable; the
+        // first time we just measure it (elapsed) while we learn it.
+        var remain = _plugin.DowntimeRemaining;
+        var known = remain >= 0f;
+        BoardText(dl, new Vector2(p0.X + 10f, cy), BoardMuted, known ? "Downtime" : "Downtime (not targetable)");
         if (C.UpcomingBoardTimeText)
         {
-            var t = $"{_plugin.DowntimeElapsed:0.0}s";
+            var t = known ? $"targetable in {remain:0.0}s" : $"{_plugin.DowntimeElapsed:0.0}s";
             var tw = ImGui.CalcTextSize(t).X;
-            BoardText(dl, new Vector2(p1.X - tw - 8f, cy), BoardMuted, t);
+            BoardText(dl, new Vector2(p1.X - tw - 8f, cy), known ? BoardBright : BoardMuted, t);
         }
         ImGui.Dummy(new Vector2(width, barH));
         ImGui.Dummy(new Vector2(1f, 4f));

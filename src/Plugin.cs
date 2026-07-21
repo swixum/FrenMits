@@ -1205,7 +1205,13 @@ public sealed class Plugin : IDalamudPlugin
     // reads as a lull, with a running timer of how long it's been going.
     public bool DowntimeActive { get; private set; }
     public float DowntimeElapsed => _downtimeStartUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds : 0f;
+    // Seconds left until targetable, once this lull has been seen before (learned);
+    // -1 the very first time, when we're still measuring it.
+    public float DowntimeRemaining => DowntimeActive && _downtimeKnownDur > 0f
+        ? MathF.Max(0f, _downtimeKnownDur - DowntimeElapsed) : -1f;
     private DateTime? _downtimeStartUtc;
+    private float _downtimeStartElapsed;
+    private float _downtimeKnownDur = -1f;
 
     private void UpdateDowntime()
     {
@@ -1223,9 +1229,43 @@ public sealed class Plugin : IDalamudPlugin
                 if (boss is { IsTargetable: false }) down = true;
             }
         }
+
+        if (down && !DowntimeActive)
+        {
+            // Just started: stamp it and recall how long it ran last time.
+            _downtimeStartUtc = DateTime.UtcNow;
+            var f = ActiveFight();
+            _downtimeStartElapsed = f != null ? ElapsedFor(f) : Timer.Elapsed;
+            _downtimeKnownDur = LookupDowntime(f?.TerritoryId, _downtimeStartElapsed);
+        }
+        else if (!down && DowntimeActive)
+        {
+            // Just ended: learn its length for next time.
+            if (ActiveFight() is { } f) RecordDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed);
+            _downtimeStartUtc = null;
+            _downtimeKnownDur = -1f;
+        }
         DowntimeActive = down;
-        if (down) _downtimeStartUtc ??= DateTime.UtcNow;
-        else _downtimeStartUtc = null;
+    }
+
+    private float LookupDowntime(uint? territory, float start)
+    {
+        if (territory is not { } t || !Config.LearnedDowntimes.TryGetValue(t.ToString(), out var list))
+            return -1f;
+        foreach (var w in list) if (MathF.Abs(w.Start - start) < 8f) return w.Duration;
+        return -1f;
+    }
+
+    private void RecordDowntime(uint territory, float start, float dur)
+    {
+        if (dur < 1.5f) return; // ignore blips
+        var key = territory.ToString();
+        if (!Config.LearnedDowntimes.TryGetValue(key, out var list))
+            Config.LearnedDowntimes[key] = list = new();
+        var w = list.FirstOrDefault(x => MathF.Abs(x.Start - start) < 8f);
+        if (w != null) { w.Start = start; w.Duration = dur; }
+        else list.Add(new DowntimeWindow { Start = start, Duration = dur });
+        Config.Save();
     }
 
     // Watching a Duty Recorder replay (e.g. via A Realm Recorded). The spectator
