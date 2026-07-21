@@ -212,15 +212,23 @@ public class OverlayWindow : Window
     // Gold prep accent, shared with the upcoming board's prep tag.
     private const uint PrepCol = 0xFF3CB4F0;
 
-    // The proactive prep line for a call whose press is pulled early to stay up
-    // for a later mechanic ("prep -> covers 1:10"), or "" when it's an ordinary
-    // on-time call. Planned-schedule driven: reads the solved offset/coverage, not
-    // your live cooldown. Positive offset only (a call set to fire LATE isn't prep).
+    // The prep press-window for a call pulled early to stay up for a later hit:
+    // "(use between 0:10 and 0:21)". Planned-schedule driven (reads the solved
+    // offset/coverage, not your live cooldown). "" for an ordinary on-time call.
+    // The window runs from the earliest the buff can still reach the last covered
+    // hit, up to the front hit (the solved press). The alert only shows while
+    // counting down to that front hit, so it disappears the moment the window closes.
     private string PrepText(MitLine call)
     {
         if (!C.PrepAlerts || call.OffsetSeconds < 5f) return "";
-        var target = call.CoverUntil > call.Time + 0.5f ? call.CoverUntil : call.Time;
-        return $"prep -> covers {AbsTime(target)}";
+        var windowEnd = call.Time - call.OffsetSeconds; // press by here (front of the run)
+        var lastCovered = call.CoverUntil > call.Time + 0.5f ? call.CoverUntil : call.Time;
+        var mits = Cooldowns.PlanMits(call.Action).ToList();
+        var dur = mits.Count > 0 ? mits.Min(m => m.Duration > 0f ? m.Duration : 15f) : 15f;
+        var windowStart = MathF.Max(0f, lastCovered - dur);
+        return windowStart >= windowEnd - 0.5f
+            ? $"(use at {AbsTime(windowEnd)})"
+            : $"(use between {AbsTime(windowStart)} and {AbsTime(windowEnd)})";
     }
 
     private static string AbsTime(float t)

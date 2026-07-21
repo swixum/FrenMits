@@ -257,8 +257,8 @@ public partial class ConfigWindow
                     "Reddens the main call ([CD Ns]) and dims it in the upcoming list when your mit is still on cooldown past the call time. Your job's mits only.");
                 C.AutoCooldownTiming = GridCheck("Auto cooldown timing", C.AutoCooldownTiming,
                     "On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone.");
-                C.PrepAlerts = GridCheck("Prep cues", C.PrepAlerts,
-                    "When a press fires early to stay up for a later mechanic, shows a distinct \"prep now, up for X\" alert on the main call and the upcoming list.");
+                C.PrepAlerts = GridCheck("Prep window text", C.PrepAlerts,
+                    "Adds a \"(use between X and Y)\" line under the main call when a press is pulled early to stay up for a later mechanic. Text only; the early timing still happens either way. Off by default.");
                 C.ShowDtrBar = GridCheck("Server-bar next mit", C.ShowDtrBar,
                     "Shows the next mit on the server-info bar.");
                 C.ShowMitBar = GridCheck("Active-mits bar", C.ShowMitBar,

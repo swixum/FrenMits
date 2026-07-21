@@ -198,10 +198,10 @@ public class Configuration : IPluginConfiguration
     // offsets (OffsetManual) are always left alone.
     public bool AutoCooldownTiming { get; set; } = true;
 
-    // Proactive prep cue: when a solved press fires early to stay up for a later
-    // mechanic, surface a distinct "prep now, up for X" alert on the overlay and
-    // the upcoming board instead of only the plain call.
-    public bool PrepAlerts { get; set; } = true;
+    // Prep press-window text: when a solved press fires early to stay up for a
+    // later mechanic, add a "(use between X and Y)" line under the main call. Just
+    // the text - the early timing itself is AutoCooldownTiming. Off by default.
+    public bool PrepAlerts { get; set; }
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;
 
