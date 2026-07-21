@@ -231,8 +231,8 @@ public class TimelineWindow : Window
     // goes away and a Targetable one when it returns, each counting down.
     private List<SheetTimeline.MechRow> DowntimeRows(FightProfile fight)
     {
-        if (!C.LearnedDowntimes.TryGetValue(fight.TerritoryId.ToString(), out var list) || list.Count == 0)
-            return NoRows;
+        var list = Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes);
+        if (list.Count == 0) return NoRows;
         var rows = new List<SheetTimeline.MechRow>(list.Count * 2);
         foreach (var w in list)
         {
@@ -242,12 +242,12 @@ public class TimelineWindow : Window
         return rows;
     }
 
-    // The learned gate HP for the Untargetable at rowStart (-1 if unknown/not yet
-    // learned): the boss HP fraction it was pushed to before going away.
+    // The hardcoded gate HP for the Untargetable at rowStart (-1 if that lull has
+    // no DPS check): the boss HP fraction you must push it below before it goes away.
     private float DowntimeTargetHp(FightProfile fight, float rowStart)
     {
-        if (!C.LearnedDowntimes.TryGetValue(fight.TerritoryId.ToString(), out var list)) return -1f;
-        foreach (var w in list) if (MathF.Abs(w.Start - rowStart) < 2f) return w.TargetHp;
+        foreach (var w in Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes))
+            if (MathF.Abs(w.Start - rowStart) < 2f) return w.TargetHp;
         return -1f;
     }
 
@@ -348,21 +348,23 @@ public class TimelineWindow : Window
 
             // Row kind: lull markers (untargetable/targetable) or the mechanic's own
             // hit type. An upcoming Untargetable turns into a "push it or fail"
-            // skull once the boss is within ~10% above that gate's learned target
-            // HP (the phase's DPS check): its countdown is the time-to-fail.
+            // skull once the boss is within ~10% above that gate's hardcoded target
+            // HP (the phase's DPS check): its countdown is the time-to-kill, and the
+            // label carries the % you must be under by then.
             var gate = false;
+            var gateTgt = -1f;
             if (r.Mechanic == "Untargetable")
             {
-                var tgt = DowntimeTargetHp(fight, r.Time);
+                gateTgt = DowntimeTargetHp(fight, r.Time);
                 // Only real DPS checks (the boss got pushed low, <=40%), not brief
                 // mid-phase untargetable moments at high HP.
-                gate = _plugin.BossHpFraction > 0f && tgt is >= 0f and <= 0.40f
-                    && _plugin.BossHpFraction <= tgt + 0.10f;
+                gate = _plugin.BossHpFraction > 0f && gateTgt is >= 0f and <= 0.40f
+                    && _plugin.BossHpFraction <= gateTgt + 0.10f;
             }
             var kind = r.Mechanic == "Untargetable" ? (gate ? 3 : 4)
                 : r.Mechanic == "Targetable" ? 5
                 : RowKind(r, bareTimer);
-            if (kind == 3) name = "DPS check";
+            if (kind == 3) name = $"DPS check ({gateTgt * 100f:0}%)";
             BoardBar(name, rem, look, width, accent, r.Hurt, pulse, kind);
 
             if (C.UpcomingBoardShowActions && !bareTimer && mine[i].Count > 0)

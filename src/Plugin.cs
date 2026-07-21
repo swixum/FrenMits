@@ -1262,54 +1262,52 @@ public sealed class Plugin : IDalamudPlugin
             else if (boss is { IsTargetable: false }) down = true;
         }
 
-        // While the boss is up, track the lowest HP this phase reached: that IS
-        // the phase's gate threshold (you push it to X%, then it goes away).
-        if (Timer.Running && !down && BossHpFraction is > 0f and <= 1f)
-            _phaseMinHp = MathF.Min(_phaseMinHp, BossHpFraction);
-
         // Tick the lull's length in game-time so replay speed / pauses can't skew it.
         if (down && DowntimeActive) _downtimeElapsed += gameDt;
 
         if (down && !DowntimeActive)
         {
-            // Just started: stamp it, recall how long it ran, and remember the HP
-            // it went away at (the gate) so later pulls can warn to push it.
+            // Just started: stamp it and recall its hardcoded length for the banner.
             _downtimeElapsed = 0f;
             var f = ActiveFight();
             _downtimeStartElapsed = f != null ? ElapsedFor(f) : Timer.Elapsed;
             _downtimeKnownDur = LookupDowntime(f?.TerritoryId, _downtimeStartElapsed);
-            _downtimeTargetHp = _phaseMinHp <= 1f ? _phaseMinHp : -1f;
-            _phaseMinHp = 1f; // fresh for the next phase
         }
         else if (!down && DowntimeActive)
         {
-            // Just ended: learn its length + gate HP for next time.
-            if (ActiveFight() is { } f) RecordDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed, _downtimeTargetHp);
+            // Just ended: refine the TIME of any learnable window (one cactbot
+            // couldn't pin) from what we just measured. Fixed windows are untouched.
+            if (ActiveFight() is { } f) MaybeLearnDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed);
             _downtimeKnownDur = -1f;
         }
         DowntimeActive = down;
     }
 
-    private float _phaseMinHp = 1f;
-    private float _downtimeTargetHp = -1f;
-
+    // The known length of the lull starting near `start` (-1 if none). Uses the
+    // hardcoded table with any learnable window refined by a measured pull.
     private float LookupDowntime(uint? territory, float start)
     {
-        if (territory is not { } t || !Config.LearnedDowntimes.TryGetValue(t.ToString(), out var list))
-            return -1f;
-        foreach (var w in list) if (MathF.Abs(w.Start - start) < 8f) return w.Duration;
+        if (territory is not { } t) return -1f;
+        foreach (var w in Downtimes.Effective(t, Config.LearnedDowntimes))
+            if (MathF.Abs(w.Start - start) < 8f) return w.Duration;
         return -1f;
     }
 
-    private void RecordDowntime(uint territory, float start, float dur, float targetHp)
+    // Record a measured Start/Duration ONLY when it matches a learnable hardcoded
+    // window (Learn=true) - the few transitions cactbot leaves uncertain. Persisted
+    // to Config.LearnedDowntimes and merged back by Downtimes.Effective. The gate %
+    // is never learned; it stays the hardcoded design value.
+    private void MaybeLearnDowntime(uint territory, float start, float dur)
     {
         if (dur < 1.5f) return; // ignore blips
+        var target = Downtimes.For(territory).FirstOrDefault(w => w.Learn && MathF.Abs(w.Start - start) < 25f);
+        if (target == null) return;
         var key = territory.ToString();
         if (!Config.LearnedDowntimes.TryGetValue(key, out var list))
             Config.LearnedDowntimes[key] = list = new();
-        var w = list.FirstOrDefault(x => MathF.Abs(x.Start - start) < 8f);
-        if (w != null) { w.Start = start; w.Duration = dur; w.TargetHp = targetHp; }
-        else list.Add(new DowntimeWindow { Start = start, Duration = dur, TargetHp = targetHp });
+        var existing = list.FirstOrDefault(x => MathF.Abs(x.Start - target.Start) < 25f);
+        if (existing != null) { existing.Start = start; existing.Duration = dur; }
+        else list.Add(new DowntimeWindow { Start = start, Duration = dur });
         Config.Save();
     }
 

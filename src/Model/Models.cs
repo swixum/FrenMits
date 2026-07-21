@@ -134,9 +134,15 @@ public class DowntimeWindow
 {
     public float Start { get; set; }
     public float Duration { get; set; }
-    // The boss HP fraction at the gate (the lowest it was pushed to that phase),
-    // learned from a pull. -1 = unknown. Drives the "push it or fail" skull.
+    // The boss HP fraction the phase must be pushed below by Start (its DPS check).
+    // -1 = a plain lull with no gate. Drives the "push it or fail" skull.
     public float TargetHp { get; set; } = -1f;
+
+    // Hardcoded-table only: this window's TIME is uncertain (cactbot couldn't pin
+    // it), so refine Start/Duration from live pulls. Not serialized - learned
+    // refinements live in Configuration.LearnedDowntimes, keyed by territory.
+    [Newtonsoft.Json.JsonIgnore]
+    public bool Learn { get; set; }
 }
 
 [Serializable]
