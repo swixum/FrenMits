@@ -1217,10 +1217,13 @@ public sealed class Plugin : IDalamudPlugin
             var fw = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
             if (fw == null) return 1f;
             var s = fw->GameSpeedMultiplier;
-            return s >= 0f && s < 100f ? s : 1f; // sane range; paused reads 0
+            if (s < 0f || s > 100f) return 1f;   // garbage guard
+            return s < 0.02f ? 0f : s;           // snap a near-zero (paused) to a hard stop
         }
         catch { return 1f; }
     }
+
+    private DateTime _lastPlaybackTick = DateTime.UtcNow;
 
     private bool _firstTickDone;
     private bool _wasInDutyPlayback;
@@ -1311,14 +1314,15 @@ public sealed class Plugin : IDalamudPlugin
 
             // Keep the timeline in step with a Duty Recorder replay: real time
             // keeps running while playback is paused (or sped up), so nudge the
-            // clock by frameDelta * (1 - gameSpeed). Paused (speed 0) freezes the
-            // timeline and alerts; 2x/0.5x track the replay's pace.
-            if (InDutyPlayback && Timer.Running)
-            {
-                var speed = ReplayGameSpeed();
-                var dt = (float)Service.Framework.UpdateDelta.TotalSeconds;
-                if (dt > 0f && dt < 1f) Timer.ShiftStart(dt * (1f - speed));
-            }
+            // clock by realDelta * (1 - gameSpeed). Paused (speed 0) freezes the
+            // timeline and alerts; 2x/0.5x track the replay's pace. The delta is
+            // measured on the SAME UtcNow clock Elapsed uses, so a pause freezes
+            // it EXACTLY - UpdateDelta drifted a hair and let it creep down.
+            var nowUtc = DateTime.UtcNow;
+            var realDt = (float)(nowUtc - _lastPlaybackTick).TotalSeconds;
+            _lastPlaybackTick = nowUtc;
+            if (InDutyPlayback && Timer.Running && realDt > 0f && realDt < 1f)
+                Timer.ShiftStart(realDt * (1f - ReplayGameSpeed()));
 
             RefreshAutoFight();
             Timer.Update();
