@@ -8,10 +8,7 @@ namespace FrenMits;
 [Serializable]
 public class Configuration : IPluginConfiguration
 {
-    // Bumped to 2 when auto cooldown timing became opt-in: a one-time migration
-    // (see Plugin) forces it off for configs saved before then. Fresh configs
-    // start at 2 so they skip the migration (the new default is already off).
-    public int Version { get; set; } = 2;
+    public int Version { get; set; } = 1;
 
     // Last plugin version whose "What's New" panel was dismissed. Shows the panel
     // once after an update with notes, then records the version so it stays hidden.

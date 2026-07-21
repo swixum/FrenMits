@@ -317,6 +317,17 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v21: auto cooldown timing shipped default-on in early builds, then became
+        // a big opt-in feature. Force it off once for existing configs (the saved
+        // "on" was overriding the new default). A later user toggle sticks, since
+        // Version is 21 by then and this never runs again.
+        if (Config.Version < 21)
+        {
+            Config.AutoCooldownTiming = false;
+            Config.Version = 21;
+            Config.Save();
+        }
+
         // Slot names run through the standard (T1/T2, M1/M2, R1/R2 - see
         // SlotNames) on EVERY load: cheap, idempotent, and it also catches
         // fights imported from plan codes made on older versions.
@@ -357,17 +368,6 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (f.Name == "Dancing Mad (Ultimate)") { f.Name = Builtin.Name(Builtin.DmuTerritory); seeded = true; }
             else if (f.Name == "Futures Rewritten (Ultimate)") { f.Name = Builtin.Name(Builtin.FruTerritory); seeded = true; }
-        }
-
-        // Auto cooldown timing shipped default-on in early builds, then became a big
-        // opt-in feature. Force it off ONCE for configs saved before that switch, so
-        // updating actually turns it off; if the user later enables it, it sticks
-        // (Version is 2 by then, so this never runs again).
-        if (Config.Version < 2)
-        {
-            Config.AutoCooldownTiming = false;
-            Config.Version = 2;
-            seeded = true;
         }
 
         if (seeded) Config.Save();
