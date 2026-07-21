@@ -221,9 +221,14 @@ public class TimelineWindow : Window
     private static readonly List<MitLine> NoLines = new();
     private static readonly List<SheetTimeline.MechRow> NoRows = new();
 
-    // Learned downtimes as inline board rows: an "untargetable" entry when the boss
-    // goes away and a "targetable" one when it returns, so both count down on the
-    // board like a mechanic (cactbot's --untargetable-- / --targetable--).
+    // Credit: the idea of surfacing boss untargetable/targetable windows as
+    // countdown entries on a fight timeline comes from cactbot
+    // (github.com/OverlayPlugin/cactbot, MIT-licensed). FrenMits learns the
+    // windows live rather than shipping timeline files, and renders them its own
+    // way, but the concept is theirs. Thanks to the cactbot authors.
+    //
+    // Learned downtimes as inline board rows: an Untargetable entry when the boss
+    // goes away and a Targetable one when it returns, each counting down.
     private List<SheetTimeline.MechRow> DowntimeRows(FightProfile fight)
     {
         if (!C.LearnedDowntimes.TryGetValue(fight.TerritoryId.ToString(), out var list) || list.Count == 0)
@@ -231,8 +236,8 @@ public class TimelineWindow : Window
         var rows = new List<SheetTimeline.MechRow>(list.Count * 2);
         foreach (var w in list)
         {
-            rows.Add(new SheetTimeline.MechRow { Time = w.Start, Mechanic = "untargetable" });
-            rows.Add(new SheetTimeline.MechRow { Time = w.Start + w.Duration, Mechanic = "targetable" });
+            rows.Add(new SheetTimeline.MechRow { Time = w.Start, Mechanic = "Untargetable" });
+            rows.Add(new SheetTimeline.MechRow { Time = w.Start + w.Duration, Mechanic = "Targetable" });
         }
         return rows;
     }
@@ -250,9 +255,9 @@ public class TimelineWindow : Window
 
         if (HeaderVisible) DrawBoardHeader(fight, elapsed, width);
 
-        // Learned downtimes ride inline as their own rows (untargetable / targetable),
-        // cactbot-style. The banner is only the fallback while we're still LEARNING a
-        // lull the first time (no row exists yet).
+        // Learned downtimes ride inline as their own rows (Untargetable / Targetable).
+        // The banner is only the fallback while we're still LEARNING a lull the first
+        // time (no row exists yet).
         if (_plugin.DowntimeActive && _plugin.DowntimeRemaining < 0f) DrawDowntimeBanner(width);
 
         // Attach each of your presses to its single NEAREST row, so a mechanic
@@ -332,9 +337,15 @@ public class TimelineWindow : Window
                     ? Icons.DisplayAction(mine[i][0].ActionFor(job), job)
                     : r.Fallback;
 
-            // Downtime markers ride dimmed, no icon, no press, just name + countdown.
-            var isDown = r.Mechanic is "untargetable" or "targetable";
-            BoardBar(name, rem, look, width, accent, r.Hurt, pulse, isDown ? 0 : RowKind(r, bareTimer), isDown);
+            // Row kind: lull markers (untargetable/targetable), an at-risk mit whose
+            // cooldown won't be back in time (skull), or the mechanic's own hit type.
+            var couldFail = C.CooldownAwareCalls && mine[i].Count > 0
+                && mine[i].Any(l => Cooldowns.Remaining(l.Action) is { } cd && cd > l.CueTime - elapsed + 0.5f);
+            var kind = r.Mechanic == "Untargetable" ? 4
+                : r.Mechanic == "Targetable" ? 5
+                : couldFail ? 3
+                : RowKind(r, bareTimer);
+            BoardBar(name, rem, look, width, accent, r.Hurt, pulse, kind);
 
             if (C.UpcomingBoardShowActions && !bareTimer && mine[i].Count > 0)
                 BoardActions(mine[i], job, elapsed, width, accent);
@@ -476,7 +487,7 @@ public class TimelineWindow : Window
         ImGui.Dummy(new Vector2(1f, 4f));
     }
 
-    private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false, int kind = 0, bool muted = false)
+    private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false, int kind = 0)
     {
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
@@ -492,7 +503,7 @@ public class TimelineWindow : Window
         // toward full as the hit lands - some folks read urgency that way.
         var frac = Math.Clamp(rem / look, 0f, 1f);
         if (!C.UpcomingBoardDrain) frac = 1f - frac;
-        if (frac > 0.004f)
+        if (frac > 0.004f && kind != 4 && kind != 5) // no drain fill on the lull markers
         {
             var baseCol = (accent == 0 ? AccentCol : accent) & 0x00FFFFFF;
             var edgeX = p0.X + width * frac;
@@ -514,13 +525,25 @@ public class TimelineWindow : Window
         // blue normally, gold/green when the row is yours, pulsing at go time.
         if (C.UpcomingBoardStripe)
         {
-            var stripe = accent == 0 ? (AccentCol & 0x00FFFFFF) | 0xB3000000 : accent;
+            var stripe = kind switch
+            {
+                3 => 0xFF4646FFu,   // at-risk: red
+                4 => 0xFF9AA0A8u,   // untargetable: slate
+                5 => 0xFF7BD88Bu,   // targetable: green
+                _ => accent == 0 ? (AccentCol & 0x00FFFFFF) | 0xB3000000 : accent,
+            };
             if (pulse) stripe = Pulse(stripe);
             dl.AddRectFilled(p0, new Vector2(p0.X + 3f, p1.Y), stripe, round, ImDrawFlags.RoundCornersLeft);
         }
         dl.AddRect(p0, p1, BoardBarBorder, round);
 
-        var textCol = muted ? BoardMuted : accent == 0 ? BoardBright : accent;
+        var textCol = kind switch
+        {
+            3 => 0xFF6B6BF5u,   // at-risk: soft red
+            4 => 0xFF9AA0A8u,   // untargetable: cool slate
+            5 => 0xFF7BD88Bu,   // targetable: soft green
+            _ => accent == 0 ? BoardBright : accent,
+        };
         var textY = p0.Y + (barH - lineH) * 0.5f;
         var isNow = rem < 0f;
         // Under 3s, count down with one decimal so the last moments read finely
@@ -528,15 +551,27 @@ public class TimelineWindow : Window
         var timeText = isNow ? "NOW" : rem < 3f ? $"{rem:0.0}s" : $"{MathF.Ceiling(rem):0}s";
         var timeW = C.UpcomingBoardTimeText ? ImGui.CalcTextSize(timeText).X : 0f;
 
-        // A little icon marks what the hit is: raidwide (party) or tank buster.
-        // Left of the name, so the name and countdown keep their spots.
+        // Row icon, left of the name: the tank-buster shield (toggle), or an
+        // always-on marker for an at-risk mit (skull), a lull start (untargetable)
+        // or its end (targetable). Raidwide rows carry no icon.
         var nameX = p0.X + 10f;
-        if (C.UpcomingBoardShowType && kind > 0)
+        var showIcon = kind switch
         {
+            2 => C.UpcomingBoardShowType,
+            3 or 4 or 5 => true,
+            _ => false,
+        };
+        if (showIcon)
+        {
+            var (glyph, iconCol) = kind switch
+            {
+                3 => (FontAwesomeIcon.Skull, 0xFF4646FFu),
+                4 => (FontAwesomeIcon.Ban, 0xFF9AA0A8u),
+                5 => (FontAwesomeIcon.Crosshairs, 0xFF7BD88Bu),
+                _ => (FontAwesomeIcon.Shield, BoardBusterCol),
+            };
             var isz = lineH * 0.82f;
-            BoardIcon(dl, new Vector2(nameX + isz * 0.5f, p0.Y + barH * 0.5f), isz,
-                kind == 2 ? BoardBusterCol : BoardRaidCol,
-                kind == 2 ? FontAwesomeIcon.Shield : FontAwesomeIcon.Users);
+            BoardIcon(dl, new Vector2(nameX + isz * 0.5f, p0.Y + barH * 0.5f), isz, iconCol, glyph);
             nameX += isz + 6f;
         }
 

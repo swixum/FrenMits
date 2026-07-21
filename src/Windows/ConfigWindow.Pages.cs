@@ -521,8 +521,8 @@ public partial class ConfigWindow
             ImGui.Spacing();
             C.UpcomingBoardShowSeverity = CfgCheck("Severity marks (! !! !!!)", C.UpcomingBoardShowSeverity);
             ImGui.SameLine(300f);
-            C.UpcomingBoardShowType = CfgCheck("Hit-type icons (raidwide / buster)", C.UpcomingBoardShowType);
-            Tip("A small icon on each row: cyan people = raidwide, orange shield = tank buster.");
+            C.UpcomingBoardShowType = CfgCheck("Tank buster icon", C.UpcomingBoardShowType);
+            Tip("An orange shield on tank-buster rows. (At-risk, untargetable and targetable markers always show their own icons.)");
             ImGui.EndTabItem();
         }
 
