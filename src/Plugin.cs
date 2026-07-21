@@ -1145,6 +1145,36 @@ public sealed class Plugin : IDalamudPlugin
         catch (Exception ex) { Service.Log.Warning($"FrenMits auto-time failed: {ex.Message}"); }
     }
 
+    // Erase every offset/coverage the auto-timer wrote - across every fight and
+    // saved slot - so turning the feature off returns each plan to its own timing.
+    // Only solver-written lines are touched: a hand-set offset (OffsetManual) stays.
+    public void ClearSolvedOffsets()
+    {
+        var changed = false;
+        void Clear(List<MitLine>? lines)
+        {
+            if (lines == null) return;
+            foreach (var l in lines)
+                if (!l.OffsetManual && (l.OffsetSeconds != 0f || l.CoverUntil != 0f))
+                {
+                    l.OffsetSeconds = 0f;
+                    l.CoverUntil = 0f;
+                    changed = true;
+                }
+        }
+        foreach (var f in Config.Fights)
+        {
+            Clear(f.Lines);
+            if (f.SavedSlots != null)
+                foreach (var slot in f.SavedSlots.Values) Clear(slot);
+        }
+        if (changed)
+        {
+            Config.Save();
+            Service.Log.Information("FrenMits: auto cooldown timing off - cleared solver offsets.");
+        }
+    }
+
     // Custom sheets follow the sidebar Role/Job on zone-in the same way
     // built-ins do - but only when no valid column is picked yet; a column you
     // chose by hand always stays.

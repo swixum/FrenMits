@@ -273,8 +273,17 @@ public partial class ConfigWindow
             // Cooldown timing with the prep-text option indented beneath it (out of
             // the toggle grid so it can group). Independent - the prep text works as
             // its own switch and stays shown whether or not auto timing is on.
+            var autoWas = C.AutoCooldownTiming;
             C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
-            Tip("On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone.");
+            if (autoWas != C.AutoCooldownTiming)
+            {
+                // Turning it OFF wipes every offset the solver wrote (leaving your
+                // hand-set ones); turning it ON re-times the active plan right away.
+                if (!C.AutoCooldownTiming) _plugin.ClearSolvedOffsets();
+                else _plugin.AutoTime(_plugin.ActiveFight());
+                C.Save();
+            }
+            Tip("On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone; turning this off erases the auto ones.");
             ImGui.Indent(20f);
             if (C.AutoCooldownTiming)
             {
