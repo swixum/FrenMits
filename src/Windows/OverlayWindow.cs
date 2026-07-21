@@ -457,12 +457,17 @@ public class OverlayWindow : Window
     // counting down to that front hit, so it disappears the moment the window closes.
     private string PrepText(MitLine call)
     {
-        if (!C.PrepAlerts || call.OffsetSeconds < 5f) return "";
-        var windowEnd = call.Time - call.OffsetSeconds; // press by here (front of the run)
-        var lastCovered = call.CoverUntil > call.Time + 0.5f ? call.CoverUntil : call.Time;
+        if (!C.PrepAlerts) return "";
+        // The solver presses at the front of the run (Time - OffsetSeconds) and books
+        // the last hit the buff must still be up for in CoverUntil. A prep window only
+        // exists when the press blankets a LATER hit than its own - that IS "press it
+        // early and hold it". A press that only covers its own moment has no window,
+        // and OffsetSeconds stays ~0 for it, so gate on the coverage, not the offset.
+        var windowEnd = call.Time - call.OffsetSeconds; // latest press: the front hit
+        if (call.CoverUntil <= windowEnd + 2f) return ""; // covers only itself: nothing to prep
         var mits = Cooldowns.PlanMits(call.Action).ToList();
         var dur = mits.Count > 0 ? mits.Min(m => m.Duration > 0f ? m.Duration : 15f) : 15f;
-        var windowStart = MathF.Max(0f, lastCovered - dur);
+        var windowStart = MathF.Max(0f, call.CoverUntil - dur); // earliest press still reaching the last hit
         return windowStart >= windowEnd - 0.5f
             ? $"(use at {AbsTime(windowEnd)})"
             : $"(use between {AbsTime(windowStart)} and {AbsTime(windowEnd)})";
