@@ -232,6 +232,8 @@ public class TimelineWindow : Window
 
         if (HeaderVisible) DrawBoardHeader(fight, elapsed, width);
 
+        if (_plugin.DowntimeActive) DrawDowntimeBanner(width);
+
         // Attach each of your presses to its single NEAREST row, so a mechanic
         // repeating a few seconds apart can't show one press under both bars.
         // The 2.5s window still catches job extras riding ~1s off their row.
@@ -417,6 +419,34 @@ public class TimelineWindow : Window
             }
         }
         ImGui.Dummy(new Vector2(width, h + 4f));
+    }
+
+    // A neutral banner shown while the boss is untargetable (phase transition,
+    // cutscene, jumped away): a lull, with a running timer of how long it's lasted.
+    private void DrawDowntimeBanner(float width)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        var barH = MathF.Round(lineH + Math.Clamp(C.UpcomingBoardBarPad, 2f, 24f));
+        var round = BoardRound;
+        var p0 = ImGui.GetCursorScreenPos();
+        var p1 = p0 + new Vector2(width, barH);
+
+        var back = ((uint)(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24) | BoardPanelRgb;
+        dl.AddRectFilled(p0, p1, back, round);
+        dl.AddRectFilled(p0, new Vector2(p0.X + 3f, p1.Y), 0xFFB0A594u, round, ImDrawFlags.RoundCornersLeft);
+        dl.AddRect(p0, p1, BoardBarBorder, round);
+
+        var cy = p0.Y + (barH - lineH) * 0.5f;
+        BoardText(dl, new Vector2(p0.X + 10f, cy), BoardMuted, "Downtime (not targetable)");
+        if (C.UpcomingBoardTimeText)
+        {
+            var t = $"{_plugin.DowntimeElapsed:0.0}s";
+            var tw = ImGui.CalcTextSize(t).X;
+            BoardText(dl, new Vector2(p1.X - tw - 8f, cy), BoardMuted, t);
+        }
+        ImGui.Dummy(new Vector2(width, barH));
+        ImGui.Dummy(new Vector2(1f, 4f));
     }
 
     private void BoardBar(string name, float rem, float look, float width, uint accent, int hurt, bool pulse = false, int kind = 0)

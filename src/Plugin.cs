@@ -1200,6 +1200,34 @@ public sealed class Plugin : IDalamudPlugin
     public static bool InCombat =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat];
 
+    // Downtime: mid-pull, the boss is present but not targetable (a phase
+    // transition, it jumped away, or a cutscene). The timeline flags it so a lull
+    // reads as a lull, with a running timer of how long it's been going.
+    public bool DowntimeActive { get; private set; }
+    public float DowntimeElapsed => _downtimeStartUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds : 0f;
+    private DateTime? _downtimeStartUtc;
+
+    private void UpdateDowntime()
+    {
+        var down = false;
+        if (Timer.Running)
+        {
+            if (CutsceneActive) down = true;
+            else
+            {
+                IBattleNpc? boss = null;
+                foreach (var o in Service.ObjectTable)
+                    if (o is IBattleNpc n && (byte)n.BattleNpcKind == 5 && n.MaxHp > 1_000_000
+                        && (boss is null || n.MaxHp > boss.MaxHp))
+                        boss = n;
+                if (boss is { IsTargetable: false }) down = true;
+            }
+        }
+        DowntimeActive = down;
+        if (down) _downtimeStartUtc ??= DateTime.UtcNow;
+        else _downtimeStartUtc = null;
+    }
+
     // Watching a Duty Recorder replay (e.g. via A Realm Recorded). The spectator
     // never gets a combat flag, so the timer auto-starts from the replay's own
     // casts instead (SyncEngine.TryPlaybackAutoStart).
@@ -1326,6 +1354,7 @@ public sealed class Plugin : IDalamudPlugin
 
             RefreshAutoFight();
             Timer.Update();
+            UpdateDowntime();
             Recap.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
