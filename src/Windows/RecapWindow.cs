@@ -16,6 +16,9 @@ public class RecapWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
+    // Whether the deaths chip is expanded into its who/how detail list.
+    private bool _deathsOpen;
+
     public RecapWindow(Plugin plugin) : base("Party Mit Recap###recapwin")
     {
         _plugin = plugin;
@@ -124,7 +127,19 @@ public class RecapWindow : Window
         Widgets.Chip("raid mits", $"{MitRecap.StandardRaidMits.Length - missed.Count}/{MitRecap.StandardRaidMits.Length}",
             missed.Count == 0 ? Theme.Good : Theme.Warn);
         ImGui.SameLine(0, 6);
-        Widgets.Chip("deaths", r.LastDeaths.Count.ToString(), r.LastDeaths.Count == 0 ? Theme.Good : Theme.Danger);
+        if (r.LastDeaths.Count > 0)
+        {
+            // Clickable: opens the who-died-and-how list below the chip row.
+            if (Widgets.ChipButton("deaths", r.LastDeaths.Count.ToString(), Theme.Danger, _deathsOpen))
+                _deathsOpen = !_deathsOpen;
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(_deathsOpen ? "Hide who died and how" : "Click to see who died and how");
+        }
+        else
+        {
+            _deathsOpen = false;
+            Widgets.Chip("deaths", "0", Theme.Good);
+        }
         if (r.Shown.PlanTotal > 0)
         {
             ImGui.SameLine(0, 6);
@@ -139,6 +154,31 @@ public class RecapWindow : Window
         {
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Warn), "Never landed:  " + string.Join("   ", missed));
+        }
+
+        // Deaths, expanded from the chip: who dropped, when, how fast, and what
+        // they still had up (or that nothing was). The full story each carries,
+        // pulled out of the timeline table so it's one click from the summary.
+        if (_deathsOpen && r.LastDeaths.Count > 0)
+        {
+            Widgets.SectionHeader("Deaths");
+            foreach (var d in r.LastDeaths.OrderBy(d => d.Time))
+            {
+                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                    ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
+                ImGui.SameLine(0, 6);
+                ImGui.TextColored(Theme.V(Theme.Danger), d.Name);
+                ImGui.SameLine(0, 6);
+                ImGui.TextColored(Theme.V(Theme.Muted), Mmss(d.Time));
+                var story = new List<string>();
+                if (d.FromPct > 0f && d.Seconds > 0f)
+                    story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
+                story.Add(d.Had.Length > 0 ? "had " + d.Had : "nothing up");
+                ImGui.SameLine(0, 6);
+                ImGui.PushTextWrapPos(0f);
+                ImGui.TextColored(Theme.V(Theme.Muted), "· " + string.Join(" · ", story));
+                ImGui.PopTextWrapPos();
+            }
         }
 
         // Coverage timeline: the whole pull as one chart - where the party's
