@@ -21,6 +21,7 @@ public static class Downtimes
     public static IReadOnlyList<DowntimeWindow> For(uint territory) => territory switch
     {
         Builtin.DmuTerritory => Dmu,
+        Builtin.FruTerritory => Fru,
         _ => None,
     };
 
@@ -67,5 +68,23 @@ public static class Downtimes
         // cactbot marks this untargetable "?" and the final Ultima Upsurge straddles
         // it, so the time is a best estimate - Learn refines it from live pulls.
         new() { Start = 876, Duration = 31, TargetHp = 0.25f, Learn = true }, // P4 -> P5 transition
+    };
+
+    // Futures Rewritten (FRU). FRU has no forcejumps, so its FruData sheet clock is
+    // ~1:1 with the cactbot futures_rewritten timeline (Utopian Sky 35, Junction 500,
+    // Memory's End 672 all match), and the cactbot untargetable/targetable markers are
+    // used directly. TargetHp is -1 for now (no DPS-check skull until the per-phase
+    // push %s are provided); every window is Learn=true so its exact time self-corrects
+    // from live pulls. The P1->P2 window (Fatebreaker despawns, Usurper appears ~204)
+    // is a despawn-based estimate; the rest bracket explicit cactbot markers.
+    private static readonly List<DowntimeWindow> Fru = new()
+    {
+        new() { Start = 35,  Duration = 45,  Learn = true }, // P1 Utopian Sky intermission (cactbot 35.2 -> 79.8)
+        new() { Start = 130, Duration = 74,  Learn = true }, // P1 -> P2 (Usurper targetable cactbot 204.1) [estimate]
+        new() { Start = 239, Duration = 37,  Learn = true }, // P2 Diamond Dust / Shiva (cactbot 239.0 -> 276.2)
+        new() { Start = 336, Duration = 29,  Learn = true }, // P2 Light Rampant (cactbot 335.7 -> 364.9)
+        new() { Start = 675, Duration = 6,   Learn = true }, // P3 Memory's End enrage check (cactbot 675.4 -> 680.8)
+        new() { Start = 779, Duration = 50,  Learn = true }, // P4 Crystallize Time (cactbot 779.3 -> 829.4)
+        new() { Start = 857, Duration = 173, Learn = true }, // P4 -> P5 Pandora cutscene (cactbot ~856 -> 1029.6)
     };
 }
