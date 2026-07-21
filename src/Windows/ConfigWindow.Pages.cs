@@ -262,17 +262,15 @@ public partial class ConfigWindow
                 ImGui.EndTable();
             }
 
-            // Cooldown timing, with its prep-text child nested beneath it (out of
-            // the toggle grid so the child can indent directly under its parent).
+            // Cooldown timing with the prep-text option indented beneath it (out of
+            // the toggle grid so it can group). Independent - the prep text works as
+            // its own switch and stays shown whether or not auto timing is on.
             C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
             Tip("On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone.");
-            if (C.AutoCooldownTiming)
-            {
-                ImGui.Indent(20f);
-                C.PrepAlerts = Toggle("Prep window text", C.PrepAlerts);
-                Tip("Adds a \"(use between X and Y)\" line under the main call when a press is pulled early to stay up for a later mechanic. Text only; the early timing still happens either way. Off by default.");
-                ImGui.Unindent(20f);
-            }
+            ImGui.Indent(20f);
+            C.PrepAlerts = Toggle("Prep window text", C.PrepAlerts);
+            Tip("Adds a \"(use between X and Y)\" line under the main call when a press is pulled early to stay up for a later mechanic. Text only; the early timing still happens either way. Off by default.");
+            ImGui.Unindent(20f);
 
             if (C.ShowMitBar)
             {
