@@ -688,7 +688,7 @@ public sealed class Plugin : IDalamudPlugin
             if (Builtin.Has(f.TerritoryId))
             {
                 var slot = Builtin.RoleSlot(f.TerritoryId, role);
-                if (!string.IsNullOrEmpty(slot)) Builtin.ApplySlot(f, slot!);
+                if (!string.IsNullOrEmpty(slot)) { Builtin.ApplySlot(f, slot!); AutoTime(f); }
             }
             else if (f.CustomSlots.Count > 0)
             {
@@ -708,6 +708,7 @@ public sealed class Plugin : IDalamudPlugin
         if (Builtin.Has(fight.TerritoryId))
         {
             Builtin.ApplySlot(fight, slot);
+            AutoTime(fight);
             Config.Save();
             return;
         }
@@ -723,6 +724,7 @@ public sealed class Plugin : IDalamudPlugin
         fight.Slot = slot;
         fight.Lines = fight.SavedSlots.TryGetValue(slot, out var lines) ? lines : new System.Collections.Generic.List<MitLine>();
         fight.SavedSlots[slot] = fight.Lines;
+        AutoTime(fight);
     }
 
     // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
@@ -1105,8 +1107,31 @@ public sealed class Plugin : IDalamudPlugin
         var added = Builtin.ApplySlot(fight, slot);
         Config.DmuSlot = fight.Slot;
         Config.Save();
+        AutoTime(fight);
 
         Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {fight.Slot}, +{added} lines.");
+    }
+
+    // Run the cooldown-aware offset solver over a fight's active slot, so its
+    // presses fire early enough to cover their hits and keep the recast ready for
+    // the next mechanic. Applies to baked AND custom sheets; hand-set offsets are
+    // preserved. Called on zone-in and whenever the active slot changes. Guarded:
+    // any failure leaves the plan exactly as it was.
+    public void AutoTime(FightProfile? fight)
+    {
+        if (!Config.AutoCooldownTiming || fight == null || fight.Lines.Count == 0) return;
+        try
+        {
+            var hits = SheetTimeline.Build(fight).Select(r => r.Time).ToList();
+            var changed = TimingSolver.Solve(fight, hits);
+            if (changed > 0)
+            {
+                if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;
+                Config.Save();
+                Service.Log.Information($"FrenMits auto-time: {fight.Name}/{fight.Slot}, {changed} offsets solved.");
+            }
+        }
+        catch (Exception ex) { Service.Log.Warning($"FrenMits auto-time failed: {ex.Message}"); }
     }
 
     // Custom sheets follow the sidebar Role/Job on zone-in the same way

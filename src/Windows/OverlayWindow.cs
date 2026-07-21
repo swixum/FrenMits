@@ -205,16 +205,38 @@ public class OverlayWindow : Window
             var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
             var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
             var action = Icons.DisplayAction(call.ActionFor(job), job);
-            DrawCurrent(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f, call.Color, lead, icon);
+            DrawCurrent(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f, call.Color, lead, icon, PrepText(call));
         }
     }
 
-    private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
-        uint colorOverride, float lead, uint iconId = 0)
+    // Gold prep accent, shared with the upcoming board's prep tag.
+    private const uint PrepCol = 0xFF3CB4F0;
+
+    // The proactive prep line for a call whose press is pulled early to stay up
+    // for a later mechanic ("prep -> covers 1:10"), or "" when it's an ordinary
+    // on-time call. Planned-schedule driven: reads the solved offset/coverage, not
+    // your live cooldown. Positive offset only (a call set to fire LATE isn't prep).
+    private string PrepText(MitLine call)
     {
-        // Colour priority: per-line override > mit-type colour > default imminent/active.
+        if (!C.PrepAlerts || call.OffsetSeconds < 5f) return "";
+        var target = call.CoverUntil > call.Time + 0.5f ? call.CoverUntil : call.Time;
+        return $"prep -> covers {AbsTime(target)}";
+    }
+
+    private static string AbsTime(float t)
+    {
+        var s = (int)MathF.Round(t);
+        return $"{s / 60}:{s % 60:00}";
+    }
+
+    private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
+        uint colorOverride, float lead, uint iconId = 0, string prep = "")
+    {
+        // Colour priority: per-line override > prep gold > mit-type colour > default.
+        var isPrep = prep.Length > 0 && imminent;
         var typeColor = C.ColorByMitType ? MitTypes.Color(MitTypes.Classify(action, mechanic), C) : 0u;
         var baseColor = colorOverride != 0 ? colorOverride
+            : isPrep ? PrepCol
             : typeColor != 0 ? typeColor
             : (imminent ? C.OverlayColorImminent : C.OverlayColorActive);
         var color = imminent && C.PulseWhenImminent && remaining < 1.5f ? Pulse(baseColor) : baseColor;
@@ -243,6 +265,11 @@ public class OverlayWindow : Window
             using (PushFont(C.OverlayFontSizePx * 0.55f))
                 CenteredText(mechanic, C.OverlayColorMechanic);
         }
+
+        // Prep line: press this now, it stays up for the later mechanic it covers.
+        if (isPrep)
+            using (PushFont(C.OverlayFontSizePx * 0.5f))
+                CenteredText(prep, PrepCol);
 
         if (C.ShowProgressBar && lead > 0.01f)
             DrawProgressBar(Math.Clamp(remaining / lead, 0f, 1f), color);

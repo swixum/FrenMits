@@ -191,6 +191,17 @@ public class Configuration : IPluginConfiguration
     // Cooldown-aware calls: read your real recast and warn on a call when the mit
     // won't be ready in time. Reads game state, so off by default.
     public bool CooldownAwareCalls { get; set; }
+
+    // Auto cooldown timing: on zone-in / slot change, run the offset solver so
+    // every plan (baked and custom) presses its mits early enough that the buff
+    // blankets the hit and the recast is back for the next mechanic. Hand-set
+    // offsets (OffsetManual) are always left alone.
+    public bool AutoCooldownTiming { get; set; } = true;
+
+    // Proactive prep cue: when a solved press fires early to stay up for a later
+    // mechanic, surface a distinct "prep now, up for X" alert on the overlay and
+    // the upcoming board instead of only the plain call.
+    public bool PrepAlerts { get; set; } = true;
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;
 

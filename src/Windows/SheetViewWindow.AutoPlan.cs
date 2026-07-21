@@ -137,9 +137,6 @@ public partial class SheetViewWindow
     private int SolveTiming()
     {
         if (_fight == null) return 0;
-        var hits = _rows.Where(r => !r.Ghost).Select(r => r.Time).OrderBy(t => t).ToArray();
-        var n = hits.Length;
-        if (n == 0) return 0;
 
         // Official sheets: if this column's baked plan isn't materialized yet, bake
         // it now so there are lines to time. (A custom column with nothing in it
@@ -147,67 +144,9 @@ public partial class SheetViewWindow
         if (_fight.Lines.Count == 0 && !_isCustom && !string.IsNullOrEmpty(_fight.Slot))
             _fight.Lines = Builtin.BuildLines(_fight.TerritoryId, _fight.Slot)
                 .Where(b => !Builtin.IsDeleted(_fight, _fight.Slot, b)).ToList();
-        var covered = new bool[n];
-        var readyAt = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
 
-        int Nearest(float t)
-        {
-            var best = 0; var bd = float.MaxValue;
-            for (var k = 0; k < n; k++) { var d = MathF.Abs(hits[k] - t); if (d < bd) { bd = d; best = k; } }
-            return best;
-        }
-        void MarkCovered(float from, float to)
-        {
-            for (var k = 0; k < n; k++) if (hits[k] >= from - 0.01f && hits[k] <= to + 0.01f) covered[k] = true;
-        }
-
-        var lines = _fight.Lines
-            .Where(l => l.Enabled && !string.IsNullOrWhiteSpace(l.Action))
-            .OrderBy(l => l.Time).ToList();
-
-        var changed = 0;
-        foreach (var line in lines)
-        {
-            var mits = Cooldowns.PlanMits(line.Action).ToList();
-            if (mits.Count == 0) continue;
-            var dur = mits.Min(m => m.Duration > 0f ? m.Duration : 15f);   // shortest buff bounds the reach
-            var ready = mits.Max(m => readyAt.GetValueOrDefault(m.Name, -9999f)); // all its abilities must be up
-
-            // A press the user timed by hand: leave it, but book the hits its buff
-            // already covers so other presses don't double up on them.
-            if (line.OffsetManual)
-            {
-                var press0 = line.Time - line.OffsetSeconds;
-                MarkCovered(press0, MathF.Max(press0 + dur, line.CoverUntil));
-                foreach (var m in mits) readyAt[m.Name] = press0 + (m.Recast > 0f ? m.Recast : 60f);
-                continue;
-            }
-
-            var iT = Nearest(line.Time);
-            var T = hits[iT];
-
-            // Grow the run: back to the earliest still-uncovered hit the buff can
-            // reach (and the cooldown allows), then forward within the buff window.
-            int lo = iT, hi = iT;
-            while (lo - 1 >= 0 && !covered[lo - 1]
-                   && hits[hi] - hits[lo - 1] <= dur + 0.01f
-                   && hits[lo - 1] >= ready - 0.01f) lo--;
-            while (hi + 1 < n && !covered[hi + 1]
-                   && hits[hi + 1] - hits[lo] <= dur + 0.01f) hi++;
-
-            var press = MathF.Max(hits[lo], MathF.Max(ready, 0f)); // front of run, but never before it's ready
-            var last = hits[hi];
-
-            // Only pull the press earlier if it can still be up for its own hit.
-            if (press <= T + 0.01f)
-            {
-                line.OffsetSeconds = MathF.Round((T - press) * 10f) / 10f;
-                line.CoverUntil = last > T + 0.5f ? last : 0f;
-                changed++;
-            }
-            MarkCovered(press, press + dur);
-            foreach (var m in mits) readyAt[m.Name] = press + (m.Recast > 0f ? m.Recast : 60f);
-        }
+        var hits = _rows.Where(r => !r.Ghost).Select(r => r.Time).ToList();
+        var changed = TimingSolver.Solve(_fight, hits);
 
         if (changed > 0)
         {

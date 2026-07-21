@@ -12,9 +12,9 @@
     <OutputType>Library</OutputType>
     <!-- Bump these on each release; keep them equal to AssemblyVersion in
          repo.json AND FrenMits.json. -->
-    <Version>1.0.0.290</Version>
-    <AssemblyVersion>1.0.0.290</AssemblyVersion>
-    <FileVersion>1.0.0.290</FileVersion>
+    <Version>1.0.0.292</Version>
+    <AssemblyVersion>1.0.0.292</AssemblyVersion>
+    <FileVersion>1.0.0.292</FileVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <!-- true so the bundled NAudio assemblies land in the output (Dalamud refs

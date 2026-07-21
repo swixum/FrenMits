@@ -373,10 +373,25 @@ public class TimelineWindow : Window
             // reaches - synced to the same countdown the press fires on.
             if (useNow || isNext)
             {
+                // A press pulled early by the solver to stay up for a later hit:
+                // gold "prep now" the moment it enters its window, so pressing it
+                // ahead of the mechanic reads as intended, not early by mistake.
+                var prep = C.PrepAlerts
+                    ? mine[i].FirstOrDefault(l => l.OffsetSeconds >= 5f && (!useNow || InWindow(l)))
+                    : null;
                 var coverUntil = 0f;
                 foreach (var l in mine[i])
                     if (l.CoverUntil > r.Time + 0.5f && l.CoverUntil > coverUntil) coverUntil = l.CoverUntil;
-                if (coverUntil > 0f)
+
+                if (prep != null && useNow)
+                {
+                    var target = prep.CoverUntil > prep.Time + 0.5f ? prep.CoverUntil : prep.Time;
+                    var thru = visible.FirstOrDefault(v => MathF.Abs(v.Time - target) < 1.5f)?.Mechanic;
+                    BoardNote(string.IsNullOrWhiteSpace(thru)
+                        ? $"prep now -> covers {TimeText(target)}"
+                        : $"prep now -> covers {thru} ({TimeText(target)})", width, PrepCol);
+                }
+                else if (coverUntil > 0f)
                 {
                     var thru = visible.FirstOrDefault(v => MathF.Abs(v.Time - coverUntil) < 1.5f)?.Mechanic;
                     BoardNote(string.IsNullOrWhiteSpace(thru)
@@ -703,12 +718,15 @@ public class TimelineWindow : Window
         ImGui.PopTextWrapPos();
     }
 
-    private void BoardNote(string note, float width)
+    // Gold prep accent, shared with the overlay's prep line.
+    private const uint PrepCol = 0xFF3CB4F0;
+
+    private void BoardNote(string note, float width, uint color = 0)
     {
         var startX = ImGui.GetCursorPosX();
         ImGui.SetCursorPosX(startX + 10f);
         ImGui.PushTextWrapPos(startX + width - 4f);
-        DrawText(note, (BoardMuted & 0x00FFFFFF) | 0xA0000000);
+        DrawText(note, color != 0 ? color : (BoardMuted & 0x00FFFFFF) | 0xA0000000);
         ImGui.PopTextWrapPos();
     }
 
