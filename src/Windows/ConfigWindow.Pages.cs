@@ -519,10 +519,8 @@ public partial class ConfigWindow
             ImGui.SameLine(300f);
             C.UpcomingBoardShowActions = CfgCheck("Planned mits", C.UpcomingBoardShowActions);
             ImGui.Spacing();
-            C.UpcomingBoardShowNotes = CfgCheck("Sheet notes (highlighted row)", C.UpcomingBoardShowNotes);
-            ImGui.SameLine(300f);
             C.UpcomingBoardShowSeverity = CfgCheck("Severity marks (! !! !!!)", C.UpcomingBoardShowSeverity);
-            ImGui.Spacing();
+            ImGui.SameLine(300f);
             C.UpcomingBoardShowType = CfgCheck("Hit-type icons (raidwide / buster)", C.UpcomingBoardShowType);
             Tip("A small icon on each row: cyan people = raidwide, orange shield = tank buster.");
             ImGui.EndTabItem();
@@ -565,7 +563,7 @@ public partial class ConfigWindow
         C.UpcomingBoardNowColor = 0xFF64DC64; C.UpcomingBoardBgOpacity = 0.85f;
         C.UpcomingBoardRounding = 5f; C.UpcomingBoardBarPad = 8f; C.UpcomingBoardRowGap = 4f;
         C.UpcomingBoardStripe = true; C.UpcomingBoardDrain = true;
-        C.UpcomingBoardShowActions = true; C.UpcomingBoardShowNotes = true; C.UpcomingBoardShowSeverity = true;
+        C.UpcomingBoardShowActions = true; C.UpcomingBoardShowSeverity = true;
         C.UpcomingBoardShowType = true;
         C.UpcomingCount = 3; C.UpcomingLookaheadSeconds = 30f;
         C.UpcomingFontSizePx = 20f; C.OverlayColorUpcoming = 0xB0FFFFFF;

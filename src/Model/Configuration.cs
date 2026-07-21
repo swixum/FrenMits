@@ -126,7 +126,6 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingBoardStripe { get; set; } = true;            // left accent stripe on each bar
     public bool UpcomingBoardDrain { get; set; } = true;             // true = bar drains as the hit nears
     public bool UpcomingBoardShowActions { get; set; } = true;       // presses under the rows
-    public bool UpcomingBoardShowNotes { get; set; } = true;         // sheet notes under gold/green rows
     public bool UpcomingBoardShowSeverity { get; set; } = true;      // !/!!/!!! marks from graded sheets
     public bool UpcomingBoardShowType { get; set; } = true;          // raidwide / tank-buster icon per row
 

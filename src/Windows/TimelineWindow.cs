@@ -314,9 +314,6 @@ public class TimelineWindow : Window
             if (C.UpcomingBoardShowActions && !bareTimer && mine[i].Count > 0)
                 BoardActions(mine[i], job, elapsed, width, accent);
 
-            if (C.UpcomingBoardShowNotes && (useNow || isNext) && NoteText(fight, r) is { Length: > 0 } note)
-                BoardNote(note, width);
-
             // Multi-hit coverage: this one press is meant to still be up for a
             // later hit, so the row that alerts the press also says how far it
             // reaches - synced to the same countdown the press fires on.
@@ -624,13 +621,6 @@ public class TimelineWindow : Window
         if (C.TextShadow) dl.AddText(pos + new Vector2(1.5f, 1.5f), 0xE0000000, text);
         dl.AddText(pos, color, text);
     }
-
-    private static string NoteText(FightProfile fight, SheetTimeline.MechRow r)
-        => fight.Notes.FirstOrDefault(n => SheetTimeline.MechEquals(n.Mechanic, r.Mechanic)
-                                           && MathF.Abs(n.Time - r.Time) < 4f)?.Text
-           // Baked press guidance steps in when the sheet itself has no note
-           // for this row (built-in knowledge, ships with the plugin).
-           ?? (fight.TerritoryId == Builtin.DmuTerritory ? DmuData.PressNote(r.Mechanic) : "");
 
     private static string TimeText(float seconds)
     {
