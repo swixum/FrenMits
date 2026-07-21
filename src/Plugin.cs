@@ -917,6 +917,7 @@ public sealed class Plugin : IDalamudPlugin
         static void Carry(MitLine to, MitLine from)
         {
             to.OffsetSeconds = from.OffsetSeconds;
+            to.OffsetManual = from.OffsetManual;
             to.CoverUntil = from.CoverUntil;
             to.Enabled = from.Enabled;
             to.LeadOverride = from.LeadOverride;
@@ -1054,6 +1055,7 @@ public sealed class Plugin : IDalamudPlugin
                     Custom = true,
                     Enabled = donor?.Enabled ?? true,
                     OffsetSeconds = donor?.OffsetSeconds ?? 0f,
+                    OffsetManual = donor?.OffsetManual ?? false,
                     CoverUntil = donor?.CoverUntil ?? 0f,
                     LeadOverride = donor?.LeadOverride ?? 0f,
                     Tts = donor?.Tts ?? "",

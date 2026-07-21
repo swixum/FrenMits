@@ -1861,6 +1861,14 @@ public partial class SheetViewWindow : Window
                 if (ImGui.MenuItem("Auto-plan mits...")) _openAutoPlan = true;
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Fills the grid with party cooldowns for every row: spaced to each\nrecast, rotated across columns, never overwriting your own cells.");
+                if (ImGui.MenuItem("Solve timing (offsets)") && !AbortIfStale())
+                {
+                    PushUndo("solve timing");
+                    var solved = SolveTiming();
+                    Service.Log.Information($"[FrenMits] Solve timing: set {solved} offset(s) on '{_fight?.Slot}'.");
+                }
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Auto-sets each mit's offset (this column) so one press blankets the run of\nhits its buff can reach and is back in time for later mechanics. Uses real\ndurations/recasts; respects offsets you set by hand. The press-window hints\nbelow show the result and flag anything that can't be covered.");
                 ImGui.EndPopup();
             }
         }
@@ -3344,6 +3352,7 @@ public partial class SheetViewWindow : Window
                     if (_offsetUndoArmed) { PushUndo($"adjust \"{row.Mechanic}\" offset"); _offsetUndoArmed = false; }
                     EnsureBacked(i);
                     line.OffsetSeconds = Math.Clamp(offset, -30f, 30f);
+                    line.OffsetManual = true; // hand-set: the timing solver won't touch it
                     C.Save();
                     _dirty = true; // cooldown math runs on cue times; recompute
                 }

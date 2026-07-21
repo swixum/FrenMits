@@ -158,6 +158,11 @@ public class MitLine
     // resync and sheet updates are unaffected. 0 = no shift.
     public float OffsetSeconds { get; set; }
 
+    // True when the offset was set BY HAND (the per-line offset slider), so the
+    // timing solver leaves it alone. Solver-written offsets keep this false, so a
+    // re-solve recomputes them cleanly instead of freezing its own last output.
+    public bool OffsetManual { get; set; }
+
     // Multi-hit coverage: this call must still be ACTIVE at this plan time (the
     // last hit it covers). 0 = covers only its own moment. Sheet View computes
     // the valid press window from this plus the buff's duration.
