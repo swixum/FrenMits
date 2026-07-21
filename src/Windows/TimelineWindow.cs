@@ -469,7 +469,9 @@ public class TimelineWindow : Window
         var textCol = accent == 0 ? BoardBright : accent;
         var textY = p0.Y + (barH - lineH) * 0.5f;
         var isNow = rem < 0f;
-        var timeText = isNow ? "NOW" : $"{MathF.Ceiling(rem):0}s";
+        // Under 3s, count down with one decimal so the last moments read finely
+        // (2.4s, 1.8s...); above that, whole seconds.
+        var timeText = isNow ? "NOW" : rem < 3f ? $"{rem:0.0}s" : $"{MathF.Ceiling(rem):0}s";
         var timeW = C.UpcomingBoardTimeText ? ImGui.CalcTextSize(timeText).X : 0f;
 
         // A little icon marks what the hit is: raidwide (party) or tank buster.
