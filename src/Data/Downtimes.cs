@@ -4,6 +4,12 @@ using System.Linq;
 
 namespace FrenMits;
 
+// ATTRIBUTION: the untargetable/targetable window times below are adapted from the
+// cactbot project's timeline files (github.com/OverlayPlugin/cactbot, Apache License
+// 2.0, Copyright the cactbot authors). Each cactbot marker was anchored to a fight
+// mechanic by ability id and converted onto FrenMits' compressed sheet clock; the
+// gate %s are FrenMits' own. Thanks to the cactbot authors.
+//
 // Hardcoded downtime / DPS-gate knowledge per fight - the plugin now KNOWS where a
 // boss goes untargetable and what HP it must be pushed below by then, instead of
 // learning it off pulls. Each window is on the FrenMits pull clock (the same axis

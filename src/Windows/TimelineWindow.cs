@@ -221,11 +221,13 @@ public class TimelineWindow : Window
     private static readonly List<MitLine> NoLines = new();
     private static readonly List<SheetTimeline.MechRow> NoRows = new();
 
-    // Credit: the idea of surfacing boss untargetable/targetable windows as
-    // countdown entries on a fight timeline comes from cactbot
-    // (github.com/OverlayPlugin/cactbot, MIT-licensed). FrenMits learns the
-    // windows live rather than shipping timeline files, and renders them its own
-    // way, but the concept is theirs. Thanks to the cactbot authors.
+    // Credit: the idea of surfacing boss untargetable/targetable windows on a fight
+    // timeline, and the timing data these windows are built from, come from cactbot
+    // (github.com/OverlayPlugin/cactbot, Apache License 2.0, Copyright the cactbot
+    // authors). FrenMits adapts their published timeline files - the untargetable/
+    // targetable marker times are anchored to each fight's mechanics and converted
+    // onto FrenMits' own clock (see Data/Downtimes.cs) - and renders them its own
+    // way. Thanks to the cactbot authors.
     //
     // Learned downtimes as inline board rows: an Untargetable entry when the boss
     // goes away and a Targetable one when it returns, each counting down.
