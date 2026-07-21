@@ -66,6 +66,13 @@ internal static class Theme
         (ImGuiCol.Header,             0xFF34271F),
         (ImGuiCol.HeaderHovered,      0xFF50362A),
         (ImGuiCol.HeaderActive,       0xFF634032),
+        // Tabs share the section-header surface family so they read as part of
+        // the theme, not raw ImGui blue-gray. Selected tab is the lightest.
+        (ImGuiCol.Tab,                0xFF2A211C),
+        (ImGuiCol.TabHovered,         0xFF50362A),
+        (ImGuiCol.TabActive,          0xFF634032),
+        (ImGuiCol.TabUnfocused,       0xFF241D1A),
+        (ImGuiCol.TabUnfocusedActive, 0xFF4A362C),
         (ImGuiCol.CheckMark,          Accent),
         (ImGuiCol.SliderGrab,         Accent),
         (ImGuiCol.SliderGrabActive,   AccentHover),
