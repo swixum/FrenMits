@@ -242,6 +242,15 @@ public class TimelineWindow : Window
         return rows;
     }
 
+    // The learned gate HP for the Untargetable at rowStart (-1 if unknown/not yet
+    // learned): the boss HP fraction it was pushed to before going away.
+    private float DowntimeTargetHp(FightProfile fight, float rowStart)
+    {
+        if (!C.LearnedDowntimes.TryGetValue(fight.TerritoryId.ToString(), out var list)) return -1f;
+        foreach (var w in list) if (MathF.Abs(w.Start - rowStart) < 2f) return w.TargetHp;
+        return -1f;
+    }
+
     private void DrawBoard(FightProfile fight, string? job, float elapsed,
         List<SheetTimeline.MechRow>? rowsOverride = null, float? widthOverride = null)
     {
@@ -339,10 +348,18 @@ public class TimelineWindow : Window
 
             // Row kind: lull markers (untargetable/targetable) or the mechanic's own
             // hit type. An upcoming Untargetable turns into a "push it or fail"
-            // skull once the boss is low (the phase gate is a DPS check then): its
-            // countdown is the time-to-fail.
-            var lowHp = _plugin.BossHpFraction is > 0f and <= 0.15f;
-            var kind = r.Mechanic == "Untargetable" ? (lowHp ? 3 : 4)
+            // skull once the boss is within ~10% above that gate's learned target
+            // HP (the phase's DPS check): its countdown is the time-to-fail.
+            var gate = false;
+            if (r.Mechanic == "Untargetable")
+            {
+                var tgt = DowntimeTargetHp(fight, r.Time);
+                // Only real DPS checks (the boss got pushed low, <=40%), not brief
+                // mid-phase untargetable moments at high HP.
+                gate = _plugin.BossHpFraction > 0f && tgt is >= 0f and <= 0.40f
+                    && _plugin.BossHpFraction <= tgt + 0.10f;
+            }
+            var kind = r.Mechanic == "Untargetable" ? (gate ? 3 : 4)
                 : r.Mechanic == "Targetable" ? 5
                 : RowKind(r, bareTimer);
             if (kind == 3) name = "DPS check";

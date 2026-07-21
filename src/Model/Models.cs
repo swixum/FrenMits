@@ -134,6 +134,9 @@ public class DowntimeWindow
 {
     public float Start { get; set; }
     public float Duration { get; set; }
+    // The boss HP fraction at the gate (the lowest it was pushed to that phase),
+    // learned from a pull. -1 = unknown. Drives the "push it or fail" skull.
+    public float TargetHp { get; set; } = -1f;
 }
 
 [Serializable]

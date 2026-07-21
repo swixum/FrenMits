@@ -1233,23 +1233,34 @@ public sealed class Plugin : IDalamudPlugin
             else if (boss is { IsTargetable: false }) down = true;
         }
 
+        // While the boss is up, track the lowest HP this phase reached: that IS
+        // the phase's gate threshold (you push it to X%, then it goes away).
+        if (Timer.Running && !down && BossHpFraction is > 0f and <= 1f)
+            _phaseMinHp = MathF.Min(_phaseMinHp, BossHpFraction);
+
         if (down && !DowntimeActive)
         {
-            // Just started: stamp it and recall how long it ran last time.
+            // Just started: stamp it, recall how long it ran, and remember the HP
+            // it went away at (the gate) so later pulls can warn to push it.
             _downtimeStartUtc = DateTime.UtcNow;
             var f = ActiveFight();
             _downtimeStartElapsed = f != null ? ElapsedFor(f) : Timer.Elapsed;
             _downtimeKnownDur = LookupDowntime(f?.TerritoryId, _downtimeStartElapsed);
+            _downtimeTargetHp = _phaseMinHp <= 1f ? _phaseMinHp : -1f;
+            _phaseMinHp = 1f; // fresh for the next phase
         }
         else if (!down && DowntimeActive)
         {
-            // Just ended: learn its length for next time.
-            if (ActiveFight() is { } f) RecordDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed);
+            // Just ended: learn its length + gate HP for next time.
+            if (ActiveFight() is { } f) RecordDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed, _downtimeTargetHp);
             _downtimeStartUtc = null;
             _downtimeKnownDur = -1f;
         }
         DowntimeActive = down;
     }
+
+    private float _phaseMinHp = 1f;
+    private float _downtimeTargetHp = -1f;
 
     private float LookupDowntime(uint? territory, float start)
     {
@@ -1259,15 +1270,15 @@ public sealed class Plugin : IDalamudPlugin
         return -1f;
     }
 
-    private void RecordDowntime(uint territory, float start, float dur)
+    private void RecordDowntime(uint territory, float start, float dur, float targetHp)
     {
         if (dur < 1.5f) return; // ignore blips
         var key = territory.ToString();
         if (!Config.LearnedDowntimes.TryGetValue(key, out var list))
             Config.LearnedDowntimes[key] = list = new();
         var w = list.FirstOrDefault(x => MathF.Abs(x.Start - start) < 8f);
-        if (w != null) { w.Start = start; w.Duration = dur; }
-        else list.Add(new DowntimeWindow { Start = start, Duration = dur });
+        if (w != null) { w.Start = start; w.Duration = dur; w.TargetHp = targetHp; }
+        else list.Add(new DowntimeWindow { Start = start, Duration = dur, TargetHp = targetHp });
         Config.Save();
     }
 
