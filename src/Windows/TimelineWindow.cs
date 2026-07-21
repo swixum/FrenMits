@@ -530,14 +530,30 @@ public class TimelineWindow : Window
 
         var back = ((uint)(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24) | BoardPanelRgb;
         dl.AddRectFilled(p0, p1, back, round);
+        // Kind wash: fill the whole bar with a soft color keyed to what the row
+        // IS, so its nature reads before you parse the text - red for a DPS check
+        // to push, green for targetable (get ready), grey for a plain untargetable
+        // lull, purple for a cutscene. Ordinary mit rows (kind 0-2) get none.
+        var wash = kind switch
+        {
+            3 => 0xFF4646FFu, // DPS check: red
+            4 => 0xFF9AA0A8u, // untargetable: grey
+            5 => 0xFF7BD88Bu, // targetable: green
+            6 => 0xFFB48C96u, // cutscene: purple
+            _ => 0u,
+        };
+        if (wash != 0)
+            dl.AddRectFilled(p0, p1, (wash & 0x00FFFFFFu) | 0x40000000u, round);
         // The fill tracks the countdown. Draining (default): full at the
         // look-ahead edge, empty at the hit. Filling: the opposite, growing
         // toward full as the hit lands - some folks read urgency that way.
         var frac = Math.Clamp(rem / look, 0f, 1f);
         if (!C.UpcomingBoardDrain) frac = 1f - frac;
-        if (frac > 0.004f && kind != 4 && kind != 5 && kind != 6) // no drain fill on the lull markers
+        if (frac > 0.004f) // countdown fill on every row, lull markers included
         {
-            var baseCol = (accent == 0 ? AccentCol : accent) & 0x00FFFFFF;
+            // Lull/gate rows drain in their own wash color; ordinary rows use the
+            // press accent (or the board accent when no press owns the row).
+            var baseCol = (wash != 0 ? wash : accent == 0 ? AccentCol : accent) & 0x00FFFFFF;
             var edgeX = p0.X + width * frac;
             // Brighter than before (was ~30% alpha, hard to read over the game):
             // a solid base plus a gradient that peaks at the moving edge, so the
@@ -570,14 +586,10 @@ public class TimelineWindow : Window
         }
         dl.AddRect(p0, p1, BoardBarBorder, round);
 
-        var textCol = kind switch
-        {
-            3 => 0xFF6B6BF5u,   // at-risk: soft red
-            4 => 0xFF9AA0A8u,   // untargetable: cool slate
-            5 => 0xFF7BD88Bu,   // targetable: soft green
-            6 => 0xFFB48C96u,   // cutscene / downtime: muted lavender
-            _ => accent == 0 ? BoardBright : accent,
-        };
+        // Every row's text is the SAME bright color for consistency; the wash,
+        // stripe and icon carry each row's identity, not the text. (A press row
+        // still tints its text gold/green so your own calls read at a glance.)
+        var textCol = accent == 0 ? BoardBright : accent;
         var textY = p0.Y + (barH - lineH) * 0.5f;
         var isNow = rem < 0f;
         // Under 3s, count down with one decimal so the last moments read finely
@@ -640,6 +652,16 @@ public class TimelineWindow : Window
             else
                 BoardText(dl, tp, textCol, timeText);
         }
+
+        // Completion spark: as the countdown crosses zero, pop a spark at the left
+        // end where the fill drains out, tinted the row's color. rem drives it, so
+        // it plays for ~0.6s once and needs no state.
+        if (rem <= 0.05f && rem > -0.55f)
+        {
+            var sparkCol = wash != 0 ? wash : accent == 0 ? AccentCol : accent;
+            var sp = new Vector2(p0.X + 5f, p0.Y + barH * 0.5f);
+            BoardSpark(dl, sp, (0.05f - rem) / 0.6f, sparkCol);
+        }
         ImGui.Dummy(new Vector2(width, barH));
     }
 
@@ -672,6 +694,31 @@ public class TimelineWindow : Window
             var pos = new Vector2(center.X - w * 0.5f, center.Y - size * 0.5f);
             if (C.TextShadow) dl.AddText(font, size, pos + new Vector2(1f, 1f), 0xC0000000, glyph);
             dl.AddText(font, size, pos, col, glyph);
+        }
+    }
+
+    // A brief spark when a countdown finishes: a white-hot core that expands into
+    // a fading ring with a few radiating rays. Driven purely off how far past zero
+    // the row is (progress 0->1 over ~0.6s), so it needs no stored per-row state.
+    private static void BoardSpark(ImDrawListPtr dl, Vector2 c, float progress, uint color)
+    {
+        var p = Math.Clamp(progress, 0f, 1f);
+        var fade = 1f - p;
+        var rgb = color & 0x00FFFFFF;
+        // expanding ring, white and fading fast
+        var ringA = (uint)(0xC0 * fade * fade) << 24;
+        dl.AddCircle(c, 2f + p * 9f, ringA | 0x00FFFFFF, 14, 1.6f * fade + 0.4f);
+        // white-hot core
+        var coreA = (uint)(0xF0 * fade) << 24;
+        dl.AddCircleFilled(c, 1.4f + fade * 1.8f, coreA | 0x00FFFFFF);
+        // rays in the row's own color, thrown outward as it fades
+        var rayA = ((uint)(0xB0 * fade * fade) << 24) | rgb;
+        for (var i = 0; i < 6; i++)
+        {
+            var ang = i * (MathF.PI / 3f) + 0.4f;
+            var dir = new Vector2(MathF.Cos(ang), MathF.Sin(ang));
+            var r0 = 2.5f + p * 5f;
+            dl.AddLine(c + dir * r0, c + dir * (r0 + 3.5f + p * 5f), rayA, 1.3f * fade + 0.3f);
         }
     }
 
