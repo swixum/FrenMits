@@ -359,6 +359,17 @@ public sealed class Plugin : IDalamudPlugin
             else if (f.Name == "Futures Rewritten (Ultimate)") { f.Name = Builtin.Name(Builtin.FruTerritory); seeded = true; }
         }
 
+        // Auto cooldown timing shipped default-on in early builds, then became a big
+        // opt-in feature. Force it off ONCE for configs saved before that switch, so
+        // updating actually turns it off; if the user later enables it, it sticks
+        // (Version is 2 by then, so this never runs again).
+        if (Config.Version < 2)
+        {
+            Config.AutoCooldownTiming = false;
+            Config.Version = 2;
+            seeded = true;
+        }
+
         if (seeded) Config.Save();
 
         // NOTE: the default-slot prebake and the "already inside a boss room"
