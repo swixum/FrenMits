@@ -368,6 +368,15 @@ public partial class ConfigWindow
         C.TimelineLocked = CfgCheck("Lock the window (click-through)", C.TimelineLocked);
         ImGui.SameLine();
         ImGui.TextDisabled(C.TimelineLocked ? "(unlock to drag)" : "(drag it to move; auto-locks in combat)");
+
+        // Precise placement too, for anyone who'd rather not drag.
+        var tpos = C.TimelinePosition;
+        ImGui.SetNextItemWidth(150f);
+        if (ImGui.SliderFloat("Horizontal##tl", ref tpos.X, 0f, 1f, "%.2f")) { C.TimelinePosition = tpos; C.Save(); }
+        ImGui.SameLine(0, 18);
+        ImGui.SetNextItemWidth(150f);
+        if (ImGui.SliderFloat("Vertical##tl", ref tpos.Y, 0f, 1f, "%.2f")) { C.TimelinePosition = tpos; C.Save(); }
+
         if (_nextMitsPreview) _plugin.TimelineWindow.PingScreenPreview();
         ImGui.Spacing();
 

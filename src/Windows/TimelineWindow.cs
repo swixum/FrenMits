@@ -25,13 +25,15 @@ public class TimelineWindow : Window
         ForceMainWindow = true;
     }
 
-    private bool _applyPos = true;
+    private bool _dragging;
 
     // Locked for real if you ticked the lock OR you're in a live pull (but not
     // while previewing) — combat always pins it so it can't be grabbed mid-fight.
     private bool EffectiveLocked => C.TimelineLocked || (Plugin.InCombat && !C.TestMode);
 
-    public void RequestReposition() => _applyPos = true;
+    // The window now always follows C.TimelinePosition, so a reset (or a slider
+    // change) just takes effect next frame; nothing to schedule.
+    public void RequestReposition() { }
 
     public override void PreDraw()
     {
@@ -48,10 +50,14 @@ public class TimelineWindow : Window
         if (!C.ShowBackground)
             Flags |= ImGuiWindowFlags.NoBackground;
 
+        // Movement is handled manually (HandleManualDrag). ImGui only moves a
+        // window from its title bar in this build, and NoTitleBar stays on so
+        // locking never shifts the content - so ImGui would never move this
+        // window. Instead we always pin it to the saved position and let a drag
+        // edit that saved value. When locked, it's click-through.
+        Flags |= ImGuiWindowFlags.NoMove;
         if (EffectiveLocked)
-            Flags |= ImGuiWindowFlags.NoResize
-                     | ImGuiWindowFlags.NoMove
-                     | ImGuiWindowFlags.NoMouseInputs;
+            Flags |= ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMouseInputs;
 
         if (C.ShowBackground)
             ImGui.PushStyleColor(ImGuiCol.WindowBg, C.BackgroundColor);
@@ -59,24 +65,7 @@ public class TimelineWindow : Window
         var viewport = ImGui.GetMainViewport();
         var pos = viewport.WorkPos + C.TimelinePosition * viewport.WorkSize;
         pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
-
-        // Same as the main overlay: pinned center-anchored whenever a drag can't
-        // be in progress, so the auto-resizing list can't wander as it re-widths.
-        if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
-        {
-            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
-            // Clear the latch while idle: the line above already re-pins every
-            // mouse-up frame (so no drift), and leaving it set would re-pin on
-            // the very frame you press to drag - the board's width changes each
-            // frame, so that yanked the window out from under the cursor and made
-            // it impossible to grab. Now a press starts a clean drag.
-            _applyPos = false;
-        }
-        else if (_applyPos)
-        {
-            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
-            _applyPos = false;
-        }
+        ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
     }
 
     public override void PostDraw()
@@ -101,7 +90,7 @@ public class TimelineWindow : Window
 
     public override void Draw()
     {
-        SavePositionIfDragged();
+        HandleManualDrag();
 
         // Both preview paths (the header's Live preview and the Next Mits
         // settings page) play the same real sample in the real window.
@@ -741,22 +730,32 @@ public class TimelineWindow : Window
         public void Dispose() => ImGui.SetWindowFontScale(1f);
     }
 
-    private void SavePositionIfDragged()
+    // Drag the board to move it (when unlocked). We do this ourselves rather than
+    // lean on ImGui's window-move, which in this build only triggers from a title
+    // bar - and the board deliberately has none. A press over the window starts
+    // the drag; we track it to release even if the cursor slips off the
+    // auto-resizing window, and edit the saved position by the raw mouse delta.
+    private void HandleManualDrag()
     {
-        if (EffectiveLocked) return;
-        // Only capture during a REAL drag of this window (focused + mouse drag):
-        // the anchor derives from the window CENTER, and AlwaysAutoResize width
-        // changes during any stray left-button hold (camera turns) would
-        // otherwise be saved as position drift.
-        if (!ImGui.IsMouseDragging(ImGuiMouseButton.Left) || !ImGui.IsWindowFocused()) return;
-        var viewport = ImGui.GetMainViewport();
-        var current = ImGui.GetWindowPos();
-        var center = new Vector2(current.X + ImGui.GetWindowWidth() * 0.5f, current.Y);
-        var frac = (center - viewport.WorkPos) / viewport.WorkSize;
-        if ((frac - C.TimelinePosition).LengthSquared() > 0.0000001f)
+        if (EffectiveLocked) { _dragging = false; return; }
+
+        if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
-            C.TimelinePosition = frac;
-            C.Save();
+            if (_dragging) { _dragging = false; C.Save(); } // persist once, on release
+            return;
         }
+        if (!_dragging)
+        {
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && ImGui.IsWindowHovered())
+                _dragging = true;
+            else
+                return;
+        }
+
+        var d = ImGui.GetIO().MouseDelta;
+        if (d.X == 0f && d.Y == 0f) return;
+        var work = ImGui.GetMainViewport().WorkSize;
+        var frac = C.TimelinePosition + new Vector2(d.X / work.X, d.Y / work.Y);
+        C.TimelinePosition = new Vector2(Math.Clamp(frac.X, 0f, 1f), Math.Clamp(frac.Y, 0f, 1f));
     }
 }
