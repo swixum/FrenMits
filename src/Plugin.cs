@@ -1204,6 +1204,22 @@ public sealed class Plugin : IDalamudPlugin
     public static bool InDutyPlayback =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
 
+    // The game's simulation-speed multiplier. 1 in normal play; the duty recorder
+    // (and A Realm Recorded's controls) drive it during playback - 0 while paused,
+    // 2 for 2x, 0.5 for half, and so on. We read it to keep the timeline and
+    // alerts in step with the replay instead of ticking on real time.
+    private static unsafe float ReplayGameSpeed()
+    {
+        try
+        {
+            var fw = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+            if (fw == null) return 1f;
+            var s = fw->GameSpeedMultiplier;
+            return s >= 0f && s < 100f ? s : 1f; // sane range; paused reads 0
+        }
+        catch { return 1f; }
+    }
+
     private bool _firstTickDone;
     private bool _wasInDutyPlayback;
     private DateTime _lastFrameErrLog = DateTime.MinValue;
@@ -1290,6 +1306,17 @@ public sealed class Plugin : IDalamudPlugin
                 Service.Log.Information("[FrenMits] Playback ended; timer stopped.");
             }
             _wasInDutyPlayback = InDutyPlayback;
+
+            // Keep the timeline in step with a Duty Recorder replay: real time
+            // keeps running while playback is paused (or sped up), so nudge the
+            // clock by frameDelta * (1 - gameSpeed). Paused (speed 0) freezes the
+            // timeline and alerts; 2x/0.5x track the replay's pace.
+            if (InDutyPlayback && Timer.Running)
+            {
+                var speed = ReplayGameSpeed();
+                var dt = (float)Service.Framework.UpdateDelta.TotalSeconds;
+                if (dt > 0f && dt < 1f) Timer.ShiftStart(dt * (1f - speed));
+            }
 
             RefreshAutoFight();
             Timer.Update();

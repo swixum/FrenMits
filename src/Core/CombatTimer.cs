@@ -62,6 +62,17 @@ public class CombatTimer
     // do NOT bump Generation — that would re-arm and replay recently-spoken cues.
     public void SetElapsed(float seconds) { _startUtc = DateTime.UtcNow.AddSeconds(-seconds); }
 
+    // Nudge the clock's origin so Elapsed advances at something other than
+    // wall-clock pace. A Duty Recorder replay keeps real time running even while
+    // playback is paused or sped up; the caller feeds frameDelta * (1 - gameSpeed)
+    // so a paused replay (speed 0) freezes the clock and 2x/0.5x track correctly.
+    // Same run, so Generation is left alone.
+    public void ShiftStart(float seconds)
+    {
+        if (_startUtc is { } s) _startUtc = s.AddSeconds(seconds);
+        if (_combatStartUtc is { } c) _combatStartUtc = c.AddSeconds(seconds);
+    }
+
     public void Reset()
     {
         _startUtc = null;
