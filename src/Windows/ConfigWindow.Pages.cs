@@ -243,6 +243,14 @@ public partial class ConfigWindow
             }
 
             ImGui.Spacing();
+            {
+                ImGui.SetNextItemWidth(220f);
+                var style = C.OverlayStyle;
+                if (ImGui.Combo("Call style", ref style,
+                        "Classic (centered text)\0Board (timeline look)\0Icon + clock\0"))
+                { C.OverlayStyle = style; C.Save(); }
+                Tip("How the center call is drawn. Board matches the timeline; Icon + clock shows just the ability icon with a countdown that sweeps away like a cooldown.");
+            }
             if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
             {
                 C.ShowAbilityIcon = GridCheck("Ability icon", C.ShowAbilityIcon,

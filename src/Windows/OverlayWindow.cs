@@ -135,8 +135,24 @@ public class OverlayWindow : Window
 
         if (C.TestMode && !_plugin.Timer.Running)
         {
-            DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds,
-                Icons.ResolveFromText("Reprisal"));
+            if (C.OverlayStyle == 1)
+                using (PushFont(C.OverlayFontSizePx))
+                {
+                    var w = BoardWidth(new[] { ("Reprisal", 1.4f), ("Feint", 3.2f) });
+                    DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, Icons.ResolveFromText("Reprisal"), "", w);
+                    ImGui.Dummy(new Vector2(1f, 4f));
+                    DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, Icons.ResolveFromText("Feint"), "", w);
+                }
+            else if (C.OverlayStyle == 2)
+            {
+                var d = IconClockDiameter();
+                DrawIconClock(Icons.ResolveFromText("Reprisal"), "Reprisal", 1.4f, true, C.WarningSeconds, 0, d);
+                ImGui.SameLine(0, 10f);
+                DrawIconClock(Icons.ResolveFromText("Feint"), "Feint", 3.2f, true, C.WarningSeconds, 0, d);
+            }
+            else
+                DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds,
+                    Icons.ResolveFromText("Reprisal"));
             return;
         }
 
@@ -197,6 +213,43 @@ public class OverlayWindow : Window
             if (group.Count == 0) _activeLines.Clear();
         }
 
+        if (C.OverlayStyle == 1)
+        {
+            using (PushFont(C.OverlayFontSizePx))
+            {
+                var width = BoardWidth(group.Select(l =>
+                    (Icons.DisplayAction(l.ActionFor(job), job), l.CueTime - elapsed)));
+                for (var i = 0; i < group.Count; i++)
+                {
+                    if (i > 0) ImGui.Dummy(new Vector2(1f, 4f));
+                    var call = group[i];
+                    var remaining = call.CueTime - elapsed;
+                    var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
+                    var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
+                    var action = Icons.DisplayAction(call.ActionFor(job), job);
+                    DrawBoardCall(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f,
+                        call.Color, lead, icon, PrepText(call), width);
+                }
+            }
+            return;
+        }
+
+        if (C.OverlayStyle == 2)
+        {
+            var d = IconClockDiameter();
+            for (var i = 0; i < group.Count; i++)
+            {
+                if (i > 0) ImGui.SameLine(0, 10f);
+                var call = group[i];
+                var remaining = call.CueTime - elapsed;
+                var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
+                var action = Icons.DisplayAction(call.ActionFor(job), job);
+                DrawIconClock(Icons.For(call, job), action, MathF.Max(0f, remaining), remaining > 0f,
+                    lead, call.Color, d);
+            }
+            return;
+        }
+
         for (var i = 0; i < group.Count; i++)
         {
             if (i > 0) ImGui.Spacing();
@@ -207,6 +260,190 @@ public class OverlayWindow : Window
             var action = Icons.DisplayAction(call.ActionFor(job), job);
             DrawCurrent(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f, call.Color, lead, icon, PrepText(call));
         }
+    }
+
+    // ---- board style: the center call rendered like the timeline board ----
+
+    // Board palette, matching TimelineWindow (the customizable ones read from the
+    // same config keys so re-theming the board re-themes this too).
+    private uint BoardAccent => C.UpcomingBoardAccentColor != 0 ? C.UpcomingBoardAccentColor : 0xFFF6823B;
+    private uint BoardNow => C.UpcomingBoardNowColor != 0 ? C.UpcomingBoardNowColor : 0xFF64DC64;
+    private const uint BoardBright = 0xFFECE8E6;
+    private const uint BoardMuted = 0xFFA89A90;
+    private const uint BoardBorder = 0x66594A3F;
+    private const uint BoardPanelRgb = 0x0014110E;
+
+    // A uniform bar width for a group: the widest name + time, plus the icon slot
+    // and paddings, so stacked bars line up like the board's rows.
+    private float BoardWidth(IEnumerable<(string Action, float Remaining)> calls)
+    {
+        var lineH = ImGui.GetTextLineHeight();
+        var iconSlot = C.ShowAbilityIcon ? MathF.Round(lineH * Math.Clamp(C.IconScale, 0.4f, 1.5f)) + 8f : 0f;
+        var content = 0f;
+        foreach (var (action, rem) in calls)
+        {
+            var time = rem > 0f ? $"{MathF.Ceiling(rem):0}s" : "NOW";
+            content = MathF.Max(content, ImGui.CalcTextSize(action).X + ImGui.CalcTextSize(time).X);
+        }
+        return MathF.Max(170f, 14f + iconSlot + content + 22f + 10f);
+    }
+
+    private void DrawBoardCall(string mechanic, string action, float remaining, bool imminent,
+        uint colorOverride, float lead, uint iconId, string prep, float width)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        var barH = MathF.Round(lineH + 12f);
+        const float round = 6f;
+        var p0 = ImGui.GetCursorScreenPos();
+        var p1 = p0 + new Vector2(width, barH);
+
+        var isPrep = prep.Length > 0 && imminent;
+        var typeColor = C.ColorByMitType ? MitTypes.Color(MitTypes.Classify(action, mechanic), C) : 0u;
+        var baseCol = colorOverride != 0 ? colorOverride
+            : isPrep ? PrepCol
+            : typeColor != 0 ? typeColor
+            : BoardAccent;
+        // At go-time the whole bar goes green, matching the board's "now".
+        var barCol = imminent ? baseCol : BoardNow;
+
+        // Panel.
+        var back = ((uint)(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24) | BoardPanelRgb;
+        dl.AddRectFilled(p0, p1, back, round);
+
+        // Draining countdown fill (full at the lead, empty at the call).
+        if (imminent && lead > 0.01f)
+        {
+            var frac = Math.Clamp(remaining / lead, 0f, 1f);
+            var edgeX = p0.X + width * frac;
+            var rgb = barCol & 0x00FFFFFF;
+            var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
+            dl.AddRectFilled(p0, new Vector2(edgeX, p1.Y), rgb | 0x66000000, round, corners);
+            if (frac > 0.02f && frac < 0.985f)
+                dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
+                    new Vector2(edgeX + 0.5f, p1.Y - 1f), rgb | 0xF0000000);
+        }
+
+        // Left accent stripe, pulsing at go time.
+        var stripe = barCol;
+        if (imminent && C.PulseWhenImminent && remaining < 1.5f) stripe = Pulse(stripe);
+        dl.AddRectFilled(p0, new Vector2(p0.X + 3f, p1.Y), stripe, round, ImDrawFlags.RoundCornersLeft);
+        dl.AddRect(p0, p1, BoardBorder, round);
+
+        var cy = p0.Y + (barH - lineH) * 0.5f;
+        var nameX = p0.X + 10f;
+        if (iconId != 0)
+        {
+            var iconH = MathF.Round(lineH * Math.Clamp(C.IconScale, 0.4f, 1.5f));
+            ImGui.SetCursorScreenPos(new Vector2(nameX, p0.Y + (barH - iconH) * 0.5f));
+            Icons.Draw(iconId, new Vector2(iconH, iconH));
+            nameX += iconH + 8f;
+        }
+
+        var textCol = imminent ? (colorOverride != 0 ? colorOverride : BoardBright) : BoardNow;
+        BoardText(dl, new Vector2(nameX, cy), textCol, action);
+        var timeText = imminent ? $"{MathF.Ceiling(remaining):0}s" : "NOW";
+        var timeW = ImGui.CalcTextSize(timeText).X;
+        BoardText(dl, new Vector2(p1.X - timeW - 10f, cy), textCol, timeText);
+
+        // Reserve the bar in layout, then the muted sublines beneath it.
+        ImGui.SetCursorScreenPos(p0);
+        ImGui.Dummy(new Vector2(width, barH));
+
+        var subX = nameX - p0.X;
+        if (C.ShowMechanicLine && !string.IsNullOrWhiteSpace(mechanic)
+            && !string.Equals(mechanic, action, StringComparison.OrdinalIgnoreCase))
+            using (PushFont(C.OverlayFontSizePx * 0.5f))
+                SubText(mechanic, BoardMuted, subX);
+        if (isPrep)
+            using (PushFont(C.OverlayFontSizePx * 0.5f))
+                SubText(prep, PrepCol, subX);
+    }
+
+    // Draw-list text with the readability shadow, at an absolute position.
+    private void BoardText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
+    {
+        if (C.TextShadow) dl.AddText(pos + new Vector2(1.5f, 1.5f), 0xE0000000, text);
+        dl.AddText(pos, color, text);
+    }
+
+    // A small left-indented subline under a board bar.
+    private void SubText(string text, uint color, float indent)
+    {
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + indent);
+        if (C.TextShadow)
+        {
+            var p = ImGui.GetCursorScreenPos();
+            ImGui.GetWindowDrawList().AddText(p + new Vector2(1f, 1f), 0xE0000000, text);
+        }
+        ImGui.PushStyleColor(ImGuiCol.Text, color);
+        ImGui.TextUnformatted(text);
+        ImGui.PopStyleColor();
+    }
+
+    // ---- icon + clock style: just the ability icon, a centered countdown, and a
+    // cooldown-style sweep that eats the icon away as the call approaches ----
+
+    private float IconClockDiameter()
+        => MathF.Round(Math.Clamp(C.OverlayFontSizePx * 2.4f, 40f, 220f));
+
+    private void DrawIconClock(uint iconId, string action, float remaining, bool imminent,
+        float lead, uint colorOverride, float diam)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var p0 = ImGui.GetCursorScreenPos();
+        var p1 = p0 + new Vector2(diam, diam);
+        var center = p0 + new Vector2(diam * 0.5f, diam * 0.5f);
+        var accent = colorOverride != 0 ? colorOverride : BoardAccent;
+        var rounding = diam * 0.14f;
+
+        // The icon itself (or a themed disc when it can't be resolved).
+        if (iconId != 0)
+        {
+            ImGui.SetCursorScreenPos(p0);
+            Icons.Draw(iconId, new Vector2(diam, diam));
+        }
+        else
+        {
+            dl.AddRectFilled(p0, p1, (accent & 0x00FFFFFF) | 0xB4000000, rounding);
+        }
+
+        // Cooldown sweep: a dark wedge over the ELAPSED portion, growing clockwise
+        // from 12 o'clock as the countdown drains, so the icon "goes away" by the
+        // call. The radius reaches the square's corners so none of it is left behind.
+        if (imminent && lead > 0.01f)
+        {
+            var frac = Math.Clamp(remaining / lead, 0f, 1f);
+            var covered = 1f - frac;
+            if (covered > 0.001f)
+            {
+                var start = -MathF.PI * 0.5f;
+                dl.PathLineTo(center);
+                dl.PathArcTo(center, diam * 0.72f, start, start + covered * MathF.PI * 2f, 96);
+                dl.PathFillConvex(0xC0000000);
+            }
+        }
+
+        // Border, green + pulsing at go time.
+        var ring = imminent ? accent : BoardNow;
+        if (!imminent && C.PulseWhenImminent) ring = Pulse(ring);
+        dl.AddRect(p0, p1, (ring & 0x00FFFFFF) | 0xE0000000, rounding, ImDrawFlags.None, 2.5f);
+
+        // Centered countdown, outlined so it reads over busy icon art.
+        var num = !imminent ? "" : remaining < 3f ? $"{remaining:0.0}" : $"{MathF.Ceiling(remaining):0}";
+        if (num.Length > 0)
+            using (PushFont(MathF.Round(diam * 0.42f)))
+            {
+                var np = center - ImGui.CalcTextSize(num) * 0.5f;
+                for (var oy = -1; oy <= 1; oy++)
+                    for (var ox = -1; ox <= 1; ox++)
+                        if (ox != 0 || oy != 0)
+                            dl.AddText(np + new Vector2(ox * 1.6f, oy * 1.6f), 0xE6000000, num);
+                dl.AddText(np, 0xFFFFFFFF, num);
+            }
+
+        ImGui.SetCursorScreenPos(p0);
+        ImGui.Dummy(new Vector2(diam, diam));
     }
 
     // Gold prep accent, shared with the upcoming board's prep tag.

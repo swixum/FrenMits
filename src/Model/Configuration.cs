@@ -179,6 +179,12 @@ public class Configuration : IPluginConfiguration
     public bool PulseWhenImminent { get; set; } = true;
     public bool ShowAbilityIcon { get; set; } = true;
 
+    // Center-call presentation: 0 = classic centered text, 1 = timeline board look
+    // (near-black panel, accent stripe, draining fill), 2 = icon + clock (the ability
+    // icon with a centered countdown, sweeping away like a cooldown as time runs out).
+    // 0 by default. Board and icon modes pull from the board palette so they stay in sync.
+    public int OverlayStyle { get; set; }
+
     // Colour the call text by the kind of mit (party / tank / personal). Only
     // applies to lines without their own colour override.
     public bool ColorByMitType { get; set; } = true;
