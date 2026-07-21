@@ -140,6 +140,13 @@ public partial class SheetViewWindow
         var hits = _rows.Where(r => !r.Ghost).Select(r => r.Time).OrderBy(t => t).ToArray();
         var n = hits.Length;
         if (n == 0) return 0;
+
+        // Official sheets: if this column's baked plan isn't materialized yet, bake
+        // it now so there are lines to time. (A custom column with nothing in it
+        // genuinely has no presses to solve.)
+        if (_fight.Lines.Count == 0 && !_isCustom && !string.IsNullOrEmpty(_fight.Slot))
+            _fight.Lines = Builtin.BuildLines(_fight.TerritoryId, _fight.Slot)
+                .Where(b => !Builtin.IsDeleted(_fight, _fight.Slot, b)).ToList();
         var covered = new bool[n];
         var readyAt = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
 
@@ -202,7 +209,14 @@ public partial class SheetViewWindow
             foreach (var m in mits) readyAt[m.Name] = press + (m.Recast > 0f ? m.Recast : 60f);
         }
 
-        if (changed > 0) { C.Save(); _dirty = true; }
+        if (changed > 0)
+        {
+            // Persist onto the slot so the offsets survive a re-bake (official
+            // sheets included; the OffsetManual carry keeps hand-set ones too).
+            if (!string.IsNullOrEmpty(_fight.Slot)) _fight.SavedSlots[_fight.Slot] = _fight.Lines;
+            C.Save();
+            _dirty = true;
+        }
         return changed;
     }
 
