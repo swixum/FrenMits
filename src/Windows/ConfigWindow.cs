@@ -1640,7 +1640,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (extras.Count == 0) return;
         var custom = JobExtras.For(fight.TerritoryId, job) == null; // no baked zone schedule -> from the sheet
 
-        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job mitigation", "optional");
+        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job extras", "optional");
         if (custom)
             ImGui.TextDisabled("Spots picked from this sheet's rows, hardest-graded hits first.");
 
@@ -1648,31 +1648,85 @@ public partial class ConfigWindow : Window, IDisposable
         {
             ImGui.Spacing();
             ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {extra.Action}");
-            ImGui.SameLine(0, 10);
-            ImGui.TextDisabled($"{extra.Lines.Length} casts, spaced to its {extra.Recast:0}s recast");
 
             ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
             ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add {extra.Lines.Length} {extra.Action} line(s)"))
+
+            if (extra.Steps is { Length: > 0 } steps)
             {
-                var lines = new List<MitLine>(fight.Lines);
-                lines.RemoveAll(l => string.Equals(l.Action, extra.Action, StringComparison.OrdinalIgnoreCase)
-                                     && l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase));
-                foreach (var (time, mech) in extra.Lines)
-                    lines.Add(new MitLine
-                    {
-                        Time = time,
-                        Mechanic = mech,
-                        Action = extra.Action,
-                        Jobs = new List<string> { job },
-                        Enabled = true,
-                        Custom = true,
-                    });
-                SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
-                FlashBuiltin($"Added {extra.Lines.Length} {job} {extra.Action} line(s).");
+                // Sequence extra (SMN summons): each step is its own action. Bursts
+                // group consecutive summons (up to 3, split on a >20s gap) so it can
+                // be added as one cue per burst ("Garuda / Titan / Ifrit") or one per
+                // summon. Both are SMN-only, visual (a summon lands every ~12s).
+                var names = steps.Select(s => s.Summon).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                var bursts = new List<List<(int Time, string Summon)>>();
+                foreach (var s in steps)
+                {
+                    if (bursts.Count == 0 || bursts[^1].Count >= 3 || s.Time - bursts[^1][^1].Time > 20f)
+                        bursts.Add(new List<(int, string)>());
+                    bursts[^1].Add(s);
+                }
+
+                void AddSummons(bool grouped)
+                {
+                    var lines = new List<MitLine>(fight.Lines);
+                    lines.RemoveAll(l => l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase)
+                        && names.Any(n => l.Action.Contains(n, StringComparison.OrdinalIgnoreCase)));
+                    if (grouped)
+                        foreach (var b in bursts)
+                            lines.Add(new MitLine
+                            {
+                                Time = b[0].Time,
+                                Action = string.Join(" / ", b.Select(x => x.Summon)),
+                                Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = false,
+                            });
+                    else
+                        foreach (var (time, summon) in steps)
+                            lines.Add(new MitLine
+                            {
+                                Time = time, Action = summon,
+                                Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = false,
+                            });
+                    SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
+                    FlashBuiltin($"Added {(grouped ? bursts.Count : steps.Length)} {job} summon cue(s).");
+                }
+
+                ImGui.SameLine(0, 10);
+                ImGui.TextDisabled($"{steps.Length} summons in {bursts.Count} bursts");
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Grouped ({bursts.Count})"))
+                    AddSummons(true);
+                Tip("One cue per burst of three (\"Garuda / Titan / Ifrit\") - the fewest lines.");
+                ImGui.SameLine();
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Singles ({steps.Length})"))
+                    AddSummons(false);
+                Tip($"One cue per summon. Either replaces any existing summon cues and is {job}-only.");
             }
+            else
+            {
+                ImGui.SameLine(0, 10);
+                ImGui.TextDisabled($"{extra.Lines.Length} casts, spaced to its {extra.Recast:0}s recast");
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add {extra.Lines.Length} {extra.Action} line(s)"))
+                {
+                    var lines = new List<MitLine>(fight.Lines);
+                    lines.RemoveAll(l => string.Equals(l.Action, extra.Action, StringComparison.OrdinalIgnoreCase)
+                                         && l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase));
+                    foreach (var (time, mech) in extra.Lines)
+                        lines.Add(new MitLine
+                        {
+                            Time = time,
+                            Mechanic = mech,
+                            Action = extra.Action,
+                            Jobs = new List<string> { job },
+                            Enabled = true,
+                            Custom = true,
+                        });
+                    SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
+                    FlashBuiltin($"Added {extra.Lines.Length} {job} {extra.Action} line(s).");
+                }
+                Tip($"Adds {extra.Action} as {job}-tagged lines (replacing any existing ones), so they only show on {job}.");
+            }
+
             ImGui.PopStyleColor(2);
-            Tip($"Adds {extra.Action} as {job}-tagged lines (replacing any existing ones), so they only show on {job}.");
         }
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)

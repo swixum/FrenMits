@@ -13,7 +13,11 @@ namespace FrenMits;
 // press something that's still on cooldown.
 public static class JobExtras
 {
-    public sealed record Extra(string Job, string Action, float Recast, (int Time, string Mechanic)[] Lines);
+    // Steps: for a SEQUENCE extra (e.g. SMN summons) each entry carries its OWN
+    // action at that time, instead of one Action repeated across Lines. Null for the
+    // normal single-ability mitigation extras.
+    public sealed record Extra(string Job, string Action, float Recast, (int Time, string Mechanic)[] Lines,
+        (int Time, string Summon)[]? Steps = null);
 
     private static readonly Dictionary<uint, Extra[]> ByZone = new()
     {
@@ -108,6 +112,30 @@ public static class JobExtras
                 (762, "Grand Cross"),
                 (910, "Ultima Repeater"),
                 (1061, "Forsaken (1st Hit)"),
+            }),
+            // Summoner - which primal to summon next, straight from a top Dancing
+            // Mad kill log (that SMN's real Ifrit/Titan/Garuda order). SMN-only,
+            // visual-only cues (a summon lands every ~12s, so no audio); a rotation
+            // guide, not mitigation. Uses per-step actions, not one repeated ability.
+            new Extra("SMN", "Summon", 0f, Array.Empty<(int, string)>(), new[]
+            {
+                (19, "Garuda"), (33, "Titan"), (48, "Ifrit"),
+                (79, "Garuda"), (91, "Ifrit"), (107, "Titan"),
+                (139, "Ifrit"), (155, "Titan"), (168, "Garuda"),
+                (209, "Ifrit"), (222, "Garuda"), (231, "Titan"),
+                (261, "Garuda"), (273, "Ifrit"), (286, "Titan"),
+                (321, "Titan"), (334, "Ifrit"), (347, "Garuda"),
+                (448, "Titan"), (461, "Garuda"), (473, "Ifrit"),
+                (506, "Ifrit"), (520, "Titan"), (535, "Garuda"),
+                (567, "Ifrit"), (580, "Garuda"), (595, "Titan"),
+                (627, "Garuda"), (641, "Titan"), (654, "Ifrit"),
+                (687, "Ifrit"), (701, "Garuda"), (713, "Titan"),
+                (751, "Ifrit"), (764, "Garuda"), (781, "Titan"),
+                (811, "Ifrit"), (827, "Garuda"), (839, "Titan"),
+                (896, "Garuda"), (904, "Titan"), (911, "Ifrit"),
+                (936, "Ifrit"), (952, "Garuda"), (966, "Titan"),
+                (996, "Titan"), (1009, "Garuda"), (1021, "Ifrit"),
+                (1057, "Garuda"), (1071, "Titan"), (1084, "Ifrit"),
             }),
         },
     };
