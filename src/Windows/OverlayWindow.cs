@@ -103,6 +103,26 @@ public class OverlayWindow : Window
         return _plugin.Timer.Running;
     }
 
+    // How far before its cue time a call first appears.
+    //
+    // Auto cooldown timing already pushes a press EARLY (a positive, solver-set
+    // OffsetSeconds), and the solver keeps CooldownLeadSeconds of buff past the last
+    // hit for exactly this: the call shows for that whole window, so you have time to
+    // react and can press anywhere in it and still cover the mechanic. It is NOT
+    // another full warning-lead stacked in front of the press. The window is capped at
+    // half the buff (matching the solver) so a short cooldown's window stays valid.
+    // Lines the solver could not pull early (offset ~0) keep the normal warning lead
+    // as a heads-up before the hit; a hand-set (manual) offset keeps it too, so the
+    // "fire this call N seconds early" slider behaves exactly as before.
+    private float LeadFor(MitLine line)
+    {
+        if (line.LeadOverride > 0f) return line.LeadOverride;
+        if (line.OffsetManual || line.OffsetSeconds <= 1f) return C.WarningSeconds;
+        var mits = Cooldowns.PlanMits(line.Action).ToList();
+        var dur = mits.Count > 0 ? mits.Min(m => m.Duration > 0f ? m.Duration : 15f) : 15f;
+        return MathF.Min(C.CooldownLeadSeconds, dur * 0.5f);
+    }
+
     public override void Draw()
     {
         SavePositionIfDragged();
@@ -176,7 +196,7 @@ public class OverlayWindow : Window
         foreach (var line in lines)
         {
             var remaining = line.CueTime - elapsed;
-            var lead = line.LeadOverride > 0f ? line.LeadOverride : C.WarningSeconds;
+            var lead = LeadFor(line);
             if (remaining < 0f || remaining > lead) continue;
             if (remaining < bestRemaining) bestRemaining = remaining;
         }
@@ -188,7 +208,7 @@ public class OverlayWindow : Window
             group = lines.Where(l =>
             {
                 var rem = l.CueTime - elapsed;
-                var lead = l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds;
+                var lead = LeadFor(l);
                 return rem >= 0f && rem <= lead && rem <= bestRemaining + tieWindow;
             }).OrderBy(l => l.CueTime).ToList();
             // Keep a just-passed call's "NOW" up for its full hold, stacked with
@@ -224,7 +244,7 @@ public class OverlayWindow : Window
                     if (i > 0) ImGui.Dummy(new Vector2(1f, 4f));
                     var call = group[i];
                     var remaining = call.CueTime - elapsed;
-                    var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
+                    var lead = LeadFor(call);
                     var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
                     var action = Icons.DisplayAction(call.ActionFor(job), job);
                     DrawBoardCall(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f,
@@ -242,7 +262,7 @@ public class OverlayWindow : Window
                 if (i > 0) ImGui.SameLine(0, 10f);
                 var call = group[i];
                 var remaining = call.CueTime - elapsed;
-                var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
+                var lead = LeadFor(call);
                 var action = Icons.DisplayAction(call.ActionFor(job), job);
                 DrawIconClock(Icons.For(call, job), action, MathF.Max(0f, remaining), remaining > 0f,
                     lead, call.Color, d);
@@ -255,7 +275,7 @@ public class OverlayWindow : Window
             if (i > 0) ImGui.Spacing();
             var call = group[i];
             var remaining = call.CueTime - elapsed;
-            var lead = call.LeadOverride > 0f ? call.LeadOverride : C.WarningSeconds;
+            var lead = LeadFor(call);
             var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
             var action = Icons.DisplayAction(call.ActionFor(job), job);
             DrawCurrent(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f, call.Color, lead, icon, PrepText(call));

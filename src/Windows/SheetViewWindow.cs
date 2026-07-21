@@ -3370,6 +3370,7 @@ public partial class SheetViewWindow : Window
                     PushUndo($"extend {row.Mechanic} coverage");
                     EnsureBacked(i);
                     line.CoverUntil = nextRow.Time;
+                    line.OffsetManual = true; // hand-set timing: the auto cooldown timer won't touch it
                     C.Save();
                     _dirty = true;
                 }
@@ -3379,6 +3380,7 @@ public partial class SheetViewWindow : Window
                     PushUndo($"clear {row.Mechanic} coverage");
                     EnsureBacked(i);
                     line.CoverUntil = 0f;
+                    line.OffsetManual = true; // hand-set timing: the auto cooldown timer won't touch it
                     C.Save();
                     _dirty = true;
                 }
@@ -3398,6 +3400,7 @@ public partial class SheetViewWindow : Window
                             PushUndo($"offset {row.Mechanic} to window");
                             EnsureBacked(i);
                             line.OffsetSeconds = shift;
+                            line.OffsetManual = true; // hand-set: the auto cooldown timer won't touch it
                             C.Save();
                             _dirty = true;
                         }

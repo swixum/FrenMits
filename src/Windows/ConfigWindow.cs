@@ -39,6 +39,7 @@ public partial class ConfigWindow : Window, IDisposable
                 System.Globalization.CultureInfo.InvariantCulture, out var v))
         {
             _editOffLine.OffsetSeconds = Math.Clamp(v, -30f, 30f);
+            _editOffLine.OffsetManual = true; // hand-set: the auto cooldown timer won't touch it
             C.Save();
             _plugin.SheetViewWindow.MarkPlanDirty();
         }
@@ -1895,6 +1896,7 @@ public partial class ConfigWindow : Window, IDisposable
                             System.Globalization.CultureInfo.InvariantCulture, out var ov))
                     {
                         line.OffsetSeconds = Math.Clamp(ov, -30f, 30f);
+                        line.OffsetManual = true; // hand-set: the auto cooldown timer won't touch it
                         C.Save();
                         _plugin.SheetViewWindow.MarkPlanDirty();
                     }
@@ -2085,6 +2087,8 @@ public partial class ConfigWindow : Window, IDisposable
         target.Enabled = src.Enabled;
         target.LeadOverride = src.LeadOverride;
         target.OffsetSeconds = src.OffsetSeconds;
+        target.OffsetManual = src.OffsetManual; // carry the hand-set flag so the copy stays protected
+        target.CoverUntil = src.CoverUntil;
         target.Tts = src.Tts;
         target.Sound = src.Sound;
         target.Color = src.Color;

@@ -1123,7 +1123,7 @@ public sealed class Plugin : IDalamudPlugin
         try
         {
             var hits = SheetTimeline.Build(fight).Select(r => r.Time).ToList();
-            var changed = TimingSolver.Solve(fight, hits);
+            var changed = TimingSolver.Solve(fight, hits, Config.CooldownLeadSeconds);
             if (changed > 0)
             {
                 if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;

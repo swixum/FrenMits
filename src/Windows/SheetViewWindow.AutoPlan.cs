@@ -146,7 +146,7 @@ public partial class SheetViewWindow
                 .Where(b => !Builtin.IsDeleted(_fight, _fight.Slot, b)).ToList();
 
         var hits = _rows.Where(r => !r.Ghost).Select(r => r.Time).ToList();
-        var changed = TimingSolver.Solve(_fight, hits);
+        var changed = TimingSolver.Solve(_fight, hits, C.CooldownLeadSeconds);
 
         if (changed > 0)
         {

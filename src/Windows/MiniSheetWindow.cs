@@ -129,11 +129,13 @@ public class MiniSheetWindow : Window
         ImGui.TextDisabled(running ? "+ = earlier. Changes apply instantly." : "+ = earlier. Pull to see live countdowns.");
     }
 
-    // Same semantics as every other offset editor: clamped, saved, and NOT
-    // flagged Custom (a nudge is a nudge, not a rewrite).
+    // Same semantics as every other offset editor: clamped and saved. A nudge is
+    // a HAND-SET offset, so flag it manual - the auto cooldown timer must leave it
+    // alone. It is not a new line, so Custom stays off.
     private void Nudge(MitLine line, float delta)
     {
         line.OffsetSeconds = Math.Clamp(line.OffsetSeconds + delta, -30f, 30f);
+        line.OffsetManual = true;
         C.Save();
         _plugin.SheetViewWindow.MarkPlanDirty(); // keep the sheet's cooldown cells honest
     }

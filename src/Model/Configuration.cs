@@ -69,6 +69,13 @@ public class Configuration : IPluginConfiguration
     // How long the call stays on screen after its time passes.
     public float HoldSeconds { get; set; } = 2f;
 
+    // Reaction window for AUTO-TIMED cooldown presses. The solver already pushes
+    // the press early (so the recast is back for the next mechanic); this is how
+    // long before that press the call shows, giving you time to react instead of
+    // hitting it on the same frame it appears. The press's safety margin is widened
+    // to match, so pressing anywhere in this window still covers the mechanic.
+    public float CooldownLeadSeconds { get; set; } = 5f;
+
     // Only run the overlay while in the fight's territory.
     public bool OnlyInTargetTerritory { get; set; } = true;
     // Show the overlay even out of combat / out of duty for placement + testing.
@@ -201,8 +208,9 @@ public class Configuration : IPluginConfiguration
     // Auto cooldown timing: on zone-in / slot change, run the offset solver so
     // every plan (baked and custom) presses its mits early enough that the buff
     // blankets the hit and the recast is back for the next mechanic. Hand-set
-    // offsets (OffsetManual) are always left alone.
-    public bool AutoCooldownTiming { get; set; } = true;
+    // offsets (OffsetManual) are always left alone. Big opt-in feature: off by
+    // default, users turn it on if they want it.
+    public bool AutoCooldownTiming { get; set; }
 
     // Prep press-window text: when a solved press fires early to stay up for a
     // later mechanic, add a "(use between X and Y)" line under the main call. Just

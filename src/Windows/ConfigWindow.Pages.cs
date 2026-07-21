@@ -276,6 +276,15 @@ public partial class ConfigWindow
             C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
             Tip("On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone.");
             ImGui.Indent(20f);
+            if (C.AutoCooldownTiming)
+            {
+                var cdLead = C.CooldownLeadSeconds;
+                ImGui.SetNextItemWidth(200f);
+                if (ImGui.SliderFloat("Press window", ref cdLead, 2f, 8f, "%.1f s"))
+                { C.CooldownLeadSeconds = cdLead; C.Save(); }
+                if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.AutoTime(_plugin.ActiveFight());
+                Tip("How long an auto-timed cooldown call shows before you must press it - your reaction window. The press keeps this much buff in reserve, so hitting it anywhere in the window still covers the mechanic. Bigger = pops earlier and more relaxed.");
+            }
             C.PrepAlerts = Toggle("Prep window text", C.PrepAlerts);
             Tip("Adds a \"(use between X and Y)\" line under the main call when a press is pulled early to stay up for a later mechanic. Text only; the early timing still happens either way. Off by default.");
             ImGui.Unindent(20f);
@@ -846,6 +855,7 @@ public partial class ConfigWindow
         if (ImGui.InputFloat("Offset (s)", ref off, 0.5f, 1f, "%.1f"))
         {
             line.OffsetSeconds = Math.Clamp(off, -30f, 30f);
+            line.OffsetManual = true; // hand-set: the auto cooldown timer won't touch it
             C.Save();
             _plugin.SheetViewWindow.MarkPlanDirty();
         }
@@ -956,6 +966,7 @@ public partial class ConfigWindow
         Time = l.Time, Mechanic = l.Mechanic, Action = l.Action,
         Jobs = new List<string>(l.Jobs), Enabled = l.Enabled,
         LeadOverride = l.LeadOverride, OffsetSeconds = l.OffsetSeconds,
+        OffsetManual = l.OffsetManual, CoverUntil = l.CoverUntil,
         Tts = l.Tts, Sound = l.Sound, Color = l.Color, IconId = l.IconId
     };
 

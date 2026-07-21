@@ -17,7 +17,10 @@ public static class TimingSolver
     // Time the fight's active-slot lines against the given mechanic hit times.
     // Mutates line.OffsetSeconds / CoverUntil in place and returns how many lines
     // actually changed. Does NOT persist - the caller saves.
-    public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes)
+    // `lead` is the auto-press reaction window (Configuration.CooldownLeadSeconds):
+    // the press keeps at least this much buff past its last covered hit, so pressing
+    // anywhere in the overlay's countdown window still covers the mechanic.
+    public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes, float lead = 5f)
     {
         if (fight == null || hitTimes == null) return 0;
         var hits = hitTimes.OrderBy(t => t).ToArray();
@@ -72,8 +75,21 @@ public static class TimingSolver
             while (hi + 1 < n && !covered[hi + 1]
                    && hits[hi + 1] - hits[lo] <= dur + 0.01f) hi++;
 
-            var press = MathF.Max(hits[lo], MathF.Max(ready, 0f)); // front of run, but never before it's ready
             var last = hits[hi];
+            var readyFloor = MathF.Max(ready, 0f);
+
+            // Press as EARLY as the cooldown allows while the buff still reaches the
+            // last hit of the run, keeping a margin so it isn't expiring exactly as
+            // that hit lands. Pressing at the earliest valid moment (not on the hit)
+            // starts the recast ASAP, so the mit is back for the NEXT mechanic - and
+            // the call pops well before the hit instead of right on top of it.
+            // Keep `lead` seconds of buff past the last hit (capped at half the buff
+            // so a short cooldown isn't pressed uselessly early), so the whole
+            // reaction window the overlay shows is a valid press window.
+            var margin = MathF.Min(lead, dur * 0.5f);
+            var press = MathF.Max(readyFloor, last - dur + margin);
+            // ...but never so early the buff has faded by the run's FRONT hit.
+            if (press > hits[lo]) press = MathF.Max(readyFloor, hits[lo]);
 
             // Only pull the press earlier if it can still be up for its own hit.
             if (press <= T + 0.01f)
