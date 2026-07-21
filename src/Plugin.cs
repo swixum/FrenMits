@@ -1229,12 +1229,16 @@ public sealed class Plugin : IDalamudPlugin
     // transition, it jumped away, or a cutscene). The timeline flags it so a lull
     // reads as a lull, with a running timer of how long it's been going.
     public bool DowntimeActive { get; private set; }
-    public float DowntimeElapsed => _downtimeStartUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds : 0f;
+    // Measured in GAME time - accumulated at the replay's own speed and frozen
+    // while it's paused, not on the wall clock - so a lull learned from a 2x (or
+    // paused) replay records its real in-game length, not the real seconds you
+    // spent watching it. In live play the sim speed is 1, so this is real time.
+    public float DowntimeElapsed => _downtimeElapsed;
     // Seconds left until targetable, once this lull has been seen before (learned);
     // -1 the very first time, when we're still measuring it.
     public float DowntimeRemaining => DowntimeActive && _downtimeKnownDur > 0f
         ? MathF.Max(0f, _downtimeKnownDur - DowntimeElapsed) : -1f;
-    private DateTime? _downtimeStartUtc;
+    private float _downtimeElapsed;
     private float _downtimeStartElapsed;
     private float _downtimeKnownDur = -1f;
 
@@ -1242,7 +1246,7 @@ public sealed class Plugin : IDalamudPlugin
     // the timeline's "push it or fail" skull near a phase gate.
     public float BossHpFraction { get; private set; } = -1f;
 
-    private void UpdateDowntime()
+    private void UpdateDowntime(float gameDt)
     {
         IBattleNpc? boss = null;
         foreach (var o in Service.ObjectTable)
@@ -1263,11 +1267,14 @@ public sealed class Plugin : IDalamudPlugin
         if (Timer.Running && !down && BossHpFraction is > 0f and <= 1f)
             _phaseMinHp = MathF.Min(_phaseMinHp, BossHpFraction);
 
+        // Tick the lull's length in game-time so replay speed / pauses can't skew it.
+        if (down && DowntimeActive) _downtimeElapsed += gameDt;
+
         if (down && !DowntimeActive)
         {
             // Just started: stamp it, recall how long it ran, and remember the HP
             // it went away at (the gate) so later pulls can warn to push it.
-            _downtimeStartUtc = DateTime.UtcNow;
+            _downtimeElapsed = 0f;
             var f = ActiveFight();
             _downtimeStartElapsed = f != null ? ElapsedFor(f) : Timer.Elapsed;
             _downtimeKnownDur = LookupDowntime(f?.TerritoryId, _downtimeStartElapsed);
@@ -1278,7 +1285,6 @@ public sealed class Plugin : IDalamudPlugin
         {
             // Just ended: learn its length + gate HP for next time.
             if (ActiveFight() is { } f) RecordDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed, _downtimeTargetHp);
-            _downtimeStartUtc = null;
             _downtimeKnownDur = -1f;
         }
         DowntimeActive = down;
@@ -1431,9 +1437,14 @@ public sealed class Plugin : IDalamudPlugin
             if (InDutyPlayback && Timer.Running && realDt > 0f && realDt < 1f)
                 Timer.ShiftStart(realDt * (1f - ReplayGameSpeed()));
 
+            // This frame's GAME-time delta: real seconds scaled by the sim speed
+            // (1 in live play, 0 while a replay is paused, 2 at 2x). Downtime
+            // learning accumulates this, so replay speed never distorts the length.
+            var gameDt = realDt > 0f && realDt < 1f ? realDt * ReplayGameSpeed() : 0f;
+
             RefreshAutoFight();
             Timer.Update();
-            UpdateDowntime();
+            UpdateDowntime(gameDt);
             Recap.Update();
             HandleCutsceneBoundary();
             UpdatePhase();

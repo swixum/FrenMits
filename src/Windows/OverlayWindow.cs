@@ -262,8 +262,13 @@ public class OverlayWindow : Window
             && !string.IsNullOrWhiteSpace(mechanic)
             && !string.Equals(mechanic, action, StringComparison.OrdinalIgnoreCase))
         {
+            // Its own countdown, mirroring the headline: the mechanic line ticks
+            // down too instead of sitting static (the headline already shows NOW).
+            var mechText = imminent
+                ? $"{mechanic}   {MathF.Ceiling(remaining):0}"
+                : mechanic;
             using (PushFont(C.OverlayFontSizePx * 0.55f))
-                CenteredText(mechanic, C.OverlayColorMechanic);
+                CenteredText(mechText, C.OverlayColorMechanic);
         }
 
         // Prep line: press this now, it stays up for the later mechanic it covers.
