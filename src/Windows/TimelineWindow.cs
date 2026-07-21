@@ -316,6 +316,23 @@ public class TimelineWindow : Window
 
             if (C.UpcomingBoardShowNotes && (useNow || isNext) && NoteText(fight, r) is { Length: > 0 } note)
                 BoardNote(note, width);
+
+            // Multi-hit coverage: this one press is meant to still be up for a
+            // later hit, so the row that alerts the press also says how far it
+            // reaches - synced to the same countdown the press fires on.
+            if (useNow || isNext)
+            {
+                var coverUntil = 0f;
+                foreach (var l in mine[i])
+                    if (l.CoverUntil > r.Time + 0.5f && l.CoverUntil > coverUntil) coverUntil = l.CoverUntil;
+                if (coverUntil > 0f)
+                {
+                    var thru = visible.FirstOrDefault(v => MathF.Abs(v.Time - coverUntil) < 1.5f)?.Mechanic;
+                    BoardNote(string.IsNullOrWhiteSpace(thru)
+                        ? $"one press covers through {TimeText(coverUntil)}"
+                        : $"one press covers through {thru} ({TimeText(coverUntil)})", width);
+                }
+            }
         }
     }
 
