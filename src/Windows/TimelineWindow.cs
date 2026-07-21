@@ -65,7 +65,12 @@ public class TimelineWindow : Window
         if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
-            _applyPos = true;
+            // Clear the latch while idle: the line above already re-pins every
+            // mouse-up frame (so no drift), and leaving it set would re-pin on
+            // the very frame you press to drag - the board's width changes each
+            // frame, so that yanked the window out from under the cursor and made
+            // it impossible to grab. Now a press starts a clean drag.
+            _applyPos = false;
         }
         else if (_applyPos)
         {
