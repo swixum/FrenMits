@@ -1861,14 +1861,6 @@ public partial class SheetViewWindow : Window
                 if (ImGui.MenuItem("Auto-plan mits...")) _openAutoPlan = true;
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Fills the grid with party cooldowns for every row: spaced to each\nrecast, rotated across columns, never overwriting your own cells.");
-                if (ImGui.MenuItem("Solve timing (offsets)") && !AbortIfStale())
-                {
-                    PushUndo("solve timing");
-                    var solved = SolveTiming();
-                    Service.Log.Information($"[FrenMits] Solve timing: set {solved} offset(s) on '{_fight?.Slot}'.");
-                }
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Auto-sets each mit's offset (this column) so one press blankets the run of\nhits its buff can reach and is back in time for later mechanics. Uses real\ndurations/recasts; respects offsets you set by hand. The press-window hints\nbelow show the result and flag anything that can't be covered.");
                 ImGui.EndPopup();
             }
         }
@@ -1894,6 +1886,14 @@ public partial class SheetViewWindow : Window
             if (ImGui.MenuItem("Plan history...")) openHistory = true;
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Snapshots taken automatically before imports, replaces and\ncolumn pastes; restore any of them.");
+            if (ImGui.MenuItem("Solve timing (offsets)") && !AbortIfStale())
+            {
+                PushUndo("solve timing");
+                var solved = SolveTiming();
+                Service.Log.Information($"[FrenMits] Solve timing: set {solved} offset(s) on '{_fight?.Slot}'.");
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Auto-sets each mit's offset (this column) so one press blankets the run of\nhits its buff can reach and is back in time for later mechanics. Works on\nofficial sheets too; uses real durations/recasts and respects offsets you set\nby hand. The press-window hints below show the result.");
             if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
             if (!_isCustom && ImGui.IsItemHovered())
                 ImGui.SetTooltip("Reload EVERY column from the baked sheet: all slots' edits and\ndeletions go, including added potion, job and tank lines.\nA snapshot is saved first; Plan > History restores it.");
