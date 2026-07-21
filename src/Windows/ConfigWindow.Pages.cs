@@ -61,8 +61,11 @@ public partial class ConfigWindow
         C.ShowCombatTimer = CfgCheck("Show the combat timer", C.ShowCombatTimer);
         if (!C.ShowCombatTimer) return;
 
-        if (Section("Placement", true))
+        if (!ImGui.BeginTabBar("##cttabs", ImGuiTabBarFlags.None)) return;
+
+        if (ImGui.BeginTabItem("Placement"))
         {
+            ImGui.Spacing();
             C.CombatTimerLocked = CfgCheck("Lock position (click-through)", C.CombatTimerLocked);
             ImGui.SameLine();
             ImGui.TextDisabled(C.CombatTimerLocked ? "(unlock to drag)" : "(drag it, or use the sliders; auto-locks in combat)");
@@ -82,10 +85,12 @@ public partial class ConfigWindow
                 C.Save();
                 _plugin.CombatTimerWindow.RequestReposition();
             }
+            ImGui.EndTabItem();
         }
 
-        if (Section("Font & size", true))
+        if (ImGui.BeginTabItem("Font"))
         {
+            ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
             var fIdx = Math.Max(0, Array.IndexOf(fonts, C.CombatTimerFontFamily));
             ImGui.SetNextItemWidth(200f);
@@ -104,10 +109,12 @@ public partial class ConfigWindow
             var px = C.CombatTimerFontSizePx;
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Text size", ref px, 12f, 120f, "%.0f px")) { C.CombatTimerFontSizePx = px; C.Save(); }
+            ImGui.EndTabItem();
         }
 
-        if (Section("Colors", true))
+        if (ImGui.BeginTabItem("Colors"))
         {
+            ImGui.Spacing();
             var col = ColorToVec4(C.CombatTimerColor);
             if (ImGui.ColorEdit4("Text color", ref col, ImGuiColorEditFlags.NoInputs)) { C.CombatTimerColor = Vec4ToColor(col); C.Save(); }
 
@@ -119,7 +126,10 @@ public partial class ConfigWindow
                 if (ImGui.ColorEdit4("Color##ctbg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.CombatTimerBackgroundColor = Vec4ToColor(bg); C.Save(); }
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
+            ImGui.EndTabItem();
         }
+
+        ImGui.EndTabBar();
     }
 
     private void DrawDisplayTab()
@@ -129,17 +139,20 @@ public partial class ConfigWindow
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this tab to defaults.");
 
-        if (Section("Accessibility", true))
+        if (!ImGui.BeginTabBar("##displaytabs", ImGuiTabBarFlags.None)) return;
+
+        if (ImGui.BeginTabItem("General"))
         {
+            ImGui.Spacing();
+            SeparatorText("Accessibility");
             C.ColorblindMode = CfgCheck("Colorblind-safe status colors", C.ColorblindMode);
             Theme.Colorblind = C.ColorblindMode; // keep the live palette in sync with the setting
             Tip("Swaps the green / amber / red status colors (recap, coverage counts, plan check) "
                 + "for an Okabe-Ito set - bluish-green, orange, reddish-purple - that stays distinct "
                 + "under the common forms of color blindness.");
-        }
 
-        if (Section("Timing", true))
-        {
+            ImGui.Spacing();
+            SeparatorText("Timing");
             var warn = C.WarningSeconds;
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Show ahead", ref warn, 1f, 12f, "%.1fs")) { C.WarningSeconds = warn; C.Save(); }
@@ -149,10 +162,12 @@ public partial class ConfigWindow
             ImGui.SetNextItemWidth(150f);
             if (ImGui.SliderFloat("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.Save(); }
             Tip("How long a call stays up after its time passes.");
+            ImGui.EndTabItem();
         }
 
-        if (Section("Placement", true))
+        if (ImGui.BeginTabItem("Placement"))
         {
+            ImGui.Spacing();
             C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
             ImGui.SameLine();
             ImGui.TextDisabled(C.OverlayLocked ? "(unlock to drag)" : "(drag it, or use the sliders; auto-locks in combat)");
@@ -172,10 +187,12 @@ public partial class ConfigWindow
                 C.Save();
                 _plugin.OverlayWindow.RequestReposition();
             }
+            ImGui.EndTabItem();
         }
 
-        if (Section("Font & size", true))
+        if (ImGui.BeginTabItem("Font"))
         {
+            ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
             var fIdx = Math.Max(0, Array.IndexOf(fonts, C.OverlayFontFamily));
             ImGui.SetNextItemWidth(200f);
@@ -207,10 +224,12 @@ public partial class ConfigWindow
                 ImGui.SetNextItemWidth(150f);
                 if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
             }
+            ImGui.EndTabItem();
         }
 
-        if (Section("Text & content"))
+        if (ImGui.BeginTabItem("Content"))
         {
+            ImGui.Spacing();
             if (ImGui.TreeNode("Advanced format"))
             {
                 var fmt = C.HeadlineFormat;
@@ -248,10 +267,12 @@ public partial class ConfigWindow
                 if (GreenCheckbox("Lock active-mits position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
                 ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
             }
+            ImGui.EndTabItem();
         }
 
-        if (Section("Colors"))
+        if (ImGui.BeginTabItem("Colors"))
         {
+            ImGui.Spacing();
             var imminent = ColorToVec4(C.OverlayColorImminent);
             if (ImGui.ColorEdit4("Counting down", ref imminent, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorImminent = Vec4ToColor(imminent); C.Save(); }
             ImGui.SameLine(0, 14);
@@ -282,10 +303,13 @@ public partial class ConfigWindow
                 var personal = ColorToVec4(C.MitColorPersonal);
                 if (ImGui.ColorEdit4("Personal", ref personal, ImGuiColorEditFlags.NoInputs)) { C.MitColorPersonal = Vec4ToColor(personal); C.Save(); }
             }
+            ImGui.EndTabItem();
         }
 
-        if (Section("Countdown bar"))
+        if (ImGui.BeginTabItem("Box & bar"))
         {
+            ImGui.Spacing();
+            SeparatorText("Countdown bar");
             C.ShowProgressBar = CfgCheck("Countdown bar under the call", C.ShowProgressBar);
             if (C.ShowProgressBar)
             {
@@ -295,10 +319,9 @@ public partial class ConfigWindow
                 if (ImGui.SliderFloat("Height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
             }
             C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);
-        }
 
-        if (Section("Background"))
-        {
+            ImGui.Spacing();
+            SeparatorText("Background");
             C.ShowBackground = CfgCheck("Draw a background box", C.ShowBackground);
             if (C.ShowBackground)
             {
@@ -307,8 +330,10 @@ public partial class ConfigWindow
                 if (ImGui.ColorEdit4("Color##overlaybg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
+            ImGui.EndTabItem();
         }
 
+        ImGui.EndTabBar();
     }
 
     // ---- Next Mits board ---------------------------------------------------
@@ -350,8 +375,11 @@ public partial class ConfigWindow
 
         var boardStyle = Math.Clamp(C.UpcomingStyle, 0, 1) == 1;
 
-        if (Section("Layout", true))
+        if (!ImGui.BeginTabBar("##nmtabs", ImGuiTabBarFlags.None)) return;
+
+        if (ImGui.BeginTabItem("Layout"))
         {
+            ImGui.Spacing();
             var style = Math.Clamp(C.UpcomingStyle, 0, 1);
             var styles = new[]
             {
@@ -420,10 +448,12 @@ public partial class ConfigWindow
                 var upCol = ColorToVec4(C.OverlayColorUpcoming);
                 if (ImGui.ColorEdit4("Text color", ref upCol, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
             }
+            ImGui.EndTabItem();
         }
 
-        if (boardStyle && Section("Look", true))
+        if (boardStyle && ImGui.BeginTabItem("Look"))
         {
+            ImGui.Spacing();
             ImGui.AlignTextToFramePadding();
             ImGui.TextDisabled("Colors");
             ImGui.SameLine(0, 12);
@@ -468,10 +498,12 @@ public partial class ConfigWindow
             ImGui.SameLine(300f);
             C.UpcomingBoardDrain = CfgCheck("Bars drain toward the hit", C.UpcomingBoardDrain);
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Unticked, bars FILL toward the hit instead.");
+            ImGui.EndTabItem();
         }
 
-        if (boardStyle && Section("On the rows", true))
+        if (boardStyle && ImGui.BeginTabItem("On the rows"))
         {
+            ImGui.Spacing();
             // Two tidy columns, each row on its own line with a little breathing
             // room. (The left column splits at 300px; keep two per row, no more.)
             C.UpcomingBoardTimeText = CfgCheck("Countdown seconds", C.UpcomingBoardTimeText);
@@ -484,14 +516,19 @@ public partial class ConfigWindow
             ImGui.Spacing();
             C.UpcomingBoardShowType = CfgCheck("Hit-type icons (raidwide / buster)", C.UpcomingBoardShowType);
             Tip("A small icon on each row: cyan people = raidwide, orange shield = tank buster.");
+            ImGui.EndTabItem();
         }
 
-        if (Section("Every duty", true))
+        if (ImGui.BeginTabItem("Every duty"))
         {
+            ImGui.Spacing();
             C.UniversalTimelines = CfgCheck("Run a boss timeline in every duty (no sheet needed)", C.UniversalTimelines);
             ImGui.TextDisabled("Dungeons, trials, raids: the board lists the bosses' casts even with no sheet.");
             ImGui.TextDisabled("No mits, no audio; a real sheet always takes over automatically.");
+            ImGui.EndTabItem();
         }
+
+        ImGui.EndTabBar();
     }
 
     // On-screen preview toggle for the Next Mits page. Starts OFF; the Play
@@ -533,8 +570,11 @@ public partial class ConfigWindow
         C.AudioEnabled = CfgCheck("Enable audio cues", C.AudioEnabled);
         ImGui.TextDisabled("Plays when a call enters its warning window, once per pull, even if the overlay is hidden.");
 
-        if (Section("Voice", true))
+        if (!ImGui.BeginTabBar("##audiotabs", ImGuiTabBarFlags.None)) return;
+
+        if (ImGui.BeginTabItem("Voice"))
         {
+            ImGui.Spacing();
             C.TtsEnabled = CfgCheck("Speak the action", C.TtsEnabled);
 
             // Engine: online neural (Edge) for the nice custom voices, or offline Windows.
@@ -621,10 +661,12 @@ public partial class ConfigWindow
                 Tip("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
                 ImGui.TreePop();
             }
+            ImGui.EndTabItem();
         }
 
-        if (Section("Test", true))
+        if (ImGui.BeginTabItem("Test"))
         {
+            ImGui.Spacing();
             ImGui.SetNextItemWidth(220f);
             ImGui.InputTextWithHint("##testtext", "text to test...", ref _ttsTestText, 128);
             ImGui.SameLine();
@@ -649,7 +691,10 @@ public partial class ConfigWindow
                 ImGui.TextColored(ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, "Status: " + status);
             }
             ImGui.TextDisabled("Per line you can override the spoken text or mute the cue (the \"...\" button).");
+            ImGui.EndTabItem();
         }
+
+        ImGui.EndTabBar();
     }
 
     private string _ttsTestText = "";
