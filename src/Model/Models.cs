@@ -143,6 +143,12 @@ public class DowntimeWindow
     // refinements live in Configuration.LearnedDowntimes, keyed by territory.
     [Newtonsoft.Json.JsonIgnore]
     public bool Learn { get; set; }
+
+    // This lull is an actual cutscene (not just a plain untargetable transition).
+    // The timeline labels it "Cutscene" while it's playing; a non-cutscene lull
+    // reads "Untargetable" instead. Both flip to "Targetable" near the end.
+    [Newtonsoft.Json.JsonIgnore]
+    public bool Cutscene { get; set; }
 }
 
 [Serializable]

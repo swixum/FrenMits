@@ -254,9 +254,19 @@ public class TimelineWindow : Window
     }
 
     // How long before the boss becomes targetable the green "Targetable" heads-up
-    // replaces the neutral "Cutscene" row. Before this, a long lull reads as the
-    // cutscene you're sitting through; inside it you get the get-ready-to-resume cue.
+    // replaces the neutral downtime row. Before this, the lull reads as the cutscene
+    // or untargetable stretch you're sitting through; inside it you get the
+    // get-ready-to-resume cue.
     private const float TargetableHeadsup = 10f;
+
+    // Is the lull ending at targetableTime an actual cutscene (vs a plain
+    // untargetable transition)? Drives the "Cutscene" vs "Untargetable" label.
+    private bool DowntimeIsCutscene(FightProfile fight, float targetableTime)
+    {
+        foreach (var w in Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes))
+            if (MathF.Abs(w.Start + w.Duration - targetableTime) < 2f) return w.Cutscene;
+        return false;
+    }
 
     private void DrawBoard(FightProfile fight, string? job, float elapsed,
         List<SheetTimeline.MechRow>? rowsOverride = null, float? widthOverride = null)
@@ -373,13 +383,14 @@ public class TimelineWindow : Window
                 : RowKind(r, bareTimer);
             if (kind == 3) name = $"DPS check ({gateTgt * 100f:0}%)";
             // A targetable still more than the heads-up window away reads as the
-            // cutscene / downtime you're sitting through, not a green "you can hit
-            // it" tick. Only its last few seconds - boss about to return, get ready
-            // to resume - flip to the green Targetable cue.
+            // lull you're sitting through, not a green "you can hit it" tick: a real
+            // cutscene shows "Cutscene", a plain transition stays "Untargetable".
+            // Only its last few seconds - boss about to return, get ready to resume -
+            // flip to the green Targetable cue.
             if (kind == 5 && rem > TargetableHeadsup)
             {
-                kind = 6;
-                name = "Cutscene";
+                if (DowntimeIsCutscene(fight, r.Time)) { kind = 6; name = "Cutscene"; }
+                else { kind = 4; name = "Untargetable"; }
             }
             BoardBar(name, rem, look, width, accent, r.Hurt, pulse, kind);
 

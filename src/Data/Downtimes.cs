@@ -53,7 +53,7 @@ public static class Downtimes
             {
                 var m = seen.FirstOrDefault(x => MathF.Abs(x.Start - w.Start) < 25f);
                 if (m != null)
-                    refined = new DowntimeWindow { Start = m.Start, Duration = m.Duration, TargetHp = w.TargetHp, Learn = true };
+                    refined = new DowntimeWindow { Start = m.Start, Duration = m.Duration, TargetHp = w.TargetHp, Learn = true, Cutscene = w.Cutscene };
             }
             result.Add(refined);
         }
@@ -74,7 +74,7 @@ public static class Downtimes
     private static readonly List<DowntimeWindow> Dmu = new()
     {
         new() { Start = 198, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 transition
-        new() { Start = 381, Duration = 46, TargetHp = 0.00f }, // P2 -> P3 cutscene
+        new() { Start = 381, Duration = 46, TargetHp = 0.00f, Cutscene = true }, // P2 -> P3 cutscene
         new() { Start = 728, Duration = 17, TargetHp = 0.00f }, // P3 -> P4 transition
         // cactbot marks this untargetable "?" and the final Ultima Upsurge straddles
         // it, so the time is a best estimate - Learn refines it from live pulls.
