@@ -446,8 +446,8 @@ public class OverlayWindow : Window
         ImGui.Dummy(new Vector2(diam, diam));
     }
 
-    // Gold prep accent, shared with the upcoming board's prep tag.
-    private const uint PrepCol = 0xFF3CB4F0;
+    // Green prep accent (matches the board's "now" green).
+    private const uint PrepCol = 0xFF64DC64;
 
     // The prep press-window for a call pulled early to stay up for a later hit:
     // "(use between 0:10 and 0:21)". Planned-schedule driven (reads the solved
