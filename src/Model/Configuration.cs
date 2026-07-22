@@ -139,6 +139,7 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingBoardShowActions { get; set; } = true;       // presses under the rows
     public bool UpcomingBoardShowSeverity { get; set; } = true;      // !/!!/!!! marks from graded sheets
     public bool UpcomingBoardShowType { get; set; } = true;          // raidwide / tank-buster icon per row
+    public bool UpcomingBossPosition { get; set; } = true;           // live boss compass position row (North/Middle...)
 
     // The next-mits timeline lives in its own window with its own placement.
     public bool TimelineLocked { get; set; }

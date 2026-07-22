@@ -25,6 +25,9 @@ public static class SheetTimeline
         // For rows with no mechanic label (bare user timers): the first line's
         // action, so the board never shows a nameless bar.
         public string Fallback = "";
+        // Set on a scheduled boss-reposition row (the spot, e.g. "Middle"); drives
+        // the cyan position row kind on the board. Empty on ordinary mechanic rows.
+        public string Position = "";
     }
 
     public static bool MechEquals(string a, string b)

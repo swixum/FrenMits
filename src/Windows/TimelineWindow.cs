@@ -244,6 +244,20 @@ public class TimelineWindow : Window
         return rows;
     }
 
+    // Scheduled boss-reposition rows: a cyan "Boss: Middle" (etc.) counting down to
+    // when the boss moves there, from the per-fight Positions data. Off when the
+    // toggle is cleared or the fight has no entered positions.
+    private List<SheetTimeline.MechRow> PositionRows(FightProfile fight)
+    {
+        if (!C.UpcomingBossPosition) return NoRows;
+        var spots = Positions.For(fight.TerritoryId);
+        if (spots.Count == 0) return NoRows;
+        var rows = new List<SheetTimeline.MechRow>(spots.Count);
+        foreach (var s in spots)
+            rows.Add(new SheetTimeline.MechRow { Time = s.Time, Mechanic = $"Boss: {s.Where}", Position = s.Where });
+        return rows;
+    }
+
     // The hardcoded gate HP for the Untargetable at rowStart (-1 if that lull has
     // no DPS check): the boss HP fraction you must push it below before it goes away.
     private float DowntimeTargetHp(FightProfile fight, float rowStart)
@@ -274,7 +288,7 @@ public class TimelineWindow : Window
         var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
         var width = widthOverride ?? MathF.Max(180f, C.UpcomingBoardWidth);
         // A just-hit row lingers 2s at "now" so it doesn't vanish mid-press.
-        var windowRows = (rowsOverride ?? BoardRows(fight)).Concat(DowntimeRows(fight))
+        var windowRows = (rowsOverride ?? BoardRows(fight)).Concat(DowntimeRows(fight)).Concat(PositionRows(fight))
             .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
             .OrderBy(r => r.Time)
             .ToList();
@@ -369,19 +383,27 @@ public class TimelineWindow : Window
             // HP (the phase's DPS check): its countdown is the time-to-kill, and the
             // label carries the % you must be under by then.
             var gate = false;
+            var gatePassed = false;
             var gateTgt = -1f;
             if (r.Mechanic == "Untargetable")
             {
                 gateTgt = DowntimeTargetHp(fight, r.Time);
                 // Only real DPS checks (the boss got pushed low, <=40%), not brief
                 // mid-phase untargetable moments at high HP.
-                gate = _plugin.BossHpFraction > 0f && gateTgt is >= 0f and <= 0.40f
-                    && _plugin.BossHpFraction <= gateTgt + 0.10f;
+                if (_plugin.BossHpFraction > 0f && gateTgt is >= 0f and <= 0.40f
+                    && _plugin.BossHpFraction <= gateTgt + 0.10f)
+                {
+                    gate = true;
+                    // Target hit: the boss is at or below the gate %. Flip to the
+                    // passed look (green check) instead of the red at-risk push.
+                    gatePassed = _plugin.BossHpFraction <= gateTgt;
+                }
             }
-            var kind = r.Mechanic == "Untargetable" ? (gate ? 3 : 4)
+            var kind = r.Mechanic == "Untargetable" ? (gate ? (gatePassed ? 8 : 3) : 4)
                 : r.Mechanic == "Targetable" ? 5
+                : r.Position.Length > 0 ? 7
                 : RowKind(r, bareTimer);
-            if (kind == 3) name = $"DPS check ({gateTgt * 100f:0}%)";
+            if (kind == 3 || kind == 8) name = $"DPS check ({gateTgt * 100f:0}%)";
             // A targetable still more than the heads-up window away reads as the
             // lull you're sitting through, not a green "you can hit it" tick: a real
             // cutscene shows "Cutscene", a plain transition stays "Untargetable".
@@ -536,10 +558,12 @@ public class TimelineWindow : Window
         // lull, purple for a cutscene. Ordinary mit rows (kind 0-2) get none.
         var wash = kind switch
         {
-            3 => 0xFF4646FFu, // DPS check: red
+            3 => 0xFF4646FFu, // DPS check (at risk): red
             4 => 0xFF9AA0A8u, // untargetable: grey
             5 => 0xFF7BD88Bu, // targetable: green
             6 => 0xFFB48C96u, // cutscene: purple
+            7 => 0xFFDCC85Au, // boss reposition: cyan
+            8 => 0xFF99D334u, // DPS check (passed): emerald (distinct from targetable lime)
             _ => 0u,
         };
         if (wash != 0)
@@ -579,6 +603,8 @@ public class TimelineWindow : Window
                 4 => 0xFF9AA0A8u,   // untargetable: slate
                 5 => 0xFF7BD88Bu,   // targetable: green
                 6 => 0xFFB48C96u,   // cutscene / downtime: muted lavender
+                7 => 0xFFDCC85Au,   // boss reposition: cyan
+                8 => 0xFF99D334u,   // DPS check passed: emerald
                 _ => accent == 0 ? (AccentCol & 0x00FFFFFF) | 0xB3000000 : accent,
             };
             if (pulse) stripe = Pulse(stripe);
@@ -604,7 +630,7 @@ public class TimelineWindow : Window
         var showIcon = kind switch
         {
             2 => C.UpcomingBoardShowType,
-            3 or 4 or 5 or 6 => true,
+            3 or 4 or 5 or 6 or 8 => true,
             _ => false,
         };
         if (showIcon)
@@ -615,6 +641,7 @@ public class TimelineWindow : Window
                 4 => (FontAwesomeIcon.Ban, 0xFF9AA0A8u),
                 5 => (FontAwesomeIcon.Crosshairs, 0xFF7BD88Bu),
                 6 => (FontAwesomeIcon.Film, 0xFFB48C96u),
+                8 => (FontAwesomeIcon.Check, 0xFF99D334u),
                 _ => (FontAwesomeIcon.Shield, BoardBusterCol),
             };
             var isz = lineH * 0.82f;

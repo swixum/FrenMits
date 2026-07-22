@@ -560,6 +560,9 @@ public partial class ConfigWindow
             ImGui.SameLine(300f);
             C.UpcomingBoardShowType = CfgCheck("Tank buster icon", C.UpcomingBoardShowType);
             Tip("An orange shield on tank-buster rows. (At-risk, untargetable and targetable markers always show their own icons.)");
+            ImGui.Spacing();
+            C.UpcomingBossPosition = CfgCheck("Boss reposition calls", C.UpcomingBossPosition);
+            Tip("A cyan row counting down to when the boss moves to a known spot (e.g. returns to Middle), for fights that have the data.");
             ImGui.EndTabItem();
         }
 
@@ -601,7 +604,7 @@ public partial class ConfigWindow
         C.UpcomingBoardRounding = 5f; C.UpcomingBoardBarPad = 8f; C.UpcomingBoardRowGap = 4f;
         C.UpcomingBoardStripe = true; C.UpcomingBoardDrain = true;
         C.UpcomingBoardShowActions = true; C.UpcomingBoardShowSeverity = true;
-        C.UpcomingBoardShowType = true;
+        C.UpcomingBoardShowType = true; C.UpcomingBossPosition = true;
         C.UpcomingCount = 3; C.UpcomingLookaheadSeconds = 30f;
         C.UpcomingFontSizePx = 20f; C.OverlayColorUpcoming = 0xB0FFFFFF;
         C.TimelineLocked = false; C.TimelinePosition = new Vector2(0.5f, 0.62f);
