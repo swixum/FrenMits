@@ -114,9 +114,9 @@ public static class JobExtras
                 (1061, "Forsaken (1st Hit)"),
             }),
             // Summoner - which primal to summon next, straight from a top Dancing
-            // Mad kill log (that SMN's real Ifrit/Titan/Garuda order). SMN-only,
-            // visual-only cues (a summon lands every ~12s, so no audio); a rotation
-            // guide, not mitigation. Uses per-step actions, not one repeated ability.
+            // Mad kill log (that SMN's real Ifrit/Titan/Garuda order). SMN-only and
+            // spoken (each summon call has audio); a rotation guide, not mitigation.
+            // Uses per-step actions, not one repeated ability.
             new Extra("SMN", "Summon", 0f, Array.Empty<(int, string)>(), new[]
             {
                 (19, "Garuda"), (33, "Titan"), (48, "Ifrit"),

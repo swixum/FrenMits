@@ -328,6 +328,38 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
+        // v22: SMN summon cues shipped silent (visual-only). They now speak each
+        // call, so switch audio on for any already imported into a config. A summon
+        // line is an SMN-tagged custom line whose action is only primal names (a
+        // single summon or a slash-joined burst); grouped bursts also get a
+        // comma-spoken form so "Garuda / Titan / Ifrit" reads cleanly.
+        if (Config.Version < 22)
+        {
+            var primals = new HashSet<string>(new[] { "Garuda", "Titan", "Ifrit" }, StringComparer.OrdinalIgnoreCase);
+            void FixSummons(List<MitLine>? lines)
+            {
+                if (lines == null) return;
+                foreach (var l in lines)
+                {
+                    if (l.Sound || !l.Custom || l.Jobs == null) continue;
+                    if (!l.Jobs.Contains("SMN", StringComparer.OrdinalIgnoreCase)) continue;
+                    var parts = l.Action.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (parts.Length == 0 || !parts.All(p => primals.Contains(p))) continue;
+                    l.Sound = true;
+                    if (parts.Length > 1 && string.IsNullOrWhiteSpace(l.Tts))
+                        l.Tts = string.Join(", ", parts);
+                }
+            }
+            foreach (var f in Config.Fights)
+            {
+                FixSummons(f.Lines);
+                if (f.SavedSlots != null)
+                    foreach (var slot in f.SavedSlots.Values) FixSummons(slot);
+            }
+            Config.Version = 22;
+            Config.Save();
+        }
+
         // Slot names run through the standard (T1/T2, M1/M2, R1/R2 - see
         // SlotNames) on EVERY load: cheap, idempotent, and it also catches
         // fights imported from plan codes made on older versions.

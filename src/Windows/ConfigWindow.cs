@@ -1657,7 +1657,8 @@ public partial class ConfigWindow : Window, IDisposable
                 // Sequence extra (SMN summons): each step is its own action. Bursts
                 // group consecutive summons (up to 3, split on a >20s gap) so it can
                 // be added as one cue per burst ("Garuda / Titan / Ifrit") or one per
-                // summon. Both are SMN-only, visual (a summon lands every ~12s).
+                // summon. Both are SMN-only and spoken; Singles gives audio for every
+                // individual summon, Grouped one combined cue per burst.
                 var names = steps.Select(s => s.Summon).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
                 var bursts = new List<List<(int Time, string Summon)>>();
                 foreach (var s in steps)
@@ -1678,14 +1679,17 @@ public partial class ConfigWindow : Window, IDisposable
                             {
                                 Time = b[0].Time,
                                 Action = string.Join(" / ", b.Select(x => x.Summon)),
-                                Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = false,
+                                // Spoken with commas so the burst reads cleanly ("Garuda,
+                                // Titan, Ifrit") instead of the slashes in the label.
+                                Tts = string.Join(", ", b.Select(x => x.Summon)),
+                                Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = true,
                             });
                     else
                         foreach (var (time, summon) in steps)
                             lines.Add(new MitLine
                             {
                                 Time = time, Action = summon,
-                                Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = false,
+                                Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = true,
                             });
                     SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
                     FlashBuiltin($"Added {(grouped ? bursts.Count : steps.Length)} {job} summon cue(s).");
