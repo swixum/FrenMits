@@ -229,11 +229,27 @@ public class TimelineWindow : Window
     // onto FrenMits' own clock (see Data/Downtimes.cs) - and renders them its own
     // way. Thanks to the cactbot authors.
     //
+    // Every downtime window that applies to this fight: the built-in table for its
+    // territory (with live-learned refinements) plus any the fight owns itself - a
+    // custom sheet's windows derived from an imported log. Official fights have only
+    // the first; imported customs have only the second; the merge means the board's
+    // untargetable/targetable washes work for both without branching everywhere.
+    private IReadOnlyList<DowntimeWindow> EffectiveDowntimes(FightProfile fight)
+    {
+        var baseWins = Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes);
+        if (fight.CustomDowntimes.Count == 0) return baseWins;
+        if (baseWins.Count == 0) return fight.CustomDowntimes;
+        var merged = new List<DowntimeWindow>(baseWins.Count + fight.CustomDowntimes.Count);
+        merged.AddRange(baseWins);
+        merged.AddRange(fight.CustomDowntimes);
+        return merged;
+    }
+
     // Learned downtimes as inline board rows: an Untargetable entry when the boss
     // goes away and a Targetable one when it returns, each counting down.
     private List<SheetTimeline.MechRow> DowntimeRows(FightProfile fight)
     {
-        var list = Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes);
+        var list = EffectiveDowntimes(fight);
         if (list.Count == 0) return NoRows;
         var rows = new List<SheetTimeline.MechRow>(list.Count * 2);
         foreach (var w in list)
@@ -262,7 +278,7 @@ public class TimelineWindow : Window
     // no DPS check): the boss HP fraction you must push it below before it goes away.
     private float DowntimeTargetHp(FightProfile fight, float rowStart)
     {
-        foreach (var w in Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes))
+        foreach (var w in EffectiveDowntimes(fight))
             if (MathF.Abs(w.Start - rowStart) < 2f) return w.TargetHp;
         return -1f;
     }
@@ -277,7 +293,7 @@ public class TimelineWindow : Window
     // untargetable transition)? Drives the "Cutscene" vs "Untargetable" label.
     private bool DowntimeIsCutscene(FightProfile fight, float targetableTime)
     {
-        foreach (var w in Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes))
+        foreach (var w in EffectiveDowntimes(fight))
             if (MathF.Abs(w.Start + w.Duration - targetableTime) < 2f) return w.Cutscene;
         return false;
     }

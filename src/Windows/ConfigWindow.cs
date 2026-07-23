@@ -1779,6 +1779,8 @@ public partial class ConfigWindow : Window, IDisposable
                     CustomSlots = fight.CustomSlots.ToList(),
                     CustomRows = fight.CustomRows.Select(cr => new CustomRow
                     { Time = cr.Time, Mechanic = cr.Mechanic }).ToList(),
+                    CustomDowntimes = fight.CustomDowntimes.Select(w => new DowntimeWindow
+                    { Start = w.Start, Duration = w.Duration, TargetHp = w.TargetHp, Cutscene = w.Cutscene }).ToList(),
                 });
             }
             if (ImGui.IsItemHovered())

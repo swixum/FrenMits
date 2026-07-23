@@ -702,6 +702,7 @@ public sealed class Plugin : IDalamudPlugin
                 {
                     target.CustomSlots = b.Fight.CustomSlots;
                     target.CustomRows = b.Fight.CustomRows ?? new();
+                    target.CustomDowntimes = b.Fight.CustomDowntimes ?? new();
                 }
             }
             // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
@@ -853,6 +854,7 @@ public sealed class Plugin : IDalamudPlugin
                     {
                         existing.CustomSlots = fight.CustomSlots;
                         existing.CustomRows = fight.CustomRows ?? new();
+                        existing.CustomDowntimes = fight.CustomDowntimes ?? new();
                     }
                 }
                 Config.Save();

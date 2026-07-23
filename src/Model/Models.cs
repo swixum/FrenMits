@@ -69,6 +69,13 @@ public class FightProfile
     // written a mit into them (a row needs no lines to be plannable).
     public List<CustomRow> CustomRows { get; set; } = new();
 
+    // Untargetable/downtime windows this fight owns (custom sheets): derived from
+    // an imported log's cast gaps, on the same pull clock as the rows/anchors. The
+    // timeline shows each as its own Untargetable -> Targetable pair, exactly like
+    // the built-in Downtimes table gives official fights. TargetHp stays -1 (no DPS
+    // gate is inferred), so they render as plain grey->green lulls.
+    public List<DowntimeWindow> CustomDowntimes { get; set; } = new();
+
     // Derived; ignored by the serializer so share codes and plan snapshots
     // don't carry every line twice.
     [Newtonsoft.Json.JsonIgnore]
@@ -147,7 +154,8 @@ public class DowntimeWindow
     // This lull is an actual cutscene (not just a plain untargetable transition).
     // The timeline labels it "Cutscene" while it's playing; a non-cutscene lull
     // reads "Untargetable" instead. Both flip to "Targetable" near the end.
-    [Newtonsoft.Json.JsonIgnore]
+    // Serialized: hardcoded windows set it fresh in code each load, but a custom
+    // fight's derived downtimes (FightProfile.CustomDowntimes) need it to persist.
     public bool Cutscene { get; set; }
 }
 

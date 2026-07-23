@@ -108,6 +108,7 @@ public partial class SheetViewWindow : Window
         public List<DeletedCall> DeletedCalls = new();
         public List<SheetNote> Notes = new();
         public List<CustomRow> CustomRows = new();
+        public List<DowntimeWindow> CustomDowntimes = new();
         public List<string> CustomSlots = new();
         public List<SyncPoint> SyncPoints = new();
         public List<BossAnchor> BossAnchors = new();
@@ -134,6 +135,7 @@ public partial class SheetViewWindow : Window
             DeletedCalls = Clone(_fight.DeletedCalls),
             Notes = Clone(_fight.Notes),
             CustomRows = Clone(_fight.CustomRows),
+            CustomDowntimes = Clone(_fight.CustomDowntimes),
             CustomSlots = Clone(_fight.CustomSlots),
             SyncPoints = Clone(_fight.SyncPoints),
             BossAnchors = Clone(_fight.BossAnchors),
@@ -172,6 +174,7 @@ public partial class SheetViewWindow : Window
         s.Fight.DeletedCalls = s.DeletedCalls;
         s.Fight.Notes = s.Notes;
         s.Fight.CustomRows = s.CustomRows;
+        s.Fight.CustomDowntimes = s.CustomDowntimes;
         s.Fight.CustomSlots = s.CustomSlots;
         s.Fight.SyncPoints = s.SyncPoints;
         s.Fight.BossAnchors = s.BossAnchors;
@@ -2171,6 +2174,11 @@ public partial class SheetViewWindow : Window
 
     private bool _bpRows = true;
     private bool _bpAnchors = true;
+    // FFLogs import extras (a full kill log carries damage + gaps a live capture
+    // doesn't): keep only casts that mattered, and turn its downtime gaps into
+    // untargetable windows - so an imported fight reads like a built-in one.
+    private bool _flMeaningful = true;
+    private bool _flDowntime = true;
 
     private static string ActionName(uint id)
     {
@@ -2224,6 +2232,15 @@ public partial class SheetViewWindow : Window
 
     private readonly record struct BuildEvent(uint Id, float Time, string Name, bool Anchorable);
 
+    // Two bars for an imported log's silences (a stretch with no enemy cast = the
+    // boss stepped away). A window is only a board wash, so a modest bar is fine; a
+    // false one is easy to see and harmless. A phase re-anchor re-bases the whole
+    // clock on the next cast (a wide jump window), so it needs a much longer, high-
+    // confidence silence - a real cutscene/transition, not a slow mechanic
+    // resolution - or a normal mid-phase lull could mis-snap a later pull.
+    private const float ImportWindowGap = 20f; // seeds an untargetable window
+    private const float ImportSeamGap = 35f;   // also re-bases the clock (phase seam)
+
     private static readonly HashSet<string> InvulnNames = new(StringComparer.OrdinalIgnoreCase)
         { "Holmgang", "Hallowed Ground", "Living Dead", "Superbolide" };
 
@@ -2271,7 +2288,8 @@ public partial class SheetViewWindow : Window
 
     private void ApplyBuild(List<BuildEvent> events, bool rows, bool anchors, string source,
         Dictionary<uint, FFLogsClient.AbilityDamage>? damage = null,
-        List<FFLogsClient.MitPress>? mitPresses = null)
+        List<FFLogsClient.MitPress>? mitPresses = null,
+        bool meaningfulOnly = false, bool deriveDowntime = false)
     {
         // Custom sheets only: replacing a BUILTIN fight's anchors would destroy
         // the official ones (unreachable via UI today; cheap insurance).
@@ -2299,10 +2317,25 @@ public partial class SheetViewWindow : Window
                     else if (d.Worst > maxTb) maxTb = d.Worst;
                 }
 
+        // A full kill log lists every enemy cast, including filler an official
+        // timeline would never show (idle instant casts that hit no one). With the
+        // log's damage we can tell the real mechanics - a cast that hurt someone, or
+        // one telegraphed by a cast bar - from that filler, and build rows from only
+        // those. Anchors and downtime below still run over EVERY cast, so resync and
+        // the untargetable gaps are unaffected.
+        bool Meaningful(BuildEvent e)
+            => e.Anchorable || (damage != null && damage.ContainsKey(e.Id));
+        // Only filter when we actually have the damage data to judge with: without
+        // it the sole signal is cast bars, and dropping every instant cast would
+        // lose real mechanics, so keep them all instead of over-trimming.
+        var rowEvents = meaningfulOnly && damage is { Count: > 0 }
+            ? events.Where(Meaningful).ToList() : events;
+        var filteredOut = events.Count - rowEvents.Count;
+
         var addedRows = 0;
         var graded = 0;
         if (rows)
-            foreach (var e in events)
+            foreach (var e in rowEvents)
             {
                 var hurt = 0;
                 var buster = false;
@@ -2401,8 +2434,10 @@ public partial class SheetViewWindow : Window
             {
                 // The gap detector runs over EVERY event; the phase flag then
                 // lands on the next anchorable cast (a log's instant abilities
-                // can't anchor, but they mustn't hide the downtime gap either).
-                if (e.Time - prev > 90f) pendingPhase = true;
+                // can't anchor, but they mustn't hide the downtime gap either). An
+                // imported log (deriveDowntime) treats a long silence as a phase
+                // seam; a live capture keeps the conservative 90s bar.
+                if (e.Time - prev > (deriveDowntime ? ImportSeamGap : 90f)) pendingPhase = true;
                 prev = e.Time;
                 if (!e.Anchorable) continue;
                 // Same ability again within ~two match windows: skip the anchor
@@ -2421,7 +2456,37 @@ public partial class SheetViewWindow : Window
             anchorCount = points.Count;
         }
 
-        if (addedRows == 0 && anchorCount == 0 && graded == 0)
+        // Downtime windows from the log's silences. A long stretch where nothing
+        // hostile casts is the boss being untargetable - a phase transition or a
+        // cutscene - which an official fight shows as its grey/green untargetable
+        // washes. Derive those gaps into the fight's own windows (no DPS gate is
+        // inferred; TargetHp stays -1), on the same clock as the rows and anchors so
+        // resync carries them too. A full kill covers the fight, so this replaces.
+        var downtimeCount = 0;
+        if (deriveDowntime && events.Count > 1)
+        {
+            var windows = new List<DowntimeWindow>();
+            for (var i = 1; i < events.Count; i++)
+            {
+                var gap = events[i].Time - events[i - 1].Time;
+                if (gap < ImportWindowGap) continue; // shorter lulls are just mechanic spacing
+                // The boss leaves a beat after its last cast and returns a beat
+                // before its next; trim a little off each end of the raw silence.
+                var start = MathF.Round(events[i - 1].Time + 3f);
+                var dur = MathF.Round(gap - 5f);
+                // A silence long enough to re-base the clock is also long enough to
+                // read as a cutscene (vs a brief untargetable transition).
+                windows.Add(new DowntimeWindow
+                    { Start = start, Duration = dur, TargetHp = -1f, Cutscene = gap >= ImportSeamGap });
+            }
+            if (windows.Count > 0)
+            {
+                _fight.CustomDowntimes = windows;
+                downtimeCount = windows.Count;
+            }
+        }
+
+        if (addedRows == 0 && anchorCount == 0 && graded == 0 && downtimeCount == 0)
         {
             PopUndo();
             Flash("Nothing new there (rows already covered, anchors unticked).");
@@ -2433,9 +2498,11 @@ public partial class SheetViewWindow : Window
         var gradeNote = graded > 0
             ? $" {graded} row(s) graded from the damage and where its players pressed their mits."
             : "";
+        var trimNote = filteredOut > 0 ? $" {filteredOut} filler cast(s) left off." : "";
+        var lullNote = downtimeCount > 0 ? $" {downtimeCount} untargetable window(s)." : "";
         Flash(noAnchorable
-            ? $"Built from {source}: {addedRows} new row(s).{gradeNote} No cast-bar casts found, so existing anchors were left untouched."
-            : $"Built from {source}: {addedRows} new row(s), {anchorCount} anchor(s).{gradeNote} "
+            ? $"Built from {source}: {addedRows} new row(s).{gradeNote}{lullNote}{trimNote} No cast-bar casts found, so existing anchors were left untouched."
+            : $"Built from {source}: {addedRows} new row(s), {anchorCount} anchor(s).{gradeNote}{lullNote}{trimNote} "
               + "Build again any time; anchors past this build's end are kept.");
     }
 
@@ -2454,6 +2521,7 @@ public partial class SheetViewWindow : Window
     private Dictionary<uint, FFLogsClient.AbilityDamage>? _flDamage;
     private List<FFLogsClient.MitPress>? _flMits;
     private int _flCastsForFight = -1;
+    private int _flAutoCastsFor = -1; // fight id we've already auto-kicked a cast load for
     private string _flIdBuf = "";
     private string _flSecretBuf = "";
     private FightProfile? _flForFight; // whose sheet the cached report state belongs to
@@ -2477,6 +2545,7 @@ public partial class SheetViewWindow : Window
             _flDamage = null;
             _flMits = null;
             _flCastsForFight = -1;
+            _flAutoCastsFor = -1;
             _flStatus = "";
             _flForFight = _fight;
         }
@@ -2538,28 +2607,54 @@ public partial class SheetViewWindow : Window
                 _flDamage = null;
                 _flMits = null;
                 _flCastsForFight = -1;
+                _flAutoCastsFor = -1; // let the new pick auto-load
             }
 
             var picked = fights[_flPick];
             if (_flCasts == null || _flCastsForFight != picked.Id)
             {
-                ImGui.BeginDisabled(_flBusy);
-                if (ImGui.Button("Load casts", new Vector2(120, 0))) FetchCasts(picked);
-                ImGui.EndDisabled();
+                // Seamless: load the picked fight's casts automatically (once), so
+                // the flow is just paste -> pick the kill -> Import. FetchCasts sets
+                // _flBusy synchronously, so this fires exactly once per selection; a
+                // failure leaves _flStatus set and offers an explicit retry.
+                if (!_flBusy && _flAutoCastsFor != picked.Id)
+                {
+                    _flAutoCastsFor = picked.Id;
+                    FetchCasts(picked);
+                }
+                if (_flBusy)
+                    ImGui.TextDisabled("Loading casts...");
+                else if (ImGui.Button("Reload casts", new Vector2(120, 0)))
+                    FetchCasts(picked);
             }
             else
             {
                 ImGui.TextUnformatted($"{_flCasts.Count} enemy casts loaded.");
                 ImGui.Checkbox("Add mechanic rows", ref _bpRows);
                 ImGui.Checkbox("Set resync anchors", ref _bpAnchors);
+                ImGui.BeginDisabled(!_bpRows);
+                ImGui.Checkbox("Only meaningful mechanics", ref _flMeaningful);
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Keep only casts that dealt damage or had a cast bar,\n"
+                        + "so the timeline reads like a built-in fight instead of\n"
+                        + "listing every filler cast. Anchors still use every cast.");
+                ImGui.EndDisabled();
+                // Untargetable windows come from the log's silences, not the rows, so
+                // they're available even when you only want anchors + downtime.
+                ImGui.Checkbox("Add untargetable windows", ref _flDowntime);
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Turn the log's downtime gaps (the boss goes away for a\n"
+                        + "transition or cutscene) into untargetable -> targetable rows,\n"
+                        + "the grey/green washes that count down on the board.");
                 ImGui.TextDisabled("Their kill's timings become this sheet's skeleton; anchors");
                 ImGui.TextDisabled("snap it to YOUR pulls live. Make sure the log is this duty.");
-                ImGui.BeginDisabled(!_bpRows && !_bpAnchors);
+                ImGui.BeginDisabled(!_bpRows && !_bpAnchors && !_flDowntime);
                 if (ImGui.Button("Import", new Vector2(120, 0)))
                 {
                     var events = SiftEvents(_flCasts.OrderBy(c => c.Time)
                         .Select(c => (c.AbilityId, c.Time, Anchorable: c.HasCastBar)));
-                    ApplyBuild(events, _bpRows, _bpAnchors, "the log", _flDamage, _flMits);
+                    ApplyBuild(events, _bpRows, _bpAnchors, "the log", _flDamage, _flMits,
+                        _bpRows && _flMeaningful, _flDowntime);
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.EndDisabled();
@@ -2578,6 +2673,7 @@ public partial class SheetViewWindow : Window
         _flFights = null;
         _flCasts = null;
         _flCastsForFight = -1;
+        _flAutoCastsFor = -1;     // a fresh report should auto-load its first fight
         _flPick = 0;              // reset on the draw thread: it also clamps this
         _flForFight = _fight;
         var (id, secret) = (C.FflogsClientId, C.FflogsClientSecret);
