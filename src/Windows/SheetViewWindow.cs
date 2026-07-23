@@ -1657,7 +1657,7 @@ public partial class SheetViewWindow : Window
         if (_fight.CustomRows.Count == 0)
         {
             ImGui.TextUnformatted("Want the mits planned for you? Add the mechanics first.");
-            ImGui.TextDisabled("Build > Add row (or Build from pull / Import FFLogs log) creates the");
+            ImGui.TextDisabled("Build > Add row (or Build from pull / Build from FFLogs) creates the");
             ImGui.TextDisabled("rows; then Build > Auto-plan mits fills every column with cooldowns");
             ImGui.TextDisabled("that line up: spaced to their recasts, spread across the party.");
             ImGui.Spacing();
@@ -1859,7 +1859,9 @@ public partial class SheetViewWindow : Window
             {
                 if (ImGui.MenuItem("Add row...")) openAddRow = true;
                 if (ImGui.MenuItem("Build from pull...")) openBuildPull = true;
-                if (ImGui.MenuItem("Import FFLogs log...")) openLog = true;
+                if (ImGui.MenuItem("Build from FFLogs...")) openLog = true;
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Type a fight name to pull its current top kill, or paste a specific\nlog. Its casts become rows + anchors, graded by real damage.");
                 ImGui.Separator();
                 if (ImGui.MenuItem("Auto-plan mits...")) _openAutoPlan = true;
                 if (ImGui.IsItemHovered())
@@ -2270,14 +2272,18 @@ public partial class SheetViewWindow : Window
         ApplyBuild(events, rows, anchors, "the last pull");
     }
 
-    // Resolve names from the game data; drop unnamed casts, auto-attacks, and
-    // back-to-back repeats of the same ability (double casts).
-    private static List<BuildEvent> SiftEvents(IEnumerable<(uint Id, float Time, bool Anchorable)> raw)
+    // Resolve names, drop unnamed casts, auto-attacks, and back-to-back repeats
+    // of the same ability (double casts). When a name map is supplied (an FFLogs
+    // import carries the report's own ability names), it's preferred over the
+    // local game sheet: it matches what FFLogs/cactbot show and, crucially, names
+    // ids the local Action sheet can't resolve so those mechanics aren't dropped.
+    private static List<BuildEvent> SiftEvents(IEnumerable<(uint Id, float Time, bool Anchorable)> raw,
+        IReadOnlyDictionary<uint, string>? names = null)
     {
         var events = new List<BuildEvent>();
         foreach (var (id, time, anchorable) in raw)
         {
-            var name = ActionName(id);
+            var name = names != null && names.TryGetValue(id, out var n) && n.Length > 0 ? n : ActionName(id);
             if (name.Length == 0) continue;
             if (string.Equals(name, "attack", StringComparison.OrdinalIgnoreCase)) continue;
             if (events.Count > 0 && events[^1].Id == id && time - events[^1].Time < 3f) continue;
@@ -2520,8 +2526,10 @@ public partial class SheetViewWindow : Window
     private List<FFLogsClient.LogCast>? _flCasts;
     private Dictionary<uint, FFLogsClient.AbilityDamage>? _flDamage;
     private List<FFLogsClient.MitPress>? _flMits;
+    private Dictionary<uint, string>? _flNames; // report's own ability names (#2)
     private int _flCastsForFight = -1;
     private int _flAutoCastsFor = -1; // fight id we've already auto-kicked a cast load for
+    private string _flFightName = ""; // "Build from FFLogs" by encounter name (#8)
     private string _flIdBuf = "";
     private string _flSecretBuf = "";
     private FightProfile? _flForFight; // whose sheet the cached report state belongs to
@@ -2534,7 +2542,7 @@ public partial class SheetViewWindow : Window
         if (!ImGui.BeginPopupModal("##fflogs", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
-        PopupHeader("Import an FFLogs report", 460f);
+        PopupHeader("Build from FFLogs", 460f);
 
         // Cached report state is per fight: duty A's casts must never sit one
         // click away from being imported into duty B's sheet.
@@ -2544,8 +2552,10 @@ public partial class SheetViewWindow : Window
             _flCasts = null;
             _flDamage = null;
             _flMits = null;
+            _flNames = null;
             _flCastsForFight = -1;
             _flAutoCastsFor = -1;
+            _flFightName = "";
             _flStatus = "";
             _flForFight = _fight;
         }
@@ -2575,6 +2585,19 @@ public partial class SheetViewWindow : Window
             return;
         }
 
+        // Fastest path to an official-quality skeleton (#8): type the FIGHT name
+        // and pull the current top-speed kill straight from the rankings - no log
+        // link to find. Downstream is identical to a pasted report.
+        ImGui.SetNextItemWidth(320f);
+        ImGui.InputTextWithHint("##flfightname", "fight name (e.g. Futures Rewritten) - pulls the top kill", ref _flFightName, 128);
+        ImGui.SameLine();
+        ImGui.BeginDisabled(_flBusy || _flFightName.Trim().Length == 0);
+        if (ImGui.SmallButton("Find top kill")) SearchEncounter();
+        ImGui.EndDisabled();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Looks up the encounter by name and loads its current #1 speed\nkill, ready to Import. The best starting point for an official sheet.");
+
+        ImGui.TextDisabled("or paste a specific log:");
         ImGui.SetNextItemWidth(320f);
         ImGui.InputTextWithHint("##flurl", "FFLogs report link (or code)", ref _flUrl, 256);
         ImGui.SameLine();
@@ -2606,6 +2629,7 @@ public partial class SheetViewWindow : Window
                 _flCasts = null; // picked a different fight: refetch its casts
                 _flDamage = null;
                 _flMits = null;
+                _flNames = null;
                 _flCastsForFight = -1;
                 _flAutoCastsFor = -1; // let the new pick auto-load
             }
@@ -2652,7 +2676,7 @@ public partial class SheetViewWindow : Window
                 if (ImGui.Button("Import", new Vector2(120, 0)))
                 {
                     var events = SiftEvents(_flCasts.OrderBy(c => c.Time)
-                        .Select(c => (c.AbilityId, c.Time, Anchorable: c.HasCastBar)));
+                        .Select(c => (c.AbilityId, c.Time, Anchorable: c.HasCastBar)), _flNames);
                     ApplyBuild(events, _bpRows, _bpAnchors, "the log", _flDamage, _flMits,
                         _bpRows && _flMeaningful, _flDowntime);
                     ImGui.CloseCurrentPopup();
@@ -2662,6 +2686,52 @@ public partial class SheetViewWindow : Window
         }
 
         ImGui.EndPopup();
+    }
+
+    // #8: resolve a fight NAME to its current top-speed kill, then drive the
+    // exact same pick -> load -> Import flow a pasted report uses. Sets _flUrl to
+    // the resolved report code and pre-selects the ranked fight so its casts
+    // auto-load.
+    private void SearchEncounter()
+    {
+        var name = _flFightName.Trim();
+        if (name.Length == 0) return;
+        _flBusy = true;
+        _flStatus = $"Finding the top kill for \"{name}\"...";
+        _flFights = null;
+        _flCasts = null;
+        _flDamage = null;
+        _flMits = null;
+        _flNames = null;
+        _flCastsForFight = -1;
+        _flAutoCastsFor = -1;
+        _flForFight = _fight;
+        var (id, secret) = (C.FflogsClientId, C.FflogsClientSecret);
+        System.Threading.Tasks.Task.Run(async () =>
+        {
+            try
+            {
+                var enc = await _plugin.FFLogs.FindEncounterAsync(id, secret, name);
+                if (enc == null) { _flStatus = $"No encounter matches \"{name}\"."; return; }
+                var top = await _plugin.FFLogs.GetTopKillAsync(id, secret, enc.Id, "speed");
+                if (top == null) { _flStatus = $"Found {enc.Name}, but it has no ranked kills yet."; return; }
+                var fights = await _plugin.FFLogs.GetFightsAsync(id, secret, top.Value.Code);
+                var idx = fights.FindIndex(f => f.Id == top.Value.FightId);
+                // Pre-select the ranked fight BEFORE publishing the list, so the
+                // draw thread auto-loads the right fight's casts on the next frame.
+                _flPick = idx >= 0 ? idx : 0;
+                _flUrl = top.Value.Code;
+                _flAutoCastsFor = -1;
+                _flFights = fights;
+                _flStatus = $"{enc.Name}: loaded the current top-speed kill ({fights.Count} fight(s) in that log).";
+            }
+            catch (Exception ex)
+            {
+                _flStatus = ex.Message;
+                Service.Log.Warning(ex, "FrenMits: FFLogs encounter search failed");
+            }
+            finally { _flBusy = false; }
+        });
     }
 
     private void FetchFights()
@@ -2714,9 +2784,15 @@ public partial class SheetViewWindow : Window
                 List<FFLogsClient.MitPress>? mits = null;
                 try { mits = await _plugin.FFLogs.GetMitCastsAsync(id, secret, code, fight); }
                 catch (Exception mex) { Service.Log.Warning(mex, "FrenMits: FFLogs mit-press fetch failed"); }
+                // The report's own ability names, so imported rows match FFLogs and
+                // ids the local sheet can't resolve still get a real name (#2).
+                Dictionary<uint, string>? names = null;
+                try { names = await _plugin.FFLogs.GetAbilityNamesAsync(id, secret, code); }
+                catch (Exception nex) { Service.Log.Warning(nex, "FrenMits: FFLogs ability-name fetch failed"); }
                 _flCasts = casts;
                 _flDamage = dmg;
                 _flMits = mits;
+                _flNames = names;
                 _flCastsForFight = fight.Id;
                 _flStatus = "";
             }

@@ -154,6 +154,82 @@ public sealed class FFLogsClient
         return casts;
     }
 
+    // The report's ability id -> display name map (from masterData), so imported
+    // enemy casts carry the SAME names FFLogs and cactbot show - including ids the
+    // local game Action sheet can't resolve (those used to be dropped). Best
+    // effort: on any failure the caller just falls back to the local sheet.
+    public async Task<Dictionary<uint, string>> GetAbilityNamesAsync(string clientId, string secret, string code)
+    {
+        const string q = @"query($code:String!){reportData{report(code:$code){
+            masterData{abilities{gameID name}}}}}";
+        var j = await QueryAsync(clientId, secret, q, new { code }).ConfigureAwait(false);
+        var abilities = j["data"]?["reportData"]?["report"]?["masterData"]?["abilities"] as JArray;
+        var map = new Dictionary<uint, string>();
+        if (abilities != null)
+            foreach (var a in abilities)
+            {
+                var rawId = a["gameID"]?.Value<long>() ?? 0;
+                if (rawId <= 0 || rawId > uint.MaxValue) continue;
+                var name = a["name"]?.ToString();
+                if (!string.IsNullOrWhiteSpace(name)) map[(uint)rawId] = name!.Trim();
+            }
+        return map;
+    }
+
+    public sealed record EncounterRef(int Id, string Name);
+
+    // Resolve a (partial) fight name to an encounter, so "Build from FFLogs" can
+    // start from a name with no log link. An exact case-insensitive match wins;
+    // otherwise the SHORTEST name that contains the query, so "ucob" lands on the
+    // real zone rather than a longer coincidental match.
+    public async Task<EncounterRef?> FindEncounterAsync(string clientId, string secret, string name)
+    {
+        var needle = (name ?? "").Trim();
+        if (needle.Length == 0) return null;
+        const string q = @"{worldData{expansions{zones{encounters{id name}}}}}";
+        var j = await QueryAsync(clientId, secret, q, new { }).ConfigureAwait(false);
+        EncounterRef? exact = null, contains = null;
+        foreach (var exp in j["data"]?["worldData"]?["expansions"] as JArray ?? new JArray())
+            foreach (var z in exp["zones"] as JArray ?? new JArray())
+                foreach (var e in z["encounters"] as JArray ?? new JArray())
+                {
+                    var en = e["name"]?.ToString() ?? "";
+                    var id = e["id"]?.Value<int>() ?? 0;
+                    if (id == 0 || en.Length == 0) continue;
+                    if (string.Equals(en, needle, StringComparison.OrdinalIgnoreCase))
+                        exact = new EncounterRef(id, en);
+                    else if (en.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0
+                             && (contains == null || en.Length < contains.Name.Length))
+                        contains = new EncounterRef(id, en);
+                }
+        return exact ?? contains;
+    }
+
+    // The current top-ranked kill for an encounter: its report code + fight id, so
+    // the importer can pull it exactly like a pasted log. metric "speed" = fastest
+    // clean kill (the usual reference pull), "execution" = cleanest.
+    public async Task<(string Code, int FightId)?> GetTopKillAsync(string clientId, string secret, int encounterId, string metric)
+    {
+        // Inlined from a fixed allow-list (never user text), so the fightRankings
+        // enum needn't be declared as a GraphQL variable.
+        var m = metric == "execution" ? "execution" : "speed";
+        var q = @"query($e:Int!){worldData{encounter(id:$e){fightRankings(metric:" + m + @",page:1)}}}";
+        var j = await QueryAsync(clientId, secret, q, new { e = encounterId }).ConfigureAwait(false);
+        var fr = j["data"]?["worldData"]?["encounter"]?["fightRankings"];
+        if (fr == null || fr.Type == JTokenType.Null) return null;
+        // fightRankings comes back as a JSON string on this field; parse if so.
+        var parsed = fr.Type == JTokenType.String ? JToken.Parse(fr.ToString()) : fr;
+        if (parsed["rankings"] is not JArray rankings) return null;
+        foreach (var r in rankings)
+        {
+            var rep = r["report"];
+            var repCode = rep?["code"]?.ToString();
+            var fid = rep?["fightID"]?.Value<int>() ?? 0;
+            if (!string.IsNullOrEmpty(repCode) && fid > 0) return (repCode!, fid);
+        }
+        return null;
+    }
+
     // Per enemy ability: the hardest single hit it landed on anyone
     // (unmitigatedAmount = what it would do with NO mitigation up) and how many
     // DISTINCT players it ever hit. The pair is what Auto-plan grades rows

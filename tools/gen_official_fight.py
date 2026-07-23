@@ -3,10 +3,11 @@
 FrenMits official-fight generator (dev-only; NOT shipped in the plugin DLL).
 
 Turns a finished in-game sheet into a built-in fight WITH its Auto-planned mit
-sheet baked into every column. The intended flow (Option 2 of the official-fight
-pipeline) is:
+sheet baked into every column. The intended flow (the last step of the
+official-fight pipeline - see tools/OFFICIAL_FIGHT.md) is:
 
-    import an FFLogs kill  ->  Auto-plan  ->  tweak in-game  ->  run this
+    Build from FFLogs  ->  Auto-plan  ->  tweak in-game  ->  verify_fight_logs
+    ->  pro_plan_crosscheck (pre-ship check)  ->  run this
 
 It reads a saved FightProfile (from FrenMits.json, or a single-profile JSON) and
 emits:
