@@ -2565,8 +2565,8 @@ public partial class SheetViewWindow : Window
         if (C.FflogsClientId.Length == 0 || C.FflogsClientSecret.Length == 0)
         {
             ImGui.TextDisabled("One-time setup (about two minutes)");
-            ImGui.TextWrapped("FFLogs' API needs a personal client. Create one (any name, no redirect "
-                + "URL needed), then paste its id and secret here. They stay on this PC.");
+            ImGui.TextWrapped("FFLogs' API needs a personal client. Create one (name it \"FrenMits\", no "
+                + "redirect URL needed), then paste its id and secret here. They stay on this PC.");
             if (ImGui.SmallButton("Open fflogs.com/api/clients"))
                 Dalamud.Utility.Util.OpenLink("https://www.fflogs.com/api/clients");
             ImGui.SetNextItemWidth(300f);
@@ -2684,6 +2684,10 @@ public partial class SheetViewWindow : Window
                 ImGui.EndDisabled();
             }
         }
+
+        // Attribution (FFLogs API terms): credit the data source, no endorsement implied.
+        ImGui.Separator();
+        ImGui.TextDisabled("Data from the FFLogs API. FrenMits is not affiliated with or endorsed by FFLogs.");
 
         ImGui.EndPopup();
     }
