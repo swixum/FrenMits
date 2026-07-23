@@ -22,15 +22,18 @@ public static class Positions
         _ => None,
     };
 
-    // Dancing Mad - Kefka's "return to middle" casts (cactbot C3FD --middle--). The
-    // three P1 times convert 1:1; the P4 and P4->P5 ones are anchored to the sheet's
-    // P4/P5 mechanics (Death Bolt ~815, P5 resume ~911), so they're best estimates.
+    // Dancing Mad - Kefka's "return to middle" casts (C3FD). There are exactly FIVE
+    // in a clear, and these times are the median of the C3FD cast across six top
+    // FFLogs kills - fight-relative seconds, which IS this pull clock, so no
+    // conversion. The last two were previously mis-estimated (816/908); the real
+    // ones are 739 (early P4, just after Kefka returns at 725) and 851 (mid-P4, just
+    // before the P4->P5 lull). There is NO return-to-middle in P5, so P5 shows none.
     private static readonly Spot[] Dmu =
     {
         new(25,  "Middle"),
-        new(76,  "Middle"),
-        new(180, "Middle"),
-        new(816, "Middle"),
-        new(908, "Middle"),
+        new(77,  "Middle"),
+        new(181, "Middle"),
+        new(739, "Middle"),
+        new(851, "Middle"),
     };
 }

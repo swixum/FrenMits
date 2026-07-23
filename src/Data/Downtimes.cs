@@ -60,25 +60,19 @@ public static class Downtimes
         return result;
     }
 
-    // Dancing Mad (UMAD). Gate %s from the fight's design: P1 push to 15%, P2 to
-    // 0%, P3 to 0% on both bosses, P4 to 25%, P5 is the hard enrage (not a lull, so
-    // it isn't listed). Untargetable/targetable TIMES are cross-referenced from the
-    // cactbot dancing_mad timeline: each cactbot marker is anchored to the nearest
-    // sheet mechanic by ability id and converted onto this (pull-relative) clock,
-    // since cactbot's own times are forcejump-inflated in the later phases (P3 ~+113s,
-    // P4/P5 ~+249s) and can't be used directly.
-    //   P1->P2  cactbot 197.3 untarget / 207.6 target  (anchor Mystery Magic BA94)
-    //   P2->P3  cactbot 380.1 untarget / 540.3 target   (anchor Ultimate Embrace C24C, Bowels BAF2)
-    //   P3->P4  cactbot 840.8 untarget / Kefka Says C2DC (anchor Stomp-a-Mole BAF0)
-    //   P4->P5  cactbot 1112.8 untarget / Ultima Repeater BB40 (anchor Ultima Upsurge C24A)
+    // Dancing Mad (UMAD). Gate %s are the fight's design (P1 push to 15%, P2 to 0%,
+    // P4 to 25%; P5 is the hard enrage, not a lull). The untargetable/targetable
+    // TIMES are the median across six top FFLogs kills: "targetable" is the exact
+    // phase-transition start FFLogs records, and "untargetable" is where damage to
+    // the boss stops - the two cross-validate to ~1s. Fight-relative seconds ARE
+    // this pull clock, so no conversion. The P3 -> P4 transition is NOT listed: the
+    // boss only goes away for ~5s there (720 -> 725), too brief to be a real lull,
+    // so a bar would just be noise.
     private static readonly List<DowntimeWindow> Dmu = new()
     {
-        new() { Start = 198, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 transition
-        new() { Start = 381, Duration = 46, TargetHp = 0.00f, Cutscene = true }, // P2 -> P3 cutscene
-        new() { Start = 728, Duration = 17, TargetHp = 0.00f }, // P3 -> P4 transition
-        // cactbot marks this untargetable "?" and the final Ultima Upsurge straddles
-        // it, so the time is a best estimate - Learn refines it from live pulls.
-        new() { Start = 876, Duration = 31, TargetHp = 0.25f, Learn = true }, // P4 -> P5 transition
+        new() { Start = 199, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 (targetable 209)
+        new() { Start = 383, Duration = 46, TargetHp = 0.00f, Cutscene = true }, // P2 -> P3 cutscene (targetable 429)
+        new() { Start = 857, Duration = 31, TargetHp = 0.25f }, // P4 -> P5 (targetable 888)
     };
 
     // Futures Rewritten (FRU). FRU has no forcejumps, so its FruData sheet clock is
