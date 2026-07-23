@@ -91,9 +91,12 @@ public partial class ConfigWindow : Window, IDisposable
         return Builtin.Has(f.TerritoryId) ? Builtin.Category(f.TerritoryId) : "Extreme";
     }
 
-    // Import state.
+    // Import state; the buffer + parsed grid are scratch loaded per fight from
+    // the maps below, since two fight headers can be open at once.
     private string _importBuffer = "";
     private List<string[]>? _importGrid;
+    private readonly Dictionary<string, string> _importBufs = new();
+    private readonly Dictionary<string, List<string[]>?> _importGrids = new();
     private char _importDelimiter = '\t';
     private int _timeCol, _mechCol = 1, _actionCol = 2;
     private bool _importHeader = true;
@@ -1496,6 +1499,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     private int _pracRowIdx;
+    private readonly Dictionary<string, int> _pracRowIdxs = new(); // per fight; headers can co-exist
 
     // Practice, contextual: one row of phase-jump buttons inside the fight it
     // belongs to (the old Practice page, dissolved), with custom sheets (having no
@@ -1510,11 +1514,12 @@ public partial class ConfigWindow : Window, IDisposable
             ImGui.AlignTextToFramePadding();
             ImGui.TextDisabled("Practice:");
             Tip("Jump the overlay to a row to preview and place its calls; no pull needed.\nPicking a row turns on Test Mode; Stop (or a real pull) ends it.");
-            _pracRowIdx = Math.Clamp(_pracRowIdx, 0, rows.Count - 1);
+            _pracRowIdx = Math.Clamp(_pracRowIdxs.GetValueOrDefault(fight.Id), 0, rows.Count - 1);
             var labels = rows.Select(r => $"{Mmss(r.Time)}  {r.Mechanic}").ToArray();
             ImGui.SameLine(0, 6);
             ImGui.SetNextItemWidth(240f);
             ImGui.Combo("##pracrow", ref _pracRowIdx, labels, labels.Length);
+            _pracRowIdxs[fight.Id] = _pracRowIdx;
             ImGui.SameLine(0, 4);
             if (ImGui.SmallButton("Go##pracrow")) _plugin.PracticeJump(fight, rows[_pracRowIdx].Time);
             if (Plugin.PreviewFight == fight && C.TestMode)
@@ -2192,11 +2197,17 @@ public partial class ConfigWindow : Window, IDisposable
                           + "Pick which columns hold the time, mechanic, and the action you press. "
                           + "Rows without a readable time (headers, blanks) are skipped.");
 
-        ImGui.InputTextMultiline("##importbuf", ref _importBuffer, 65536, new Vector2(-1, 120));
+        // Load this fight's own scratch so pasting into one open header can't be
+        // applied to another (they'd share the fields otherwise).
+        _importBuffer = _importBufs.GetValueOrDefault(fight.Id, "");
+        _importGrid = _importGrids.GetValueOrDefault(fight.Id);
 
-        if (ImGui.Button("Parse")) _importGrid = SheetImport.ParseGrid(_importBuffer, out _importDelimiter);
+        ImGui.InputTextMultiline("##importbuf", ref _importBuffer, 65536, new Vector2(-1, 120));
+        _importBufs[fight.Id] = _importBuffer;
+
+        if (ImGui.Button("Parse")) _importGrids[fight.Id] = _importGrid = SheetImport.ParseGrid(_importBuffer, out _importDelimiter);
         ImGui.SameLine();
-        if (ImGui.Button("Clear")) { _importBuffer = ""; _importGrid = null; }
+        if (ImGui.Button("Clear")) { _importBufs[fight.Id] = _importBuffer = ""; _importGrids[fight.Id] = _importGrid = null; }
 
         if (_importGrid == null || _importGrid.Count == 0) return;
 
