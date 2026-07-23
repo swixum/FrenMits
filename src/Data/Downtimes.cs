@@ -6,15 +6,12 @@ namespace FrenMits;
 
 // ATTRIBUTION: the untargetable/targetable window times below are adapted from the
 // cactbot project's timeline files (github.com/OverlayPlugin/cactbot, Apache License
-// 2.0, Copyright the cactbot authors). Each cactbot marker was anchored to a fight
-// mechanic by ability id and converted onto FrenMits' compressed sheet clock; the
-// gate %s are FrenMits' own. Thanks to the cactbot authors.
+// 2.0, Copyright the cactbot authors), anchored to fight mechanics and converted
+// onto FrenMits' compressed sheet clock.
 //
-// Hardcoded downtime / DPS-gate knowledge per fight - the plugin now KNOWS where a
+// Hardcoded downtime / DPS-gate knowledge per fight - the plugin KNOWS where a
 // boss goes untargetable and what HP it must be pushed below by then, instead of
-// learning it off pulls. Each window is on the FrenMits pull clock (the same axis
-// the baked sheet uses), so its Untargetable / Targetable rows line up with the
-// timeline through the clock's resync anchors.
+// learning it off pulls.
 //
 //  Start     - seconds from pull when the boss goes untargetable
 //  Duration  - how long the lull lasts (Targetable = Start + Duration)
@@ -38,8 +35,7 @@ public static class Downtimes
 
     // The hardcoded windows with any learnable ones (Learn=true, where cactbot
     // couldn't pin the time) refined by a measured Start/Duration recorded from a
-    // pull. A learned entry within 25s of the hardcoded Start replaces its TIME;
-    // the gate % is always the hardcoded design value. Everything else is verbatim.
+    // pull.
     public static List<DowntimeWindow> Effective(uint territory, Dictionary<string, List<DowntimeWindow>>? learned)
     {
         var baseWins = For(territory);
@@ -60,14 +56,9 @@ public static class Downtimes
         return result;
     }
 
-    // Dancing Mad (UMAD). Gate %s are the fight's design (P1 push to 15%, P2 to 0%,
-    // P4 to 25%; P5 is the hard enrage, not a lull). The untargetable/targetable
-    // TIMES are the median across six top FFLogs kills: "targetable" is the exact
-    // phase-transition start FFLogs records, and "untargetable" is where damage to
-    // the boss stops - the two cross-validate to ~1s. Fight-relative seconds ARE
-    // this pull clock, so no conversion. The P3 -> P4 transition is NOT listed: the
-    // boss only goes away for ~5s there (720 -> 725), too brief to be a real lull,
-    // so a bar would just be noise.
+    // Dancing Mad (UMAD); the untargetable/targetable TIMES are the median across
+    // six top logs kills, and the gate %s are the fight's design (P1 15%, P2 0%,
+    // P4 25%).
     private static readonly List<DowntimeWindow> Dmu = new()
     {
         new() { Start = 199, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 (targetable 209)
@@ -75,19 +66,9 @@ public static class Downtimes
         new() { Start = 857, Duration = 31, TargetHp = 0.25f }, // P4 -> P5 (targetable 888)
     };
 
-    // Futures Rewritten (FRU). These times are on the SHEET clock (what the resync
-    // anchors align the board to), NOT real time - and that clock is FORCEJUMP-
-    // INFLATED, not the "~1:1" an earlier note claimed. Measured across 8 FFLogs
-    // kills, the sheet runs ~+50 ahead by early P2, ~+87 by Junction (P2->P3), and
-    // ~+190 by P5, and the drift varies with kill speed (so windows are placed by
-    // anchoring to nearby sheet mechanics, not a fixed offset).
-    // P1/P2 windows are log-verified (converted through the sheet's own anchor casts
-    // across all 8 kills). The P3/P4 stretch is deliberately bare: the logs show the
-    // boss STAYS targetable through Crystallize Time (damage is continuous, only two
-    // ~8s flickers), so the old 50s "Crystallize" lull was wrong, and the P3->P4
-    // Memory's End gap is a sub-6s flicker (dropped like DMU's). That leaves Pandora
-    // as the only real cutscene here (the one window where players also go idle).
-    // All Learn=true (self-correct live). No gate %s.
+    // Futures Rewritten (FRU); these times are on the SHEET clock (forcejump-
+    // inflated, not real time), so windows are placed by anchoring to nearby sheet
+    // mechanics rather than a fixed offset.
     private static readonly List<DowntimeWindow> Fru = new()
     {
         new() { Start = 35,  Duration = 45,  Learn = true }, // P1 Utopian Sky intermission
@@ -100,17 +81,11 @@ public static class Downtimes
 
     // The five older ultimates share the same story: their Ikuya sheet clock is
     // compressed vs the cactbot timeline (nonlinearly, per phase), so each window
-    // was converted by anchoring the cactbot untargetable/targetable marker to the
-    // nearest same-phase sheet mechanic (matched by ability id) and subtracting that
-    // phase's offset. No gate %s (no DPS-check skull); all Learn=true so the exact
-    // times self-correct from pulls. Sub-5s mechanic flickers and unmappable phase
-    // seams were dropped. Times are seconds from pull on the sheet clock.
+    // was converted by anchoring the cactbot marker to the nearest same-phase sheet
+    // mechanic and subtracting that phase's offset.
 
-    // Unending Coil (UCOB). Every window log-verified across two independent 6-kill
-    // sets, converted onto the sheet clock through the fight's own anchor casts. The
-    // P3 Bahamut Prime trios were already right; the P2->P3 seam (was 236/54) and the
-    // P4->P5 seam (was 795/16) were the estimates that needed the fix. The two 5s Nael
-    // divebomb flickers are dropped (too brief). All Learn=true.
+    // Unending Coil (UCOB); every window log-verified across two independent 6-kill
+    // sets, converted onto the sheet clock through the fight's own anchor casts.
     private static readonly List<DowntimeWindow> Ucob = new()
     {
         new() { Start = 135, Duration = 24, Learn = true }, // P1 -> P2 Nael entrance
@@ -124,11 +99,7 @@ public static class Downtimes
         new() { Start = 724, Duration = 58, Learn = true }, // P4 -> P5 Golden Bahamut
     };
 
-    // Weapon's Refrain (UWU). Log-verified across two independent 6-kill sets. The
-    // primal-swap transitions (P1->P2 at 135, P3->P4 at 380) are real ~12s lulls, not
-    // "near-instant", so they're added back. The old 429 "Ultima cinematic" is NOT a
-    // cutscene - players cast all through it (Ultima is a raidwide you mit), so the
-    // flag is dropped. All Learn=true.
+    // Weapon's Refrain (UWU); log-verified across two independent 6-kill sets.
     private static readonly List<DowntimeWindow> Uwu = new()
     {
         new() { Start = 135, Duration = 13, Learn = true }, // P1 -> P2 (Garuda -> Ifrit)
@@ -141,11 +112,9 @@ public static class Downtimes
         new() { Start = 642, Duration = 19, Learn = true }, // P5 Ultimate Suppression
     };
 
-    // Epic of Alexander (TEA). Log-verified across two independent 6-kill sets. Fixed
-    // the P2->P3 Temporal Stasis (was 59s, really ~22s), split out the P3 Judgment/
-    // Super Jump lull that was missing, and re-placed the Down-for-the-Count seam. Its
-    // clock has big per-phase jumps (+82/+188/+234), so the seams that straddle a jump
-    // are best estimates; all Learn=true so they self-correct.
+    // Epic of Alexander (TEA); log-verified across two independent 6-kill sets, with
+    // big per-phase clock jumps (+82/+188/+234) so seams straddling a jump are best
+    // estimates.
     private static readonly List<DowntimeWindow> Tea = new()
     {
         new() { Start = 114, Duration = 32, Learn = true }, // P1 -> P2 Living Liquid -> BJCC
@@ -158,11 +127,9 @@ public static class Downtimes
         new() { Start = 839, Duration = 27, Learn = true }, // P4 Fate Calibration Beta
     };
 
-    // Dragonsong's Reprise (DSR). A 7-phase nonlinear clock - now log-verified across
-    // two independent 6-kill sets, which filled in the many seams the old data missed
-    // (Nidhogg, the Eyes intermission in/out, the P5 seams) and fixed two mistimed
-    // ones (old 386/52 and 638/32). The P6/P7 dragon phase is a run of brief merged
-    // flickers with no stable single window, so it's left off. All Learn=true.
+    // Dragonsong's Reprise (DSR); a 7-phase nonlinear clock, log-verified across two
+    // independent 6-kill sets (the P6/P7 dragon phase is left off as a run of brief
+    // merged flickers with no stable single window).
     private static readonly List<DowntimeWindow> Dsr = new()
     {
         new() { Start = 33,  Duration = 31, Learn = true }, // P2 Strength of the Ward adds
@@ -176,10 +143,8 @@ public static class Downtimes
         new() { Start = 622, Duration = 12, Learn = true }, // P5 -> P6 Wyrmsbreath
     };
 
-    // The Omega Protocol (TOP). Log-verified across two independent 6-kill sets; the
-    // clock is nearly 1:1 so it converts cleanly. Fixed the P2->P3 (was 271/23) and
-    // the interpolated P4->P5 (was 478/38, really ~500/17), and confirmed Alpha Omega
-    // is a true cutscene (zero player casts in all 12 kills). All Learn=true.
+    // The Omega Protocol (TOP); log-verified across two independent 6-kill sets, and
+    // the clock is nearly 1:1 so it converts cleanly.
     private static readonly List<DowntimeWindow> Top = new()
     {
         new() { Start = 158, Duration = 29, Learn = true }, // P1 -> P2 Party Synergy (M/F appear)

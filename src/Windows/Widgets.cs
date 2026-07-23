@@ -5,13 +5,13 @@ namespace FrenMits.Windows;
 
 // Small reusable UI pieces shared across the plugin's windows, so every window
 // draws the same section headers, stat chips and accent buttons instead of each
-// re-deriving them. All colors route through Theme (named roles + V()).
+// re-deriving them.
 internal static class Widgets
 {
     private const uint CardBorder = 0xFF2F2724; // #24272F soft panel outline
 
     // Accent-bar section header: a short accent tab, then a muted upper-case
-    // label. Matches the config window's section rhythm.
+    // label.
     public static void SectionHeader(string text)
     {
         ImGui.Dummy(new Vector2(0, 4));
@@ -24,8 +24,7 @@ internal static class Widgets
         ImGui.Spacing();
     }
 
-    // Small stat pill: grey label, colored value, in a rounded panel. Advances
-    // the cursor by its own size so callers can SameLine a row of them.
+    // Small stat pill: grey label, colored value, in a rounded panel.
     public static void Chip(string label, string value, uint valueColor)
     {
         var pad = new Vector2(8, 3);
@@ -42,10 +41,7 @@ internal static class Widgets
     }
 
     // Clickable variant of Chip: same pill, but hit-tested, with a hover glow and
-    // an "open" state that stays lit while its detail panel is showing. The value
-    // color doubles as the accent (a red deaths chip lights red), so it reads as a
-    // toggle without extra chrome. Returns true on click; the InvisibleButton is
-    // the last item, so callers can IsItemHovered() for a tooltip afterwards.
+    // an "open" state that stays lit while its detail panel is showing.
     public static bool ChipButton(string label, string value, uint valueColor, bool open)
     {
         var pad = new Vector2(8, 3);
@@ -69,7 +65,7 @@ internal static class Widgets
     }
 
     // Accent-filled button (white label), for the one primary action in a
-    // window. Returns true on click, like ImGui.Button.
+    // window.
     public static bool AccentButton(string label, Vector2 size = default)
     {
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);

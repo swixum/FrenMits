@@ -8,7 +8,7 @@ using Dalamud.Interface.Textures;
 namespace FrenMits;
 
 // Resolves action names to game icon ids (built once from the Action sheet) and
-// draws those icons. Lines may pin an explicit icon; otherwise the icon is
+// draws those icons; a line may pin an explicit icon, otherwise the icon is
 // inferred from the action text.
 public static class Icons
 {
@@ -21,8 +21,6 @@ public static class Icons
 
     // A "bucket" of friendly mechanic shorthand -> a game action/status name we
     // resolve to an icon at runtime (no hard-coded ids, so it survives patches).
-    // Typing e.g. "Bait" on a line auto-fills the matching icon; the picker also
-    // lists these as a quick palette. Extend freely.
     private static readonly Dictionary<string, string> KeywordNames = new(StringComparer.OrdinalIgnoreCase)
     {
         // Debuffs (Status sheet)
@@ -134,8 +132,8 @@ public static class Icons
     }
 
     // A keyword-bucket match: a whole word equal to a single-word keyword, or the
-    // text containing a multi-word keyword. Word-level so short keys ("kb") don't
-    // false-match inside longer words.
+    // text containing a multi-word keyword (word-level so short keys like "kb"
+    // don't false-match inside longer words).
     private static uint KeywordIcon(string text)
     {
         EnsureKeywords();
@@ -189,8 +187,8 @@ public static class Icons
         return ResolveFromText(action);
     }
 
-    // Generic mit terms -> the per-job ability whose icon to show. Lets a single
-    // "Party Mit" line render the right party-mitigation icon for whoever's looking.
+    // Generic mit terms -> the per-job ability whose icon to show, so a single
+    // "Party Mit" line renders the right party-mitigation icon for whoever's looking.
     private static readonly Dictionary<string, Dictionary<string, string>> JobMits =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -224,7 +222,7 @@ public static class Icons
 
     // The active job's ability for a generic mit term in the action, honoring an
     // optional job qualifier like "Party Mit (WAR/PLD)": resolves only when the job
-    // has no qualifier or is named in it. Null if it doesn't apply.
+    // has no qualifier or is named in it.
     private static string? ResolveMitAbility(string? action, string? job)
     {
         if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return null;
@@ -263,7 +261,7 @@ public static class Icons
     }
 
     // A potion line (from the Potions section): action "Potion", or a "Potion (…)"
-    // mechanic. These have no player-action icon, so they get the item icon instead.
+    // mechanic, which has no player-action icon so it gets the item icon instead.
     public static bool IsPotion(MitLine line)
         => line.Action.Trim().Equals("Potion", StringComparison.OrdinalIgnoreCase)
            || line.Mechanic.StartsWith("Potion", StringComparison.OrdinalIgnoreCase);
@@ -277,11 +275,11 @@ public static class Icons
     }
 
     // The stat-coloured Gemdraught icon for a line (Strength/Dexterity/Intelligence/
-    // Mind). Public so the icon picker can pin the right one.
+    // Mind), public so the icon picker can pin the right one.
     public static uint PotionIconFor(MitLine line) => PotionIcon(PotionStat(line));
 
-    // Icon for a stat's Gemdraught, resolved from the Item sheet and cached per stat.
-    // Falls back to any Gemdraught, then 0 (e.g. a non-English client) — caller draws none.
+    // Icon for a stat's Gemdraught, resolved from the Item sheet and cached per stat,
+    // falling back to any Gemdraught then 0 (e.g. a non-English client) so the caller draws none.
     private static readonly Dictionary<string, uint> _potionIconByStat = new(StringComparer.OrdinalIgnoreCase);
     public static uint PotionIcon(string? stat = null)
     {
@@ -323,7 +321,7 @@ public static class Icons
         EnsureBuilt();
 
         // Priority: exact action > exact status > keyword bucket > action substring
-        // > status substring. Exact matches first keeps every existing line's icon;
+        // > status substring, so exact matches keep every existing line's icon and
         // keywords/statuses only fill in where nothing matched before.
         var t = text.Trim();
         uint icon = 0;
@@ -372,9 +370,8 @@ public static class Icons
         }
     }
 
-    // A clickable icon (image button). Returns true when clicked. Falls back to an
-    // empty same-size button for ids with no icon. PushID keeps each unique even
-    // when the texture (and thus ImGui's derived id) repeats.
+    // A clickable icon (image button) that returns true when clicked, falling back
+    // to an empty same-size button for ids with no icon.
     public static bool Button(uint iconId, Vector2 size, string id)
     {
         ImGui.PushID(id);

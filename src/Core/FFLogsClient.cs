@@ -9,11 +9,8 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Minimal FFLogs v2 (GraphQL) client for Sheet View's "Import log": list a
-// report's fights, then pull the enemies' cast events for one fight. Uses the
-// standard client-credentials flow with an API client the user creates once at
-// fflogs.com/api/clients. Everything is async; callers marshal results back by
-// assigning immutable lists that the draw thread reads.
+// Minimal logs v2 (GraphQL) client for Sheet View's "Import log": list a
+// report's fights, then pull the enemies' cast events for one fight.
 public sealed class FFLogsClient
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
@@ -108,8 +105,7 @@ public sealed class FFLogsClient
         return list.OrderByDescending(f => f.Kill).ThenBy(f => f.Id).ToList();
     }
 
-    // Every enemy cast of one fight, fight-relative seconds. "begincast" events
-    // mark which abilities have cast bars; "cast" events give the resolve times.
+    // Every enemy cast of one fight, fight-relative seconds.
     public async Task<List<LogCast>> GetCastsAsync(string clientId, string secret, string code, FightInfo fight)
     {
         const string q = @"query($code:String!,$fid:Int!,$start:Float!,$end:Float!){reportData{report(code:$code){
@@ -125,11 +121,11 @@ public sealed class FFLogsClient
             var j = await QueryAsync(clientId, secret, q,
                 new { code, fid = fight.Id, start, end = fight.EndMs }).ConfigureAwait(false);
             var ev = j["data"]?["reportData"]?["report"]?["events"];
-            if (ev?["data"] is not JArray data) break;
+            if (ev?["data"] is not JArray data) { more = false; break; }
 
             foreach (var e in data)
             {
-                // Read wide then range-check: FFLogs can emit odd/negative ids
+                // Read wide then range-check: logs can emit odd/negative ids
                 // for special rows, and one of those must not abort the import.
                 var rawId = e["abilityGameID"]?.Value<long>() ?? 0;
                 if (rawId <= 0 || rawId > uint.MaxValue) continue;
@@ -155,9 +151,8 @@ public sealed class FFLogsClient
     }
 
     // The report's ability id -> display name map (from masterData), so imported
-    // enemy casts carry the SAME names FFLogs and cactbot show - including ids the
-    // local game Action sheet can't resolve (those used to be dropped). Best
-    // effort: on any failure the caller just falls back to the local sheet.
+    // enemy casts carry the SAME names logs and cactbot show - including ids the
+    // local game Action sheet can't resolve.
     public async Task<Dictionary<uint, string>> GetAbilityNamesAsync(string clientId, string secret, string code)
     {
         const string q = @"query($code:String!){reportData{report(code:$code){
@@ -179,9 +174,7 @@ public sealed class FFLogsClient
     public sealed record EncounterRef(int Id, string Name);
 
     // Resolve a (partial) fight name to an encounter, so "Build from FFLogs" can
-    // start from a name with no log link. An exact case-insensitive match wins;
-    // otherwise the SHORTEST name that contains the query, so "ucob" lands on the
-    // real zone rather than a longer coincidental match.
+    // start from a name with no log link.
     public async Task<EncounterRef?> FindEncounterAsync(string clientId, string secret, string name)
     {
         var needle = (name ?? "").Trim();
@@ -206,8 +199,7 @@ public sealed class FFLogsClient
     }
 
     // The current top-ranked kill for an encounter: its report code + fight id, so
-    // the importer can pull it exactly like a pasted log. metric "speed" = fastest
-    // clean kill (the usual reference pull), "execution" = cleanest.
+    // the importer can pull it exactly like a pasted log.
     public async Task<(string Code, int FightId)?> GetTopKillAsync(string clientId, string secret, int encounterId, string metric)
     {
         // Inlined from a fixed allow-list (never user text), so the fightRankings
@@ -219,7 +211,9 @@ public sealed class FFLogsClient
         if (fr == null || fr.Type == JTokenType.Null) return null;
         // fightRankings comes back as a JSON string on this field; parse if so.
         var parsed = fr.Type == JTokenType.String ? JToken.Parse(fr.ToString()) : fr;
-        if (parsed["rankings"] is not JArray rankings) return null;
+        // Index only an object: a bare scalar's string indexer throws instead of
+        // returning null, which would bypass the graceful no-kills path.
+        if (parsed is not JObject obj || obj["rankings"] is not JArray rankings) return null;
         foreach (var r in rankings)
         {
             var rep = r["report"];
@@ -232,10 +226,7 @@ public sealed class FFLogsClient
 
     // Per enemy ability: the hardest single hit it landed on anyone
     // (unmitigatedAmount = what it would do with NO mitigation up) and how many
-    // DISTINCT players it ever hit. The pair is what Auto-plan grades rows
-    // with: the amount says how hard, the target count separates raidwides
-    // (hit everyone; party mits) from busters (hit a tank or two; not a
-    // stack-the-party moment).
+    // DISTINCT players it ever hit.
     public sealed record AbilityDamage(long Worst, int Targets);
 
     public async Task<Dictionary<uint, AbilityDamage>> GetDamageAsync(string clientId, string secret, string code, FightInfo fight)
@@ -253,7 +244,7 @@ public sealed class FFLogsClient
             var j = await QueryAsync(clientId, secret, q,
                 new { code, fid = fight.Id, start, end = fight.EndMs }).ConfigureAwait(false);
             var ev = j["data"]?["reportData"]?["report"]?["events"];
-            if (ev?["data"] is not JArray data) break;
+            if (ev?["data"] is not JArray data) { more = false; break; }
 
             foreach (var e in data)
             {
@@ -278,9 +269,7 @@ public sealed class FFLogsClient
     }
 
     // The PLAYERS' mitigation presses: when the log's party actually hit their
-    // defensive buttons. Auto-plan infers from these (a stacked moment is a
-    // real hit, tank-personal clusters mean a buster) without copying their
-    // timings. Server-side filtered to mit names only, so the volume stays tiny.
+    // defensive buttons.
     public sealed record MitPress(uint AbilityId, float Time);
 
     private static readonly string[] MitNames =
@@ -316,7 +305,7 @@ public sealed class FFLogsClient
             var j = await QueryAsync(clientId, secret, q,
                 new { code, fid = fight.Id, start, end = fight.EndMs, filter }).ConfigureAwait(false);
             var ev = j["data"]?["reportData"]?["report"]?["events"];
-            if (ev?["data"] is not JArray data) break;
+            if (ev?["data"] is not JArray data) { more = false; break; }
 
             foreach (var e in data)
             {

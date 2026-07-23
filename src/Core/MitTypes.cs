@@ -3,9 +3,7 @@ using System;
 namespace FrenMits;
 
 // Classifies a call by the kind of mitigation it is, so the overlay can colour it
-// at a glance: party-wide raidbuffs vs tank cooldowns vs personal/other. Matching
-// is by keyword on the action text — generous and forgiving, since sheets phrase
-// things loosely.
+// at a glance: party-wide raidbuffs vs tank cooldowns vs personal/other.
 public static class MitTypes
 {
     public enum Kind { Party, Tank, Personal, Other }

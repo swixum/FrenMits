@@ -4,16 +4,9 @@ using System.Linq;
 
 namespace FrenMits;
 
-// The complete mechanic timeline of a fight: every row its sheet knows about,
-// across ALL columns, not just the lines loaded for your own slot. Feeds the
-// next-mits board so the list shows the whole fight (raidwides, busters, the
-// hits other roles cover) with your own presses attached where you have one.
-//
-// Works for every kind of fight:
-//  - built-in sheets: the union of every slot's plan (live edits + saved
-//    columns + the fresh bake of untouched slots, minus deleted calls)
-//  - custom sheets: the scaffold rows plus every written column
-//  - plain user timers: the fight's own lines grouped into rows
+// The complete mechanic timeline of a fight, every row its sheet knows about
+// across ALL columns, not just your own slot, feeding the next-mits board with
+// your presses attached where you have one.
 public static class SheetTimeline
 {
     public sealed class MechRow
@@ -26,7 +19,7 @@ public static class SheetTimeline
         // action, so the board never shows a nameless bar.
         public string Fallback = "";
         // Set on a scheduled boss-reposition row (the spot, e.g. "Middle"); drives
-        // the cyan position row kind on the board. Empty on ordinary mechanic rows.
+        // the cyan position row kind on the board.
         public string Position = "";
     }
 
@@ -102,8 +95,7 @@ public static class SheetTimeline
         }
 
         // Custom-sheet scaffold rows: mechanics exist (with their grades) even
-        // before anyone wrote a mit into them. Same 2s match window Sheet View
-        // uses to pair scaffold rows with written lines.
+        // before anyone wrote a mit into them.
         foreach (var cr in fight.CustomRows)
         {
             var row = RowFor(cr.Mechanic, cr.Time, 2f);

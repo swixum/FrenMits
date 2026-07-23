@@ -5,8 +5,7 @@ using Lumina.Excel.Sheets;
 namespace FrenMits;
 
 // Reads the local player's currently-active mitigation buffs (by status name, so
-// no hard-coded ids) for the active-mits indicator. Read-only and fully guarded;
-// if anything about the game state isn't available it simply returns nothing.
+// no hard-coded ids) for the active-mits indicator.
 public static class MitWatch
 {
     public readonly record struct Active(uint IconId, string Name, float Remaining, MitTypes.Kind Kind);

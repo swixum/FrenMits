@@ -134,7 +134,7 @@ public partial class ConfigWindow
 
     private void DrawDisplayTab()
     {
-        // One-click reset of everything on this tab. To preview while you adjust,
+        // One-click reset of everything on this tab; to preview while you adjust,
         // use the "Test" toggle in the header (always visible).
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this tab to defaults.");
@@ -271,8 +271,8 @@ public partial class ConfigWindow
             }
 
             // Cooldown timing with the prep-text option indented beneath it (out of
-            // the toggle grid so it can group). Independent - the prep text works as
-            // its own switch and stays shown whether or not auto timing is on.
+            // the toggle grid so it can group), independent since the prep text works
+            // as its own switch and stays shown whether or not auto timing is on.
             var autoWas = C.AutoCooldownTiming;
             C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
             if (autoWas != C.AutoCooldownTiming)
@@ -551,7 +551,7 @@ public partial class ConfigWindow
         {
             ImGui.Spacing();
             // Two tidy columns, each row on its own line with a little breathing
-            // room. (The left column splits at 300px; keep two per row, no more.)
+            // room (the left column splits at 300px; keep two per row, no more).
             C.UpcomingBoardTimeText = CfgCheck("Countdown seconds", C.UpcomingBoardTimeText);
             ImGui.SameLine(300f);
             C.UpcomingBoardShowActions = CfgCheck("Planned mits", C.UpcomingBoardShowActions);
@@ -578,8 +578,8 @@ public partial class ConfigWindow
         ImGui.EndTabBar();
     }
 
-    // On-screen preview toggle for the Next Mits page. Starts OFF; the Play
-    // button starts it. Not saved - each settings visit starts quiet.
+    // On-screen preview toggle for the Next Mits page, starting OFF (the Play
+    // button starts it) and not saved, so each settings visit starts quiet.
     private bool _nextMitsPreview;
 
     // A compact color row: swatch-style picker plus a label and hover help.
@@ -810,8 +810,8 @@ public partial class ConfigWindow
             ImGui.NewLine();
         }
 
-        // Quick palette: the keyword "bucket" (Bait, Stun, Bind, Heal, Knockback …).
-        // Click one to pin it. Typing the same word on a line auto-fills it too.
+        // Quick palette: the keyword "bucket" (Bait, Stun, Bind, Heal, Knockback …),
+        // click one to pin it (typing the same word on a line auto-fills it too).
         if (ImGui.TreeNode("Common mechanic icons"))
         {
             var n = 0;
@@ -906,7 +906,7 @@ public partial class ConfigWindow
         {
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(fight);
             // FRENMITS2 = gzip-compressed, so a full raid plan is a much shorter,
-            // paste-friendly code to share. (FRENMITS1 plain base64 still imports.)
+            // paste-friendly code to share (FRENMITS1 plain base64 still imports).
             var raw = System.Text.Encoding.UTF8.GetBytes(json);
             using var ms = new System.IO.MemoryStream();
             using (var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionLevel.Optimal))
@@ -937,11 +937,11 @@ public partial class ConfigWindow
 
     // ---- helpers ---------------------------------------------------------
 
-    // The best-matching baked built-in line, for the right-click "reset to default"
-    // options on time / mechanic / action. Scored by time proximity with a strong
-    // bonus for a matching mechanic and/or action — so whichever field you typo'd,
-    // the OTHER fields (and the time) still pin the right baked line. Null when
-    // there's no baked default (custom / tank / potion lines, non-built-in fights).
+    // The best-matching baked built-in line for the right-click "reset to default"
+    // options on time / mechanic / action, scored by time proximity with a strong
+    // bonus for a matching mechanic and/or action so whichever field you typo'd,
+    // the OTHER fields (and the time) still pin the right baked line (null when
+    // there's no baked default).
     private MitLine? DefaultLineFor(FightProfile fight, MitLine line)
     {
         if (!Builtin.Has(fight.TerritoryId)) return null;

@@ -6,14 +6,11 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// A one-time "What's New" panel shown after the plugin updates. Dismissing it
-// records the version so it won't show again until the next release with notes.
-// One short line per version; only versions newer than the last one dismissed
-// are listed, so it reads like a changelog, not an essay.
+// A one-time "What's New" panel shown after the plugin updates, listing only
+// versions newer than the last one dismissed so it reads like a changelog.
 public class WhatsNewWindow : Window
 {
-    // Bump this (and the Notes below) when there's news to show. The panel pops
-    // once per NotesVersion, so routine version bumps don't re-trigger it.
+    // Bump this (and the Notes below) when there's news to show.
     public const string NotesVersion = "1.0.0.171";
 
     private readonly Plugin _plugin;

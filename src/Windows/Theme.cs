@@ -8,9 +8,7 @@ namespace FrenMits.Windows;
 // blue accent for anything interactive.
 //
 // Colors are packed ABGR (0xAABBGGRR) - the byte order ImGui wants - so the hex
-// reads back-to-front from CSS. Each constant carries its #RRGGBB so the intended
-// color is legible without decoding the bytes. Use the named roles below and the
-// V() converter instead of re-typing raw hex at call sites.
+// reads back-to-front from CSS.
 internal static class Theme
 {
     // --- chrome (fixed regardless of colorblind mode) --------------------
@@ -27,19 +25,19 @@ internal static class Theme
     //     Okabe-Ito colorblind-safe set when the user turns it on) --------
 
     // When true, status colors avoid the red/green pairing that reads the
-    // same under the common forms of color blindness. Set from Configuration.
+    // same under the common forms of color blindness.
     public static bool Colorblind;
 
     public static uint Good => Colorblind ? 0xFF739E00 : 0xFF4FB45A;   // #5AB44F green -> #009E73 bluish-green
     public static uint Warn => Colorblind ? 0xFF009FE6 : 0xFF3BC0F0;   // #F0C03B amber -> #E69F00 orange
     public static uint Danger => Colorblind ? 0xFFA779CC : 0xFF5050E0; // #E05050 red   -> #CC79A7 reddish-purple
 
-    // ABGR -> ImGui Vector4. The one place packed colors become floats, so no
+    // ABGR -> ImGui Vector4: the one place packed colors become floats, so no
     // window has to re-derive the conversion.
     public static Vector4 V(uint abgr) => new(
         (abgr & 0xFF) / 255f, ((abgr >> 8) & 0xFF) / 255f, ((abgr >> 16) & 0xFF) / 255f, ((abgr >> 24) & 0xFF) / 255f);
 
-    // Window-scope colors — must be pushed before ImGui.Begin (in PreDraw).
+    // Window-scope colors - must be pushed before ImGui.Begin (in PreDraw).
     private static readonly (ImGuiCol Col, uint Val)[] WindowColors =
     {
         (ImGuiCol.WindowBg,           0xFF120E0D),
@@ -51,7 +49,7 @@ internal static class Theme
         (ImGuiCol.ScrollbarBg,        0xFF120E0D),
     };
 
-    // Widget-scope colors — fine to push inside Draw().
+    // Widget-scope colors - fine to push inside Draw().
     private static readonly (ImGuiCol Col, uint Val)[] WidgetColors =
     {
         (ImGuiCol.Text,               TextBright),
@@ -67,7 +65,7 @@ internal static class Theme
         (ImGuiCol.HeaderHovered,      0xFF50362A),
         (ImGuiCol.HeaderActive,       0xFF634032),
         // Tabs share the section-header surface family so they read as part of
-        // the theme, not raw ImGui blue-gray. Selected tab is the lightest.
+        // the theme, not raw ImGui blue-gray.
         (ImGuiCol.Tab,                0xFF2A211C),
         (ImGuiCol.TabHovered,         0xFF50362A),
         (ImGuiCol.TabActive,          0xFF634032),
@@ -84,9 +82,7 @@ internal static class Theme
         (ImGuiCol.ScrollbarGrabActive,  Accent),
     };
 
-    // Rounded, softer geometry so the window doesn't look like raw ImGui. Window-
-    // scope vars (rounding/border/padding of the window itself) are pushed before
-    // Begin; the rest with the widgets.
+    // Rounded, softer geometry so the window doesn't look like raw ImGui.
     private static readonly (ImGuiStyleVar Var, float Val)[] WindowVarsF =
     {
         (ImGuiStyleVar.WindowRounding, 9f),

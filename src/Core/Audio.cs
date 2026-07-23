@@ -11,12 +11,9 @@ using System.Threading.Tasks;
 
 namespace FrenMits;
 
-// Text-to-speech. Two engines:
-//   * Windows SAPI voices (offline, via COM) — any voice installed on the system.
-//   * Microsoft Edge "Read Aloud" online neural voices (free, no key, no install)
-//     — the high-quality Aria/Guy/Jenny/Sonia/... voices, fetched as WAV and played
-//     through winmm. Falls back to SAPI if the network call fails.
-// Everything is best-effort and fails silently if the platform refuses.
+// Text-to-speech via Windows SAPI voices (offline, via COM) or Microsoft Edge
+// "Read Aloud" online neural voices (free, no key, no install, fetched as WAV),
+// best-effort and silent on failure with Edge falling back to SAPI.
 public class Audio : IDisposable
 {
     // Curated English Edge neural voices, tagged by gender so the UI can show a
@@ -51,10 +48,9 @@ public class Audio : IDisposable
     private readonly object _sapiLock = new();
 
     // Cue ordering: each Speak gets a rising sequence number, and playback only
-    // accepts a cue newer than the last one played - across BOTH engines, so a
+    // accepts a cue newer than the last one played across BOTH engines, so a
     // slow Edge fetch can't play over a newer cue that already went out via the
-    // Windows voice. Without this, "latest to ARRIVE wins": a slow uncached
-    // fetch finishing late would cut off the newer call and speak the stale one.
+    // Windows voice.
     private long _speakSeq;
     private long _playedSeq;
     private volatile bool _disposed;
@@ -79,8 +75,8 @@ public class Audio : IDisposable
     private readonly LinkedList<string> _edgeOrder = new();
     private const int EdgeCacheMax = 128;
 
-    // Speaks via the chosen engine. When useEdge is true, voice is an Edge voice id
-    // (e.g. "en-US-AriaNeural"); otherwise it's a SAPI voice description.
+    // Speaks via the chosen engine: when useEdge is true, voice is an Edge voice id
+    // (e.g. "en-US-AriaNeural"), otherwise a SAPI voice description.
     public void Speak(string text, int rate, int volume, bool useEdge, string voice)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
@@ -93,8 +89,7 @@ public class Audio : IDisposable
             var v = voice;
             // Fire-and-forget: an OUTER catch-all guarantees the task can never
             // fault unobserved (which, with ThrowUnobservedTaskExceptions on, would
-            // crash the game). Status writes are gated on still being the newest
-            // request, so a stale slow fetch can't overwrite the newer cue's status.
+            // crash the game).
             _ = Task.Run(() =>
             {
                 try
@@ -165,20 +160,22 @@ public class Audio : IDisposable
     public IReadOnlyList<string> VoiceNames()
     {
         if (_voiceNames != null) return _voiceNames;
-        _voiceNames = new List<string>();
+        // Build a local list fully, then publish it once - assigning the field
+        // before it's filled would let a concurrent caller return an empty/partial list.
+        var names = new List<string>();
         try
         {
             lock (_sapiLock)
             {
-                if (_disposed) return _voiceNames;
+                if (_disposed) return names;
                 _voice ??= CreateVoice();
-                if (_voice is null) return _voiceNames;
+                if (_voice is null) return names;
                 dynamic v = _voice;
                 dynamic tokens = v.GetVoices();
                 int count = tokens.Count;
                 for (var i = 0; i < count; i++)
                 {
-                    try { _voiceNames.Add((string)tokens.Item(i).GetDescription()); }
+                    try { names.Add((string)tokens.Item(i).GetDescription()); }
                     catch { /* skip malformed token */ }
                 }
             }
@@ -187,6 +184,7 @@ public class Audio : IDisposable
         {
             Service.Log.Warning(ex, "FrenMits: enumerating TTS voices failed");
         }
+        _voiceNames = names;
         return _voiceNames;
     }
 
@@ -253,8 +251,7 @@ public class Audio : IDisposable
         return wav;
     }
 
-    // Microsoft Edge "Read Aloud" voice service. Free, no key, no install.
-    // EdgeVersion tracks the current Chromium release — Microsoft 403s stale ones,
+    // EdgeVersion tracks the current Chromium release; Microsoft 403s stale ones,
     // so bump this (and the User-Agent below) to match edge-tts when it breaks.
     private const string EdgeToken = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
     private const string EdgeVersion = "1-143.0.3650.75";
@@ -354,7 +351,7 @@ public class Audio : IDisposable
     }
 
     // Rolling security token Microsoft requires: SHA-256 of (Windows file-time ticks
-    // rounded down to 5 minutes) + the client token. Must be EXACT integer math —
+    // rounded down to 5 minutes) + the client token, in EXACT integer math since
     // doubles lose precision at ~1.3e17 and produce a 403.
     private static string EdgeSecToken()
     {
@@ -392,17 +389,17 @@ public class Audio : IDisposable
 
     // ---- MP3 playback (NAudio) --------------------------------------------
 
-    // Single shared output so online cues never overlap. A new clip STOPS the one
-    // currently playing (the "interrupt, latest wins" behaviour SAPI already gets
-    // from PurgeBeforeSpeak) — otherwise two cues close together, or the same cue
-    // re-fired, would play on top of each other and sound doubled.
+    // Single shared output so online cues never overlap: a new clip STOPS the one
+    // currently playing (the "interrupt, latest wins" behaviour SAPI gets from
+    // PurgeBeforeSpeak), otherwise cues close together would play on top of each
+    // other and sound doubled.
     private readonly object _playLock = new();
     private NAudio.Wave.WaveOutEvent? _output;
     private NAudio.Wave.Mp3FileReader? _reader;
     private MemoryStream? _readerMs;
 
     // Decodes the MP3 (Windows ACM codec) and plays it through the shared WaveOut,
-    // non-blocking. NAudio is bundled with the plugin.
+    // non-blocking.
     private void PlayMp3(byte[] mp3, long seq)
     {
         Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");

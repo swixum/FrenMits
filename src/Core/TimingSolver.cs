@@ -4,22 +4,15 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Cooldown-aware offset solver, shared by Sheet View's "Solve timing" button and
-// the automatic on-load pass (AutoCooldownTiming). For the active slot's presses
-// it times each mit so one press blankets the run of hits its buff can reach
-// (pressed at the front of that run) and its cooldown is back in time for the next
-// mechanic. Reads real durations/recasts from the game data. Respects offsets set
-// by hand (OffsetManual). Reruns cleanly - it recomputes from the rows each time,
-// so it never freezes its own last output, and re-solving an already-solved sheet
-// reports no change.
+// Cooldown-aware offset solver (Sheet View's "Solve timing" button and the
+// automatic AutoCooldownTiming pass) that times each active-slot press so one
+// press blankets the run of hits its buff can reach and its cooldown is back for
+// the next mechanic.
 public static class TimingSolver
 {
-    // Time the fight's active-slot lines against the given mechanic hit times.
-    // Mutates line.OffsetSeconds / CoverUntil in place and returns how many lines
-    // actually changed. Does NOT persist - the caller saves.
-    // `lead` is the auto-press reaction window (Configuration.CooldownLeadSeconds):
-    // the press keeps at least this much buff past its last covered hit, so pressing
-    // anywhere in the overlay's countdown window still covers the mechanic.
+    // Time the fight's active-slot lines against the given mechanic hit times,
+    // mutating line.OffsetSeconds / CoverUntil in place and returning how many
+    // lines actually changed.
     public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes, float lead = 5f)
     {
         if (fight == null || hitTimes == null) return 0;
@@ -79,13 +72,8 @@ public static class TimingSolver
             var readyFloor = MathF.Max(ready, 0f);
 
             // Press as EARLY as the cooldown allows while the buff still reaches the
-            // last hit of the run, keeping a margin so it isn't expiring exactly as
-            // that hit lands. Pressing at the earliest valid moment (not on the hit)
-            // starts the recast ASAP, so the mit is back for the NEXT mechanic - and
-            // the call pops well before the hit instead of right on top of it.
-            // Keep `lead` seconds of buff past the last hit (capped at half the buff
-            // so a short cooldown isn't pressed uselessly early), so the whole
-            // reaction window the overlay shows is a valid press window.
+            // last hit of the run, keeping a margin so the recast starts ASAP and
+            // the mit is back for the NEXT mechanic.
             var margin = MathF.Min(lead, dur * 0.5f);
             var press = MathF.Max(readyFloor, last - dur + margin);
             // ...but never so early the buff has faded by the run's FRONT hit.

@@ -9,12 +9,11 @@ using Lumina.Excel.Sheets;
 
 namespace FrenMits;
 
-// Watches every mitigation in the fight through a pull — the damage-down debuffs
-// that land ON the boss (Reprisal / Feint / Addle / Dismantle) AND the
-// damage-reduction buffs party members put on themselves / the party (Rampart,
-// Sacred Soil, Kerachole, Reprisal-the-buff, etc.). Logs when each goes up and by
-// whom, and snapshots on pull end, so after a wipe you get a full recap and can
-// see what was missing. Read-only game state, fully guarded.
+// Watches every mitigation in a pull, both the damage-down debuffs that land ON the
+// boss (Reprisal / Feint / Addle / Dismantle) and the damage-reduction buffs party
+// members put on themselves or the party (Rampart, Sacred Soil, Kerachole, etc.),
+// logging when each goes up and by whom so after a wipe you get a full recap of
+// what was missing.
 public class MitRecap
 {
     private readonly Plugin _plugin;
@@ -33,7 +32,7 @@ public class MitRecap
     // status/HP sweep - no game hooks).
     public readonly record struct Death(float Time, string Name, string Had, float FromPct, float Seconds);
 
-    // One frozen pull. The recap keeps a short history of these so the last
+    // One frozen pull; the recap keeps a short history of these so the last
     // few wipes stay comparable ("did we fix it?") instead of each wipe
     // overwriting the one before.
     public sealed class PullRecap
@@ -67,7 +66,7 @@ public class MitRecap
     // missing a party mit, not just count.
     public List<string> Party { get; } = new();
 
-    // Frozen pulls, newest first. View picks which one the window shows.
+    // Frozen pulls, newest first; View picks which one the window shows.
     public List<PullRecap> History { get; } = new();
     public int View;
     private const int MaxHistory = 6;
@@ -112,10 +111,10 @@ public class MitRecap
             // hunts, cities, etc.
             if (!InDuty()) { _wasRunning = false; return; }
 
-            // A phase cutscene is a FREEZE, not a pull boundary: the timer keeps
-            // running through it. Treating it as a boundary used to finalize the
-            // recap (and pop the wipe recap mid-fight) at every DMU transition,
-            // then clear the log, so a real wipe only showed the last phase.
+            // A phase cutscene is a FREEZE, not a pull boundary (the timer keeps
+            // running through it); treating it as a boundary used to finalize the
+            // recap mid-fight at every DMU transition and clear the log, so a real
+            // wipe only showed the last phase.
             if (Plugin.CutsceneActive) return;
 
             var running = _plugin.Timer.Running;
@@ -150,9 +149,9 @@ public class MitRecap
                         && Jobs.ByRowId(pc.ClassJob.RowId) is { } ji)
                         _jobs[src] = ji.Abbreviation;
 
-                    // Death edge: HP hits zero, recorded once per life, with the
-                    // story attached (what they had up, how fast they dropped).
-                    // The dead keep their last-alive HP/mits frozen for that.
+                    // Death edge: HP hits zero, recorded once per life with the
+                    // story attached (what they had up, how fast they dropped), the
+                    // dead keeping their last-alive HP/mits frozen for that.
                     if (chara.CurrentHp == 0)
                     {
                         if (_dead.Add(src)) _deaths.Add(MakeDeath(elapsed, src));
@@ -261,9 +260,8 @@ public class MitRecap
     private static readonly HashSet<string> DependentMits = new(StringComparer.OrdinalIgnoreCase)
         { "Divine Caress", "Sun Sign" };
 
-    // Party-facing cooldowns that sat unused all pull (or came back long before
-    // the wipe and never went out again). Job-unique names make presence in the
-    // log attributable; a job appearing twice in the roster is skipped - the
+    // Party-facing cooldowns that sat unused all pull (or came back long before the
+    // wipe and never went out again), with duplicate-job rosters skipped since the
     // recap can't tell whose press it saw.
     private static List<(string Who, string Mit, string Note, uint Icon)> ComputeUnused(PullRecap p)
     {
@@ -330,9 +328,8 @@ public class MitRecap
         new(StringComparer.OrdinalIgnoreCase) { "Second Wind", "Bloodbath", "Equilibrium" };
 
     // Every slot's planned lines: the live plan (job-filtered to yours) plus
-    // each saved slot (job-gated lines skipped there - we can't know which job
+    // each saved slot (job-gated lines skipped there since we can't know which job
     // sits in that seat, and the grading must never invent a phantom miss).
-    // Untouched builtin preview slots are intentionally absent from SavedSlots.
     public static IEnumerable<(string Slot, MitLine Line)> PlannedLines(FightProfile fight, string? myJob)
     {
         foreach (var l in fight.Lines)
@@ -348,9 +345,8 @@ public class MitRecap
     }
 
     // Grade the sheet against the pull: every observable planned press either
-    // landed around its moment (early is fine - that's how mits work), landed
-    // late, or never went out. "Kerachole 4s late on Forsaken" instead of a
-    // pile of raw timestamps.
+    // landed around its moment (early is fine), landed late, or never went out,
+    // giving "Kerachole 4s late on Forsaken" instead of a pile of raw timestamps.
     private static void ComputePlanCheck(PullRecap p, FightProfile fight, string? myJob)
     {
         try
@@ -432,8 +428,8 @@ public class MitRecap
             if (statusName.Contains(part, StringComparison.OrdinalIgnoreCase)) yield return canon;
     }
 
-    // Whether anyone in this party plays a job that owns the mit. Unknown
-    // owners pass - the plan is trusted over an incomplete kit table.
+    // Whether anyone in this party plays a job that owns the mit, unknown owners
+    // passing since the plan is trusted over an incomplete kit table.
     private static bool CompHas(PullRecap p, string mit)
     {
         var known = false;
@@ -468,8 +464,8 @@ public class MitRecap
         var events = new List<MitEvent>();
         foreach (var a in LastLog.OrderBy(a => a.Time))
         {
-            // PARTY buffs merge across members (one Troubadour = one event with
-            // its coverage). Everything else merges only with ITSELF (the same
+            // PARTY buffs merge across members (one Troubadour = one event with its
+            // coverage), while everything else merges only with ITSELF (the same
             // source re-detected), so both tanks hitting Rampart 2s apart stays
             // two distinct uses instead of a bogus "2/8 coverage".
             var ev = events.FirstOrDefault(e =>
@@ -753,7 +749,7 @@ public class MitRecap
         return false;
     }
 
-    // Damage-reduction buffs on players. Recognised mit kinds, minus the pure heals
+    // Damage-reduction buffs on players: recognised mit kinds minus the pure heals
     // that share keywords (we want mitigation, not healing).
     private static readonly string[] HealNoise = { "medica", "cure", "regen", "benediction", "physis", "asylum" };
     private static bool IsPartyMit(string name)

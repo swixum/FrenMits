@@ -5,8 +5,7 @@ namespace FrenMits;
 
 // Frozen copy of the PRE-v5.0 Dancing Mad tank-buster plans, kept only so the
 // v18 migration can recognize lines users added from the old bake and swap them
-// for the reworked v5.0 plans (see Plugin's UpgradeDmuTankAndExtraLines). The
-// live data is in TankMits; nothing else should read this.
+// for the reworked v5.0 plans (the live data is in TankMits).
 public static class TankMitsLegacy
 {
     public static TankMits.Entry[] DmuFor(string comp, string job)

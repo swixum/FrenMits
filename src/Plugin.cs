@@ -60,8 +60,8 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v3: assign sidebar categories. Built-ins are ultimates; everything else
-        // starts in "Other" and can be moved with the per-fight Category picker.
+        // v3: assign sidebar categories: built-ins are ultimates, everything else
+        // starts in "Other".
         if (Config.Version < 3)
         {
             foreach (var f in Config.Fights)
@@ -71,8 +71,8 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v4: per-pull diagnostics on by default (local only). Flip existing
-        // profiles on once; the toggle stays so it can still be turned off.
+        // v4: per-pull diagnostics on by default (local only), flipped on once for
+        // existing profiles.
         if (Config.Version < 4)
         {
             Config.Diagnostics = true;
@@ -90,10 +90,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         // v6: the legacy ultimate timelines (UCOB/UWU/TEA/DSR/TOP) were re-timed
-        // from real FFLogs clears (the old cactbot-derived times were inflated
-        // 2-4x). The shifts are far larger than the top-up's merge window, so a
-        // plain re-load would leave stale duplicate lines — clean-rebake just
-        // those five fights. DMU/FRU/M12S are unchanged, so any edits there stay.
+        // from real logs clears (the old cactbot-derived times were inflated 2-4x).
         if (Config.Version < 6)
         {
             foreach (var f in Config.Fights)
@@ -109,11 +106,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         // v7: Dancing Mad mits resynced to the Ikuya sheet v4.0 (action + timing
-        // overwrites, line splits, new rows) and WHM Asylum added from FFLogs.
-        // The shifts are far larger than the top-up's merge window, so a plain
-        // re-load would leave stale/duplicate lines - clean-rebake just the DMU
-        // built-in so everyone gets the new plan on update. Other built-ins are
-        // unchanged, so any edits there stay.
+        // overwrites, line splits, new rows) and WHM Asylum added from logs.
         if (Config.Version < 7)
         {
             foreach (var f in Config.Fights)
@@ -128,10 +121,9 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v8: the Ikuya sheet's v4.0 was edited in place after the v7 bake (P3 Black
-        // Holes restructure, P4 Grand Cross reshuffle, P2/P5 tweaks). Re-bake DMU to
-        // the new timeline, but KEEP custom lines people added - a smart merge that
-        // only replaces the lines matching the previous bake (DmuLegacy snapshot).
+        // v8: re-bake DMU to the new timeline, but KEEP custom lines people added -
+        // a smart merge that only replaces the lines matching the previous bake
+        // (DmuLegacy snapshot).
         if (Config.Version < 8)
         {
             SmartRebakeDmu();
@@ -139,10 +131,9 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v9: an earlier DMU merge could leave overlapping / stale lines (it matched
-        // on the mechanic label, which the sheet renames). Re-run the smart re-bake
-        // with the hardened de-overlap so nothing doubles up, and flag surviving
-        // custom lines so future sheet updates keep them cleanly.
+        // v9: re-run the smart re-bake with the hardened de-overlap so nothing
+        // doubles up, and flag surviving custom lines so future sheet updates keep
+        // them cleanly.
         if (Config.Version < 9)
         {
             SmartRebakeDmu();
@@ -161,8 +152,6 @@ public sealed class Plugin : IDalamudPlugin
 
         // v11: a deliberate one-time CLEAN reset of Dancing Mad to the sheet, wiping
         // any custom lines too (to clear overlapping/stale data from earlier merges).
-        // Custom lines added AFTER this are still kept by the smart re-bake going
-        // forward (they get flagged Custom). Other built-ins are untouched.
         if (Config.Version < 11)
         {
             foreach (var f in Config.Fights)
@@ -177,10 +166,8 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v12: the sheet was re-timed again (every row nudged 1-5s, a helper column
-        // added, P5 enrage marker). Force another clean reset of Dancing Mad for
-        // everyone so the new timings land cleanly. Custom lines added after still
-        // survive the smart re-bake going forward.
+        // v12: force another clean reset of Dancing Mad for everyone so the newly
+        // re-timed sheet lands cleanly.
         if (Config.Version < 12)
         {
             foreach (var f in Config.Fights)
@@ -196,8 +183,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         // v13: hard reset Dancing Mad again so everyone is freshly baked from the
-        // current sheet (now that generic mits resolve to each job's icon). Custom
-        // lines added after this still survive the smart re-bake going forward.
+        // current sheet (now that generic mits resolve to each job's icon).
         if (Config.Version < 13)
         {
             foreach (var f in Config.Fights)
@@ -214,7 +200,6 @@ public sealed class Plugin : IDalamudPlugin
 
         // v14: hard reset Dancing Mad once more so the latest baked timeline is in
         // for everyone (pairs with calls now showing each job's real ability name).
-        // Custom lines added after this still survive the smart re-bake going forward.
         if (Config.Version < 14)
         {
             foreach (var f in Config.Fights)
@@ -229,8 +214,8 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v15: stored fight names may carry an em dash from an older seed, which
-        // the game font renders as an empty box. Normalize to a plain hyphen.
+        // v15: normalize any em dash in stored fight names to a plain hyphen, which
+        // the game font otherwise renders as an empty box.
         if (Config.Version < 15)
         {
             foreach (var f in Config.Fights)
@@ -242,10 +227,6 @@ public sealed class Plugin : IDalamudPlugin
 
         // v16: Dancing Mad re-baked to the Ikuya sheet v5.0 (P3 Reprisal/Addle
         // moves, P4 healer reshuffle, P5 Forsaken hits renamed and reassigned).
-        // The smart merge keeps custom lines AND carries per-line tweaks
-        // (offsets, disabled state, sounds, colors, press windows) onto the
-        // updated calls. Each fight is snapshotted first, so History can restore
-        // the pre-update plan.
         if (Config.Version < 16)
         {
             foreach (var f in Config.Fights)
@@ -256,12 +237,7 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v17: restore the WHM Asylum calls the v16 bake dropped. Asylum was
-        // never on the Ikuya sheet; it is a FrenMits addition timed from an
-        // FFLogs clear (see DmuData's header note), and the v5.0 sync wrongly
-        // treated it as a sheet removal. Re-run the smart re-bake; the
-        // containment-aware sweep replaces a v16 "Divine Caress" cleanly with
-        // "Divine Caress + Asylum" instead of doubling it, and offsets carry.
+        // v17: restore the WHM Asylum calls the v16 bake dropped.
         if (Config.Version < 17)
         {
             foreach (var f in Config.Fights)
@@ -272,13 +248,8 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v18: the sheet v5.0 also reworked the per-pairing tank tabs (explicit
-        // ability names instead of "90s/40%/Short Mit", a new Black Holes IV
-        // row, the P2 Wings of Destruction/Ultimate Embrace rows split) and
-        // re-timed several BRD/MNK/PLD job-mitigation anchors. Upgrade lines
-        // users already added from those cards: extras move to their new times
-        // in place, and tank plans matching the old bake are swapped for the
-        // new one with per-line tweaks carried over. Edited lines are kept.
+        // v18: upgrade tank-buster and BRD/MNK/PLD job-mitigation lines users
+        // already added to the sheet v5.0 data, keeping edited lines.
         if (Config.Version < 18)
         {
             foreach (var f in Config.Fights)
@@ -290,8 +261,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         // v19: the sheet's "Ultimate Embrance" typo (P2, 3:41) is now baked
-        // corrected as "Ultimate Embrace". Re-run the smart re-bake so existing
-        // plans pick up the fixed name; per-line tweaks carry over as usual.
+        // corrected as "Ultimate Embrace".
         if (Config.Version < 19)
         {
             foreach (var f in Config.Fights)
@@ -302,9 +272,7 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v20: migrate the old M12S placeholder zone (1320) to the real one
-        // (1327). Gated so it runs once - 1320 is a real duty, and an ungated
-        // remap would silently steal any custom sheet a user builds there.
+        // v20: migrate the old M12S placeholder zone (1320) to the real one (1327).
         if (Config.Version < 20)
         {
             foreach (var f in Config.Fights)
@@ -317,10 +285,8 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v21: auto cooldown timing shipped default-on in early builds, then became
-        // a big opt-in feature. Force it off once for existing configs (the saved
-        // "on" was overriding the new default). A later user toggle sticks, since
-        // Version is 21 by then and this never runs again.
+        // v21: force auto cooldown timing off once for existing configs (it shipped
+        // default-on in early builds, then became a big opt-in feature).
         if (Config.Version < 21)
         {
             Config.AutoCooldownTiming = false;
@@ -328,11 +294,8 @@ public sealed class Plugin : IDalamudPlugin
             Config.Save();
         }
 
-        // v22: SMN summon cues shipped silent (visual-only). They now speak each
-        // call, so switch audio on for any already imported into a config. A summon
-        // line is an SMN-tagged custom line whose action is only primal names (a
-        // single summon or a slash-joined burst); grouped bursts also get a
-        // comma-spoken form so "Garuda / Titan / Ifrit" reads cleanly.
+        // v22: switch audio on for SMN summon cues already imported into a config
+        // (they shipped silent but now speak each call).
         if (Config.Version < 22)
         {
             var primals = new HashSet<string>(new[] { "Garuda", "Titan", "Ifrit" }, StringComparer.OrdinalIgnoreCase);
@@ -381,7 +344,7 @@ public sealed class Plugin : IDalamudPlugin
 
         // Auto-add any built-in fight the user hasn't been shown yet, so a newly
         // shipped fight (e.g. a fresh savage) appears directly on its tab with no
-        // button to click. Tracked per-territory so a deleted built-in stays gone.
+        // button to click.
         Config.SeededTerritories ??= new();
         var seeded = false;
         foreach (var (territory, name, category) in Builtin.Fights)
@@ -394,8 +357,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         // Migrate the two built-ins that were renamed (dropped the redundant
-        // "(Ultimate)" suffix for the short code, matching the others). Only touches
-        // the exact old default names, so a fight you renamed yourself is left alone.
+        // "(Ultimate)" suffix for the short code, matching the others).
         foreach (var f in Config.Fights)
         {
             if (f.Name == "Dancing Mad (Ultimate)") { f.Name = Builtin.Name(Builtin.DmuTerritory); seeded = true; }
@@ -405,12 +367,8 @@ public sealed class Plugin : IDalamudPlugin
         if (seeded) Config.Save();
 
         // NOTE: the default-slot prebake and the "already inside a boss room"
-        // auto-load both need live game state (the player's job via ObjectTable,
-        // and the current territory). Dalamud only permits ObjectTable/ClientState
-        // access on the game's main thread, but this constructor runs on a loader
-        // thread — touching them here throws InvalidOperationException and aborts
-        // the load. Both are deferred to the first Framework.Update tick instead,
-        // which is guaranteed to run on the main thread. See RunFirstTickInit().
+        // auto-load both need main-thread game state, so they are deferred to the
+        // first Framework.Update tick (see RunFirstTickInit()).
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
@@ -473,22 +431,16 @@ public sealed class Plugin : IDalamudPlugin
         Service.ClientState.TerritoryChanged += OnTerritoryChanged;
 
         // Diagnostic: if this ever logs "#2" (or higher) while only one copy should be
-        // running, the plugin is double-loaded — which would double every audio cue.
+        // running, the plugin is double-loaded, which would double every audio cue.
         var n = System.Threading.Interlocked.Increment(ref _liveInstances);
         Service.Log.Information($"[FrenMits] init - live instance #{n}");
     }
 
     private static int _liveInstances;
 
-    // Load the saved config defensively. GetPluginConfig() returns null both for a
-    // genuine first run (no file) AND when an existing file fails to deserialize
-    // (a partial write interrupted by a crash, an unresolved $type after a rename,
-    // a transient read error mid-update). The old code couldn't tell the two apart:
-    // it fell back to a fresh default config and the version migrations immediately
-    // Save()'d it, overwriting the user's real settings for good. Now, if the file
-    // exists but won't load, we keep it intact (backed up) and suppress saves for
-    // the session instead of clobbering it — so a one-off hiccup can't wipe colours
-    // and edits, and the original is recoverable.
+    // Load the saved config defensively: if the file exists but won't deserialize,
+    // keep it intact (backed up) and suppress saves for the session instead of
+    // clobbering the user's real settings with defaults.
     private static Configuration LoadConfig()
     {
         try
@@ -504,7 +456,7 @@ public sealed class Plugin : IDalamudPlugin
         var file = Service.PluginInterface.ConfigFile;
         if (file is { Exists: true } && file.Length > 2)
         {
-            // The file is there but unreadable — do NOT treat this as a first run.
+            // The file is there but unreadable, do NOT treat this as a first run.
             try
             {
                 var bak = file.FullName + ".corrupt.bak";
@@ -526,7 +478,7 @@ public sealed class Plugin : IDalamudPlugin
 
     // Seamless auto-load: on entering a boss room we support, top up the fight's
     // lines with the latest baked timeline (adding only what's missing) and refresh
-    // the resync anchors — keeping every edit the user has made. Silent, no prompts.
+    // the resync anchors, keeping every edit the user has made.
     private void OnTerritoryChanged(uint territory)
     {
         // A replay-started clock has no combat flag to stop it; leaving the
@@ -539,8 +491,7 @@ public sealed class Plugin : IDalamudPlugin
         _trackedBossLastHp = 0;
         // A practice preview never survives a zone change: without this, Test
         // mode left on could route the previewed fight's plan into any zone
-        // that has no fight of its own. (Test mode itself stays on: sample-call
-        // placement across teleports is legitimate.)
+        // that has no fight of its own.
         PreviewFight = null;
         try { AutoLoadForTerritory(territory); }
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
@@ -557,8 +508,7 @@ public sealed class Plugin : IDalamudPlugin
 
     // Full refresh: rebake every built-in fight's lines fresh from the current
     // sheet data, discarding saved per-slot edits (and any added potion/tank
-    // lines). Used by the "Refresh from sheet" button and the one-time migration
-    // after a big sheet update. Returns how many fights were rebaked.
+    // lines).
     public int ResetAllBuiltins()
     {
         var n = 0;
@@ -585,7 +535,7 @@ public sealed class Plugin : IDalamudPlugin
     // ---- plan snapshots ---------------------------------------------------
     // A snapshot is the whole FightProfile serialized to a file under the plugin
     // config directory, taken automatically before destructive operations and on
-    // demand (Sheet View's History button). Pruned to the newest per fight.
+    // demand (Sheet View's History button).
 
     public sealed class PlanBackup
     {
@@ -647,8 +597,7 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     // Snapshots left behind by DELETED fights of this duty (matched by the
-    // territory stored inside each file). Reads every snapshot file, so it
-    // only runs on demand from the History popup's finder button.
+    // territory stored inside each file).
     public List<SnapshotInfo> ListOrphanSnapshots(uint territory, string excludeFightId)
     {
         var list = new List<SnapshotInfo>();
@@ -722,8 +671,7 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     // Apply a canonical role to every fight that has a sheet (the sidebar's
-    // YOUR ROLE and the entry popup both route here). Custom sheets speak the
-    // same slot codes since the standard, so they follow the pick too.
+    // YOUR ROLE and the entry popup both route here).
     public void SetRoleForAll(string role)
     {
         Config.RoleSelection = role;
@@ -773,9 +721,7 @@ public sealed class Plugin : IDalamudPlugin
 
     // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
     // existing profile in place (the sender's active slot only, notes merged);
-    // anything else is added as a new fight. Shared by the fight page's "Import
-    // from clipboard" and the Sheet View's Import button. Returns the touched
-    // fight (null on failure), whether it was newly added, and a user message.
+    // anything else is added as a new fight.
     public (FightProfile? Fight, bool IsNew, string Message) ImportPlanCode(string? clipboardText)
     {
         try
@@ -817,8 +763,8 @@ public sealed class Plugin : IDalamudPlugin
             {
                 SnapshotPlan(existing, $"before importing \"{fight.Name}\"");
                 // Slot-scoped update: the import replaces the sender's ACTIVE slot
-                // only. Wholesale-replacing SavedSlots/DeletedCalls would silently
-                // wipe YOUR saved edits for every other slot in the fight.
+                // only, since wholesale-replacing SavedSlots/DeletedCalls would wipe
+                // your saved edits for every other slot in the fight.
                 existing.Lines = fight.Lines;
                 existing.TimerOffset = fight.TimerOffset;
                 // Sheet notes MERGE: take the sender's note where they wrote one,
@@ -844,9 +790,7 @@ public sealed class Plugin : IDalamudPlugin
                 {
                     // Custom fights carry their hand-built anchors + sheet layout;
                     // built-ins keep the canonical baked ones (ApplySlot refreshes
-                    // those anyway). Sheet columns only transfer when the sender
-                    // actually HAS them: a pre-sheet-era code must never wipe the
-                    // receiver's columns.
+                    // those anyway).
                     existing.Name = fight.Name;
                     existing.SyncPoints = fight.SyncPoints;
                     existing.BossAnchors = fight.BossAnchors;
@@ -876,12 +820,7 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     // Re-bake the Dancing Mad built-in from the (updated) sheet while KEEPING the
-    // custom lines people added. A line is "old sheet-baked" if it matches the
-    // previous bake (the DmuLegacy snapshot); those get replaced by the new bake,
-    // but their per-line tweaks (offset, disabled state, sounds, colors, press
-    // windows) are carried onto the matching new call first. Everything else -
-    // anything flagged Custom, or that no longer matches the old bake - is kept,
-    // so custom timers survive the sheet update.
+    // custom lines people added.
     public int SmartRebakeDmu()
     {
         var n = 0;
@@ -927,12 +866,7 @@ public sealed class Plugin : IDalamudPlugin
             => Parts(a.Action).All(p => Parts(b.Action).Contains(p, StringComparer.OrdinalIgnoreCase));
 
         // "Shadows a real call": the same spoken action within a few seconds of a
-        // current baked line. A fight never reuses one mit that close (its cooldown
-        // is far longer), so anything that shadows a baked call is a stale or
-        // duplicate line — drop it so nothing overlaps. Ignores the mechanic label
-        // (the sheet renames/retimes those between versions). A line whose mits are
-        // all contained in the baked call ("Divine Caress" vs the baked
-        // "Divine Caress + Asylum") is redundant the same way.
+        // current baked line.
         static bool Shadows(MitLine line, List<MitLine> baked)
             => baked.Any(b => MathF.Abs(b.Time - line.Time) < 6f
                               && (string.Equals(b.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase)
@@ -946,13 +880,9 @@ public sealed class Plugin : IDalamudPlugin
 
         foreach (var c in customs) c.Custom = true; // flag survivors so future updates keep them cleanly
 
-        // Every line NOT kept above is a sheet-owned line being replaced (or a
-        // shadowing edit of one). Before it goes, carry its per-line tweaks onto
+        // Before a replaced sheet-owned line goes, carry its per-line tweaks onto
         // the new baked call it corresponds to, so a sheet update never costs
-        // anyone their offsets or settings. Match the exact same call first;
-        // then the same action nearby (the sheet renames/retimes mechanics);
-        // then the same base action ("Addle" matches "Addle (Exdeath)") nearby.
-        // Each old line donates at most once.
+        // anyone their offsets or settings.
         var donors = existing.Except(customs).ToList();
         var matched = new HashSet<MitLine>();
 
@@ -1004,8 +934,7 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     // The BRD/MNK/PLD job-mitigation anchors that moved when they were re-timed
-    // to sheet v5.0 rows (old time/mechanic -> new). Unchanged anchors are not
-    // listed; a user-edited line matches nothing here and is left alone.
+    // to sheet v5.0 rows (old time/mechanic -> new).
     private static readonly (string Job, string Action, float OldTime, string OldMech, float NewTime, string NewMech)[] DmuExtraMoves =
     {
         ("BRD", "Nature's Minne", 249, "Towers I", 250, "Towers I"),
@@ -1025,8 +954,7 @@ public sealed class Plugin : IDalamudPlugin
     };
 
     // One-time v18 upgrade: bring already-added DMU tank-buster plans and the
-    // BRD/MNK/PLD job-mitigation lines up to the sheet v5.0 data. Safe to run
-    // twice: already-upgraded lines match nothing and come out unchanged.
+    // BRD/MNK/PLD job-mitigation lines up to the sheet v5.0 data.
     private void UpgradeDmuTankAndExtraLines()
     {
         foreach (var f in Config.Fights)
@@ -1062,8 +990,9 @@ public sealed class Plugin : IDalamudPlugin
                                         && string.Equals(l.Jobs[0], job, StringComparison.OrdinalIgnoreCase)).ToList();
             if (mine.Count == 0) continue;
 
-            // Which pairing's old plan did these come from? Count exact matches
-            // against each old bake; the remembered dropdown pick breaks ties.
+            // Find which pairing's old plan these came from by counting exact
+            // matches against each old bake, with the remembered dropdown pick
+            // breaking ties.
             string? comp = null;
             var matched = new List<MitLine>();
             foreach (var c in TankMits.Comps(Builtin.DmuTerritory))
@@ -1159,9 +1088,7 @@ public sealed class Plugin : IDalamudPlugin
 
     // Run the cooldown-aware offset solver over a fight's active slot, so its
     // presses fire early enough to cover their hits and keep the recast ready for
-    // the next mechanic. Applies to baked AND custom sheets; hand-set offsets are
-    // preserved. Called on zone-in and whenever the active slot changes. Guarded:
-    // any failure leaves the plan exactly as it was.
+    // the next mechanic.
     public void AutoTime(FightProfile? fight)
     {
         if (!Config.AutoCooldownTiming || fight == null || fight.Lines.Count == 0) return;
@@ -1181,7 +1108,6 @@ public sealed class Plugin : IDalamudPlugin
 
     // Erase every offset/coverage the auto-timer wrote - across every fight and
     // saved slot - so turning the feature off returns each plan to its own timing.
-    // Only solver-written lines are touched: a hand-set offset (OffsetManual) stays.
     public void ClearSolvedOffsets()
     {
         var changed = false;
@@ -1247,8 +1173,7 @@ public sealed class Plugin : IDalamudPlugin
         if (!string.IsNullOrEmpty(roleSlot)) return roleSlot!;
         // A logged-in player on a job missing from the Jobs table (a brand-new
         // job) gets NO guess: "" tells callers to skip the bake rather than
-        // hand a fresh 8.0 job the main tank's calls. No player yet (login
-        // screen) keeps the generic first-seat default as before.
+        // hand a fresh 8.0 job the main tank's calls.
         if (LocalPlayer is { } p && Jobs.ByRowId(p.ClassJob.RowId) is null) return "";
         return Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
     }
@@ -1259,17 +1184,16 @@ public sealed class Plugin : IDalamudPlugin
         => Service.ObjectTable[0] as Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter;
 
     // True while a cutscene is playing (phase-transition cutscenes in ultimates) so
-    // call-outs and cues are suppressed — you can't act, and the clock self-corrects
+    // call-outs and cues are suppressed: you can't act, and the clock self-corrects
     // on the next resync anchor when it ends.
     public static bool InCutscene =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
 
-    // The cutscene state everything gameplay-facing should use. The raw game
-    // flags occasionally STICK after a cutscene ends (a known game quirk);
-    // frozen-forever meant a dead timer and hidden overlays until a restart.
-    // A cutscene reading true for 3+ minutes straight is treated as stuck.
+    // The cutscene state everything gameplay-facing should use: the raw game
+    // flags occasionally STICK after a cutscene ends, so a cutscene reading true
+    // for 3+ minutes straight is treated as stuck.
     public static bool CutsceneActive => InCutscene && !CutsceneStuck;
     public static bool CutsceneStuck { get; private set; }
     private DateTime? _csSince;
@@ -1290,24 +1214,22 @@ public sealed class Plugin : IDalamudPlugin
         }
     }
 
-    // The running assembly version, e.g. "1.0.0.121". Used for the What's New gate.
+    // The running assembly version, e.g. "1.0.0.121".
     public static string PluginVersion =>
         typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
-    // True while actually in a pull. The HUD displays force-lock here (see each
-    // window's EffectiveLocked) so a stray drag can't grab them mid-fight; you
-    // reposition them out of combat or with Live preview.
+    // True while actually in a pull, when the HUD displays force-lock (see each
+    // window's EffectiveLocked) so a stray drag can't grab them mid-fight.
     public static bool InCombat =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat];
 
     // Downtime: mid-pull, the boss is present but not targetable (a phase
-    // transition, it jumped away, or a cutscene). The timeline flags it so a lull
-    // reads as a lull, with a running timer of how long it's been going.
+    // transition, it jumped away, or a cutscene).
     public bool DowntimeActive { get; private set; }
     // Measured in GAME time - accumulated at the replay's own speed and frozen
     // while it's paused, not on the wall clock - so a lull learned from a 2x (or
     // paused) replay records its real in-game length, not the real seconds you
-    // spent watching it. In live play the sim speed is 1, so this is real time.
+    // spent watching it.
     public float DowntimeElapsed => _downtimeElapsed;
     // Seconds left until targetable, once this lull has been seen before (learned);
     // -1 the very first time, when we're still measuring it.
@@ -1317,8 +1239,7 @@ public sealed class Plugin : IDalamudPlugin
     private float _downtimeStartElapsed;
     private float _downtimeKnownDur = -1f;
 
-    // The current boss's HP as a 0..1 fraction (-1 when there's no boss). Feeds
-    // the timeline's "push it or fail" skull near a phase gate.
+    // The current boss's HP as a 0..1 fraction (-1 when there's no boss).
     public float BossHpFraction { get; private set; } = -1f;
 
     private void UpdateDowntime(float gameDt)
@@ -1351,15 +1272,14 @@ public sealed class Plugin : IDalamudPlugin
         else if (!down && DowntimeActive)
         {
             // Just ended: refine the TIME of any learnable window (one cactbot
-            // couldn't pin) from what we just measured. Fixed windows are untouched.
+            // couldn't pin) from what we just measured.
             if (ActiveFight() is { } f) MaybeLearnDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed);
             _downtimeKnownDur = -1f;
         }
         DowntimeActive = down;
     }
 
-    // The known length of the lull starting near `start` (-1 if none). Uses the
-    // hardcoded table with any learnable window refined by a measured pull.
+    // The known length of the lull starting near `start` (-1 if none).
     private float LookupDowntime(uint? territory, float start)
     {
         if (territory is not { } t) return -1f;
@@ -1369,9 +1289,7 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     // Record a measured Start/Duration ONLY when it matches a learnable hardcoded
-    // window (Learn=true) - the few transitions cactbot leaves uncertain. Persisted
-    // to Config.LearnedDowntimes and merged back by Downtimes.Effective. The gate %
-    // is never learned; it stays the hardcoded design value.
+    // window (Learn=true) - the few transitions cactbot leaves uncertain.
     private void MaybeLearnDowntime(uint territory, float start, float dur)
     {
         if (dur < 1.5f) return; // ignore blips
@@ -1386,16 +1304,15 @@ public sealed class Plugin : IDalamudPlugin
         Config.Save();
     }
 
-    // Watching a Duty Recorder replay (e.g. via A Realm Recorded). The spectator
-    // never gets a combat flag, so the timer auto-starts from the replay's own
-    // casts instead (SyncEngine.TryPlaybackAutoStart).
+    // Watching a Duty Recorder replay (e.g. via A Realm Recorded), where the
+    // spectator never gets a combat flag so the timer auto-starts from the
+    // replay's own casts (SyncEngine.TryPlaybackAutoStart).
     public static bool InDutyPlayback =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
 
-    // The game's simulation-speed multiplier. 1 in normal play; the duty recorder
-    // (and A Realm Recorded's controls) drive it during playback - 0 while paused,
-    // 2 for 2x, 0.5 for half, and so on. We read it to keep the timeline and
-    // alerts in step with the replay instead of ticking on real time.
+    // The game's simulation-speed multiplier (1 normal, 0 paused, 2 for 2x during
+    // a replay), read to keep the timeline and alerts in step with the replay
+    // instead of ticking on real time.
     private static unsafe float ReplayGameSpeed()
     {
         try
@@ -1418,16 +1335,14 @@ public sealed class Plugin : IDalamudPlugin
     public DateTime LastFrameErrorAt { get; private set; } = DateTime.MinValue;
     private bool _wasInCombatForTest; // edge detector for the Test-mode auto-off
 
-    // Game-state-dependent startup that can't run in the constructor (loader thread).
-    // Runs once on the first Framework.Update tick, which is on the main thread, so
-    // ObjectTable / ClientState access here is safe.
+    // Game-state-dependent startup that can't run in the constructor (loader thread),
+    // so it runs once on the first Framework.Update tick where ObjectTable /
+    // ClientState access is safe.
     private void RunFirstTickInit()
     {
         // Bake a default slot for any built-in that's still empty (freshly seeded,
         // or seeded empty by an older version that only baked on zone-in), so its
-        // mits show up front instead of reading "(0)". Your own edits and any slot
-        // you've already loaded are left untouched. PreferredDefaultSlot reads the
-        // live job off the object table, which is why this waits for the main thread.
+        // mits show up front instead of reading "(0)".
         var prebaked = false;
         foreach (var fight in Config.Fights)
         {
@@ -1449,18 +1364,16 @@ public sealed class Plugin : IDalamudPlugin
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework _)
     {
         // Never let a per-frame hiccup (e.g. a stale game object) escape into
-        // Dalamud's tick loop. Log the first one, then stay quiet.
+        // Dalamud's tick loop.
         try
         {
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
 
             UpdateCutsceneStuck();
 
-            // A REAL pull always outranks Test mode. Left on, Test would keep
-            // the overlays unlocked (click-catching) and visible through
-            // cutscenes mid-fight, and a leftover practice preview could even
-            // route another zone's plan into this pull. Placement is an
-            // out-of-combat activity; combat switches it off.
+            // A REAL pull always outranks Test mode, since left on it would keep
+            // the overlays unlocked and visible through cutscenes mid-fight, so
+            // combat switches it off.
             var inCombatNow = InCombat;
             if (inCombatNow && !_wasInCombatForTest)
             {
@@ -1478,8 +1391,7 @@ public sealed class Plugin : IDalamudPlugin
                 // A pull can never BEGIN inside a cutscene, so combat starting
                 // while the flag reads true proves the flag is stuck (the known
                 // game quirk that hid the overlay while the server bar kept
-                // ticking). Declare it immediately instead of waiting out the
-                // 3-minute failsafe; the state self-clears when the flag drops.
+                // ticking).
                 if (InCutscene && !CutsceneStuck)
                 {
                     CutsceneStuck = true;
@@ -1490,7 +1402,7 @@ public sealed class Plugin : IDalamudPlugin
 
             // Leaving a Duty Recorder playback: the spectator never gets combat
             // flags, so the replay-started timer would keep ticking on the menus
-            // forever. Stop it the moment playback ends.
+            // forever.
             if (_wasInDutyPlayback && !InDutyPlayback && Timer.Running)
             {
                 Timer.Reset();
@@ -1500,10 +1412,7 @@ public sealed class Plugin : IDalamudPlugin
 
             // Keep the timeline in step with a Duty Recorder replay: real time
             // keeps running while playback is paused (or sped up), so nudge the
-            // clock by realDelta * (1 - gameSpeed). Paused (speed 0) freezes the
-            // timeline and alerts; 2x/0.5x track the replay's pace. The delta is
-            // measured on the SAME UtcNow clock Elapsed uses, so a pause freezes
-            // it EXACTLY - UpdateDelta drifted a hair and let it creep down.
+            // clock by realDelta * (1 - gameSpeed).
             var nowUtc = DateTime.UtcNow;
             var realDt = (float)(nowUtc - _lastPlaybackTick).TotalSeconds;
             _lastPlaybackTick = nowUtc;
@@ -1511,8 +1420,7 @@ public sealed class Plugin : IDalamudPlugin
                 Timer.ShiftStart(realDt * (1f - ReplayGameSpeed()));
 
             // This frame's GAME-time delta: real seconds scaled by the sim speed
-            // (1 in live play, 0 while a replay is paused, 2 at 2x). Downtime
-            // learning accumulates this, so replay speed never distorts the length.
+            // (1 in live play, 0 while a replay is paused, 2 at 2x).
             var gameDt = realDt > 0f && realDt < 1f ? realDt * ReplayGameSpeed() : 0f;
 
             RefreshAutoFight();
@@ -1543,10 +1451,7 @@ public sealed class Plugin : IDalamudPlugin
     // ---- Cutscene boundary ------------------------------------------------
     // Phase-transition cutscenes in ultimates pause the action but NOT our wall
     // clock, and combat never drops (the timer freezes through them), so the
-    // resync engine never re-arms on its own. When the cutscene ends we therefore
-    // (1) re-arm resync so the new phase's first boss appearance / cast snaps the
-    // clock back onto the timeline, and (2) hold cues until that snap lands so the
-    // new phase doesn't open with calls fired against the drifted clock.
+    // resync engine never re-arms on its own.
     private bool _wasInCutscene;
 
     private void HandleCutsceneBoundary()
@@ -1563,9 +1468,7 @@ public sealed class Plugin : IDalamudPlugin
 
     // ---- Door-boss phase tracking ----------------------------------------
     // A door boss (e.g. M12S) is one instance with two phases, each its own combat
-    // from 0. Once Phase 1 is killed you stay on Phase 2 until you leave the duty.
-    // We watch the primary boss: when it dies, Phase 2 is locked on for this zone,
-    // and ElapsedFor() shifts that fight's clock onto its Phase 2 segment.
+    // from 0.
     private bool _phaseTwo;
     private uint _trackedBossEntity;
     private uint _trackedBossLastHp;
@@ -1591,7 +1494,7 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
 
-        // Boss HP fell to zero => Phase 1 cleared. Latches until the zone changes.
+        // Boss HP fell to zero => Phase 1 cleared, latched until the zone changes.
         if (_trackedBossLastHp > 0 && boss.CurrentHp == 0)
             _phaseTwo = true;
         _trackedBossLastHp = boss.CurrentHp;
@@ -1601,16 +1504,12 @@ public sealed class Plugin : IDalamudPlugin
     public float PhaseOffsetFor(FightProfile fight)
         => _phaseTwo && fight.TerritoryId == Builtin.M12sTerritory ? M12sData.Phase2Offset : 0f;
 
-    // The sheet clock: where the fight actually is on the timeline. Owned by the
-    // resync engine; everything internal (sync matching, pull capture,
-    // diagnostics) reads this one.
+    // The sheet clock: where the fight actually is on the timeline.
     public float ElapsedFor(FightProfile fight)
         => Timer.Elapsed + PhaseOffsetFor(fight);
 
     // The call schedule the overlay/cues/DTR/upcoming list read: sheet clock plus
-    // the fight's timer offset. The offset lives here and NOT on the sheet clock,
-    // so a resync snap can never cancel it: +10 always fires every call 10s
-    // earlier, resync on or off.
+    // the fight's timer offset.
     public float CueClockFor(FightProfile fight)
         => ElapsedFor(fight) + fight.TimerOffset;
 
@@ -1708,9 +1607,8 @@ public sealed class Plugin : IDalamudPlugin
         return job is { } rowId ? Jobs.ByRowId(rowId)?.Abbreviation : null;
     }
 
-    // The fight whose territory matches where the player currently is.
-    // Practice: a fight to preview out of its zone (set by the phase-jump). Used
-    // only in Test Mode, and only when the current zone isn't a real fight.
+    // Practice: a fight to preview out of its zone (set by the phase-jump), used
+    // only in Test Mode when the current zone isn't a real fight.
     public static FightProfile? PreviewFight;
 
     public FightProfile? ActiveFight()
@@ -1734,9 +1632,7 @@ public sealed class Plugin : IDalamudPlugin
     private FightProfile? _autoFight;
     private uint _autoFightTerritory = uint.MaxValue;
 
-    // Cheap per-frame check: (re)build the auto fight when the territory
-    // changes. Only duties with NO profile of their own get one, so a real
-    // sheet or user fight always wins.
+    // Cheap per-frame check: (re)build the auto fight when the territory changes.
     private int _autoFightsStamp = -1;
 
     private void RefreshAutoFight()
@@ -1744,9 +1640,7 @@ public sealed class Plugin : IDalamudPlugin
         var territory = Service.ClientState.TerritoryType;
         // Re-check when the zone changes OR the fights list does (adding a
         // sheet mid-instance stands the auto timeline down; deleting the only
-        // sheet brings it back). The stamp folds in each fight's zone and
-        // enabled flag so retargeting or toggling a fight re-evaluates too -
-        // count alone missed both and left a stale board up.
+        // sheet brings it back).
         var stamp = Config.Fights.Count;
         foreach (var f in Config.Fights)
             stamp = stamp * 31 + (int)f.TerritoryId * 2 + (f.Enabled ? 1 : 0);

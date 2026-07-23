@@ -4,19 +4,17 @@ using System.Linq;
 
 namespace FrenMits;
 
-// One naming standard for sheet columns, everywhere: T1 T2 for tanks, the four
+// One naming standard for sheet columns everywhere: T1 T2 for tanks, the four
 // healer jobs as their own columns (WHM/AST fill the H1 seat, SCH/SGE fill H2),
-// M1 M2 for melee, R1 R2 for phys ranged / caster. Sheets that call a column
-// something else (MT/OT, D1-D4, FRU's R/Caster) are translated on the way in;
-// the baked data files keep their native labels internally.
+// M1 M2 for melee, R1 R2 for phys ranged / caster.
 public static class SlotNames
 {
     // The canonical column set (and order) every built-in sheet presents.
     public static readonly string[] Standard =
         { "T1", "T2", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" };
 
-    // Any known alias -> its canonical name. Unknown labels (custom columns,
-    // player names) pass through untouched.
+    // Any known alias -> its canonical name (unknown labels like custom columns
+    // or player names pass through untouched).
     public static string Canon(string? slot)
     {
         var s = (slot ?? "").Trim();
@@ -51,8 +49,8 @@ public static class SlotNames
     };
 
     // Rename a saved fight onto the standard, idempotently: active slot,
-    // per-slot stashes, custom columns and deletion tombstones. Returns true
-    // when anything actually changed (so the caller knows to save).
+    // per-slot stashes, custom columns and deletion tombstones (returns true
+    // when anything actually changed).
     public static bool NormalizeFight(FightProfile fight)
     {
         var changed = false;
@@ -96,8 +94,6 @@ public static class SlotNames
 
         // The active slot's lines must stay aliased into the stash under the
         // (possibly renamed) key, or the next slot switch would lose edits.
-        // If the merge above kept a FULLER plan for that key (rename collision),
-        // adopt it as the live plan instead of clobbering it with the smaller.
         if (changed && !string.IsNullOrEmpty(fight.Slot))
         {
             if (fight.SavedSlots.TryGetValue(fight.Slot, out var winner)

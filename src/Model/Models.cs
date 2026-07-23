@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// One encounter's mitigation timeline. Only fires when the player is in the
+// One encounter's mitigation timeline, firing only when the player is in the
 // matching territory.
 [Serializable]
 public class FightProfile
@@ -29,20 +29,17 @@ public class FightProfile
     public List<MitLine> Lines { get; set; } = new();
 
     // Tombstones for sheet-baked lines the user deleted, so ApplySlot's top-up
-    // and the sheet re-bakes don't resurrect them. Slot-scoped, like the lines
-    // themselves. Cleared by Reset to sheet / the Restore button.
+    // and the sheet re-bakes don't resurrect them.
     public List<DeletedCall> DeletedCalls { get; set; } = new();
 
     // Per-mechanic notes shown in the Sheet View's footer strip (the in-game
-    // version of the Ikuya sheet's notes). Fight-wide, shared with the plan code.
+    // version of the Ikuya sheet's notes).
     public List<SheetNote> Notes { get; set; } = new();
 
     // The built-in sheet slot currently selected for this fight (e.g. "D1", "WHM").
-    // Drives the seamless auto-load when you enter the zone. Empty = infer from job.
     public string Slot { get; set; } = "";
 
-    // Per-slot saved line sets, so each slot keeps its own edits. Switching the
-    // slot picker swaps Lines to that slot's set (never mixes two slots together).
+    // Per-slot saved line sets, so each slot keeps its own edits.
     public Dictionary<string, List<MitLine>> SavedSlots { get; set; } = new();
 
     // Set once the built-in timeline has been auto-loaded for this profile.
@@ -53,16 +50,15 @@ public class FightProfile
     public List<SyncPoint> SyncPoints { get; set; } = new();
 
     // Cast-free safety net: when a boss with this NameId first appears, the
-    // clock snaps to Time. Ideal for phases with no public ability timeline.
+    // clock snaps to Time.
     public List<BossAnchor> BossAnchors { get; set; } = new();
 
     // Timeline-only: an auto-generated boss timeline for a duty with no sheet
-    // (never saved to the config). The Next Mits board and combat timer run;
-    // the call overlay, audio cues and server-info bar stay silent.
+    // (never saved to the config).
     public bool TimelineOnly { get; set; }
 
     // Custom sheets (non-builtin fights): the column layout of a user-made
-    // sheet. Non-empty = this fight shows in Sheet View like an official one.
+    // sheet.
     public List<string> CustomSlots { get; set; } = new();
 
     // Scaffold rows for custom sheets: mechanics that exist before anyone has
@@ -70,10 +66,7 @@ public class FightProfile
     public List<CustomRow> CustomRows { get; set; } = new();
 
     // Untargetable/downtime windows this fight owns (custom sheets): derived from
-    // an imported log's cast gaps, on the same pull clock as the rows/anchors. The
-    // timeline shows each as its own Untargetable -> Targetable pair, exactly like
-    // the built-in Downtimes table gives official fights. TargetHp stays -1 (no DPS
-    // gate is inferred), so they render as plain grey->green lulls.
+    // an imported log's cast gaps, on the same pull clock as the rows/anchors.
     public List<DowntimeWindow> CustomDowntimes { get; set; } = new();
 
     // Derived; ignored by the serializer so share codes and plan snapshots
@@ -82,10 +75,7 @@ public class FightProfile
     public IEnumerable<MitLine> OrderedLines => Lines.OrderBy(l => l.Time);
 }
 
-// A deleted sheet call, remembered so no re-bake brings it back. Matched by the
-// spoken action (or mechanic when neither line has an action) within a wide time
-// window, so a sheet update that re-times or renames the mechanic still can't
-// resurrect it.
+// A deleted sheet call, remembered so no re-bake brings it back.
 [Serializable]
 public class DeletedCall
 {
@@ -95,8 +85,7 @@ public class DeletedCall
     public string Action { get; set; } = "";
 }
 
-// A mechanic row on a custom sheet: just a name and a time. Lines reference it
-// loosely (mechanic label + nearby time), same as notes.
+// A mechanic row on a custom sheet: just a name and a time.
 [Serializable]
 public class CustomRow
 {
@@ -104,14 +93,9 @@ public class CustomRow
     public string Mechanic { get; set; } = "";
 
     // How hard the hit is unmitigated: 0 unknown, 1 light, 2 hurts, 3 deadly.
-    // Set by hand (row's right-click menu) or from a log's unmitigated damage;
-    // Auto-plan stacks mitigation deeper on harder hits.
     public int Hurt { get; set; }
 
-    // Tank buster: the hit lands on one tank or two, not the party. Detected
-    // from a log's target counts or set by hand; Auto-plan gives these the
-    // tanks' own plan (Rampart / short mits / invulns, alternating tanks)
-    // instead of party mitigation.
+    // Tank buster: the hit lands on one tank or two, not the party.
     public bool Buster { get; set; }
 }
 
@@ -134,28 +118,21 @@ public class BossAnchor
 }
 
 // A lull learned from a pull: at Start seconds into the fight the boss went
-// untargetable and stayed that way for Duration seconds. Lets the timeline count
-// down to "targetable" on later pulls instead of only measuring as it happens.
+// untargetable and stayed that way for Duration seconds.
 [Serializable]
 public class DowntimeWindow
 {
     public float Start { get; set; }
     public float Duration { get; set; }
     // The boss HP fraction the phase must be pushed below by Start (its DPS check).
-    // -1 = a plain lull with no gate. Drives the "push it or fail" skull.
     public float TargetHp { get; set; } = -1f;
 
     // Hardcoded-table only: this window's TIME is uncertain (cactbot couldn't pin
-    // it), so refine Start/Duration from live pulls. Not serialized - learned
-    // refinements live in Configuration.LearnedDowntimes, keyed by territory.
+    // it), so refine Start/Duration from live pulls.
     [Newtonsoft.Json.JsonIgnore]
     public bool Learn { get; set; }
 
     // This lull is an actual cutscene (not just a plain untargetable transition).
-    // The timeline labels it "Cutscene" while it's playing; a non-cutscene lull
-    // reads "Untargetable" instead. Both flip to "Targetable" near the end.
-    // Serialized: hardcoded windows set it fresh in code each load, but a custom
-    // fight's derived downtimes (FightProfile.CustomDowntimes) need it to persist.
     public bool Cutscene { get; set; }
 }
 
@@ -177,28 +154,22 @@ public class MitLine
     public string Mechanic { get; set; } = "";
     public string Action { get; set; } = "";
 
-    // Job abbreviations this line applies to (e.g. "WAR", "SCH"). Empty = all jobs.
+    // Job abbreviations this line applies to (e.g. "WAR", "SCH").
     public List<string> Jobs { get; set; } = new();
     public bool Enabled { get; set; } = true;
 
     // True for a line a user added themselves (not from a built-in sheet bake).
-    // A re-bake of a built-in fight keeps these and only replaces the baked lines,
-    // so custom timers people add survive sheet updates.
     public bool Custom { get; set; }
 
     // Per-line offset on the CUE clock: + fires this one call earlier, - later.
-    // The plan time (Time) stays put; only when the call fires/shows moves, so
-    // resync and sheet updates are unaffected. 0 = no shift.
     public float OffsetSeconds { get; set; }
 
     // True when the offset was set BY HAND (the per-line offset slider), so the
-    // timing solver leaves it alone. Solver-written offsets keep this false, so a
-    // re-solve recomputes them cleanly instead of freezing its own last output.
+    // timing solver leaves it alone.
     public bool OffsetManual { get; set; }
 
     // Multi-hit coverage: this call must still be ACTIVE at this plan time (the
-    // last hit it covers). 0 = covers only its own moment. Sheet View computes
-    // the valid press window from this plus the buff's duration.
+    // last hit it covers).
     public float CoverUntil { get; set; }
 
     // Where this call actually fires on the cue clock.
@@ -219,9 +190,7 @@ public class MitLine
 
     // The parts of this call that apply to a job, honoring job qualifiers in the
     // text: "Reprisal + Party Mit (GNB/DRK)" is "Reprisal" for a WAR, unchanged
-    // for a DRK. A parenthetical counts as a job gate only when every one of its
-    // '/'-separated tokens is a job abbreviation, so hints like "(Optional First
-    // GCD)", "(Chaos)" or "(3x)" never gate anything. Unknown job = everything.
+    // for a DRK.
     public string ActionFor(string? jobAbbr)
     {
         if (string.IsNullOrWhiteSpace(Action) || string.IsNullOrEmpty(jobAbbr)) return Action;
@@ -278,8 +247,7 @@ public class MitLine
     }
 
     // The normalized job gate ("PLD/WAR") on the segment of `action` naming
-    // `mit`, or "" when that segment is ungated. Lets the cooldown checker keep
-    // different jobs' variants of one mit on separate timers.
+    // `mit`, or "" when that segment is ungated.
     public static string JobTagFor(string action, string mit)
     {
         foreach (var raw in action.Split('+'))

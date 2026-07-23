@@ -120,8 +120,6 @@ public class RecapWindow : Window
         }
 
         // At a glance: one chip per question a raid lead asks after a wipe.
-        // Green = fine, amber/red = look closer; the sections below hold the
-        // detail in the same order.
         ImGui.Dummy(new Vector2(0, 2));
         var missed = r.NotSeen();
         Widgets.Chip("raid mits", $"{MitRecap.StandardRaidMits.Length - missed.Count}/{MitRecap.StandardRaidMits.Length}",
@@ -157,8 +155,7 @@ public class RecapWindow : Window
         }
 
         // Deaths, expanded from the chip: who dropped, when, how fast, and what
-        // they still had up (or that nothing was). The full story each carries,
-        // pulled out of the timeline table so it's one click from the summary.
+        // they still had up (or that nothing was).
         if (_deathsOpen && r.LastDeaths.Count > 0)
         {
             Widgets.SectionHeader("Deaths");
@@ -183,15 +180,14 @@ public class RecapWindow : Window
 
         // Coverage timeline: the whole pull as one chart - where the party's
         // mitigation stacked (tall/green) and where it thinned (low/red), deaths
-        // marked. Hover any moment for the detail.
+        // marked.
         Widgets.SectionHeader("Coverage timeline");
         DrawScrubber(r);
         ImGui.TextColored(Theme.V(Theme.Muted), "tall & green = more mit up · dips = thin ·");
         ImGui.SameLine(0, 5); ImGui.TextColored(Theme.V(Theme.Danger), "red = deaths");
         ImGui.SameLine(0, 6); ImGui.TextColored(Theme.V(Theme.Muted), "· hover to inspect");
 
-        // Plan vs. actual: the sheet graded against the pull. Late and missing
-        // presses read as one-line stories; on-plan presses just count.
+        // Plan vs. actual: the sheet graded against the pull.
         if (r.Shown.PlanTotal > 0)
         {
             Widgets.SectionHeader("Plan check");
@@ -250,7 +246,7 @@ public class RecapWindow : Window
 
         // Full per-mechanic detail, collapsed by default: the chart above is the
         // at-a-glance view, so the long table only opens when you want the exact
-        // rows. It's the last thing drawn, so a closed header just ends the body.
+        // rows.
         ImGui.Dummy(new Vector2(0, 2));
         if (!ImGui.CollapsingHeader("Timeline details")) return;
         ImGui.TextColored(Theme.V(Theme.Muted), "mit colors:");
@@ -327,7 +323,6 @@ public class RecapWindow : Window
                     {
                         // Coverage only for party-wide buffs, and only with a sane
                         // 8-man denominator (alliance zones would read "8/24").
-                        // Coverage: how many of the party the buff actually hit.
                         ImGui.SameLine(0, 4);
                         var full = e.Covered.Count >= party.Count;
                         ImGui.TextColored(full ? Theme.V(Theme.Good) : Theme.V(Theme.Warn),
@@ -379,8 +374,7 @@ public class RecapWindow : Window
                 }
 
                 // The plan-vs-reality delta: what the sheet expected around this
-                // moment that never appeared (or only partially landed). Only
-                // graded when the capture came from THIS duty.
+                // moment that never appeared (or only partially landed).
                 if (fight != null && fight.TerritoryId == r.Territory)
                 {
                     var delta = PlanDelta(fight, group, events, party, reported);
@@ -396,12 +390,9 @@ public class RecapWindow : Window
         }
     }
 
-    // What the plan expected near this moment that the recap never saw. Only
-    // mits the recap can recognize (tracked status names) are judged, so a
-    // fancy plan label can't produce a phantom "missing". A mit planned by two
-    // slots but seen once is treated as covered: the recap can't tell whose it
-    // was. Alias and blind-spot tables live in MitRecap, shared with the
-    // capture-time plan check.
+    // What the plan expected near this moment that the recap never saw, judging
+    // only mits the recap can recognize (tracked status names) so a fancy plan
+    // label can't produce a phantom "missing".
 
     private string PlanDelta(FightProfile fight, List<MitRecap.MitEvent> group,
         List<MitRecap.MitEvent> events, List<string> party, HashSet<string> reported)
@@ -461,9 +452,7 @@ public class RecapWindow : Window
         return d >= 3f ? d : 15f;
     }
 
-    // How much a single active mit adds to the coverage score. Party-wide raid
-    // cooldowns count most; boss damage-downs and personals less. Tuned so a
-    // fully-mitigated raidwide reads green and a bare moment reads red.
+    // How much a single active mit adds to the coverage score.
     private static float MitWeight(MitRecap.MitEvent e) => e.OnBoss ? 0.09f : e.Kind switch
     {
         MitTypes.Kind.Party => 0.16f,
@@ -474,9 +463,7 @@ public class RecapWindow : Window
 
     // The at-a-glance coverage chart: an area whose HEIGHT and COLOR both show how
     // much mitigation was up across the pull - tall/green where mits stacked, low/
-    // red where coverage thinned - with death markers and mechanic ticks. It's
-    // normalized to the pull's own peak so the shape is always readable, and the
-    // per-mit detail lives in the table below. Hover for a moment-by-moment read.
+    // red where coverage thinned - with death markers and mechanic ticks.
     private void DrawScrubber(MitRecap r)
     {
         var evs = r.LastEvents();
@@ -658,8 +645,7 @@ public class RecapWindow : Window
     private static string Trunc(string s, int n) => s.Length <= n ? s : s[..(n - 1)] + "…";
 
     // The plan mechanic nearest this moment (within a window), so recap rows can
-    // group under the same names the calls used. Empty when no fight is active
-    // or nothing on the plan is close.
+    // group under the same names the calls used.
     private static string MechanicFor(FightProfile? fight, float time)
     {
         if (fight == null) return "";

@@ -1,10 +1,6 @@
-// FROZEN SNAPSHOT of the DMU timeline as it was baked into users' configs before
-// the sheet v5.0 update (the bake that shipped v1.0.0.118 through v1.0.0.167,
-// matching the Ikuya sheet ~v4.1). The smart re-bake migration diffs against
-// this to tell sheet-baked lines (replace, carrying per-line tweaks over) from
-// custom lines people added (keep). Do not edit; it must match what shipped
-// previously. When baking a NEW sheet version into DmuData, first copy the
-// then-current DmuData.Timeline here so the diff stays correct.
+// FROZEN SNAPSHOT of the pre-v5.0 DMU timeline that the smart re-bake migration
+// diffs against to tell sheet-baked lines from user-added ones, so do not edit
+// it (it must match what shipped previously).
 using System;
 using System.Collections.Generic;
 
@@ -108,8 +104,8 @@ public static class DmuLegacy
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
             // Some mechanics are listed across several note-rows (group / alt-strat)
-            // at the same time + ability. For one player that's a single action — take
-            // only the first, or the call (and its audio) fires twice or more.
+            // at the same time + ability, so take only the first or the call (and
+            // its audio) fires twice or more.
             if (!seen.Add((e.Time, e.Sync))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }

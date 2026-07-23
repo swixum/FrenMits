@@ -7,8 +7,7 @@ using Dalamud.Interface.Windowing;
 namespace FrenMits.Windows;
 
 // The small post-wipe popup: when the recap is enabled it appears after every
-// pull ends, offering to open the recap window. Themed to match the plugin, with
-// an accent border + button. Movable (drag it; position saved) or lockable.
+// pull ends, offering to open the recap window.
 public class RecapButtonWindow : Window
 {
     private readonly Plugin _plugin;

@@ -5,11 +5,10 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Per-pull diagnostics. While enabled, buffers resync / cue / phase events for the
-// current pull and writes ONE structured text file per pull into
+// Per-pull diagnostics: while enabled, buffers resync / cue / phase events and
+// writes ONE structured, entirely local text file per pull into
 //   <pluginConfigDir>/diagnostics/yyyyMMdd-HHmmss.txt
 // so the resync behaviour (especially the late phases) can be reviewed afterwards.
-// Entirely local: nothing is sent anywhere. Opt-in via Config.Diagnostics.
 public class Diagnostics
 {
     private readonly Plugin _plugin;
@@ -85,8 +84,8 @@ public class Diagnostics
         if (_active) Log($"{(isPhase ? "PHASE" : "sync ")}  {detail}");
     }
 
-    // `elapsed` here is the CUE clock (sheet + the fight's timer offset); sync
-    // lines log the sheet clock. Subtract the header's callShift to compare.
+    // `elapsed` here is the CUE clock (sheet + the fight's timer offset) while sync
+    // lines log the sheet clock, so subtract the header's callShift to compare.
     public void Cue(string action, float time, float elapsed, int gen, string note)
     {
         if (_active) Log($"cue    '{action}'  time={time:0}  cueClock={elapsed:0.0}  gen={gen}{(note.Length > 0 ? "  " + note : "")}");

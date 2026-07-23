@@ -4,16 +4,16 @@ using System.Collections.Generic;
 namespace FrenMits;
 
 // Tank-buster mit plans from the Ikuya "Dancing Mad (Ultimate)" sheet, per tank
-// pairing and per job. Times are seconds from the pull (continuous, same clock as
-// the main mit timeline). Opt-in only.
+// pairing and per job, with times in seconds from the pull (continuous, same
+// clock as the main mit timeline).
 public static class TankMits
 {
     public sealed record Entry(int Time, string Mechanic, string Action);
 
     // DMU, plus the legacy ultimates whose sheets carry per-pairing tank tabs
     // (DSR/TOP) or a generic "All Comps" tank tab (UCOB/UWU) replicated across the
-    // standard six pairings. TEA's tank tab is a comp×mechanic matrix that doesn't
-    // split cleanly per job, so it isn't baked yet.
+    // standard six pairings, with TEA not baked yet since its tab doesn't split
+    // cleanly per job.
     public static bool Has(uint territory) => territory is
         Builtin.DmuTerritory or Builtin.UcobTerritory or Builtin.UwuTerritory
         or Builtin.DsrTerritory or Builtin.TopTerritory;
@@ -44,12 +44,8 @@ public static class TankMits
     }
 
     // DMU per-pairing plans re-baked from the sheet v5.0 tank tabs, which
-    // replaced the old "90s/40%/Short Mit" shorthand with explicit ability
-    // names, split the P2 Wings of Destruction/Ultimate Embrace rows, and
-    // added the Black Holes IV row. The two shorthand cells the sheet left
-    // behind ("90s"/"40%") are spelled out here the way its sister tabs do
-    // (GNB Camouflage, PLD Guardian). TankMitsLegacy keeps the old bake for
-    // the v18 migration.
+    // replaced the old "90s/40%/Short Mit" shorthand with explicit ability names
+    // (TankMitsLegacy keeps the old bake for the v18 migration).
     static readonly Dictionary<string, Dictionary<string, Entry[]>> DmuTank = new()
     {
         ["WAR/DRK"] = new()

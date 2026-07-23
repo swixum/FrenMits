@@ -28,10 +28,8 @@ public class OverlayWindow : Window
     public override void PreDraw()
     {
         // NoTitleBar is always on: a title bar shown only when unlocked shifts the
-        // content down by its height, so the display would jump up the moment you
-        // lock it. Without one the content top IS the window top in both states, so
-        // locking never moves it. Unlocked, you drag the body (move-from-titlebar-
-        // only is off), so a grab handle isn't needed.
+        // content down by its height, so the display would jump the moment you lock
+        // it, and without one the content top IS the window top in both states.
         Flags = ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings
@@ -56,9 +54,7 @@ public class OverlayWindow : Window
         pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y)); // whole pixels = sharp text
 
         // Pin to the saved spot (center-anchored) every frame EXCEPT while the
-        // mouse is held, which is the only time a drag can be happening. Pinning
-        // only-once while unlocked let the auto-resize box grow rightward as call
-        // text length changed, so the display appeared to wander between calls.
+        // mouse is held, which is the only time a drag can be happening.
         if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
@@ -74,8 +70,8 @@ public class OverlayWindow : Window
     private bool _applyPos = true;
 
     // Locked for real if you ticked the lock OR you're in a live pull (but not
-    // while previewing). Combat always pins/click-throughs the overlay so it
-    // can't be grabbed and "stuck" mid-fight; drag it out of combat or in preview.
+    // while previewing), since combat always pins/click-throughs the overlay so
+    // it can't be grabbed and "stuck" mid-fight.
     private bool EffectiveLocked => C.OverlayLocked || (Plugin.InCombat && !C.TestMode);
 
     // Snap the overlay back to the saved position next frame (used by Reset).
@@ -107,13 +103,8 @@ public class OverlayWindow : Window
     //
     // Auto cooldown timing already pushes a press EARLY (a positive, solver-set
     // OffsetSeconds), and the solver keeps CooldownLeadSeconds of buff past the last
-    // hit for exactly this: the call shows for that whole window, so you have time to
-    // react and can press anywhere in it and still cover the mechanic. It is NOT
-    // another full warning-lead stacked in front of the press. The window is capped at
-    // half the buff (matching the solver) so a short cooldown's window stays valid.
-    // Lines the solver could not pull early (offset ~0) keep the normal warning lead
-    // as a heads-up before the hit; a hand-set (manual) offset keeps it too, so the
-    // "fire this call N seconds early" slider behaves exactly as before.
+    // hit for exactly this, so the call shows for that whole window and you can press
+    // anywhere in it and still cover the mechanic.
     private float LeadFor(MitLine line)
     {
         if (line.LeadOverride > 0f) return line.LeadOverride;
@@ -127,7 +118,7 @@ public class OverlayWindow : Window
     {
         SavePositionIfDragged();
 
-        // Right-click quick menu. Only reachable while the overlay accepts the
+        // Right-click quick menu, only reachable while the overlay accepts the
         // mouse at all (unlocked, out of combat), so it can never eat a click
         // mid-fight.
         if (ImGui.BeginPopupContextWindow("##fmoverlayctx"))
@@ -189,9 +180,8 @@ public class OverlayWindow : Window
         if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLines.Clear(); }
 
         // The calls we count down to: the soonest line inside its lead window, plus
-        // any other line tied at (about) the same time — so simultaneous mits stack
-        // instead of one hiding the other. Lead window is the per-line override, else
-        // the global warning lead.
+        // any other line tied at (about) the same time, so simultaneous mits stack
+        // instead of one hiding the other.
         var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
@@ -430,7 +420,7 @@ public class OverlayWindow : Window
 
         // Cooldown sweep: a dark wedge over the ELAPSED portion, growing clockwise
         // from 12 o'clock as the countdown drains, so the icon "goes away" by the
-        // call. The radius reaches the square's corners so none of it is left behind.
+        // call.
         if (imminent && lead > 0.01f)
         {
             var frac = Math.Clamp(remaining / lead, 0f, 1f);
@@ -470,19 +460,13 @@ public class OverlayWindow : Window
     private const uint PrepCol = 0xFF64DC64;
 
     // The prep press-window for a call pulled early to stay up for a later hit:
-    // "(use between 0:10 and 0:21)". Planned-schedule driven (reads the solved
-    // offset/coverage, not your live cooldown). "" for an ordinary on-time call.
-    // The window runs from the earliest the buff can still reach the last covered
-    // hit, up to the front hit (the solved press). The alert only shows while
-    // counting down to that front hit, so it disappears the moment the window closes.
+    // "(use between 0:10 and 0:21)", or "" for an ordinary on-time call.
     private string PrepText(MitLine call)
     {
         if (!C.PrepAlerts) return "";
-        // The solver presses at the front of the run (Time - OffsetSeconds) and books
-        // the last hit the buff must still be up for in CoverUntil. A prep window only
-        // exists when the press blankets a LATER hit than its own - that IS "press it
-        // early and hold it". A press that only covers its own moment has no window,
-        // and OffsetSeconds stays ~0 for it, so gate on the coverage, not the offset.
+        // A prep window only exists when the press blankets a LATER hit than its own
+        // (the solver presses at the front of the run and books the last covered hit
+        // in CoverUntil), so gate on the coverage, not the offset.
         var windowEnd = call.Time - call.OffsetSeconds; // latest press: the front hit
         if (call.CoverUntil <= windowEnd + 2f) return ""; // covers only itself: nothing to prep
         var mits = Cooldowns.PlanMits(call.Action).ToList();
@@ -513,7 +497,7 @@ public class OverlayWindow : Window
         var headline = FormatHeadline(mechanic, action, remaining, imminent);
 
         // Cooldown-aware: if your mit won't be off recast by the call, flag it (and
-        // tint the call to the warning colour). Guarded; null = not a tracked mit.
+        // tint the call to the warning colour).
         if (C.CooldownAwareCalls && imminent && Cooldowns.Remaining(action) is { } cd && cd > remaining + 0.5f)
         {
             headline += $"  [CD {MathF.Ceiling(cd):0}s]";
@@ -521,7 +505,7 @@ public class OverlayWindow : Window
         }
 
         // Depleting ring around the icon while counting down (full at the lead, empty
-        // at the call). -1 = no ring.
+        // at the call); -1 = no ring.
         var ringFrac = C.ShowRadialRing && imminent && lead > 0.01f
             ? Math.Clamp(remaining / lead, 0f, 1f) : -1f;
 
@@ -624,7 +608,7 @@ public class OverlayWindow : Window
     }
 
     // Pushes a crisp Dalamud font handle at the given px size, falling back to
-    // SetWindowFontScale if the handle is not ready yet. Returns an IDisposable.
+    // SetWindowFontScale if the handle is not ready yet.
     private IDisposable PushFont(float sizePx)
     {
         var handle = _plugin.Fonts.Get(sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);

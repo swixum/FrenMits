@@ -1,22 +1,8 @@
-// AUTO-GENERATED from the Ikuya "Dancing Mad (Ultimate)" mit sheet
-// (Ikuya Kirishima), sheet version 5.0 (2026-07-16). The sheet's grey "arrow"
-// cells are carryover indicators (a mit still active from an earlier row), not
-// new casts, and are NOT baked.
-// EXCEPTION: the WHM Asylum calls are a FrenMits addition timed from an FFLogs
-// clear; the sheet never lists Asylum. Keep them when syncing future sheet
-// versions (they are the " + Asylum" / "Asylum" entries in the WHM column).
-// EXCEPTION: the sheet's P2 row at 221 is misspelled "Ultimate Embrance"; it is
-// deliberately baked corrected as "Ultimate Embrace". Keep the correction when
-// syncing future sheet versions (a diff will show it as a change; it isn't).
-// Resync ability ids are cross-referenced from the cactbot
-// dancing_mad timeline (07-dt/ultimate): every sheet mechanic is matched to its
-// cactbot cast in fight order, gated to its phase's timeline offset, and stamped
-// with that cast's id at the sheet's (real, pull-relative) time. Mit times are
-// left as authored — the anchors snap the clock onto each cast, so the calls
-// stay aligned to the real timeline through all five phases. cactbot's absolute
-// times are NOT used directly (its phase transitions use forcejumps that inflate
-// later-phase times by 110s/225s/390s vs the live clock). Times = seconds from
-// the pull (continuous).
+// AUTO-GENERATED from the Ikuya "Dancing Mad (Ultimate)" mit sheet v5.0
+// (2026-07-16), with resync ability ids cross-referenced from the cactbot
+// dancing_mad timeline so the anchors snap the clock onto each real cast and
+// keep the authored mit times aligned through all five phases (times = seconds
+// from the pull, continuous).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,12 +111,9 @@ public static class DmuData
         _ => phase,
     };
 
-    // The "Notes" footer from each phase tab of the sheet, shown at the bottom of
-    // the Sheet View. Footnote superscripts are written as "1)" and glyphs the
-    // game font can't render are spelled out; otherwise the text is the sheet's.
-    // Short play guidance for key mechanics, shown under a board row when it
-    // goes gold/green and the sheet itself carries no note there. Hard-won
-    // timing knowledge, kept to one line each.
+    // The sheet's per-phase "Notes" footer (shown under the Sheet View) plus
+    // short per-mechanic play guidance shown under a board row when no sheet
+    // note applies.
     public static string PressNote(string mechanic)
     {
         var m = (mechanic ?? "").Trim();
@@ -215,19 +198,17 @@ public static class DmuData
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
             // Some mechanics are listed across several note-rows (group / alt-strat)
-            // at the same time + ability. For one player that's a single action — take
-            // only the first, or the call (and its audio) fires twice or more.
+            // at the same time + ability, so take only the first or the call (and
+            // its audio) fires twice or more.
             if (!seen.Add((e.Time, e.Sync))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }
         return list;
     }
 
-    // Resync anchors (ability id -> expected resolve time).
-    // The earliest synced cast in each phase is flagged as a phase anchor: it
-    // gets a wide match window and re-bases the whole clock, so a phase that
-    // starts far from the sheet's "standard" time (faster/slower kill) still
-    // snaps into place and every following call in that phase stays accurate.
+    // Resync anchors (ability id -> expected resolve time): the earliest synced
+    // cast in each phase is a phase anchor that re-bases the whole clock so every
+    // following call in that phase stays accurate.
     public static List<SyncPoint> SyncPoints()
     {
         var points = new List<SyncPoint>();
@@ -236,7 +217,7 @@ public static class DmuData
         foreach (var e in Timeline.Where(e => e.Sync != 0).OrderBy(e => e.Time))
         {
             // Re-base (wide-forward) anchor at each phase start AND after any
-            // downtime/cutscene gap (>90s) — so the clock can jump back on across a
+            // downtime/cutscene gap (>90s), so the clock can jump back on across a
             // transition even if it drifted while nothing was casting.
             var isPhaseAnchor = phaseSeen.Add(e.Phase) || (e.Time - prevTime) > 90f;
             points.Add(new SyncPoint
@@ -252,10 +233,8 @@ public static class DmuData
         return points;
     }
 
-    // No boss-appearance anchors. The old Chaos@451 one fired the moment Chaos
-    // *appeared* (right when the P2->P3 cutscene ended), snapping the clock to 451
-    // and firing the "Bowels of Agony" call several seconds before Bowels actually
-    // cast — then everything after drifted. P3 now re-bases on the real Bowels cast
-    // (BAF2, a phase anchor at 451s), which fires when the mechanic truly happens.
+    // No boss-appearance anchors, because the old Chaos@451 one fired the "Bowels
+    // of Agony" call the moment Chaos appeared (before the real cast), so P3 now
+    // re-bases on the real Bowels cast (BAF2, a phase anchor at 451s).
     public static List<BossAnchor> BossAnchors() => new();
 }

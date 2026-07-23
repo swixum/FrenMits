@@ -5,10 +5,9 @@ using Dalamud.Game.ClientState.Objects.Types;
 namespace FrenMits;
 
 // Timeline resync, the safe way: instead of hooking the game we watch boss cast
-// bars. When a known ability begins casting, we know exactly when it will
-// resolve, so we snap the pull-clock to make the timeline line up with the
-// ability's scripted time. This corrects the DPS-dependent drift between phases
-// without ever counting on a fixed phase length.
+// bars, and when a known ability begins casting we snap the pull-clock so the
+// timeline lines up with its scripted time, correcting DPS-dependent drift between
+// phases without ever counting on a fixed phase length.
 public class SyncEngine
 {
     private readonly Plugin _plugin;
@@ -25,16 +24,14 @@ public class SyncEngine
     public string LastSyncNice { get; private set; } = "";
     public DateTime LastSyncAt { get; private set; } = DateTime.MinValue;
 
-    // Bumps whenever a phase anchor (or boss-appearance anchor) re-bases the clock.
-    // The cue engine watches this to know a fresh phase has actually started after
+    // Bumps whenever a phase anchor (or boss-appearance anchor) re-bases the clock,
+    // which the cue engine watches to know a fresh phase has actually started after
     // a cutscene, rather than releasing on any minor mid-phase drift correction.
     public int PhaseSyncGeneration { get; private set; }
 
     // Running estimate of how far the clock drifts from the baked timeline before
     // a mechanic anchor corrects it (+ = the clock runs ahead of the fight, i.e.
     // mechanics resolve later than the sheet says, i.e. your group runs behind).
-    // Shown as a "timeline fit" readout; the config button folds -drift into the
-    // fight's timer offset to re-center calls on the mechanics.
     public float AvgDrift { get; private set; }
     public int DriftSamples { get; private set; }
 
@@ -42,8 +39,7 @@ public class SyncEngine
 
     // Automatic capture for CUSTOM sheets: every enemy cast of the current/last
     // pull, no toggle needed, so Sheet View's "Build from pull" can turn a wipe
-    // into rows + anchors. Cleared lazily on the next pull's FIRST capture, so
-    // an instant wipe (or a stray /fm sync) can't destroy the previous capture.
+    // into rows + anchors.
     public readonly List<Capture> LastPull = new();
     public uint LastPullTerritory { get; private set; }
 
@@ -66,7 +62,7 @@ public class SyncEngine
         var c = _plugin.Config;
 
         // Fresh pull (combat just started): re-arm boss-presence + cast detection so
-        // anchors fire again. NOT keyed off Generation, which also bumps on /fm sync.
+        // anchors fire again, NOT keyed off Generation which also bumps on /fm sync.
         var running = _plugin.Timer.Running;
         if (running && !_wasRunning) { Forget(); _lastPullArmed = false; _playbackEnemyAt = DateTime.UtcNow; }
         _wasRunning = running;
@@ -77,20 +73,19 @@ public class SyncEngine
             return;
         }
 
-        // Custom sheets get a hands-free capture of every pull so Sheet View's
-        // "Build from pull" can turn a wipe into rows + anchors. Resolved up
-        // front because the playback watchdog needs to know whether the enemy
-        // scan below is actually running.
+        // Custom sheets get a hands-free capture of every pull (Sheet View's
+        // "Build from pull" turns a wipe into rows + anchors), resolved up front
+        // because the playback watchdog needs to know whether the enemy scan below
+        // is actually running.
         var fight = _plugin.ActiveFight();
         var autoCapture = fight != null && fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId);
         var scanning = fight != null && (c.EnableSync || autoCapture);
 
-        // Duty-recorder playback watchdog: the spectator has no combat flag, so
-        // nothing ever stops the clock between the recording's pulls. Two signals
-        // end a viewing: a load screen (chapter jump / pull reset, immediate) and
-        // every enemy being gone for a few seconds (wipe fade). Either stops the
-        // timer; the auto-start then re-locks onto whatever plays next, and the
-        // fresh generation re-arms the calls so they speak again.
+        // Duty-recorder playback watchdog: with no combat flag to stop the clock
+        // between the recording's pulls, two signals end a viewing (a load screen
+        // for a chapter jump / pull reset, and every enemy gone for a few seconds
+        // for a wipe fade), each stopping the timer so the auto-start re-locks onto
+        // whatever plays next.
         if (Plugin.InDutyPlayback)
         {
             if (Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
@@ -123,9 +118,9 @@ public class SyncEngine
         {
             // A game object can go stale mid-frame (an actor despawning during a
             // phase transition leaves BattleChara.IsCasting dereferencing a null
-            // pointer). Skip just that object so the rest of the table — and the
-            // cue engine after us — still run this tick, instead of letting the
-            // NRE abort the whole framework update.
+            // pointer), so skip just that object and let the rest of the table and
+            // the cue engine still run this tick instead of the NRE aborting the
+            // whole framework update.
             try
             {
                 // Feed the playback watchdog: any live enemy means the recording
@@ -170,11 +165,10 @@ public class SyncEngine
         }
     }
 
-    // Duty-recorder playback (A Realm Recorded and friends): the spectator has
-    // no combat flag, so the timer would never start by itself. Instead, the
-    // first enemy cast matching a resync anchor both starts AND places the
-    // clock; from there the normal anchor pipeline keeps it honest, including
-    // through chapter skips (phase anchors re-base).
+    // Duty-recorder playback (A Realm Recorded and friends): with no combat flag
+    // the timer would never start by itself, so the first enemy cast matching a
+    // resync anchor both starts AND places the clock, and from there the normal
+    // anchor pipeline keeps it honest through chapter skips (phase anchors re-base).
     private void TryPlaybackAutoStart(Configuration c)
     {
         if (!Plugin.InDutyPlayback || !c.EnableSync) return;
@@ -190,10 +184,9 @@ public class SyncEngine
                 if (castId == 0) continue;
 
                 // Only start from an ability that appears EXACTLY once in the
-                // timeline. A repeated ability (DMU's Ultimate Embrace anchors
-                // 221/371/378) is ambiguous after a chapter jump; guessing the
-                // earliest instance could start the clock minutes off. Unique
-                // anchors are dense enough that the wait is a few seconds.
+                // timeline, since a repeated ability (DMU's Ultimate Embrace anchors
+                // 221/371/378) is ambiguous after a chapter jump and guessing the
+                // earliest instance could start the clock minutes off.
                 SyncPoint? best = null;
                 var hits = 0;
                 foreach (var sp in fight.SyncPoints)
@@ -217,8 +210,8 @@ public class SyncEngine
         SnapToCast(fight, actionId, timeToResolve);
     }
 
-    // Snap to the boss-appearance anchor for this NameId, if the fight has one.
-    // Returns true if it snapped.
+    // Snap to the boss-appearance anchor for this NameId if the fight has one,
+    // returning true if it snapped.
     private bool SnapToBoss(FightProfile fight, uint nameId, string casterName = "")
     {
         var elapsed = _plugin.ElapsedFor(fight);
@@ -237,7 +230,7 @@ public class SyncEngine
     }
 
     // Snap the clock so a cast of `actionId` resolving `timeToResolve` from now
-    // lands on its scripted time. Returns true if a matching anchor snapped the
+    // lands on its scripted time, returning true if a matching anchor snapped the
     // clock.
     private bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
     {
@@ -246,14 +239,10 @@ public class SyncEngine
 
         var predictedElapsed = elapsed + timeToResolve; // where the clock will be at resolve
 
-        // Match the way cactbot does: a wide FORWARD window and a tight BACKWARD
-        // one. Some accurate timelines (the legacy ultimates) carry loop/jump
-        // coordinates, so a phase or sub-phase can sit a long way ahead of a clock
-        // that's still at the previous segment's coordinate — we need to jump
-        // forward onto it. But we must not jump backward far, or a repeated
-        // ability later in a segment would snap the clock back to the segment
-        // start. (For continuous timelines like DMU the forward gap is ~0, so this
-        // is a no-op there.) Among candidates we take the nearest one ahead.
+        // Match the way cactbot does: a wide FORWARD window (a phase can sit far
+        // ahead of a clock still at the previous segment's loop/jump coordinate) but
+        // a tight BACKWARD one (or a repeated ability later in a segment would snap
+        // the clock back to the segment start), taking the nearest candidate ahead.
         SyncPoint? best = null;
         var bestDelta = float.MaxValue;
         foreach (var sp in fight.SyncPoints)
@@ -264,21 +253,18 @@ public class SyncEngine
             // (fine drift only) so an early stray cast can't snap the clock far
             // forward onto a later anchor.
             var fwd = sp.IsPhase ? _plugin.Config.SyncForwardWindowSeconds : _plugin.Config.SyncWindowSeconds;
-            // The backward window stays tight even in duty-recorder playback: a
+            // The backward window stays tight even in duty-recorder playback, since a
             // phase anchor's ability can RECAST later in the fight (DMU's
-            // Revolting Ruin III comes back at ~98s), and a wide backward window
-            // would yank the clock to the phase start mid-run. Playback resets
-            // and chapter jumps are handled by the playback watchdog instead: the
-            // load screen / no-enemies gap stops the timer and the auto-start
-            // re-locks onto the new position from scratch.
+            // Revolting Ruin III comes back at ~98s) and a wide backward window
+            // would yank the clock to the phase start mid-run.
             var bwd = sp.IsPhase
                 ? MathF.Max(_plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncWindowSeconds)
                 : _plugin.Config.SyncWindowSeconds;
             var ahead = sp.Time - predictedElapsed; // + => anchor is ahead of the clock
             if (ahead > fwd || ahead < -bwd) continue;
-            // Take the NEAREST anchor; only break a tie toward a phase anchor. (Not
-            // a strong phase bias — otherwise a repeated ability whose later cast is
-            // a phase anchor would drag an earlier cast forward onto it.)
+            // Take the NEAREST anchor, breaking a tie only toward a phase anchor (not
+            // a strong bias, or a repeated ability whose later cast is a phase anchor
+            // would drag an earlier cast forward onto it).
             var score = MathF.Abs(ahead) - (sp.IsPhase ? 0.01f : 0f);
             if (score < bestDelta)
             {
@@ -290,9 +276,9 @@ public class SyncEngine
         if (best == null) return false;
 
         // Self-tuning telemetry: how far the clock was off when this mechanic
-        // anchor (not a big phase re-base) fired — a running feel for how well the
-        // baked timeline matches your group's pace. A small EMA, ignoring the large
-        // phase jumps which aren't drift.
+        // anchor (not a big phase re-base) fired, a small EMA feel for how well the
+        // baked timeline matches your group's pace, ignoring the large phase jumps
+        // which aren't drift.
         if (!best.IsPhase)
         {
             var drift = predictedElapsed - best.Time; // + => clock was running ahead
@@ -300,10 +286,10 @@ public class SyncEngine
             DriftSamples++;
         }
 
-        // Snap so that, timeToResolve from now, ElapsedFor == best.Time. SetElapsed
-        // sets the raw timer, so subtract the phase offset back out. The fight's
-        // timer offset is deliberately NOT subtracted: it lives on the cue clock
-        // (CueClockFor), so a user's call-shift survives every snap.
+        // Snap so that, timeToResolve from now, ElapsedFor == best.Time: SetElapsed
+        // sets the raw timer so subtract the phase offset back out, but NOT the
+        // fight's timer offset, which lives on the cue clock (CueClockFor) so a
+        // user's call-shift survives every snap.
         var desiredElapsedNow = best.Time - timeToResolve - _plugin.PhaseOffsetFor(fight);
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";

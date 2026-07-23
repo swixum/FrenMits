@@ -60,8 +60,8 @@ public static class FruData
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
             // Some mechanics are listed across several note-rows (group / alt-strat)
-            // at the same time + ability. For one player that's a single action — take
-            // only the first, or the call (and its audio) fires twice or more.
+            // at the same time + ability, so take only the first or the call (and
+            // its audio) fires twice or more.
             if (!seen.Add((e.Time, e.Sync))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }
@@ -85,17 +85,14 @@ public static class FruData
         return points;
     }
 
-    // Phase bosses resolved by name (phase times). Unresolved names are skipped.
+    // Phase bosses resolved by name (phase times); unresolved names are skipped.
     public static List<BossAnchor> BossAnchors()
     {
         var list = new List<BossAnchor>();
-        // These re-base the clock when each boss APPEARS. The first three sit at
-        // the appearance time, earlier than that phase's first call, so they only
-        // correct the clock without firing a call early. Pandora was pinned at
-        // 1041s — the same time as P5's first call — so it would fire that call the
-        // instant Pandora spawned, before the mechanic (the same bug that hit DMU's
-        // Chaos anchor). Dropped; P5 re-bases on its first real cast (the 1041s
-        // phase anchor) instead.
+        // These re-base the clock when each boss APPEARS, sitting before that
+        // phase's first call so they correct the clock without firing a call
+        // early (Pandora was dropped because it would have fired P5's first call
+        // the instant it spawned).
         BossNames.Add(list, "Fatebreaker", 0f, "P1 Fatebreaker");
         BossNames.Add(list, "Usurper of Frost", 215.3f, "P2 Shiva");
         BossNames.Add(list, "Oracle of Darkness", 500.0f, "P3 Gaia");

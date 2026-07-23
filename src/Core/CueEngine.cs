@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Fires the audio cue for a line exactly once when it enters its warning window.
-// Runs every framework tick so cues sound even if the overlay is hidden.
+// Fires the audio cue for a line exactly once when it enters its warning window,
+// running every framework tick so cues sound even if the overlay is hidden.
 public class CueEngine
 {
     private readonly Plugin _plugin;
@@ -23,13 +23,11 @@ public class CueEngine
     {
         var c = _plugin.Config;
 
-        // The clock's generation bumped (pull / wipe / sync / a brief combat flicker).
-        // Only a genuine FRESH pull (the clock resets to ~0) re-arms every call, so we
-        // clear the fired-set then. A mid-pull bump — a resync snap or a brief combat
-        // flicker — leaves the fired-set untouched. (The old code re-armed every fired
-        // line that a backward snap had pushed ahead of the clock; re-advancing onto
-        // those is exactly what replayed a call we'd already spoken — the double-audio.
-        // Unfired future lines aren't in the set, so they still fire normally.)
+        // Only a genuine FRESH pull (the clock resets to ~0) re-arms every call by
+        // clearing the fired-set, while a mid-pull bump (a resync snap or brief
+        // combat flicker) leaves it untouched, since re-advancing already-fired
+        // lines onto a backward snap is what replayed a call we'd already spoken
+        // (the double-audio).
         if (_plugin.Timer.Generation != _generation)
         {
             _generation = _plugin.Timer.Generation;
@@ -41,12 +39,12 @@ public class CueEngine
             if (fresh) _fired.Clear();
         }
 
-        // Waiting for the post-cutscene phase re-base to land — stay silent so we
-        // don't announce against a drifted clock. Release when a PHASE anchor
-        // snaps the clock (a mid-phase mechanic resync isn't enough to trust the
-        // new phase yet) or the timeout passes. This runs BEFORE the audio gate:
-        // Holding also hides the overlay and board, so with audio off it would
-        // otherwise latch forever after the first cutscene.
+        // While waiting for the post-cutscene phase re-base to land, stay silent so
+        // we don't announce against a drifted clock, releasing when a PHASE anchor
+        // snaps the clock (a mid-phase mechanic resync isn't enough to trust the new
+        // phase yet) or the timeout passes, and running BEFORE the audio gate since
+        // Holding also hides the overlay and board and would otherwise latch forever
+        // after the first cutscene with audio off.
         if (_holding && (_plugin.Sync.PhaseSyncGeneration != _holdPhaseGen || DateTime.UtcNow >= _holdUntil))
             _holding = false;
 
@@ -79,14 +77,14 @@ public class CueEngine
     }
 
     // After a phase-transition cutscene the wall clock has run on but hasn't been
-    // snapped back onto the timeline yet, so firing now would speak the wrong call.
-    // Hold cues until the resync engine actually snaps (LastSync changes) or this
-    // deadline passes, whichever comes first.
+    // snapped back onto the timeline yet, so hold cues until the resync engine
+    // actually snaps (LastSync changes) or this deadline passes, whichever comes
+    // first.
     private bool _holding;
     private int _holdPhaseGen;
     private DateTime _holdUntil;
 
-    // Re-arm every cue. A practice phase-jump parks the clock mid-sheet with
+    // Re-arm every cue, since a practice phase-jump parks the clock mid-sheet with
     // SetElapsed (no Generation bump, elapsed far from 0), so without this a
     // second jump to the same phase would stay silent.
     public void Rearm() => _fired.Clear();
@@ -98,9 +96,9 @@ public class CueEngine
         _holdUntil = DateTime.UtcNow.AddSeconds(maxSeconds);
     }
 
-    // True while we're waiting for the post-cutscene phase re-base to land. The
-    // overlay and timeline windows hide during this window so nothing visual fires
-    // against the drifted clock either.
+    // True while we're waiting for the post-cutscene phase re-base to land, during
+    // which the overlay and timeline windows hide so nothing visual fires against
+    // the drifted clock either.
     public bool Holding => _holding;
 
     // When each spoken phrase was last said, to debounce identical calls.
@@ -110,9 +108,9 @@ public class CueEngine
     {
         if (!c.TtsEnabled) return;
 
-        // Per-line override wins; otherwise speak the action (or mechanic if chosen).
-        // The action is job-filtered (only your segments of a combined call) and
-        // job-resolved so "Party Mit" is spoken as e.g. "Troubadour".
+        // Per-line override wins, otherwise speak the action (or mechanic if chosen),
+        // job-filtered (only your segments of a combined call) and job-resolved so
+        // "Party Mit" is spoken as e.g. "Troubadour".
         var fallback = c.TtsSpeakMechanic
             ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.ActionFor(job), job) : line.Mechanic)
             : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.ActionFor(job), job));
@@ -124,7 +122,7 @@ public class CueEngine
         // Hard guard against doubled audio: never speak the exact same phrase twice
         // within a short window, whatever caused the second trigger (a resync
         // re-fire, a brief combat flicker resetting the fired-set, an in-editor time
-        // change). Distinct calls are unaffected.
+        // change).
         if (_spokenAt.TryGetValue(text, out var lastSame) && (now - lastSame).TotalSeconds < 2.0)
         {
             Service.Log.Information($"[FrenMits] (debounced duplicate '{text}', {(now - lastSame).TotalSeconds:0.00}s after last)");

@@ -4,12 +4,11 @@ using System.Collections.Generic;
 namespace FrenMits;
 
 // Scheduled boss-reposition calls per fight: the moments the boss moves to a known
-// spot (e.g. returns to Middle), on the FrenMits pull clock - the same axis the
-// sheet and downtime windows use. The next-mits board shows each as its own cyan
-// countdown row, so you get a heads-up before the boss repositions.
+// spot (e.g. returns to Middle), on the FrenMits pull clock, shown on the next-mits
+// board as a cyan countdown row.
 //
 // Times are the same casts cactbot marks on its timeline, converted onto FrenMits'
-// compressed clock the way Downtimes.cs does. `Where` is the spot shown on the row.
+// compressed clock the way Downtimes.cs does.
 public static class Positions
 {
     public readonly record struct Spot(float Time, string Where);
@@ -22,12 +21,9 @@ public static class Positions
         _ => None,
     };
 
-    // Dancing Mad - Kefka's "return to middle" casts (C3FD). There are exactly FIVE
-    // in a clear, and these times are the median of the C3FD cast across six top
-    // FFLogs kills - fight-relative seconds, which IS this pull clock, so no
-    // conversion. The last two were previously mis-estimated (816/908); the real
-    // ones are 739 (early P4, just after Kefka returns at 725) and 851 (mid-P4, just
-    // before the P4->P5 lull). There is NO return-to-middle in P5, so P5 shows none.
+    // Dancing Mad - Kefka's "return to middle" casts (C3FD); exactly FIVE in a
+    // clear, timed as the median of the C3FD cast across six top logs kills
+    // (fight-relative seconds, which IS this pull clock).
     private static readonly Spot[] Dmu =
     {
         new(25,  "Middle"),

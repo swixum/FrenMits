@@ -5,14 +5,13 @@ using System.Linq;
 namespace FrenMits;
 
 // Consensus potion timings per job, clustered from the top logs the raalm.com /
-// Lorrgs "m-spec" site serves. Baked offline; nothing is added to a sheet unless
+// Lorrgs "m-spec" site serves, baked offline so nothing is added to a sheet unless
 // the user clicks.
 public static class PotionTimings
 {
-    // Fights the site has potion-cast data for (its boss slug). Others return null.
-    // Only the current tier (this ultimate + this savage) is tracked with potion
-    // casts on the site; the older ultimates (UCOB/UWU/TEA/DSR/TOP) and FRU expose
-    // only rotational abilities in their rankings, so there's nothing to pull.
+    // Fights the site has potion-cast data for (its boss slug), else null; only the
+    // current tier (this ultimate + this savage) is tracked, since the older
+    // ultimates (UCOB/UWU/TEA/DSR/TOP) and FRU expose only rotational abilities.
     public static string? BossSlug(uint territory) => territory switch
     {
         Builtin.DmuTerritory => "dancing-mad",
@@ -20,8 +19,8 @@ public static class PotionTimings
         _ => null,
     };
 
-    // Baked consensus windows (seconds from pull) per boss slug, then per job,
-    // clustered from the top logs on raalm.com / Lorrgs. Last refreshed: 2026-06-20.
+    // Baked consensus windows (seconds from pull) per boss slug then per job,
+    // clustered from the top logs on raalm.com / Lorrgs (last refreshed 2026-06-20).
     public static readonly Dictionary<string, Dictionary<string, int[]>> Defaults = new()
     {
         ["dancing-mad"] = new(StringComparer.OrdinalIgnoreCase)
@@ -74,9 +73,8 @@ public static class PotionTimings
         },
     };
 
-    // Baked windows for a fight + job, as floats. Empty if none.
     // The standard 2-minute-meta potion plan for a fight of this length: pot
-    // the opener, then each 6:00 burst (item recast is 270s; bursts land on the
+    // the opener, then each 6:00 burst (item recast is 270s, bursts land on the
     // even minutes) while at least half a minute of fight remains.
     public static List<float> GenericWindows(float fightEnd)
     {

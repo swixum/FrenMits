@@ -4,18 +4,17 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Optional, job-specific mitigation timers derived from FFLogs clears (raalm.com),
-// the same way the WHM Asylum line was. Offered as a one-click add on the fight
-// page when you're on that job. Lines are job-restricted (only fire for that job)
-// and flagged Custom, so a sheet re-bake keeps them.
+// Optional, job-specific mitigation timers derived from logs clears (raalm.com),
+// offered as a one-click add on the fight page and flagged Custom so a sheet
+// re-bake keeps them.
 //
 // Every schedule is spaced to the ability's real recast - no call ever asks you to
 // press something that's still on cooldown.
 public static class JobExtras
 {
     // Steps: for a SEQUENCE extra (e.g. SMN summons) each entry carries its OWN
-    // action at that time, instead of one Action repeated across Lines. Null for the
-    // normal single-ability mitigation extras.
+    // action at that time, instead of one Action repeated across Lines (null for
+    // normal single-ability extras).
     public sealed record Extra(string Job, string Action, float Recast, (int Time, string Mechanic)[] Lines,
         (int Time, string Summon)[]? Steps = null);
 
@@ -23,10 +22,7 @@ public static class JobExtras
     {
         [Builtin.DmuTerritory] = new[]
         {
-            // Bard - Nature's Minne (120s recast). Anchored to sheet v5.0 rows;
-            // the last press moved from Fell Forces (3x) to Forsaken (1st Hit)
-            // because the re-timed Chaotic Flood (928) leaves Minne on cooldown
-            // at 1045.
+            // Bard - Nature's Minne (120s recast), anchored to sheet v5.0 rows.
             new Extra("BRD", "Nature's Minne", 120f, new[]
             {
                 (63, "Light of Judgment"),
@@ -60,11 +56,10 @@ public static class JobExtras
             // DNC/MCH/RDM schedules below are OPTIMIZED from raalm.com m-spec
             // top-100 kill logs: every window real players use (>=10% of kills,
             // phase-normalized medians), then the max number of presses that fits
-            // the recast, preferring the most-used windows. Times are the logs'
-            // actual press moments; % = share of kills pressing there.
+            // the recast.
 
-            // Dancer - Curing Waltz (60s recast), 10 presses.
-            // 68/60/16/77/17/35/68/75/68/84% usage.
+            // Dancer - Curing Waltz (60s recast), 10 presses
+            // (68/60/16/77/17/35/68/75/68/84% usage).
             new Extra("DNC", "Curing Waltz", 60f, new[]
             {
                 (64, "Light of Judgment"),
@@ -79,10 +74,8 @@ public static class JobExtras
                 (1063, "Forsaken (1st Hit)"),
             }),
             // Dismantle / Magick Barrier / Tempera Grassa follow the sheet's
-            // "Extras" checkmark column (v5.0 marks 8 rows; the 470s+478s pair is
-            // one press, the 10s buff covers both). 7 presses, exactly filling
-            // the 120s recast. raalm's top logs diverge in P3/P4 (370/534, and
-            // most skip Grand Cross) but the sheet's plan is the plan.
+            // "Extras" checkmark column (v5.0 marks 8 rows), 7 presses exactly
+            // filling the 120s recast.
             new Extra("MCH", "Dismantle", 120f, new[]
             {
                 (62, "Light of Judgment"),
@@ -114,9 +107,8 @@ public static class JobExtras
                 (1061, "Forsaken (1st Hit)"),
             }),
             // Summoner - which primal to summon next, straight from a top Dancing
-            // Mad kill log (that SMN's real Ifrit/Titan/Garuda order). SMN-only and
-            // spoken (each summon call has audio); a rotation guide, not mitigation.
-            // Uses per-step actions, not one repeated ability.
+            // Mad kill log (that SMN's real Ifrit/Titan/Garuda order), SMN-only and
+            // a rotation guide rather than mitigation.
             new Extra("SMN", "Summon", 0f, Array.Empty<(int, string)>(), new[]
             {
                 (19, "Garuda"), (33, "Titan"), (48, "Ifrit"),
@@ -149,10 +141,8 @@ public static class JobExtras
             : For(territory).FirstOrDefault(e => string.Equals(e.Job, job, StringComparison.OrdinalIgnoreCase));
 
     // Each job's optional extra abilities, for sheets we have no baked schedule
-    // for. Mirrors the Ikuya sheets' "Extras" column: never part of the core
-    // plan (they stay out of the auto-planner kit), offered as a one-click
-    // opt-in add. A job may list more than one (e.g. DNC rolls both Curing
-    // Waltz and Improvisation); each is placed independently.
+    // for: never part of the core plan (they stay out of the auto-planner kit),
+    // offered as a one-click opt-in add.
     private static readonly (string Job, string Action, float Recast, int Level)[] Kit =
     {
         ("BRD", "Nature's Minne", 120f, 66),
@@ -167,9 +157,7 @@ public static class JobExtras
 
     // Every universal-kit extra for a CUSTOM sheet, each computed from its own
     // rows: presses land on the hardest-graded hits first, then whatever else
-    // still fits the recast (the "best spot, nothing wasted" rule the baked
-    // schedules follow). Empty when the job has no extras or the sheet has no
-    // rows.
+    // still fits the recast.
     public static IReadOnlyList<Extra> ForCustomSheet(FightProfile fight, string? job)
     {
         if (string.IsNullOrEmpty(job) || fight.CustomRows.Count == 0) return Array.Empty<Extra>();
@@ -187,10 +175,8 @@ public static class JobExtras
     // Place one kit ability across a custom sheet's rows.
     private static Extra? ComputeExtra(FightProfile fight, (string Job, string Action, float Recast, int Level) kit)
     {
-        // On a graded sheet, extras go only where the fight actually hurts;
+        // On a graded sheet, extras go only where the fight actually hurts, while
         // ungraded sheets fall back to every row (recast still spaces them out).
-        // Busters are the tanks' problem, so party extras skip them when the
-        // sheet has anything else to spend on.
         var pool = fight.CustomRows.Any(r => !r.Buster)
             ? fight.CustomRows.Where(r => !r.Buster).ToList()
             : fight.CustomRows;

@@ -5,8 +5,8 @@ using System.Linq;
 namespace FrenMits;
 
 // Parses text pasted straight from a mit-sheet (Google Sheets / Excel copy is
-// tab-separated; CSV is comma-separated). The caller maps which columns hold
-// the time, the mechanic, and the action so any sheet layout works.
+// tab-separated, CSV comma-separated); the caller maps which columns hold the
+// time, mechanic, and action.
 public static class SheetImport
 {
     public static List<string[]> ParseGrid(string raw, out char delimiter)
@@ -50,8 +50,8 @@ public static class SheetImport
         return cells.Select(s => s.Trim()).ToArray();
     }
 
-    // Accepts "m:ss", "mm:ss", "h:mm:ss", or plain seconds. Returns false if the
-    // cell has no usable time.
+    // Accepts "m:ss", "mm:ss", "h:mm:ss", or plain seconds (false if the cell has
+    // no usable time).
     public static bool TryParseTime(string text, out float seconds)
     {
         seconds = 0f;
@@ -96,8 +96,8 @@ public static class SheetImport
         public List<string> Jobs = new(); // applied to every imported line; empty = all
     }
 
-    // Builds lines from the grid. Rows without a parseable time are skipped
-    // (these are usually headers / section separators).
+    // Builds lines from the grid, skipping rows without a parseable time (usually
+    // headers / section separators).
     public static List<MitLine> BuildLines(List<string[]> grid, Options opt)
     {
         var lines = new List<MitLine>();

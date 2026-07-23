@@ -7,8 +7,6 @@ namespace FrenMits.Windows;
 
 // A tiny once-per-entry check-in: entering a duty that has a sheet (official
 // or one you built) shows which column is yours, with a picker to change it.
-// Opt-in (off by default), opens exactly once per zone-in, and hides itself
-// the moment combat starts.
 public class SlotPopupWindow : Window
 {
     private readonly Plugin _plugin;

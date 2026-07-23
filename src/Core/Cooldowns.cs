@@ -5,14 +5,11 @@ using Lumina.Excel.Sheets;
 namespace FrenMits;
 
 // Looks up how long until one of your mits is off cooldown, so a call can warn
-// when the mit won't be ready in time. Action ids are resolved from the game data
-// by NAME (no hard-coded ids), and the recast is read through ActionManager.
-// Everything is guarded — if any of it isn't available the call simply returns
-// null and the overlay behaves exactly as before.
+// when the mit won't be ready in time.
 public static class Cooldowns
 {
-    // Canonical mit action names (must match the Action sheet). Matched as
-    // substrings against a line's action text, so "Rampart + 90s" finds "Rampart".
+    // Canonical mit action names (must match the Action sheet), matched as
+    // substrings against a line's action text so "Rampart + 90s" finds "Rampart".
     private static readonly string[] Names =
     {
         "Reprisal", "Rampart", "Feint", "Addle", "Bloodbath", "Second Wind", "Arm's Length",
@@ -56,7 +53,7 @@ public static class Cooldowns
     }
 
     // Seconds until the mit referenced by `actionText` is ready, or null if it
-    // isn't a tracked mit / can't be read. 0 = ready now.
+    // isn't a tracked mit / can't be read.
     public static float? Remaining(string? actionText)
     {
         try
@@ -77,11 +74,9 @@ public static class Cooldowns
 
     // ---- static planning data (from the game sheets, no combat needed) ----
 
-    // Family: hand-curated shared-cooldown family key ("" = its own timer).
-    // NOT the Action sheet's CooldownGroup: those numbers are per-actor slots
-    // reused across jobs (Temperance and Panhaima collide), so they can never
-    // be used to pool timers. Level: when the job learns it, for level-sync
-    // warnings. Duration: buff uptime in seconds (0 = unknown).
+    // Family is a hand-curated shared-cooldown family key, NOT the Action sheet's
+    // CooldownGroup, whose per-actor slots are reused across jobs (Temperance and
+    // Panhaima collide) and so can never pool timers.
     public readonly record struct PlanMit(string Name, float Recast, int Charges, string Family, int Level, float Duration);
 
     private static readonly Dictionary<string, string> SharedFamily = new(StringComparer.OrdinalIgnoreCase)
@@ -95,9 +90,8 @@ public static class Cooldowns
         ["Nebula"] = "gnb-nebula", ["Great Nebula"] = "gnb-nebula",
     };
 
-    // Buff durations, hand-curated (7.x values): the game sheets don't expose
-    // status uptime cleanly. 0 / absent = no window math for that mit. Values
-    // are the MITIGATION uptime, not trailing regen ticks.
+    // Buff durations, hand-curated (7.x values) because the game sheets don't
+    // expose status uptime cleanly.
     private static readonly Dictionary<string, float> Durations = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Reprisal"] = 15, ["Feint"] = 15, ["Addle"] = 15, ["Dismantle"] = 10,
@@ -153,8 +147,7 @@ public static class Cooldowns
     }
 
     // Each job's mitigation kit (tracked names only), for the custom-sheet
-    // "Suggest a mit" menu. Upgrade forms first, so the menu can show the
-    // highest level-legal member of each shared-cooldown family.
+    // "Suggest a mit" menu.
     public static readonly System.Collections.Generic.Dictionary<string, string[]> JobKits = new(StringComparer.OrdinalIgnoreCase)
     {
         ["WAR"] = new[] { "Reprisal", "Rampart", "Shake It Off", "Damnation", "Vengeance", "Bloodwhetting", "Raw Intuition", "Thrill of Battle" },
@@ -196,7 +189,7 @@ public static class Cooldowns
 
     // Every tracked mit referenced in an action text ("Sacred Soil + Spreadlo"
     // yields Sacred Soil), with its full recast and charge count from the game
-    // sheets. Word-boundary matched, so "Seraphism" is not read as "Seraph".
+    // sheets.
     public static IEnumerable<PlanMit> PlanMits(string? actionText)
     {
         if (string.IsNullOrWhiteSpace(actionText)) yield break;
@@ -234,7 +227,6 @@ public static class Cooldowns
 
         // Charge actions (Aurora, Oblation): the recast timer spans ALL charges,
         // so total - elapsed reads "on cooldown" even while a charge sits ready.
-        // A charge is available once elapsed covers one per-charge span.
         var maxCharges = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(adjusted, 0);
         if (maxCharges > 1)
         {

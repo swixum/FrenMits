@@ -10,8 +10,7 @@ public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 1;
 
-    // Last plugin version whose "What's New" panel was dismissed. Shows the panel
-    // once after an update with notes, then records the version so it stays hidden.
+    // Last plugin version whose "What's New" panel was dismissed.
     public string LastWhatsNew { get; set; } = "";
 
     public List<FightProfile> Fights { get; set; } = new();
@@ -26,16 +25,15 @@ public class Configuration : IPluginConfiguration
     public string LastSheetFightId { get; set; } = "";
 
     // Show a tiny once-per-entry popup naming your slot for the duty's sheet
-    // (official or custom), with a picker to change it. Off by default.
+    // (official or custom), with a picker to change it.
     public bool ShowSlotPopupOnEntry { get; set; }
 
-    // Color Sheet View mits by type (party / tank / personal). Off by default;
-    // it's a lot of color on a full grid.
+    // Color Sheet View mits by type (party / tank / personal).
     public bool SheetColorByType { get; set; }
 
     // Colorblind-safe status colors: swaps the green/amber/red status palette for
     // an Okabe-Ito set (bluish-green / orange / reddish-purple) that stays
-    // distinguishable under the common forms of color blindness. Off by default.
+    // distinguishable under the common forms of color blindness.
     public bool ColorblindMode { get; set; }
 
     // Learned downtime lengths per territory (key = territory id as string): filled
@@ -43,12 +41,11 @@ public class Configuration : IPluginConfiguration
     public Dictionary<string, List<DowntimeWindow>> LearnedDowntimes { get; set; } = new();
 
     // Slot codes the user pinned in Sheet View (right-click a column header).
-    // Pinned columns ride next to Mechanic inside the frozen area.
     public List<string> SheetPinnedSlots { get; set; } = new();
 
-    // FFLogs API client credentials (the user creates a client once at
+    // logs API client credentials (the user creates a client once at
     // fflogs.com/api/clients); used by Sheet View's "Import log" to turn a
-    // report's casts into rows + anchors. Local only, never sent anywhere else.
+    // report's casts into rows + anchors.
     public string FflogsClientId { get; set; } = "";
     public string FflogsClientSecret { get; set; } = "";
 
@@ -59,9 +56,9 @@ public class Configuration : IPluginConfiguration
     // "Auto" follows your current job; otherwise a job abbreviation override.
     public string JobSelection { get; set; } = "Auto";
 
-    // Global sheet-role pick (e.g. "Melee 1", "Main Tank"). When set, it's applied
-    // to every built-in fight, mapping to whichever slot code that fight uses for
-    // the role. Empty = pick a slot per fight. See Builtin.Roles / Builtin.RoleSlot.
+    // Global sheet-role pick (e.g. "Melee 1", "Main Tank"), applied when set to
+    // every built-in fight, mapping to whichever slot code that fight uses for
+    // the role.
     public string RoleSelection { get; set; } = "";
 
     // Seconds of lead time the warning appears before the mit time.
@@ -69,11 +66,7 @@ public class Configuration : IPluginConfiguration
     // How long the call stays on screen after its time passes.
     public float HoldSeconds { get; set; } = 2f;
 
-    // Reaction window for AUTO-TIMED cooldown presses. The solver already pushes
-    // the press early (so the recast is back for the next mechanic); this is how
-    // long before that press the call shows, giving you time to react instead of
-    // hitting it on the same frame it appears. The press's safety margin is widened
-    // to match, so pressing anywhere in this window still covers the mechanic.
+    // Reaction window for AUTO-TIMED cooldown presses.
     public float CooldownLeadSeconds { get; set; } = 5f;
 
     // Only run the overlay while in the fight's territory.
@@ -118,15 +111,12 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingBoardTimeText { get; set; } = true;
 
     // Run a boss timeline in EVERY instanced duty, even without a sheet: the
-    // board lists the bosses' casts (no mits, no audio). Baked data covers
-    // nearly every dungeon, trial and raid.
+    // board lists the bosses' casts (no mits, no audio).
     public bool UniversalTimelines { get; set; } = true;
     // Board style: trim the board to just the rows you have a press for.
-    // Off by default, so the whole fight shows with your presses highlighted.
     public bool UpcomingBoardOnlyMine { get; set; }
 
-    // Board appearance (all defaults = the FrenMits look). Colors are ABGR;
-    // a zeroed color falls back to the theme default so nothing can vanish.
+    // Board appearance (all defaults = the FrenMits look).
     public uint UpcomingBoardAccentColor { get; set; } = 0xFFF6823B; // stripe/fill/header (FrenMits blue)
     public uint UpcomingBoardNextColor { get; set; } = 0xFF28BEFF;   // your next press (gold)
     public uint UpcomingBoardNowColor { get; set; } = 0xFF64DC64;    // press it now (green)
@@ -145,9 +135,7 @@ public class Configuration : IPluginConfiguration
     public bool TimelineLocked { get; set; }
     public Vector2 TimelinePosition { get; set; } = new(0.5f, 0.62f);
 
-    // Party Mit Recap master switch. Off by default; when on, every pull is
-    // tracked automatically and a small "Mit Recap" popup offers the recap
-    // after each wipe. Both the popup and the recap window are movable.
+    // Party Mit Recap master switch.
     public bool RecapEnabled { get; set; }
     public Vector2 RecapPopupPosition { get; set; } = new(0.5f, 0.28f);
     public bool RecapPopupLocked { get; set; }
@@ -170,8 +158,7 @@ public class Configuration : IPluginConfiguration
     public bool CombatTimerShowBackground { get; set; }
     public uint CombatTimerBackgroundColor { get; set; } = 0xB0000000; // ABGR (dim black)
 
-    // Text templates. Placeholders: {action} {mechanic} {time} {count} {remaining}
-    // Default mirrors the "Raidwide (3.3)" style: name + a one-decimal countdown.
+    // Text templates; placeholders: {action} {mechanic} {time} {count} {remaining}.
     public string HeadlineFormat { get; set; } = "{action} ({remaining})";
     public string ActiveSuffix { get; set; } = "  NOW";
     public bool ShowMechanicLine { get; set; } = true;
@@ -190,11 +177,9 @@ public class Configuration : IPluginConfiguration
     // Center-call presentation: 0 = classic centered text, 1 = timeline board look
     // (near-black panel, accent stripe, draining fill), 2 = icon + clock (the ability
     // icon with a centered countdown, sweeping away like a cooldown as time runs out).
-    // 0 by default. Board and icon modes pull from the board palette so they stay in sync.
     public int OverlayStyle { get; set; }
 
-    // Colour the call text by the kind of mit (party / tank / personal). Only
-    // applies to lines without their own colour override.
+    // Colour the call text by the kind of mit (party / tank / personal).
     public bool ColorByMitType { get; set; } = true;
     public uint MitColorParty { get; set; } = 0xFFF68C3C;    // blue
     public uint MitColorTank { get; set; } = 0xFF3C5AF0;     // red
@@ -203,19 +188,16 @@ public class Configuration : IPluginConfiguration
     public bool ShowRadialRing { get; set; } = true;
 
     // Cooldown-aware calls: read your real recast and warn on a call when the mit
-    // won't be ready in time. Reads game state, so off by default.
+    // won't be ready in time.
     public bool CooldownAwareCalls { get; set; }
 
     // Auto cooldown timing: on zone-in / slot change, run the offset solver so
     // every plan (baked and custom) presses its mits early enough that the buff
-    // blankets the hit and the recast is back for the next mechanic. Hand-set
-    // offsets (OffsetManual) are always left alone. Big opt-in feature: off by
-    // default, users turn it on if they want it.
+    // blankets the hit and the recast is back for the next mechanic.
     public bool AutoCooldownTiming { get; set; }
 
     // Prep press-window text: when a solved press fires early to stay up for a
-    // later mechanic, add a "(use between X and Y)" line under the main call. Just
-    // the text - the early timing itself is AutoCooldownTiming. Off by default.
+    // later mechanic, add a "(use between X and Y)" line under the main call.
     public bool PrepAlerts { get; set; }
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;
@@ -224,7 +206,7 @@ public class Configuration : IPluginConfiguration
     public bool ShowDtrBar { get; set; } = true;
 
     // Write a per-pull diagnostics file (resync + cue events) to the plugin's
-    // diagnostics/ folder. Local only; for reviewing resync accuracy. On by default.
+    // diagnostics/ folder.
     public bool Diagnostics { get; set; } = true;
 
     // Resync: snap the pull-clock when known boss casts happen.
@@ -232,9 +214,7 @@ public class Configuration : IPluginConfiguration
     public float SyncWindowSeconds { get; set; } = 8f;        // backward window, mechanic anchors (fine drift)
     public float SyncPhaseWindowSeconds { get; set; } = 60f;  // backward window, phase anchors (re-base)
     // Forward window, like cactbot's wide sync windows: how far AHEAD of the clock
-    // an anchor may be and still snap onto it. Lets a loop/jump-coordinate timeline
-    // (the legacy ultimates) jump the clock forward onto the next segment. Large by
-    // design; a tight backward window keeps it from snapping back on repeats.
+    // an anchor may be and still snap onto it.
     public float SyncForwardWindowSeconds { get; set; } = 2000f;
 
     // Which sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras) the baked DMU
@@ -247,24 +227,22 @@ public class Configuration : IPluginConfiguration
     public int TtsRate { get; set; } = 1;     // -10..10
     public int TtsVolume { get; set; } = 90;  // 0..100
     public string TtsVoice { get; set; } = ""; // SAPI voice (empty = system default)
-    // Online neural voices (Microsoft Edge "Read Aloud" — free, no key). Falls back
-    // to a Windows voice if offline.
+    // Online neural voices (Microsoft Edge "Read Aloud" - free, no key).
     public bool TtsUseEdge { get; set; } = true;
     public string TtsEdgeVoice { get; set; } = "en-US-AriaNeural";
     // Optional override: any Edge voice id (e.g. "en-US-AvaMultilingualNeural").
-    // When set, used instead of the picker selection.
     public string TtsCustomVoice { get; set; } = "";
     // Speak the mechanic name instead of the action (unless a per-line override is set).
     public bool TtsSpeakMechanic { get; set; }
-    // Minimum seconds between any two spoken cues (0 = no limit). Prevents pile-ups.
+    // Minimum seconds between any two spoken cues (0 = no limit).
     public float TtsMinGapSeconds { get; set; }
 
-    // Overlay placement. When not locked it can be dragged.
+    // Overlay placement; draggable when not locked.
     public bool OverlayLocked { get; set; }
     public Vector2 OverlayPosition { get; set; } = new(0.5f, 0.35f); // fractions of the screen
 
-    // Set when the on-disk config existed but could not be loaded. We keep working
-    // defaults in memory for the session but must NOT write them back, or we would
+    // Set when the on-disk config existed but could not be loaded, so we keep
+    // working defaults in memory but must NOT write them back or we would
     // overwrite the user's real (recoverable) settings with defaults.
     public static bool SuppressSave;
 

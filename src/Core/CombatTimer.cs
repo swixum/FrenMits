@@ -3,10 +3,8 @@ using Dalamud.Game.ClientState.Conditions;
 
 namespace FrenMits;
 
-// Tracks "seconds since the pull". Syncs to combat start by default; can be
-// manually zeroed (/fm sync). The per-fight timer offset does NOT live here or
-// on ElapsedFor; it is applied on the cue clock (Plugin.CueClockFor) so resync
-// snaps can't cancel it.
+// Tracks "seconds since the pull", syncing to combat start by default and
+// manually zeroable via /fm sync.
 public class CombatTimer
 {
     private DateTime? _startUtc;
@@ -15,28 +13,22 @@ public class CombatTimer
 
     public bool Running => _startUtc.HasValue;
 
-    // A plain stopwatch of the current pull: seconds since combat actually started.
-    // Unlike Elapsed it is never moved by resync (SyncNow/SetElapsed leave it
-    // alone), so the combat-timer overlay ticks up smoothly. Null between pulls.
+    // A plain stopwatch of the current pull: seconds since combat actually started,
+    // never moved by resync so the combat-timer overlay ticks up smoothly.
     public float CombatElapsed => _combatStartUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds : 0f;
     public bool CombatRunning => _combatStartUtc.HasValue;
 
     // Increments only on a genuine new run (pull / wipe / reset / manual sync) so
-    // cue tracking can tell one run from the next. Automatic resync does NOT bump
-    // it — otherwise an already-spoken cue would replay when the clock snaps.
+    // cue tracking can tell one run from the next.
     public int Generation { get; private set; }
 
     public float Elapsed => _startUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds : 0f;
 
     public void Update()
     {
-        // Freeze the state machine during a cutscene. Phase-transition cutscenes
-        // (e.g. DMU) briefly drop combat; without this, the combat flicker would
-        // null the clock and the next phase would be mistaken for a fresh pull,
-        // replaying early-phase calls. We keep _wasInCombat untouched so resuming
-        // combat afterwards isn't seen as a new pull; the clock keeps running and
-        // resync re-aligns it. (Door bosses transition out of combat WITHOUT a
-        // cutscene, so they still reset correctly.)
+        // Freeze the state machine during a cutscene, since phase-transition
+        // cutscenes (e.g. DMU) briefly drop combat and the flicker would otherwise
+        // null the clock and mistake the next phase for a fresh pull.
         if (Plugin.CutsceneActive) return;
 
         var inCombat = Service.Condition[ConditionFlag.InCombat];
@@ -58,15 +50,13 @@ public class CombatTimer
     // Zero the timer to the current moment (e.g. on the first mechanic).
     public void SyncNow() { _startUtc = DateTime.UtcNow; Generation++; }
 
-    // Force the timer to a specific elapsed value (automatic resync). Same run, so
-    // do NOT bump Generation — that would re-arm and replay recently-spoken cues.
+    // Force the timer to a specific elapsed value (automatic resync), same run so
+    // do NOT bump Generation or it would re-arm and replay recently-spoken cues.
     public void SetElapsed(float seconds) { _startUtc = DateTime.UtcNow.AddSeconds(-seconds); }
 
     // Nudge the clock's origin so Elapsed advances at something other than
-    // wall-clock pace. A Duty Recorder replay keeps real time running even while
-    // playback is paused or sped up; the caller feeds frameDelta * (1 - gameSpeed)
-    // so a paused replay (speed 0) freezes the clock and 2x/0.5x track correctly.
-    // Same run, so Generation is left alone.
+    // wall-clock pace, letting a Duty Recorder replay (via frameDelta * (1 -
+    // gameSpeed)) freeze when paused and track 2x/0.5x correctly.
     public void ShiftStart(float seconds)
     {
         if (_startUtc is { } s) _startUtc = s.AddSeconds(seconds);
@@ -78,8 +68,7 @@ public class CombatTimer
         _startUtc = null;
         _combatStartUtc = null;
         // Treat the current combat flag as already-seen so a wipe that fires
-        // while the flag is briefly still set cannot re-arm the timeline. The
-        // next genuine combat transition starts it again.
+        // while the flag is briefly still set cannot re-arm the timeline.
         _wasInCombat = Service.Condition[ConditionFlag.InCombat];
         Generation++;
     }

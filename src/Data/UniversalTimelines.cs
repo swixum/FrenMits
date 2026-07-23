@@ -6,11 +6,10 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Baked boss timelines for (nearly) every instanced duty in the game: per
-// territory, the bosses' named casts plus resync anchors. Powers the
-// "runs everywhere" timeline: a duty with no sheet still gets a Next Mits
-// board of what the boss is about to do. No mits, no audio calls - just the
-// fight's rhythm, resynced off the bosses' own casts like every other fight.
+// Baked boss timelines for (nearly) every instanced duty in the game (per
+// territory, the bosses' named casts plus resync anchors), powering a "runs
+// everywhere" Next Mits board of what the boss is about to do with no mits or
+// audio, resynced off the bosses' own casts.
 public static class UniversalTimelines
 {
     private sealed class Zone
@@ -63,9 +62,9 @@ public static class UniversalTimelines
         return _zones!.ContainsKey(territory);
     }
 
-    // A fresh IN-MEMORY timeline-only fight for this duty. Never saved to the
-    // config; rebuilt on territory change. Lines carry only the mechanic name,
-    // so the board lists them while the call overlay and audio stay silent.
+    // A fresh IN-MEMORY timeline-only fight for this duty, rebuilt on territory
+    // change and never saved, carrying only mechanic names so the board lists
+    // them while the call overlay and audio stay silent.
     public static FightProfile? Build(uint territory)
     {
         Load();

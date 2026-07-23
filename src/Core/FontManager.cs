@@ -6,15 +6,14 @@ using Dalamud.Interface.ManagedFontAtlas;
 
 namespace FrenMits;
 
-// Builds crisp font handles for the overlay. Each (family, style, size) is built
-// once and cached. "Default" uses Dalamud's font; the named families load the
-// matching Windows TTF (bold/italic variants where they exist).
+// Builds crisp font handles for the overlay, each (family, style, size) built
+// once and cached.
 public class FontManager : IDisposable
 {
     private readonly Dictionary<string, IFontHandle> _handles = new();
 
     // Selectable families -> (regular, bold, italic, bold-italic) filenames in the
-    // Windows Fonts folder. A missing variant falls back to the regular file.
+    // Windows Fonts folder.
     private static readonly Dictionary<string, (string Reg, string? Bold, string? Ital, string? BoldItal)> Families = new()
     {
         ["Segoe UI"]        = ("segoeui.ttf", "segoeuib.ttf", "segoeuii.ttf", "segoeuiz.ttf"),

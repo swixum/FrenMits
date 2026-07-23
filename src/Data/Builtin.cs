@@ -57,7 +57,7 @@ public static class Builtin
     // the data files' native labels are translated in BuildLines.
     public static string[] Slots(uint territory) => SlotNames.Standard;
 
-    // Canonical cross-fight roles for the global role picker. One pick maps to
+    // Canonical cross-fight roles for the global role picker; one pick maps to
     // the standard slot code (aliases kept so custom sheets that still name a
     // column MT/D1-style resolve too).
     public static readonly string[] Roles =
@@ -84,7 +84,7 @@ public static class Builtin
         => RoleSlotIn(Slots(territory), role);
 
     // Same, resolved against ANY sheet's column list (custom sheets included -
-    // since the slot standard they speak the same codes). Returns the sheet's
+    // since the slot standard they speak the same codes), returning the sheet's
     // own column string so the caller can apply it verbatim.
     public static string? RoleSlotIn(IReadOnlyList<string> slots, string role)
     {
@@ -95,8 +95,8 @@ public static class Builtin
         return null;
     }
 
-    // Phase start times for the practice phase-jump. Empty for fights with no
-    // phase data (the practice UI then doesn't show).
+    // Phase start times for the practice phase-jump, empty for fights with no
+    // phase data.
     public static List<(string Name, float Time)> PhaseStarts(uint territory) => territory switch
     {
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.PhaseStarts(territory),
@@ -105,7 +105,7 @@ public static class Builtin
     };
 
     // The sheet's per-phase "Notes" footer, shown at the bottom of the Sheet
-    // View. Empty for fights whose sheet has no notes.
+    // View (empty for fights whose sheet has no notes).
     public static string PhaseNotes(uint territory, string phase) => territory switch
     {
         DmuTerritory => DmuData.PhaseNotes(phase),
@@ -154,8 +154,7 @@ public static class Builtin
     // A deletion tombstone suppresses a baked line when the spoken action matches
     // within a wide window (same "a fight never reuses one mit that close"
     // reasoning as the de-overlap in ApplySlot), so a sheet update that re-times
-    // or renames the mechanic can't resurrect a deleted call. Lines with no
-    // action on either side fall back to the mechanic label.
+    // or renames the mechanic can't resurrect a deleted call.
     public static bool MatchesTombstone(DeletedCall d, string slot, MitLine baked)
         => string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase)
            && MathF.Abs(d.Time - baked.Time) < 6f
@@ -168,8 +167,6 @@ public static class Builtin
 
     // Tombstone the ORIGINAL coordinates + flag the line Custom before an edit
     // mutates it, so re-bakes keep the user's version instead of reverting it.
-    // Slot-explicit: the fight-page editor passes the active slot, the sheet
-    // view passes whichever column is being edited. Call BEFORE mutating.
     public static void PreserveEdit(FightProfile fight, string slot, MitLine line)
     {
         if (line.Custom || !Has(fight.TerritoryId) || string.IsNullOrEmpty(slot)) return;
@@ -183,11 +180,8 @@ public static class Builtin
         line.Custom = true;
     }
 
-    // Make `slot` the fight's active slot and load its mits — and ONLY its mits.
-    //  - Switching to a different slot stashes the slot you're leaving and swaps in
-    //    the target slot's own set (your saved edits for it, or a fresh bake).
-    //  - Staying on the same slot just tops up any newly-baked lines (keeps edits).
-    // Never mixes one slot's lines into another. Returns how many lines were added.
+    // Make `slot` the fight's active slot and load ONLY its mits, never mixing one
+    // slot's lines into another (returns how many lines were added).
     public static int ApplySlot(FightProfile fight, string slot)
     {
         if (string.IsNullOrEmpty(slot))
@@ -201,9 +195,9 @@ public static class Builtin
 
         if (string.IsNullOrEmpty(fight.Slot))
         {
-            // First use / migrating an older profile: adopt this slot. Keep any
-            // existing lines as-is (don't top up — we can't assume they're this
-            // slot's), otherwise bake the slot fresh.
+            // First use / migrating an older profile: adopt this slot, keeping any
+            // existing lines as-is (can't assume they're this slot's) or baking
+            // the slot fresh.
             fight.Slot = slot;
             if (fight.Lines.Count == 0) fight.Lines = Bake(slot);
             else topUp = false;
@@ -225,10 +219,9 @@ public static class Builtin
         if (topUp)
         {
             var baked = BuildLines(fight.TerritoryId, slot);
-            // The bake minus deleted calls: what this slot is actually entitled to.
-            // The de-overlap below also checks against THIS list, so a custom line
-            // the user added to replace a deleted call doesn't get swept as a
-            // duplicate of the (suppressed) original.
+            // The bake minus deleted calls: what this slot is actually entitled to
+            // (the de-overlap below checks against THIS list, so a custom
+            // replacement isn't swept as a duplicate of the suppressed original).
             var live = baked.Where(b => !IsDeleted(fight, slot, b)).ToList();
             foreach (var b in live)
                 if (!fight.Lines.Any(l => SameCall(l, b)))
@@ -237,15 +230,10 @@ public static class Builtin
                     added++;
                 }
 
-            // Drop stale leftovers from an earlier build. SameCall only matches
-            // within 0.75s, so when a baked mechanic's time shifted further than
-            // that between versions (e.g. Bowels of Agony 448 -> 451) the top-up
-            // above added the new line WITHOUT removing the old one — leaving two
-            // copies of the same call a few seconds apart, which speak as doubled
-            // audio. Remove any surviving line that no longer matches a current
-            // baked call yet shadows one: same spoken mit within a few seconds.
-            // (A real fight never reuses one mit that close — its cooldown is far
-            // longer — so this only ever clears a redundant duplicate.)
+            // Drop stale leftovers from an earlier build: remove any surviving line
+            // that no longer matches a current baked call yet shadows one (same
+            // spoken mit within a few seconds), since a real fight never reuses one
+            // mit that close.
             fight.Lines.RemoveAll(l =>
                 !string.IsNullOrWhiteSpace(l.Action)
                 && !live.Any(b => SameCall(l, b))
@@ -268,9 +256,8 @@ public static class Builtin
         return added;
     }
 
-    // Discard this slot's edits and reload it straight from the baked sheet.
-    // "Edits" includes deletions: the slot's tombstones are cleared, so every
-    // sheet call comes back.
+    // Discard this slot's edits (including deletions - tombstones are cleared) and
+    // reload it straight from the baked sheet.
     public static void ResetSlot(FightProfile fight, string slot)
     {
         fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase));
@@ -283,8 +270,7 @@ public static class Builtin
     }
 
     // Best-guess sheet slot for a job, used for the first auto-load before the
-    // user has explicitly picked one. Healers map to their own column; everyone
-    // else maps by role, preferring the lower number / first seat.
+    // user has explicitly picked one.
     public static string DefaultSlotForJob(uint territory, string? jobAbbr)
     {
         var slots = Slots(territory);
@@ -293,9 +279,9 @@ public static class Builtin
         return hit.Length > 0 ? hit : slots[0];
     }
 
-    // Same guess against ANY sheet's column list. Unlike the built-in wrapper
-    // above there is NO first-column fallback: "" means no confident match, so
-    // a custom sheet asks (entry popup) instead of guessing someone's seat.
+    // Same guess against ANY sheet's column list, with NO first-column fallback:
+    // "" means no confident match, so a custom sheet asks instead of guessing
+    // someone's seat.
     public static string DefaultSlotForJobIn(IReadOnlyList<string> slots, string? jobAbbr)
     {
         if (slots.Count == 0 || Jobs.ByAbbreviation(jobAbbr) is not { } job) return "";

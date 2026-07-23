@@ -1,11 +1,7 @@
-// AUTO-GENERATED from Ikuya's ultimate mitigation sheets. The sheets list mit
-// assignments per mechanic but carry no timestamps, so each mechanic is aligned
-// by name to its boss ability id and timed from real FFLogs clears: every resync
-// anchor is the median pull-relative cast time across many clears of that fight
-// (within-phase mechanic times are deterministic; the resync engine corrects the
-// DPS-variable phase offsets live). Rows with no ability id are interpolated
-// between their neighbouring anchors, so fine-tune in the editor (or /fm sync) if
-// one drifts. Slots and layout match the other baked fights.
+// AUTO-GENERATED from Ikuya's ultimate mitigation sheets, which carry no
+// timestamps, so each mechanic is aligned by name to its boss ability id and
+// timed from real logs clears (median pull-relative cast time) with the resync
+// engine correcting the DPS-variable phase offsets live.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,10 +38,14 @@ public static class IkuyaTimelines
         var idx = Array.IndexOf(Slots, slot);
         var list = new List<MitLine>();
         if (idx < 0) return list;
+        var seen = new HashSet<(int Time, string Action)>();
         foreach (var e in Timeline(territory))
         {
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
+            // Alt-strat rows can repeat one call at the same instant (e.g. UWU's
+            // Primal I and III both list Sacred Soil for SCH); fire it once.
+            if (!seen.Add((e.Time, action))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action, Enabled = true });
         }
         return list;

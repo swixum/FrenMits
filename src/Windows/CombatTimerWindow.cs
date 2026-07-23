@@ -6,8 +6,7 @@ using Dalamud.Interface.Windowing;
 namespace FrenMits.Windows;
 
 // A plain combat stopwatch (mm:ss of the current pull), shown as its own
-// independently placeable, independently styled overlay. Opt-in via the
-// Combat Timer tool page. Mirrors the other HUD windows' lock/drag behaviour.
+// independently placeable, independently styled overlay.
 public class CombatTimerWindow : Window
 {
     private readonly Plugin _plugin;
@@ -15,7 +14,7 @@ public class CombatTimerWindow : Window
     private bool _applyPos = true;
 
     // Locked for real if you ticked the lock OR you're in a live pull (but not
-    // while previewing) — combat always pins it so it can't be grabbed mid-fight.
+    // while previewing) - combat always pins it so it can't be grabbed mid-fight.
     private bool EffectiveLocked => C.CombatTimerLocked || (Plugin.InCombat && !C.TestMode);
 
     public CombatTimerWindow(Plugin plugin) : base("FrenMits Combat Timer##combattimer")
@@ -30,7 +29,7 @@ public class CombatTimerWindow : Window
 
     public override void PreDraw()
     {
-        // NoTitleBar always on so locking can't shift it vertically. Drag the body.
+        // NoTitleBar always on so locking can't shift it vertically.
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing
                 | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.AlwaysAutoResize

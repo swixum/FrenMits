@@ -1,12 +1,6 @@
-// AUTO-GENERATED from the M12S (Lindwurm) mitigation sheet.
-// Tabs used: "Phase 1: Lindwurm" + "Phase 2: Lindwurm". The "Credits", "Dancing
-// Mad" and "Tank Mitigation (All Comps)" tabs are intentionally not baked in.
-//
-// M12S is a door boss: one instance, two sequential phases. The sheet times each
-// phase from its own start, so Phase 2 here is shifted by Phase2Offset to sit on
-// the single continuous clock the plugin runs from the pull. There are no public
-// ability ids for resync yet, so the clock free-runs; tune Phase2Offset (or use
-// /fm sync at the phase change) if Phase 2 drifts.
+// AUTO-GENERATED from the M12S (Lindwurm) mitigation sheet, with Phase 2 shifted
+// by Phase2Offset onto the single continuous clock and no resync ability ids yet,
+// so the clock free-runs (tune Phase2Offset or use /fm sync if Phase 2 drifts).
 using System;
 using System.Collections.Generic;
 
@@ -16,7 +10,7 @@ public static class M12sData
 {
     public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
-    // Seconds from pull that Phase 2's 0:00 lands on (estimate — adjust to taste).
+    // Seconds from pull that Phase 2's 0:00 lands on (estimate, adjust to taste).
     public const int Phase2Offset = 420;
 
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions);
@@ -68,17 +62,16 @@ public static class M12sData
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
             // Some mechanics are listed across several note-rows (group / alt-strat)
-            // at the same time + ability. For one player that's a single action — take
-            // only the first, or the call (and its audio) fires twice or more.
+            // at the same time + ability, so take only the first or the call (and
+            // its audio) fires twice or more.
             if (!seen.Add((e.Time, e.Sync))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }
         return list;
     }
 
-    // Resync anchors from the cactbot r12s timeline (Lindwurm casts). Phase 2 times
-    // are shifted by Phase2Offset to match the baked Phase 2 segment. When one of
-    // these abilities casts, the clock snaps so it resolves on time.
+    // Resync anchors from the cactbot r12s timeline (Lindwurm casts), with Phase 2
+    // times shifted by Phase2Offset so the clock snaps to resolve on time.
     public static List<SyncPoint> SyncPoints() => new()
     {
         // ---- Phase 1 ----

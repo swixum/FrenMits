@@ -6,7 +6,7 @@ using Dalamud.Interface.Windowing;
 namespace FrenMits.Windows;
 
 // A compact readout of YOUR currently-active mitigations: a row of status icons
-// with seconds remaining, tinted by mit type. Opt-in, independently placeable.
+// with seconds remaining, tinted by mit type.
 public class MitBarWindow : Window
 {
     private readonly Plugin _plugin;
@@ -14,7 +14,7 @@ public class MitBarWindow : Window
     private bool _applyPos = true;
 
     // Locked for real if you ticked the lock OR you're in a live pull (but not
-    // while previewing) — combat always pins it so it can't be grabbed mid-fight.
+    // while previewing) - combat always pins it so it can't be grabbed mid-fight.
     private bool EffectiveLocked => C.MitBarLocked || (Plugin.InCombat && !C.TestMode);
 
     public MitBarWindow(Plugin plugin) : base("FrenMits Mits##mitbar")
@@ -30,7 +30,7 @@ public class MitBarWindow : Window
     public override void PreDraw()
     {
         // NoTitleBar always on so locking can't shift the bar vertically (a title
-        // bar present only when unlocked would). Drag the body to move it.
+        // bar present only when unlocked would).
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing
                 | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.AlwaysAutoResize

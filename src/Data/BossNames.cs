@@ -5,7 +5,7 @@ namespace FrenMits;
 
 // Resolves boss display names to their BNpcName row id (the NameId an actor
 // reports), so boss-presence anchors can be baked by name without hardcoding
-// ids. Names that do not resolve are simply skipped (capture them from a pull).
+// ids.
 public static class BossNames
 {
     private static readonly Dictionary<string, uint> _cache = new(StringComparer.OrdinalIgnoreCase);
@@ -29,7 +29,10 @@ public static class BossNames
         }
         catch (Exception ex)
         {
+            // Data not ready yet: return without caching so a later call retries,
+            // instead of pinning this name to 0 for the session.
             Service.Log.Warning(ex, "FrenMits: BNpcName resolve failed");
+            return 0;
         }
 
         _cache[singular] = id;

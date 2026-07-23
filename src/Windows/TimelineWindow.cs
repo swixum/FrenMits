@@ -8,9 +8,9 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The "next mits" timeline — a separate, independently placeable window that
-// lists the upcoming calls. The main call-out window only ever shows the single
-// imminent mit; everything still on the horizon lives here instead.
+// The "next mits" timeline: a separate, independently placeable window that
+// lists the upcoming calls, since the main call-out window only ever shows the
+// single imminent mit.
 public class TimelineWindow : Window
 {
     private readonly Plugin _plugin;
@@ -28,7 +28,7 @@ public class TimelineWindow : Window
     private bool _dragging;
 
     // Locked for real if you ticked the lock OR you're in a live pull (but not
-    // while previewing) — combat always pins it so it can't be grabbed mid-fight.
+    // while previewing), since combat always pins it so it can't be grabbed mid-fight.
     private bool EffectiveLocked => C.TimelineLocked || (Plugin.InCombat && !C.TestMode);
 
     // The window now always follows C.TimelinePosition, so a reset (or a slider
@@ -38,7 +38,7 @@ public class TimelineWindow : Window
     public override void PreDraw()
     {
         // NoTitleBar always on so locking can't shift the content vertically (a
-        // title bar present only when unlocked would). Drag the body to move it.
+        // title bar present only when unlocked would).
         Flags = ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings
@@ -50,11 +50,9 @@ public class TimelineWindow : Window
         if (!C.ShowBackground)
             Flags |= ImGuiWindowFlags.NoBackground;
 
-        // Movement is handled manually (HandleManualDrag). ImGui only moves a
-        // window from its title bar in this build, and NoTitleBar stays on so
-        // locking never shifts the content - so ImGui would never move this
-        // window. Instead we always pin it to the saved position and let a drag
-        // edit that saved value. When locked, it's click-through.
+        // Movement is handled manually (HandleManualDrag): we always pin to the
+        // saved position and let a drag edit that saved value, since ImGui only
+        // moves a window from its title bar and NoTitleBar stays on.
         Flags |= ImGuiWindowFlags.NoMove;
         if (EffectiveLocked)
             Flags |= ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMouseInputs;
@@ -117,8 +115,6 @@ public class TimelineWindow : Window
 
         // Show lines that are beyond their lead window (a line inside its lead is on
         // the main call, so it isn't duplicated here) and within the look-ahead.
-        // Universal timelines have NO main call (the overlay is gated off), so
-        // their lines stay listed through the lead instead of vanishing early.
         var upcoming = fight.OrderedLines
             .Where(l => l.Enabled && l.AppliesTo(job)
                         && l.CueTime - elapsed > (fight.TimelineOnly
@@ -154,9 +150,7 @@ public class TimelineWindow : Window
     // ---- mechanic board ----------------------------------------------------
     // The board style: every upcoming mechanic is a draining countdown bar
     // (name left, seconds right), with YOUR presses written under the rows they
-    // belong to. Your next press glows gold; when its warning window opens it
-    // turns green, matching the moment the main call fires. Row notes from the
-    // sheet ride under the highlighted row.
+    // belong to.
 
     // Board palette (ABGR) - FrenMits' own look: the near-black panels and blue
     // accent from the config window's theme, at over-game friendly alphas.
@@ -185,11 +179,10 @@ public class TimelineWindow : Window
 
     private List<SheetTimeline.MechRow> BoardRows(FightProfile fight)
     {
-        // Cheap change fingerprint so plan edits show up even mid-combat
-        // (Auto-plan / a line added from Sheet View during a pull). Counts
-        // alone miss equal-count edits (retime, rename, delete-one-add-one),
-        // so fold times and actions in - including the OTHER columns' stashes,
-        // which feed the board's rows too.
+        // Cheap change fingerprint so plan edits show up even mid-combat: counts
+        // alone miss equal-count edits (retime, rename, delete-one-add-one), so
+        // fold times and actions in, including the OTHER columns' stashes that
+        // feed the board's rows too.
         var stamp = fight.Lines.Count * 31 + fight.CustomRows.Count;
         unchecked
         {
@@ -224,15 +217,12 @@ public class TimelineWindow : Window
     // Credit: the idea of surfacing boss untargetable/targetable windows on a fight
     // timeline, and the timing data these windows are built from, come from cactbot
     // (github.com/OverlayPlugin/cactbot, Apache License 2.0, Copyright the cactbot
-    // authors). FrenMits adapts their published timeline files - the untargetable/
-    // targetable marker times are anchored to each fight's mechanics and converted
-    // onto FrenMits' own clock (see Data/Downtimes.cs) - and renders them its own
-    // way. Thanks to the cactbot authors.
+    // authors), which FrenMits adapts onto its own clock (see Data/Downtimes.cs) and
+    // renders its own way.
     //
     // Every downtime window that applies to this fight: the built-in table for its
-    // territory (with live-learned refinements) plus any the fight owns itself - a
-    // custom sheet's windows derived from an imported log. Official fights have only
-    // the first; imported customs have only the second; the merge means the board's
+    // territory (with live-learned refinements) plus any the fight owns itself (a
+    // custom sheet's windows derived from an imported log), merged so the board's
     // untargetable/targetable washes work for both without branching everywhere.
     private IReadOnlyList<DowntimeWindow> EffectiveDowntimes(FightProfile fight)
     {
@@ -261,8 +251,7 @@ public class TimelineWindow : Window
     }
 
     // Scheduled boss-reposition rows: a cyan "Boss: Middle" (etc.) counting down to
-    // when the boss moves there, from the per-fight Positions data. Off when the
-    // toggle is cleared or the fight has no entered positions.
+    // when the boss moves there, from the per-fight Positions data.
     private List<SheetTimeline.MechRow> PositionRows(FightProfile fight)
     {
         if (!C.UpcomingBossPosition) return NoRows;
@@ -284,13 +273,11 @@ public class TimelineWindow : Window
     }
 
     // How long before the boss becomes targetable the green "Targetable" heads-up
-    // replaces the neutral downtime row. Before this, the lull reads as the cutscene
-    // or untargetable stretch you're sitting through; inside it you get the
-    // get-ready-to-resume cue.
+    // replaces the neutral downtime row.
     private const float TargetableHeadsup = 10f;
 
-    // Is the lull ending at targetableTime an actual cutscene (vs a plain
-    // untargetable transition)? Drives the "Cutscene" vs "Untargetable" label.
+    // Whether the lull ending at targetableTime is an actual cutscene (vs a plain
+    // untargetable transition), driving the "Cutscene" vs "Untargetable" label.
     private bool DowntimeIsCutscene(FightProfile fight, float targetableTime)
     {
         foreach (var w in EffectiveDowntimes(fight))
@@ -311,16 +298,13 @@ public class TimelineWindow : Window
 
         if (HeaderVisible) DrawBoardHeader(fight, elapsed, width);
 
-        // Learned downtimes ride inline as their own rows (Untargetable / Targetable).
-        // The banner is only the fallback while we're still LEARNING a lull the first
+        // Learned downtimes ride inline as their own rows (Untargetable / Targetable);
+        // the banner is only the fallback while we're still LEARNING a lull the first
         // time (no row exists yet).
         if (_plugin.DowntimeActive && _plugin.DowntimeRemaining < 0f) DrawDowntimeBanner(width);
 
         // Attach each of your presses to its single NEAREST row, so a mechanic
         // repeating a few seconds apart can't show one press under both bars.
-        // The 2.5s window still catches job extras riding ~1s off their row.
-        // Universal (timeline-only) duties have no presses at all: every bar
-        // stays neutral instead of the whole fight lighting up gold.
         var mineByRow = new Dictionary<SheetTimeline.MechRow, List<MitLine>>();
         foreach (var l in fight.TimelineOnly ? Enumerable.Empty<MitLine>() : fight.OrderedLines)
         {
@@ -384,8 +368,7 @@ public class TimelineWindow : Window
             var pulse = useNow && C.PulseWhenImminent && rem < 1.5f;
 
             // A row with no mechanic label (a bare user timer) is named by the
-            // press itself, so its action doesn't repeat underneath. Someone
-            // else's bare timer falls back to the action stored on the row.
+            // press itself, so its action doesn't repeat underneath.
             var name = r.Mechanic;
             var bareTimer = string.IsNullOrWhiteSpace(name);
             if (bareTimer)
@@ -394,10 +377,7 @@ public class TimelineWindow : Window
                     : r.Fallback;
 
             // Row kind: lull markers (untargetable/targetable) or the mechanic's own
-            // hit type. An upcoming Untargetable turns into a "push it or fail"
-            // skull once the boss is within ~10% above that gate's hardcoded target
-            // HP (the phase's DPS check): its countdown is the time-to-kill, and the
-            // label carries the % you must be under by then.
+            // hit type.
             var gate = false;
             var gatePassed = false;
             var gateTgt = -1f;
@@ -410,8 +390,8 @@ public class TimelineWindow : Window
                     && _plugin.BossHpFraction <= gateTgt + 0.10f)
                 {
                     gate = true;
-                    // Target hit: the boss is at or below the gate %. Flip to the
-                    // passed look (green check) instead of the red at-risk push.
+                    // Target hit (boss at or below the gate %): flip to the passed
+                    // look (green check) instead of the red at-risk push.
                     gatePassed = _plugin.BossHpFraction <= gateTgt;
                 }
             }
@@ -423,8 +403,6 @@ public class TimelineWindow : Window
             // A targetable still more than the heads-up window away reads as the
             // lull you're sitting through, not a green "you can hit it" tick: a real
             // cutscene shows "Cutscene", a plain transition stays "Untargetable".
-            // Only its last few seconds - boss about to return, get ready to resume -
-            // flip to the green Targetable cue.
             if (kind == 5 && rem > TargetableHeadsup)
             {
                 if (DowntimeIsCutscene(fight, r.Time)) { kind = 6; name = "Cutscene"; }
@@ -569,9 +547,9 @@ public class TimelineWindow : Window
         var back = ((uint)(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24) | BoardPanelRgb;
         dl.AddRectFilled(p0, p1, back, round);
         // Kind wash: fill the whole bar with a soft color keyed to what the row
-        // IS, so its nature reads before you parse the text - red for a DPS check
-        // to push, green for targetable (get ready), grey for a plain untargetable
-        // lull, purple for a cutscene. Ordinary mit rows (kind 0-2) get none.
+        // IS, so its nature reads before you parse the text, red for a DPS check
+        // to push, green for targetable, grey for a plain untargetable lull, purple
+        // for a cutscene.
         var wash = kind switch
         {
             3 => 0xFF4646FFu, // DPS check (at risk): red
@@ -584,9 +562,8 @@ public class TimelineWindow : Window
         };
         if (wash != 0)
             dl.AddRectFilled(p0, p1, (wash & 0x00FFFFFFu) | 0x40000000u, round);
-        // The fill tracks the countdown. Draining (default): full at the
-        // look-ahead edge, empty at the hit. Filling: the opposite, growing
-        // toward full as the hit lands - some folks read urgency that way.
+        // The fill tracks the countdown, draining by default (full at the
+        // look-ahead edge, empty at the hit) or filling the opposite way.
         var frac = Math.Clamp(rem / look, 0f, 1f);
         if (!C.UpcomingBoardDrain) frac = 1f - frac;
         if (frac > 0.004f) // countdown fill on every row, lull markers included
@@ -603,7 +580,7 @@ public class TimelineWindow : Window
             dl.AddRectFilledMultiColor(p0, new Vector2(edgeX, p1.Y),
                 baseCol | 0x14000000, baseCol | 0x7A000000, baseCol | 0x7A000000, baseCol | 0x14000000);
             // A crisp bright edge rides the boundary so the countdown is obvious
-            // at a glance. Hidden right at the ends, where it would just double
+            // at a glance, hidden right at the ends where it would just double
             // the bar's own border.
             if (frac > 0.02f && frac < 0.985f)
                 dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
@@ -629,8 +606,7 @@ public class TimelineWindow : Window
         dl.AddRect(p0, p1, BoardBarBorder, round);
 
         // Every row's text is the SAME bright color for consistency; the wash,
-        // stripe and icon carry each row's identity, not the text. (A press row
-        // still tints its text gold/green so your own calls read at a glance.)
+        // stripe and icon carry each row's identity, not the text.
         var textCol = accent == 0 ? BoardBright : accent;
         var textY = p0.Y + (barH - lineH) * 0.5f;
         var isNow = rem < 0f;
@@ -641,7 +617,7 @@ public class TimelineWindow : Window
 
         // Row icon, left of the name: the tank-buster shield (toggle), or an
         // always-on marker for an at-risk mit (skull), a lull start (untargetable)
-        // or its end (targetable). Raidwide rows carry no icon.
+        // or its end (targetable).
         var nameX = p0.X + 10f;
         var showIcon = kind switch
         {
@@ -682,8 +658,7 @@ public class TimelineWindow : Window
         {
             var tp = new Vector2(p1.X - timeW - 8f, textY);
             // At go time, "NOW" gets a filled accent badge that flashes (when
-            // pulsing is on) so the press moment is impossible to miss. Solid
-            // badge when pulsing is off, so it's still louder than plain text.
+            // pulsing is on) so the press moment is impossible to miss.
             if (isNow && accent != 0)
             {
                 var beat = pulse ? MathF.Sin((float)ImGui.GetTime() * 10f) * 0.5f + 0.5f : 1f;
@@ -697,8 +672,7 @@ public class TimelineWindow : Window
         }
 
         // Completion spark: as the countdown crosses zero, pop a spark at the left
-        // end where the fill drains out, tinted the row's color. rem drives it, so
-        // it plays for ~0.6s once and needs no state.
+        // end where the fill drains out, tinted the row's color.
         if (rem <= 0.05f && rem > -0.55f)
         {
             var sparkCol = wash != 0 ? wash : accent == 0 ? AccentCol : accent;
@@ -709,9 +683,7 @@ public class TimelineWindow : Window
     }
 
     // What kind of hit a row is, for its board icon: 2 = tank buster, 1 =
-    // raidwide (party damage), 0 = no icon. Explicit tags win (custom sheets and
-    // log import set Buster/Hurt); otherwise we guess from the mechanic name so
-    // built-in fights still show something. A bare user timer stays iconless.
+    // raidwide (party damage), 0 = no icon.
     private static int RowKind(SheetTimeline.MechRow r, bool bareTimer)
     {
         if (r.Buster) return 2;
@@ -724,8 +696,8 @@ public class TimelineWindow : Window
     }
 
     // Draw a FontAwesome glyph into the draw list, centered on `center` and sized
-    // to `size`. The board renders through the draw list (not ImGui widgets), so
-    // we borrow the icon font for the one glyph and scale it to the board font.
+    // to `size`, borrowing the icon font since the board renders through the draw
+    // list (not ImGui widgets).
     private void BoardIcon(ImDrawListPtr dl, Vector2 center, float size, uint col, FontAwesomeIcon icon)
     {
         var glyph = icon.ToIconString();
@@ -741,8 +713,7 @@ public class TimelineWindow : Window
     }
 
     // A brief spark when a countdown finishes: a white-hot core that expands into
-    // a fading ring with a few radiating rays. Driven purely off how far past zero
-    // the row is (progress 0->1 over ~0.6s), so it needs no stored per-row state.
+    // a fading ring with a few radiating rays.
     private static void BoardSpark(ImDrawListPtr dl, Vector2 c, float progress, uint color)
     {
         var p = Math.Clamp(progress, 0f, 1f);
@@ -775,7 +746,7 @@ public class TimelineWindow : Window
             var text = Icons.DisplayAction(l.ActionFor(job), job);
             if (string.IsNullOrWhiteSpace(text)) continue;
             // Off-row presses take the mit-type tint (party/tank/personal),
-            // dimmed so gold/green still own the eye. Same colors as the call.
+            // dimmed so gold/green still own the eye.
             if (accent == 0 && C.ColorByMitType && MitTypes.Color(MitTypes.Classify(text, l.Mechanic), C) is not 0 and var tc)
                 accent = (tc & 0x00FFFFFF) | 0xC8000000;
             // Cooldown-aware: flag a press that won't be back up by ITS call
@@ -839,16 +810,14 @@ public class TimelineWindow : Window
     // ---- on-screen preview -------------------------------------------------
     // The Next Mits settings page pings this every frame it's open; while the
     // pings are fresh, the REAL window shows on screen and plays a sample, so
-    // you're placing and styling the actual thing. Stops within a blink of
-    // leaving the page or closing settings. A running pull always wins.
+    // you're placing and styling the actual thing.
     private DateTime _screenPreviewPing = DateTime.MinValue;
     public void PingScreenPreview() => _screenPreviewPing = DateTime.Now;
     private bool ScreenPreviewing => (DateTime.Now - _screenPreviewPing).TotalSeconds < 0.3;
 
     // The sample both previews play: Dancing Mad's real rows with the MT
     // column's presses, looping through the opener so bars drain, a press goes
-    // gold, fires green, and lingers - exactly like a pull. Rows are built
-    // once and kept separate from the live board's cache.
+    // gold, fires green, and lingers, exactly like a pull.
     private FightProfile? _previewFight;
     private List<SheetTimeline.MechRow>? _previewRows;
 
@@ -947,11 +916,9 @@ public class TimelineWindow : Window
         public void Dispose() => ImGui.SetWindowFontScale(1f);
     }
 
-    // Drag the board to move it (when unlocked). We do this ourselves rather than
-    // lean on ImGui's window-move, which in this build only triggers from a title
-    // bar - and the board deliberately has none. A press over the window starts
-    // the drag; we track it to release even if the cursor slips off the
-    // auto-resizing window, and edit the saved position by the raw mouse delta.
+    // Drag the board to move it (when unlocked), done ourselves rather than leaning
+    // on ImGui's window-move, which in this build only triggers from a title bar
+    // that the board deliberately lacks.
     private void HandleManualDrag()
     {
         if (EffectiveLocked) { _dragging = false; return; }

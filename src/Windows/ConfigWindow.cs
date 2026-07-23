@@ -49,8 +49,8 @@ public partial class ConfigWindow : Window, IDisposable
     // In-memory line clipboard for the right-click copy / paste / duplicate menu.
     private MitLine? _copiedLine;
 
-    // Plugin icon (group-hug logo), loaded once from the file shipped next to the
-    // DLL. Null until found; the Home page falls back to a glyph if it's missing.
+    // Plugin icon (group-hug logo), loaded once from the file next to the DLL; the
+    // Home page falls back to a glyph if it's missing.
     private Dalamud.Interface.Textures.ISharedImmediateTexture? _iconShared;
     private bool _iconLookedUp;
     private Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? IconWrap()
@@ -77,12 +77,12 @@ public partial class ConfigWindow : Window, IDisposable
 
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme" };
 
-    // Every group a fight can file under (the sidebar's order). Legacy
-    // "Raids"/"Other" categories display and file as Extreme (CategoryOf).
+    // Every group a fight can file under (the sidebar's order); legacy "Raids" /
+    // "Other" categories display and file as Extreme (CategoryOf).
     private static readonly string[] FightTypes = { "Ultimate", "Savage", "Extreme" };
 
-    // The sidebar group a fight belongs to. Built-ins use their baked category;
-    // any fight whose stored category is no longer a tab (e.g. the removed Raids /
+    // The sidebar group a fight belongs to: built-ins use their baked category, and
+    // a fight whose stored category is no longer a tab (e.g. the removed Raids /
     // Other) falls back to Extreme so it isn't orphaned.
     private static string CategoryOf(FightProfile f)
     {
@@ -166,9 +166,9 @@ public partial class ConfigWindow : Window, IDisposable
         Theme.PopWidgets();
 
         // Toggle()/CfgCheck()/GridCheck() return the new value for the CALLER to
-        // assign, so saving inside them would persist the pre-assignment state
-        // (one edit stale on disk until some later save). They mark this flag
-        // instead, and the save runs here, after every assignment this frame.
+        // assign, so rather than save inside them (which would persist the
+        // pre-assignment state) they mark this flag and the save runs here, after
+        // every assignment this frame.
         if (_toggleDirty)
         {
             _toggleDirty = false;
@@ -179,8 +179,7 @@ public partial class ConfigWindow : Window, IDisposable
     private bool _toggleDirty;
 
     // Truthful save status: every edit writes to disk the moment it happens, so
-    // there is never an unsaved state to warn about on exit. The old "Save
-    // changes" button was ceremonial and implied otherwise.
+    // there is never an unsaved state to warn about on exit.
     private void DrawFooter()
     {
         ImGui.Separator();
@@ -214,8 +213,8 @@ public partial class ConfigWindow : Window, IDisposable
     // Config-bound checkbox: edits a local copy, saves on change, returns the new value.
     private bool CfgCheck(string label, bool value) => Toggle(label, value);
 
-    // A checkbox + label. Fills green with a white tick when on. Saves on change
-    // (deferred to the end of Draw, AFTER the caller assigns the returned value).
+    // A checkbox + label that saves on change (deferred to the end of Draw, AFTER
+    // the caller assigns the returned value).
     private bool Toggle(string label, bool value)
     {
         var v = value;
@@ -227,8 +226,8 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // The one checkbox style used across the whole config: fills green with a white
-    // tick when checked (replaces the old hard-to-read pill toggle). Mirrors
-    // ImGui.Checkbox's signature/return so it's a drop-in everywhere.
+    // tick when checked, mirroring ImGui.Checkbox's signature/return so it's a
+    // drop-in everywhere.
     private static bool GreenCheckbox(string label, ref bool v)
     {
         var on = v; // style by the current state; push and pop must use the same flag
@@ -244,11 +243,8 @@ public partial class ConfigWindow : Window, IDisposable
         return changed;
     }
 
-    // Tooltip on the previous item — keeps help off the page (no inline "(?)") so
-    // toggle grids stay clean.
-    // A short hover delay before informational tooltips, so sweeping the mouse
-    // across a page doesn't flash one on every control it crosses. (These
-    // bindings predate ImGui's ForTooltip flag, hence the manual timer.)
+    // Tooltip on the previous item with a short hover delay, so sweeping the mouse
+    // across a page doesn't flash help on every control it crosses.
     private static Vector2 _tipPos;
     private static double _tipSince;
 
@@ -267,7 +263,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (now - _tipSince >= 0.35) ImGui.SetTooltip(text);
     }
 
-    // A checkbox in the next cell of a 2-column toggle grid. Returns the value so
+    // A checkbox in the next cell of a 2-column toggle grid, returning the value so
     // the caller can assign it straight back to its setting.
     private bool GridCheck(string label, bool value, string? tip = null)
     {
@@ -291,7 +287,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
-    // Collapsible section. Returns true when expanded; wrap the body in the if.
+    // Collapsible section that returns true when expanded; wrap the body in the if.
     private static bool Section(string text, bool open = false)
     {
         ImGui.Spacing();
@@ -486,10 +482,9 @@ public partial class ConfigWindow : Window, IDisposable
         return clicked;
     }
 
-    // Job + role in one compact block. The role pick applies to every built-in
+    // Job + role in one compact block; the role pick applies to every built-in
     // fight, mapping to whatever slot that fight uses for the role (e.g. Melee 1
-    // -> D1 in DMU, M1 in FRU). A green check shows when every built-in fight is
-    // on that role's slot.
+    // -> D1 in DMU, M1 in FRU).
     private void DrawSidebarSetup()
     {
         ImGui.Spacing();
@@ -514,9 +509,9 @@ public partial class ConfigWindow : Window, IDisposable
         }
         Tip($"The job your mits and calls are read for. Active now: {_plugin.ActiveJobAbbreviation() ?? "?"}.");
 
-        // One click to pin whatever you're playing right now - no list-diving.
-        // Hidden on Auto: Auto already follows the live job, so pinning from
-        // there would only stop it following the NEXT job change.
+        // One click to pin whatever you're playing right now; hidden on Auto, which
+        // already follows the live job, so pinning there would only stop it
+        // following the NEXT job change.
         var live = Plugin.LocalPlayer?.ClassJob.RowId is { } rid ? Jobs.ByRowId(rid)?.Abbreviation : null;
         if (live != null
             && !string.Equals(C.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase)
@@ -558,10 +553,10 @@ public partial class ConfigWindow : Window, IDisposable
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Every fight is on this role's slot.");
         }
 
-        // One click to match the role to the job you're playing right now, same
-        // idea as the job picker's "Use current". Hidden when already on it, and
-        // also when the pick is the other seat of the same pair (Off Tank while
-        // tanking, Melee 2 on a melee): that pick is deliberate, don't nag.
+        // One click to match the role to the job you're playing right now, hidden
+        // when already on it or when the pick is the other seat of the same pair
+        // (Off Tank while tanking, Melee 2 on a melee), since that pick is
+        // deliberate.
         var liveRole = RoleForJob(_plugin.ActiveJobAbbreviation());
         if (liveRole != null
             && !string.Equals(C.RoleSelection, liveRole, StringComparison.OrdinalIgnoreCase)
@@ -603,8 +598,8 @@ public partial class ConfigWindow : Window, IDisposable
         };
     }
 
-    // True if every fight with a sheet is currently on the slot this role maps
-    // to. A sheet with no column for the role can't disagree, so it passes.
+    // True if every fight with a sheet is currently on the slot this role maps to
+    // (a sheet with no column for the role can't disagree, so it passes).
     private bool RoleActiveEverywhere(string role)
     {
         var fights = C.Fights.Where(f => Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0).ToList();
@@ -705,8 +700,8 @@ public partial class ConfigWindow : Window, IDisposable
         dl.AddRectFilled(new Vector2(cx - 60, cy), new Vector2(cx + 60, cy + 2), 0xFFF6823B, 1f);
         ImGui.Dummy(new Vector2(0, 14));
 
-        // First-run: three steps until the plugin is actually calling mits.
-        // Disappears forever once any fight has a slot picked.
+        // First-run: three steps until the plugin is actually calling mits, gone
+        // forever once any fight has a slot picked.
         if (!C.Fights.Any(f => !string.IsNullOrEmpty(f.Slot)))
         {
             var cardW = MathF.Max(220f, MathF.Min(430f, ImGui.GetContentRegionAvail().X - 20f));
@@ -757,10 +752,9 @@ public partial class ConfigWindow : Window, IDisposable
         _expandFightId = fight.Id;
     }
 
-    // The expansion a fight's zone belongs to, straight from the game data
-    // (TerritoryType.ExVersion; 0 = ARR through 5 = Dawntrail). Correct for
-    // anything a user adds too, no table to maintain. uint.MaxValue = unknown.
-    // Cached per territory - this runs inside the per-frame sort.
+    // The expansion a fight's zone belongs to, from the game data
+    // (TerritoryType.ExVersion), cached per territory since this runs inside the
+    // per-frame sort.
     private static readonly Dictionary<uint, uint> ExCache = new();
 
     private static uint ExpansionOf(FightProfile f)
@@ -824,9 +818,9 @@ public partial class ConfigWindow : Window, IDisposable
 
             ImGui.PushID(fight.Id);
 
-            // Drag handle: reorder fights within their expansion group. The list
-            // is drawn from a stable sort of C.Fights, so swapping two same-group
-            // fights in C.Fights is all it takes - the display and save follow.
+            // Drag handle to reorder fights within their expansion group; the list
+            // is a stable sort of C.Fights, so swapping two same-group fights in
+            // C.Fights is all it takes and the display and save follow.
             DrawReorderGrip(fights, i);
             ImGui.SameLine();
 
@@ -836,8 +830,9 @@ public partial class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
 
             if (fight.Id == _expandFightId) { ImGui.SetNextItemOpen(true); _expandFightId = ""; }
-            // Gold star after the name = official: ships with the plugin, baked
-            // from the community sheet. Icon font, since the text font has no star.
+            // Gold star after the name = official (ships with the plugin, baked
+            // from the community sheet), drawn in the icon font since the text font
+            // has no star.
             var official = Builtin.Has(fight.TerritoryId);
             var headerStartX = ImGui.GetCursorPosX();
             var headerLabel = fight.Name;
@@ -916,9 +911,9 @@ public partial class ConfigWindow : Window, IDisposable
         if (toDelete != null) { C.Fights.Remove(toDelete); C.Save(); }
     }
 
-    // A small grip you drag up/down to reorder a fight within its expansion
-    // group. Only same-group neighbours swap: crossing a group line does
-    // nothing, since the group header sort would just snap it back.
+    // A small grip you drag up/down to reorder a fight within its expansion group;
+    // only same-group neighbours swap, since crossing a group line would just be
+    // snapped back by the group header sort.
     private void DrawReorderGrip(List<FightProfile> shown, int i)
     {
         ImGui.PushStyleColor(ImGuiCol.Button, 0u);
@@ -1063,10 +1058,10 @@ public partial class ConfigWindow : Window, IDisposable
     {
         var slots = Builtin.Slots(fight.TerritoryId);
 
-        // Reflect the fight's active slot in the picker. When this fight has no
-        // valid slot yet (fresh profile / removed legacy slot), fall back to the
-        // first slot rather than whatever index the LAST fight's picker used;
-        // otherwise "Reset to sheet" would bake this fight onto that stale slot.
+        // Reflect the fight's active slot in the picker, falling back to the first
+        // slot when this fight has no valid slot yet (fresh profile / removed legacy
+        // slot) rather than whatever index the LAST fight's picker used, which would
+        // bake this fight onto a stale slot.
         var savedIdx = Array.IndexOf(slots, fight.Slot);
         _builtinSlot = savedIdx >= 0 ? savedIdx : 0;
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
@@ -1103,7 +1098,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Full reset across every column, for when single-slot resets aren't enough
-    // (stale edits living in OTHER slots' preview columns). Snapshot-first and
+    // (stale edits living in OTHER slots' preview columns); snapshot-first and
     // confirmed, so it's safe to reach for.
     private void DrawResetAllConfirm(FightProfile fight, string slot)
     {
@@ -1163,10 +1158,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.EndPopup();
     }
 
-    // The expanded editor for one fight. Returns false if it was deleted this
-    // frame (caller removes it and stops drawing). Category lives in the sidebar
-    // now; the rare zone/timing fields are tucked into an Advanced sub-section.
-    // The fight-wide offset, up top where it's findable: shifts EVERY call. The
+    // The fight-wide offset, up top where it's findable, shifts EVERY call; the
     // per-line ±s column below handles individual calls.
     private void DrawFightOffsetRow(FightProfile fight)
     {
@@ -1189,8 +1181,8 @@ public partial class ConfigWindow : Window, IDisposable
     // line under the territory controls for a few seconds.
     private double _zoneRejectUntil;
 
-    // The canonical profile for a built-in zone: first in the list, like
-    // ActiveFight resolves. A stray DUPLICATE on a built-in zone (old configs
+    // The canonical profile for a built-in zone is the first in the list, like
+    // ActiveFight resolves; a stray DUPLICATE on a built-in zone (old configs
     // could produce one) stays a normal editable fight so it can be deleted.
     private bool IsOfficial(FightProfile f)
         => Builtin.Has(f.TerritoryId)
@@ -1198,8 +1190,8 @@ public partial class ConfigWindow : Window, IDisposable
 
     private bool DrawFightEditor(FightProfile fight)
     {
-        // Built-in fights (the ones shipped with the plugin) are locked: their name
-        // can't be edited and they can't be deleted. Only user-added fights can.
+        // Built-in fights (the ones shipped with the plugin) are locked, so only
+        // user-added fights can be renamed or deleted.
         if (IsOfficial(fight))
         {
             ImGui.AlignTextToFramePadding();
@@ -1271,16 +1263,14 @@ public partial class ConfigWindow : Window, IDisposable
         return confirmed;
     }
 
-    // Fetch potion timings for the current job from top logs, then (only if you
-    // click Add) drop them in as lines for that job. Never automatic.
     // Tank slots across every fight's slot list (MT/OT, or FRU's T1/T2).
     private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2" };
     private static bool IsTankSlot(string? slot)
         => slot != null && TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase);
 
-    // Tank-buster mit plan from the Ikuya sheet: pick your pairing, add your job's
-    // lines. Shown only for fights that have tank-combo data AND when you're set to
-    // a tank slot (MT/OT/T1/T2) — it's irrelevant on any other role.
+    // Tank-buster mit plan from the Ikuya sheet (pick your pairing, add your job's
+    // lines), shown only for fights that have tank-combo data when you're set to
+    // a tank slot (MT/OT/T1/T2), since it's irrelevant on any other role.
     private void DrawTankSection(FightProfile fight)
     {
         if (!TankMits.Has(fight.TerritoryId)) return;
@@ -1337,9 +1327,9 @@ public partial class ConfigWindow : Window, IDisposable
     private Vector2 _cardTopLeft;
     private float _cardWidth;
 
-    // Begin an auto-height styled card: a panel background + left accent bar + an
+    // Begin an auto-height styled card (panel background + left accent bar + an
     // icon title, drawn behind the content via draw-list channels so the panel fits
-    // whatever's inside. Every BeginCard must be paired with EndCard.
+    // whatever's inside); every BeginCard must be paired with EndCard.
     private void BeginCard(FontAwesomeIcon icon, Vector4 iconColor, string title, string subtitle = "")
     {
         ImGui.Spacing();
@@ -1380,8 +1370,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
-    // A rounded "pill" showing one potion window (mm:ss). Returns its right edge X
-    // so the caller can flow the next one after it.
+    // A rounded "pill" showing one potion window (mm:ss).
     private static void TimePill(string text)
     {
         var dl = ImGui.GetWindowDrawList();
@@ -1509,8 +1498,8 @@ public partial class ConfigWindow : Window, IDisposable
     private int _pracRowIdx;
 
     // Practice, contextual: one row of phase-jump buttons inside the fight it
-    // belongs to (the old Practice page, dissolved). Custom sheets have no baked
-    // phases, so they practice from any of their own rows instead.
+    // belongs to (the old Practice page, dissolved), with custom sheets (having no
+    // baked phases) practicing from any of their own rows instead.
     private void DrawPracticeRow(FightProfile fight)
     {
         var phases = Builtin.PhaseStarts(fight.TerritoryId);
@@ -1555,9 +1544,9 @@ public partial class ConfigWindow : Window, IDisposable
         }
     }
 
-    // Potions card: baked top-log potion windows for your job with a one-click
-    // add. Custom sheets get the standard 2-minute burst meta instead: pot the
-    // opener, re-pot each 6:00 burst that fits the fight.
+    // Potions card: baked top-log potion windows for your job with a one-click add,
+    // or the standard 2-minute burst meta for custom sheets (pot the opener, re-pot
+    // each 6:00 burst that fits the fight).
     private void DrawPotionsSection(FightProfile fight)
     {
         var customPots = PotionTimings.BossSlug(fight.TerritoryId) == null
@@ -1625,17 +1614,17 @@ public partial class ConfigWindow : Window, IDisposable
         EndCard();
     }
 
-    // Job-mitigation card: optional job-specific mit timers from logs (Asylum-style)
-    // — e.g. BRD Nature's Minne, MNK Mantra, PLD Passage of Arms. Shows only when
-    // you're on a job that has one for this fight. One-click add, job-tagged + Custom.
+    // Job-mitigation card: optional job-specific mit timers from logs (Asylum-style,
+    // e.g. BRD Nature's Minne, MNK Mantra, PLD Passage of Arms), shown only when
+    // you're on a job that has one for this fight.
     private void DrawJobExtrasSection(FightProfile fight)
     {
         var job = _plugin.ActiveJobAbbreviation();
         if (string.IsNullOrEmpty(job)) return; // also lets the compiler see job is non-null below
-        // Baked schedule(s) for built-ins; for a custom sheet, computed from its
-        // own rows (hardest-graded hits first). A job may offer several (e.g.
-        // DNC's Curing Waltz + Improvisation). Optional either way, exactly like
-        // the Ikuya sheets' Extras column.
+        // Baked schedule(s) for built-ins, or computed from a custom sheet's own
+        // rows (hardest-graded hits first); a job may offer several (e.g. DNC's
+        // Curing Waltz + Improvisation), optional either way like the Ikuya sheets'
+        // Extras column.
         var extras = JobExtras.AllFor(fight, job);
         if (extras.Count == 0) return;
         var custom = JobExtras.For(fight.TerritoryId, job) == null; // no baked zone schedule -> from the sheet
@@ -1654,11 +1643,10 @@ public partial class ConfigWindow : Window, IDisposable
 
             if (extra.Steps is { Length: > 0 } steps)
             {
-                // Sequence extra (SMN summons): each step is its own action. Bursts
-                // group consecutive summons (up to 3, split on a >20s gap) so it can
-                // be added as one cue per burst ("Garuda / Titan / Ifrit") or one per
-                // summon. Both are SMN-only and spoken; Singles gives audio for every
-                // individual summon, Grouped one combined cue per burst.
+                // Sequence extra (SMN summons): each step is its own action, and
+                // bursts group consecutive summons (up to 3, split on a >20s gap) so
+                // it can be added as one spoken cue per burst ("Garuda / Titan /
+                // Ifrit") or one per summon.
                 var names = steps.Select(s => s.Summon).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
                 var bursts = new List<List<(int Time, string Summon)>>();
                 foreach (var s in steps)
@@ -1759,9 +1747,9 @@ public partial class ConfigWindow : Window, IDisposable
                     TerritoryId = fight.TerritoryId,
                     Category = fight.Category,
                     TimerOffset = fight.TimerOffset,
-                    // The copy starts disabled: with both live, the original
+                    // The copy starts disabled because with both live the original
                     // would keep winning the zone and edits to the copy would
-                    // silently never fire. Enable whichever should be live.
+                    // silently never fire.
                     Enabled = false,
                     Slot = fight.Slot,
                     Lines = fight.Lines.Select(CloneLine).ToList(),
@@ -1900,15 +1888,15 @@ public partial class ConfigWindow : Window, IDisposable
             if (GreenCheckbox("##on", ref on)) { line.Enabled = on; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); }
 
             ImGui.TableNextColumn();
-            // Edit time as m:ss. Use a per-edit buffer so partial typing isn't lost.
+            // Edit time as m:ss, using a per-edit buffer so partial typing isn't lost.
             var timeBuf = _editTimeLine == line ? _editTimeBuf : line.TimeText;
             ImGui.SetNextItemWidth(-1);
             if (ImGui.InputText("##time", ref timeBuf, 12)) _editTimeBuf = timeBuf;
             if (ImGui.IsItemActivated()) { _editTimeLine = line; _editTimeBuf = line.TimeText; }
             if (ImGui.IsItemDeactivatedAfterEdit())
             {
-                // Commit ONLY if the shared buffer still belongs to this line.
-                // Clicking straight into an earlier row's time cell activates that
+                // Commit ONLY if the shared buffer still belongs to this line, since
+                // clicking straight into an earlier row's time cell activates that
                 // cell first in the frame (overwriting the buffer), so committing
                 // unconditionally here would write the OTHER row's time into this
                 // line.
@@ -1942,7 +1930,7 @@ public partial class ConfigWindow : Window, IDisposable
                 ImGui.EndPopup();
             }
 
-            // Per-line offset: + fires just this call earlier. Blank = none.
+            // Per-line offset: + fires just this call earlier (blank = none).
             ImGui.TableNextColumn();
             if (_editOffLine == line)
             {
@@ -2055,8 +2043,8 @@ public partial class ConfigWindow : Window, IDisposable
         if (toDelete != null)
         {
             // Sheet-baked lines get a tombstone so the zone-in top-up / slot
-            // switches / sheet re-bakes can't resurrect them. Custom lines exist
-            // only in the saved lists, so removal alone is final for those.
+            // switches / sheet re-bakes can't resurrect them, while custom lines
+            // exist only in the saved lists, so removal alone is final for those.
             if (!toDelete.Custom && Builtin.Has(fight.TerritoryId) && !string.IsNullOrEmpty(fight.Slot))
             {
                 fight.DeletedCalls.Add(new DeletedCall
@@ -2077,9 +2065,9 @@ public partial class ConfigWindow : Window, IDisposable
         }
     }
 
-    // Right-click line menu shared by the time / mechanic / action cells: copy a
-    // line to the in-memory clipboard, paste a copy above / below / over this one,
-    // duplicate, reorder, or delete. List-mutating actions are deferred so the
+    // Right-click line menu shared by the time / mechanic / action cells (copy a
+    // line to the in-memory clipboard, paste above / below / over this one,
+    // duplicate, reorder, or delete), with list-mutating actions deferred so the
     // caller can run them once the row loop finishes.
     private void LineContextItems(FightProfile fight, MitLine line, int index, ref Action? deferred, ref MitLine? toDelete)
     {
@@ -2129,11 +2117,10 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Editing the time or mechanic of a sheet-baked line breaks its identity with
-    // the bake (SameCall keys on time + mechanic), so the next zone-in would
-    // re-add the original and the de-overlap would sweep the edited copy,
-    // silently reverting the edit. Preserve it the same way delete does: record
-    // a tombstone at the ORIGINAL coordinates (call BEFORE mutating the line)
-    // and flag the line Custom so it's the user's from here on.
+    // the bake (SameCall keys on time + mechanic), so preserve it the same way
+    // delete does by recording a tombstone at the ORIGINAL coordinates (call
+    // BEFORE mutating the line) and flagging the line Custom so it's the user's
+    // from here on.
     private static void PreserveBakedEdit(FightProfile fight, MitLine line)
         => Builtin.PreserveEdit(fight, fight.Slot, line);
 

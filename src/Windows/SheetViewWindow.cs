@@ -11,16 +11,7 @@ using Dalamud.Interface.Windowing;
 namespace FrenMits.Windows;
 
 // The whole raid plan as one sheet - the in-game version of the Google sheet
-// everyone plans from. Rows are the fight's mechanics in timeline order, columns
-// are the sheet slots. Your slot's column IS the live plan (same line objects the
-// overlay and fight page read); the other columns edit your saved copy of each
-// slot, which reaches friends via Share plan -> their import.
-//
-// The Time cell is the bulk edit: re-timing a mechanic shifts every slot's line
-// for it at once. Every edit routes through Builtin.PreserveEdit, so sheet
-// updates and zone-ins keep it, exactly like edits made on the fight page.
-// Rows the sheet bakes but every slot has deleted show as dimmed "deleted"
-// ghost rows, so the restore path is always visible.
+// everyone plans from.
 public partial class SheetViewWindow : Window
 {
     private readonly Plugin _plugin;
@@ -97,7 +88,7 @@ public partial class SheetViewWindow : Window
 
     // ---- undo (Ctrl+Z) -----------------------------------------------------
     // Snapshot-based: every sheet edit pushes a deep copy of the fight's plan
-    // BEFORE mutating; undo swaps it back. In-memory only, capped.
+    // BEFORE mutating; undo swaps it back.
 
     private sealed class PlanSnapshot
     {
@@ -229,9 +220,8 @@ public partial class SheetViewWindow : Window
     private bool _focusPending;
     private bool Editing => _editTimeRow != null || _editCellRow != null;
 
-    // Spreadsheet keyboard flow: Enter commits and edits the cell below, Tab
-    // the next column. Held as coordinates, not references, because the commit
-    // rebuilds every row object before the next edit can start.
+    // Held as coordinates, not references, because the commit rebuilds every
+    // row object before the next edit can start.
     private (float Time, string Mech, int Slot)? _pendingEdit;
 
     private string _flash = "";
@@ -239,9 +229,7 @@ public partial class SheetViewWindow : Window
     private void Flash(string msg) { _flash = msg; _flashAt = DateTime.Now; }
 
     // Notes: the row the mouse is on (its note shows in the footer strip) and
-    // the edit buffer for the right-click note popup. _hoverRow is sticky (the
-    // footer keeps the last note readable); _hoverLive is only the row the
-    // mouse is on THIS frame, driving the row highlight.
+    // the edit buffer for the right-click note popup.
     private Row? _hoverRow;
     private Row? _hoverLive;
     private Row? _hoverLivePrev;
@@ -319,7 +307,7 @@ public partial class SheetViewWindow : Window
         _isCustom = IsCustomSheet(_fight);
         _slots = _isCustom ? _fight.CustomSlots.ToArray() : Builtin.Slots(_fight.TerritoryId);
         // Pinned columns (right-click a header) ride first, inside the frozen
-        // area. Stable sort keeps the sheet's slot order within each group.
+        // area.
         _order = Enumerable.Range(0, _slots.Length).OrderBy(i => IsPinnedColumn(i) ? 0 : 1).ToArray();
         _pinnedCount = _order.Count(IsPinnedColumn);
         _phases = _isCustom ? new() : Builtin.PhaseStarts(_fight.TerritoryId);
@@ -352,9 +340,8 @@ public partial class SheetViewWindow : Window
             }
             else
             {
-                // Fresh bake preview, minus this slot's deleted calls. Kept as the
-                // SAME list object so a later edit can adopt it into SavedSlots
-                // without breaking the row -> line references.
+                // Kept as the SAME list object so a later edit can adopt it into
+                // SavedSlots without breaking the row -> line references.
                 _slotLines[i] = Builtin.BuildLines(_fight.TerritoryId, _slots[i])
                     .Where(b => !Builtin.IsDeleted(_fight, _slots[i], b)).ToList();
                 _slotBacked[i] = false;
@@ -362,8 +349,7 @@ public partial class SheetViewWindow : Window
         }
 
         // Merge the slot plans into sheet rows: same mechanic within ~a second is
-        // the same row. A per-slot renamed mechanic becomes its own row - honest,
-        // since its call really does differ now.
+        // the same row.
         for (var i = 0; i < _slots.Length; i++)
         {
             foreach (var line in _slotLines[i].OrderBy(l => l.Time))
@@ -385,9 +371,7 @@ public partial class SheetViewWindow : Window
         }
 
         // The same grid straight from the bake (unfiltered): reset anchors,
-        // deleted-detection, and ghost rows all come from here. Custom sheets
-        // have no bake at all (Builtin.BuildLines would leak DMU's defaults for
-        // any slot code that happens to match, so don't even ask).
+        // deleted-detection, and ghost rows all come from here.
         for (var i = 0; !_isCustom && i < _slots.Length; i++)
         {
             foreach (var line in Builtin.BuildLines(_fight.TerritoryId, _slots[i]).OrderBy(l => l.Time))
@@ -420,8 +404,6 @@ public partial class SheetViewWindow : Window
 
         // Ghost rows: instances the sheet bakes but no live row carries anymore
         // (deleted everywhere) - shown dimmed so restore is always one click.
-        // "Carried" is checked by time + action too, so a mechanic RENAMED on the
-        // fight page (same call, new label) is not mistaken for a deleted one.
         foreach (var br in _bakedRows)
         {
             if (referenced.Contains(br)) continue;
@@ -467,8 +449,7 @@ public partial class SheetViewWindow : Window
             if (_isCustom) r.Edited = false;
 
             // A row made ENTIRELY of job-restricted custom lines is a job extra
-            // (e.g. Nature's Minne riding 1s off its mechanic's row). Tagged so
-            // it doesn't read as a mysterious duplicate.
+            // (e.g. Nature's Minne riding 1s off its mechanic's row).
             if (r.Ghost || _isCustom) continue;
             var any = false;
             var all = true;
@@ -524,8 +505,7 @@ public partial class SheetViewWindow : Window
     }
 
     // Flag any line whose mit is used again before its cooldown (with charges
-    // honored) can possibly be back, per slot. Uses plan times, not the live
-    // recast, so it works while planning at the aetheryte.
+    // honored) can possibly be back, per slot.
     private void FindCooldownConflicts()
     {
         _conflicts.Clear();
@@ -553,10 +533,7 @@ public partial class SheetViewWindow : Window
                     if (!uses.TryGetValue(key, out var entry))
                         uses[key] = entry = (pm.Recast, pm.Charges, new List<(float, MitLine, string, string)>());
                     // CUE time, not plan time: a per-call offset genuinely moves
-                    // the press, so it must count in the timer math. The job tag
-                    // rides along: differently-tagged variants ("Party Mit
-                    // (WAR/PLD)" vs "(GNB/DRK)", or a WAR's vs a DRK's tank
-                    // lines) are different players' presses, not one timer.
+                    // the press, so it must count in the timer math.
                     var tag = MitLine.JobTagFor(l.Action, pm.Name);
                     if (tag.Length == 0 && l.Jobs.Count > 0)
                         tag = string.Join("/", l.Jobs
@@ -571,9 +548,7 @@ public partial class SheetViewWindow : Window
                 list.Sort((a, b) => a.Time.CompareTo(b.Time));
 
                 // Job-tagged variants are different players' presses: "Party Mit
-                // (GNB/DRK)" and "(WAR/PLD)" never share one timer. Run the
-                // check once per tag, each time with that tag's uses plus the
-                // untagged ones (those apply to any job, so they chain with all).
+                // (GNB/DRK)" and "(WAR/PLD)" never share one timer.
                 var tags = list.Select(u => u.Tag).Where(t2 => t2.Length > 0)
                     .Distinct().ToList();
                 if (tags.Count == 0) { CheckMitTimer(list, recast, charges); continue; }
@@ -599,8 +574,7 @@ public partial class SheetViewWindow : Window
     {
                 // Press-window HINTS: coverage pushes the press EARLIER (the
                 // buff must reach the last covered hit), a same-timer reuse
-                // caps how LATE it can go. Informational only; the red verdict
-                // comes from the walk below.
+                // caps how LATE it can go.
                 for (var u = 0; u < list.Count; u++)
                 {
                     var (t, line, name, _) = list[u];
@@ -687,12 +661,7 @@ public partial class SheetViewWindow : Window
                 }
 
                 // Top-down feasibility, first mechanic first - the way you'd
-                // build the plan by hand. Every press is assumed as EARLY as
-                // its buff allows (duration minus 1s before its hit, or the
-                // coverage bound if later), earlier entries are taken as
-                // correct, and a later press only goes red when even then the
-                // button cannot be back. Kerachole at 0:20 and 0:45 is legal
-                // (press the first ~0:10); a third at 1:00 is not.
+                // build the plan by hand.
                 var ready = float.NegativeInfinity;
                 var walkPrev = "";
                 foreach (var (t, line, name, _) in list)
@@ -724,9 +693,7 @@ public partial class SheetViewWindow : Window
     }
 
     // Pair each mechanic's live rows with its baked instances, order-preserving
-    // and minimizing total time distance. Equal counts pair by index (handles
-    // arbitrary shifts); unequal counts run a tiny min-cost alignment where
-    // skipping an instance costs a flat penalty.
+    // and minimizing total time distance.
     private void AnchorRows(HashSet<BakedRow> referenced)
     {
         const float skipCost = 30f;
@@ -785,9 +752,9 @@ public partial class SheetViewWindow : Window
         return cells;
     }
 
-    // The fight page can REPLACE list objects (imports, sort, reset to sheet).
-    // Our cached references would then write stale data back, so every commit
-    // verifies them first and turns a mismatch into a harmless "try again".
+    // Our cached references would write stale data back if the fight page
+    // replaced a list object, so every commit verifies them first and turns a
+    // mismatch into a harmless "try again".
     private bool PlanChangedElsewhere()
     {
         if (_fight == null) return true;
@@ -811,8 +778,7 @@ public partial class SheetViewWindow : Window
     }
 
     // Adopt a bake-preview slot into the profile the first time it's edited, so
-    // the edit persists. Object identity is preserved: the rendered rows point
-    // into this same list.
+    // the edit persists.
     private void EnsureBacked(int i)
     {
         if (_fight == null || _slotBacked[i]) return;
@@ -840,9 +806,7 @@ public partial class SheetViewWindow : Window
 
     // Land any edit still in progress: clicking from a half-typed cell into an
     // earlier row (or the toolbar) must not drop the text, since draw order can
-    // skip the old editor's commit frame. Returns true if something committed;
-    // the caller then swallows its own action so the next click operates on
-    // freshly rebuilt rows instead of a stale grid.
+    // skip the old editor's commit frame.
     private bool CommitPending()
     {
         var committed = false;
@@ -897,7 +861,7 @@ public partial class SheetViewWindow : Window
     private void CommitCell(Row row, int i) => ApplyCellText(row, i, _cellBuf);
 
     // Enter = the visible row below (same column); Tab = the next column (same
-    // row). Coordinates are captured now and resolved after the rebuild.
+    // row).
     private void QueueNeighborEdit(Row row, int i, bool right)
     {
         if (right)
@@ -926,7 +890,7 @@ public partial class SheetViewWindow : Window
 
     // Cell edits touch the FIRST line in the cell only; a cell holding two real
     // lines (rare merge of near-simultaneous casts) stacks them and leaves the
-    // second line alone. Shared by inline editing and the right-click paste.
+    // second line alone.
     private void ApplyCellText(Row row, int i, string raw)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
@@ -978,8 +942,7 @@ public partial class SheetViewWindow : Window
         {
             // No baked instance pairs with this row: it's an extra instance the
             // sheet doesn't have, or a leftover edit under a mechanic name the
-            // sheet renamed. The sheet-true state is "nothing here", so reset
-            // clears the row's lines. Undo brings them back.
+            // sheet renamed.
             PushUndo($"remove \"{row.Mechanic}\" (not on the sheet)");
             var removed = 0;
             for (var i = 0; i < _slots.Length; i++)
@@ -1113,8 +1076,7 @@ public partial class SheetViewWindow : Window
         if (_fight.Id != C.LastSheetFightId) { C.LastSheetFightId = _fight.Id; C.Save(); }
 
         // Regaining focus re-reads every slot, so edits made on the fight page
-        // while this window sat in the background always show up. Never rebuild
-        // mid-edit: commits set _dirty and it lands right after.
+        // while this window sat in the background always show up.
         var focused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
         if (focused && !_wasFocused) _dirty = true;
         _wasFocused = focused;
@@ -1138,16 +1100,14 @@ public partial class SheetViewWindow : Window
             }
         }
 
-        // Ctrl+Z undoes the last sheet edit. Skipped while a text field is
-        // active: InputText has its own internal Ctrl+Z for the typed buffer.
+        // Ctrl+Z undoes the last sheet edit.
         if (focused && !ImGui.GetIO().WantTextInput
             && ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGuiKey.Z, false))
             Undo();
 
         DrawToolbar();
         // The toolbar's delete popup can remove the sheet mid-frame; bail out
-        // before the grid touches the gone fight. Next frame lands on the
-        // fight picker (or the next sheet) via the null handling up top.
+        // before the grid touches the gone fight.
         if (_fight == null) return;
         ImGui.Spacing();
         DrawGrid();
@@ -1176,7 +1136,7 @@ public partial class SheetViewWindow : Window
         if (_fight == null || _phaseNotes.Count == 0) return;
 
         // Drag handle on the panel's top edge: pull it up for more notes, down
-        // for more grid. The height is remembered.
+        // for more grid.
         if (C.SheetNotesOpen)
         {
             ImGui.InvisibleButton("##notesgrip", new Vector2(-1, NotesGripHeight));
@@ -1216,10 +1176,7 @@ public partial class SheetViewWindow : Window
         ImGui.EndChild();
     }
 
-    // Fight picker (only when there's a choice to make). Also shown on the
-    // pick-your-slot screen so a slotless default is never a dead end.
-    // Grouped by category (Ultimate / Savage / ...) with your slot shown per
-    // fight, so the list stays scannable as more fights ship.
+    // Fight picker (only when there's a choice to make).
     private static readonly string[] PickerCategories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
 
     private void DrawFightPicker()
@@ -1262,8 +1219,7 @@ public partial class SheetViewWindow : Window
                         _dirty = true;
                     }
                     // Your slot for that fight, right-aligned; fights without one
-                    // land on the pick-your-slot screen when chosen. Clamped so it
-                    // can never sit on top of a long fight name.
+                    // land on the pick-your-slot screen when chosen.
                     var tag = string.IsNullOrEmpty(f.Slot) ? "no slot" : f.Slot;
                     ImGui.SameLine(MathF.Max(
                         ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(tag).X - 6f,
@@ -1395,8 +1351,7 @@ public partial class SheetViewWindow : Window
 
 
     // Duties whose boss has this id (a BNpcBase DataId, the id the game exposes
-    // on the boss object), as (zone id, duty name). Lets a sheet be bound by
-    // boss id when the zone id is the hard thing to know.
+    // on the boss object), as (zone id, duty name).
     private static List<(uint Terr, string Name)> BossDuties(uint bossId)
     {
         var found = new List<(uint, string)>();
@@ -1464,8 +1419,6 @@ public partial class SheetViewWindow : Window
         if (buf.Length > 0 && !uint.TryParse(buf, out terr))
         {
             // Name search: picking a match drops its zone id into the field.
-            // The list scrolls in a fixed box so a broad search ("savage") can
-            // never grow the popup past the screen.
             var matches = SearchDuties(buf, 40);
             if (matches.Count == 0)
                 ImGui.TextDisabled("no duty matches that name");
@@ -1490,7 +1443,7 @@ public partial class SheetViewWindow : Window
         }
         else if (!ZoneExists(terr))
         {
-            // Not a zone: maybe it is a boss id. Picking a hit fills the zone in.
+            // Not a zone: maybe it is a boss id.
             var byBoss = BossDuties(terr);
             if (byBoss.Count > 0)
             {
@@ -1593,8 +1546,7 @@ public partial class SheetViewWindow : Window
 
     // Turn generic healer seats into ALL FOUR healer job columns, the way the
     // official sheets carry WHM/AST/SCH/SGE side by side so any comp finds its
-    // column. Your own seat becomes your own job (lines and active column
-    // follow); leftover jobs slot in right after. Runs inside Auto-plan's undo.
+    // column.
     private void ExpandHealerSeats(FightProfile fight)
     {
         var seats = GenericHealerCols();
@@ -1683,7 +1635,7 @@ public partial class SheetViewWindow : Window
         ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
 
         // Healer seats: the four healer jobs' kits barely overlap, so the
-        // sheets carry a column per healer JOB. Planning expands the seats.
+        // sheets carry a column per healer JOB.
         var healerCols = GenericHealerCols();
         if (healerCols.Count > 0)
         {
@@ -1826,8 +1778,7 @@ public partial class SheetViewWindow : Window
                 + "Drag column edges to resize (double-click to fit) or drag headers to reorder.\n"
                 + "Right-click cells, mechanics and column headers; most tools live there.");
 
-        // Right side: Undo | Build (custom sheets) | Plan | Share plan. The
-        // one-click accent stays on Share; everything else folds into menus.
+        // Right side: Undo | Build (custom sheets) | Plan | Share plan.
         var rightW = ImGui.CalcTextSize("Undo").X + ImGui.CalcTextSize("Plan").X
                    + ImGui.CalcTextSize("Share plan").X + 96f
                    + (_isCustom ? ImGui.CalcTextSize("Build").X + 32f : 0f);
@@ -2176,7 +2127,7 @@ public partial class SheetViewWindow : Window
 
     private bool _bpRows = true;
     private bool _bpAnchors = true;
-    // FFLogs import extras (a full kill log carries damage + gaps a live capture
+    // logs import extras (a full kill log carries damage + gaps a live capture
     // doesn't): keep only casts that mattered, and turn its downtime gaps into
     // untargetable windows - so an imported fight reads like a built-in one.
     private bool _flMeaningful = true;
@@ -2235,11 +2186,7 @@ public partial class SheetViewWindow : Window
     private readonly record struct BuildEvent(uint Id, float Time, string Name, bool Anchorable);
 
     // Two bars for an imported log's silences (a stretch with no enemy cast = the
-    // boss stepped away). A window is only a board wash, so a modest bar is fine; a
-    // false one is easy to see and harmless. A phase re-anchor re-bases the whole
-    // clock on the next cast (a wide jump window), so it needs a much longer, high-
-    // confidence silence - a real cutscene/transition, not a slow mechanic
-    // resolution - or a normal mid-phase lull could mis-snap a later pull.
+    // boss stepped away).
     private const float ImportWindowGap = 20f; // seeds an untargetable window
     private const float ImportSeamGap = 35f;   // also re-bases the clock (phase seam)
 
@@ -2256,9 +2203,7 @@ public partial class SheetViewWindow : Window
 
     // Grade an ability's hardest unmitigated hit against the fight's hardest
     // RAIDWIDE (busters are excluded from the yardstick): the top band is
-    // deadly, the middle hurts, anything known is at least light. Bands are
-    // tuned for that clean scale; a hit within three quarters of the worst
-    // raidwide deserves the full stack.
+    // deadly, the middle hurts, anything known is at least light.
     private static int HurtLevel(long dmg, long max)
         => dmg <= 0 || max <= 0 ? 0
          : dmg >= max * 0.75 ? 3
@@ -2273,10 +2218,7 @@ public partial class SheetViewWindow : Window
     }
 
     // Resolve names, drop unnamed casts, auto-attacks, and back-to-back repeats
-    // of the same ability (double casts). When a name map is supplied (an FFLogs
-    // import carries the report's own ability names), it's preferred over the
-    // local game sheet: it matches what FFLogs/cactbot show and, crucially, names
-    // ids the local Action sheet can't resolve so those mechanics aren't dropped.
+    // of the same ability (double casts).
     private static List<BuildEvent> SiftEvents(IEnumerable<(uint Id, float Time, bool Anchorable)> raw,
         IReadOnlyDictionary<uint, string>? names = null)
     {
@@ -2309,10 +2251,10 @@ public partial class SheetViewWindow : Window
         PushUndo($"build from {source}");
         _plugin.SnapshotPlan(_fight, $"before build from {source}");
 
-        // Severity from the log's real damage. Raidwides (hit the party) and
-        // busters (only ever hit a player or two) are graded on SEPARATE
-        // scales: each against the hardest of its own kind, so a 400k buster
-        // neither drowns the raidwide scale nor reads as a party-mit moment.
+        // Raidwides (hit the party) and busters (only ever hit a player or two)
+        // are graded on SEPARATE scales: each against the hardest of its own
+        // kind, so a 400k buster neither drowns the raidwide scale nor reads as
+        // a party-mit moment.
         var maxDmg = 0L;   // hardest raidwide
         var maxTb = 0L;    // hardest buster
         if (damage is { Count: > 0 })
@@ -2323,12 +2265,9 @@ public partial class SheetViewWindow : Window
                     else if (d.Worst > maxTb) maxTb = d.Worst;
                 }
 
-        // A full kill log lists every enemy cast, including filler an official
-        // timeline would never show (idle instant casts that hit no one). With the
-        // log's damage we can tell the real mechanics - a cast that hurt someone, or
-        // one telegraphed by a cast bar - from that filler, and build rows from only
-        // those. Anchors and downtime below still run over EVERY cast, so resync and
-        // the untargetable gaps are unaffected.
+        // With the log's damage we can tell the real mechanics - a cast that hurt
+        // someone, or one telegraphed by a cast bar - from that filler, and build
+        // rows from only those.
         bool Meaningful(BuildEvent e)
             => e.Anchorable || (damage != null && damage.ContainsKey(e.Id));
         // Only filter when we actually have the damage data to judge with: without
@@ -2365,11 +2304,7 @@ public partial class SheetViewWindow : Window
                 addedRows++;
             }
 
-        // Second signal: where the log's PLAYERS pressed their mits. A press
-        // belongs to the next hit it precedes (within 20s). Party-wide stacking
-        // raises the row's grade; tank-personal clusters without party stacking
-        // mean a buster, and an invuln means a deadly one. Inference only ever
-        // raises: a dead party's mistakes must not talk a real hit down.
+        // Second signal: where the log's PLAYERS pressed their mits.
         if (rows && mitPresses is { Count: > 0 })
         {
             var allRows = _fight.CustomRows.OrderBy(r => r.Time).ToList();
@@ -2427,11 +2362,6 @@ public partial class SheetViewWindow : Window
         if (anchors)
         {
             // A captured cast IS an anchor: ability id + the time it resolved.
-            // A cast after a long quiet stretch (downtime, phase transition)
-            // re-bases the whole clock; the rest trim drift with tight windows.
-            // NOT the first cast though: at pull start the timer is already
-            // exact, and a phase anchor's wide backward window there could yank
-            // a later pull's clock back to the opener.
             var points = new List<SyncPoint>();
             var prev = 0f;
             var pendingPhase = false;
@@ -2440,15 +2370,13 @@ public partial class SheetViewWindow : Window
             {
                 // The gap detector runs over EVERY event; the phase flag then
                 // lands on the next anchorable cast (a log's instant abilities
-                // can't anchor, but they mustn't hide the downtime gap either). An
-                // imported log (deriveDowntime) treats a long silence as a phase
-                // seam; a live capture keeps the conservative 90s bar.
+                // can't anchor, but they mustn't hide the downtime gap either).
                 if (e.Time - prev > (deriveDowntime ? ImportSeamGap : 90f)) pendingPhase = true;
                 prev = e.Time;
                 if (!e.Anchorable) continue;
                 // Same ability again within ~two match windows: skip the anchor
                 // (multi-hit raidwides), or overlapping windows could snap the
-                // clock to the wrong instance. The row above still exists.
+                // clock to the wrong instance.
                 if (lastById.TryGetValue(e.Id, out var lt) && e.Time - lt < 18f) continue;
                 lastById[e.Id] = e.Time;
                 points.Add(new SyncPoint { Ability = e.Id, Time = e.Time, IsPhase = pendingPhase, Label = e.Name });
@@ -2462,12 +2390,7 @@ public partial class SheetViewWindow : Window
             anchorCount = points.Count;
         }
 
-        // Downtime windows from the log's silences. A long stretch where nothing
-        // hostile casts is the boss being untargetable - a phase transition or a
-        // cutscene - which an official fight shows as its grey/green untargetable
-        // washes. Derive those gaps into the fight's own windows (no DPS gate is
-        // inferred; TargetHp stays -1), on the same clock as the rows and anchors so
-        // resync carries them too. A full kill covers the fight, so this replaces.
+        // Downtime windows from the log's silences.
         var downtimeCount = 0;
         if (deriveDowntime && events.Count > 1)
         {
@@ -2512,11 +2435,9 @@ public partial class SheetViewWindow : Window
               + "Build again any time; anchors past this build's end are kept.");
     }
 
-    // ---- FFLogs import ---------------------------------------------------
+    // ---- logs import ---------------------------------------------------
     // Paste a report URL, pick the fight, and its enemy casts become rows +
-    // anchors via the same builder "Build from pull" uses. Results from the
-    // background tasks land in these fields as whole-list assignments, which
-    // the draw thread reads; only the Import click mutates the plan.
+    // anchors via the same builder "Build from pull" uses.
 
     private string _flUrl = "";
     private string _flStatus = "";
@@ -2560,8 +2481,8 @@ public partial class SheetViewWindow : Window
             _flForFight = _fight;
         }
 
-        // One-time credentials: the user makes an API client on the FFLogs
-        // site and pastes the two strings here. Stored locally only.
+        // One-time credentials: the user makes an API client on the logs
+        // site and pastes the two strings here.
         if (C.FflogsClientId.Length == 0 || C.FflogsClientSecret.Length == 0)
         {
             ImGui.TextDisabled("One-time setup (about two minutes)");
@@ -2587,7 +2508,7 @@ public partial class SheetViewWindow : Window
 
         // Fastest path to an official-quality skeleton (#8): type the FIGHT name
         // and pull the current top-speed kill straight from the rankings - no log
-        // link to find. Downstream is identical to a pasted report.
+        // link to find.
         ImGui.SetNextItemWidth(320f);
         ImGui.InputTextWithHint("##flfightname", "fight name (e.g. Futures Rewritten) - pulls the top kill", ref _flFightName, 128);
         ImGui.SameLine();
@@ -2638,9 +2559,7 @@ public partial class SheetViewWindow : Window
             if (_flCasts == null || _flCastsForFight != picked.Id)
             {
                 // Seamless: load the picked fight's casts automatically (once), so
-                // the flow is just paste -> pick the kill -> Import. FetchCasts sets
-                // _flBusy synchronously, so this fires exactly once per selection; a
-                // failure leaves _flStatus set and offers an explicit retry.
+                // the flow is just paste -> pick the kill -> Import.
                 if (!_flBusy && _flAutoCastsFor != picked.Id)
                 {
                     _flAutoCastsFor = picked.Id;
@@ -2685,7 +2604,7 @@ public partial class SheetViewWindow : Window
             }
         }
 
-        // Attribution (FFLogs API terms): credit the data source, no endorsement implied.
+        // Attribution (logs API terms): credit the data source, no endorsement implied.
         ImGui.Separator();
         ImGui.TextDisabled("Data from the FFLogs API. FrenMits is not affiliated with or endorsed by FFLogs.");
 
@@ -2693,9 +2612,7 @@ public partial class SheetViewWindow : Window
     }
 
     // #8: resolve a fight NAME to its current top-speed kill, then drive the
-    // exact same pick -> load -> Import flow a pasted report uses. Sets _flUrl to
-    // the resolved report code and pre-selects the ranked fight so its casts
-    // auto-load.
+    // exact same pick -> load -> Import flow a pasted report uses.
     private void SearchEncounter()
     {
         var name = _flFightName.Trim();
@@ -2710,6 +2627,7 @@ public partial class SheetViewWindow : Window
         _flCastsForFight = -1;
         _flAutoCastsFor = -1;
         _flForFight = _fight;
+        var forFight = _fight;
         var (id, secret) = (C.FflogsClientId, C.FflogsClientSecret);
         System.Threading.Tasks.Task.Run(async () =>
         {
@@ -2720,6 +2638,9 @@ public partial class SheetViewWindow : Window
                 var top = await _plugin.FFLogs.GetTopKillAsync(id, secret, enc.Id, "speed");
                 if (top == null) { _flStatus = $"Found {enc.Name}, but it has no ranked kills yet."; return; }
                 var fights = await _plugin.FFLogs.GetFightsAsync(id, secret, top.Value.Code);
+                // The user closed this and switched to another sheet mid-fetch:
+                // don't publish A's report into B's now-reset import state.
+                if (_flForFight != forFight) return;
                 var idx = fights.FindIndex(f => f.Id == top.Value.FightId);
                 // Pre-select the ranked fight BEFORE publishing the list, so the
                 // draw thread auto-loads the right fight's casts on the next frame.
@@ -2746,16 +2667,21 @@ public partial class SheetViewWindow : Window
         _flStatus = "Fetching report...";
         _flFights = null;
         _flCasts = null;
+        _flDamage = null;
+        _flMits = null;
+        _flNames = null;
         _flCastsForFight = -1;
         _flAutoCastsFor = -1;     // a fresh report should auto-load its first fight
         _flPick = 0;              // reset on the draw thread: it also clamps this
         _flForFight = _fight;
+        var forFight = _fight;
         var (id, secret) = (C.FflogsClientId, C.FflogsClientSecret);
         System.Threading.Tasks.Task.Run(async () =>
         {
             try
             {
                 var fights = await _plugin.FFLogs.GetFightsAsync(id, secret, code);
+                if (_flForFight != forFight) return; // sheet switched mid-fetch
                 _flFights = fights;
                 _flStatus = fights.Count == 0 ? "No boss fights in that report." : $"{fights.Count} fight(s); kills listed first.";
             }
@@ -2774,6 +2700,7 @@ public partial class SheetViewWindow : Window
         if (code == null) return;
         _flBusy = true;
         _flStatus = $"Loading {fight.Name}'s casts...";
+        var forFight = _fight;
         var (id, secret) = (C.FflogsClientId, C.FflogsClientSecret);
         System.Threading.Tasks.Task.Run(async () =>
         {
@@ -2788,11 +2715,12 @@ public partial class SheetViewWindow : Window
                 List<FFLogsClient.MitPress>? mits = null;
                 try { mits = await _plugin.FFLogs.GetMitCastsAsync(id, secret, code, fight); }
                 catch (Exception mex) { Service.Log.Warning(mex, "FrenMits: FFLogs mit-press fetch failed"); }
-                // The report's own ability names, so imported rows match FFLogs and
+                // The report's own ability names, so imported rows match logs and
                 // ids the local sheet can't resolve still get a real name (#2).
                 Dictionary<uint, string>? names = null;
                 try { names = await _plugin.FFLogs.GetAbilityNamesAsync(id, secret, code); }
                 catch (Exception nex) { Service.Log.Warning(nex, "FrenMits: FFLogs ability-name fetch failed"); }
+                if (_flForFight != forFight) return; // sheet switched mid-fetch
                 _flCasts = casts;
                 _flDamage = dmg;
                 _flMits = mits;
@@ -2913,8 +2841,7 @@ public partial class SheetViewWindow : Window
     }
 
     // The action text after a real replacement, or null when nothing would
-    // change. Joins are only tidied when the raw replace changed something, so
-    // an identity replace can't silently normalize (and Custom-flag) a line.
+    // change.
     private static string? WouldReplace(string action, string find, string with)
     {
         var raw = action.Replace(find, with, StringComparison.OrdinalIgnoreCase);
@@ -2931,7 +2858,7 @@ public partial class SheetViewWindow : Window
     // ---- export -------------------------------------------------------------
 
     // The whole grid as tab-separated text: pastes into Google Sheets / Excel
-    // as real columns, and reads fine in Discord. Phase notes ride at the bottom.
+    // as real columns, and reads fine in Discord.
     private void ExportText()
     {
         if (_fight == null) return;
@@ -3015,10 +2942,6 @@ public partial class SheetViewWindow : Window
 
     // Header row for the Sheet View popups: a dim title plus a right-aligned X,
     // so every menu shows a visible way out (Esc and clicking outside still work).
-    // Title + close X for a popup. `width` pins the header row's span: the X
-    // must NOT be placed from the live window width, because in an auto-resizing
-    // popup that feeds the window its own width plus padding every frame and it
-    // balloons across the whole screen.
     private static void PopupHeader(string title, float width)
     {
         ImGui.TextDisabled(title);
@@ -3044,8 +2967,7 @@ public partial class SheetViewWindow : Window
         // message, or the hovered row's note).
         var footerH = ImGui.GetTextLineHeightWithSpacing() + 10f + NotesReserve();
         // Resizable: drag a column edge, or double-click it to auto-fit the
-        // column to its content. Reorderable: drag a header to move the column.
-        // (Both are the Google-sheets gestures.)
+        // column to its content.
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit
                   | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
@@ -3120,7 +3042,7 @@ public partial class SheetViewWindow : Window
             if (pinned)
             {
                 // Thumbtack in the header's top-right corner, so pinned state is
-                // visible at a glance. Icon font: the text font has no pin glyph.
+                // visible at a glance.
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 {
                     var s = FontAwesomeIcon.Thumbtack.ToIconString();
@@ -3176,14 +3098,11 @@ public partial class SheetViewWindow : Window
         // An editor whose row was hidden this frame (filter change, rebuild race)
         // can never deactivate normally; land it now instead of leaving a zombie
         // edit that silently blocks rebuilds and commits minutes later.
-        // _focusPending exempts an edit that STARTED this frame - its editor
-        // legitimately hasn't rendered yet (it draws next frame).
         if (Editing && !_editorDrawn && !_focusPending) CommitPending();
     }
 
     // A quiet pill in the grid's top-right corner naming the phase you're
     // scrolled into, since the phase separator rows scroll away with the rows.
-    // Hidden at the very top (the separator is on screen) and while filtering.
     private void DrawStickyPhasePill()
     {
         if (_phaseFilter.Length > 0 || _filter.Length > 0) return;
@@ -3279,8 +3198,7 @@ public partial class SheetViewWindow : Window
             if (DelayedHover())
                 ImGui.SetTooltip("Right-click to add or edit this mechanic's note.");
         }
-        // Right-click the mechanic name = note editor. The footer strip shows the
-        // note for whatever row the mouse is on, zero clicks to read.
+        // Right-click the mechanic name = note editor.
         if (ImGui.BeginPopupContextItem("##notectx"))
         {
             if (ImGui.IsWindowAppearing())
@@ -3379,8 +3297,7 @@ public partial class SheetViewWindow : Window
         }
     }
 
-    // Remove a job-extra row's lines everywhere. They're custom lines, so no
-    // tombstones are needed: the sheet's top-up never re-adds custom lines.
+    // Remove a job-extra row's lines everywhere.
     private void DeleteExtraRow(Row row)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
@@ -3432,19 +3349,17 @@ public partial class SheetViewWindow : Window
         var cell = row.Cells[i];
         var first = cell.Count == 0 ? "" : cell[0].Action;
         // Job extras render as normal text (no orange, no *): they're not edits.
-        // On a custom sheet EVERY line is technically Custom, so the orange
-        // "your edit" treatment would cover the whole grid; skip it there.
         var jobOnly = cell.Count > 0 && cell.All(l => l.Custom && l.Jobs.Count > 0);
         var custom = !_isCustom && !jobOnly && cell.Any(l => l.Custom);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
         // Every line here is another job's press (a "(WAR/PLD)" style tag, or a
         // job-tagged extra): dim it, since it will never fire on your current
-        // job. A cell that is partly yours stays normal.
+        // job.
         var foreign = !string.IsNullOrEmpty(_gridJob) && cell.Count > 0
             && cell.All(l => !l.AppliesTo(_gridJob));
 
         // Cooldown conflicts tint the cell red; level-sync problems amber
-        // (red wins when both apply). Details go in the tooltip.
+        // (red wins when both apply).
         string? warn = null;
         string? lvl = null;
         foreach (var l in cell)
@@ -3607,10 +3522,8 @@ public partial class SheetViewWindow : Window
     // the toolbar's ID scope on the next pass.
     private bool _openResetAll;
 
-    // Other windows edit per-line settings in place (offsets from the fight page
-    // or the Mit Tuner, enable toggles, paste-over). The conflict + press-window
-    // math bakes cue times in at Rebuild, so those edits must poke the grid or
-    // the red cooldown cells go stale.
+    // The conflict + press-window math bakes cue times in at Rebuild, so edits
+    // from other windows must poke the grid or the red cooldown cells go stale.
     public void MarkPlanDirty() => _dirty = true;
 
     // Full reset across every column (same as the fight page's Reset all columns):
@@ -3688,8 +3601,7 @@ public partial class SheetViewWindow : Window
         }
     }
 
-    // Is this mit's timer free at `t`, given the column's existing plan? Counts
-    // same-family uses inside one recast on either side against the charges.
+    // Is this mit's timer free at `t`, given the column's existing plan?
     private bool MitFreeAt(int i, Cooldowns.PlanMit pm, float t)
     {
         var nearby = 0;
@@ -3714,9 +3626,7 @@ public partial class SheetViewWindow : Window
     private string _copyColSlot = "";
 
     // Overwrite one column with another slot's plan, like pasting a column in a
-    // spreadsheet. Pasted lines are flagged Custom so sheet re-bakes keep them,
-    // and target-baked calls the new plan doesn't carry are tombstoned so the
-    // zone-in top-up can't resurrect them.
+    // spreadsheet.
     private void PasteColumn(int dst)
     {
         if (_fight == null || AbortIfStale()) return;
@@ -3830,8 +3740,7 @@ public partial class SheetViewWindow : Window
 
     // One quiet line: a flash message when something just happened, otherwise
     // the hovered row's note (Ikuya-footer style, sticky on the last hovered
-    // row so it stays readable while the mouse travels down here). Empty rest
-    // of the time; the how-to lives in the toolbar's (?) tooltip.
+    // row so it stays readable while the mouse travels down here).
     private void DrawFooter()
     {
         ImGui.Spacing();
