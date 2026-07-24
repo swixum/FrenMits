@@ -16,6 +16,24 @@ public class OverlayWindow : Window
     private readonly List<MitLine> _activeLines = new();
     private int _lastGen = -1;
 
+    // Per-frame scratch: the candidate lines for this job and the call group being
+    // drawn. Cleared and refilled each frame instead of reallocated.
+    private readonly List<MitLine> _lines = new();
+    private readonly List<MitLine> _group = new();
+
+    // Stable, like the LINQ OrderBy it replaces, so calls tied on the cue clock
+    // keep the order they were baked in. The group is never more than a few calls.
+    private static void StableSortByCueTime(List<MitLine> lines)
+    {
+        for (var i = 1; i < lines.Count; i++)
+        {
+            var l = lines[i];
+            var j = i - 1;
+            while (j >= 0 && lines[j].CueTime > l.CueTime) { lines[j + 1] = lines[j]; j--; }
+            lines[j + 1] = l;
+        }
+    }
+
     public OverlayWindow(Plugin plugin)
         : base("FrenMits##overlay")
     {
@@ -184,7 +202,12 @@ public class OverlayWindow : Window
         var job = _plugin.ActiveJobAbbreviation();
         var elapsed = _plugin.CueClockFor(fight); // call schedule, not sheet position
 
-        var lines = fight.OrderedLines.Where(l => l.Enabled && l.AppliesTo(job)).ToList();
+        // Reused buffer, not a fresh list per frame: this walks every line of the
+        // fight and the overlay redraws continuously through a pull.
+        var lines = _lines;
+        lines.Clear();
+        foreach (var l in fight.OrderedLines)
+            if (l.Enabled && l.AppliesTo(job)) lines.Add(l);
 
         // Reset the held call when the run restarts (pull / wipe / manual sync) so a
         // stale line from the previous run can't carry over.
@@ -203,23 +226,27 @@ public class OverlayWindow : Window
         }
 
         const float tieWindow = 0.75f; // lines within this of the soonest stack together
-        List<MitLine> group;
+        var group = _group;
+        group.Clear();
         if (bestRemaining < float.MaxValue)
         {
-            group = lines.Where(l =>
+            foreach (var l in lines)
             {
                 var rem = l.CueTime - elapsed;
-                var lead = LeadFor(l);
-                return rem >= 0f && rem <= lead && rem <= bestRemaining + tieWindow;
-            }).OrderBy(l => l.CueTime).ToList();
+                if (rem >= 0f && rem <= LeadFor(l) && rem <= bestRemaining + tieWindow) group.Add(l);
+            }
+            StableSortByCueTime(group);
             // Keep a just-passed call's "NOW" up for its full hold, stacked with
             // the next call, instead of cutting it short the moment another call
             // enters its lead window (calls 1-3s apart are routine).
-            var held = _activeLines
-                .Where(l => !group.Contains(l))
-                .Where(l => { var rem = l.CueTime - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
-                .ToList();
-            if (held.Count > 0) group = held.Concat(group).OrderBy(l => l.CueTime).ToList();
+            var heldCount = 0;
+            foreach (var l in _activeLines)
+            {
+                var rem = l.CueTime - elapsed;
+                if (rem <= 0f && rem >= -C.HoldSeconds && !group.Contains(l))
+                { group.Insert(heldCount++, l); }
+            }
+            if (heldCount > 0) StableSortByCueTime(group);
             _activeLines.Clear();
             _activeLines.AddRange(group); // remember what we're actively counting down
         }
@@ -228,9 +255,12 @@ public class OverlayWindow : Window
             // Nothing upcoming: briefly hold the calls we actually counted down so
             // "NOW" lingers, but never resurrect a line the clock snapped past (it
             // was never in the active set).
-            group = _activeLines
-                .Where(l => { var rem = l.CueTime - elapsed; return rem <= 0f && rem >= -C.HoldSeconds; })
-                .OrderBy(l => l.CueTime).ToList();
+            foreach (var l in _activeLines)
+            {
+                var rem = l.CueTime - elapsed;
+                if (rem <= 0f && rem >= -C.HoldSeconds) group.Add(l);
+            }
+            StableSortByCueTime(group);
             if (group.Count == 0) _activeLines.Clear();
         }
 

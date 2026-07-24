@@ -71,8 +71,40 @@ public class FightProfile
 
     // Derived; ignored by the serializer so share codes and plan snapshots
     // don't carry every line twice.
+    //
+    // Cached, because the overlay, the board, the mit tuner and the server-bar
+    // entry each ask for this EVERY frame and a bare OrderBy sorted a fresh copy
+    // for every ask. Only three things can change the order - the list being
+    // swapped wholesale (SwapCustomSlot), a line added/removed, or a line
+    // retimed - so the fingerprint below covers all of them exactly (bit-exact
+    // on Time, so even a hairline retime in the editor invalidates).
     [Newtonsoft.Json.JsonIgnore]
-    public IEnumerable<MitLine> OrderedLines => Lines.OrderBy(l => l.Time);
+    public IReadOnlyList<MitLine> OrderedLines
+    {
+        get
+        {
+            var lines = Lines;
+            var stamp = lines.Count;
+            unchecked
+            {
+                foreach (var l in lines)
+                    stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.Time);
+            }
+            if (_orderedSrc != lines || _orderedStamp != stamp)
+            {
+                // OrderBy, not List.Sort: it's a STABLE sort, so lines sharing a
+                // time keep the order they were baked in, exactly as before.
+                _ordered = lines.OrderBy(l => l.Time).ToList();
+                _orderedSrc = lines;
+                _orderedStamp = stamp;
+            }
+            return _ordered;
+        }
+    }
+
+    private List<MitLine>? _orderedSrc;
+    private List<MitLine> _ordered = new();
+    private int _orderedStamp;
 }
 
 // A deleted sheet call, remembered so no re-bake brings it back.
@@ -183,10 +215,20 @@ public class MitLine
     public uint IconId { get; set; }           // pinned game icon id; 0 = infer from action
 
     public bool AppliesTo(string? jobAbbr)
-        => (Jobs.Count == 0 || (jobAbbr != null && Jobs.Contains(jobAbbr, StringComparer.OrdinalIgnoreCase)))
+        => (Jobs.Count == 0 || (jobAbbr != null && JobListHas(jobAbbr)))
            // Job gates written INSIDE the action text ("Party Mit (WAR/PLD)")
            // also count: on a DRK that call is someone else's press.
            && (string.IsNullOrEmpty(jobAbbr) || string.IsNullOrWhiteSpace(Action) || ActionFor(jobAbbr).Length > 0);
+
+    // Plain loop instead of LINQ Contains: this runs for every line of the fight,
+    // every frame, in four places (overlay, board, tuner, cues), and the LINQ
+    // overload boxes the list's enumerator on each ask.
+    private bool JobListHas(string jobAbbr)
+    {
+        for (var i = 0; i < Jobs.Count; i++)
+            if (string.Equals(Jobs[i], jobAbbr, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
 
     // The parts of this call that apply to a job, honoring job qualifiers in the
     // text: "Reprisal + Party Mit (GNB/DRK)" is "Reprisal" for a WAR, unchanged
@@ -194,6 +236,11 @@ public class MitLine
     public string ActionFor(string? jobAbbr)
     {
         if (string.IsNullOrWhiteSpace(Action) || string.IsNullOrEmpty(jobAbbr)) return Action;
+        // Fast path for the overwhelming majority of calls: a gate is always
+        // written as a parenthetical, so with no '(' anywhere nothing can be
+        // dropped and the split below would just rebuild the same string. This
+        // runs per line per frame, so the array it saves matters.
+        if (Action.IndexOf('(') < 0) return Action;
         List<string>? kept = null;
         var dropped = false;
         foreach (var raw in Action.Split('+'))
@@ -237,7 +284,7 @@ public class MitLine
     // meaning the call belongs to specific jobs we may not be able to identify.
     public bool HasJobGate()
     {
-        if (string.IsNullOrWhiteSpace(Action)) return false;
+        if (string.IsNullOrWhiteSpace(Action) || Action.IndexOf('(') < 0) return false;
         foreach (var raw in Action.Split('+'))
         {
             var seg = raw.Trim();

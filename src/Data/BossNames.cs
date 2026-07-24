@@ -30,8 +30,10 @@ public static class BossNames
         catch (Exception ex)
         {
             // Data not ready yet: return without caching so a later call retries,
-            // instead of pinning this name to 0 for the session.
-            Service.Log.Warning(ex, "FrenMits: BNpcName resolve failed");
+            // instead of pinning this name to 0 for the session. Null-conditional
+            // because this path is reached precisely when services may not be up,
+            // and the log call throwing here would defeat the whole catch.
+            Service.Log?.Warning(ex, "FrenMits: BNpcName resolve failed");
             return 0;
         }
 

@@ -19,7 +19,10 @@ public readonly record struct JobInfo(uint RowId, string Abbreviation, string Na
 // shape changing between game patches.
 public static class Jobs
 {
-    public static readonly IReadOnlyList<JobInfo> All = new List<JobInfo>
+    // Backed by an array so the lookups below enumerate it directly: through the
+    // IReadOnlyList interface every ask boxed an enumerator, and the overlay
+    // resolves the active job several times a frame.
+    private static readonly JobInfo[] Table =
     {
         new(19, "PLD", "Paladin", JobRole.Tank),
         new(21, "WAR", "Warrior", JobRole.Tank),
@@ -49,11 +52,13 @@ public static class Jobs
         new(36, "BLU", "Blue Mage", JobRole.Caster),
     };
 
-    public static readonly string[] Abbreviations = All.Select(j => j.Abbreviation).ToArray();
+    public static readonly IReadOnlyList<JobInfo> All = Table;
+
+    public static readonly string[] Abbreviations = Table.Select(j => j.Abbreviation).ToArray();
 
     public static JobInfo? ByRowId(uint rowId)
     {
-        foreach (var j in All)
+        foreach (var j in Table)
             if (j.RowId == rowId) return j;
         return null;
     }
@@ -61,11 +66,11 @@ public static class Jobs
     public static JobInfo? ByAbbreviation(string? abbr)
     {
         if (string.IsNullOrWhiteSpace(abbr)) return null;
-        foreach (var j in All)
+        foreach (var j in Table)
             if (string.Equals(j.Abbreviation, abbr, StringComparison.OrdinalIgnoreCase)) return j;
         return null;
     }
 
     public static IEnumerable<string> AbbreviationsForRole(JobRole role)
-        => All.Where(j => j.Role == role).Select(j => j.Abbreviation);
+        => Table.Where(j => j.Role == role).Select(j => j.Abbreviation);
 }

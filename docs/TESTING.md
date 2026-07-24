@@ -41,7 +41,33 @@ the plugin off/on in `/xlplugins`, or use the reload button on the dev-plugins l
   log casts/boss appearances, then **+phase / +mech / +boss anchor** to build P4/P5
   (or any) anchors.
 
-## 4. Iterate
+## 4. Automated tests
+
+The logic that doesn't need a game — sheet bakes, slot naming, share codes, the
+cooldown solver, the board's row builder and the config migration chain — is
+covered offline:
+
+```powershell
+dotnet test tests
+```
+
+Runs in about a second, with no game, no Dalamud services and no ImGui. CI runs
+it on every push, before the build that deploys the plugin.
+
+Worth knowing:
+
+- **The migration tests are the point.** They replay the whole v1..v23 chain
+  against configs shaped the way each era's really were, built from `DmuLegacy`
+  (the frozen previous bake the repo keeps for exactly this). A bad migration is
+  unrecoverable once a user has run it, so it's the one path worth proving
+  offline.
+- **The built-in sheet tests walk every shipped fight and every column**, so a
+  malformed row in a new savage fails here instead of mid-pull. Adding a fight
+  picks that coverage up for free.
+- Anything that reads the game's Excel sheets (icons, cooldown recasts, boss name
+  ids) can't be checked here and still needs a replay or a real pull.
+
+## 5. Iterate
 
 Edit code → `dotnet build` → Dalamud reloads → re-test. The config persists in
 `%AppData%\XIVLauncher\pluginConfigs\FrenMits.json`; delete it to start fresh.

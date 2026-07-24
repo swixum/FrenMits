@@ -13,8 +13,14 @@ public static class TimingSolver
     // Time the fight's active-slot lines against the given mechanic hit times,
     // mutating line.OffsetSeconds / CoverUntil in place and returning how many
     // lines actually changed.
-    public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes, float lead = 5f)
+    //
+    // `mitsFor` resolves an action's tracked mits; it defaults to the live game
+    // sheets and is only passed explicitly by the tests, which need a fixed mit
+    // table to assert the solver's invariants without a game running.
+    public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes, float lead = 5f,
+        Func<string, IEnumerable<Cooldowns.PlanMit>>? mitsFor = null)
     {
+        mitsFor ??= Cooldowns.PlanMits;
         if (fight == null || hitTimes == null) return 0;
         var hits = hitTimes.OrderBy(t => t).ToArray();
         var n = hits.Length;
@@ -41,7 +47,7 @@ public static class TimingSolver
         var changed = 0;
         foreach (var line in lines)
         {
-            var mits = Cooldowns.PlanMits(line.Action).ToList();
+            var mits = mitsFor(line.Action).ToList();
             if (mits.Count == 0) continue;
             var dur = mits.Min(m => m.Duration > 0f ? m.Duration : 15f);   // shortest buff bounds the reach
             var ready = mits.Max(m => readyAt.GetValueOrDefault(m.Name, -9999f)); // all its abilities must be up

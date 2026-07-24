@@ -45,6 +45,12 @@ jobs:
           if (-not $ok) { throw "Dalamud download failed after 5 attempts." }
           Expand-Archive -Path dalamud.zip -DestinationPath $dev -Force
 
+      # Offline tests for the pure logic (sheet bakes, slot naming, share codes,
+      # the solver, the config migration chain). No game needed; a red run here
+      # blocks the deploy below.
+      - name: Test
+        run: dotnet test tests/FrenMits.Tests.csproj -c Release --nologo
+
       - name: Build
         run: dotnet build src/FrenMits.csproj -c Release --nologo
 

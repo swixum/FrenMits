@@ -9,9 +9,9 @@ namespace FrenMits;
 // off. Keep new migrations at the bottom.
 public static class ConfigMigrations
 {
-    public static void Run(Plugin plugin)
+    public static void Run(IMigrationHost host)
     {
-        var config = plugin.Config;
+        var config = host.Config;
 
         // v2: split the upcoming list into its own timeline window and switch the
         // main call to the clean "Raidwide (3.3)" countdown shown 3s ahead.
@@ -48,7 +48,7 @@ public static class ConfigMigrations
         // fights once to clear stale lines and start fresh on the new plan.
         if (config.Version < 5)
         {
-            plugin.ResetAllBuiltins();
+            host.ResetAllBuiltins();
             config.Version = 5;
             config.Save();
         }
@@ -151,7 +151,7 @@ public static class ConfigMigrations
         // moves, P4 healer reshuffle, P5 Forsaken hits renamed and reassigned).
         if (config.Version < 16)
         {
-            SnapshotDmu(plugin, "before the sheet v5.0 update");
+            SnapshotDmu(host, "before the sheet v5.0 update");
             DmuRebake.SmartRebake(config);
             config.Version = 16;
             config.Save();
@@ -160,7 +160,7 @@ public static class ConfigMigrations
         // v17: restore the WHM Asylum calls the v16 bake dropped.
         if (config.Version < 17)
         {
-            SnapshotDmu(plugin, "before restoring the WHM Asylum calls");
+            SnapshotDmu(host, "before restoring the WHM Asylum calls");
             DmuRebake.SmartRebake(config);
             config.Version = 17;
             config.Save();
@@ -170,7 +170,7 @@ public static class ConfigMigrations
         // already added to the sheet v5.0 data, keeping edited lines.
         if (config.Version < 18)
         {
-            SnapshotDmu(plugin, "before the v5.0 tank and job-mitigation update");
+            SnapshotDmu(host, "before the v5.0 tank and job-mitigation update");
             DmuRebake.UpgradeTankAndExtraLines(config);
             config.Version = 18;
             config.Save();
@@ -180,7 +180,7 @@ public static class ConfigMigrations
         // corrected as "Ultimate Embrace".
         if (config.Version < 19)
         {
-            SnapshotDmu(plugin, "before the Ultimate Embrace typo fix");
+            SnapshotDmu(host, "before the Ultimate Embrace typo fix");
             DmuRebake.SmartRebake(config);
             config.Version = 19;
             config.Save();
@@ -261,10 +261,10 @@ public static class ConfigMigrations
         }
     }
 
-    private static void SnapshotDmu(Plugin plugin, string reason)
+    private static void SnapshotDmu(IMigrationHost host, string reason)
     {
-        foreach (var f in plugin.Config.Fights)
+        foreach (var f in host.Config.Fights)
             if (f.TerritoryId == Builtin.DmuTerritory)
-                plugin.Snapshots.Save(f, reason);
+                host.SnapshotFight(f, reason);
     }
 }

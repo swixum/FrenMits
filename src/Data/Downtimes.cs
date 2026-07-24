@@ -33,15 +33,55 @@ public static class Downtimes
         _ => None,
     };
 
+    // Effective() results per territory, kept because the board asks for them once
+    // per row per frame (plus the downtime tick) and each ask used to rebuild the
+    // whole list. Invalidated by a fingerprint of the learned refinements, which
+    // only change when a pull finishes measuring one.
+    private static readonly Dictionary<uint, (int Stamp, List<DowntimeWindow> Windows)> _effective = new();
+
+    // Territory -> its config key, so the per-frame lookups below don't allocate a
+    // fresh string on every ask just to index the learned table.
+    private static readonly Dictionary<uint, string> _keys = new();
+
+    private static string KeyFor(uint territory)
+    {
+        if (_keys.TryGetValue(territory, out var k)) return k;
+        return _keys[territory] = territory.ToString();
+    }
+
+    private static int LearnedStamp(List<DowntimeWindow>? seen)
+    {
+        if (seen == null) return 0;
+        var stamp = seen.Count;
+        unchecked
+        {
+            foreach (var w in seen)
+                stamp = stamp * 31 + BitConverter.SingleToInt32Bits(w.Start) * 7
+                        + BitConverter.SingleToInt32Bits(w.Duration);
+        }
+        return stamp;
+    }
+
     // The hardcoded windows with any learnable ones (Learn=true, where cactbot
     // couldn't pin the time) refined by a measured Start/Duration recorded from a
     // pull.
     public static List<DowntimeWindow> Effective(uint territory, Dictionary<string, List<DowntimeWindow>>? learned)
     {
         var baseWins = For(territory);
+        List<DowntimeWindow>? learnedHere = null;
+        learned?.TryGetValue(KeyFor(territory), out learnedHere);
+        var stamp = LearnedStamp(learnedHere);
+        if (_effective.TryGetValue(territory, out var cached) && cached.Stamp == stamp)
+            return cached.Windows;
+        var built = BuildEffective(baseWins, learnedHere);
+        _effective[territory] = (stamp, built);
+        return built;
+    }
+
+    private static List<DowntimeWindow> BuildEffective(
+        IReadOnlyList<DowntimeWindow> baseWins, List<DowntimeWindow>? seen)
+    {
         var result = new List<DowntimeWindow>(baseWins.Count);
-        List<DowntimeWindow>? seen = null;
-        learned?.TryGetValue(territory.ToString(), out seen);
         foreach (var w in baseWins)
         {
             var refined = w;

@@ -19,15 +19,21 @@ public static class PlanCodes
         return "FRENMITS2:" + Convert.ToBase64String(ms.ToArray());
     }
 
-    // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
-    // existing profile in place (the sender's active slot only, notes merged);
-    // anything else is added as a new fight.
-    public static (FightProfile? Fight, bool IsNew, string Message) Import(Plugin plugin, string? clipboardText)
+    // True when the text even looks like a plan code (either generation).
+    public static bool LooksLikeCode(string? text)
     {
-        var config = plugin.Config;
+        var t = (text ?? "").Trim();
+        return t.StartsWith("FRENMITS2:") || t.StartsWith("FRENMITS1:");
+    }
+
+    // The pure half of Import: a plan code back into the fight it carries, or null
+    // when the text isn't a code or won't decode. Split out from Import so a code
+    // can be round-tripped in a test without a plugin or a config.
+    public static FightProfile? Decode(string? codeText)
+    {
         try
         {
-            var text = (clipboardText ?? "").Trim();
+            var text = (codeText ?? "").Trim();
             string json;
             if (text.StartsWith("FRENMITS2:"))
             {
@@ -42,12 +48,25 @@ public static class PlanCodes
             {
                 json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(text["FRENMITS1:".Length..]));
             }
-            else
-            {
-                return (null, false, "No FrenMits plan code on the clipboard.");
-            }
+            else return null;
 
-            var fight = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
+        }
+        catch { return null; }
+    }
+
+    // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
+    // existing profile in place (the sender's active slot only, notes merged);
+    // anything else is added as a new fight.
+    public static (FightProfile? Fight, bool IsNew, string Message) Import(Plugin plugin, string? clipboardText)
+    {
+        var config = plugin.Config;
+        try
+        {
+            if (!LooksLikeCode(clipboardText))
+                return (null, false, "No FrenMits plan code on the clipboard.");
+
+            var fight = Decode(clipboardText);
             if (fight == null) return (null, false, "That plan code couldn't be read.");
             // Codes from older versions carry MT/OT/D1-style names; standardize
             // before matching so slots line up with the receiver's (normalized) data.

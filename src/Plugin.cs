@@ -9,7 +9,7 @@ using FrenMits.Windows;
 
 namespace FrenMits;
 
-public sealed class Plugin : IDalamudPlugin
+public sealed class Plugin : IDalamudPlugin, IMigrationHost
 {
     private const string Command = "/frenmits";
     private const string CommandAlias = "/fm";
@@ -263,6 +263,9 @@ public sealed class Plugin : IDalamudPlugin
         return n;
     }
 
+    // IMigrationHost: the migrations only ever snapshot through here.
+    public void SnapshotFight(FightProfile fight, string reason) => Snapshots.Save(fight, reason);
+
     // Apply a canonical role to every fight that has a sheet (the sidebar's
     // YOUR ROLE and the entry popup both route here).
     public void SetRoleForAll(string role)
@@ -509,11 +512,16 @@ public sealed class Plugin : IDalamudPlugin
 
     private void UpdateDowntime(float gameDt)
     {
+        // The boss sweep walks the whole object table, so it's gated on a running
+        // clock: with the timer stopped it used to run every frame everywhere,
+        // including the open world, and nothing reads its result then (both the
+        // HP gate and the lull rows below need a live pull).
         IBattleNpc? boss = null;
-        foreach (var o in Service.ObjectTable)
-            if (o is IBattleNpc n && (byte)n.BattleNpcKind == 5 && n.MaxHp > 1_000_000
-                && (boss is null || n.MaxHp > boss.MaxHp))
-                boss = n;
+        if (Timer.Running)
+            foreach (var o in Service.ObjectTable)
+                if (o is IBattleNpc n && (byte)n.BattleNpcKind == 5 && n.MaxHp > 1_000_000
+                    && (boss is null || n.MaxHp > boss.MaxHp))
+                    boss = n;
         BossHpFraction = boss is { MaxHp: > 0 } ? (float)boss.CurrentHp / boss.MaxHp : -1f;
 
         var down = false;
@@ -808,20 +816,27 @@ public sealed class Plugin : IDalamudPlugin
 
         var job = ActiveJobAbbreviation();
         var elapsed = CueClockFor(fight);
-        var next = fight.OrderedLines
-            .Where(l => l.Enabled && l.AppliesTo(job) && l.CueTime - elapsed > 0)
-            .Select(l => (l, remaining: l.CueTime - elapsed))
-            .OrderBy(x => x.remaining)
-            .FirstOrDefault();
+        // Single pass for the soonest call: this runs every tick, and the LINQ
+        // chain it replaces sorted the entire plan just to read the front of it.
+        MitLine? next = null;
+        var nextRemaining = 0f;
+        // Time order (now a cached sort), so two calls tied on the clock pick the
+        // same one the old OrderBy did.
+        foreach (var l in fight.OrderedLines)
+        {
+            var remaining = l.CueTime - elapsed;
+            if (remaining <= 0 || !l.Enabled || !l.AppliesTo(job)) continue;
+            if (next == null || remaining < nextRemaining) { next = l; nextRemaining = remaining; }
+        }
 
-        if (next.l == null)
+        if (next == null)
         {
             _dtr.Shown = false;
             return;
         }
 
-        var label = string.IsNullOrWhiteSpace(next.l.Action) ? next.l.Mechanic : next.l.ActionFor(job);
-        _dtr.Text = $" {label} {(int)MathF.Ceiling(next.remaining)}s";
+        var label = string.IsNullOrWhiteSpace(next.Action) ? next.Mechanic : next.ActionFor(job);
+        _dtr.Text = $" {label} {(int)MathF.Ceiling(nextRemaining)}s";
         _dtr.Shown = true;
     }
 

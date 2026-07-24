@@ -214,6 +214,63 @@ public class TimelineWindow : Window
     private static readonly List<MitLine> NoLines = new();
     private static readonly List<SheetTimeline.MechRow> NoRows = new();
 
+    // ---- per-frame scratch ------------------------------------------------
+    // The board is the one part of FrenMits that redraws on every frame of a
+    // pull, so everything it needs per frame lives in buffers that are cleared
+    // and refilled rather than reallocated.
+    private readonly List<SheetTimeline.MechRow> _windowRows = new();
+    private readonly List<SheetTimeline.MechRow> _visibleRows = new();
+    private readonly List<List<MitLine>> _mineForVisible = new();
+    private readonly Dictionary<SheetTimeline.MechRow, List<MitLine>> _mineByRow = new();
+    private readonly List<List<MitLine>> _linePool = new();
+    private int _linePoolUsed;
+
+    // A press list for one row, taken from the pool so a fight's rows don't
+    // allocate a fresh list each frame.
+    private List<MitLine> RentLineList()
+    {
+        if (_linePoolUsed == _linePool.Count) _linePool.Add(new List<MitLine>());
+        var list = _linePool[_linePoolUsed++];
+        list.Clear();
+        return list;
+    }
+
+    // Rows inside the board's window, appended to the scratch buffer.
+    private void AddWindowRows(List<SheetTimeline.MechRow> src, float elapsed, float look)
+    {
+        foreach (var r in src)
+        {
+            var rem = r.Time - elapsed;
+            if (rem >= -2f && rem <= look) _windowRows.Add(r);
+        }
+    }
+
+    // Insertion sort, because it is STABLE like the LINQ OrderBy it replaces (rows
+    // sharing a time must keep their source order) and the board only ever holds a
+    // few rows at a time.
+    private static void StableSortByTime(List<SheetTimeline.MechRow> rows)
+    {
+        for (var i = 1; i < rows.Count; i++)
+        {
+            var r = rows[i];
+            var j = i - 1;
+            while (j >= 0 && rows[j].Time > r.Time) { rows[j + 1] = rows[j]; j--; }
+            rows[j + 1] = r;
+        }
+    }
+
+    // Both derived row sets further down are pure functions of the fight's windows,
+    // but the board asked for them (and rebuilt every row object) on every frame,
+    // so they're cached and only rebuilt when the underlying windows actually move.
+    private IReadOnlyList<DowntimeWindow>? _downWins;
+    private List<DowntimeWindow>? _downBase;
+    private string _downFightId = "";
+    private List<DowntimeWindow>? _downCustomSrc;
+    private int _downCustomCount = -1;
+    private List<SheetTimeline.MechRow>? _downRows;
+    private uint _posTerritory = uint.MaxValue;
+    private List<SheetTimeline.MechRow>? _posRows;
+
     // Credit: the idea of surfacing boss untargetable/targetable windows on a fight
     // timeline, and the timing data these windows are built from, come from cactbot
     // (github.com/OverlayPlugin/cactbot, Apache License 2.0, Copyright the cactbot
@@ -226,28 +283,43 @@ public class TimelineWindow : Window
     // untargetable/targetable washes work for both without branching everywhere.
     private IReadOnlyList<DowntimeWindow> EffectiveDowntimes(FightProfile fight)
     {
+        // Downtimes.Effective hands back a cached list, so its identity is a valid
+        // "did the built-in windows change" signal on its own; the fight id plus the
+        // custom list's identity and length cover the half the fight owns (a rebuild
+        // from a log swaps the list, an edit changes its length).
         var baseWins = Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes);
-        if (fight.CustomDowntimes.Count == 0) return baseWins;
-        if (baseWins.Count == 0) return fight.CustomDowntimes;
+        if (_downWins != null && ReferenceEquals(_downBase, baseWins) && _downFightId == fight.Id
+            && ReferenceEquals(_downCustomSrc, fight.CustomDowntimes)
+            && _downCustomCount == fight.CustomDowntimes.Count)
+            return _downWins;
+
+        _downBase = baseWins;
+        _downFightId = fight.Id;
+        _downCustomSrc = fight.CustomDowntimes;
+        _downCustomCount = fight.CustomDowntimes.Count;
+        _downRows = null; // the row set below is derived from this
+        if (fight.CustomDowntimes.Count == 0) return _downWins = baseWins;
+        if (baseWins.Count == 0) return _downWins = fight.CustomDowntimes;
         var merged = new List<DowntimeWindow>(baseWins.Count + fight.CustomDowntimes.Count);
         merged.AddRange(baseWins);
         merged.AddRange(fight.CustomDowntimes);
-        return merged;
+        return _downWins = merged;
     }
 
     // Learned downtimes as inline board rows: an Untargetable entry when the boss
     // goes away and a Targetable one when it returns, each counting down.
     private List<SheetTimeline.MechRow> DowntimeRows(FightProfile fight)
     {
-        var list = EffectiveDowntimes(fight);
+        var list = EffectiveDowntimes(fight); // clears _downRows if the windows moved
         if (list.Count == 0) return NoRows;
+        if (_downRows != null) return _downRows;
         var rows = new List<SheetTimeline.MechRow>(list.Count * 2);
         foreach (var w in list)
         {
             rows.Add(new SheetTimeline.MechRow { Time = w.Start, Mechanic = "Untargetable" });
             rows.Add(new SheetTimeline.MechRow { Time = w.Start + w.Duration, Mechanic = "Targetable" });
         }
-        return rows;
+        return _downRows = rows;
     }
 
     // Scheduled boss-reposition rows: a cyan "Boss: Middle" (etc.) counting down to
@@ -255,12 +327,14 @@ public class TimelineWindow : Window
     private List<SheetTimeline.MechRow> PositionRows(FightProfile fight)
     {
         if (!C.UpcomingBossPosition) return NoRows;
+        if (_posRows != null && _posTerritory == fight.TerritoryId) return _posRows;
         var spots = Positions.For(fight.TerritoryId);
-        if (spots.Count == 0) return NoRows;
+        _posTerritory = fight.TerritoryId;
+        if (spots.Count == 0) return _posRows = NoRows;
         var rows = new List<SheetTimeline.MechRow>(spots.Count);
         foreach (var s in spots)
             rows.Add(new SheetTimeline.MechRow { Time = s.Time, Mechanic = $"Boss: {s.Where}", Position = s.Where });
-        return rows;
+        return _posRows = rows;
     }
 
     // The hardcoded gate HP for the Untargetable at rowStart (-1 if that lull has
@@ -291,10 +365,14 @@ public class TimelineWindow : Window
         var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
         var width = widthOverride ?? MathF.Max(180f, C.UpcomingBoardWidth);
         // A just-hit row lingers 2s at "now" so it doesn't vanish mid-press.
-        var windowRows = (rowsOverride ?? BoardRows(fight)).Concat(DowntimeRows(fight)).Concat(PositionRows(fight))
-            .Where(r => r.Time - elapsed >= -2f && r.Time - elapsed <= look)
-            .OrderBy(r => r.Time)
-            .ToList();
+        // Gathered into reused buffers rather than a LINQ chain: this is the one
+        // thing on screen that redraws every single frame of a pull.
+        _windowRows.Clear();
+        AddWindowRows(rowsOverride ?? BoardRows(fight), elapsed, look);
+        AddWindowRows(DowntimeRows(fight), elapsed, look);
+        AddWindowRows(PositionRows(fight), elapsed, look);
+        StableSortByTime(_windowRows);
+        var windowRows = _windowRows;
 
         if (HeaderVisible) DrawBoardHeader(fight, elapsed, width);
 
@@ -305,33 +383,44 @@ public class TimelineWindow : Window
 
         // Attach each of your presses to its single NEAREST row, so a mechanic
         // repeating a few seconds apart can't show one press under both bars.
-        var mineByRow = new Dictionary<SheetTimeline.MechRow, List<MitLine>>();
-        foreach (var l in fight.TimelineOnly ? Enumerable.Empty<MitLine>() : fight.OrderedLines)
-        {
-            if (!l.Enabled || !l.AppliesTo(job)) continue;
-            if (l.Time < elapsed - 6f || l.Time > elapsed + look + 4f) continue;
-            SheetTimeline.MechRow? best = null;
-            var bestGap = 2.5f;
-            foreach (var r in windowRows)
+        _mineByRow.Clear();
+        _linePoolUsed = 0;
+        if (!fight.TimelineOnly)
+            foreach (var l in fight.OrderedLines)
             {
-                var gap = MathF.Abs(l.Time - r.Time);
-                if (gap < bestGap && SheetTimeline.MechEquals(l.Mechanic, r.Mechanic)) { best = r; bestGap = gap; }
+                if (!l.Enabled || !l.AppliesTo(job)) continue;
+                if (l.Time < elapsed - 6f || l.Time > elapsed + look + 4f) continue;
+                SheetTimeline.MechRow? best = null;
+                var bestGap = 2.5f;
+                foreach (var r in windowRows)
+                {
+                    var gap = MathF.Abs(l.Time - r.Time);
+                    if (gap < bestGap && SheetTimeline.MechEquals(l.Mechanic, r.Mechanic)) { best = r; bestGap = gap; }
+                }
+                if (best == null) continue;
+                if (!_mineByRow.TryGetValue(best, out var list)) _mineByRow[best] = list = RentLineList();
+                list.Add(l);
             }
-            if (best == null) continue;
-            if (!mineByRow.TryGetValue(best, out var list)) mineByRow[best] = list = new List<MitLine>();
-            list.Add(l);
-        }
 
         List<MitLine> MineFor(SheetTimeline.MechRow r)
-            => mineByRow.TryGetValue(r, out var list) ? list : NoLines;
+            => _mineByRow.TryGetValue(r, out var list) ? list : NoLines;
 
         // "Just my own mits": trim to the rows you actually press on, BEFORE
         // the row cap, so your later presses aren't crowded out by other hits.
-        var visible = (C.UpcomingBoardOnlyMine
-                ? windowRows.Where(r => MineFor(r).Count > 0)
-                : windowRows)
-            .Take(Math.Max(1, C.UpcomingBoardRows))
-            .ToList();
+        // Rows and their presses are collected in one pass into reused buffers.
+        _visibleRows.Clear();
+        _mineForVisible.Clear();
+        var rowCap = Math.Max(1, C.UpcomingBoardRows);
+        foreach (var r in windowRows)
+        {
+            if (_visibleRows.Count >= rowCap) break;
+            var m = MineFor(r);
+            if (C.UpcomingBoardOnlyMine && m.Count == 0) continue;
+            _visibleRows.Add(r);
+            _mineForVisible.Add(m);
+        }
+        var visible = _visibleRows;
+        var mine = _mineForVisible;
 
         if (visible.Count == 0)
         {
@@ -339,19 +428,25 @@ public class TimelineWindow : Window
             return;
         }
 
-        var mine = visible.Select(MineFor).ToList();
-
         // Green matches the main call EXACTLY: a press is "now" when it enters
         // its warning window on the cue clock, so per-line offsets (a call set
         // to fire early or late) keep the board and the big call in lockstep.
         bool InWindow(MitLine l)
             => l.CueTime - elapsed <= (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds);
 
+        // Plain loop, not Any(predicate): a delegate per row per frame otherwise.
+        bool AnyInWindow(List<MitLine> lines)
+        {
+            for (var i = 0; i < lines.Count; i++)
+                if (InWindow(lines[i])) return true;
+            return false;
+        }
+
         // Gold marks your next press that isn't already green: while a call is
         // in (or just past) its window, the one after it keeps its own marker.
         var nextIdx = -1;
         for (var i = 0; i < visible.Count && nextIdx < 0; i++)
-            if (mine[i].Count > 0 && !mine[i].Any(InWindow))
+            if (mine[i].Count > 0 && !AnyInWindow(mine[i]))
                 nextIdx = i;
 
         // Negative spacing pulls bars into each other (overlap look).
@@ -362,7 +457,7 @@ public class TimelineWindow : Window
             else if (i > 0 && rowGap < 0f) ImGui.SetCursorPosY(ImGui.GetCursorPosY() + rowGap);
             var r = visible[i];
             var rem = r.Time - elapsed;
-            var useNow = mine[i].Count > 0 && mine[i].Any(InWindow);
+            var useNow = mine[i].Count > 0 && AnyInWindow(mine[i]);
             var isNext = i == nextIdx;
             var accent = useNow ? NowCol : isNext ? NextCol : 0u;
             var pulse = useNow && C.PulseWhenImminent && rem < 1.5f;
@@ -689,9 +784,12 @@ public class TimelineWindow : Window
         if (r.Buster) return 2;
         if (r.Hurt > 0) return 1;
         if (bareTimer) return 0;
-        var n = r.Mechanic.ToLowerInvariant();
-        if (n.Contains("buster") || n.Contains("cleave")) return 2;
-        if (n.Contains("enrage")) return 0; // lethal, not something you mit
+        // Ordinal-ignore-case compares in place; lower-casing first allocated a
+        // string per row per frame.
+        var n = r.Mechanic;
+        if (n.Contains("buster", StringComparison.OrdinalIgnoreCase)
+            || n.Contains("cleave", StringComparison.OrdinalIgnoreCase)) return 2;
+        if (n.Contains("enrage", StringComparison.OrdinalIgnoreCase)) return 0; // lethal, not something you mit
         return 1; // a named mechanic on a mit board is there because it hits
     }
 
@@ -736,9 +834,13 @@ public class TimelineWindow : Window
         }
     }
 
+    // Reused across rows and frames: this runs once per visible row of the board.
+    private readonly List<string> _actionParts = new();
+
     private void BoardActions(List<MitLine> mine, string? job, float elapsed, float width, uint accent)
     {
-        var parts = new List<string>();
+        var parts = _actionParts;
+        parts.Clear();
         var icon = 0u;
         var cdWarn = false;
         foreach (var l in mine)

@@ -38,9 +38,25 @@ public static class MitTypes
         "second wind", "bloodbath", "personal", "feather", "stem the flow",
     };
 
+    // Memoized: the overlay and the board classify every visible call every frame,
+    // and the answer depends only on the two texts - which come from a fixed sheet,
+    // so the table settles within a pull's first frames. Without it each ask built
+    // two throwaway strings and walked ~120 keywords.
+    private static readonly System.Collections.Generic.Dictionary<(string Action, string Mech), Kind> _cache = new();
+
     public static Kind Classify(string? action, string? mechanic = null)
     {
-        var s = ((action ?? "") + " " + (mechanic ?? "")).ToLowerInvariant();
+        (string Action, string Mech) key = (action ?? "", mechanic ?? "");
+        if (_cache.TryGetValue(key, out var hit)) return hit;
+        var kind = ClassifyUncached(key.Action, key.Mech);
+        if (_cache.Count > 4096) _cache.Clear(); // free-text mechanic names can't grow it forever
+        _cache[key] = kind;
+        return kind;
+    }
+
+    private static Kind ClassifyUncached(string action, string mechanic)
+    {
+        var s = (action + " " + mechanic).ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(s)) return Kind.Other;
         if (Contains(s, TankWords)) return Kind.Tank;
         if (Contains(s, PartyWords)) return Kind.Party;
