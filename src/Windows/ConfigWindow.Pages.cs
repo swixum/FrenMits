@@ -551,6 +551,51 @@ public partial class ConfigWindow
             C.UniversalTimelines = CfgCheck("Run a boss timeline in every duty (no sheet needed)", C.UniversalTimelines);
             ImGui.TextDisabled("Dungeons, trials, raids: the board lists the bosses' casts even with no sheet.");
             ImGui.TextDisabled("No mits, no audio; a real sheet always takes over automatically.");
+
+            ImGui.Spacing();
+            ImGui.Separator();
+            ImGui.Spacing();
+
+            C.LearnTimelines = CfgCheck("Learn a boss's timeline from your own pulls", C.LearnTimelines);
+            ImGui.TextDisabled("Older duties have no baked timeline at all. Here the plugin watches what");
+            ImGui.TextDisabled("the boss casts and builds one itself, so the board fills in next time.");
+            ImGui.TextDisabled("It sharpens with every pull, and a baked timeline always wins.");
+
+            if (C.LearnedFights.Count > 0)
+            {
+                ImGui.Spacing();
+                var known = C.LearnedFights.Values.OrderByDescending(f => f.LastSeen).ToList();
+                if (ImGui.TreeNode($"Learned so far: {known.Count} bosses###learned"))
+                {
+                    if (ImGui.BeginTable("##learnedfights", 4,
+                            ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp))
+                    {
+                        ImGui.TableSetupColumn("Boss", ImGuiTableColumnFlags.WidthStretch);
+                        ImGui.TableSetupColumn("Casts", ImGuiTableColumnFlags.WidthFixed, 46);
+                        ImGui.TableSetupColumn("Pulls", ImGuiTableColumnFlags.WidthFixed, 46);
+                        ImGui.TableSetupColumn("##act", ImGuiTableColumnFlags.WidthFixed, 62);
+                        ImGui.TableHeadersRow();
+                        LearnedFight? forget = null;
+                        foreach (var f in known)
+                        {
+                            ImGui.TableNextRow();
+                            ImGui.TableNextColumn();
+                            ImGui.TextUnformatted(f.BossName.Length > 0 ? f.BossName : $"#{f.BossNameId}");
+                            ImGui.TableNextColumn();
+                            ImGui.TextUnformatted(f.Casts.Count.ToString());
+                            ImGui.TableNextColumn();
+                            ImGui.TextUnformatted(f.Pulls.ToString());
+                            ImGui.TableNextColumn();
+                            ImGui.PushID((int)f.BossNameId);
+                            if (ImGui.SmallButton("Forget")) forget = f;
+                            ImGui.PopID();
+                        }
+                        ImGui.EndTable();
+                        if (forget != null) { TimelineLearner.Forget(C, forget.BossNameId); C.Save(); }
+                    }
+                    ImGui.TreePop();
+                }
+            }
             ImGui.EndTabItem();
         }
 

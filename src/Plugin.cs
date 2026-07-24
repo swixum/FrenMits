@@ -48,6 +48,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         Config = LoadConfig();
         Config.Fights ??= new();
+        Config.LearnedFights ??= new();
         Snapshots = new SnapshotStore(Config);
         FrenMits.Windows.Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
 
@@ -510,6 +511,34 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // The current boss's HP as a 0..1 fraction (-1 when there's no boss).
     public float BossHpFraction { get; private set; } = -1f;
 
+    // Whoever this pull is about, by NameId: the key a learned timeline is filed
+    // under, and how a 3-boss dungeon keeps three separate timelines.
+    public uint CurrentBossNameId { get; private set; }
+    private string _currentBossName = "";
+    private uint _currentBossMaxHp;
+
+    // True where a timeline has to be learned rather than looked up: in a duty,
+    // with no sheet of its own and nothing baked for it. Roughly 150 duties -
+    // mostly older dungeons and trials - have no cactbot timeline at all, and this
+    // is what eventually gives them one.
+    // Recomputed once per tick rather than on every ask: three callers want it
+    // each frame and it walks the fight list every time.
+    public bool LearningHere { get; private set; }
+
+    private bool ComputeLearningHere()
+    {
+        if (!Config.LearnTimelines) return false;
+        if (!Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty]
+            && !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty56]
+            && !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty95])
+            return false;
+        var territory = Service.ClientState.TerritoryType;
+        if (UniversalTimelines.Has(territory)) return false;
+        foreach (var f in Config.Fights)
+            if (f.TerritoryId == territory) return false;
+        return true;
+    }
+
     private void UpdateDowntime(float gameDt)
     {
         // The boss sweep walks the whole object table, so it's gated on a running
@@ -517,12 +546,25 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // including the open world, and nothing reads its result then (both the
         // HP gate and the lull rows below need a live pull).
         IBattleNpc? boss = null;
+        IBattleNpc? biggest = null;
         if (Timer.Running)
             foreach (var o in Service.ObjectTable)
-                if (o is IBattleNpc n && (byte)n.BattleNpcKind == 5 && n.MaxHp > 1_000_000
-                    && (boss is null || n.MaxHp > boss.MaxHp))
-                    boss = n;
+            {
+                if (o is not IBattleNpc n || (byte)n.BattleNpcKind != 5) continue;
+                // The DPS-gate readout wants a raid boss, so it keeps the HP floor.
+                if (n.MaxHp > 1_000_000 && (boss is null || n.MaxHp > boss.MaxHp)) boss = n;
+                // Learning wants whoever the fight is ABOUT, at any level: a level
+                // 30 dungeon boss has nothing like a million HP, and those older
+                // duties are exactly the ones with no baked timeline.
+                if (n.NameId != 0 && (biggest is null || n.MaxHp > biggest.MaxHp)) biggest = n;
+            }
         BossHpFraction = boss is { MaxHp: > 0 } ? (float)boss.CurrentHp / boss.MaxHp : -1f;
+        if (biggest != null)
+        {
+            CurrentBossNameId = biggest.NameId;
+            _currentBossName = biggest.Name.ToString();
+            _currentBossMaxHp = biggest.MaxHp;
+        }
 
         var down = false;
         if (Timer.Running)
@@ -699,6 +741,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             RefreshAutoFight();
             Timer.Update();
             UpdateDowntime(gameDt);
+            UpdateLearning();
             Recap.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
@@ -919,7 +962,140 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // timer only) steps in, so a timeline runs in every instanced duty.
         if (Config.UniversalTimelines && _autoFight != null && _autoFight.TerritoryId == territory)
             return _autoFight;
+        // Nothing baked for this duty: fall back to what we've learned about the
+        // boss actually in front of us.
+        if (Config.LearnTimelines && _learnedFight != null && _learnedFight.TerritoryId == territory)
+            return _learnedFight;
         return null;
+    }
+
+    // The learned timeline for the boss currently being fought, rebuilt only when
+    // the boss changes (so a 3-boss dungeon swaps timelines as you go).
+    private FightProfile? _learnedFight;
+    private uint _learnedFor;
+
+    // True while _learnedFight is a projection off the pull IN PROGRESS rather
+    // than something read back from disk. The two behave differently: a stored
+    // timeline is fixed for the fight, a projection keeps re-reading the loop as
+    // the boss reveals more of it, and dies with the pull that produced it.
+    private bool _learnedIsLive;
+    private int _livePullCasts = -1;
+
+    // Latched during the pull, because by the time combat drops the boss has
+    // already despawned and CurrentBossNameId has gone back to zero.
+    //
+    // Kept on the PEAK health seen all pull rather than whatever is biggest this
+    // frame: a dungeon run is one long "pull" containing trash and then a boss,
+    // and only the highest-health thing in it is the fight worth filing under.
+    private uint _learnBossNameId;
+    private string _learnBossName = "";
+    private uint _learnBossMaxHp;
+    private bool _wasRunningForLearn;
+
+    private void UpdateLearning()
+    {
+        LearningHere = ComputeLearningHere();
+        LatchLearnBoss();
+        RefreshLearnedFight();
+        CommitFinishedPull();
+    }
+
+    private void LatchLearnBoss()
+    {
+        if (!LearningHere || CurrentBossNameId == 0) return;
+        if (_currentBossMaxHp <= _learnBossMaxHp) return;
+        _learnBossMaxHp = _currentBossMaxHp;
+        _learnBossNameId = CurrentBossNameId;
+        _learnBossName = _currentBossName;
+    }
+
+    private void RefreshLearnedFight()
+    {
+        if (!Config.LearnTimelines) { ClearLearnedFight(); return; }
+        var territory = Service.ClientState.TerritoryType;
+        var boss = CurrentBossNameId;
+
+        if (boss != _learnedFor)
+        {
+            _learnedFor = boss;
+            _livePullCasts = -1;
+            _learnedIsLive = false;
+            _learnedFight = boss == 0 || UniversalTimelines.Has(territory)
+                ? null
+                : TimelineLearner.Build(Config, boss, territory);
+            if (_learnedFight != null)
+                Service.Log.Information(
+                    $"[FrenMits] learned timeline armed for \"{_learnedFight.Name}\" "
+                    + $"({_learnedFight.Lines.Count} casts).");
+        }
+
+        // A timeline already learned for this boss always wins; only fall back to
+        // reading the live pull when there's nothing stored.
+        if (_learnedFight != null && !_learnedIsLive) return;
+        if (boss == 0 || !LearningHere || !Timer.Running) return;
+        // Re-read as the boss reveals more of its loop, not once and then frozen.
+        if (Sync.LastPull.Count == _livePullCasts) return;
+        _livePullCasts = Sync.LastPull.Count;
+
+        var built = TimelineLearner.BuildFromLivePull(
+            territory, _currentBossName, boss, CapturedCasts());
+        if (built != null) { _learnedFight = built; _learnedIsLive = true; }
+    }
+
+    // A pull just ended: fold what the boss did into what we already knew, and
+    // drop any live projection, whose times only meant anything for that pull.
+    private void CommitFinishedPull()
+    {
+        var running = Timer.Running;
+        var ended = _wasRunningForLearn && !running;
+        _wasRunningForLearn = running;
+        if (!ended) return;
+
+        try
+        {
+            if (!Config.LearnTimelines || _learnBossNameId == 0 || Sync.LastPull.Count == 0) return;
+
+            // LearnPull, not Learn: the capture spans the whole instance, so the
+            // boss's own engagement has to be cut out and rebased first.
+            if (TimelineLearner.LearnPull(Config, _learnBossNameId, _learnBossName,
+                    Sync.LastPullTerritory, CapturedCasts()))
+            {
+                Config.Save();
+                Service.Log.Information(
+                    $"[FrenMits] learned timeline updated for \"{_learnBossName}\" from this pull.");
+            }
+        }
+        catch (Exception ex) { Swallowed.Report("timeline learning", ex); }
+        finally
+        {
+            // ALWAYS, even on the early returns above: leaving the peak-health
+            // latch set would stop the next boss ever being latched, silently
+            // ending learning for the rest of the session.
+            _learnBossNameId = 0;
+            _learnBossName = "";
+            _learnBossMaxHp = 0;
+            if (_learnedIsLive) ClearLearnedFight();
+            _learnedFor = 0;   // re-read from disk next frame, with this pull folded in
+        }
+    }
+
+    private void ClearLearnedFight()
+    {
+        _learnedFight = null;
+        _learnedFor = 0;
+        _learnedIsLive = false;
+        _livePullCasts = -1;
+    }
+
+    // This pull's enemy casts, with who cast them (boss-appearance markers are
+    // bookkeeping, not mechanics).
+    private List<TimelineLearner.PullCast> CapturedCasts()
+    {
+        var casts = new List<TimelineLearner.PullCast>(Sync.LastPull.Count);
+        foreach (var cp in Sync.LastPull)
+            if (!cp.IsBoss)
+                casts.Add(new TimelineLearner.PullCast(cp.Id, cp.Time, ActionNames.Of(cp.Id), cp.CasterNameId));
+        return casts;
     }
 
     // The in-memory timeline-only fight for the current territory (never saved).

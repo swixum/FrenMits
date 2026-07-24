@@ -154,6 +154,16 @@ public class Configuration : IPluginConfiguration
     // Run a boss timeline in EVERY instanced duty, even without a sheet: the
     // board lists the bosses' casts (no mits, no audio).
     public bool UniversalTimelines { get; set; } = true;
+
+    // Learn a boss's timeline from your own pulls wherever there's no baked one
+    // (cactbot has nothing for roughly 150 older duties), so the board fills in
+    // the second time you meet a boss instead of staying blank forever.
+    public bool LearnTimelines { get; set; } = true;
+
+    // Learned boss timelines, keyed by the boss's NameId - see TimelineLearner.
+    // Keyed by boss rather than duty so a 3-boss dungeon or an alliance raid just
+    // works, each encounter being its own fight from zero.
+    public Dictionary<string, LearnedFight> LearnedFights { get; set; } = new();
     // Board style: trim the board to just the rows you have a press for.
     public bool UpcomingBoardOnlyMine { get; set; }
 

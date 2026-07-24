@@ -8,7 +8,11 @@ namespace FrenMits;
 // ids.
 public static class BossNames
 {
-    private static readonly Dictionary<string, uint> _cache = new(StringComparer.OrdinalIgnoreCase);
+    // Concurrent, not a plain Dictionary: in game this only ever runs on the
+    // framework thread, but a torn write here corrupts the table for the rest of
+    // the session, and that is far too cheap to insure against not to.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, uint> _cache =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public static uint Resolve(string singular)
     {

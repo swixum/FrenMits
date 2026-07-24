@@ -35,7 +35,10 @@ public class SyncEngine
     public float AvgDrift { get; private set; }
     public int DriftSamples { get; private set; }
 
-    public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss);
+    // CasterNameId is what lets a captured pull be split back up by WHO cast
+    // what: in a dungeon the same pull contains trash and then a boss, and only
+    // the boss's half is a timeline worth learning.
+    public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss, uint CasterNameId = 0);
 
     // Automatic capture for CUSTOM sheets: every enemy cast of the current/last
     // pull, no toggle needed, so Sheet View's "Build from pull" can turn a wipe
@@ -43,7 +46,12 @@ public class SyncEngine
     public readonly List<Capture> LastPull = new();
     public uint LastPullTerritory { get; private set; }
 
-    private void AutoCapture(uint id, float time, string caster, bool isBoss)
+    // A pull's capture is bounded, but it fills from the FRONT and then stops:
+    // this used to drop the oldest entry to make room, which quietly ate the
+    // opener - the most valuable part of a timeline - on any long fight.
+    private const int MaxCaptures = 2000;
+
+    private void AutoCapture(uint id, float time, string caster, bool isBoss, uint casterNameId = 0)
     {
         if (!_lastPullArmed)
         {
@@ -51,8 +59,8 @@ public class SyncEngine
             LastPullTerritory = Service.ClientState.TerritoryType;
             _lastPullArmed = true;
         }
-        LastPull.Add(new Capture(id, time, caster, isBoss));
-        if (LastPull.Count > 500) LastPull.RemoveAt(0);
+        if (LastPull.Count >= MaxCaptures) return;
+        LastPull.Add(new Capture(id, time, caster, isBoss, casterNameId));
     }
 
     public SyncEngine(Plugin plugin) => _plugin = plugin;
@@ -78,8 +86,13 @@ public class SyncEngine
         // because the playback watchdog needs to know whether the enemy scan below
         // is actually running.
         var fight = _plugin.ActiveFight();
-        var autoCapture = fight != null && fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId);
-        var scanning = fight != null && (c.EnableSync || autoCapture);
+        // Duties with no sheet AND no baked timeline get their casts recorded so
+        // TimelineLearner can build one from your own pulls - that's the only way
+        // the long tail cactbot never covered ever gets a board.
+        var learning = _plugin.LearningHere;
+        var autoCapture = (fight != null && fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId))
+                          || learning;
+        var scanning = (fight != null && (c.EnableSync || autoCapture)) || learning;
 
         // Duty-recorder playback watchdog: with no combat flag to stop the clock
         // between the recording's pulls, two signals end a viewing (a load screen
@@ -108,11 +121,12 @@ public class SyncEngine
                 return;
             }
         }
-        if (fight == null || !scanning) return;
+        if (!scanning) return;
 
         // Work in the same clock the overlay reads (includes any door-boss phase
-        // offset), so anchors line up in both phases.
-        var elapsed = _plugin.ElapsedFor(fight);
+        // offset), so anchors line up in both phases. While purely learning there
+        // is no fight yet, so the raw pull clock is the schedule.
+        var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
 
         foreach (var obj in Service.ObjectTable)
         {
@@ -134,8 +148,8 @@ public class SyncEngine
                     // Subkind 5 = enemy (stable game data); pets (2), chocobos (3)
                     // and trust NPCs (9) must not pollute the capture.
                     if (autoCapture && (byte)npc.BattleNpcKind == 5)
-                        AutoCapture(npc.NameId, elapsed, npc.Name.ToString(), true);
-                    if (c.EnableSync)
+                        AutoCapture(npc.NameId, elapsed, npc.Name.ToString(), true, npc.NameId);
+                    if (c.EnableSync && fight != null)
                         SnapToBoss(fight, npc.NameId, npc.Name.ToString());
                 }
 
@@ -156,9 +170,9 @@ public class SyncEngine
                 // (and would poison anchors).
                 if (autoCapture && bc.MaxHp > 0
                     && bc is IBattleNpc enemyNpc && (byte)enemyNpc.BattleNpcKind == 5)
-                    AutoCapture(castId, resolveTime, bc.Name.ToString(), false);
+                    AutoCapture(castId, resolveTime, bc.Name.ToString(), false, enemyNpc.NameId);
 
-                if (c.EnableSync && fight.SyncPoints.Count > 0)
+                if (c.EnableSync && fight is { SyncPoints.Count: > 0 })
                     OnCastStarted(fight, bc, castId);
             }
             catch (NullReferenceException) { /* stale actor this frame; ignore */ }
@@ -232,6 +246,23 @@ public class SyncEngine
     // Snap the clock so a cast of `actionId` resolving `timeToResolve` from now
     // lands on its scripted time, returning true if a matching anchor snapped the
     // clock.
+    // A baked duty timeline packs every encounter of one instance onto a single
+    // clock, each in its own 1000-second block: boss 1 sits at 1000+, boss 2 at
+    // 2000+, and an alliance raid or a 3-boss dungeon runs to 4000+. Each fight
+    // starts its own combat from zero, so reaching boss N's block means jumping
+    // N thousand seconds forward from a standing start - and the normal 2000s
+    // forward window only ever reached the FIRST one. Everything past boss 1
+    // silently showed no timeline at all.
+    //
+    // Real sheets keep the configured window: their anchors are all on one pull
+    // clock, so a window wide enough to cross blocks would be far too loose.
+    public const float TimelineBlockReach = 20000f;
+
+    private float ForwardWindow(FightProfile fight)
+        => fight.TimelineOnly
+            ? MathF.Max(_plugin.Config.SyncForwardWindowSeconds, TimelineBlockReach)
+            : _plugin.Config.SyncForwardWindowSeconds;
+
     private bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
     {
         if (fight.SyncPoints.Count == 0) return false;
@@ -252,7 +283,7 @@ public class SyncEngine
             // loop/jump coordinate; mechanic anchors stay tight in both directions
             // (fine drift only) so an early stray cast can't snap the clock far
             // forward onto a later anchor.
-            var fwd = sp.IsPhase ? _plugin.Config.SyncForwardWindowSeconds : _plugin.Config.SyncWindowSeconds;
+            var fwd = sp.IsPhase ? ForwardWindow(fight) : _plugin.Config.SyncWindowSeconds;
             // The backward window stays tight even in duty-recorder playback, since a
             // phase anchor's ability can RECAST later in the fight (DMU's
             // Revolting Ruin III comes back at ~98s) and a wide backward window

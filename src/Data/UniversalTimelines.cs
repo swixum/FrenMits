@@ -28,7 +28,7 @@ public static class UniversalTimelines
         {
             using var s = typeof(UniversalTimelines).Assembly
                 .GetManifestResourceStream("FrenMits.universal_timelines.json.gz");
-            if (s == null) { Service.Log.Warning("[FrenMits] universal timelines resource missing"); return; }
+            if (s == null) { Service.Log?.Warning("[FrenMits] universal timelines resource missing"); return; }
             using var gz = new GZipStream(s, CompressionMode.Decompress);
             using var r = new StreamReader(gz);
             var root = JObject.Parse(r.ReadToEnd());
@@ -48,11 +48,11 @@ public static class UniversalTimelines
                 zone.Syncs.Sort((a, b) => a.Time.CompareTo(b.Time));
                 _zones[terr] = zone;
             }
-            Service.Log.Information($"[FrenMits] universal timelines loaded: {_zones.Count} duties");
+            Service.Log?.Information($"[FrenMits] universal timelines loaded: {_zones.Count} duties");
         }
         catch (Exception e)
         {
-            Service.Log.Error(e, "[FrenMits] universal timelines failed to load");
+            Service.Log?.Error(e, "[FrenMits] universal timelines failed to load");
         }
     }
 
