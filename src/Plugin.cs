@@ -596,7 +596,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (s < 0f || s > 100f) return 1f;   // garbage guard
             return s < 0.02f ? 0f : s;           // snap a near-zero (paused) to a hard stop
         }
-        catch { return 1f; }
+        catch (Exception ex) { Swallowed.Report("replay speed read", ex); return 1f; }
     }
 
     private DateTime _lastPlaybackTick = DateTime.UtcNow;

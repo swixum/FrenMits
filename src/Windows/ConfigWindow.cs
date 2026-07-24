@@ -383,6 +383,23 @@ public partial class ConfigWindow : Window, IDisposable
                 ImGui.SameLine(0, 18);
                 WarnDot($"internal errors ({_plugin.FrameErrorCount}): check /xllog");
             }
+            // Anything that failed quietly (a sheet moving under us on patch day,
+            // a status read going stale). Named here so "the recap stopped
+            // working" comes with something to report instead of a shrug.
+            if (Swallowed.All() is { Count: > 0 } quiet)
+            {
+                ImGui.SameLine(0, 18);
+                WarnDot($"degraded: {quiet[0].Site} (x{quiet[0].Count})");
+                if (ImGui.IsItemHovered())
+                {
+                    var tip = new System.Text.StringBuilder(
+                        "These failed and were skipped rather than crashing:\n");
+                    foreach (var e in quiet)
+                        tip.Append($"\n  {e.Site} - {e.Count}x, last: {e.Message}");
+                    tip.Append("\n\nFull detail is in /xllog.");
+                    ImGui.SetTooltip(tip.ToString());
+                }
+            }
         }
         ImGui.EndChild();
         ImGui.PopStyleColor();

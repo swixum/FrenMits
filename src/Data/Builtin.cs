@@ -129,13 +129,38 @@ public static class Builtin
         _ => DmuData.BuildLines(SlotNames.ToLegacy(slot)),
     };
 
-    public static List<SyncPoint> SyncPoints(uint territory) => territory switch
+    public static List<SyncPoint> SyncPoints(uint territory) => Dedupe(territory switch
     {
         FruTerritory => FruData.SyncPoints(),
         M12sTerritory => M12sData.SyncPoints(),
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.SyncPoints(territory),
         _ => DmuData.SyncPoints(),
-    };
+    });
+
+    // A sheet can carry two rows for ONE cast (FRU splits Burnished Glory and
+    // Fulgent Blade into a row per group), which used to bake the same anchor
+    // twice. Harmless for the snap itself, but the duty-replay auto-start only
+    // trusts an ability that appears EXACTLY once - so a doubled entry quietly
+    // made that cast unusable for starting the clock. Collapse them, keeping the
+    // phase flag if either copy had it (a phase anchor already won the tie-break
+    // in SnapToCast, so the surviving entry behaves exactly as before).
+    private static List<SyncPoint> Dedupe(List<SyncPoint> points)
+    {
+        var byCoord = new Dictionary<(uint, int), int>();
+        var result = new List<SyncPoint>(points.Count);
+        foreach (var sp in points)
+        {
+            var key = (sp.Ability, (int)MathF.Round(sp.Time * 10f));
+            if (byCoord.TryGetValue(key, out var at))
+            {
+                if (sp.IsPhase) result[at].IsPhase = true;
+                continue;
+            }
+            byCoord[key] = result.Count;
+            result.Add(sp);
+        }
+        return result;
+    }
 
     public static List<BossAnchor> BossAnchors(uint territory) => territory switch
     {

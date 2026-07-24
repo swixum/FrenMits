@@ -77,22 +77,47 @@ public class BuiltinSheetTests
     }
 
     [Fact]
-    public void RepeatedAnchorsAlwaysResolveTheSameWay()
+    public void OneCastNeverBakesTwoAnchors()
     {
-        // One cast can bake more than one anchor, because a sheet may carry two rows
-        // for the same moment (FRU has "Fulgent Blade 2" and "3" both at 1041, and
-        // two Burnished Glory rows at 86). Copies at one coordinate are only safe if
-        // the winner is decided, not left to list order: SnapToCast breaks a tie
-        // toward a phase anchor and gives it the wider window, so at most one of the
-        // copies may be a phase anchor.
+        // A sheet can carry two rows for the same cast (FRU splits Burnished Glory
+        // and Fulgent Blade per group). Builtin.SyncPoints collapses those, because
+        // the duty-replay auto-start only trusts an ability that appears exactly
+        // once - a doubled entry silently made that cast unusable to start a clock.
         foreach (var (territory, _, _) in Builtin.Fights)
-            foreach (var group in Builtin.SyncPoints(territory)
-                         .GroupBy(sp => $"{sp.Ability:X}|{sp.Time:0.#}")
-                         .Where(g => g.Count() > 1))
+        {
+            var seen = new HashSet<string>();
+            foreach (var sp in Builtin.SyncPoints(territory))
+                Assert.True(seen.Add($"{sp.Ability:X}|{sp.Time:0.#}"),
+                    $"territory {territory}: 0x{sp.Ability:X} at {sp.Time} baked more than once");
+        }
+    }
+
+    [Fact]
+    public void CollapsingAnAnchorKeepsItsPhaseFlag()
+    {
+        // FRU's Fulgent Blade pair had one phase copy (it crosses the >90s Pandora
+        // cutscene gap) and one plain copy. The survivor has to be the phase one, or
+        // the clock loses its wide re-base window coming out of that cutscene.
+        var afterCutscene = Builtin.SyncPoints(Builtin.FruTerritory)
+            .Where(sp => sp.Time is > 1030f and < 1060f && sp.IsPhase);
+        Assert.NotEmpty(afterCutscene);
+    }
+
+    [Fact]
+    public void EveryAnchorAbilityIsUsableForReplayAutoStart()
+    {
+        // TryPlaybackAutoStart only starts a clock from an ability appearing exactly
+        // once in the timeline. Abilities that genuinely recur (DMU's Ultimate
+        // Embrace) are correctly ambiguous; what must not happen is an ability
+        // looking ambiguous purely because one cast was baked twice.
+        foreach (var (territory, _, _) in Builtin.Fights)
+            foreach (var group in Builtin.SyncPoints(territory).GroupBy(sp => sp.Ability).Where(g => g.Count() > 1))
             {
-                var phases = group.Count(sp => sp.IsPhase);
-                Assert.True(phases <= 1,
-                    $"territory {territory}: {group.Key} bakes {phases} phase anchors at one coordinate");
+                var times = group.Select(sp => sp.Time).OrderBy(t => t).ToList();
+                for (var i = 1; i < times.Count; i++)
+                    Assert.True(times[i] - times[i - 1] > 1f,
+                        $"territory {territory}: 0x{group.Key:X} repeats at {times[i - 1]} and {times[i]}, "
+                        + "which is one cast baked twice rather than a real repeat");
             }
     }
 

@@ -47,7 +47,7 @@ public class FontManager : IDisposable
             var path = Path.Combine(dir, name);
             return File.Exists(path) ? path : null;
         }
-        catch { return null; }
+        catch (Exception ex) { Swallowed.Report("font lookup", ex); return null; }
     }
 
     public IFontHandle? Get(float sizePx, string family, bool bold, bool italic)

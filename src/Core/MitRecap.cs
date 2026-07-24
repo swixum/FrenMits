@@ -185,7 +185,9 @@ public class MitRecap
             _snapLive = live; // keep "what's up" current, so the wipe snapshot has the boss mits
                               // from the last live moment (the boss resets the instant combat ends)
         }
-        catch { /* never disturb the tick */ }
+        // Never disturb the tick - but never vanish either: a recurring failure
+        // here silently ends recap tracking for the session.
+        catch (Exception ex) { Swallowed.Report("mit recap tick", ex); }
     }
 
     private List<Active> _snapLive = new();
@@ -300,7 +302,7 @@ public class MitRecap
                 }
             }
         }
-        catch { /* analysis is optional garnish */ }
+        catch (Exception ex) { Swallowed.Report("recap unused-cooldown analysis", ex); }
         return res.OrderBy(r => r.Item3 == "never used" ? 0 : 1)
             .ThenBy(r => r.Item2, StringComparer.OrdinalIgnoreCase)
             .Take(10).ToList();
@@ -623,7 +625,8 @@ public class MitRecap
     {
         try
         {
-            var sheet = Service.DataManager.GetExcelSheet<Status>();
+            // English: `mit` is one of our own names (see GameSheets).
+            var sheet = GameSheets.English<Status>();
             if (sheet == null) return 0;
             foreach (var row in sheet)
                 if (string.Equals(row.Name.ExtractText(), mit, StringComparison.OrdinalIgnoreCase))
@@ -727,7 +730,9 @@ public class MitRecap
     private static List<Hit> MitsOn(IBattleChara chara, bool onBoss)
     {
         var list = new List<Hit>();
-        var sheet = Service.DataManager.GetExcelSheet<Status>();
+        // English, because every status read here is matched against our own
+        // English tables (StandardRaidMits, MitTypes, HealNoise) - see GameSheets.
+        var sheet = GameSheets.English<Status>();
         if (sheet == null) return list;
         foreach (var st in chara.StatusList)
         {

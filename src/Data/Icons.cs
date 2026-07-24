@@ -47,7 +47,9 @@ public static class Icons
         var list = new List<(string, uint)>();
         try
         {
-            var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+            // English, because the names indexed here are matched against the
+            // action text baked into our own sheets (see GameSheets).
+            var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
             if (sheet != null)
             {
                 foreach (var row in sheet)
@@ -76,7 +78,7 @@ public static class Icons
         var sList = new List<(string, uint)>();
         try
         {
-            var statuses = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>();
+            var statuses = GameSheets.English<Lumina.Excel.Sheets.Status>();
             if (statuses != null)
                 foreach (var row in statuses)
                 {
@@ -315,7 +317,7 @@ public static class Icons
         uint icon = 0, anyGem = 0;
         try
         {
-            var items = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Item>();
+            var items = GameSheets.English<Lumina.Excel.Sheets.Item>();
             if (items != null)
                 foreach (var row in items)
                 {

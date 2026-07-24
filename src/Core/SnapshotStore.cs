@@ -62,7 +62,9 @@ public sealed class SnapshotStore
                         System.IO.File.ReadAllText(file));
                     if (b != null) list.Add(new SnapshotInfo(file, b.When, b.Reason));
                 }
-                catch { /* one unreadable file shouldn't hide the rest */ }
+                // One unreadable file shouldn't hide the rest, but a snapshot that
+                // won't load is a restore point the user has quietly lost.
+                catch (Exception ex) { Swallowed.Report("plan snapshot read", ex); }
             }
         }
         catch (Exception ex)
@@ -92,7 +94,9 @@ public sealed class SnapshotStore
                     if (b?.Fight != null && b.Fight.TerritoryId == territory)
                         list.Add(new SnapshotInfo(file, b.When, b.Reason + " [previous sheet]"));
                 }
-                catch { /* one unreadable file shouldn't hide the rest */ }
+                // One unreadable file shouldn't hide the rest, but a snapshot that
+                // won't load is a restore point the user has quietly lost.
+                catch (Exception ex) { Swallowed.Report("plan snapshot read", ex); }
             }
         }
         catch (Exception ex)

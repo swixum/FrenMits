@@ -36,7 +36,9 @@ public static class Cooldowns
         try
         {
             var want = new HashSet<string>(Names, StringComparer.OrdinalIgnoreCase);
-            var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+            // English sheet: `Names` above is an English list, so matching against
+            // a localized client's rows would build an empty map (see GameSheets).
+            var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
             if (sheet != null)
                 foreach (var row in sheet)
                 {
@@ -48,7 +50,7 @@ public static class Cooldowns
                         map[n] = row.RowId;
                 }
         }
-        catch { }
+        catch (Exception ex) { Swallowed.Report("cooldown action map", ex); }
         _byName = map;
     }
 
@@ -76,7 +78,7 @@ public static class Cooldowns
 
             return RecastRemaining(id);
         }
-        catch { return null; }
+        catch (Exception ex) { Swallowed.Report("cooldown recast read", ex); return null; }
     }
 
     // ---- static planning data (from the game sheets, no combat needed) ----
@@ -134,7 +136,7 @@ public static class Cooldowns
         var map = new Dictionary<string, PlanMit>(StringComparer.OrdinalIgnoreCase);
         try
         {
-            var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+            var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
             if (sheet != null && _byName != null)
                 foreach (var kv in _byName)
                 {
@@ -149,7 +151,7 @@ public static class Cooldowns
                         Durations.GetValueOrDefault(kv.Key));
                 }
         }
-        catch { }
+        catch (Exception ex) { Swallowed.Report("cooldown plan map", ex); }
         _planByName = map;
     }
 
@@ -191,7 +193,7 @@ public static class Cooldowns
             var cfc = t?.ContentFinderCondition.ValueNullable;
             return cfc?.ClassJobLevelSync ?? 0;
         }
-        catch { return 0; }
+        catch (Exception ex) { Swallowed.Report("duty sync level", ex); return 0; }
     }
 
     // PlanMits results per action text, memoized because the overlays ask per

@@ -17,7 +17,8 @@ public static class MitWatch
         {
             var me = Plugin.LocalPlayer;
             if (me == null) return list;
-            var sheet = Service.DataManager.GetExcelSheet<Status>();
+            // English, so MitTypes' English keyword tables can classify the status.
+            var sheet = GameSheets.English<Status>();
             if (sheet == null) return list;
 
             foreach (var st in me.StatusList)
@@ -32,9 +33,11 @@ public static class MitWatch
                 list.Add(new Active((uint)row.Icon, name, MathF.Abs(st.RemainingTime), kind));
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Never let a game-state read disturb the draw loop.
+            // Never let a game-state read disturb the draw loop, but do leave a trail:
+            // silently returning nothing looks identical to "no mits are up".
+            Swallowed.Report("active mit read", ex);
         }
         return list;
     }

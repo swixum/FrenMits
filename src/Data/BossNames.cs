@@ -18,7 +18,8 @@ public static class BossNames
         uint id = 0;
         try
         {
-            var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.BNpcName>();
+            // English: the anchors name their bosses in English (see GameSheets).
+            var sheet = GameSheets.English<Lumina.Excel.Sheets.BNpcName>();
             if (sheet != null)
                 foreach (var row in sheet)
                     if (string.Equals(row.Singular.ExtractText(), singular, StringComparison.OrdinalIgnoreCase))
