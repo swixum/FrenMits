@@ -1,0 +1,133 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Numerics;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Windowing;
+
+namespace FrenMits.Windows;
+
+// Sheet View: search and replace across a plan.
+public partial class SheetViewWindow
+{
+    // ---- search & replace --------------------------------------------------
+
+    private void DrawReplacePopup()
+    {
+        // Modal so a stray click outside cannot dismiss the form; the X,
+        // Escape, or its own buttons close it.
+        var stay = true;
+        if (!ImGui.BeginPopupModal("##sheetreplace", ref stay,
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
+
+        PopupHeader("Replace a mit across the sheet", 420f);
+        ImGui.SetNextItemWidth(230f);
+        ImGui.InputTextWithHint("##rfind", "find (e.g. Vengeance)", ref _replFind, 64);
+        ImGui.SetNextItemWidth(230f);
+        ImGui.InputTextWithHint("##rwith", "replace with (e.g. Damnation)", ref _replWith, 64);
+        ImGui.Checkbox("My column only", ref _replMineOnly);
+
+        var find = _replFind.Trim();
+        var with = _replWith.Trim();
+        var lines = 0;
+        var slots = 0;
+        if (find.Length > 0)
+            for (var i = 0; i < _slots.Length; i++)
+            {
+                if (_replMineOnly && !IsActiveSlot(i)) continue;
+                // Same "would it actually change" test the apply uses, so the
+                // preview never promises edits an identity replace won't make.
+                var n = _slotLines[i].Count(l => WouldReplace(l.Action, find, with) != null);
+                if (n > 0) { lines += n; slots++; }
+            }
+        ImGui.TextDisabled(find.Length == 0 ? "type something to find"
+            : lines == 0 ? "no matches"
+            : $"will change {lines} line(s) across {slots} slot(s)");
+        if (string.IsNullOrWhiteSpace(_replWith) && lines > 0)
+            ImGui.TextDisabled("empty replacement = those calls are DELETED");
+
+        ImGui.BeginDisabled(lines == 0);
+        if (ImGui.Button("Replace", new Vector2(120, 0)))
+        {
+            ApplyReplace(find);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndDisabled();
+        ImGui.EndPopup();
+    }
+
+    private void ApplyReplace(string find)
+    {
+        if (_fight == null || find.Length == 0 || AbortIfStale()) return;
+        var with = _replWith.Trim();
+
+        var would = 0;
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            if (_replMineOnly && !IsActiveSlot(i)) continue;
+            would += _slotLines[i].Count(l => WouldReplace(l.Action, find, with) != null);
+        }
+        if (would == 0) { Flash($"No mits containing \"{find}\"."); return; }
+
+        // Bulk edit: undoable AND snapshotted to disk (see the History button).
+        PushUndo($"replace \"{find}\"");
+        _plugin.Snapshots.Save(_fight, $"before replacing \"{find}\"");
+
+        var changed = 0;
+        var slotsTouched = 0;
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            if (_replMineOnly && !IsActiveSlot(i)) continue;
+            var touched = false;
+            var remove = new List<MitLine>();
+            foreach (var l in _slotLines[i])
+            {
+                if (WouldReplace(l.Action, find, with) is not { } replaced) continue;
+                EnsureBacked(i);
+                touched = true;
+                changed++;
+                if (replaced.Length == 0)
+                {
+                    // Replacing with nothing = delete the call, tombstoned like
+                    // any other delete so sheet updates don't resurrect it.
+                    if (!l.Custom)
+                        _fight.DeletedCalls.Add(new DeletedCall
+                        { Slot = _slots[i], Time = l.Time, Mechanic = l.Mechanic, Action = l.Action });
+                    remove.Add(l);
+                }
+                else
+                {
+                    Builtin.PreserveEdit(_fight, _slots[i], l);
+                    l.Action = replaced;
+                }
+            }
+            foreach (var l in remove) _slotLines[i].Remove(l);
+            if (touched) { Resort(i); slotsTouched++; }
+        }
+
+        if (changed == 0) { PopUndo(); Flash($"No mits containing \"{find}\"."); return; }
+        C.Save();
+        _dirty = true;
+        Flash(string.IsNullOrWhiteSpace(with)
+            ? $"Deleted \"{find}\" from {changed} line(s) across {slotsTouched} slot(s)."
+            : $"Replaced \"{find}\" in {changed} line(s) across {slotsTouched} slot(s). Kept through sheet updates.");
+    }
+
+    // The action text after a real replacement, or null when nothing would
+    // change.
+    private static string? WouldReplace(string action, string find, string with)
+    {
+        var raw = action.Replace(find, with, StringComparison.OrdinalIgnoreCase);
+        if (raw == action) return null;
+        var replaced = TidyJoins(raw);
+        return replaced == action ? null : replaced;
+    }
+
+    // Re-join a "A + B + C" action string, dropping empty segments left behind
+    // by a replacement and normalizing the separators.
+    private static string TidyJoins(string s)
+        => string.Join(" + ", s.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+}
