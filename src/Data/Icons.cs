@@ -362,13 +362,58 @@ public static class Icons
         return icon;
     }
 
+    // The picker's own index, in the CLIENT's language.
+    //
+    // The matching indices above are English on purpose (our sheets are written
+    // in English), but this one is typed into by a person: a French player
+    // searching the icon picker should be able to type French. Built lazily, so
+    // an English client - where it only duplicates the index above - pays for it
+    // just once, and only if the picker is ever opened.
+    private static List<(string Name, uint Icon)>? _searchIndex;
+
+    private static List<(string Name, uint Icon)> SearchIndex()
+    {
+        if (_searchIndex != null) return _searchIndex;
+        var list = new List<(string Name, uint Icon)>();
+        try
+        {
+            var actions = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+            if (actions != null)
+                foreach (var row in actions)
+                {
+                    if (!row.IsPlayerAction || row.Icon == 0) continue;
+                    var name = row.Name.ExtractText();
+                    if (!string.IsNullOrWhiteSpace(name)) list.Add((name, (uint)row.Icon));
+                }
+            var statuses = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>();
+            if (statuses != null)
+                foreach (var row in statuses)
+                {
+                    if (row.Icon == 0) continue;
+                    var name = row.Name.ExtractText();
+                    if (!string.IsNullOrWhiteSpace(name)) list.Add((name, (uint)row.Icon));
+                }
+        }
+        catch (Exception ex) { Swallowed.Report("icon search index", ex); }
+        list.Sort((a, b) => b.Name.Length - a.Name.Length);
+        return _searchIndex = list;
+    }
+
     public static IEnumerable<(string Name, uint Icon)> Search(string query, int max)
     {
         EnsureBuilt();
         if (string.IsNullOrWhiteSpace(query)) yield break;
         var n = 0;
         var seen = new HashSet<uint>();
-        // Actions first, then statuses; dedupe by icon so the grid stays tidy.
+        // The client's own language first, so a non-English player can type what
+        // they actually see in game.
+        foreach (var (name, ic) in SearchIndex())
+            if (name.Contains(query, StringComparison.OrdinalIgnoreCase) && seen.Add(ic))
+            {
+                yield return (name, ic);
+                if (++n >= max) yield break;
+            }
+        // Then the English indices, so an English name always resolves too.
         foreach (var (name, ic) in _byLength!)
             if (name.Contains(query, StringComparison.OrdinalIgnoreCase) && seen.Add(ic))
             {

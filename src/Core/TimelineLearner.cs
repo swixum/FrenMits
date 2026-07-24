@@ -87,7 +87,10 @@ public static class TimelineLearner
         if (fresh.Count == 0) return false;
 
         var changed = false;
-        var weight = MathF.Max(1, into.Pulls);
+        // Capped: with an uncapped pull count a hundredth pull moves the stored
+        // time by 1%, so a boss retuned in a patch would effectively never be
+        // re-learned. Capping keeps it a converged-but-still-adaptive average.
+        var weight = MathF.Min(MathF.Max(1, into.Pulls), 8f);
         var searchFrom = 0;
 
         foreach (var f in fresh)
@@ -221,7 +224,9 @@ public static class TimelineLearner
         }
         if (fight.BossName.Length == 0 && bossName.Length > 0) fight.BossName = bossName;
         if (fight.Territory == 0) fight.Territory = territory;
-        return Merge(fight, fresh);
+        var changed = Merge(fight, fresh);
+        Prune(config);
+        return changed;
     }
 
     // ---- first-pull projection --------------------------------------------
@@ -331,6 +336,22 @@ public static class TimelineLearner
         foreach (var c in learned.Casts)
             fight.SyncPoints.Add(new SyncPoint { Ability = c.Ability, Time = c.Time, IsPhase = false, Label = "learned" });
         return fight;
+    }
+
+    // Every boss ever met in a duty with no baked timeline gets an entry, and the
+    // whole config is rewritten on each save - so the store is bounded, dropping
+    // whatever hasn't been seen for longest.
+    private const int MaxLearnedFights = 400;
+
+    private static void Prune(Configuration config)
+    {
+        if (config.LearnedFights.Count <= MaxLearnedFights) return;
+        foreach (var stale in config.LearnedFights
+                     .OrderBy(kv => kv.Value.LastSeen)
+                     .Take(config.LearnedFights.Count - MaxLearnedFights)
+                     .Select(kv => kv.Key)
+                     .ToList())
+            config.LearnedFights.Remove(stale);
     }
 
     // Drop everything learned for one boss (the settings page's per-entry clear).

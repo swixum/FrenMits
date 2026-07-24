@@ -386,15 +386,18 @@ public partial class ConfigWindow : Window, IDisposable
             // Anything that failed quietly (a sheet moving under us on patch day,
             // a status read going stale). Named here so "the recap stopped
             // working" comes with something to report instead of a shrug.
-            if (Swallowed.All() is { Count: > 0 } quiet)
+            // Swallowed.Any is a lock-free read; the list is only built when the
+            // dot is actually hovered, not on every frame this window is open.
+            if (Swallowed.Any)
             {
                 ImGui.SameLine(0, 18);
-                WarnDot($"degraded: {quiet[0].Site} (x{quiet[0].Count})");
+                var worst = Swallowed.Worst();
+                WarnDot($"degraded: {worst.Site} (x{worst.Count})");
                 if (ImGui.IsItemHovered())
                 {
                     var tip = new System.Text.StringBuilder(
                         "These failed and were skipped rather than crashing:\n");
-                    foreach (var e in quiet)
+                    foreach (var e in Swallowed.All())
                         tip.Append($"\n  {e.Site} - {e.Count}x, last: {e.Message}");
                     tip.Append("\n\nFull detail is in /xllog.");
                     ImGui.SetTooltip(tip.ToString());

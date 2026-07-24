@@ -435,4 +435,40 @@ public class TimelineLearnerTests
         Assert.NotNull(fight);
         Assert.All(fight.Lines, l => Assert.DoesNotContain("800", l.Mechanic));
     }
+
+    [Fact]
+    public void TheAveragingStaysAdaptiveAfterManyPulls()
+    {
+        // With an uncapped pull count a boss retuned in a patch would never be
+        // re-learned: the hundredth pull would move the stored time by 1%.
+        var config = new Configuration();
+        for (var i = 0; i < 60; i++)
+            TimelineLearner.Learn(config, 4242, "Test Boss", 1000, Pull(FullPull));
+
+        var before = config.LearnedFights["4242"].Casts.First(c => c.Ability == 100).Time;
+        // The fight gets retuned: the opener now lands 6s later, every pull.
+        for (var i = 0; i < 12; i++)
+            TimelineLearner.Learn(config, 4242, "Test Boss", 1000, Pull(
+                (16f, 100u, "Opener"), (25f, 101u, "Raidwide"), (44f, 102u, "Tank Buster"),
+                (61f, 103u, "Adds"), (95f, 104u, "Enrage")));
+
+        var after = config.LearnedFights["4242"].Casts.First(c => c.Ability == 100).Time;
+        Assert.True(after > before + 3f,
+            $"stuck at {after}s after a dozen pulls of the retuned fight (was {before}s)");
+    }
+
+    [Fact]
+    public void TheStoreIsBounded()
+    {
+        // Every boss in every duty with no baked timeline lands here, and the whole
+        // config is rewritten on each save.
+        var config = new Configuration();
+        for (uint boss = 1; boss <= 460; boss++)
+            TimelineLearner.Learn(config, boss, $"Boss {boss}", 1000, Pull(FullPull));
+
+        Assert.True(config.LearnedFights.Count <= 400,
+            $"{config.LearnedFights.Count} learned fights kept");
+        // What survived should be what was seen most recently.
+        Assert.True(config.LearnedFights.ContainsKey("460"));
+    }
 }

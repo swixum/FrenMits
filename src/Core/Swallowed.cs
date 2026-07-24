@@ -38,7 +38,7 @@ public static class Swallowed
         int count;
         lock (_gate)
         {
-            if (!_sites.TryGetValue(site, out var s)) _sites[site] = s = new Site();
+            if (!_sites.TryGetValue(site, out var s)) { _sites[site] = s = new Site(); _distinctSites = _sites.Count; }
             s.Count++;
             s.Last = DateTime.UtcNow;
             s.Message = ex.Message;
@@ -65,10 +65,28 @@ public static class Swallowed
         }
     }
 
+    // Lock-free so the settings header can ask every frame without paying for a
+    // lock, an allocation and a sort just to decide whether to draw a dot.
+    private static volatile int _distinctSites;
+    public static bool Any => _distinctSites > 0;
+
+    // The worst offender only, so the header's dot costs one short lock rather
+    // than a list and a sort.
+    public static Entry Worst()
+    {
+        lock (_gate)
+        {
+            var best = new Entry("", 0, default, default, "");
+            foreach (var (site, s) in _sites)
+                if (s.Count > best.Count) best = new Entry(site, s.Count, s.First, s.Last, s.Message);
+            return best;
+        }
+    }
+
     public static int TotalCount
     {
         get { lock (_gate) { var n = 0; foreach (var s in _sites.Values) n += s.Count; return n; } }
     }
 
-    public static void Clear() { lock (_gate) _sites.Clear(); }
+    public static void Clear() { lock (_gate) { _sites.Clear(); _distinctSites = 0; } }
 }
