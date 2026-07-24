@@ -124,4 +124,39 @@ public class SlotNameTests
 
         Assert.Same(fight.Lines, fight.SavedSlots[fight.Slot]);
     }
+
+    [Fact]
+    public void LoadingAConfigRestoresTheAliasEvenWithNothingToRename()
+    {
+        // Deserializing gives Lines and the stash SEPARATE lists, so the invariant
+        // the rest of the code is written against ("Lines IS SavedSlots[Slot]") is
+        // false the moment a config is loaded. It used to be repaired only when a
+        // rename also happened, which on an already-standard config is never.
+        var fight = new FightProfile { Slot = "T1" };
+        fight.Lines = new List<MitLine> { Fx.Line(10, "Trine", "Reprisal") };
+        fight.SavedSlots["T1"] = new List<MitLine> { Fx.Line(10, "Trine", "Reprisal") };  // equal, not same
+        Assert.NotSame(fight.Lines, fight.SavedSlots["T1"]);
+
+        var changed = SlotNames.NormalizeFight(fight);
+
+        Assert.Same(fight.Lines, fight.SavedSlots["T1"]);
+        // ...and repairing it must not report a change, or every launch would
+        // rewrite the config for nothing.
+        Assert.False(changed);
+    }
+
+    [Fact]
+    public void EditsCannotBeStrandedAfterALoad()
+    {
+        // The failure the alias exists to prevent: edit the live plan, then have
+        // something read the stash.
+        var fight = new FightProfile { Slot = "T1" };
+        fight.Lines = new List<MitLine> { Fx.Line(10, "Trine", "Reprisal") };
+        fight.SavedSlots["T1"] = new List<MitLine> { Fx.Line(10, "Trine", "Reprisal") };
+
+        SlotNames.NormalizeFight(fight);
+        fight.Lines.Add(Fx.Line(50, "Later", "Rampart"));
+
+        Assert.Equal(2, fight.SavedSlots["T1"].Count);
+    }
 }

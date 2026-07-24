@@ -94,11 +94,19 @@ public static class SlotNames
 
         // The active slot's lines must stay aliased into the stash under the
         // (possibly renamed) key, or the next slot switch would lose edits.
-        if (changed && !string.IsNullOrEmpty(fight.Slot))
+        if (!string.IsNullOrEmpty(fight.Slot))
         {
-            if (fight.SavedSlots.TryGetValue(fight.Slot, out var winner)
+            // A rename collision can leave the fuller plan under the canonical
+            // key; that one wins.
+            if (changed && fight.SavedSlots.TryGetValue(fight.Slot, out var winner)
                 && !ReferenceEquals(winner, fight.Lines) && winner.Count > fight.Lines.Count)
                 fight.Lines = winner;
+            // Re-aliased on EVERY load, not only when a rename happened. Loading
+            // the config deserializes Lines and the stash into SEPARATE lists, so
+            // without this the invariant the rest of the code is written against
+            // is quietly false for the whole session - and an edit path that
+            // mutated Lines then read the stash would lose the edit. Deliberately
+            // does NOT mark the fight changed: nothing needs saving for it.
             fight.SavedSlots[fight.Slot] = fight.Lines;
         }
 
