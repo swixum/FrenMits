@@ -178,14 +178,26 @@ public static class Icons
     public static uint For(MitLine line, string? job = null)
     {
         if (line.IconId != 0) return line.IconId;
-        if (IsPotion(line)) return PotionIcon(PotionStat(line));
-        // Only your segments of a combined call: on a WAR, "Reprisal + Party Mit
-        // (GNB/DRK)" should icon as Reprisal, matching the filtered call text.
-        var action = line.ActionFor(job);
-        var jm = JobMitIcon(action, job);
-        if (jm != 0) return jm;
-        return ResolveFromText(action);
+        // Memoized per (action, mechanic, job): the overlays ask for every
+        // visible call every frame, and the resolution below is all text parsing
+        // over pure inputs (ActionFor depends only on the action text + job).
+        var key = (line.Action, line.Mechanic, job ?? "");
+        if (_forCache.TryGetValue(key, out var cached)) return cached;
+        uint icon;
+        if (IsPotion(line)) icon = PotionIcon(PotionStat(line));
+        else
+        {
+            // Only your segments of a combined call: on a WAR, "Reprisal + Party Mit
+            // (GNB/DRK)" should icon as Reprisal, matching the filtered call text.
+            var action = line.ActionFor(job);
+            var jm = JobMitIcon(action, job);
+            icon = jm != 0 ? jm : ResolveFromText(action);
+        }
+        _forCache[key] = icon;
+        return icon;
     }
+
+    private static readonly Dictionary<(string Action, string Mech, string Job), uint> _forCache = new();
 
     // Generic mit terms -> the per-job ability whose icon to show, so a single
     // "Party Mit" line renders the right party-mitigation icon for whoever's looking.
@@ -247,6 +259,19 @@ public static class Icons
     public static string DisplayAction(string action, string? job)
     {
         if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return action;
+        // Memoized: the board calls this per row per frame, and the regex pass
+        // below is pure text work over (action, job).
+        var key = (action, job!);
+        if (_displayCache.TryGetValue(key, out var cached)) return cached;
+        var resolved = DisplayActionUncached(action, job);
+        _displayCache[key] = resolved;
+        return resolved;
+    }
+
+    private static readonly Dictionary<(string Action, string Job), string> _displayCache = new();
+
+    private static string DisplayActionUncached(string action, string? job)
+    {
         foreach (var (term, map) in JobMits)
         {
             if (!map.TryGetValue(job!, out var ability)) continue;

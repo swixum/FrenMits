@@ -785,17 +785,36 @@ public partial class ConfigWindow : Window, IDisposable
         return "Other";
     }
 
+    // Quick filter for the fights pages, shared across categories so a search
+    // follows you between tabs.
+    private string _fightFilter = "";
+
     private void DrawFightCategoryPage(string category)
     {
         var fights = C.Fights.Where(f => CategoryOf(f) == category).ToList();
 
         SeparatorText($"{category}: {fights.Count} fight{(fights.Count == 1 ? "" : "s")}");
         DrawCategoryToolbar(category);
+        // Type-to-narrow, matching Sheet View's duty search - with many custom
+        // sheets the list outgrows scrolling fast.
+        ImGui.SetNextItemWidth(240f);
+        ImGui.InputTextWithHint("##fightfilter", "Search fights...", ref _fightFilter, 64);
+        var filter = _fightFilter.Trim();
+        if (filter.Length > 0)
+        {
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Clear##fightfilter")) { _fightFilter = ""; filter = ""; }
+        }
         ImGui.Spacing();
+
+        if (filter.Length > 0)
+            fights = fights.Where(f => f.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (fights.Count == 0)
         {
-            ImGui.TextDisabled("No fights here yet. Add one above, or load a preset.");
+            ImGui.TextDisabled(filter.Length > 0
+                ? "No fights here match the search."
+                : "No fights here yet. Add one above, or load a preset.");
             return;
         }
 
@@ -1122,7 +1141,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
         if (ImGui.Button("Reset every column", new Vector2(180, 0)))
         {
-            _plugin.SnapshotPlan(fight, "before Reset all columns");
+            _plugin.Snapshots.Save(fight, "before Reset all columns");
             fight.SavedSlots.Clear();
             fight.DeletedCalls.Clear();
             Builtin.ResetSlot(fight, slot);
@@ -1257,7 +1276,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3333DD);
         if (ImGui.Button("Delete", new Vector2(120, 0)))
         {
-            _plugin.SnapshotPlan(fight, "before delete");
+            _plugin.Snapshots.Save(fight, "before delete");
             confirmed = true;
             ImGui.CloseCurrentPopup();
         }
@@ -1387,7 +1406,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Dummy(box);
     }
 
-    private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
+    private static string Mmss(float t) => Fmt.MmssFloor(t);
 
     // Custom sheets: the same "Your slot" row the built-in fights get, so a
     // custom fight reads exactly like an official one on its page.
@@ -1456,7 +1475,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
         if (ImGui.Button("Empty this column", new Vector2(160, 0)))
         {
-            _plugin.SnapshotPlan(fight, $"before reset {slot}");
+            _plugin.Snapshots.Save(fight, $"before reset {slot}");
             ClearCustomColumn(fight, slot);
             C.Save();
             _plugin.SheetViewWindow.MarkPlanDirty();
@@ -1486,7 +1505,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
         if (ImGui.Button("Empty every column", new Vector2(170, 0)))
         {
-            _plugin.SnapshotPlan(fight, "before reset all columns");
+            _plugin.Snapshots.Save(fight, "before reset all columns");
             fight.Lines.Clear();
             foreach (var saved in fight.SavedSlots.Values) saved.Clear();
             C.Save();

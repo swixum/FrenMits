@@ -406,7 +406,7 @@ public class RecapWindow : Window
         {
             if (MathF.Abs(e.Time - t0) > 15f) continue;
             applied.Add(e.Mit.Trim());
-            foreach (var pm in Cooldowns.PlanMits(e.Mit)) applied.Add(pm.Name);
+            foreach (var pm in Cooldowns.PlanMitsCached(e.Mit)) applied.Add(pm.Name);
             foreach (var (part, canon) in MitRecap.StatusAliases)
                 if (e.Mit.Contains(part, StringComparison.OrdinalIgnoreCase)) applied.Add(canon);
         }
@@ -419,7 +419,7 @@ public class RecapWindow : Window
 
         var missing = new List<string>();
         foreach (var (slot, line) in PlannedLinesNear(fight, t0, _plugin.ActiveJobAbbreviation()))
-            foreach (var pm in Cooldowns.PlanMits(line.Action))
+            foreach (var pm in Cooldowns.PlanMitsCached(line.Action))
             {
                 if (applied.Contains(pm.Name)) continue;
                 if (MitRecap.DeltaBlind.Contains(pm.Name)) continue;
@@ -659,7 +659,7 @@ public class RecapWindow : Window
         return best?.Mechanic.Trim() ?? "";
     }
 
-    private static string Mmss(float t) => $"{(int)t / 60}:{(int)t % 60:00}";
+    private static string Mmss(float t) => Fmt.MmssFloor(t);
 
     private static bool Button(string label) => ImGui.Button(label);
 }

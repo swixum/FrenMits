@@ -13,9 +13,7 @@ public class CombatTimerWindow : Window
     private Configuration C => _plugin.Config;
     private bool _applyPos = true;
 
-    // Locked for real if you ticked the lock OR you're in a live pull (but not
-    // while previewing) - combat always pins it so it can't be grabbed mid-fight.
-    private bool EffectiveLocked => C.CombatTimerLocked || (Plugin.InCombat && !C.TestMode);
+    private bool EffectiveLocked => OverlayChrome.Locked(C.CombatTimerLocked, C);
 
     public CombatTimerWindow(Plugin plugin) : base("FrenMits Combat Timer##combattimer")
     {
@@ -44,11 +42,7 @@ public class CombatTimerWindow : Window
         if (C.CombatTimerShowBackground)
             ImGui.PushStyleColor(ImGuiCol.WindowBg, C.CombatTimerBackgroundColor);
 
-        var vp = ImGui.GetMainViewport();
-        var pos = vp.WorkPos + C.CombatTimerPosition * vp.WorkSize;
-        pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
-        if (EffectiveLocked) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = true; }
-        else if (_applyPos) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = false; }
+        OverlayChrome.ApplyPosition(C.CombatTimerPosition, EffectiveLocked, ref _applyPos);
     }
 
     public override void PostDraw()
@@ -74,25 +68,14 @@ public class CombatTimerWindow : Window
 
         using var _ = PushFont(C.CombatTimerFontSizePx);
         ImGui.PushStyleColor(ImGuiCol.Text, C.CombatTimerColor);
-        ImGui.TextUnformatted(Format(secs));
+        ImGui.TextUnformatted(Fmt.MmssFloor(MathF.Max(0f, secs)));
         ImGui.PopStyleColor();
-    }
-
-    private static string Format(float seconds)
-    {
-        if (seconds < 0f) seconds = 0f;
-        var total = (int)seconds;
-        return $"{total / 60}:{total % 60:D2}";
     }
 
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
-        var vp = ImGui.GetMainViewport();
-        var cur = ImGui.GetWindowPos();
-        var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);
-        var frac = (center - vp.WorkPos) / vp.WorkSize;
-        if ((frac - C.CombatTimerPosition).LengthSquared() > 0.0000001f) { C.CombatTimerPosition = frac; _posDirty = true; }
+        if (OverlayChrome.MovedCenterFrac(C.CombatTimerPosition) is { } frac) { C.CombatTimerPosition = frac; _posDirty = true; }
         // ONE disk write when the drag ends - not sixty full-config saves a
         // second while the window is being moved.
         if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
@@ -101,12 +84,5 @@ public class CombatTimerWindow : Window
     private bool _posDirty;
 
     private IDisposable PushFont(float sizePx)
-    {
-        var handle = _plugin.Fonts.Get(sizePx, C.CombatTimerFontFamily, C.CombatTimerFontBold, C.CombatTimerFontItalic);
-        if (handle is { Available: true }) return handle.Push();
-        ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
-        return new Reset();
-    }
-
-    private sealed class Reset : IDisposable { public void Dispose() => ImGui.SetWindowFontScale(1f); }
+        => OverlayChrome.PushFont(_plugin.Fonts, sizePx, C.CombatTimerFontFamily, C.CombatTimerFontBold, C.CombatTimerFontItalic);
 }

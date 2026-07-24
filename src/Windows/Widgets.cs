@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 
@@ -62,6 +63,26 @@ internal static class Widgets
         dl.AddText(p + pad, Theme.Muted, label);
         dl.AddText(p + pad + new Vector2(lSz.X + 5, 0), valueColor, value);
         return clicked;
+    }
+
+    // One number control that does both: drag left/right to adjust, or
+    // double-click / Ctrl+click to type the exact value. Typed values clamp to
+    // the range. A hover hint teaches the typing; a caller's Tip() on the same
+    // control simply overrides it.
+    public static bool SliderInput(string label, ref float v, float min, float max, string fmt, float width = 150f)
+    {
+        ImGui.SetNextItemWidth(width);
+        var changed = ImGui.DragFloat(label, ref v, MathF.Max(0.001f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
+        return changed;
+    }
+
+    public static bool SliderInput(string label, ref int v, int min, int max, string fmt = "%d", float width = 150f)
+    {
+        ImGui.SetNextItemWidth(width);
+        var changed = ImGui.DragInt(label, ref v, MathF.Max(0.05f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
+        return changed;
     }
 
     // Accent-filled button (white label), for the one primary action in a

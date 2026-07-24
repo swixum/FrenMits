@@ -71,12 +71,10 @@ public partial class ConfigWindow
             ImGui.TextDisabled(C.CombatTimerLocked ? "(unlock to drag)" : "(drag it, or use the sliders; auto-locks in combat)");
 
             var pos = C.CombatTimerPosition;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
+            if (Widgets.SliderInput("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
             { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
             ImGui.SameLine(0, 18);
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
+            if (Widgets.SliderInput("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
             { C.CombatTimerPosition = pos; C.Save(); _plugin.CombatTimerWindow.RequestReposition(); }
             ImGui.SameLine(0, 12);
             if (ImGui.SmallButton("Center top"))
@@ -107,8 +105,7 @@ public partial class ConfigWindow
                 ImGui.TextDisabled("(pick a font)");
             }
             var px = C.CombatTimerFontSizePx;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Text size", ref px, 12f, 120f, "%.0f px")) { C.CombatTimerFontSizePx = px; C.Save(); }
+            if (Widgets.SliderInput("Text size", ref px, 12f, 120f, "%.0f px")) { C.CombatTimerFontSizePx = px; C.Save(); }
             ImGui.EndTabItem();
         }
 
@@ -134,36 +131,16 @@ public partial class ConfigWindow
 
     private void DrawDisplayTab()
     {
-        // One-click reset of everything on this tab; to preview while you adjust,
+        // One-click reset of everything on this page; to preview while you adjust,
         // use the "Test" toggle in the header (always visible).
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this tab to defaults.");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this page to defaults.");
 
+        // Tabs by concern, with every center-call tab scoped to the CENTER CALL
+        // only - the board, timer, and recap keep their own sidebar pages, and
+        // the shared timing and small extra readouts get tabs of their own
+        // (previously the "Content" tab mixed all of them together).
         if (!ImGui.BeginTabBar("##displaytabs", ImGuiTabBarFlags.None)) return;
-
-        if (ImGui.BeginTabItem("General"))
-        {
-            ImGui.Spacing();
-            SeparatorText("Accessibility");
-            C.ColorblindMode = CfgCheck("Colorblind-safe status colors", C.ColorblindMode);
-            Theme.Colorblind = C.ColorblindMode; // keep the live palette in sync with the setting
-            Tip("Swaps the green / amber / red status colors (recap, coverage counts, plan check) "
-                + "for an Okabe-Ito set - bluish-green, orange, reddish-purple - that stays distinct "
-                + "under the common forms of color blindness.");
-
-            ImGui.Spacing();
-            SeparatorText("Timing");
-            var warn = C.WarningSeconds;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Show ahead", ref warn, 1f, 12f, "%.1fs")) { C.WarningSeconds = warn; C.Save(); }
-            Tip("How early a call appears before its mit time. Per-line leads override this.");
-            ImGui.SameLine(0, 18);
-            var hold = C.HoldSeconds;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.Save(); }
-            Tip("How long a call stays up after its time passes.");
-            ImGui.EndTabItem();
-        }
 
         if (ImGui.BeginTabItem("Placement"))
         {
@@ -173,12 +150,10 @@ public partial class ConfigWindow
             ImGui.TextDisabled(C.OverlayLocked ? "(unlock to drag)" : "(drag it, or use the sliders; auto-locks in combat)");
 
             var pos = C.OverlayPosition;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
+            if (Widgets.SliderInput("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
             { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
             ImGui.SameLine(0, 18);
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
+            if (Widgets.SliderInput("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
             { C.OverlayPosition = pos; C.Save(); _plugin.OverlayWindow.RequestReposition(); }
             ImGui.SameLine(0, 12);
             if (ImGui.SmallButton("Center"))
@@ -186,6 +161,45 @@ public partial class ConfigWindow
                 C.OverlayPosition = new Vector2(0.5f, 0.35f);
                 C.Save();
                 _plugin.OverlayWindow.RequestReposition();
+            }
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Style"))
+        {
+            ImGui.Spacing();
+            {
+                ImGui.SetNextItemWidth(220f);
+                var style = C.OverlayStyle;
+                if (ImGui.Combo("Call style", ref style,
+                        "Classic (centered text)\0Board (timeline look)\0Icon + clock\0"))
+                { C.OverlayStyle = style; C.Save(); }
+                Tip("How the center call is drawn. Board matches the timeline; Icon + clock shows just the ability icon with a countdown that sweeps away like a cooldown.");
+            }
+            if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
+            {
+                C.ShowAbilityIcon = GridCheck("Ability icon", C.ShowAbilityIcon,
+                    "Matched from the action name; pin one per line with the \"...\" button.");
+                C.ShowRadialRing = GridCheck("Radial ring", C.ShowRadialRing,
+                    "A depleting countdown ring around the call icon.");
+                C.ShowMechanicLine = GridCheck("Mechanic 2nd line", C.ShowMechanicLine);
+                C.ShowCountdownNumber = GridCheck("Countdown number", C.ShowCountdownNumber);
+                C.TextShadow = GridCheck("Drop shadow", C.TextShadow,
+                    "Improves readability over busy backgrounds.");
+                C.CooldownAwareCalls = GridCheck("Cooldown warnings", C.CooldownAwareCalls,
+                    "Reddens the main call ([CD Ns]) and dims it in the upcoming list when your mit is still on cooldown past the call time. Your job's mits only.");
+                ImGui.EndTable();
+            }
+            if (ImGui.TreeNode("Advanced format"))
+            {
+                var fmt = C.HeadlineFormat;
+                ImGui.SetNextItemWidth(280f);
+                if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.Save(); }
+                ImGui.TextDisabled("Placeholders: {action} {mechanic} {time} {count} {remaining}");
+                var suffix = C.ActiveSuffix;
+                ImGui.SetNextItemWidth(280f);
+                if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.Save(); }
+                ImGui.TreePop();
             }
             ImGui.EndTabItem();
         }
@@ -209,100 +223,16 @@ public partial class ConfigWindow
                 ImGui.TextDisabled("(pick a font)");
             }
             var callPx = C.OverlayFontSizePx;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Call size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
+            if (Widgets.SliderInput("Call size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.Save(); }
             ImGui.SameLine(0, 18);
             var align = C.OverlayTextAlign;
             ImGui.SetNextItemWidth(110f);
             if (ImGui.Combo("Align", ref align, new[] { "Left", "Center", "Right" }, 3))
             { C.OverlayTextAlign = align; C.Save(); }
-            // The timeline's own text size + color live with the timeline toggle in
-            // the "Next-mits timeline" section below.
             if (C.ShowAbilityIcon)
             {
                 var iconScale = C.IconScale;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderFloat("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
-            }
-            ImGui.EndTabItem();
-        }
-
-        if (ImGui.BeginTabItem("Content"))
-        {
-            ImGui.Spacing();
-            if (ImGui.TreeNode("Advanced format"))
-            {
-                var fmt = C.HeadlineFormat;
-                ImGui.SetNextItemWidth(280f);
-                if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.Save(); }
-                ImGui.TextDisabled("Placeholders: {action} {mechanic} {time} {count} {remaining}");
-                var suffix = C.ActiveSuffix;
-                ImGui.SetNextItemWidth(280f);
-                if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.Save(); }
-                ImGui.TreePop();
-            }
-
-            ImGui.Spacing();
-            {
-                ImGui.SetNextItemWidth(220f);
-                var style = C.OverlayStyle;
-                if (ImGui.Combo("Call style", ref style,
-                        "Classic (centered text)\0Board (timeline look)\0Icon + clock\0"))
-                { C.OverlayStyle = style; C.Save(); }
-                Tip("How the center call is drawn. Board matches the timeline; Icon + clock shows just the ability icon with a countdown that sweeps away like a cooldown.");
-            }
-            if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
-            {
-                C.ShowAbilityIcon = GridCheck("Ability icon", C.ShowAbilityIcon,
-                    "Matched from the action name; pin one per line with the \"...\" button.");
-                C.ShowRadialRing = GridCheck("Radial ring", C.ShowRadialRing,
-                    "A depleting countdown ring around the call icon.");
-                C.ShowMechanicLine = GridCheck("Mechanic 2nd line", C.ShowMechanicLine);
-                C.ShowCountdownNumber = GridCheck("Countdown number", C.ShowCountdownNumber);
-                C.TextShadow = GridCheck("Drop shadow", C.TextShadow,
-                    "Improves readability over busy backgrounds.");
-                C.CooldownAwareCalls = GridCheck("Cooldown warnings", C.CooldownAwareCalls,
-                    "Reddens the main call ([CD Ns]) and dims it in the upcoming list when your mit is still on cooldown past the call time. Your job's mits only.");
-                C.ShowDtrBar = GridCheck("Server-bar next mit", C.ShowDtrBar,
-                    "Shows the next mit on the server-info bar.");
-                C.ShowMitBar = GridCheck("Active-mits bar", C.ShowMitBar,
-                    "A row of your active defensive buffs with seconds remaining, tinted by mit type.");
-                ImGui.EndTable();
-            }
-
-            // Cooldown timing with the prep-text option indented beneath it (out of
-            // the toggle grid so it can group), independent since the prep text works
-            // as its own switch and stays shown whether or not auto timing is on.
-            var autoWas = C.AutoCooldownTiming;
-            C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
-            if (autoWas != C.AutoCooldownTiming)
-            {
-                // Turning it OFF wipes every offset the solver wrote (leaving your
-                // hand-set ones); turning it ON re-times the active plan right away.
-                if (!C.AutoCooldownTiming) _plugin.ClearSolvedOffsets();
-                else _plugin.AutoTime(_plugin.ActiveFight());
-                C.Save();
-            }
-            Tip("On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone; turning this off erases the auto ones.");
-            ImGui.Indent(20f);
-            if (C.AutoCooldownTiming)
-            {
-                var cdLead = C.CooldownLeadSeconds;
-                ImGui.SetNextItemWidth(200f);
-                if (ImGui.SliderFloat("Press window", ref cdLead, 2f, 8f, "%.1f s"))
-                { C.CooldownLeadSeconds = cdLead; C.Save(); }
-                if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.AutoTime(_plugin.ActiveFight());
-                Tip("How long an auto-timed cooldown call shows before you must press it - your reaction window. The press keeps this much buff in reserve, so hitting it anywhere in the window still covers the mechanic. Bigger = pops earlier and more relaxed.");
-            }
-            C.PrepAlerts = Toggle("Prep window text", C.PrepAlerts);
-            Tip("Adds a \"(use between X and Y)\" line under the main call when a press is pulled early to stay up for a later mechanic. Text only; the early timing still happens either way. Off by default.");
-            ImGui.Unindent(20f);
-
-            if (C.ShowMitBar)
-            {
-                var locked = C.MitBarLocked;
-                if (GreenCheckbox("Lock active-mits position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
-                ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
+                if (Widgets.SliderInput("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.Save(); }
             }
             ImGui.EndTabItem();
         }
@@ -343,22 +273,17 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Box & bar"))
+        if (ImGui.BeginTabItem("Bar & box"))
         {
             ImGui.Spacing();
-            SeparatorText("Countdown bar");
             C.ShowProgressBar = CfgCheck("Countdown bar under the call", C.ShowProgressBar);
             if (C.ShowProgressBar)
             {
                 ImGui.SameLine(0, 14);
                 var barH = C.ProgressBarHeight;
-                ImGui.SetNextItemWidth(140f);
-                if (ImGui.SliderFloat("Height", ref barH, 2f, 24f, "%.0f px")) { C.ProgressBarHeight = barH; C.Save(); }
+                if (Widgets.SliderInput("Height", ref barH, 2f, 24f, "%.0f px", width: 140f)) { C.ProgressBarHeight = barH; C.Save(); }
             }
             C.PulseWhenImminent = CfgCheck("Pulse the text in the last second", C.PulseWhenImminent);
-
-            ImGui.Spacing();
-            SeparatorText("Background");
             C.ShowBackground = CfgCheck("Draw a background box", C.ShowBackground);
             if (C.ShowBackground)
             {
@@ -367,6 +292,73 @@ public partial class ConfigWindow
                 if (ImGui.ColorEdit4("Color##overlaybg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.BackgroundColor = Vec4ToColor(bg); C.Save(); }
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Timing"))
+        {
+            ImGui.Spacing();
+            var warn = C.WarningSeconds;
+            if (Widgets.SliderInput("Show ahead", ref warn, 1f, 12f, "%.1fs")) { C.WarningSeconds = warn; C.Save(); }
+            Tip("How early a call appears before its mit time. Per-line leads override this.");
+            ImGui.SameLine(0, 18);
+            var hold = C.HoldSeconds;
+            if (Widgets.SliderInput("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.Save(); }
+            Tip("How long a call stays up after its time passes.");
+
+            var autoWas = C.AutoCooldownTiming;
+            C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
+            if (autoWas != C.AutoCooldownTiming)
+            {
+                // Turning it OFF wipes every offset the solver wrote (leaving your
+                // hand-set ones); turning it ON re-times the active plan right away.
+                if (!C.AutoCooldownTiming) _plugin.ClearSolvedOffsets();
+                else _plugin.AutoTime(_plugin.ActiveFight());
+                C.Save();
+            }
+            Tip("On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone; turning this off erases the auto ones.");
+            ImGui.Indent(20f);
+            if (C.AutoCooldownTiming)
+            {
+                var cdLead = C.CooldownLeadSeconds;
+                if (Widgets.SliderInput("Press window", ref cdLead, 2f, 8f, "%.1f s", width: 200f))
+                { C.CooldownLeadSeconds = cdLead; C.Save(); }
+                if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.AutoTime(_plugin.ActiveFight());
+                Tip("How long an auto-timed cooldown call shows before you must press it - your reaction window. The press keeps this much buff in reserve, so hitting it anywhere in the window still covers the mechanic. Bigger = pops earlier and more relaxed.");
+            }
+            C.PrepAlerts = Toggle("Prep window text", C.PrepAlerts);
+            Tip("Adds a \"(use between X and Y)\" line under the main call when a press is pulled early to stay up for a later mechanic. Text only; the early timing still happens either way. Off by default.");
+            ImGui.Unindent(20f);
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Extras"))
+        {
+            ImGui.Spacing();
+            SeparatorText("Extra readouts");
+            C.ShowDtrBar = CfgCheck("Server-bar next mit", C.ShowDtrBar);
+            Tip("Shows the next mit on the server-info bar.");
+            C.ShowMitBar = CfgCheck("Active-mits bar", C.ShowMitBar);
+            Tip("A row of your active defensive buffs with seconds remaining, tinted by mit type.");
+            if (C.ShowMitBar)
+            {
+                ImGui.Indent(20f);
+                var locked = C.MitBarLocked;
+                if (GreenCheckbox("Lock position", ref locked)) { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.Save(); }
+                ImGui.SameLine();
+                ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
+                var mbPx = C.MitBarFontSizePx;
+                if (Widgets.SliderInput("Text size##mitbar", ref mbPx, 10f, 48f, "%.0f px")) { C.MitBarFontSizePx = mbPx; C.Save(); }
+                ImGui.Unindent(20f);
+            }
+
+            ImGui.Spacing();
+            SeparatorText("Accessibility");
+            C.ColorblindMode = CfgCheck("Colorblind-safe status colors", C.ColorblindMode);
+            Theme.Colorblind = C.ColorblindMode; // keep the live palette in sync with the setting
+            Tip("Swaps the green / amber / red status colors (recap, coverage counts, plan check) "
+                + "for an Okabe-Ito set - bluish-green, orange, reddish-purple - that stays distinct "
+                + "under the common forms of color blindness.");
             ImGui.EndTabItem();
         }
 
@@ -408,11 +400,9 @@ public partial class ConfigWindow
 
         // Precise placement too, for anyone who'd rather not drag.
         var tpos = C.TimelinePosition;
-        ImGui.SetNextItemWidth(150f);
-        if (ImGui.SliderFloat("Horizontal##tl", ref tpos.X, 0f, 1f, "%.2f")) { C.TimelinePosition = tpos; C.Save(); }
+        if (Widgets.SliderInput("Horizontal##tl", ref tpos.X, 0f, 1f, "%.2f")) { C.TimelinePosition = tpos; C.Save(); }
         ImGui.SameLine(0, 18);
-        ImGui.SetNextItemWidth(150f);
-        if (ImGui.SliderFloat("Vertical##tl", ref tpos.Y, 0f, 1f, "%.2f")) { C.TimelinePosition = tpos; C.Save(); }
+        if (Widgets.SliderInput("Vertical##tl", ref tpos.Y, 0f, 1f, "%.2f")) { C.TimelinePosition = tpos; C.Save(); }
 
         if (_nextMitsPreview) _plugin.TimelineWindow.PingScreenPreview();
         ImGui.Spacing();
@@ -439,22 +429,18 @@ public partial class ConfigWindow
             if (boardStyle)
             {
                 var brows = C.UpcomingBoardRows;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderInt("Rows", ref brows, 3, 12)) { C.UpcomingBoardRows = brows; C.Save(); }
+                if (Widgets.SliderInput("Rows", ref brows, 3, 12)) { C.UpcomingBoardRows = brows; C.Save(); }
                 ImGui.SameLine(0, 18);
                 var blook = C.UpcomingBoardLookaheadSeconds;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderFloat("Look-ahead", ref blook, 15f, 180f, "%.0fs")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
+                if (Widgets.SliderInput("Look-ahead", ref blook, 15f, 180f, "%.0fs")) { C.UpcomingBoardLookaheadSeconds = blook; C.Save(); }
                 HelpMarker("How many bars at once, and how far ahead the board looks: bars are full at that edge, empty at the hit.");
 
                 ImGui.Spacing();
                 var bw = C.UpcomingBoardWidth;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderFloat("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
+                if (Widgets.SliderInput("Bar width", ref bw, 220f, 560f, "%.0f px")) { C.UpcomingBoardWidth = bw; C.Save(); }
                 ImGui.SameLine(0, 18);
                 var upPx = C.UpcomingFontSizePx;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderFloat("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+                if (Widgets.SliderInput("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
 
                 ImGui.Spacing();
                 C.UpcomingBoardOnlyMine = CfgCheck("Only hits I have a press for", C.UpcomingBoardOnlyMine);
@@ -480,16 +466,13 @@ public partial class ConfigWindow
             else
             {
                 var count = C.UpcomingCount;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderInt("Lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
+                if (Widgets.SliderInput("Lines", ref count, 1, 8)) { C.UpcomingCount = count; C.Save(); }
                 ImGui.SameLine(0, 18);
                 var look = C.UpcomingLookaheadSeconds;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderFloat("Look-ahead", ref look, 5f, 90f, "%.0fs")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
+                if (Widgets.SliderInput("Look-ahead", ref look, 5f, 90f, "%.0fs")) { C.UpcomingLookaheadSeconds = look; C.Save(); }
 
                 var upPx = C.UpcomingFontSizePx;
-                ImGui.SetNextItemWidth(150f);
-                if (ImGui.SliderFloat("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
+                if (Widgets.SliderInput("Text size", ref upPx, 10f, 60f, "%.0f px")) { C.UpcomingFontSizePx = upPx; C.Save(); }
                 ImGui.SameLine(0, 18);
                 var upCol = ColorToVec4(C.OverlayColorUpcoming);
                 if (ImGui.ColorEdit4("Text color", ref upCol, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorUpcoming = Vec4ToColor(upCol); C.Save(); }
@@ -522,22 +505,18 @@ public partial class ConfigWindow
 
             ImGui.Spacing();
             var op = (int)MathF.Round(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 100f);
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderInt("Opacity", ref op, 0, 100, "%d%%")) { C.UpcomingBoardBgOpacity = op / 100f; C.Save(); }
+            if (Widgets.SliderInput("Opacity", ref op, 0, 100, "%d%%")) { C.UpcomingBoardBgOpacity = op / 100f; C.Save(); }
             ImGui.SameLine(0, 18);
             var pad = C.UpcomingBoardBarPad;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Thickness", ref pad, 2f, 24f, "+%.0f px")) { C.UpcomingBoardBarPad = pad; C.Save(); }
+            if (Widgets.SliderInput("Thickness", ref pad, 2f, 24f, "+%.0f px")) { C.UpcomingBoardBarPad = pad; C.Save(); }
 
             ImGui.Spacing();
             var gap = C.UpcomingBoardRowGap;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Row spacing", ref gap, -8f, 16f, "%.0f px")) { C.UpcomingBoardRowGap = gap; C.Save(); }
+            if (Widgets.SliderInput("Row spacing", ref gap, -8f, 16f, "%.0f px")) { C.UpcomingBoardRowGap = gap; C.Save(); }
             HelpMarker("Below zero pulls the bars into each other for an overlapped look.");
             ImGui.SameLine(0, 18);
             var rnd = C.UpcomingBoardRounding;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderFloat("Rounding", ref rnd, 0f, 12f, "%.0f px")) { C.UpcomingBoardRounding = rnd; C.Save(); }
+            if (Widgets.SliderInput("Rounding", ref rnd, 0f, 12f, "%.0f px")) { C.UpcomingBoardRounding = rnd; C.Save(); }
 
             ImGui.Spacing();
             C.UpcomingBoardStripe = CfgCheck("Accent stripe on the left edge", C.UpcomingBoardStripe);
@@ -686,12 +665,10 @@ public partial class ConfigWindow
             }
 
             var rate = C.TtsRate;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderInt("Speed", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
+            if (Widgets.SliderInput("Speed", ref rate, -10, 10)) { C.TtsRate = rate; C.Save(); }
             ImGui.SameLine(0, 18);
             var vol = C.TtsVolume;
-            ImGui.SetNextItemWidth(150f);
-            if (ImGui.SliderInt("Volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
+            if (Widgets.SliderInput("Volume", ref vol, 0, 100)) { C.TtsVolume = vol; C.Save(); }
 
             ImGui.Spacing();
             var mech = C.TtsSpeakMechanic;
@@ -703,8 +680,7 @@ public partial class ConfigWindow
             if (ImGui.TreeNode("Advanced"))
             {
                 var gap = C.TtsMinGapSeconds;
-                ImGui.SetNextItemWidth(220f);
-                if (ImGui.SliderFloat("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f")) { C.TtsMinGapSeconds = gap; C.Save(); }
+                if (Widgets.SliderInput("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f", width: 220f)) { C.TtsMinGapSeconds = gap; C.Save(); }
                 Tip("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
                 ImGui.TreePop();
             }
@@ -904,14 +880,7 @@ public partial class ConfigWindow
     {
         try
         {
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(fight);
-            // FRENMITS2 = gzip-compressed, so a full raid plan is a much shorter,
-            // paste-friendly code to share (FRENMITS1 plain base64 still imports).
-            var raw = System.Text.Encoding.UTF8.GetBytes(json);
-            using var ms = new System.IO.MemoryStream();
-            using (var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionLevel.Optimal))
-                gz.Write(raw, 0, raw.Length);
-            ImGui.SetClipboardText("FRENMITS2:" + Convert.ToBase64String(ms.ToArray()));
+            ImGui.SetClipboardText(PlanCodes.Encode(fight));
             FlashBuiltin("Plan code copied to clipboard.");
         }
         catch (Exception ex)
@@ -920,11 +889,11 @@ public partial class ConfigWindow
         }
     }
 
-    // Decode + merge live in Plugin.ImportPlanCode (shared with the Sheet View's
+    // Decode + merge live in PlanCodes.Import (shared with the Sheet View's
     // Import button); this wrapper adds the fight-page niceties on top.
     private void ImportFightFromClipboard()
     {
-        var (fight, isNew, message) = _plugin.ImportPlanCode(ImGui.GetClipboardText());
+        var (fight, isNew, message) = PlanCodes.Import(_plugin, ImGui.GetClipboardText());
         if (fight != null && isNew)
         {
             // Drop it into the category you're currently viewing and expand it.

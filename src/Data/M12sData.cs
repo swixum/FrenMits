@@ -1,6 +1,6 @@
 // AUTO-GENERATED from the M12S (Lindwurm) mitigation sheet, with Phase 2 shifted
-// by Phase2Offset onto the single continuous clock and no resync ability ids yet,
-// so the clock free-runs (tune Phase2Offset or use /fm sync if Phase 2 drifts).
+// by Phase2Offset onto the single continuous clock. Resync anchors from the
+// cactbot r12s timeline (SyncPoints below) snap the clock on Lindwurm's casts.
 using System;
 using System.Collections.Generic;
 
@@ -10,7 +10,9 @@ public static class M12sData
 {
     public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
-    // Seconds from pull that Phase 2's 0:00 lands on (estimate, adjust to taste).
+    // Seconds from pull that Phase 2's 0:00 lands on. Already baked into every
+    // P2 row and anchor time below, so never tune it alone - the rows and the
+    // runtime offset must move together (regenerate the file instead).
     public const int Phase2Offset = 420;
 
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions);

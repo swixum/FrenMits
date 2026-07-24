@@ -52,6 +52,10 @@ public static class Cooldowns
         _byName = map;
     }
 
+    // actionText -> resolved action id (0 = not a tracked mit), memoized because
+    // the cooldown-aware call check asks per frame and the map is static.
+    private static readonly Dictionary<string, uint> _idByText = new(StringComparer.Ordinal);
+
     // Seconds until the mit referenced by `actionText` is ready, or null if it
     // isn't a tracked mit / can't be read.
     public static float? Remaining(string? actionText)
@@ -62,9 +66,12 @@ public static class Cooldowns
             EnsureMap();
             if (_byName == null || _byName.Count == 0) return null;
 
-            uint id = 0;
-            foreach (var kv in _byName)
-                if (actionText!.Contains(kv.Key, StringComparison.OrdinalIgnoreCase)) { id = kv.Value; break; }
+            if (!_idByText.TryGetValue(actionText!, out var id))
+            {
+                foreach (var kv in _byName)
+                    if (actionText!.Contains(kv.Key, StringComparison.OrdinalIgnoreCase)) { id = kv.Value; break; }
+                _idByText[actionText!] = id;
+            }
             if (id == 0) return null;
 
             return RecastRemaining(id);
@@ -187,9 +194,27 @@ public static class Cooldowns
         catch { return 0; }
     }
 
+    // PlanMits results per action text, memoized because the overlays ask per
+    // frame and the plan map is static game data (entries never go stale).
+    private static readonly Dictionary<string, List<PlanMit>> _planMitsByText = new(StringComparer.Ordinal);
+    private static readonly PlanMit[] _noPlanMits = Array.Empty<PlanMit>();
+
+    // Cached PlanMits for per-frame callers: the same results with no dictionary
+    // re-scan and no allocation after the first ask for a given action text.
+    public static IReadOnlyList<PlanMit> PlanMitsCached(string? actionText)
+    {
+        if (string.IsNullOrWhiteSpace(actionText)) return _noPlanMits;
+        if (_planMitsByText.TryGetValue(actionText!, out var hit)) return hit;
+        var list = new List<PlanMit>(PlanMits(actionText));
+        // Never memoize a miss caused by the plan map failing to build.
+        if (_planByName is { Count: > 0 }) _planMitsByText[actionText!] = list;
+        return list;
+    }
+
     // Every tracked mit referenced in an action text ("Sacred Soil + Spreadlo"
     // yields Sacred Soil), with its full recast and charge count from the game
-    // sheets.
+    // sheets. One-shot callers (solver, auto-plan, sheet rebuild) use this
+    // directly; per-frame callers go through PlanMitsCached.
     public static IEnumerable<PlanMit> PlanMits(string? actionText)
     {
         if (string.IsNullOrWhiteSpace(actionText)) yield break;

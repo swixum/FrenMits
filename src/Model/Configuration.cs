@@ -45,9 +45,50 @@ public class Configuration : IPluginConfiguration
 
     // logs API client credentials (the user creates a client once at
     // fflogs.com/api/clients); used by Sheet View's "Import log" to turn a
-    // report's casts into rows + anchors.
+    // report's casts into rows + anchors. The id is public-ish; the secret is
+    // stored DPAPI-encrypted (see SecretVault) so the config file never holds
+    // it in plaintext.
     public string FflogsClientId { get; set; } = "";
-    public string FflogsClientSecret { get; set; } = "";
+    public string FflogsClientSecretEnc { get; set; } = "";
+
+    // Plaintext view of the secret for call sites: decrypts lazily (cached, so
+    // per-frame UI checks stay cheap) and re-encrypts on set. Never serialized.
+    [Newtonsoft.Json.JsonIgnore]
+    public string FflogsClientSecret
+    {
+        get
+        {
+            if (!string.Equals(_secretCacheFor, FflogsClientSecretEnc, StringComparison.Ordinal))
+            {
+                _secretCache = SecretVault.Unprotect(FflogsClientSecretEnc);
+                _secretCacheFor = FflogsClientSecretEnc;
+            }
+            return _secretCache;
+        }
+        set
+        {
+            FflogsClientSecretEnc = SecretVault.Protect(value);
+            _secretCache = value ?? "";
+            _secretCacheFor = FflogsClientSecretEnc;
+        }
+    }
+    private string _secretCache = "";
+    private string? _secretCacheFor;
+
+    // Catches the old plaintext "FflogsClientSecret" key from pre-v23 configs
+    // so MigrateFflogsSecret can move it into the encrypted field.
+    [Newtonsoft.Json.JsonProperty("FflogsClientSecret")]
+    private string LegacyFflogsSecret { get; set; } = "";
+
+    // Move a pre-v23 plaintext secret into the encrypted slot; clears the old
+    // key either way. Returns true when anything changed (caller saves).
+    public bool MigrateFflogsSecret()
+    {
+        if (LegacyFflogsSecret.Length == 0) return false;
+        if (FflogsClientSecretEnc.Length == 0) FflogsClientSecret = LegacyFflogsSecret;
+        LegacyFflogsSecret = "";
+        return true;
+    }
 
     // Built-in fight territories already auto-added to the list, so a newly
     // shipped built-in shows up directly (no button) while a deleted one stays gone.

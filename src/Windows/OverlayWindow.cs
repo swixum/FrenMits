@@ -72,7 +72,7 @@ public class OverlayWindow : Window
     // Locked for real if you ticked the lock OR you're in a live pull (but not
     // while previewing), since combat always pins/click-throughs the overlay so
     // it can't be grabbed and "stuck" mid-fight.
-    private bool EffectiveLocked => C.OverlayLocked || (Plugin.InCombat && !C.TestMode);
+    private bool EffectiveLocked => OverlayChrome.Locked(C.OverlayLocked, C);
 
     // Snap the overlay back to the saved position next frame (used by Reset).
     public void RequestReposition() => _applyPos = true;
@@ -109,9 +109,20 @@ public class OverlayWindow : Window
     {
         if (line.LeadOverride > 0f) return line.LeadOverride;
         if (line.OffsetManual || line.OffsetSeconds <= 1f) return C.WarningSeconds;
-        var mits = Cooldowns.PlanMits(line.Action).ToList();
-        var dur = mits.Count > 0 ? mits.Min(m => m.Duration > 0f ? m.Duration : 15f) : 15f;
+        // Cached lookup + plain loop (not LINQ): this runs for every line, every
+        // frame, so it must not scan the plan map or allocate.
+        var dur = MinDuration(Cooldowns.PlanMitsCached(line.Action));
         return MathF.Min(C.CooldownLeadSeconds, dur * 0.5f);
+    }
+
+    // Shortest listed buff duration among a call's tracked mits (15s fallback).
+    private static float MinDuration(IReadOnlyList<Cooldowns.PlanMit> mits)
+    {
+        if (mits.Count == 0) return 15f;
+        var dur = float.MaxValue;
+        for (var i = 0; i < mits.Count; i++)
+            dur = MathF.Min(dur, mits[i].Duration > 0f ? mits[i].Duration : 15f);
+        return dur;
     }
 
     public override void Draw()
@@ -469,19 +480,14 @@ public class OverlayWindow : Window
         // in CoverUntil), so gate on the coverage, not the offset.
         var windowEnd = call.Time - call.OffsetSeconds; // latest press: the front hit
         if (call.CoverUntil <= windowEnd + 2f) return ""; // covers only itself: nothing to prep
-        var mits = Cooldowns.PlanMits(call.Action).ToList();
-        var dur = mits.Count > 0 ? mits.Min(m => m.Duration > 0f ? m.Duration : 15f) : 15f;
+        var dur = MinDuration(Cooldowns.PlanMitsCached(call.Action));
         var windowStart = MathF.Max(0f, call.CoverUntil - dur); // earliest press still reaching the last hit
         return windowStart >= windowEnd - 0.5f
             ? $"(use at {AbsTime(windowEnd)})"
             : $"(use between {AbsTime(windowStart)} and {AbsTime(windowEnd)})";
     }
 
-    private static string AbsTime(float t)
-    {
-        var s = (int)MathF.Round(t);
-        return $"{s / 60}:{s % 60:00}";
-    }
+    private static string AbsTime(float t) => Fmt.MmssRound(t);
 
     private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
         uint colorOverride, float lead, uint iconId = 0, string prep = "")
@@ -565,16 +571,7 @@ public class OverlayWindow : Window
     }
 
     // Brightness oscillation for the imminent pulse, preserving alpha.
-    private static uint Pulse(uint abgr)
-    {
-        var t = (MathF.Sin((float)ImGui.GetTime() * 12f) * 0.5f + 0.5f);
-        var factor = 0.55f + 0.45f * t;
-        var a = abgr & 0xFF000000;
-        var b = (uint)(((abgr >> 16) & 0xFF) * factor) & 0xFF;
-        var g = (uint)(((abgr >> 8) & 0xFF) * factor) & 0xFF;
-        var r = (uint)((abgr & 0xFF) * factor) & 0xFF;
-        return a | (b << 16) | (g << 8) | r;
-    }
+    private static uint Pulse(uint abgr) => OverlayChrome.Pulse(abgr);
 
     private string FormatHeadline(string mechanic, string action, float remaining, bool imminent)
     {
@@ -601,29 +598,12 @@ public class OverlayWindow : Window
         return text;
     }
 
-    private static string TimeText(float seconds)
-    {
-        var t = (int)MathF.Round(seconds);
-        return $"{t / 60}:{t % 60:00}";
-    }
+    private static string TimeText(float seconds) => Fmt.MmssRound(seconds);
 
     // Pushes a crisp Dalamud font handle at the given px size, falling back to
     // SetWindowFontScale if the handle is not ready yet.
     private IDisposable PushFont(float sizePx)
-    {
-        var handle = _plugin.Fonts.Get(sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
-        if (handle is { Available: true })
-            return handle.Push();
-
-        // Fallback: approximate via window font scale.
-        ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
-        return new ResetFontScale();
-    }
-
-    private sealed class ResetFontScale : IDisposable
-    {
-        public void Dispose() => ImGui.SetWindowFontScale(1f);
-    }
+        => OverlayChrome.PushFont(_plugin.Fonts, sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
 
     // Centers an optional ability icon followed by the text as one group.
     private void CenteredIconText(uint iconId, string text, uint color, float ringFrac = -1f, uint ringColor = 0)

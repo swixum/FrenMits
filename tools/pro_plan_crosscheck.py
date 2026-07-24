@@ -28,6 +28,7 @@ Usage:
 
 import argparse
 import base64
+import os
 import json
 import re
 import statistics
@@ -360,8 +361,14 @@ def main():
             cfg = json.load(fh)
         cid = cid or cfg.get("FflogsClientId")
         secret = secret or cfg.get("FflogsClientSecret")
+        # Newer configs store the secret DPAPI-encrypted (FflogsClientSecretEnc),
+        # which this tool can't read; fall through to env / --secret.
+        if not secret and cfg.get("FflogsClientSecretEnc"):
+            print("note: --creds config stores the secret encrypted now; pass --secret or set FFLOGS_CLIENT_SECRET.")
+    cid = cid or os.environ.get("FFLOGS_CLIENT_ID")
+    secret = secret or os.environ.get("FFLOGS_CLIENT_SECRET")
     if not cid or not secret:
-        sys.exit("Need FFLogs creds (--creds FrenMits.json, or --id/--secret).")
+        sys.exit("Need FFLogs creds (--id/--secret, FFLOGS_CLIENT_ID/FFLOGS_CLIENT_SECRET env, or --creds FrenMits.json).")
 
     profile = None
     sheet_anchors = []

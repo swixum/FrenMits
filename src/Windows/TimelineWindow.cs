@@ -29,7 +29,7 @@ public class TimelineWindow : Window
 
     // Locked for real if you ticked the lock OR you're in a live pull (but not
     // while previewing), since combat always pins it so it can't be grabbed mid-fight.
-    private bool EffectiveLocked => C.TimelineLocked || (Plugin.InCombat && !C.TestMode);
+    private bool EffectiveLocked => OverlayChrome.Locked(C.TimelineLocked, C);
 
     // The window now always follows C.TimelinePosition, so a reset (or a slider
     // change) just takes effect next frame; nothing to schedule.
@@ -783,29 +783,13 @@ public class TimelineWindow : Window
 
     // Brightness oscillation for the go-time stripe, preserving alpha (same
     // rhythm as the main call's imminent pulse).
-    private static uint Pulse(uint abgr)
-    {
-        var t = MathF.Sin((float)ImGui.GetTime() * 12f) * 0.5f + 0.5f;
-        var factor = 0.55f + 0.45f * t;
-        var a = abgr & 0xFF000000;
-        var b = (uint)(((abgr >> 16) & 0xFF) * factor) & 0xFF;
-        var g = (uint)(((abgr >> 8) & 0xFF) * factor) & 0xFF;
-        var r = (uint)((abgr & 0xFF) * factor) & 0xFF;
-        return a | (b << 16) | (g << 8) | r;
-    }
+    private static uint Pulse(uint abgr) => OverlayChrome.Pulse(abgr);
 
     // Draw-list text with the overlay's readability shadow.
     private void BoardText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
-    {
-        if (C.TextShadow) dl.AddText(pos + new Vector2(1.5f, 1.5f), 0xE0000000, text);
-        dl.AddText(pos, color, text);
-    }
+        => OverlayChrome.BoardText(dl, pos, color, text, C.TextShadow);
 
-    private static string TimeText(float seconds)
-    {
-        var t = (int)MathF.Round(seconds);
-        return $"{t / 60}:{t % 60:00}";
-    }
+    private static string TimeText(float seconds) => Fmt.MmssRound(seconds);
 
     // ---- on-screen preview -------------------------------------------------
     // The Next Mits settings page pings this every frame it's open; while the
@@ -903,18 +887,7 @@ public class TimelineWindow : Window
     }
 
     private IDisposable PushFont(float sizePx)
-    {
-        var handle = _plugin.Fonts.Get(sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
-        if (handle is { Available: true })
-            return handle.Push();
-        ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
-        return new ResetFontScale();
-    }
-
-    private sealed class ResetFontScale : IDisposable
-    {
-        public void Dispose() => ImGui.SetWindowFontScale(1f);
-    }
+        => OverlayChrome.PushFont(_plugin.Fonts, sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
 
     // Drag the board to move it (when unlocked), done ourselves rather than leaning
     // on ImGui's window-move, which in this build only triggers from a title bar

@@ -155,7 +155,7 @@ public partial class SheetViewWindow : Window
         var jumped = s.Fight != _fight;
         if (jumped)
         {
-            _plugin.SnapshotPlan(s.Fight, "before undo");
+            _plugin.Snapshots.Save(s.Fight, "before undo");
             _phaseFilter = "";
             _filter = "";
         }
@@ -1007,12 +1007,7 @@ public partial class SheetViewWindow : Window
         if (_fight == null) return;
         try
         {
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(_fight);
-            var raw = System.Text.Encoding.UTF8.GetBytes(json);
-            using var ms = new System.IO.MemoryStream();
-            using (var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionLevel.Optimal))
-                gz.Write(raw, 0, raw.Length);
-            ImGui.SetClipboardText("FRENMITS2:" + Convert.ToBase64String(ms.ToArray()));
+            ImGui.SetClipboardText(PlanCodes.Encode(_fight));
             Flash("Plan code copied. Friends paste it into Import and their slot updates.");
         }
         catch (Exception ex)
@@ -1669,7 +1664,7 @@ public partial class SheetViewWindow : Window
         if (ImGui.Button("Plan mits", new Vector2(110, 0)))
         {
             PushUndo("auto-plan mits");
-            _plugin.SnapshotPlan(_fight, "before auto-plan");
+            _plugin.Snapshots.Save(_fight, "before auto-plan");
             // Healer seats become ALL FOUR healer job columns first (the
             // sheets' convention), so every healer's kit is covered.
             ExpandHealerSeats(_fight);
@@ -1885,7 +1880,7 @@ public partial class SheetViewWindow : Window
         DrawReplacePopup();
         if (openHistory)
         {
-            _snapList = _plugin.ListSnapshots(_fight!.Id);
+            _snapList = _plugin.Snapshots.List(_fight!.Id);
             ImGui.OpenPopup("##sheethistory");
         }
         DrawHistoryPopup();
@@ -1945,7 +1940,7 @@ public partial class SheetViewWindow : Window
     private void ImportPlan()
     {
         CommitPending();
-        var (fight, _, message) = _plugin.ImportPlanCode(ImGui.GetClipboardText());
+        var (fight, _, message) = PlanCodes.Import(_plugin, ImGui.GetClipboardText());
         if (fight != null)
         {
             // Ctrl+Z entries older than the import would also revert the import
@@ -2003,7 +1998,7 @@ public partial class SheetViewWindow : Window
         if (ImGui.Button("Delete", new Vector2(120, 0)))
         {
             var f = _fight!;
-            _plugin.SnapshotPlan(f, "before delete");
+            _plugin.Snapshots.Save(f, "before delete");
             _undoStack.RemoveAll(u => u.Fight == f);
             C.Fights.Remove(f);
             C.Save();
@@ -2018,7 +2013,7 @@ public partial class SheetViewWindow : Window
 
     // ---- plan snapshots (History) -------------------------------------------
 
-    private List<Plugin.SnapshotInfo> _snapList = new();
+    private List<SnapshotStore.SnapshotInfo> _snapList = new();
 
     private void DrawHistoryPopup()
     {
@@ -2031,8 +2026,8 @@ public partial class SheetViewWindow : Window
         PopupHeader("Plan snapshots (this fight)", 440f);
         if (ImGui.SmallButton("Snapshot now"))
         {
-            _plugin.SnapshotPlan(_fight!, "manual snapshot");
-            _snapList = _plugin.ListSnapshots(_fight!.Id);
+            _plugin.Snapshots.Save(_fight!, "manual snapshot");
+            _snapList = _plugin.Snapshots.List(_fight!.Id);
             Flash("Snapshot saved.");
         }
         ImGui.Separator();
@@ -2052,7 +2047,7 @@ public partial class SheetViewWindow : Window
             {
                 CommitPending();
                 PushUndo("restore snapshot"); // restoring is itself undoable
-                var msg = _plugin.RestoreSnapshot(_fight!, s.File);
+                var msg = _plugin.Snapshots.Restore(_fight!, s.File);
                 _dirty = true;
                 Flash(msg);
                 ImGui.CloseCurrentPopup();
@@ -2065,8 +2060,8 @@ public partial class SheetViewWindow : Window
         {
             ImGui.Spacing();
             if (ImGui.SmallButton("Find this duty's older snapshots"))
-                _snapList = _plugin.ListSnapshots(_fight!.Id)
-                    .Concat(_plugin.ListOrphanSnapshots(_fight.TerritoryId, _fight.Id))
+                _snapList = _plugin.Snapshots.List(_fight!.Id)
+                    .Concat(_plugin.Snapshots.ListOrphans(_fight.TerritoryId, _fight.Id))
                     .ToList();
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Lists snapshots from sheets you previously deleted in this duty,\nso a deleted sheet can be restored here.");
@@ -2249,7 +2244,7 @@ public partial class SheetViewWindow : Window
         }
 
         PushUndo($"build from {source}");
-        _plugin.SnapshotPlan(_fight, $"before build from {source}");
+        _plugin.Snapshots.Save(_fight, $"before build from {source}");
 
         // Raidwides (hit the party) and busters (only ever hit a player or two)
         // are graded on SEPARATE scales: each against the hardest of its own
@@ -2487,7 +2482,8 @@ public partial class SheetViewWindow : Window
         {
             ImGui.TextDisabled("One-time setup (about two minutes)");
             ImGui.TextWrapped("FFLogs' API needs a personal client. Create one (name it \"FrenMits\", no "
-                + "redirect URL needed), then paste its id and secret here. They stay on this PC.");
+                + "redirect URL needed), then paste its id and secret here. They stay on this PC, "
+                + "and the secret is saved encrypted (it only unlocks on your Windows account).");
             if (ImGui.SmallButton("Open fflogs.com/api/clients"))
                 Dalamud.Utility.Util.OpenLink("https://www.fflogs.com/api/clients");
             ImGui.SetNextItemWidth(300f);
@@ -2798,7 +2794,7 @@ public partial class SheetViewWindow : Window
 
         // Bulk edit: undoable AND snapshotted to disk (see the History button).
         PushUndo($"replace \"{find}\"");
-        _plugin.SnapshotPlan(_fight, $"before replacing \"{find}\"");
+        _plugin.Snapshots.Save(_fight, $"before replacing \"{find}\"");
 
         var changed = 0;
         var slotsTouched = 0;
@@ -3548,7 +3544,7 @@ public partial class SheetViewWindow : Window
         if (ImGui.Button("Reset every column", new Vector2(180, 0)) && _fight != null)
         {
             PushUndo("reset every column");
-            _plugin.SnapshotPlan(_fight, "before Reset all columns");
+            _plugin.Snapshots.Save(_fight, "before Reset all columns");
             _fight.SavedSlots.Clear();
             _fight.DeletedCalls.Clear();
             if (!string.IsNullOrEmpty(_fight.Slot)) Builtin.ResetSlot(_fight, _fight.Slot);
@@ -3634,7 +3630,7 @@ public partial class SheetViewWindow : Window
         if (src < 0 || src == dst) return;
 
         PushUndo($"paste {_slots[src]}'s plan into {_slots[dst]}");
-        _plugin.SnapshotPlan(_fight, $"before pasting {_slots[src]} into {_slots[dst]}");
+        _plugin.Snapshots.Save(_fight, $"before pasting {_slots[src]} into {_slots[dst]}");
         EnsureBacked(dst);
         var target = _slotLines[dst];
         target.Clear();
@@ -3725,13 +3721,7 @@ public partial class SheetViewWindow : Window
         Flash($"{slot}'s \"{row.Mechanic}\" reset to the sheet.");
     }
 
-    private static string TimeText(float t)
-    {
-        var s = (int)MathF.Round(t);
-        var sign = s < 0 ? "-" : "";
-        s = Math.Abs(s);
-        return $"{sign}{s / 60}:{s % 60:00}";
-    }
+    private static string TimeText(float t) => Fmt.MmssSigned(t);
 
     private static string SlotTip(string slot)
         => TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? "Tank slot"

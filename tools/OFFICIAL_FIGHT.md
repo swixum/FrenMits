@@ -3,9 +3,10 @@
 How a log-built sheet becomes a built-in fight. These tools are dev-only and are
 NOT shipped in the plugin DLL. Run them from `tools/`.
 
-You need FFLogs API creds. The tools read them from a `FrenMits.json`
-(`FflogsClientId` / `FflogsClientSecret`), the same file the plugin stores, or
-pass `--id` / `--secret`.
+You need FFLogs API creds. Pass `--id` / `--secret`, or set the
+`FFLOGS_CLIENT_ID` / `FFLOGS_CLIENT_SECRET` env vars. (`--creds FrenMits.json`
+still reads the client id, but the plugin now stores the secret encrypted, so
+the secret itself must come from the flag or the env var.)
 
 ## The steps
 

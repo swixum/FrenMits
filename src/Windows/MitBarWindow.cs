@@ -13,9 +13,7 @@ public class MitBarWindow : Window
     private Configuration C => _plugin.Config;
     private bool _applyPos = true;
 
-    // Locked for real if you ticked the lock OR you're in a live pull (but not
-    // while previewing) - combat always pins it so it can't be grabbed mid-fight.
-    private bool EffectiveLocked => C.MitBarLocked || (Plugin.InCombat && !C.TestMode);
+    private bool EffectiveLocked => OverlayChrome.Locked(C.MitBarLocked, C);
 
     public MitBarWindow(Plugin plugin) : base("FrenMits Mits##mitbar")
     {
@@ -40,11 +38,7 @@ public class MitBarWindow : Window
             Flags |= ImGuiWindowFlags.NoResize
                      | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs;
 
-        var vp = ImGui.GetMainViewport();
-        var pos = vp.WorkPos + C.MitBarPosition * vp.WorkSize;
-        pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
-        if (EffectiveLocked) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = true; }
-        else if (_applyPos) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = false; }
+        OverlayChrome.ApplyPosition(C.MitBarPosition, EffectiveLocked, ref _applyPos);
     }
 
     public override bool DrawConditions()
@@ -91,11 +85,7 @@ public class MitBarWindow : Window
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
-        var vp = ImGui.GetMainViewport();
-        var cur = ImGui.GetWindowPos();
-        var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);
-        var frac = (center - vp.WorkPos) / vp.WorkSize;
-        if ((frac - C.MitBarPosition).LengthSquared() > 0.0000001f) { C.MitBarPosition = frac; _posDirty = true; }
+        if (OverlayChrome.MovedCenterFrac(C.MitBarPosition) is { } frac) { C.MitBarPosition = frac; _posDirty = true; }
         // ONE disk write when the drag ends - not sixty full-config saves a
         // second while the window is being moved.
         if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
@@ -104,12 +94,5 @@ public class MitBarWindow : Window
     private bool _posDirty;
 
     private IDisposable PushFont(float sizePx)
-    {
-        var handle = _plugin.Fonts.Get(sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
-        if (handle is { Available: true }) return handle.Push();
-        ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
-        return new Reset();
-    }
-
-    private sealed class Reset : IDisposable { public void Dispose() => ImGui.SetWindowFontScale(1f); }
+        => OverlayChrome.PushFont(_plugin.Fonts, sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
 }

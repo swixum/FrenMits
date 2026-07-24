@@ -292,6 +292,9 @@ public class SyncEngine
         // user's call-shift survives every snap.
         var desiredElapsedNow = best.Time - timeToResolve - _plugin.PhaseOffsetFor(fight);
         _plugin.Timer.SetElapsed(desiredElapsedNow);
+        // Door-boss follow-up: a phase anchor sitting in the second segment lets
+        // the plugin latch Phase 2 (offset-compensated, so this snap stands).
+        if (best.IsPhase) _plugin.OnPhaseAnchor(fight, best);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
         LastSyncNice = best.Label;
         LastSyncAt = DateTime.UtcNow;

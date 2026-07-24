@@ -38,11 +38,7 @@ public class RecapButtonWindow : Window
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.5f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 10));
 
-        var vp = ImGui.GetMainViewport();
-        var pos = vp.WorkPos + C.RecapPopupPosition * vp.WorkSize;
-        pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));
-        if (C.RecapPopupLocked) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = true; }
-        else if (_applyPos) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); _applyPos = false; }
+        OverlayChrome.ApplyPosition(C.RecapPopupPosition, C.RecapPopupLocked, ref _applyPos);
     }
 
     public override void PostDraw()
@@ -98,11 +94,7 @@ public class RecapButtonWindow : Window
     private void SavePositionIfDragged()
     {
         if (C.RecapPopupLocked) return;
-        var vp = ImGui.GetMainViewport();
-        var cur = ImGui.GetWindowPos();
-        var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);
-        var frac = (center - vp.WorkPos) / vp.WorkSize;
-        if ((frac - C.RecapPopupPosition).LengthSquared() > 0.0000001f) { C.RecapPopupPosition = frac; _posDirty = true; }
+        if (OverlayChrome.MovedCenterFrac(C.RecapPopupPosition) is { } frac) { C.RecapPopupPosition = frac; _posDirty = true; }
         // ONE disk write when the drag ends - not sixty full-config saves a
         // second while the window is being moved.
         if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
