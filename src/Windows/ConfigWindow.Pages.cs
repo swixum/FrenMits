@@ -51,6 +51,103 @@ public partial class ConfigWindow
         Tip("Fills the recap with a sample pull and pops up the window + popup, so you can see the look and drag everything into place without wiping.");
     }
 
+    // ---- Food & Pot -------------------------------------------------------
+
+    private void DrawPrepCheckPage()
+    {
+        SeparatorText("Food & Pot");
+        ImGui.TextWrapped("Two small reminders on one line, both duty-only. Your food is checked before the "
+                          + "pull and flagged if it's missing or would run out partway through. Your pot is "
+                          + "watched during the fight, and called out once when it comes back up.");
+        ImGui.Spacing();
+
+        C.PrepCheckEnabled = CfgCheck("Enable Food & Pot", C.PrepCheckEnabled);
+        Tip("Off by default. Nothing is drawn while your food is fine, and nothing is ever drawn out in "
+            + "the world - only inside a duty.");
+        if (!C.PrepCheckEnabled) return;
+
+        if (!ImGui.BeginTabBar("##preptabs", ImGuiTabBarFlags.None)) return;
+
+        if (ImGui.BeginTabItem("Food"))
+        {
+            ImGui.Spacing();
+            ImGui.TextWrapped("Shown out of combat, and stays up for as long as there's a problem: red for "
+                              + "no food at all, amber with a countdown once it's nearly gone. The icon is "
+                              + "the dish you actually ate.");
+            ImGui.Spacing();
+
+            var warnMin = C.PrepCheckWarnMinutes;
+            if (Widgets.SliderInput("Warn under", ref warnMin, 1f, 30f, "%.0f min", width: 200f))
+            { C.PrepCheckWarnMinutes = warnMin; C.Save(); }
+            Tip("How much food time left starts the warning. Set it a little longer than your pulls run, "
+                + "so food that would expire partway through gets flagged before you engage.");
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Potion"))
+        {
+            ImGui.Spacing();
+            ImGui.TextWrapped("Mid-fight, not pre-pull. It says nothing until it has seen you actually use "
+                              + "a pot; from there it times that pot's own recast and shows "
+                              + "\"Potion is Available!\" for five seconds when it's back, so the second one "
+                              + "doesn't get forgotten.");
+            ImGui.Spacing();
+
+            C.PrepCheckPotion = Toggle("Potion reminder", C.PrepCheckPotion);
+            Tip("Telling you a pot is ready while you're stood there about to pull is telling you something "
+                + "you already know, so it waits for the moment that matters.");
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Voice"))
+        {
+            ImGui.Spacing();
+            ImGui.TextWrapped("Each one spoken once, as it appears - never repeated while it sits on screen.");
+            ImGui.Spacing();
+
+            C.PrepCheckTts = Toggle("Speak it", C.PrepCheckTts);
+            Tip("Says \"no food\", \"food is running out\" and \"potion is available\" in the voice set on "
+                + "the Audio page. Separate from the combat cue switch, so you can have these spoken "
+                + "without the in-fight callouts.");
+
+            if (C.PrepCheckTts)
+            {
+                ImGui.Spacing();
+                ImGui.TextDisabled("Uses the voice, rate and volume from the Audio page.");
+                ImGui.SameLine();
+                if (ImGui.SmallButton("Open Audio")) _nav = NavKind.Audio;
+            }
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Placement"))
+        {
+            ImGui.Spacing();
+            var prepLocked = C.PrepCheckLocked;
+            if (GreenCheckbox("Lock position", ref prepLocked))
+            { C.PrepCheckLocked = prepLocked; _plugin.PrepWindow.RequestReposition(); C.Save(); }
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextDisabled(prepLocked ? "(unlock to drag)" : "(drag it, or use the sliders; auto-locks in combat)");
+
+            var pos = C.PrepCheckPosition;
+            if (Widgets.SliderInput("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
+            { C.PrepCheckPosition = pos; C.Save(); _plugin.PrepWindow.RequestReposition(); }
+            ImGui.SameLine(0, 18);
+            if (Widgets.SliderInput("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
+            { C.PrepCheckPosition = pos; C.Save(); _plugin.PrepWindow.RequestReposition(); }
+
+            var prepPx = C.PrepCheckFontSizePx;
+            if (Widgets.SliderInput("Text size", ref prepPx, 10f, 48f, "%.0f px")) { C.PrepCheckFontSizePx = prepPx; C.Save(); }
+
+            ImGui.Spacing();
+            ImGui.TextDisabled("Turn on Test mode in the header to see a sample while you place it.");
+            ImGui.EndTabItem();
+        }
+
+        ImGui.EndTabBar();
+    }
+
     private void DrawCombatTimerPage()
     {
         SeparatorText("Combat Timer");
@@ -349,43 +446,6 @@ public partial class ConfigWindow
                 ImGui.TextDisabled("Auto-locks in combat; move it out of combat or with Live preview.");
                 var mbPx = C.MitBarFontSizePx;
                 if (Widgets.SliderInput("Text size##mitbar", ref mbPx, 10f, 48f, "%.0f px")) { C.MitBarFontSizePx = mbPx; C.Save(); }
-                ImGui.Unindent(20f);
-            }
-
-            ImGui.Spacing();
-            SeparatorText("Pre-pull check");
-            C.PrepCheckEnabled = CfgCheck("Food check", C.PrepCheckEnabled);
-            Tip("Inside a duty, out of combat, warns when you have no food up or when the food you do have "
-                + "is about to expire mid-pull. Says nothing while your food is fine, never shows the food "
-                + "warning in combat, and never shows anything out in the world.");
-            if (C.PrepCheckEnabled)
-            {
-                ImGui.Indent(20f);
-                var warnMin = C.PrepCheckWarnMinutes;
-                if (Widgets.SliderInput("Warn under", ref warnMin, 1f, 30f, "%.0f min", width: 200f))
-                { C.PrepCheckWarnMinutes = warnMin; C.Save(); }
-                Tip("How much food time left starts the warning. Set it a little longer than your pulls run, "
-                    + "so food that would expire partway through gets flagged before you engage.");
-
-                C.PrepCheckPotion = Toggle("Potion reminder", C.PrepCheckPotion);
-                Tip("Mid-fight, not pre-pull: once you've actually used a pot, this shows "
-                    + "\"Potion is Available!\" for five seconds when the 5-minute recast is back, so the second "
-                    + "one doesn't get forgotten. Says nothing until it has seen you use one.");
-
-                C.PrepCheckTts = Toggle("Speak it", C.PrepCheckTts);
-                Tip("Says each warning out loud once, as it appears - \"no food\", \"food is running out\", "
-                    + "\"potion is available\" - in the voice set on the Audio page. Separate from the combat "
-                    + "cue switch, so you can have these spoken without the in-fight callouts.");
-
-                var prepLocked = C.PrepCheckLocked;
-                if (GreenCheckbox("Lock position##prep", ref prepLocked))
-                { C.PrepCheckLocked = prepLocked; _plugin.PrepWindow.RequestReposition(); C.Save(); }
-                ImGui.SameLine();
-                ImGui.AlignTextToFramePadding();
-                ImGui.TextDisabled("Auto-locks in combat; use Test mode to place it.");
-
-                var prepPx = C.PrepCheckFontSizePx;
-                if (Widgets.SliderInput("Text size##prep", ref prepPx, 10f, 48f, "%.0f px")) { C.PrepCheckFontSizePx = prepPx; C.Save(); }
                 ImGui.Unindent(20f);
             }
 
