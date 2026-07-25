@@ -7,3 +7,10 @@ obj/
 
 # Local-only authorship policy (never published)
 AUTHORSHIP.md
+
+# dev-only tools/ python bytecode
+__pycache__/
+*.pyc
+
+# generator scratch notes, not source (tools/gen_official_fight.py)
+src/Data/*_registration.txt

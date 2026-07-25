@@ -9,7 +9,7 @@ public class BuiltinSheetTests
     public static TheoryData<ushort> Territories()
     {
         var data = new TheoryData<ushort>();
-        foreach (var (territory, _, _) in Builtin.Fights) data.Add(territory);
+        foreach (var (territory, _, _, _) in Builtin.Fights) data.Add(territory);
         return data;
     }
 
@@ -83,7 +83,7 @@ public class BuiltinSheetTests
         // and Fulgent Blade per group). Builtin.SyncPoints collapses those, because
         // the duty-replay auto-start only trusts an ability that appears exactly
         // once - a doubled entry silently made that cast unusable to start a clock.
-        foreach (var (territory, _, _) in Builtin.Fights)
+        foreach (var (territory, _, _, _) in Builtin.Fights)
         {
             var seen = new HashSet<string>();
             foreach (var sp in Builtin.SyncPoints(territory))
@@ -110,7 +110,7 @@ public class BuiltinSheetTests
         // once in the timeline. Abilities that genuinely recur (DMU's Ultimate
         // Embrace) are correctly ambiguous; what must not happen is an ability
         // looking ambiguous purely because one cast was baked twice.
-        foreach (var (territory, _, _) in Builtin.Fights)
+        foreach (var (territory, _, _, _) in Builtin.Fights)
             foreach (var group in Builtin.SyncPoints(territory).GroupBy(sp => sp.Ability).Where(g => g.Count() > 1))
             {
                 var times = group.Select(sp => sp.Time).OrderBy(t => t).ToList();
@@ -200,7 +200,7 @@ public class BuiltinSheetTests
     [Fact]
     public void DowntimeWindowsNeverOverlapOrRunBackwards()
     {
-        foreach (var (territory, _, _) in Builtin.Fights)
+        foreach (var (territory, _, _, _) in Builtin.Fights)
         {
             var windows = Downtimes.For(territory).OrderBy(w => w.Start).ToList();
             for (var i = 0; i < windows.Count; i++)

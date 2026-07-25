@@ -272,9 +272,19 @@ public partial class ConfigWindow
         {
             ImGui.Separator();
             ImGui.TextDisabled("Official sheets");
-            foreach (var (territory, name, cat) in presets)
+            // Builtin.Fights is already newest-expansion-first, so heading each
+            // run keeps current content at the top without re-sorting anything.
+            var shown = "";
+            foreach (var (territory, name, cat, expansion) in presets)
+            {
+                if (expansion != shown)
+                {
+                    shown = expansion;
+                    ImGui.TextDisabled($"  {expansion}");
+                }
                 if (ImGui.MenuItem(name))
                     AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
+            }
         }
         ImGui.EndPopup();
     }

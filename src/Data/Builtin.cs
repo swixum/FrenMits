@@ -10,6 +10,9 @@ public static class Builtin
     public const ushort DmuTerritory = 1363;
     public const ushort FruTerritory = 1238;
     // M12S (AAC Heavyweight M4 Savage), per the cactbot r12s timeline.
+    public const ushort M9sTerritory = 1321;
+    public const ushort M10sTerritory = 1323;
+    public const ushort M11sTerritory = 1325;
     public const ushort M12sTerritory = 1327;
     // The legacy ultimates, timed from Ikuya's sheets against the cactbot
     // timelines (see IkuyaTimelines).
@@ -19,24 +22,36 @@ public static class Builtin
     public const ushort DsrTerritory = 968;
     public const ushort TopTerritory = 1122;
 
-    public static readonly (ushort Territory, string Name, string Category)[] Fights =
+    // Newest expansion first, and in release order inside it: the fight someone
+    // is raiding today is the one they came to add. Expansions[] fixes that order
+    // once, so the menus and the README can't drift apart.
+    public static readonly string[] Expansions =
+        { "Dawntrail", "Endwalker", "Shadowbringers", "Stormblood" };
+
+    public static readonly (ushort Territory, string Name, string Category, string Expansion)[] Fights =
     {
-        (DmuTerritory, "Dancing Mad (UMAD)", "Ultimate"),
-        (FruTerritory, "Futures Rewritten (FRU)", "Ultimate"),
-        (UcobTerritory, "Unending Coil of Bahamut (UCOB)", "Ultimate"),
-        (UwuTerritory, "Weapon's Refrain (UWU)", "Ultimate"),
-        (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate"),
-        (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate"),
-        (TopTerritory, "The Omega Protocol (TOP)", "Ultimate"),
-        (M12sTerritory, "M12S - Lindwurm", "Savage"),
+        (FruTerritory, "Futures Rewritten (FRU)", "Ultimate", "Dawntrail"),
+        (DmuTerritory, "Dancing Mad (UMAD)", "Ultimate", "Dawntrail"),
+        (M9sTerritory, "M9S - Vamp Fatale", "Savage", "Dawntrail"),
+        (M10sTerritory, "M10S - Red Hot / Deep Blue", "Savage", "Dawntrail"),
+        (M11sTerritory, "M11S - The Tyrant", "Savage", "Dawntrail"),
+        (M12sTerritory, "M12S - Lindwurm", "Savage", "Dawntrail"),
+        (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate", "Endwalker"),
+        (TopTerritory, "The Omega Protocol (TOP)", "Ultimate", "Endwalker"),
+        (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate", "Shadowbringers"),
+        (UcobTerritory, "Unending Coil of Bahamut (UCOB)", "Ultimate", "Stormblood"),
+        (UwuTerritory, "Weapon's Refrain (UWU)", "Ultimate", "Stormblood"),
     };
 
     public static bool Has(uint territory) =>
-        territory is DmuTerritory or FruTerritory or M12sTerritory || IkuyaTimelines.Has(territory);
+        territory is DmuTerritory or FruTerritory or M9sTerritory or M10sTerritory or M11sTerritory or M12sTerritory || IkuyaTimelines.Has(territory);
 
     public static string Name(uint territory) => territory switch
     {
         FruTerritory => "Futures Rewritten (FRU)",
+        M9sTerritory => "M9S - Vamp Fatale",
+        M10sTerritory => "M10S - Red Hot / Deep Blue",
+        M11sTerritory => "M11S - The Tyrant",
         M12sTerritory => "M12S - Lindwurm",
         UcobTerritory => "Unending Coil of Bahamut (UCOB)",
         UwuTerritory => "Weapon's Refrain (UWU)",
@@ -51,6 +66,13 @@ public static class Builtin
         foreach (var f in Fights)
             if (f.Territory == territory) return f.Category;
         return "Other";
+    }
+
+    public static string Expansion(uint territory)
+    {
+        foreach (var f in Fights)
+            if (f.Territory == territory) return f.Expansion;
+        return "";
     }
 
     // Every built-in sheet presents the ONE standard column set (SlotNames);
@@ -124,6 +146,9 @@ public static class Builtin
     public static List<MitLine> BuildLines(uint territory, string slot) => territory switch
     {
         FruTerritory => FruData.BuildLines(SlotNames.ToFru(slot)),
+        M9sTerritory => M9sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M10sTerritory => M10sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M11sTerritory => M11sData.BuildLines(SlotNames.ToLegacy(slot)),
         M12sTerritory => M12sData.BuildLines(SlotNames.ToLegacy(slot)),
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BuildLines(territory, SlotNames.ToLegacy(slot)),
         _ => DmuData.BuildLines(SlotNames.ToLegacy(slot)),
@@ -132,6 +157,9 @@ public static class Builtin
     public static List<SyncPoint> SyncPoints(uint territory) => Dedupe(territory switch
     {
         FruTerritory => FruData.SyncPoints(),
+        M9sTerritory => M9sData.SyncPoints(),
+        M10sTerritory => M10sData.SyncPoints(),
+        M11sTerritory => M11sData.SyncPoints(),
         M12sTerritory => M12sData.SyncPoints(),
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.SyncPoints(territory),
         _ => DmuData.SyncPoints(),
@@ -162,9 +190,33 @@ public static class Builtin
         return result;
     }
 
+    // Severity grades and tank-buster flags for a built-in. They live on
+    // FightProfile.CustomRows, which is where the board reads them from - a
+    // built-in that doesn't hand them over draws every row as a plain hit, with
+    // no ! marks and no buster shields, however well graded its source sheet was.
+
+    // Only overwrites when the built-in actually HAS graded rows, so a user's own
+    // custom sheet (whose CustomRows are theirs) can never be wiped by a reload.
+    private static void ApplyCustomRows(FightProfile fight)
+    {
+        var rows = CustomRows(fight.TerritoryId);
+        if (rows.Count > 0) fight.CustomRows = rows;
+    }
+
+    public static List<CustomRow> CustomRows(uint territory) => territory switch
+    {
+        M9sTerritory => M9sData.CustomRows(),
+        M10sTerritory => M10sData.CustomRows(),
+        M11sTerritory => M11sData.CustomRows(),
+        _ => new List<CustomRow>(),
+    };
+
     public static List<BossAnchor> BossAnchors(uint territory) => territory switch
     {
         FruTerritory => FruData.BossAnchors(),
+        M9sTerritory => M9sData.BossAnchors(),
+        M10sTerritory => M10sData.BossAnchors(),
+        M11sTerritory => M11sData.BossAnchors(),
         M12sTerritory => M12sData.BossAnchors(),
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BossAnchors(territory),
         _ => DmuData.BossAnchors(),
@@ -277,6 +329,7 @@ public static class Builtin
         fight.SavedSlots[slot] = fight.Lines;
         fight.SyncPoints = SyncPoints(fight.TerritoryId);
         fight.BossAnchors = BossAnchors(fight.TerritoryId);
+        ApplyCustomRows(fight);
         fight.AutoLoaded = true;
         return added;
     }
@@ -291,6 +344,7 @@ public static class Builtin
         fight.SavedSlots[slot] = fight.Lines;
         fight.SyncPoints = SyncPoints(fight.TerritoryId);
         fight.BossAnchors = BossAnchors(fight.TerritoryId);
+        ApplyCustomRows(fight);
         fight.AutoLoaded = true;
     }
 

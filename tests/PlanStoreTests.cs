@@ -81,7 +81,7 @@ public class PlanStoreTests
         // The whole point. A real profile was 718KB of plans against 6KB of
         // settings, and Save() runs from a hundred places.
         var c = new Configuration();
-        foreach (var (t, _, _) in Builtin.Fights)
+        foreach (var (t, _, _, _) in Builtin.Fights)
         {
             var f = Fx.Builtin(t, Builtin.Slots(t)[0]);
             foreach (var s in Builtin.Slots(t)) f.SavedSlots[s] = Builtin.BuildLines(t, s);
@@ -231,7 +231,7 @@ public class PlanStoreTests
     [Fact]
     public void AWholePlanSurvivesTheRoundTripIntact()
     {
-        foreach (var (t, _, _) in Builtin.Fights)
+        foreach (var (t, _, _, _) in Builtin.Fights)
         {
             var f = Fx.Builtin(t, Builtin.Slots(t)[0]);
             foreach (var s in Builtin.Slots(t)) f.SavedSlots[s] = Builtin.BuildLines(t, s);

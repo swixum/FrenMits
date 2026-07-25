@@ -138,7 +138,7 @@ public class ApplySlotTests
     [Fact]
     public void ApplySlotNeverLeavesDuplicateCalls()
     {
-        foreach (var (territory, _, _) in Builtin.Fights)
+        foreach (var (territory, _, _, _) in Builtin.Fights)
             foreach (var slot in new[] { "T1", "SCH", "M1" })
             {
                 var fight = new FightProfile { TerritoryId = territory };

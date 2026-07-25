@@ -83,7 +83,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // button to click.
         Config.SeededTerritories ??= new();
         var seeded = false;
-        foreach (var (territory, name, category) in Builtin.Fights)
+        foreach (var (territory, name, category, _) in Builtin.Fights)
         {
             if (Config.SeededTerritories.Contains(territory)) continue;
             Config.SeededTerritories.Add(territory);

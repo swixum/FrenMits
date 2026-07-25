@@ -35,6 +35,9 @@ import statistics
 import sys
 import urllib.parse
 import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fflogs_creds
 from collections import defaultdict
 
 FFLOGS_TOKEN_URL = "https://www.fflogs.com/oauth/token"
@@ -340,6 +343,37 @@ def group_moments(moments, span):
 
 # ---- report ----------------------------------------------------------------
 
+
+def pick_profile(data, territory=None, name_match=None):
+    """Accept a single FightProfile, a bare list (plans.json), or an old-style
+    config with a "Fights" array."""
+    if isinstance(data, dict) and isinstance(data.get("Fights"), list):
+        fights = data["Fights"]
+    elif isinstance(data, list):
+        fights = data
+    else:
+        return data
+    if not fights:
+        sys.exit("No fights in that file.")
+    if territory is not None:
+        hits = [f for f in fights if int(f.get("TerritoryId", 0)) == territory]
+        if not hits:
+            sys.exit(f"No fight with TerritoryId {territory}.")
+        return hits[0]
+    if name_match:
+        nm = name_match.casefold()
+        hits = [f for f in fights if nm in str(f.get("Name", "")).casefold()]
+        if not hits:
+            sys.exit(f'No fight whose name contains "{name_match}".')
+        if len(hits) > 1:
+            sys.exit('"%s" matched: %s. Narrow it.' % (name_match, ", ".join(str(f.get("Name")) for f in hits)))
+        return hits[0]
+    if len(fights) == 1:
+        return fights[0]
+    names = "\n  ".join(f'{f.get("TerritoryId")}  {f.get("Name")}' for f in fights)
+    sys.exit(f"That file holds {len(fights)} fights; pick one with --territory or --name-match:\n  {names}")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Cross-check the pros' mit timings against our Auto-plan.")
     g = ap.add_mutually_exclusive_group(required=True)
@@ -350,33 +384,21 @@ def main():
     ap.add_argument("--profile", help="FightProfile JSON (enables sheet-clock + Auto-plan cross-check)")
     ap.add_argument("--window", type=float, default=5.0, help="match window vs our plan, seconds (default 5)")
     ap.add_argument("--gap", type=float, default=8.0, help="cluster gap for one mit's presses, seconds (default 8)")
+    ap.add_argument("--territory", type=int, help="pick this fight when the profile file holds several")
+    ap.add_argument("--name-match", help="pick by name substring when the profile file holds several")
     ap.add_argument("--creds", help="FrenMits.json to read FflogsClientId/Secret from")
     ap.add_argument("--id", help="FFLogs client id (overrides --creds)")
     ap.add_argument("--secret", help="FFLogs client secret")
     args = ap.parse_args()
 
-    cid, secret = args.id, args.secret
-    if (not cid or not secret) and args.creds:
-        with open(args.creds, "r", encoding="utf-8-sig") as fh:
-            cfg = json.load(fh)
-        cid = cid or cfg.get("FflogsClientId")
-        secret = secret or cfg.get("FflogsClientSecret")
-        # Newer configs store the secret DPAPI-encrypted (FflogsClientSecretEnc),
-        # which this tool can't read; fall through to env / --secret.
-        if not secret and cfg.get("FflogsClientSecretEnc"):
-            print("note: --creds config stores the secret encrypted now; pass --secret or set FFLOGS_CLIENT_SECRET.")
-    cid = cid or os.environ.get("FFLOGS_CLIENT_ID")
-    secret = secret or os.environ.get("FFLOGS_CLIENT_SECRET")
-    if not cid or not secret:
-        sys.exit("Need FFLogs creds (--id/--secret, FFLOGS_CLIENT_ID/FFLOGS_CLIENT_SECRET env, or --creds FrenMits.json).")
+    cid, secret = fflogs_creds.resolve(args.id, args.secret, args.creds)
 
     profile = None
     sheet_anchors = []
     if args.profile:
         with open(args.profile, "r", encoding="utf-8-sig") as fh:
             profile = json.load(fh)
-        if isinstance(profile, dict) and "Fights" in profile:
-            sys.exit("Pass a single FightProfile (export it), not the whole FrenMits.json.")
+        profile = pick_profile(profile, args.territory, args.name_match)
         sheet_anchors = sheet_anchors_from_profile(profile)
 
     fl = FFLogs(cid, secret)

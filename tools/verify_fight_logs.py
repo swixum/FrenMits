@@ -38,6 +38,9 @@ import sys
 import urllib.parse
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fflogs_creds
+
 FFLOGS_TOKEN_URL = "https://www.fflogs.com/oauth/token"
 FFLOGS_API_URL = "https://www.fflogs.com/api/v2/client"
 
@@ -168,6 +171,35 @@ def verify_anchors(profile, logs, tol):
     return rows
 
 
+# A cast whose time moves further than this between pulls cannot re-base a clock,
+# however precisely the sheet recorded where it happened once.
+UNANCHORABLE_S = 3.0
+
+
+def unanchorable(anchors, tol):
+    """Ability ids that must never be a resync anchor.
+
+    Some mechanics are cast under a different ability id every pull - M9S draws
+    one of two Half Moons, M11S one of four Assault Evolveds. The sheet records
+    whichever variant its own import happened to get, and in a pull that draws a
+    different one, that id fires somewhere else entirely. The plugin matches a
+    mechanic anchor within 8s either way, so it does not shrug the mismatch off:
+    it snaps the clock onto it, and every call after that is early or late until
+    something corrects it.
+
+    The tell is an id the logs DO cast, in pull after pull, reliably at a time
+    that is not the one the sheet has. That is different from an id anchored so
+    late that faster kills never reach it, which is simply unjudged.
+    """
+    limit = max(UNANCHORABLE_S, tol)
+    bad = {}
+    for a in anchors:
+        if a["median"] is None or a["present"] * 2 < a["of"] or abs(a["drift"]) <= limit:
+            continue
+        bad.setdefault(a["ability"], []).append(a)
+    return bad
+
+
 def find_missing(profile, logs, min_share):
     """Cast-bar abilities present in >= min_share of logs that your sheet has no
     row for at all - a telegraphed mechanic your single import missed. An ability
@@ -248,6 +280,19 @@ def report(profile, logs, tol):
                                                 if a["present"] < a["of"] else "")
         L.append(f"  0x{a['ability']:04X} {a['label'][:34]:34} "
                  f"{a['profile']:6.1f} -> {med:>6}  ({a['present']}/{a['of']}) {drift}{mark}")
+    L.append("")
+
+    unfit = unanchorable(anchors, tol)
+    L.append("UNANCHORABLE CASTS  (fire under a different ability id each pull)")
+    if not unfit:
+        L.append("  none - every anchored cast lands where your sheet says, pull after pull.")
+    for aid, insts in sorted(unfit.items(), key=lambda kv: kv[1][0]["profile"]):
+        where = ", ".join(f"{i['profile']:.0f}s->{i['median']:.0f}s" for i in insts)
+        L.append(f"  0x{aid:04X} {insts[0]['label'][:30]:30} {where}")
+    if unfit:
+        L.append("  Pass these to the generator with --unreliable so they never become")
+        L.append("  anchors (--write-unreliable FILE writes the list for you). The ROWS are")
+        L.append("  fine - the mechanic happens, only the id it is cast under moves.")
     L.append("")
 
     missing = find_missing(profile, logs, min_share=0.5)
@@ -346,7 +391,16 @@ def parse_code(link):
     return None
 
 
-def fetch_logs(client, reports):
+def parse_fight_id(link):
+    """The #fight=N a ranking link carries. A raid report holds a kill of EVERY
+    boss that night, so without this we would analyse whichever one happened to
+    die first - a different fight entirely."""
+    import re
+    m = re.search(r"[#&?]fight=(\d+)", link or "")
+    return int(m.group(1)) if m else None
+
+
+def fetch_logs(client, reports, encounter_id=None):
     logs = []
     for link in reports:
         code = parse_code(link)
@@ -354,11 +408,26 @@ def fetch_logs(client, reports):
             print(f"! skipping unparseable report: {link}", file=sys.stderr)
             continue
         fights = client.fights(code)
-        kills = [f for f in fights if f.get("kill")]
-        fight = (kills or fights)[0]
+        want_fid = parse_fight_id(link)
+        fight = None
+        if want_fid is not None:
+            fight = next((f for f in fights if f.get("id") == want_fid), None)
+            if fight is None:
+                print(f"! {code}: no fight #{want_fid} in that report, skipping", file=sys.stderr)
+                continue
+        elif encounter_id is not None:
+            same = [f for f in fights if (f.get("encounterID") or 0) == encounter_id]
+            kills = [f for f in same if f.get("kill")]
+            fight = (kills or same or [None])[0]
+            if fight is None:
+                print(f"! {code}: encounter {encounter_id} not in that report, skipping", file=sys.stderr)
+                continue
+        else:
+            kills = [f for f in fights if f.get("kill")]
+            fight = (kills or fights)[0]
         casts = client.casts(code, fight)
         logs.append({"report": code, "fight": fight["name"], "casts": casts})
-        print(f"  fetched {code}: {fight['name']} ({'kill' if fight.get('kill') else 'wipe'}), "
+        print(f"  fetched {code} #{fight.get('id')}: {fight['name']} ({'kill' if fight.get('kill') else 'wipe'}), "
               f"{len(casts)} casts", file=sys.stderr)
     return logs
 
@@ -372,6 +441,37 @@ def load_offline(paths):
     return logs
 
 
+
+def pick_profile(data, territory=None, name_match=None):
+    """Accept a single FightProfile, a bare list (plans.json), or an old-style
+    config with a "Fights" array, and return the one profile to verify."""
+    if isinstance(data, dict) and isinstance(data.get("Fights"), list):
+        fights = data["Fights"]
+    elif isinstance(data, list):
+        fights = data
+    else:
+        return data  # already a single profile
+    if not fights:
+        sys.exit("No fights in that file.")
+    if territory is not None:
+        hits = [f for f in fights if int(f.get("TerritoryId", 0)) == territory]
+        if not hits:
+            sys.exit(f"No fight with TerritoryId {territory}.")
+        return hits[0]
+    if name_match:
+        nm = name_match.casefold()
+        hits = [f for f in fights if nm in str(f.get("Name", "")).casefold()]
+        if not hits:
+            sys.exit(f'No fight whose name contains "{name_match}".')
+        if len(hits) > 1:
+            sys.exit('"%s" matched: %s. Narrow it.' % (name_match, ", ".join(str(f.get("Name")) for f in hits)))
+        return hits[0]
+    if len(fights) == 1:
+        return fights[0]
+    names = "\n  ".join(f'{f.get("TerritoryId")}  {f.get("Name")}' for f in fights)
+    sys.exit(f"That file holds {len(fights)} fights; pick one with --territory or --name-match:\n  {names}")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Cross-check one FightProfile against several FFLogs kills.")
     ap.add_argument("profile", help="the single-import FightProfile JSON (same one the generator takes)")
@@ -381,34 +481,23 @@ def main():
     ap.add_argument("--id", help="FFLogs client id (overrides --creds)")
     ap.add_argument("--secret", help="FFLogs client secret")
     ap.add_argument("--tolerance", type=float, default=2.0, help="drift flag threshold, seconds (default 2)")
+    ap.add_argument("--encounter", type=int, help="FFLogs encounter id, to pick the right fight in a multi-boss report")
+    ap.add_argument("--territory", type=int, help="pick this fight when the file holds several")
+    ap.add_argument("--name-match", help="pick by name substring when the file holds several")
     ap.add_argument("--write-corrected", help="write a timing-corrected copy of the profile here")
+    ap.add_argument("--write-unreliable", help="write the unanchorable ability ids here (feed to the generator)")
     args = ap.parse_args()
 
     with open(args.profile, "r", encoding="utf-8-sig") as fh:
         data = json.load(fh)
-    profile = data
-    if isinstance(data, dict) and "Fights" in data:
-        sys.exit("Pass a single FightProfile (export it), not the whole FrenMits.json, to the verifier.")
+    profile = pick_profile(data, args.territory, args.name_match)
 
     if args.casts_json:
         logs = load_offline(args.casts_json)
     elif args.reports:
-        cid, secret = args.id, args.secret
-        if (not cid or not secret) and args.creds:
-            with open(args.creds, "r", encoding="utf-8-sig") as fh:
-                cfg = json.load(fh)
-            cid = cid or cfg.get("FflogsClientId")
-            secret = secret or cfg.get("FflogsClientSecret")
-            # Newer configs store the secret DPAPI-encrypted (FflogsClientSecretEnc),
-            # which this tool can't read; fall through to env / --secret.
-            if not secret and cfg.get("FflogsClientSecretEnc"):
-                print("note: --creds config stores the secret encrypted now; pass --secret or set FFLOGS_CLIENT_SECRET.", file=sys.stderr)
-        cid = cid or os.environ.get("FFLOGS_CLIENT_ID")
-        secret = secret or os.environ.get("FFLOGS_CLIENT_SECRET")
-        if not cid or not secret:
-            sys.exit("Need FFLogs creds: --id/--secret, FFLOGS_CLIENT_ID/FFLOGS_CLIENT_SECRET env, or --creds FrenMits.json.")
+        cid, secret = fflogs_creds.resolve(args.id, args.secret, args.creds)
         print("Fetching logs...", file=sys.stderr)
-        logs = fetch_logs(FFLogs(cid, secret), args.reports)
+        logs = fetch_logs(FFLogs(cid, secret), args.reports, args.encounter)
     else:
         sys.exit("Give logs to verify against: --reports LINK... or --casts-json FILE...")
 
@@ -421,6 +510,12 @@ def main():
     if args.write_corrected:
         moved = write_corrected(profile, anchors, args.tolerance, args.write_corrected)
         print(f"\nWrote {args.write_corrected}: nudged {moved} anchor time(s) to the log median.")
+
+    if args.write_unreliable:
+        ids = sorted(unanchorable(anchors, args.tolerance))
+        with open(args.write_unreliable, "w", encoding="utf-8") as fh:
+            json.dump([f"0x{i:04X}" for i in ids], fh, indent=1)
+        print(f"\nWrote {args.write_unreliable}: {len(ids)} cast(s) the generator must not anchor.")
 
 
 if __name__ == "__main__":

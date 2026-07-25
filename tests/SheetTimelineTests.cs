@@ -101,7 +101,7 @@ public class SheetTimelineTests
     [Fact]
     public void EveryBuiltinBuildsABoardWithoutColliding()
     {
-        foreach (var (territory, _, _) in Builtin.Fights)
+        foreach (var (territory, _, _, _) in Builtin.Fights)
         {
             var fight = Fx.Builtin(territory, "T1");
             var rows = SheetTimeline.Build(fight);

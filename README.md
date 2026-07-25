@@ -45,7 +45,16 @@ overlay calls.
 
 ## Built-in fights
 
-Ultimates: **UMAD, FRU, UCOB, UWU, TEA, DSR, TOP**. Savage: **M12S**.
+These ship planned: every column filled, mechanics graded by real damage, and
+resync anchors so the clock follows your pull. Load one and raid.
+
+| Expansion | Ultimate | Savage |
+| --- | --- | --- |
+| **Dawntrail** | Futures Rewritten (FRU), Dancing Mad (UMAD) | M9S - Vamp Fatale, M10S - Red Hot / Deep Blue, M11S - The Tyrant, M12S - Lindwurm |
+| **Endwalker** | Dragonsong's Reprise (DSR), The Omega Protocol (TOP) | |
+| **Shadowbringers** | Epic of Alexander (TEA) | |
+| **Stormblood** | Unending Coil of Bahamut (UCOB), Weapon's Refrain (UWU) | |
+
 Every other duty still gets a timeline; add a custom sheet when you want calls.
 
 <details>
