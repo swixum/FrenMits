@@ -155,7 +155,12 @@ public partial class SheetViewWindow
 
     private int AutoPlanMits(FightProfile fight)
     {
-        var rows = fight.CustomRows.OrderBy(r => r.Time).ToList();
+        // The fight's timer is not a mechanic. A hard enrage lands for ten million
+        // whatever is up, so a cooldown spent on it is a cooldown thrown away -
+        // and it would drag the party's big buttons away from the hit before it.
+        var rows = fight.CustomRows
+            .Where(r => !Enrages.IsEnrageRow(fight.TerritoryId, r))
+            .OrderBy(r => r.Time).ToList();
         if (rows.Count == 0) return 0;
         // Deadly PARTY hits only: a deadly buster is the tanks' problem, so it
         // must never hold the party's big cooldowns hostage.

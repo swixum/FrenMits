@@ -51,8 +51,10 @@ covered offline:
 dotnet test tests
 ```
 
-Runs in about a second, with no game, no Dalamud services and no ImGui. CI runs
-it on every push, before the build that deploys the plugin.
+Runs in about a second, with no game, no Dalamud services and no ImGui.
+
+The suite lives in `tests/` on this machine only - it's gitignored, so it never
+reaches GitHub and CI can't run it. Run it before you commit; nothing else will.
 
 Worth knowing:
 

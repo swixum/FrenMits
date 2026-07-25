@@ -368,7 +368,7 @@ public static class {cls}Data
     public static readonly string[] Slots = {{ {slots} }};
 
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions,
-                              int Hurt = 0, bool Buster = false);
+                              int Hurt = 0, bool Buster = false, bool Enrage = false);
 
     public static readonly Entry[] Timeline =
     {{
@@ -412,8 +412,9 @@ public static class {cls}Data
     {{
         var rows = new List<CustomRow>();
         foreach (var e in Timeline)
-            if (e.Hurt > 0 || e.Buster)
-                rows.Add(new CustomRow {{ Time = e.Time, Mechanic = e.Mechanic, Hurt = e.Hurt, Buster = e.Buster }});
+            if (e.Hurt > 0 || e.Buster || e.Enrage)
+                rows.Add(new CustomRow {{ Time = e.Time, Mechanic = e.Mechanic, Hurt = e.Hurt,
+                                          Buster = e.Buster, Enrage = e.Enrage }});
         return rows;
     }}
 
@@ -443,8 +444,10 @@ def emit_data(cls, source, legacy_slots, rows, boss_anchors):
         acts = ", ".join(cs_str(a) for a in r["actions"])
         sync = f"0x{r['sync']:04X}" if r["sync"] else "0"
         tail = ""
-        if r.get("hurt") or r.get("buster"):
+        if r.get("hurt") or r.get("buster") or r.get("enrage"):
             tail = f', {int(r.get("hurt") or 0)}, {"true" if r.get("buster") else "false"}'
+            if r.get("enrage"):
+                tail += ", true"
         lines.append(
             f'        new({r["time"]}, {cs_str(r["phase"])}, {cs_str(r["mech"])}, '
             f'{sync}, new[]{{{acts}}}{tail}),')
@@ -537,12 +540,14 @@ def verify_bake(out_path, profile, canon_slots, legacy_slots, rows):
     text = open(out_path, encoding="utf-8").read()
     baked = []
     for m in _re.finditer(
-            r'new\((\d+), "(\w+)", "([^"]*)", (0x[0-9A-Fa-f]+|0), new\[\]\{(.*?)\}(?:, (\d+), (true|false))?\),',
+            r'new\((\d+), "(\w+)", "([^"]*)", (0x[0-9A-Fa-f]+|0), new\[\]\{(.*?)\}'
+            r'(?:, (\d+), (true|false)(?:, (true|false))?)?\),',
             text):
         cells = _re.findall(r'"((?:[^"\\]|\\.)*)"', m.group(5))
         baked.append({"t": int(m.group(1)), "mech": m.group(3), "sync": m.group(4),
                       "cells": dict(zip(legacy_slots, cells)),
-                      "hurt": int(m.group(6) or 0), "buster": m.group(7) == "true"})
+                      "hurt": int(m.group(6) or 0), "buster": m.group(7) == "true",
+                      "enrage": m.group(8) == "true"})
 
     problems = []
     if len(baked) != len(rows):
@@ -708,6 +713,7 @@ def main():
             "actions": acts,
             "hurt": int(cr.get("Hurt", 0) or 0),
             "buster": bool(cr.get("Buster", False)),
+            "enrage": bool(cr.get("Enrage", False)),
         })
 
     anchored = sum(1 for r in rows if r["sync"])

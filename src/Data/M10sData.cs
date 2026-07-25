@@ -13,7 +13,7 @@ public static class M10sData
     public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions,
-                              int Hurt = 0, bool Buster = false);
+                              int Hurt = 0, bool Buster = false, bool Enrage = false);
 
     public static readonly Entry[] Timeline =
     {
@@ -137,8 +137,9 @@ public static class M10sData
     {
         var rows = new List<CustomRow>();
         foreach (var e in Timeline)
-            if (e.Hurt > 0 || e.Buster)
-                rows.Add(new CustomRow { Time = e.Time, Mechanic = e.Mechanic, Hurt = e.Hurt, Buster = e.Buster });
+            if (e.Hurt > 0 || e.Buster || e.Enrage)
+                rows.Add(new CustomRow { Time = e.Time, Mechanic = e.Mechanic, Hurt = e.Hurt,
+                                          Buster = e.Buster, Enrage = e.Enrage });
         return rows;
     }
 

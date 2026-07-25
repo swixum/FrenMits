@@ -14,3 +14,6 @@ __pycache__/
 
 # generator scratch notes, not source (tools/gen_official_fight.py)
 src/Data/*_registration.txt
+
+# offline test suite, kept local (see docs/TESTING.md)
+tests/

@@ -153,7 +153,19 @@ public static class Builtin
 
     // Accepts the standard slot names (or any alias) and translates to each
     // data file's native labels.
-    public static List<MitLine> BuildLines(uint territory, string slot) => territory switch
+    //
+    // Everything a built-in sheet hands out goes through here, which is why the
+    // covered-repeat pass sits here too: every source sheet these are transcribed
+    // from writes a mit again on each hit one press covers, and those copies would
+    // otherwise ship as calls for a button still on recast.
+    public static List<MitLine> BuildLines(uint territory, string slot)
+    {
+        var lines = Bake(territory, slot);
+        CoveredRepeats.Strip(lines);
+        return lines;
+    }
+
+    private static List<MitLine> Bake(uint territory, string slot) => territory switch
     {
         FruTerritory => FruData.BuildLines(SlotNames.ToFru(slot)),
         DoomtrainTerritory => DoomtrainData.BuildLines(SlotNames.ToLegacy(slot)),

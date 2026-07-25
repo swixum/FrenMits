@@ -129,6 +129,13 @@ public class CustomRow
 
     // Tank buster: the hit lands on one tank or two, not the party.
     public bool Buster { get; set; }
+
+    // The fight's timer running out. Not a mechanic anyone plans for - see
+    // Enrages - so the planner leaves it alone and its damage, which is an order
+    // of magnitude past everything else, never sets the severity scale.
+    public bool Enrage { get; set; }
+
+    public bool ShouldSerializeEnrage() => Enrage;
 }
 
 // A note attached to one mechanic row on the sheet, matched by mechanic label +

@@ -272,6 +272,25 @@ public static class ConfigMigrations
             config.Version = 25;
             config.Save();
         }
+
+        // v26: the sheets built-ins are transcribed from repeat a mit on every hit
+        // one press covers, which reads as a second press of a button that has most
+        // of its recast left - FRU asks the melee for Feint at 5:23 and again at
+        // 5:33. New bakes drop those; this takes them out of the plans already
+        // saved, since an official sheet can't be edited in game. Nothing you wrote
+        // yourself is touched, and the hit still shows what covers it as a
+        // carry-over arrow.
+        if (config.Version < 26)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (!Builtin.Has(f.TerritoryId)) continue;
+                CoveredRepeats.Strip(f.Lines);
+                foreach (var slot in f.SavedSlots.Values) CoveredRepeats.Strip(slot);
+            }
+            config.Version = 26;
+            config.Save();
+        }
     }
 
     // A custom sheet whose duty has since become an official fight.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Lumina.Excel.Sheets;
 
 namespace FrenMits;
@@ -223,24 +224,44 @@ public static class Cooldowns
         EnsurePlanMap();
         if (_planByName == null) yield break;
         foreach (var pm in _planByName.Values)
+            if (NamedIn(actionText!, pm.Name)) yield return pm;
+    }
+
+    // Does this action text name that mit as a word of its own? Every occurrence
+    // gets checked: "Seraphism + Seraph" must still find the standalone Seraph
+    // even though the first occurrence fails the boundary test inside "Seraphism".
+    private static bool NamedIn(string text, string name)
+    {
+        var idx = text.IndexOf(name, StringComparison.OrdinalIgnoreCase);
+        while (idx >= 0)
         {
-            // Check every occurrence: "Seraphism + Seraph" must still find the
-            // standalone Seraph even though the first occurrence fails the
-            // boundary test inside "Seraphism".
-            var idx = actionText!.IndexOf(pm.Name, StringComparison.OrdinalIgnoreCase);
-            while (idx >= 0)
-            {
-                var before = idx == 0 ? ' ' : actionText[idx - 1];
-                var end = idx + pm.Name.Length;
-                var after = end >= actionText.Length ? ' ' : actionText[end];
-                if (!char.IsLetter(before) && !char.IsLetter(after))
-                {
-                    yield return pm;
-                    break;
-                }
-                idx = actionText.IndexOf(pm.Name, idx + 1, StringComparison.OrdinalIgnoreCase);
-            }
+            var before = idx == 0 ? ' ' : text[idx - 1];
+            var end = idx + name.Length;
+            var after = end >= text.Length ? ' ' : text[end];
+            if (!char.IsLetter(before) && !char.IsLetter(after)) return true;
+            idx = text.IndexOf(name, idx + 1, StringComparison.OrdinalIgnoreCase);
         }
+        return false;
+    }
+
+    // Distinct tracked names that have a curated buff duration. Names lists a few
+    // twice (Rampart and Addle each belong to two roles' kits).
+    private static readonly string[] BuffNames = Names
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Where(n => Durations.ContainsKey(n))
+        .ToArray();
+
+    // The mits an action text names, with how long each one's buff lasts.
+    //
+    // PlanMits answers a bigger question (recast, charges, level) and needs the
+    // game's Action sheet for it. This needs neither: both tables it reads are
+    // hand-curated and compiled in, so it gives the same answer before Lumina is
+    // ready, on a localized client, and inside a test with no game running.
+    public static IEnumerable<(string Name, float Duration)> BuffsIn(string? actionText)
+    {
+        if (string.IsNullOrWhiteSpace(actionText)) yield break;
+        foreach (var name in BuffNames)
+            if (NamedIn(actionText!, name)) yield return (name, Durations[name]);
     }
 
     private static unsafe float? RecastRemaining(uint id)

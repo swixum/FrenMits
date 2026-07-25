@@ -155,6 +155,15 @@ public partial class SheetViewWindow
         PushUndo($"build from {source}");
         _plugin.Snapshots.Save(_fight, $"before build from {source}");
 
+        // The fight's timer, if this pull ran into it. Kept out of everything
+        // below: it can't be mitigated, so it isn't a mechanic to grade or plan,
+        // and its damage is an order of magnitude past every real hit - left in
+        // the scale it would grade the whole fight "light" (see Enrages).
+        bool IsEnrage(BuildEvent e)
+            => Enrages.Is(_fight.TerritoryId, e.Id)
+               || (damage != null && damage.TryGetValue(e.Id, out var d)
+                   && Enrages.LooksLikeOne(d.Worst, d.Targets));
+
         // Raidwides (hit the party) and busters (only ever hit a player or two)
         // are graded on SEPARATE scales: each against the hardest of its own
         // kind, so a 400k buster neither drowns the raidwide scale nor reads as
@@ -163,7 +172,7 @@ public partial class SheetViewWindow
         var maxTb = 0L;    // hardest buster
         if (damage is { Count: > 0 })
             foreach (var e in events)
-                if (damage.TryGetValue(e.Id, out var d))
+                if (!IsEnrage(e) && damage.TryGetValue(e.Id, out var d))
                 {
                     if (d.Targets > 3) { if (d.Worst > maxDmg) maxDmg = d.Worst; }
                     else if (d.Worst > maxTb) maxTb = d.Worst;
@@ -188,7 +197,8 @@ public partial class SheetViewWindow
             {
                 var hurt = 0;
                 var buster = false;
-                if (damage != null && damage.TryGetValue(e.Id, out var d))
+                var enrage = IsEnrage(e);
+                if (!enrage && damage != null && damage.TryGetValue(e.Id, out var d))
                 {
                     buster = d.Targets > 0 && d.Targets <= 3;
                     hurt = HurtLevel(d.Worst, buster ? maxTb : maxDmg);
@@ -198,12 +208,14 @@ public partial class SheetViewWindow
                     MechEquals(cr.Mechanic, e.Name) && MathF.Abs(cr.Time - e.Time) < 2f);
                 if (existing != null)
                 {
+                    if (enrage) existing.Enrage = true;
                     if (existing.Hurt == 0 && hurt > 0) { existing.Hurt = hurt; existing.Buster = buster; graded++; }
                     continue;
                 }
                 if (_rows.Any(r => !r.Ghost && MechEquals(r.Mechanic, e.Name) && MathF.Abs(r.Time - e.Time) < 2f))
                     continue;
-                _fight.CustomRows.Add(new CustomRow { Time = MathF.Round(e.Time), Mechanic = e.Name, Hurt = hurt, Buster = buster });
+                _fight.CustomRows.Add(new CustomRow
+                    { Time = MathF.Round(e.Time), Mechanic = e.Name, Hurt = hurt, Buster = buster, Enrage = enrage });
                 if (hurt > 0) graded++;
                 addedRows++;
             }
