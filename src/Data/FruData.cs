@@ -98,4 +98,26 @@ public static class FruData
         BossNames.Add(list, "Oracle of Darkness", 500.0f, "P3 Gaia");
         return list;
     }
+
+    // Phase starts on this file's own clock, read off the same community timeline
+    // the rows above are matched to. P2 and P3 are the anchors' times exactly,
+    // which is what confirms the two share a clock.
+    //
+    // Written out rather than folded up from the rows' Phase tags, the way every
+    // other fight's is, because THIS file's tags don't survive it: three rows are
+    // tagged P4 but sit at 1052-1068, inside Pandora's stretch and interleaved
+    // with P5's own rows. Grouping by tag puts P4 after P5 and drops a "P4"
+    // divider into the middle of phase five.
+    //
+    // The sheet has no P4 rows at all, so that mark draws nothing today - the gap
+    // it lands in ends at P5's first row, and the later phase owns the gap. It's
+    // here so it starts working the day someone writes P4 calls.
+    public static List<(string Name, float Time)> PhaseStarts() => new()
+    {
+        ("P1", 0f),
+        ("P2", 215.3f),
+        ("P3", 500.0f),
+        ("P4", 680.8f),
+        ("P5", 1041.0f),
+    };
 }

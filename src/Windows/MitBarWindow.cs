@@ -88,7 +88,7 @@ public class MitBarWindow : Window
         if (OverlayChrome.MovedCenterFrac(C.MitBarPosition) is { } frac) { C.MitBarPosition = frac; _posDirty = true; }
         // ONE disk write when the drag ends - not sixty full-config saves a
         // second while the window is being moved.
-        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
+        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.SaveSettings(); _posDirty = false; }
     }
 
     private bool _posDirty;

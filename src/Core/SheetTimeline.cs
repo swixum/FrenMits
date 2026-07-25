@@ -106,33 +106,79 @@ public static class SheetTimeline
         return rows.OrderBy(r => r.Time).ToList();
     }
 
+    // ---- phase dividers ----------------------------------------------------
+
+    public readonly record struct PhaseMark(float Time, string Label);
+
+    private static readonly List<PhaseMark> NoMarks = new();
+
+    // Every phase boundary a fight can put a name to.
+    //
+    // Nothing here needed fetching or baking: every timeline FrenMits ships
+    // already tags each row with the phase it belongs to (Entry.Phase), because
+    // the practice phase-jump needed exactly that. So the first row tagged "P3" is
+    // where P3 starts, and each fight's own PhaseStarts already folds it up.
+    //
+    // Anchors are the fallback for anything with no tagged timeline. Where a fight
+    // has both, the tags win: they're the finer answer (five or six phases against
+    // an anchor list's two or three, since anchors exist to re-base the clock and
+    // some phases deliberately have none).
+    //
+    // Duty timelines are skipped outright: they pack every encounter of an instance
+    // onto one clock in 1000-second blocks, so a phase time from either source
+    // would land in the wrong block, and a dungeon's bosses aren't phases anyway.
+    public static List<PhaseMark> PhaseMarks(FightProfile fight)
+    {
+        if (fight.TimelineOnly) return NoMarks;
+
+        var marks = new List<PhaseMark>();
+
+        void Add(List<(string Name, float Time)> starts, Func<string, string>? title = null)
+        {
+            foreach (var (name, time) in starts)
+            {
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                var label = (title == null ? name : title(name)).Trim();
+                if (label.Length > 0) marks.Add(new PhaseMark(time, label));
+            }
+        }
+
+        var territory = fight.TerritoryId;
+        // DMU spells its phases out ("Phase 3: Chaos & Exdeath"); the rest tag
+        // theirs as plain P1/P2/P3, which is what people call them anyway.
+        if (territory == Builtin.DmuTerritory) Add(DmuData.PhaseStarts(), DmuData.PhaseTitle);
+        else if (territory == Builtin.FruTerritory) Add(FruData.PhaseStarts());
+        else if (territory == Builtin.M12sTerritory) Add(M12sData.PhaseStarts());
+        else if (IkuyaTimelines.Has(territory)) Add(IkuyaTimelines.PhaseStarts(territory));
+
+        if (marks.Count == 0)
+            foreach (var a in fight.BossAnchors)
+                if (!string.IsNullOrWhiteSpace(a.Label))
+                    marks.Add(new PhaseMark(a.Time, a.Label.Trim()));
+
+        return marks;
+    }
+
     // The phase that begins between two consecutive rows on the board, or "" when
-    // none does.
+    // none does. Drawing that name between the last row of one phase and the first
+    // of the next turns "seven bars" into "three bars, then P2 starts".
     //
-    // Boss anchors already exist to re-base the clock when each phase's boss shows
-    // up (SyncEngine.SnapToBoss), and the labelled ones carry the phase's name
-    // with them. Drawing that name between the last row of one phase and the first
-    // of the next costs nothing but a lookup, and turns "seven bars" into "three
-    // bars, then P2 starts".
-    //
-    // An anchor landing exactly ON a row belongs to that row, so the divider sits
+    // A mark landing exactly ON a row belongs to that row, so the divider sits
     // ABOVE it: that row is the first of the new phase, not the last of the old.
-    // Unlabelled anchors are structural only and never draw.
-    public static string PhaseBetween(IReadOnlyList<BossAnchor> anchors, float afterTime, float untilTime)
+    public static string PhaseBetween(IReadOnlyList<PhaseMark> marks, float afterTime, float untilTime)
     {
         var label = "";
         // Two phases can begin inside one gap (a short phase nobody has a row
         // for). The LAST one is the phase the next row actually belongs to, and
-        // the anchors aren't sorted, so track the time rather than trusting order.
+        // the marks aren't sorted, so track the time rather than trusting order.
         var best = float.NegativeInfinity;
-        for (var i = 0; i < anchors.Count; i++)
+        for (var i = 0; i < marks.Count; i++)
         {
-            var a = anchors[i];
-            if (string.IsNullOrWhiteSpace(a.Label)) continue;
-            if (a.Time <= afterTime || a.Time > untilTime) continue;
-            if (a.Time < best) continue;
-            best = a.Time;
-            label = a.Label.Trim();
+            var m = marks[i];
+            if (m.Time <= afterTime || m.Time > untilTime) continue;
+            if (m.Time < best) continue;
+            best = m.Time;
+            label = m.Label;
         }
         return label;
     }

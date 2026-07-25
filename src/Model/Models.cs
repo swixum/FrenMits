@@ -204,7 +204,10 @@ public class MitLine
     // last hit it covers).
     public float CoverUntil { get; set; }
 
-    // Where this call actually fires on the cue clock.
+    // Where this call actually fires on the cue clock. Derived, so it is never
+    // written: it can't be read back into a get-only property anyway, and it was
+    // riding along in every plan code and snapshot as well as the config.
+    [Newtonsoft.Json.JsonIgnore]
     public float CueTime => Time - OffsetSeconds;
 
     // Per-line overrides (0 / empty = use the global setting).
@@ -213,6 +216,27 @@ public class MitLine
     public bool Sound { get; set; } = true;    // play the audio cue for this line
     public uint Color { get; set; }            // ABGR text color; 0 = default
     public uint IconId { get; set; }           // pinned game icon id; 0 = infer from action
+
+    // A line at its defaults writes nothing for these, which is most of them: of
+    // 1770 saved lines in a real config, Enabled/Sound/LeadOverride/Color/IconId
+    // were at their default on every single one.
+    //
+    // Each skipped value has to be the one the field initializer above already
+    // gives, or a re-read would come back different - that's why Enabled and Sound
+    // are skipped when TRUE.
+    public bool ShouldSerializeJobs() => Jobs is { Count: > 0 };
+    public bool ShouldSerializeEnabled() => !Enabled;
+    public bool ShouldSerializeSound() => !Sound;
+    public bool ShouldSerializeCustom() => Custom;
+    public bool ShouldSerializeOffsetSeconds() => OffsetSeconds != 0f;
+    public bool ShouldSerializeOffsetManual() => OffsetManual;
+    public bool ShouldSerializeCoverUntil() => CoverUntil != 0f;
+    public bool ShouldSerializeLeadOverride() => LeadOverride != 0f;
+    public bool ShouldSerializeTts() => !string.IsNullOrEmpty(Tts);
+    public bool ShouldSerializeColor() => Color != 0;
+    public bool ShouldSerializeIconId() => IconId != 0;
+    public bool ShouldSerializeMechanic() => !string.IsNullOrEmpty(Mechanic);
+    public bool ShouldSerializeAction() => !string.IsNullOrEmpty(Action);
 
     public bool AppliesTo(string? jobAbbr)
         => (Jobs.Count == 0 || (jobAbbr != null && JobListHas(jobAbbr)))
@@ -330,6 +354,8 @@ public class MitLine
         return "";
     }
 
+    // Derived from Time, so never written - same reason as CueTime.
+    [Newtonsoft.Json.JsonIgnore]
     public string TimeText
     {
         get

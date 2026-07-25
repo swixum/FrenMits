@@ -211,6 +211,21 @@ public class TimelineWindow : Window
         return _board;
     }
 
+    // Phase marks change only when the fight does, so they're built once per fight
+    // rather than per row per frame like the lookup that reads them.
+    private List<SheetTimeline.PhaseMark> _marks = new();
+    private string _marksFightId = "";
+
+    private List<SheetTimeline.PhaseMark> PhaseMarks(FightProfile fight)
+    {
+        if (_marksFightId != fight.Id)
+        {
+            _marks = SheetTimeline.PhaseMarks(fight);
+            _marksFightId = fight.Id;
+        }
+        return _marks;
+    }
+
     private static readonly List<MitLine> NoLines = new();
     private static readonly List<SheetTimeline.MechRow> NoRows = new();
 
@@ -458,7 +473,7 @@ public class TimelineWindow : Window
             // INSTEAD of the row gap, never on top of it: a negative gap (the
             // overlap look) would drag the divider up into the bar above.
             var phase = i > 0 && C.UpcomingBoardPhases
-                ? SheetTimeline.PhaseBetween(fight.BossAnchors, visible[i - 1].Time, r.Time)
+                ? SheetTimeline.PhaseBetween(PhaseMarks(fight), visible[i - 1].Time, r.Time)
                 : "";
             if (phase.Length > 0) BoardPhase(phase, width);
             else if (i > 0 && rowGap > 0f) ImGui.Dummy(new Vector2(1f, rowGap));
@@ -1068,7 +1083,7 @@ public class TimelineWindow : Window
 
         if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
-            if (_dragging) { _dragging = false; C.Save(); } // persist once, on release
+            if (_dragging) { _dragging = false; C.SaveSettings(); } // persist once, on release
             return;
         }
         if (!_dragging)

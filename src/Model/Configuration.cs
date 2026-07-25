@@ -13,7 +13,19 @@ public class Configuration : IPluginConfiguration
     // Last plugin version whose "What's New" panel was dismissed.
     public string LastWhatsNew { get; set; } = "";
 
+    // Your fight plans. In memory they still live here, so every window and every
+    // migration reads them exactly as before - but they are no longer part of the
+    // config FILE. PlanStore owns that now; see the note there for why.
+    [Newtonsoft.Json.JsonIgnore]
     public List<FightProfile> Fights { get; set; } = new();
+
+    // Where fights used to sit, INSIDE the config. Still read, so an existing
+    // profile hands its plans over on first load; never written back, so the next
+    // save is the one that leaves them out.
+    [Newtonsoft.Json.JsonProperty("Fights")]
+    public List<FightProfile>? LegacyFights { get; set; }
+
+    public bool ShouldSerializeLegacyFights() => false;
 
     // Whether the Sheet View's per-phase "Sheet notes" panel is expanded.
     public bool SheetNotesOpen { get; set; } = true;
@@ -337,7 +349,22 @@ public class Configuration : IPluginConfiguration
     // ("All changes saved · 3s ago") instead of a ceremonial Save button.
     public static DateTime LastSavedAt { get; private set; } = DateTime.MinValue;
 
+    // Settings AND plans. The safe default, and what every existing call site
+    // still gets: leaving one on this is only ever slower, never wrong.
     public void Save()
+    {
+        SaveSettings();
+        PlanStore.Save(Fights);
+    }
+
+    // Settings only, for paths that provably cannot have touched a plan - the
+    // config window's toggles and the overlays' drag-to-move. This is the whole
+    // point of the split: it writes about 6KB instead of re-serializing every
+    // fight you own.
+    //
+    // Use it only where that's certain. Getting it wrong loses a plan edit;
+    // leaving something on Save() just costs it the speed-up.
+    public void SaveSettings()
     {
         if (SuppressSave) return;
         Service.PluginInterface.SavePluginConfig(this);

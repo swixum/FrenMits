@@ -155,7 +155,7 @@ public class OverlayWindow : Window
             if (ImGui.MenuItem("Lock position", "", C.OverlayLocked))
             {
                 C.OverlayLocked = !C.OverlayLocked;
-                C.Save();
+                C.SaveSettings();
             }
             if (ImGui.MenuItem("Open settings"))
             {
@@ -712,7 +712,7 @@ public class OverlayWindow : Window
         if ((frac - C.OverlayPosition).LengthSquared() > 0.0000001f)
         {
             C.OverlayPosition = frac;
-            C.Save();
+            C.SaveSettings();
         }
     }
 }

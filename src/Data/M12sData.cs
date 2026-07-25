@@ -3,6 +3,7 @@
 // cactbot r12s timeline (SyncPoints below) snap the clock on Lindwurm's casts.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FrenMits;
 
@@ -101,4 +102,12 @@ public static class M12sData
     };
 
     public static List<BossAnchor> BossAnchors() => new();
+
+    // First time each phase appears. P2's rows already carry Phase2Offset, so
+    // these land on the same clock the board measures its rows against.
+    public static List<(string Name, float Time)> PhaseStarts()
+        => Timeline.GroupBy(e => e.Phase)
+                   .Select(g => (g.Key, (float)g.Min(e => e.Time)))
+                   .OrderBy(p => p.Item2)
+                   .ToList();
 }

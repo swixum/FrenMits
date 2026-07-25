@@ -175,7 +175,10 @@ public partial class ConfigWindow : Window, IDisposable
         if (_toggleDirty)
         {
             _toggleDirty = false;
-            C.Save();
+            // Settings only: every Toggle/CfgCheck/GridCheck in the config window
+            // assigns its result straight back to a C.<setting>, so nothing that
+            // reaches here can have edited a plan.
+            C.SaveSettings();
         }
     }
 

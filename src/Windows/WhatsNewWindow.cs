@@ -59,7 +59,7 @@ public class WhatsNewWindow : Window
     private void Dismiss()
     {
         C.LastWhatsNew = NotesVersion;
-        C.Save();
+        C.SaveSettings();
         IsOpen = false;
     }
 

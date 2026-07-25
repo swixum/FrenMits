@@ -49,6 +49,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         Config = LoadConfig();
         Config.Fights ??= new();
+        // Plans come from their own file now. This has to run BEFORE the
+        // migrations, which walk Config.Fights.
+        LoadPlans(Config);
         Config.LearnedFights ??= new();
         Snapshots = new SnapshotStore(Config);
         FrenMits.Windows.Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
@@ -210,6 +213,47 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
 
         return new Configuration();
+    }
+
+    // Point Config.Fights at the plan file, moving them out of the config the
+    // first time a profile that predates the split is loaded.
+    private static void LoadPlans(Configuration config)
+    {
+        var plans = PlanStore.Load();
+        if (plans != null)
+        {
+            // The plan file is the source of truth once it exists. Anything still
+            // sat in the config is a leftover from before the split.
+            config.Fights = plans;
+            config.LegacyFights = null;
+            return;
+        }
+
+        if (PlanStore.Broken)
+        {
+            // The file is there but unreadable, and PlanStore has already stopped
+            // writing so it stays recoverable. Fall back to whatever the config
+            // still holds rather than starting the session with no fights.
+            if (config.LegacyFights is { Count: > 0 }) config.Fights = config.LegacyFights;
+            Service.Log?.Error("FrenMits: running on the config's copy of your plans; plans.json needs recovering.");
+            return;
+        }
+
+        if (config.LegacyFights is not { Count: > 0 })
+        {
+            // Fresh install, or a profile with no fights. Nothing to move.
+            config.LegacyFights = null;
+            return;
+        }
+
+        // First load after the split. Take a copy of the old config before the
+        // next save drops the fights out of it, then write the new file at once
+        // rather than waiting for whatever edit happens to save first.
+        config.Fights = config.LegacyFights;
+        config.LegacyFights = null;
+        PlanStore.BackupConfigBeforeSplit();
+        PlanStore.Save(config.Fights);
+        Service.Log?.Information($"FrenMits: moved {config.Fights.Count} fight plans out of the config into {PlanStore.FileName}.");
     }
 
     // Seamless auto-load: on entering a boss room we support, top up the fight's

@@ -261,7 +261,7 @@ public class PrepWindow : Window
         if (EffectiveLocked) return;
         if (OverlayChrome.MovedCenterFrac(C.PrepCheckPosition) is { } frac) { C.PrepCheckPosition = frac; _posDirty = true; }
         // ONE disk write when the drag ends, not a full config save per frame.
-        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
+        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.SaveSettings(); _posDirty = false; }
     }
 
     private bool _posDirty;

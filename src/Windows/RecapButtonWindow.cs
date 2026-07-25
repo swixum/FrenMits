@@ -97,7 +97,7 @@ public class RecapButtonWindow : Window
         if (OverlayChrome.MovedCenterFrac(C.RecapPopupPosition) is { } frac) { C.RecapPopupPosition = frac; _posDirty = true; }
         // ONE disk write when the drag ends - not sixty full-config saves a
         // second while the window is being moved.
-        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.Save(); _posDirty = false; }
+        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.SaveSettings(); _posDirty = false; }
     }
 
     private bool _posDirty;

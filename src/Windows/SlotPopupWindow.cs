@@ -90,11 +90,11 @@ public class SlotPopupWindow : Window
             if (ImGui.BeginCombo("##jobpick", jobPreview))
             {
                 if (ImGui.Selectable("Auto (current job)", C.JobSelection == "Auto") && C.JobSelection != "Auto")
-                { C.JobSelection = "Auto"; C.Save(); }
+                { C.JobSelection = "Auto"; C.SaveSettings(); }
                 foreach (var job in Jobs.Abbreviations)
                     if (ImGui.Selectable(job, string.Equals(job, C.JobSelection, StringComparison.OrdinalIgnoreCase))
                         && !string.Equals(job, C.JobSelection, StringComparison.OrdinalIgnoreCase))
-                    { C.JobSelection = job; C.Save(); }
+                    { C.JobSelection = job; C.SaveSettings(); }
                 ImGui.EndCombo();
             }
 
