@@ -453,9 +453,16 @@ public class TimelineWindow : Window
         var rowGap = Math.Clamp(C.UpcomingBoardRowGap, -8f, 16f);
         for (var i = 0; i < visible.Count; i++)
         {
-            if (i > 0 && rowGap > 0f) ImGui.Dummy(new Vector2(1f, rowGap));
-            else if (i > 0 && rowGap < 0f) ImGui.SetCursorPosY(ImGui.GetCursorPosY() + rowGap);
             var r = visible[i];
+            // A phase beginning between this row and the one above it. Drawn
+            // INSTEAD of the row gap, never on top of it: a negative gap (the
+            // overlap look) would drag the divider up into the bar above.
+            var phase = i > 0 && C.UpcomingBoardPhases
+                ? SheetTimeline.PhaseBetween(fight.BossAnchors, visible[i - 1].Time, r.Time)
+                : "";
+            if (phase.Length > 0) BoardPhase(phase, width);
+            else if (i > 0 && rowGap > 0f) ImGui.Dummy(new Vector2(1f, rowGap));
+            else if (i > 0 && rowGap < 0f) ImGui.SetCursorPosY(ImGui.GetCursorPosY() + rowGap);
             var rem = r.Time - elapsed;
             var useNow = mine[i].Count > 0 && AnyInWindow(mine[i]);
             var isNext = i == nextIdx;
@@ -837,6 +844,55 @@ public class TimelineWindow : Window
     // Reused across rows and frames: this runs once per visible row of the board.
     private readonly List<string> _actionParts = new();
 
+    private string _phaseSrc = "";
+    private string _phaseUpper = "";
+
+    // The phase divider: a tick in the same 3px column every bar's stripe occupies,
+    // the phase name, and a hairline running out to the right edge.
+    //
+    // Deliberately NOT built like a row - no background, no border, no countdown.
+    // A full-height bar with no seconds on it, sat among bars that all have them,
+    // reads as a bug before it reads as a divider, and the board's row cap means
+    // anything row-shaped here is space a mechanic doesn't get.
+    private void BoardPhase(string label, float width)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        // Upper-cased so it reads as a label rather than as another mechanic name;
+        // the board has no small-caps to lean on. Memoized because this is a live
+        // draw loop and ToUpperInvariant allocates - one slot is enough, since two
+        // phases starting inside one look-ahead is vanishingly rare and only costs
+        // what it used to.
+        if (!string.Equals(label, _phaseSrc, StringComparison.Ordinal))
+        {
+            _phaseSrc = label;
+            _phaseUpper = label.ToUpperInvariant();
+        }
+        var text = _phaseUpper;
+        var accent = AccentCol & 0x00FFFFFF;
+
+        var p0 = ImGui.GetCursorScreenPos();
+        var h = MathF.Round(lineH * 1.25f); // a little air above and below
+        var mid = MathF.Round(p0.Y + h * 0.5f);
+
+        var tickH = MathF.Round(lineH * 0.62f);
+        dl.AddRectFilled(new Vector2(p0.X, mid - tickH * 0.5f),
+            new Vector2(p0.X + 3f, mid + tickH * 0.5f), accent | 0xFF000000, 1f);
+
+        var textX = p0.X + 9f;
+        BoardText(dl, new Vector2(textX, p0.Y + (h - lineH) * 0.5f), accent | 0xDD000000, text);
+
+        // Hairline out to the board's right edge, fading as it goes so it reads as
+        // a rule rather than as an empty bar waiting to fill.
+        var ruleX = textX + ImGui.CalcTextSize(text).X + 8f;
+        var right = p0.X + width;
+        if (right - ruleX > 8f)
+            dl.AddRectFilledMultiColor(new Vector2(ruleX, mid), new Vector2(right, mid + 1f),
+                accent | 0x80000000, accent | 0x00000000, accent | 0x00000000, accent | 0x80000000);
+
+        ImGui.Dummy(new Vector2(width, h));
+    }
+
     private void BoardActions(List<MitLine> mine, string? job, float elapsed, float width, uint accent)
     {
         var parts = _actionParts;
@@ -917,6 +973,18 @@ public class TimelineWindow : Window
             Lines = Builtin.BuildLines(Builtin.DmuTerritory, "T1"),
         };
         _previewRows ??= SheetTimeline.Build(_previewFight);
+
+        // DMU has no phase names of its own and the preview fight is synthetic, so
+        // with dividers switched on the preview - the one place you'd go to look at
+        // them - would show nothing. Anchor a sample phase exactly ON a row inside
+        // the looped window, which is where a real phase's first hit sits anyway.
+        if (C.UpcomingBoardPhases && _previewFight.BossAnchors.Count == 0)
+            foreach (var r in _previewRows)
+                if (r.Time is >= 70f and <= 100f)
+                {
+                    _previewFight.BossAnchors.Add(new BossAnchor { Time = r.Time, Label = "P2 Kefka" });
+                    break;
+                }
 
         // Loop DMU's opener: Double-Trouble Trap, Light of Judgment and both
         // Gravitas II hits pass through every sweep.

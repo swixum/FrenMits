@@ -105,4 +105,35 @@ public static class SheetTimeline
 
         return rows.OrderBy(r => r.Time).ToList();
     }
+
+    // The phase that begins between two consecutive rows on the board, or "" when
+    // none does.
+    //
+    // Boss anchors already exist to re-base the clock when each phase's boss shows
+    // up (SyncEngine.SnapToBoss), and the labelled ones carry the phase's name
+    // with them. Drawing that name between the last row of one phase and the first
+    // of the next costs nothing but a lookup, and turns "seven bars" into "three
+    // bars, then P2 starts".
+    //
+    // An anchor landing exactly ON a row belongs to that row, so the divider sits
+    // ABOVE it: that row is the first of the new phase, not the last of the old.
+    // Unlabelled anchors are structural only and never draw.
+    public static string PhaseBetween(IReadOnlyList<BossAnchor> anchors, float afterTime, float untilTime)
+    {
+        var label = "";
+        // Two phases can begin inside one gap (a short phase nobody has a row
+        // for). The LAST one is the phase the next row actually belongs to, and
+        // the anchors aren't sorted, so track the time rather than trusting order.
+        var best = float.NegativeInfinity;
+        for (var i = 0; i < anchors.Count; i++)
+        {
+            var a = anchors[i];
+            if (string.IsNullOrWhiteSpace(a.Label)) continue;
+            if (a.Time <= afterTime || a.Time > untilTime) continue;
+            if (a.Time < best) continue;
+            best = a.Time;
+            label = a.Label.Trim();
+        }
+        return label;
+    }
 }

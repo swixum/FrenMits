@@ -117,4 +117,89 @@ public class SheetTimelineTests
         Assert.True(SheetTimeline.MechEquals("Raidwide", " raidwide "));
         Assert.False(SheetTimeline.MechEquals("Raidwide", "Buster"));
     }
+
+    // ---- phase dividers ----------------------------------------------------
+
+    private static List<BossAnchor> Phases() => new()
+    {
+        new BossAnchor { Time = 0f, Label = "P1 Fatebreaker" },
+        new BossAnchor { Time = 215.3f, Label = "P2 Shiva" },
+        new BossAnchor { Time = 500f, Label = "P3 Gaia" },
+    };
+
+    [Fact]
+    public void APhaseStartingInTheGapIsNamed()
+        => Assert.Equal("P2 Shiva", SheetTimeline.PhaseBetween(Phases(), 210f, 220f));
+
+    [Fact]
+    public void NothingDrawsWhenNoPhaseStartsInTheGap()
+        => Assert.Equal("", SheetTimeline.PhaseBetween(Phases(), 220f, 300f));
+
+    [Fact]
+    public void AnAnchorOnARowBelongsToThatRow()
+    {
+        // The row AT 215.3 is P2's first hit, not P1's last, so the divider sits
+        // above it - and must not then repeat above the row after.
+        Assert.Equal("P2 Shiva", SheetTimeline.PhaseBetween(Phases(), 210f, 215.3f));
+        Assert.Equal("", SheetTimeline.PhaseBetween(Phases(), 215.3f, 230f));
+    }
+
+    [Fact]
+    public void TwoPhasesInOneGapNameTheLater()
+    {
+        // Whatever the anchors' order in the list: the next row belongs to the
+        // last phase that started, not the first.
+        var jumbled = new List<BossAnchor>
+        {
+            new() { Time = 500f, Label = "P3 Gaia" },
+            new() { Time = 215.3f, Label = "P2 Shiva" },
+        };
+        Assert.Equal("P3 Gaia", SheetTimeline.PhaseBetween(jumbled, 100f, 600f));
+    }
+
+    [Fact]
+    public void UnlabelledAnchorsAreStructuralAndNeverDraw()
+    {
+        var anchors = new List<BossAnchor>
+        {
+            new() { Time = 100f, Label = "" },
+            new() { Time = 110f, Label = "   " },
+        };
+        Assert.Equal("", SheetTimeline.PhaseBetween(anchors, 90f, 200f));
+    }
+
+    [Fact]
+    public void ALabelledAnchorStillWinsOverALaterBlankOne()
+    {
+        // The later anchor has no name to draw, so it must not shadow the named
+        // one sitting behind it in the same gap.
+        var anchors = new List<BossAnchor>
+        {
+            new() { Time = 215.3f, Label = "P2 Shiva" },
+            new() { Time = 240f, Label = "" },
+        };
+        Assert.Equal("P2 Shiva", SheetTimeline.PhaseBetween(anchors, 200f, 300f));
+    }
+
+    [Fact]
+    public void NoAnchorsIsQuiet()
+        => Assert.Equal("", SheetTimeline.PhaseBetween(new List<BossAnchor>(), 0f, 9999f));
+
+    [Fact]
+    public void ABossWhoseNameDoesNotResolveContributesNoDivider()
+    {
+        // Phase labels ride on boss anchors, and BossNames.Add drops an anchor
+        // whole when the boss's name can't be matched in BNpcName - label and
+        // all. Off the game (here) nothing resolves, so this is also why
+        // FruData.BossAnchors() is empty in the test host and the baked phase
+        // names can't be asserted from here.
+        //
+        // Failing that way round is the right way round: no anchor means no
+        // divider, which is the same silence as a fight that never had phase
+        // names. The resync those anchors exist for degrades identically.
+        var list = new List<BossAnchor>();
+        BossNames.Add(list, "Definitely Not A Real Boss", 100f, "P2 Nonsense");
+        Assert.Empty(list);
+        Assert.Equal("", SheetTimeline.PhaseBetween(list, 0f, 999f));
+    }
 }

@@ -84,12 +84,8 @@ public partial class ConfigWindow
                               + "the dish you actually ate.");
             ImGui.Spacing();
 
-            C.PrepCheckOnReadyCheck = Toggle("Answer the ready check", C.PrepCheckOnReadyCheck);
-            Tip("Checks your food the moment a ready check goes out, and speaks it again even if it had "
-                + "already been said. Standing in a duty out of combat also describes everyone stood around "
-                + "afk; a ready check is somebody asking, right now. Shows either way, so healthy food "
-                + "reports back as a muted timer rather than as silence, and it's the one thing here that "
-                + "works in combat and outside a duty too.");
+            C.PrepCheckOnReadyCheck = Toggle("Notify on Ready Check", C.PrepCheckOnReadyCheck);
+            Tip("Notifies on ready check.");
             ImGui.Spacing();
 
             C.PrepCheckUseFightLength = Toggle("Use the fight's own length", C.PrepCheckUseFightLength);
@@ -685,6 +681,11 @@ public partial class ConfigWindow
             ImGui.Spacing();
             C.UpcomingBossPosition = CfgCheck("Boss reposition calls", C.UpcomingBossPosition);
             Tip("A cyan row counting down to when the boss moves to a known spot (e.g. returns to Middle), for fights that have the data.");
+            ImGui.Spacing();
+            C.UpcomingBoardPhases = CfgCheck("Phase dividers", C.UpcomingBoardPhases);
+            Tip("A slim labelled rule where a new phase begins, so the board reads as \"two more hits, then "
+                + "P2\" instead of as one long list. Only fights whose phases are named have anything to draw "
+                + "- everywhere else nothing changes.");
             ImGui.EndTabItem();
         }
 
@@ -772,6 +773,7 @@ public partial class ConfigWindow
         C.UpcomingBoardStripe = true; C.UpcomingBoardDrain = true;
         C.UpcomingBoardShowActions = true; C.UpcomingBoardShowSeverity = true;
         C.UpcomingBoardShowType = true; C.UpcomingBossPosition = true;
+        C.UpcomingBoardPhases = false;
         C.UpcomingCount = 3; C.UpcomingLookaheadSeconds = 30f;
         C.UpcomingFontSizePx = 20f; C.OverlayColorUpcoming = 0xB0FFFFFF;
         C.TimelineLocked = false; C.TimelinePosition = new Vector2(0.5f, 0.62f);
