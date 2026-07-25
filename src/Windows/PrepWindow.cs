@@ -65,7 +65,7 @@ public class PrepWindow : Window
                  && Plugin.LocalPlayer != null;
 
         // Leaving the duty forgets the potion clock. Nothing else does: it has to
-        // survive combat starting and ending, or it would never reach 4m30s.
+        // survive combat starting and ending, or it would never reach the full recast.
         var territory = Service.ClientState.TerritoryType;
         if (territory != _territory)
         {
@@ -75,8 +75,9 @@ public class PrepWindow : Window
         }
 
         // The potion clock runs for as long as you're in the duty, combat included.
-        _potNote = on && Plugin.InDuty && C.PrepCheckPotion
-                   && _potTimer.Update(PrepCheck.Read(PrepCheck.MedicatedStatus).Present, ImGui.GetTime());
+        // The pot's OWN recast is handed to the timer, read off the tincture that's
+        // up, so a future item with a different number just works.
+        _potNote = on && Plugin.InDuty && C.PrepCheckPotion && PotionTick();
         // Once the note's few seconds are up, re-arm the speech so a SECOND pot
         // later in the same fight is announced too.
         if (!_potNote) _potSay.Reset();
@@ -135,6 +136,12 @@ public class PrepWindow : Window
         // Keep the window alive between warnings so it doesn't collapse to a dot
         // and jump around when one appears.
         if (!drew) ImGui.Dummy(new Vector2(1f, 1f));
+    }
+
+    private bool PotionTick()
+    {
+        var medicated = PrepCheck.Read(PrepCheck.MedicatedStatus);
+        return _potTimer.Update(medicated.Present, PrepCheck.RecastFor(medicated), ImGui.GetTime());
     }
 
     // Speak a phrase the first frame it becomes true.

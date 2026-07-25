@@ -369,7 +369,7 @@ public partial class ConfigWindow
 
                 C.PrepCheckPotion = Toggle("Potion reminder", C.PrepCheckPotion);
                 Tip("Mid-fight, not pre-pull: once you've actually used a pot, this shows "
-                    + "\"Potion is Available!\" for five seconds when the 4m30s recast is back, so the second "
+                    + "\"Potion is Available!\" for five seconds when the 5-minute recast is back, so the second "
                     + "one doesn't get forgotten. Says nothing until it has seen you use one.");
 
                 C.PrepCheckTts = Toggle("Speak it", C.PrepCheckTts);

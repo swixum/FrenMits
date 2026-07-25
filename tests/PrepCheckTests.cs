@@ -71,7 +71,7 @@ public class PrepCheckTests
     // It is a mid-fight recast reminder, not a pre-pull one: it must say nothing
     // at all until it has seen a pot actually used.
 
-    private const double Cd = PrepCheck.PotionTimer.CooldownSeconds;
+    private const double Cd = PrepCheck.PotionTimer.DefaultCooldownSeconds;
 
     [Fact]
     public void ItSaysNothingUntilAPotHasBeenUsed()
@@ -80,42 +80,42 @@ public class PrepCheckTests
         // news. Sit there for ten minutes without popping one and it stays quiet.
         var t = new PrepCheck.PotionTimer();
         for (var now = 0.0; now < 600.0; now += 1.0)
-            Assert.False(t.Update(false, now), $"fired at {now}s without a pot ever being used");
+            Assert.False(t.Update(false, (float)Cd, now), $"fired at {now}s without a pot ever being used");
     }
 
     [Fact]
     public void UsingAPotStartsTheRecastAndItFiresWhenItIsBack()
     {
         var t = new PrepCheck.PotionTimer();
-        Assert.False(t.Update(true, 100.0));            // popped it
-        Assert.False(t.Update(false, 130.0));           // Medicated wore off: still silent
-        Assert.False(t.Update(false, 100.0 + Cd - 1));  // one second short
-        Assert.True(t.Update(false, 100.0 + Cd));       // back up: say so
+        Assert.False(t.Update(true, (float)Cd, 100.0));            // popped it
+        Assert.False(t.Update(false, (float)Cd, 130.0));           // Medicated wore off: still silent
+        Assert.False(t.Update(false, (float)Cd, 100.0 + Cd - 1));  // one second short
+        Assert.True(t.Update(false, (float)Cd, 100.0 + Cd));       // back up: say so
     }
 
     [Fact]
     public void TheNoteLeavesOnItsOwn()
     {
         var t = new PrepCheck.PotionTimer();
-        t.Update(true, 100.0);
-        Assert.True(t.Update(false, 100.0 + Cd));
-        Assert.True(t.Update(false, 100.0 + Cd + 4.9));
-        Assert.False(t.Update(false, 100.0 + Cd + 5.0));   // 5s elapsed
-        Assert.False(t.Update(false, 100.0 + Cd + 400));   // and stays gone
+        t.Update(true, (float)Cd, 100.0);
+        Assert.True(t.Update(false, (float)Cd, 100.0 + Cd));
+        Assert.True(t.Update(false, (float)Cd, 100.0 + Cd + 4.9));
+        Assert.False(t.Update(false, (float)Cd, 100.0 + Cd + 5.0));   // 5s elapsed
+        Assert.False(t.Update(false, (float)Cd, 100.0 + Cd + 400));   // and stays gone
     }
 
     [Fact]
     public void ASecondPotIsTimedToo()
     {
         var t = new PrepCheck.PotionTimer();
-        t.Update(true, 100.0);
-        Assert.True(t.Update(false, 100.0 + Cd));          // first one back
-        t.Update(false, 100.0 + Cd + 10);                  // note gone
+        t.Update(true, (float)Cd, 100.0);
+        Assert.True(t.Update(false, (float)Cd, 100.0 + Cd));          // first one back
+        t.Update(false, (float)Cd, 100.0 + Cd + 10);                  // note gone
 
         var second = 100.0 + Cd + 20;
-        Assert.False(t.Update(true, second));              // popped the second
-        Assert.False(t.Update(false, second + Cd - 1));
-        Assert.True(t.Update(false, second + Cd));         // and it's timed as well
+        Assert.False(t.Update(true, (float)Cd, second));              // popped the second
+        Assert.False(t.Update(false, (float)Cd, second + Cd - 1));
+        Assert.True(t.Update(false, (float)Cd, second + Cd));         // and it's timed as well
     }
 
     [Fact]
@@ -124,25 +124,49 @@ public class PrepCheckTests
         // The clock is compared against wall time rather than counted down, so a
         // hitch (or a cutscene) can't skip the moment it comes back.
         var t = new PrepCheck.PotionTimer();
-        t.Update(true, 100.0);
-        Assert.True(t.Update(false, 100.0 + Cd + 3));   // first look is already late
+        t.Update(true, (float)Cd, 100.0);
+        Assert.True(t.Update(false, (float)Cd, 100.0 + Cd + 3));   // first look is already late
     }
 
     [Fact]
     public void LeavingTheDutyForgetsThePot()
     {
         var t = new PrepCheck.PotionTimer();
-        t.Update(true, 100.0);
+        t.Update(true, (float)Cd, 100.0);
         t.Reset();
         // The pending use is gone, so nothing fires on the old schedule.
         for (var now = 100.0; now < 100.0 + Cd + 60; now += 5.0)
-            Assert.False(t.Update(false, now));
+            Assert.False(t.Update(false, (float)Cd, now));
     }
 
     [Fact]
-    public void TheRecastAndShowTimeAreTheExpectedNumbers()
+    public void AnUnreadableRecastFallsBackToTheStandardFiveMinutes()
     {
-        Assert.Equal(270f, PrepCheck.PotionTimer.CooldownSeconds);  // 4m30s
+        // If the tincture's own row can't be resolved we get 0, and timing the
+        // pot off zero would fire the note instantly.
+        var t = new PrepCheck.PotionTimer();
+        t.Update(true, 0f, 100.0);
+        Assert.False(t.Update(false, 0f, 100.0 + 1));
+        Assert.False(t.Update(false, 0f, 100.0 + Cd - 1));
+        Assert.True(t.Update(false, 0f, 100.0 + Cd));
+    }
+
+    [Fact]
+    public void APotWithItsOwnRecastIsTimedOnThatNumber()
+    {
+        // Not every medicine is 300s, so the item's own value wins when we have it.
+        var t = new PrepCheck.PotionTimer();
+        t.Update(true, 90f, 100.0);
+        Assert.False(t.Update(false, 90f, 189.0));
+        Assert.True(t.Update(false, 90f, 190.0));
+    }
+
+    [Fact]
+    public void TheDefaultRecastAndShowTimeAreTheExpectedNumbers()
+    {
+        // Straight from the Item sheet: every tincture and gemdraught in the game
+        // carries Cooldowns = 300, across all grades and expansions.
+        Assert.Equal(300f, PrepCheck.PotionTimer.DefaultCooldownSeconds);
         Assert.Equal(5f, PrepCheck.PotionTimer.ShowSeconds);
     }
 

@@ -118,9 +118,10 @@ public static class PrepCheck
     // Pure: the caller supplies the clock, so every path is testable.
     public sealed class PotionTimer
     {
-        // Combat tinctures share a 4m30s recast. Held as a constant rather than
-        // read from the game, so it's one number to correct if that ever changes.
-        public const float CooldownSeconds = 270f;
+        // Only used when the item's own recast can't be read. Every tincture and
+        // gemdraught in the game carries Cooldowns = 300, checked across all
+        // grades and expansions, so this is the answer rather than a guess.
+        public const float DefaultCooldownSeconds = 300f;
         public const float ShowSeconds = 5f;
 
         private bool _wasUp;
@@ -131,12 +132,15 @@ public static class PrepCheck
         // Returns whether the note should be on screen this frame. Must be called
         // EVERY frame, in combat included: Medicated is only up for 30 seconds,
         // and missing that edge means missing the use entirely.
-        public bool Update(bool medicatedUp, double now)
+        //
+        // The recast is passed in (rather than assumed) so the real number from
+        // the pot you actually drank is used when we can resolve it.
+        public bool Update(bool medicatedUp, float recastSeconds, double now)
         {
             // Rising edge: a pot was just used. Time it.
             if (medicatedUp && !_wasUp)
             {
-                _readyAt = now + CooldownSeconds;
+                _readyAt = now + (recastSeconds > 0f ? recastSeconds : DefaultCooldownSeconds);
                 _pending = true;
             }
             _wasUp = medicatedUp;
@@ -152,7 +156,7 @@ public static class PrepCheck
         }
 
         // Forgotten on leaving the duty, and only then: the clock has to survive
-        // combat starting and ending, or it would never reach 4m30s.
+        // combat starting and ending, or it would never reach the full recast.
         public void Reset()
         {
             _wasUp = false;
@@ -216,6 +220,21 @@ public static class PrepCheck
         => Cached(_itemIcons, itemId, id =>
             GameSheets.English<Item>()?.GetRowOrDefault(id) is { } row ? (uint)row.Icon : 0u,
             "prep food icon");
+
+    // The recast of the pot that's actually up, straight from its item row, or 0
+    // when it can't be resolved (the timer then falls back to the standard 300s).
+    public static float RecastFor(Buff medicated)
+    {
+        if (!medicated.Present || medicated.Param == 0) return 0f;
+        // Medicated carries the tincture in Param the same way Well Fed carries
+        // the dish: item id, +10000 when HQ.
+        var itemId = (uint)(medicated.Param > 10000 ? medicated.Param - 10000 : medicated.Param);
+        return Cached(_itemRecasts, itemId, id =>
+            GameSheets.English<Item>()?.GetRowOrDefault(id) is { } row ? row.Cooldowns : 0u,
+            "prep potion recast");
+    }
+
+    private static readonly ConcurrentDictionary<uint, uint> _itemRecasts = new();
 
     private static uint Cached(ConcurrentDictionary<uint, uint> cache, uint key,
                                Func<uint, uint> lookup, string site)
