@@ -206,10 +206,20 @@ public static class IkuyaTimelines
         new(678, "P4", "Ultima", new[]{"Reprisal + LB3","","","","Fey Illumination","","","Feint","","Addle"}, 3),
         new(688, "P4", "Aetheric Boom", new[]{"LB1","Reprisal","","","Sacred Soil","Kerachole","","","",""}),
         new(692, "P4", "Aetheroplasm", new[]{"","","","","","","","","",""}, 1),
-        new(730, "P4", "Primal I", new[]{"","Party Mit","","","Sacred Soil","Kerachole","","","",""}),
-        new(730, "P4", "Primal II", new[]{"","","Plenary Indulgence","Collective Unconscious","Spreadlo","Zoe Shields","","","Party Mit",""}),
-        new(730, "P4", "Primal III", new[]{"Party Mit","","","","Sacred Soil","Kerachole","","","",""}),
-        new(747, "P4", "Hellfire", new[]{"","","","","","","","","",""}, 1),
+        // Ultima closes on three primal attacks, and WHICH one lands in each slot is
+        // random - across twelve kills slot 1 came up Aerial Blast three times,
+        // Hellfire twice and Earthen Fury once - which is why the sheet numbers them
+        // instead of naming them, and why none of them could ever be matched to a log
+        // by name. All three used to sit on 12:10 together, so a healer was told to
+        // lay Sacred Soil and Spreadlo in the same second and the last two calls of
+        // the fight never fired. The slots themselves are steady: measured off the
+        // Aetheric Boom anchor they land 41s, 63s and 81s after it, agreeing within
+        // three seconds across kills and within one and a half on six the times were
+        // not fitted to. Slot three only happens if the pull runs long enough to see
+        // it - one of six fast kills, five of six slower ones.
+        new(730, "P4", "Primal I", new[]{"","Party Mit","","","Sacred Soil","Kerachole","","","",""}, 1),
+        new(751, "P4", "Primal II", new[]{"","","Plenary Indulgence","Collective Unconscious","Spreadlo","Zoe Shields","","","Party Mit",""}, 1),
+        new(769, "P4", "Primal III", new[]{"Party Mit","","","","Sacred Soil","Kerachole","","","",""}, 1),
     };
 
     static List<SyncPoint> UwuSync() => new()
