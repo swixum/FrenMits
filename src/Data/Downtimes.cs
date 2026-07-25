@@ -115,7 +115,7 @@ public static class Downtimes
     // The Unmaking (Enuo EX). Both windows sit past the end of every top kill
     // (470-485s), so they are the sheet's own and unverified against faster
     // parties. The logs do show a third at ~242s in 5 of 8, which this sheet's
-    // own pull didn't have - see tools/OFFICIAL_FIGHT.md on re-deriving these.
+    // own pull didn't have - see the official-fight notes in tools/ (kept local) on re-deriving these.
     private static readonly List<DowntimeWindow> Enuo = new()
     {
         new() { Start = 461, Duration = 21, TargetHp = -1f },

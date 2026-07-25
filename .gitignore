@@ -12,8 +12,11 @@ AUTHORSHIP.md
 __pycache__/
 *.pyc
 
-# generator scratch notes, not source (tools/gen_official_fight.py)
+# generator scratch notes, not source (the official-fight generator)
 src/Data/*_registration.txt
 
 # offline test suite, kept local (see docs/TESTING.md)
 tests/
+
+# dev tools, kept local (the official-fight generator and the log verifiers)
+tools/

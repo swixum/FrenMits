@@ -10,7 +10,7 @@ public static class Builtin
     public const ushort DmuTerritory = 1363;
     public const ushort FruTerritory = 1238;
     // Dawntrail extremes: Hell on Rails and the Unmaking, from log-built sheets
-    // (see tools/OFFICIAL_FIGHT.md).
+    // (see the official-fight notes in tools/ (kept local)).
     public const ushort DoomtrainTerritory = 1308;
     public const ushort EnuoTerritory = 1362;
     // The AAC Heavyweight tier. M12S is per the cactbot r12s timeline, the rest

@@ -62,8 +62,21 @@ public static class TimingSolver
         {
             var mits = mitsFor(line.Action).ToList();
             if (mits.Count == 0) continue;
-            var dur = mits.Min(m => m.Duration > 0f ? m.Duration : 15f);   // shortest buff bounds the reach
-            var reach = MathF.Max(dur - Grace, dur * 0.5f);                // how far it can honestly stretch
+
+            // Only something with a real buff behind it can be pressed early. Zoe,
+            // Recitation and Second Wind are tracked for their recast but shield
+            // nobody by themselves, and this used to read their missing duration as
+            // fifteen seconds and shift the call back a dozen seconds for a window
+            // that was never there. Book the recast and leave the timing alone.
+            var covering = mits.Where(m => m.Duration > 0f).ToList();
+            if (covering.Count == 0)
+            {
+                foreach (var m in mits) readyAt[m.Name] = line.Time + (m.Recast > 0f ? m.Recast : 60f);
+                continue;
+            }
+
+            var dur = covering.Min(m => m.Duration);        // shortest buff bounds the reach
+            var reach = MathF.Max(dur - Grace, dur * 0.5f); // how far it can honestly stretch
             var ready = mits.Max(m => readyAt.GetValueOrDefault(m.Name, -9999f)); // all its abilities must be up
 
             // A press the user timed by hand: leave it, but book the hits its buff

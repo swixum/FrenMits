@@ -40,6 +40,7 @@ public static class Cooldowns
             // English sheet: `Names` above is an English list, so matching against
             // a localized client's rows would build an empty map (see GameSheets).
             var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
+            var recastOf = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             if (sheet != null)
                 foreach (var row in sheet)
                 {
@@ -47,8 +48,17 @@ public static class Cooldowns
                     // Legacy and PvP duplicate rows share names with the real
                     // action; the real one has a job level and is not PvP.
                     if (row.ClassJobLevel == 0 || row.IsPvP) continue;
-                    if (!string.IsNullOrEmpty(n) && want.Contains(n) && !map.ContainsKey(n))
-                        map[n] = row.RowId;
+                    if (string.IsNullOrEmpty(n) || !want.Contains(n)) continue;
+                    // The fairy carries her own copies of Whispering Dawn and Fey
+                    // Illumination: same name, same level, no recast - and hers sit
+                    // EARLIER in the sheet, so taking the first match picked the pet's.
+                    // A 0s recast then failed the "is this a real cooldown" test in
+                    // EnsurePlanMap, and both went missing from the timing solver and
+                    // the conflict checker entirely. The player's row is the one that
+                    // actually has a recast.
+                    if (map.ContainsKey(n) && recastOf[n] >= row.Recast100ms) continue;
+                    map[n] = row.RowId;
+                    recastOf[n] = row.Recast100ms;
                 }
         }
         catch (Exception ex) { Swallowed.Report("cooldown action map", ex); }
@@ -100,12 +110,23 @@ public static class Cooldowns
         ["Nebula"] = "gnb-nebula", ["Great Nebula"] = "gnb-nebula",
     };
 
-    // Buff durations, hand-curated (7.x values) because the game sheets don't
-    // expose status uptime cleanly.
+    // How long each buff lasts, hand-curated (7.x values) because the game sheets
+    // don't expose status uptime cleanly.
+    //
+    // Every value here was checked against real pulls - applybuff to removebuff,
+    // read off nineteen logs - and they match. A status routinely ends EARLY
+    // (consumed, dispelled, the holder dies, the fight ends), so what confirms a
+    // value is the longest it was ever seen to run, not the average. Reading the
+    // middle instead would have "corrected" Sacred Soil to 5s.
+    //
+    // The numbers matter more than they look: the timing solver stretches a press
+    // back by nearly a full duration, so one that is too LONG plans a press whose
+    // buff has faded by the time the damage lands.
     private static readonly Dictionary<string, float> Durations = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Reprisal"] = 15, ["Feint"] = 15, ["Addle"] = 15, ["Dismantle"] = 10,
         ["Rampart"] = 20, ["Thrill of Battle"] = 10, ["Holmgang"] = 10,
+        ["Bloodbath"] = 20, ["Arm's Length"] = 6, ["Equilibrium"] = 15,
         ["Bloodwhetting"] = 8, ["Nascent Flash"] = 8, ["Raw Intuition"] = 6,
         ["Shake It Off"] = 30, ["Vengeance"] = 15, ["Damnation"] = 15,
         ["Sentinel"] = 15, ["Guardian"] = 15, ["Divine Veil"] = 30,
@@ -127,6 +148,24 @@ public static class Cooldowns
         ["Tempera Grassa"] = 10, ["Seraphism"] = 20,
         ["Earthly Star"] = 20, ["Celestial Opposition"] = 15,
     };
+
+    // Tracked for their recast, but they shield nobody on their own: an enabler
+    // the next spell eats (Zoe, Recitation), a pet summon (Seraph), a heal with no
+    // buff behind it (Second Wind). The logs show what that means in practice -
+    // Zoe's nominal thirty seconds actually ended after one to four in every pull
+    // sampled, because the Prognosis it was saved for went out immediately.
+    //
+    // They need naming rather than just leaving out, because "no duration" used to
+    // mean "assume fifteen seconds" to the timing solver, which would then plan a
+    // press up to thirteen seconds early for a window that was never there.
+    public static readonly string[] Windowless = { "Zoe", "Recitation", "Seraph", "Second Wind" };
+
+    // Every mit the plugin tracks, once each (Names lists Rampart and Addle twice,
+    // once per role's kit).
+    public static readonly string[] Tracked = Names.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+    // How long this mit's buff runs, or 0 if it doesn't have one.
+    public static float WindowOf(string name) => Durations.GetValueOrDefault(name);
 
     private static Dictionary<string, PlanMit>? _planByName;
 
