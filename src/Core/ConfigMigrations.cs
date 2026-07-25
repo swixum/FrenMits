@@ -255,6 +255,23 @@ public static class ConfigMigrations
             config.Version = 24;
             config.Save();
         }
+
+        // v25: M9S/M10S/M11S were built as custom sheets and Auto-planned before the
+        // planner stopped handing the caster column a "Party Mit" it has no button
+        // for. Now that they ship as official fights those sheets aren't editable in
+        // game, so a saved copy - which wins over the bake - would keep calling it
+        // forever with no way to take it out. Reset them onto the corrected bake,
+        // snapshotting first so the old plan is still restorable.
+        if (config.Version < 25)
+        {
+            var fixedUp = new ushort[] { Builtin.M9sTerritory, Builtin.M10sTerritory, Builtin.M11sTerritory };
+            foreach (var f in config.Fights)
+                if (Array.IndexOf(fixedUp, (ushort)f.TerritoryId) >= 0)
+                    host.SnapshotFight(f, "before the caster-column fix");
+            ResetDutyFights(config, f => Array.IndexOf(fixedUp, (ushort)f.TerritoryId) >= 0);
+            config.Version = 25;
+            config.Save();
+        }
     }
 
     // The clean-reset shape shared by v6/v7/v11-v14: wipe the duty's saved slots

@@ -30,13 +30,15 @@ public class M10sDataTests
     [Fact]
     public void TheWholeSheetSurvivedTheBake()
     {
-        // 81 rows and 129 presses came out of the in-game sheet.
+        // 81 rows and 129 presses came out of the in-game sheet, three of them a
+        // bare "Party Mit" in the caster column, which no caster can press - so 126
+        // is the whole sheet. See PartyMitTermTests.
         Assert.Equal(81, M10sData.Timeline.Length);
 
         var total = 0;
         foreach (var slot in Builtin.Slots(Territory))
             total += Builtin.BuildLines(Territory, slot).Count;
-        Assert.True(total >= 129, $"only {total} calls baked; presses are being dropped again");
+        Assert.True(total >= 126, $"only {total} calls baked; presses are being dropped again");
     }
 
     [Fact]

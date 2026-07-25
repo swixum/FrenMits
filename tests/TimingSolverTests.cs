@@ -121,6 +121,96 @@ public class TimingSolverTests
     }
 
     [Fact]
+    public void ABuffIsNeverStretchedToExpireOnTheHitItCovers()
+    {
+        // Straight out of M11S: Impact at 26s with a hit 15s before it, and Feint
+        // lasts exactly 15s. Reaching back to blanket both put the press at 11s,
+        // so the buff ran out at 26.000 - on the hit the line was written for, and
+        // with the recast burned for nothing.
+        var line = Fx.Line(26, "Impact", "Feint");
+        var f = FightWith(line);
+        Solve(f, new[] { 11f, 26f });
+
+        var press = line.Time - line.OffsetSeconds;
+        var left = press + Table["Feint"].Duration - line.Time;
+        Assert.True(left >= 1.4f,
+            $"Feint pressed at {press} has {left}s of buff left when the hit lands at {line.Time}");
+    }
+
+    [Theory]
+    [InlineData(15f)]   // exactly one duration: the case that was wrong
+    [InlineData(14f)]
+    [InlineData(13f)]
+    [InlineData(8f)]
+    public void HoweverFarApartTheHitsAreTheBuffIsStillUpForItsOwn(float apart)
+    {
+        // Whatever the gap, a solved press has to be genuinely up for the hit it
+        // was planned for. Where it can't be, the solver leaves the line alone
+        // rather than writing an offset that reads as handled.
+        var line = Fx.Line(100, "B", "Feint");
+        var f = FightWith(line);
+        Solve(f, new[] { 100f - apart, 100f });
+
+        if (line.OffsetSeconds == 0f) return;
+        var press = line.Time - line.OffsetSeconds;
+        Assert.True(press + Table["Feint"].Duration - line.Time >= 1.4f,
+            $"hits {apart}s apart: buff has {press + Table["Feint"].Duration - line.Time}s left at the hit");
+    }
+
+    // The real spread of buff lengths the solver has to work with, from The
+    // Blackest Night's 7s to Shake It Off's 30s.
+    public static TheoryData<float, float> DurationsAndGaps()
+    {
+        var d = new TheoryData<float, float>();
+        foreach (var dur in new[] { 7f, 8f, 10f, 15f, 18f, 20f, 21f, 24f, 30f })
+            foreach (var gap in new[] { 3f, 6f, 9f, 12f, 15f, 18f, 20f, 24f, 30f, 36f })
+                d.Add(dur, gap);
+        return d;
+    }
+
+    [Theory]
+    [MemberData(nameof(DurationsAndGaps))]
+    public void WhateverTheBuffAndTheSpacingItIsUpWhenTheHitLands(float dur, float gap)
+    {
+        // Feint was the one that showed, because 15s of buff and a 15s gap is a
+        // shape M11S happens to contain. The rule is not about Feint: a press the
+        // solver moves has to be live for its hit whatever the ability, and for
+        // everything it claims to cover as well.
+        var table = new Dictionary<string, Cooldowns.PlanMit>(StringComparer.OrdinalIgnoreCase)
+            { ["Mit"] = new("Mit", 60f, 1, "", 1, dur) };
+        var line = Fx.Line(200, "B", "Mit");
+        var f = FightWith(line);
+        TimingSolver.Solve(f, new[] { 200f - gap, 200f, 200f + gap }, 5f,
+            a => a.Contains("Mit", StringComparison.OrdinalIgnoreCase)
+                ? new[] { table["Mit"] } : Array.Empty<Cooldowns.PlanMit>());
+
+        if (line.OffsetSeconds == 0f) return;   // declined, which is always allowed
+        var press = line.Time - line.OffsetSeconds;
+        Assert.True(press <= line.Time + 0.01f, $"dur {dur}, gap {gap}: pressed after its hit");
+        Assert.True(press + dur - line.Time >= 1.4f,
+            $"dur {dur}, gap {gap}: only {press + dur - line.Time}s of buff left at the hit");
+        if (line.CoverUntil > 0f)
+            Assert.True(press + dur - line.CoverUntil >= 1.4f,
+                $"dur {dur}, gap {gap}: claims cover to {line.CoverUntil} with "
+                + $"{press + dur - line.CoverUntil}s of buff left");
+    }
+
+    [Fact]
+    public void AClusterInsideTheBuffIsStillCoveredByOnePress()
+    {
+        // The grace margin must not cost real coverage: three hits inside 12s are
+        // well within a 15s Reprisal and still belong to a single press.
+        var line = Fx.Line(100, "A", "Reprisal");
+        var f = FightWith(line);
+        Solve(f, new[] { 100f, 106f, 112f });
+
+        Assert.Equal(112f, line.CoverUntil, 1);
+        var press = line.Time - line.OffsetSeconds;
+        Assert.True(press + Table["Reprisal"].Duration >= 112f + 1.4f,
+            "the buff didn't reach the last hit of the run with room to spare");
+    }
+
+    [Fact]
     public void OnePressIsStretchedAcrossAClusterOfHits()
     {
         // Three hits inside one 15s Reprisal: the press should be pulled back so

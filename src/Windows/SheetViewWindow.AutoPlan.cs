@@ -51,7 +51,13 @@ public partial class SheetViewWindow
             "MT" or "OT" or "T" or "T1" or "T2" or "TANK" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
             "D1" or "D2" or "M1" or "M2" or "MELEE" or "D" or "DPS" => new[] { ("Feint", 90f) },
             "D3" or "R1" => new[] { ("Party Mit", 90f) },
-            "D4" or "R2" => new[] { ("Addle", 90f), ("Party Mit", 120f) },
+            // Casters get Addle and nothing else. Every phys ranged has a party
+            // mit (Troubadour / Tactician / Shield Samba) so the generic is safe
+            // in D3, but no caster has one as baseline: Magick Barrier and
+            // Tempera Grassa belong to RDM and PCT alone, they are JobExtras with
+            // their own schedules, and a BLM or SMN handed a "Party Mit" call has
+            // no button to press for it.
+            "D4" or "R2" => new[] { ("Addle", 90f) },
             // Healer party mits differ per job; the generic term resolves at
             // call time, spaced to the slowest of them so the button is never dead.
             var h when h.StartsWith("H") => new[] { ("Party Mit", 120f) },

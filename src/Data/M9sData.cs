@@ -17,7 +17,7 @@ public static class M9sData
 
     public static readonly Entry[] Timeline =
     {
-        new(11, "P1", "Killer Voice", 0xB384, new[]{"Party Mit + Reprisal", "Party Mit", "Liturgy of the Bell + Temperance + Asylum", "Macrocosmos + Neutral Sect + Earthly Star", "Seraphism + Expedient + Seraph", "Philosophia + Holos + Panhaima", "Feint", "", "Party Mit", "Party Mit + Addle"}, 3, false),
+        new(11, "P1", "Killer Voice", 0xB384, new[]{"Party Mit + Reprisal", "Party Mit", "Liturgy of the Bell + Temperance + Asylum", "Macrocosmos + Neutral Sect + Earthly Star", "Seraphism + Expedient + Seraph", "Philosophia + Holos + Panhaima", "Feint", "", "Party Mit", "Addle"}, 3, false),
         new(19, "P1", "Hardcore", 0xB35A, new[]{"Rampart + Short Mit", "Buddy Mit", "", "", "", "", "", "", "", ""}, 2, true),
         new(21, "P1", "Hardcore", 0xB37F, new[]{"", "Invulnerability", "", "", "", "", "", "", "", ""}, 3, true),
         new(30, "P1", "Vamp Stomp", 0xB34A, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
@@ -43,7 +43,7 @@ public static class M9sData
         new(114, "P1", "Coffinfiller", 0, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(121, "P1", "Half Moon", 0, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(124, "P1", "Half Moon", 0, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
-        new(139, "P1", "Sadistic Screech", 0xB333, new[]{"Party Mit + Reprisal + Short Mit", "Party Mit + Short Mit", "Temperance + Asylum + Plenary Indulgence", "Neutral Sect + Earthly Star + Collective Unconscious", "Expedient + Seraph + Whispering Dawn", "Panhaima + Holos + Physis II", "Feint", "", "Party Mit", "Party Mit + Addle"}, 3, false),
+        new(139, "P1", "Sadistic Screech", 0xB333, new[]{"Party Mit + Reprisal + Short Mit", "Party Mit + Short Mit", "Temperance + Asylum + Plenary Indulgence", "Neutral Sect + Earthly Star + Collective Unconscious", "Expedient + Seraph + Whispering Dawn", "Panhaima + Holos + Physis II", "Feint", "", "Party Mit", "Addle"}, 3, false),
         new(148, "P1", "Crowd Kill", 0xB33E, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, false),
         new(154, "P1", "Crowd Kill", 0, new[]{"", "Reprisal", "", "Celestial Opposition", "Fey Illumination + Sacred Soil", "Kerachole", "", "Feint", "", ""}, 3, false),
         new(172, "P1", "Finale Fatale", 0xB340, new[]{"Short Mit", "Short Mit", "", "", "", "", "", "", "", ""}, 3, false),
@@ -63,7 +63,7 @@ public static class M9sData
         new(251, "P1", "Half Moon", 0, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
         new(257, "P1", "Brutal Rain", 0xB35D, new[]{"", "", "", "", "", "", "", "Feint", "", ""}, 2, false),
         new(261, "P1", "Brutal Rain", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 2, false),
-        new(269, "P1", "Insatiable Thirst", 0xB344, new[]{"", "", "", "", "", "", "", "", "", "Party Mit"}, 1, false),
+        new(269, "P1", "Insatiable Thirst", 0xB344, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, false),
         new(272, "P1", "Insatiable Thirst", 0, new[]{"Reprisal", "", "Temperance + Plenary Indulgence", "Neutral Sect + Earthly Star", "Expedient + Seraph", "Holos + Physis II", "", "", "", ""}, 2, false),
         new(284, "P1", "Sadistic Screech", 0xB333, new[]{"", "", "Liturgy of the Bell", "Macrocosmos + Collective Unconscious", "Fey Illumination + Whispering Dawn + Sacred Soil", "Panhaima + Kerachole", "", "", "", ""}, 3, false),
         new(289, "P1", "Gravegrazer", 0, new[]{"", "Short Mit", "", "", "", "", "", "", "", ""}, 1, true),
@@ -102,7 +102,7 @@ public static class M9sData
         new(357, "P1", "Sadistic Screech", 0xB333, new[]{"", "Reprisal + Short Mit", "Plenary Indulgence", "Earthly Star + Collective Unconscious + Celestial Opposition", "Whispering Dawn + Sacred Soil", "Physis II + Kerachole", "", "Feint", "", ""}, 3, false),
         new(367, "P1", "Crowd Kill", 0xB33E, new[]{"Reprisal", "", "", "", "", "", "", "", "", ""}),
         new(372, "P1", "Crowd Kill", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 3, false),
-        new(390, "P1", "Finale Fatale", 0xB341, new[]{"", "", "", "", "Seraphism + Sacred Soil", "Philosophia + Kerachole", "", "", "", "Party Mit"}, 3, false),
+        new(390, "P1", "Finale Fatale", 0xB341, new[]{"", "", "", "", "Seraphism + Sacred Soil", "Philosophia + Kerachole", "", "", "", ""}, 3, false),
         new(396, "P1", "Pulping Pulse", 0xB373, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(401, "P1", "Hell in a Cell", 0xB395, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(402, "P1", "Bloody Bondage", 0xB396, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, false),

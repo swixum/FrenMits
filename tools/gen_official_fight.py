@@ -150,7 +150,32 @@ EARLY_S = 15.0
 LATE_S = 2.5
 
 
-def assign_lines(custom_rows, slot_lines, canon_slots):
+# A generic mit term reads as whatever the player looking at it actually presses,
+# which only works for a column whose every job HAS one. Casters have Addle and
+# melee have Feint, and that is all: Magick Barrier and Tempera Grassa belong to
+# RDM and PCT alone, and they are JobExtras with their own schedules. A Black Mage
+# handed a "Party Mit" call has no button behind it.
+#
+# Auto-plan used to write one into the caster column, so a sheet planned before
+# that was fixed carries calls nobody can answer. An official fight can't be
+# re-planned in game - it isn't editable - so the bake is where they come out.
+NO_PARTY_MIT = {"M1", "M2", "R2"}
+
+
+def pressable(action, slot):
+    """`action` with any segment this column cannot press removed ("" if none is).
+
+    A QUALIFIED term is left alone: "Party Mit (RDM)" names the job it is for, so
+    whoever wrote it meant it. Only the bare generic is a planner artefact.
+    """
+    if slot not in NO_PARTY_MIT:
+        return action
+    kept = [p for p in (part.strip() for part in action.split("+"))
+            if p and not mech_eq(p, "Party Mit")]
+    return " + ".join(kept)
+
+
+def assign_lines(custom_rows, slot_lines, canon_slots, dropped=None):
     """Attach every planned press to exactly ONE row: the nearest row sharing its
     mechanic name. Same rule the plugin's own board uses, so what gets baked is
     what the sheet showed - a mechanic that recurs can't collect another
@@ -161,6 +186,12 @@ def assign_lines(custom_rows, slot_lines, canon_slots):
             if not l.get("Enabled", True):
                 continue
             act = (l.get("Action", "") or "").strip()
+            if not act:
+                continue
+            keep = pressable(act, slot)
+            if keep != act and dropped is not None:
+                dropped.append((slot, float(l.get("Time", 0)), act, l.get("Mechanic", "")))
+            act = keep
             if not act:
                 continue
             lt = float(l.get("Time", 0))
@@ -482,7 +513,9 @@ def verify_bake(out_path, profile, canon_slots, legacy_slots, rows):
         for l in slot_lines[slot]:
             if not l.get("Enabled", True):
                 continue
-            act = (l.get("Action", "") or "").strip()
+            # What the sheet asked for, minus anything this column has no button
+            # for. Deliberately dropped, and reported above, so it is not missing.
+            act = pressable((l.get("Action", "") or "").strip(), slot)
             if not act:
                 continue
             total += 1
@@ -582,8 +615,15 @@ def main():
         with open(args.unreliable, "r", encoding="utf-8-sig") as fh:
             unreliable = [int(str(x), 0) & 0xFFFFFFFF for x in json.load(fh)]
 
-    all_actions = assign_lines(custom_rows, slot_lines, canon_slots)
+    dropped = []
+    all_actions = assign_lines(custom_rows, slot_lines, canon_slots, dropped)
     all_syncs = assign_syncs(custom_rows, syncs, unreliable)
+
+    if dropped:
+        print(f"  dropped {len(dropped)} call(s) the column cannot press:", file=sys.stderr)
+        for slot, t, act, mech in dropped:
+            left = pressable(act, slot)
+            print(f"     {slot} {t:g}s {mech}: {act!r} -> {left or '(nothing left)'}", file=sys.stderr)
 
     rows = []
     planned = 0

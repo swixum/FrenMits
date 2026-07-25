@@ -328,4 +328,39 @@ public class MigrationTests
         Run(config);
         Assert.True(config.UpcomingBoardPhases);
     }
+
+    [Fact]
+    public void TheCasterColumnFixReachesASavedSheetNobodyCanEditAnyMore()
+    {
+        // v25. These three were built as custom sheets, Auto-planned while the
+        // planner still gave the caster column a "Party Mit", and then shipped as
+        // official fights - at which point the sheet stopped being editable in
+        // game. A saved copy wins over the bake, so without this the call stays
+        // there forever with no way to reach it.
+        var fight = new FightProfile
+        {
+            Name = "M11S - The Tyrant", TerritoryId = Builtin.M11sTerritory, Slot = "R2",
+        };
+        fight.SavedSlots["R2"] = new List<MitLine> { Fx.Line(143, "Dance of Domination", "Party Mit") };
+        fight.Lines.Add(Fx.Line(143, "Dance of Domination", "Party Mit"));
+
+        var host = Run(Fx.ConfigAt(24, fight));
+
+        Assert.DoesNotContain(fight.SavedSlots.Values.SelectMany(v => v),
+            l => l.Action.Contains("Party Mit", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(fight.Lines,
+            l => l.Action.Contains("Party Mit", StringComparison.OrdinalIgnoreCase));
+        // and the old plan is still recoverable
+        Assert.Contains(host.Snapshots, s => s.Fight == fight.Name);
+    }
+
+    [Fact]
+    public void TheCasterFixLeavesOtherFightsAlone()
+    {
+        var dmu = Fx.LegacyDmu();
+        var before = dmu.SavedSlots.Count;
+        var host = Run(Fx.ConfigAt(24, dmu));
+        Assert.Equal(before, dmu.SavedSlots.Count);
+        Assert.Empty(host.Snapshots);
+    }
 }
