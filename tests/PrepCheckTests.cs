@@ -67,6 +67,139 @@ public class PrepCheckTests
         Assert.Equal("", PrepCheck.FoodLine(Up(1800f), 240f));
     }
 
+    // ---- the optional extras ------------------------------------------------
+    // Every one of these is off by default, and the contract is that with all of
+    // them off the check behaves EXACTLY as it did before they existed.
+
+    private static PrepCheck.FoodOpts Off(float warn = 240f) => new(warn, false, false, false);
+
+    [Theory]
+    [InlineData(1800f)]  // fine
+    [InlineData(221f)]   // expiring
+    public void WithEveryExtraOffTheVerdictMatchesTheOriginalLine(float remaining)
+    {
+        var food = Up(remaining);
+        Assert.Equal(PrepCheck.FoodLine(food, 240f), PrepCheck.FoodVerdict(food, true, true, Off()).Text);
+    }
+
+    [Fact]
+    public void WithEveryExtraOffMissingFoodStillReadsTheSame()
+        => Assert.Equal(PrepCheck.FoodLine(None, 240f), PrepCheck.FoodVerdict(None, true, true, Off()).Text);
+
+    [Fact]
+    public void CrafterFoodIsOnlyFlaggedWhenAskedFor()
+    {
+        var food = Up(1800f);
+        Assert.False(PrepCheck.FoodVerdict(food, isBattleFood: false, isHq: true, Off()).Any);
+
+        var on = new PrepCheck.FoodOpts(240f, WarnWrongFood: true, WarnNq: false, AlwaysShow: false);
+        var v = PrepCheck.FoodVerdict(food, isBattleFood: false, isHq: true, on);
+        Assert.Equal("Crafter food", v.Text);
+        Assert.Equal(PrepCheck.Level.Danger, v.Level);
+    }
+
+    [Fact]
+    public void CrafterFoodOutranksTheTimer()
+    {
+        // A dish doing nothing for you is worse news than one about to run out.
+        var on = new PrepCheck.FoodOpts(240f, WarnWrongFood: true, WarnNq: true, AlwaysShow: false);
+        Assert.Equal("Crafter food", PrepCheck.FoodVerdict(Up(30f), false, false, on).Text);
+    }
+
+    [Fact]
+    public void NqIsOnlyFlaggedWhenAskedFor()
+    {
+        var food = Up(1800f);
+        Assert.False(PrepCheck.FoodVerdict(food, true, isHq: false, Off()).Any);
+
+        var on = new PrepCheck.FoodOpts(240f, false, WarnNq: true, AlwaysShow: false);
+        Assert.Equal("Food is NQ", PrepCheck.FoodVerdict(food, true, isHq: false, on).Text);
+        // HQ food says nothing.
+        Assert.False(PrepCheck.FoodVerdict(food, true, isHq: true, on).Any);
+    }
+
+    [Fact]
+    public void ARunningOutTimerOutranksTheNqNote()
+    {
+        // Both are true at once constantly; the one with a deadline wins.
+        var on = new PrepCheck.FoodOpts(240f, false, WarnNq: true, AlwaysShow: false);
+        Assert.Equal("Food 3:41", PrepCheck.FoodVerdict(Up(221f), true, false, on).Text);
+    }
+
+    [Fact]
+    public void TheAlwaysOnTimerIsAReadoutNotAWarning()
+    {
+        var on = new PrepCheck.FoodOpts(240f, false, false, AlwaysShow: true);
+        var v = PrepCheck.FoodVerdict(Up(1471f), true, true, on);
+        Assert.Equal("Food 24:31", v.Text);
+        Assert.Equal(PrepCheck.Level.Info, v.Level);   // muted, not amber
+    }
+
+    [Fact]
+    public void TheAlwaysOnTimerNeverInventsATimeItDoesNotHave()
+    {
+        // A present buff with an unreadable timer would otherwise read "Food 0:00".
+        var on = new PrepCheck.FoodOpts(240f, false, false, AlwaysShow: true);
+        Assert.False(PrepCheck.FoodVerdict(Up(0f), true, true, on).Any);
+    }
+
+    [Fact]
+    public void UnknownFoodIsNeverAccused()
+    {
+        // A failed sheet lookup reports "battle food" and "HQ", so a lookup that
+        // breaks on a patch day goes quiet rather than calling everyone's dinner
+        // crafter food.
+        var on = new PrepCheck.FoodOpts(240f, WarnWrongFood: true, WarnNq: true, AlwaysShow: false);
+        Assert.False(PrepCheck.FoodVerdict(Up(1800f), isBattleFood: true, isHq: true, on).Any);
+    }
+
+    [Theory]
+    [InlineData(false, 4f, 700f, 240f)]   // off: the slider wins
+    [InlineData(true, 4f, 700f, 700f)]    // on: the fight's length wins
+    [InlineData(true, 4f, 0f, 240f)]      // on, but no sheet: back to the slider
+    public void TheThresholdCanComeFromTheFight(bool useFight, float minutes, float fightSeconds, float expected)
+        => Assert.Equal(expected, PrepCheck.WarnSecondsFor(useFight, minutes, fightSeconds));
+
+    [Fact]
+    public void AFightsLengthIsItsLastMechanic()
+    {
+        var f = new FightProfile { TerritoryId = 1 };
+        f.Lines.Add(Fx.Line(120, "A", "Reprisal"));
+        f.Lines.Add(Fx.Line(640, "B", "Rampart"));
+        f.CustomRows.Add(new CustomRow { Time = 702, Mechanic = "Enrage" });
+        Assert.Equal(702f, PrepCheck.FightSeconds(f));
+    }
+
+    [Fact]
+    public void ABakedDutyTimelineHasNoMeaningfulLength()
+    {
+        // Those pack several encounters onto one clock in 1000-second blocks, so
+        // the last time is boss three's coordinate, not a fight length.
+        var f = new FightProfile { TerritoryId = 1, TimelineOnly = true };
+        f.Lines.Add(Fx.Line(3400, "Boss 3 thing", ""));
+        Assert.Equal(0f, PrepCheck.FightSeconds(f));
+        Assert.Equal(0f, PrepCheck.FightSeconds(null));
+    }
+
+    [Theory]
+    [InlineData(0, "")]
+    [InlineData(-1, "")]
+    [InlineData(1, "  (1 left)")]
+    [InlineData(12, "  (12 left)")]
+    public void BagCountsOnlyShowWhenThereIsOne(int n, string expected)
+        => Assert.Equal(expected, PrepCheck.Count(n));
+
+    [Fact]
+    public void ThePotCountdownReadsDownToZero()
+    {
+        var t = new PrepCheck.PotionTimer();
+        Assert.Equal(0f, t.Remaining(50.0));            // nothing timed yet
+        t.Update(true, 300f, 100.0);
+        Assert.Equal(300f, t.Remaining(100.0));
+        Assert.Equal(120f, t.Remaining(280.0));
+        Assert.Equal(0f, t.Remaining(400.0));           // never negative
+    }
+
     // ---- the potion timer --------------------------------------------------
     // It is a mid-fight recast reminder, not a pre-pull one: it must say nothing
     // at all until it has seen a pot actually used.

@@ -66,6 +66,13 @@ public partial class ConfigWindow
             + "the world - only inside a duty.");
         if (!C.PrepCheckEnabled) return;
 
+        C.PrepCheckSheetsOnly = Toggle("Only in fights with a sheet", C.PrepCheckSheetsOnly);
+        Tip("Skips duties you have no sheet for, so a leveling roulette - where nobody brings food - "
+            + "stays quiet and only the content you actually prepared for gets checked.");
+        C.PrepCheckShowCounts = Toggle("Show how many you have left", C.PrepCheckShowCounts);
+        Tip("Appends \"(12 left)\" from your bags. Knowing you're on your last pot changes whether you "
+            + "use it, and \"no food, none in the bag\" tells you to go buy some before raid rather than after.");
+
         if (!ImGui.BeginTabBar("##preptabs", ImGuiTabBarFlags.None)) return;
 
         if (ImGui.BeginTabItem("Food"))
@@ -76,11 +83,32 @@ public partial class ConfigWindow
                               + "the dish you actually ate.");
             ImGui.Spacing();
 
-            var warnMin = C.PrepCheckWarnMinutes;
-            if (Widgets.SliderInput("Warn under", ref warnMin, 1f, 30f, "%.0f min", width: 200f))
-            { C.PrepCheckWarnMinutes = warnMin; C.Save(); }
-            Tip("How much food time left starts the warning. Set it a little longer than your pulls run, "
-                + "so food that would expire partway through gets flagged before you engage.");
+            C.PrepCheckUseFightLength = Toggle("Use the fight's own length", C.PrepCheckUseFightLength);
+            Tip("Instead of a fixed number, warn when your food wouldn't last THIS fight - the plugin "
+                + "already knows how long it runs from its timeline. Falls back to the slider in duties "
+                + "with no sheet of their own.");
+
+            if (!C.PrepCheckUseFightLength)
+            {
+                ImGui.Indent(20f);
+                var warnMin = C.PrepCheckWarnMinutes;
+                if (Widgets.SliderInput("Warn under", ref warnMin, 1f, 30f, "%.0f min", width: 200f))
+                { C.PrepCheckWarnMinutes = warnMin; C.Save(); }
+                Tip("How much food time left starts the warning. Set it a little longer than your pulls run, "
+                    + "so food that would expire partway through gets flagged before you engage.");
+                ImGui.Unindent(20f);
+            }
+
+            ImGui.Spacing();
+            C.PrepCheckWarnWrongFood = Toggle("Warn on crafter food", C.PrepCheckWarnWrongFood);
+            Tip("Flags a dish whose every stat is a crafting or gathering one - CP, Control, Craftsmanship "
+                + "and friends. Eating it into a raid does nothing at all, and nothing in the game tells you.");
+            C.PrepCheckWarnNq = Toggle("Warn on NQ food", C.PrepCheckWarnNq);
+            Tip("HQ food caps noticeably higher - Baked Eggplant caps Vitality at 114 NQ against 143 HQ - "
+                + "and it's an easy mistake to make in a hurry.");
+            C.PrepCheckAlwaysShowFood = Toggle("Always show the timer", C.PrepCheckAlwaysShowFood);
+            Tip("Keeps the food countdown on screen even when there's nothing wrong, drawn muted rather "
+                + "than as a warning.");
             ImGui.EndTabItem();
         }
 
@@ -96,6 +124,15 @@ public partial class ConfigWindow
             C.PrepCheckPotion = Toggle("Potion reminder", C.PrepCheckPotion);
             Tip("Telling you a pot is ready while you're stood there about to pull is telling you something "
                 + "you already know, so it waits for the moment that matters.");
+
+            if (C.PrepCheckPotion)
+            {
+                ImGui.Indent(20f);
+                C.PrepCheckPotCountdown = Toggle("Count down to it", C.PrepCheckPotCountdown);
+                Tip("Shows a running \"Pot 1:23\" while the recast ticks away, instead of only speaking up "
+                    + "at the moment it lands. Muted, and never spoken.");
+                ImGui.Unindent(20f);
+            }
             ImGui.EndTabItem();
         }
 

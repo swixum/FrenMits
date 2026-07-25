@@ -207,6 +207,24 @@ public class Configuration : IPluginConfiguration
     // Speak each of the above once as it appears, using the voice from the Audio
     // page.
     public bool PrepCheckTts { get; set; }
+
+    // Optional extras, ALL off by default: with every one of these false the
+    // check behaves exactly as it did when it shipped.
+    //
+    // Threshold comes from the fight's own length instead of the slider.
+    public bool PrepCheckUseFightLength { get; set; }
+    // Flag food whose every stat is a crafting one (raiding on crafter food).
+    public bool PrepCheckWarnWrongFood { get; set; }
+    // Flag food that isn't HQ.
+    public bool PrepCheckWarnNq { get; set; }
+    // Keep the food timer on screen even when there's nothing wrong.
+    public bool PrepCheckAlwaysShowFood { get; set; }
+    // Count down to the pot being ready, rather than only saying so when it is.
+    public bool PrepCheckPotCountdown { get; set; }
+    // Append how many you have left in your bags.
+    public bool PrepCheckShowCounts { get; set; }
+    // Only run where you have a real sheet, so leveling roulettes stay quiet.
+    public bool PrepCheckSheetsOnly { get; set; }
     public bool PrepCheckLocked { get; set; } = true;
     public Vector2 PrepCheckPosition { get; set; } = new(0.5f, 0.72f);
     public float PrepCheckFontSizePx { get; set; } = 18f;

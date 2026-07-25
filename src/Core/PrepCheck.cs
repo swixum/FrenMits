@@ -66,6 +66,69 @@ public static class PrepCheck
 
     public const string PotionText = "Potion is Available!";
 
+    // ---- the fuller food verdict -------------------------------------------
+
+    // How loudly a line reads. Info is for the always-on timer, which is a
+    // readout rather than a complaint.
+    public enum Level { None, Info, Warn, Danger }
+
+    // Everything the optional checks need, so the verdict below stays pure and
+    // the game reads all happen at the call site.
+    public readonly record struct FoodOpts(
+        float WarnSeconds,
+        bool WarnWrongFood,
+        bool WarnNq,
+        bool AlwaysShow);
+
+    public readonly record struct Verdict(string Text, Level Level)
+    {
+        public bool Any => Level != Level.None;
+    }
+
+    // The food line and how loudly to say it, worst problem first.
+    //
+    // `isBattleFood` and `isHq` are passed in because resolving them needs the
+    // game's sheets; everything about what to DO with them lives here.
+    public static Verdict FoodVerdict(Buff food, bool isBattleFood, bool isHq, FoodOpts o)
+    {
+        if (!food.Present) return new Verdict("No food", Level.Danger);
+
+        // Raiding on crafter food outranks everything else: the timer is
+        // irrelevant when the buff is doing nothing for you in the first place.
+        if (o.WarnWrongFood && !isBattleFood) return new Verdict("Crafter food", Level.Danger);
+
+        var grade = GradeOf(food, o.WarnSeconds);
+        if (grade == Grade.Expiring) return new Verdict($"Food {Clock(food.Remaining)}", Level.Warn);
+
+        if (o.WarnNq && !isHq) return new Verdict("Food is NQ", Level.Warn);
+
+        if (o.AlwaysShow && food.Remaining > 0f)
+            return new Verdict($"Food {Clock(food.Remaining)}", Level.Info);
+
+        return new Verdict("", Level.None);
+    }
+
+    // The warning threshold: either the slider, or the length of the fight in
+    // front of you when that's known.
+    public static float WarnSecondsFor(bool useFightLength, float minutes, float fightSeconds)
+        => useFightLength && fightSeconds > 0f ? fightSeconds : WarnSeconds(minutes);
+
+    // How long this fight runs, or 0 when that isn't a meaningful question.
+    public static float FightSeconds(FightProfile? fight)
+    {
+        // A baked duty timeline packs every encounter of an instance onto ONE
+        // clock in 1000-second blocks, so its last time is not a fight length -
+        // it's boss three's coordinate. Only a real sheet can answer this.
+        if (fight == null || fight.TimelineOnly) return 0f;
+        var last = 0f;
+        foreach (var l in fight.Lines) if (l.Time > last) last = l.Time;
+        foreach (var r in fight.CustomRows) if (r.Time > last) last = r.Time;
+        return last;
+    }
+
+    // "(3 left)", or "" when we have no count worth showing.
+    public static string Count(int n) => n > 0 ? $"  ({n} left)" : "";
+
     // ---- speech ------------------------------------------------------------
 
     // What each food state is worth saying out loud. The spoken phrase carries no
@@ -155,6 +218,11 @@ public static class PrepCheck
             return now - _firedAt < ShowSeconds;
         }
 
+        // Seconds until the pot is back, or 0 when nothing is being timed. Only
+        // meaningful once a use has been seen.
+        public float Remaining(double now)
+            => _pending ? (float)Math.Max(0.0, _readyAt - now) : 0f;
+
         // Forgotten on leaving the duty, and only then: the clock has to survive
         // combat starting and ending, or it would never reach the full recast.
         public void Reset()
@@ -235,6 +303,71 @@ public static class PrepCheck
     }
 
     private static readonly ConcurrentDictionary<uint, uint> _itemRecasts = new();
+
+    // The item behind a Well Fed / Medicated status: its Param is the item id,
+    // +10000 when the meal or pot was HQ.
+    public static uint ItemOf(Buff buff)
+        => buff.Param == 0 ? 0u : (uint)(buff.Param > 10000 ? buff.Param - 10000 : buff.Param);
+
+    public static bool IsHq(Buff buff) => buff.Param > 10000;
+
+    // Crafting and gathering stats, by BaseParam row: GP, CP, Craftsmanship,
+    // Control, Gathering, Perception. Read off the sheet and confirmed stable.
+    private static readonly uint[] CraftParams = { 10, 11, 70, 71, 72, 73 };
+
+    // True when the dish boosts at least one stat that matters in a fight. A
+    // meal whose every stat is a crafting one is crafter food, and wearing it
+    // into a raid does nothing at all.
+    //
+    // Unknown food counts as battle food: never accuse on a failed lookup.
+    public static bool IsBattleFood(Buff food)
+    {
+        var itemId = ItemOf(food);
+        if (itemId == 0) return true;
+        // BOTH answers are encoded non-zero (1 crafter, 2 battle) because Cached
+        // treats 0 as "the lookup failed, ask again later". Returning a plain
+        // false/0 for crafter food would mean re-walking three sheets every
+        // single frame for exactly the case the warning is on screen for.
+        return Cached(_battleFood, itemId, id =>
+        {
+            var item = GameSheets.English<Item>()?.GetRowOrDefault(id);
+            if (item is not { } row) return Battle;
+            // Food hangs its stats off ItemAction: Data[1] names the ItemFood row.
+            var act = GameSheets.English<ItemAction>()?.GetRowOrDefault(row.ItemAction.RowId);
+            if (act is not { } a) return Battle;
+            var stats = GameSheets.English<ItemFood>()?.GetRowOrDefault(a.Data[1]);
+            if (stats is not { } f) return Battle;
+            var sawAny = false;
+            foreach (var p in f.Params)
+            {
+                var bp = p.BaseParam.RowId;
+                if (bp == 0) continue;
+                sawAny = true;
+                if (Array.IndexOf(CraftParams, bp) < 0) return Battle;
+            }
+            // Every stat was a crafting one. No stats at all is not an accusation.
+            return sawAny ? Crafter : Battle;
+        }, "prep food stats") != Crafter;
+    }
+
+    private const uint Crafter = 1;
+    private const uint Battle = 2;
+
+    private static readonly ConcurrentDictionary<uint, uint> _battleFood = new();
+
+    // How many of an item are in your bags, or 0 when it can't be read. Knowing
+    // you're on your last pot changes whether you use it.
+    public static unsafe int BagCount(uint itemId, bool hq)
+    {
+        if (itemId == 0) return 0;
+        try
+        {
+            var inv = FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance();
+            if (inv == null) return 0;
+            return Math.Max(0, inv->GetInventoryItemCount(itemId, hq, false, false, 0));
+        }
+        catch (Exception ex) { Swallowed.Report("prep bag count", ex); return 0; }
+    }
 
     private static uint Cached(ConcurrentDictionary<uint, uint> cache, uint key,
                                Func<uint, uint> lookup, string site)

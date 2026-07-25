@@ -21,6 +21,14 @@ public class PrepWindow : Window
     // window draws.
     private bool _prePull;   // food rows are worth showing
     private bool _potNote;   // the potion note is inside its few seconds
+    private float _potLeft;  // seconds until the pot is back (0 = don't show)
+
+    // The last food we saw you eating, so "No food" can still say how many are
+    // in your bag - with none up there's no status to read the item from.
+    private uint _lastFoodItem;
+    private bool _lastFoodHq;
+    private uint _lastPotItem;
+    private bool _lastPotHq;
 
     private readonly PrepCheck.PotionTimer _potTimer = new();
     private readonly PrepCheck.Announcer _foodSay = new();
@@ -62,7 +70,10 @@ public class PrepWindow : Window
                  && !Plugin.CutsceneActive
                  // No player yet (zoning in) reads exactly like "no food is up",
                  // so stay quiet until there's someone to read.
-                 && Plugin.LocalPlayer != null;
+                 && Plugin.LocalPlayer != null
+                 // Optional: only where you have a real sheet, so a leveling
+                 // roulette (where nobody brings food) stays quiet.
+                 && (!C.PrepCheckSheetsOnly || _plugin.ActiveFight() is { TimelineOnly: false });
 
         // Leaving the duty forgets the potion clock. Nothing else does: it has to
         // survive combat starting and ending, or it would never reach the full recast.
@@ -77,10 +88,16 @@ public class PrepWindow : Window
         // The potion clock runs for as long as you're in the duty, combat included.
         // The pot's OWN recast is handed to the timer, read off the tincture that's
         // up, so a future item with a different number just works.
-        _potNote = on && Plugin.InDuty && C.PrepCheckPotion && PotionTick();
+        var potLive = on && Plugin.InDuty && C.PrepCheckPotion;
+        _potNote = potLive && PotionTick();
         // Once the note's few seconds are up, re-arm the speech so a SECOND pot
         // later in the same fight is announced too.
         if (!_potNote) _potSay.Reset();
+
+        // Optional running countdown to the pot coming back, which is a readout
+        // rather than an alert and so never speaks.
+        _potLeft = potLive && C.PrepCheckPotCountdown && !_potNote
+            ? _potTimer.Remaining(ImGui.GetTime()) : 0f;
 
         // Food is a pre-pull matter only.
         _prePull = PrepCheck.ShouldShow(on, Plugin.InDuty, Plugin.InCombat);
@@ -90,7 +107,7 @@ public class PrepWindow : Window
         // Test mode draws a placement sample; it is the ONLY thing that ever puts
         // this on screen outside a duty.
         if (C.TestMode) return true;
-        return _prePull || _potNote;
+        return _prePull || _potNote || _potLeft > 0f;
     }
 
     public override void Draw()
@@ -102,23 +119,41 @@ public class PrepWindow : Window
 
         if (_prePull)
         {
-            var warn = PrepCheck.WarnSeconds(C.PrepCheckWarnMinutes);
             var food = PrepCheck.Read(PrepCheck.WellFedStatus);
-            var grade = PrepCheck.GradeOf(food, warn);
-            var text = PrepCheck.FoodLine(food, warn);
-            if (text.Length > 0)
+            if (food.Present) { _lastFoodItem = PrepCheck.ItemOf(food); _lastFoodHq = PrepCheck.IsHq(food); }
+
+            // Each optional check is only RESOLVED when it's switched on, so an
+            // extra nobody uses costs nothing per frame. The "true" defaults are
+            // also the ones FoodVerdict treats as "nothing to report".
+            var warn = PrepCheck.WarnSecondsFor(C.PrepCheckUseFightLength, C.PrepCheckWarnMinutes,
+                C.PrepCheckUseFightLength ? PrepCheck.FightSeconds(_plugin.ActiveFight()) : 0f);
+            var verdict = PrepCheck.FoodVerdict(food,
+                !C.PrepCheckWarnWrongFood || PrepCheck.IsBattleFood(food),
+                !C.PrepCheckWarnNq || PrepCheck.IsHq(food),
+                new PrepCheck.FoodOpts(warn, C.PrepCheckWarnWrongFood, C.PrepCheckWarnNq, C.PrepCheckAlwaysShowFood));
+
+            if (verdict.Any)
             {
-                Row(PrepCheck.FoodIcon(food), text,
-                    grade == PrepCheck.Grade.Missing ? Theme.Danger : Theme.Warn);
+                Row(PrepCheck.FoodIcon(food), verdict.Text + FoodCount(food), LevelColor(verdict.Level));
                 drew = true;
             }
-            Announce(_foodSay, PrepCheck.SpeechFor(grade));
+            // Speech follows the ORIGINAL grade, so the optional extras stay
+            // visual and nothing new starts talking without being asked.
+            Announce(_foodSay, PrepCheck.SpeechFor(PrepCheck.GradeOf(food, warn)));
         }
 
         if (_potNote)
         {
-            Row(PrepCheck.StatusIcon(PrepCheck.MedicatedStatus), PrepCheck.PotionText, Theme.Good);
+            Row(PrepCheck.StatusIcon(PrepCheck.MedicatedStatus),
+                PrepCheck.PotionText + PotCount(), Theme.Good);
             Announce(_potSay, PrepCheck.PotionSpeech);
+            drew = true;
+        }
+        else if (_potLeft > 0f)
+        {
+            // A readout, not an alert: muted, and never spoken.
+            Row(PrepCheck.StatusIcon(PrepCheck.MedicatedStatus),
+                $"Pot {PrepCheck.Clock(_potLeft)}", Theme.Muted);
             drew = true;
         }
 
@@ -138,9 +173,40 @@ public class PrepWindow : Window
         if (!drew) ImGui.Dummy(new Vector2(1f, 1f));
     }
 
+    private static uint LevelColor(PrepCheck.Level level) => level switch
+    {
+        PrepCheck.Level.Danger => Theme.Danger,
+        PrepCheck.Level.Warn => Theme.Warn,
+        _ => Theme.Muted,
+    };
+
+    // "(12 left)" for the dish in question: the one you're eating, or - when
+    // there's none up to read - the last one we saw you eat.
+    private string FoodCount(PrepCheck.Buff food)
+    {
+        if (!C.PrepCheckShowCounts) return "";
+        var (item, hq) = food.Present
+            ? (PrepCheck.ItemOf(food), PrepCheck.IsHq(food))
+            : (_lastFoodItem, _lastFoodHq);
+        return PrepCheck.Count(PrepCheck.BagCount(item, hq));
+    }
+
+    private string PotCount()
+        => C.PrepCheckShowCounts
+            ? PrepCheck.Count(PrepCheck.BagCount(_lastPotItem, _lastPotHq))
+            : "";
+
     private bool PotionTick()
     {
         var medicated = PrepCheck.Read(PrepCheck.MedicatedStatus);
+        // Remember the tincture while it's up: by the time the note fires the
+        // buff is five minutes gone, so this is the only chance to learn which
+        // pot it was.
+        if (medicated.Present)
+        {
+            _lastPotItem = PrepCheck.ItemOf(medicated);
+            _lastPotHq = PrepCheck.IsHq(medicated);
+        }
         return _potTimer.Update(medicated.Present, PrepCheck.RecastFor(medicated), ImGui.GetTime());
     }
 
