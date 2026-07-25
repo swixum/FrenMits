@@ -94,9 +94,9 @@ public partial class ConfigWindow
     private static bool IsTankSlot(string? slot)
         => slot != null && TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase);
 
-    // Tank-buster mit plan from the Ikuya sheet (pick your pairing, add your job's
-    // lines), shown only for fights that have tank-combo data when you're set to
-    // a tank slot (MT/OT/T1/T2), since it's irrelevant on any other role.
+    // Tank-buster mit plan from the fight's sheet (pick your pairing, add your
+    // job's lines), shown only for fights that have tank-combo data when you're set
+    // to a tank slot (MT/OT/T1/T2), since it's irrelevant on any other role.
     private void DrawTankSection(FightProfile fight)
     {
         if (!TankMits.Has(fight.TerritoryId)) return;
@@ -106,7 +106,9 @@ public partial class ConfigWindow
         var comps = TankMits.Comps(fight.TerritoryId);
         if (comps.Length == 0) return;
 
-        BeginCard(FontAwesomeIcon.ShieldAlt, ImGuiColors.TankBlue, "Tank busters", "from Ikuya");
+        // FRU's tank tabs come from its own sheet, not the Ikuya set the rest do.
+        var source = fight.TerritoryId == Builtin.FruTerritory ? "from the FRU sheet" : "from Ikuya";
+        BeginCard(FontAwesomeIcon.ShieldAlt, ImGuiColors.TankBlue, "Tank busters", source);
         ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
         // The pick is stored on the fight profile so it's remembered per fight
         // across sessions (and per character config).

@@ -308,6 +308,100 @@ public static class ConfigMigrations
             config.Version = 27;
             config.Save();
         }
+
+        // v28: FRU's timeline was only ever the mit sheet, so the board had 31 rows
+        // for a twenty-minute fight and nothing at all to show for the six minutes
+        // of the duo. It carries every damaging cast now, measured from six kills
+        // and checked against five more it wasn't built from, with the severity and
+        // tank-buster flags it never had. Re-bake so the new rows land.
+        if (config.Version < 28)
+        {
+            foreach (var f in config.Fights)
+                if (f.TerritoryId == Builtin.FruTerritory)
+                    host.SnapshotFight(f, "before the full timeline landed");
+            ResetDutyFights(config, f => f.TerritoryId == Builtin.FruTerritory);
+            config.Version = 28;
+            config.Save();
+        }
+
+        // v29: severity and tank-buster flags for the fights that never had any -
+        // Dancing Mad and all five legacy ultimates drew every mechanic as the same
+        // flat bar, with no buster shields and no DPS-check gates. Measured from six
+        // kills each.
+        //
+        // A refresh, not a re-bake: the grades live on the built-in and the new rows
+        // carry no calls, so nothing in anyone's plan has to move. Every clean reset
+        // since v14 has deliberately kept custom lines, and this keeps them too.
+        if (config.Version < 29)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (!Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) continue;
+                var graded = Builtin.CustomRows(f.TerritoryId);
+                if (graded.Count > 0) f.CustomRows = graded;
+            }
+            config.Version = 29;
+            config.Save();
+        }
+
+        // v30: FRU's calls re-read off the official sheet, row by row.
+        //
+        // The first pass matched the sheet's rows to the timeline by name and kept
+        // the earliest hit for each, so a mechanic the fight does twice collected
+        // both rows' calls on the first one and left the second blank. Cyclonic
+        // Break 2's mits sat on break 1, both Burnished Glory rows on the 1:26 one,
+        // the Light Rampant stack on the Mirror Mirror one, the Gaia tab's Dark
+        // Water 49s early, and the duo's Path of Light five minutes late inside
+        // Pandora - a plan for a mechanic that had already happened. The whole duo
+        // phase and both Relativity sets had no calls at all, though the sheet
+        // plans them.
+        //
+        // A re-bake rather than a refresh, because unlike v29 these calls do move.
+        if (config.Version < 30)
+        {
+            foreach (var f in config.Fights)
+                if (f.TerritoryId == Builtin.FruTerritory)
+                    host.SnapshotFight(f, "before the sheet's calls were re-read");
+            ResetDutyFights(config, f => f.TerritoryId == Builtin.FruTerritory);
+            config.Version = 30;
+            config.Save();
+        }
+
+        // v31: the five legacy ultimates rebuilt, and their resync anchors fixed.
+        //
+        // The anchors first, because they were the bigger problem. A phase anchor
+        // gets a very wide forward window so a clock still in an earlier segment can
+        // land on the next phase; UCOB and UWU each had one sitting on an ability the
+        // boss also casts much earlier, with no anchor of its own, so meeting that
+        // early cast threw the clock most of a phase forward and left it there. Read
+        // against six kills apiece that none of the data came from, UCOB's board was
+        // more than thirty seconds wrong on 96 readings out of 168 and UWU's on 120
+        // out of 150. Both are down to a third of a second now.
+        //
+        // Then the rows. These sheets name strategy points rather than abilities, so
+        // nothing matched a log by name, and the fights gate their phases on the
+        // boss's HP, so no fixed time is right for every party - which is why the
+        // earlier pass could only grade what it could name. Measuring each row as a
+        // distance back to the anchor before it solves both at once, and holds to a
+        // third of a second on kills it was never fitted to.
+        //
+        // A refresh, not a re-bake. Every existing row kept its time, its name and
+        // its calls - what changed is the grades on them, the rows added around them
+        // (which carry no calls), and the anchors, all of which live on the built-in.
+        // Saved plans hold their own copy of the anchor list, so that copy is the one
+        // that has to be replaced or the fixed anchors never reach anybody.
+        if (config.Version < 31)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (!Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) continue;
+                f.SyncPoints = Builtin.SyncPoints(f.TerritoryId);
+                var graded = Builtin.CustomRows(f.TerritoryId);
+                if (graded.Count > 0) f.CustomRows = graded;
+            }
+            config.Version = 31;
+            config.Save();
+        }
     }
 
     // A custom sheet whose duty has since become an official fight.

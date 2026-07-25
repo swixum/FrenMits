@@ -3,20 +3,20 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Tank-buster mit plans from the Ikuya "Dancing Mad (Ultimate)" sheet, per tank
-// pairing and per job, with times in seconds from the pull (continuous, same
-// clock as the main mit timeline).
+// Tank-buster mit plans per tank pairing and per job, with times in seconds from
+// the pull (continuous, same clock as the main mit timeline). The Ikuya sheets
+// supply every fight here except FRU, which carries tank tabs of its own.
 public static class TankMits
 {
     public sealed record Entry(int Time, string Mechanic, string Action);
 
-    // DMU, plus the legacy ultimates whose sheets carry per-pairing tank tabs
-    // (DSR/TOP) or a generic "All Comps" tank tab (UCOB/UWU) replicated across the
-    // standard six pairings, with TEA not baked yet since its tab doesn't split
+    // DMU and FRU, plus the legacy ultimates whose sheets carry per-pairing tank
+    // tabs (DSR/TOP) or a generic "All Comps" tank tab (UCOB/UWU) replicated across
+    // the standard six pairings, with TEA not baked yet since its tab doesn't split
     // cleanly per job.
     public static bool Has(uint territory) => territory is
         Builtin.DmuTerritory or Builtin.UcobTerritory or Builtin.UwuTerritory
-        or Builtin.DsrTerritory or Builtin.TopTerritory;
+        or Builtin.DsrTerritory or Builtin.TopTerritory or Builtin.FruTerritory;
 
     static readonly string[] Generic = { "WAR/DRK", "WAR/GNB", "WAR/PLD", "GNB/DRK", "PLD/GNB", "PLD/DRK" };
     static readonly string[] DsrComps = { "WAR/DRK", "WAR/GNB", "WAR/PLD", "GNB/DRK", "GNB/PLD", "PLD/DRK" };
@@ -24,7 +24,7 @@ public static class TankMits
     public static string[] Comps(uint territory) => territory switch
     {
         Builtin.UcobTerritory or Builtin.UwuTerritory => Generic,
-        Builtin.DsrTerritory or Builtin.TopTerritory => DsrComps,
+        Builtin.DsrTerritory or Builtin.TopTerritory or Builtin.FruTerritory => DsrComps,
         _ => new[] { "WAR/DRK", "WAR/GNB", "WAR/PLD", "PLD/GNB", "PLD/DRK", "GNB/DRK" },
     };
 
@@ -38,6 +38,7 @@ public static class TankMits
             Builtin.UwuTerritory => UwuTank,
             Builtin.DsrTerritory => DsrTank,
             Builtin.TopTerritory => TopTank,
+            Builtin.FruTerritory => FruTank,
             _ => DmuTank,
         };
         return data.TryGetValue(comp, out var d) && d.TryGetValue(job, out var e) ? e : Array.Empty<Entry>();
@@ -111,6 +112,47 @@ public static class TankMits
         {
             ["PLD"] = new Entry[] { new(25, "Death Sentence I", "Rampart (Early) + 30% + Short Mit"), new(62, "Death Sentence II", "Provoke"), new(106, "Death Sentence III", "Rampart + 90s + Short Mit"), new(156, "Dalamud Dive I + Bahamut's Claw I", "Provoke (After Bahamut's Claw)"), new(195, "Bahamut's Claw II", "30% + Short Mit + Reprisal"), new(231, "Bahamut's Claw III", "Rampart + Short Mit"), new(271, "Ravensbeak", "90s + Short Mit"), new(300, "Flare Breath + Flatten", "Provoke (Immediately) + Rampart + 30% + Short Mit (Stomp) + Reprisal Alternative: Short Mit (Flare Breath) + Invulnerability (Flatten)"), new(331, "Tempest Wing + Flare Breath + Flatten", "90s + Short Mit + Invulnerability (Flatten) Alternative: Kitchen Sink (Excluding 30%)"), new(388, "Flare Breath (x3)", "Provoke (After 3rd Breath)"), new(418, "Tempest Wing + Flare Breath + Flatten + Flare Breath", "Kitchen Sink"), new(502, "Flare Breath (x3)", "Provoke (After 3rd Breath)"), new(562, "Flatten + Flare Breath", "30% + Short Mit"), new(654, "Bahamut's Claw & Plummet", "Rampart + 90s + Short Mit"), new(709, "Death Sentence & Ravensbeak", "Provoke (Nael) 30% + Short Mit"), new(712, "Death Sentence & Ravensbeak", "Provoke (Twintania) + 90s + Short Mit"), new(794, "Ahk Morn I", "Kitchen Sink"), new(825, "Ahk Morn II", "Invulnerability"), new(882, "Ahk Morn III", "Provoke (After Ahk Morn Concludes)"), new(906, "Ahk Morn IV", "Kitchen Sink") },
             ["DRK"] = new Entry[] { new(25, "Death Sentence I", "Provoke + Rampart (During Castbar)"), new(62, "Death Sentence II", "30% + 90s + Short Mit"), new(106, "Death Sentence III", "Provoke"), new(127, "Double Plummet", "Rampart + Short Mit"), new(156, "Dalamud Dive I + Bahamut's Claw I", "Invulnerability"), new(271, "Ravensbeak", "Provoke"), new(285, "Dalamud Dive II + Bahamut's Claw IV", "Kitchen Sink"), new(331, "Tempest Wing + Flare Breath + Flatten", "Reprisal (Tempest Wing + Flare Breath) + Provoke (Flatten Castbar)"), new(388, "Flare Breath (x3)", "Kitchen Sink"), new(418, "Tempest Wing + Flare Breath + Flatten + Flare Breath", "Provoke (After 2nd Flare Breath)"), new(502, "Flare Breath (x3)", "Kitchen Sink"), new(654, "Bahamut's Claw & Plummet", "Rampart + 90s + Short Mit"), new(709, "Death Sentence & Ravensbeak", "Provoke (Twintania) 30% + Short Mit"), new(712, "Death Sentence & Ravensbeak", "Provoke (Nael) + 90s + Short Mit"), new(794, "Ahk Morn I", "Kitchen Sink"), new(825, "Ahk Morn II", "Provoke (After Ahk Morn Concludes)"), new(882, "Ahk Morn III", "Invulnerability"), new(906, "Ahk Morn IV", "Kitchen Sink") },
+        },
+    };
+
+    // FRU per-pairing plans from the official sheet's six tank tabs. Each tab puts
+    // the main tank in the left column and the off tank in the right, then repeats
+    // the whole plan with the roles swapped and again with the invulns traded; only
+    // the first block is baked, since a pairing here is one plan per job.
+    //
+    // Times are the community timeline's. Burn Mark 2 at 2:26 is in because the
+    // sheet plans it, though a party that pushes P1 on schedule never sees it.
+    static readonly Dictionary<string, Dictionary<string, Entry[]>> FruTank = new()
+    {
+        ["WAR/DRK"] = new()
+        {
+            ["WAR"] = new Entry[] { new(24, "Powder Mark Trail 1", "Holmgang"), new(40, "Burn Mark 1", "Rampart, Thrill, Bloodwhetting"), new(130, "Powder Mark Trail 2", "*Damnation, (Late) Rampart, Thrill, Bloodwhetting"), new(146, "Burn Mark 2", "Rampart"), new(597, "Black Halo", "Kitchen Sink"), new(738, "Somber Dance", "Holmgang"), new(751, "7/1 Akh Morn 1", "Buddy Mit: Nascent / or (Right After 1st Somber) Rampart, Bloodwhetting"), new(820, "Hallowed Wing", "Damnation, Thrill"), new(834, "7/1 Akh Morn 2", "Rampart, Bloodwhetting / or Buddy Mit: Nascent"), new(1086, "Wings Dark and Light 1", "Holmgang / Buddy Mit 2nd Hit: Nascent"), new(1204, "Wings Dark and Light 2", "Kitchen Sink") },
+            ["DRK"] = new Entry[] { new(40, "Burn Mark 1", "Rampart, Dark Mind, TBN"), new(130, "Powder Mark Trail 2", "Provoke / Buddy Mit: Oblation, TBN"), new(146, "Burn Mark 2", "Shadowed Vigil, Rampart, Dark Mind / Buddy Mit: TBN, Oblation"), new(215, "Quadruple Slap", "Living Dead"), new(597, "Black Halo", "Buddy Mit: TBN, Oblation"), new(646, "Darkest Dance", "Living Dead"), new(751, "7/1 Akh Morn 1", "(Right After 1st Somber) Rampart, Dark Mind, TBN, Oblation / or Buddy Mit: TBN, Oblation"), new(820, "Hallowed Wing", "Shadowed Vigil, Dark Mind"), new(834, "7/1 Akh Morn 2", "Buddy Mit: TBN, Oblation / or Rampart, TBN, Oblation"), new(1086, "Wings Dark and Light 1", "Kitchen Sink (TBN 2nd hit)"), new(1204, "Wings Dark and Light 2", "Living Dead / Buddy Mit 2nd Hit: TBN, Oblation") },
+        },
+        ["WAR/GNB"] = new()
+        {
+            ["WAR"] = new Entry[] { new(24, "Powder Mark Trail 1", "Holmgang"), new(40, "Burn Mark 1", "Rampart, Thrill, Bloodwhetting"), new(130, "Powder Mark Trail 2", "*Damnation, (Late) Rampart, Thrill, Bloodwhetting"), new(146, "Burn Mark 2", "Rampart"), new(597, "Black Halo", "Kitchen Sink"), new(738, "Somber Dance", "Holmgang"), new(751, "7/1 Akh Morn 1", "Buddy Mit: Nascent / or (Right After 1st Somber) Rampart, Bloodwhetting"), new(820, "Hallowed Wing", "Damnation, Thrill"), new(834, "7/1 Akh Morn 2", "Rampart, Bloodwhetting / or Buddy Mit: Nascent"), new(1086, "Wings Dark and Light 1", "Holmgang / Buddy Mit 2nd Hit: Nascent"), new(1204, "Wings Dark and Light 2", "Kitchen Sink") },
+            ["GNB"] = new Entry[] { new(40, "Burn Mark 1", "Rampart, Camo, HoC"), new(130, "Powder Mark Trail 2", "Provoke"), new(146, "Burn Mark 2", "Great Nebula, Rampart, Camo / Buddy Mit: HoC"), new(215, "Quadruple Slap", "Bolide"), new(597, "Black Halo", "Buddy Mit: HoC"), new(646, "Darkest Dance", "Bolide"), new(751, "7/1 Akh Morn 1", "(Right After 1st Somber) Rampart/Camo, HoC / or Buddy Mit: HoC"), new(820, "Hallowed Wing", "Great Nebula"), new(834, "7/1 Akh Morn 2", "Buddy Mit: HoC / or Rampart, Camo, HoC"), new(1086, "Wings Dark and Light 1", "Kitchen Sink"), new(1204, "Wings Dark and Light 2", "Bolide / Buddy Mit 2nd Hit: HoC") },
+        },
+        ["WAR/PLD"] = new()
+        {
+            ["WAR"] = new Entry[] { new(24, "Powder Mark Trail 1", "Holmgang"), new(40, "Burn Mark 1", "Rampart, Thrill, Bloodwhetting"), new(130, "Powder Mark Trail 2", "*Damnation, (Late) Rampart, Thrill, Bloodwhetting"), new(146, "Burn Mark 2", "Rampart"), new(597, "Black Halo", "Kitchen Sink"), new(646, "Darkest Dance", "Buddy Mit: Nascent"), new(738, "Somber Dance", "Holmgang"), new(751, "7/1 Akh Morn 1", "Buddy Mit: Nascent / or (Right After 1st Somber) Rampart, Bloodwhetting"), new(820, "Hallowed Wing", "Damnation, Thrill"), new(834, "7/1 Akh Morn 2", "Rampart, Bloodwhetting / or Buddy Mit: Nascent"), new(1086, "Wings Dark and Light 1", "Holmgang / Buddy Mit 2nd Hit: Nascent"), new(1204, "Wings Dark and Light 2", "Kitchen Sink") },
+            ["PLD"] = new Entry[] { new(40, "Burn Mark 1", "Rampart, Bulwark, Sheltron"), new(130, "Powder Mark Trail 2", "Provoke / Buddy Mit: Intervention"), new(146, "Burn Mark 2", "Guardian, Rampart, Bulwark / Buddy Mit: Intervention"), new(215, "Quadruple Slap", "Hallowed"), new(597, "Black Halo", "Buddy Mit: Intervention"), new(646, "Darkest Dance", "Kitchen Sink"), new(751, "7/1 Akh Morn 1", "(Right After 1st Somber) Rampart, Bulwark, Sheltron / or Buddy Mit: Intervention"), new(820, "Hallowed Wing", "Guardian"), new(834, "7/1 Akh Morn 2", "Buddy Mit: Intervention / or Rampart, Bulwark, Sheltron"), new(1086, "Wings Dark and Light 1", "Kitchen Sink"), new(1204, "Wings Dark and Light 2", "Hallowed / Buddy Mit 2nd Hit: Intervention") },
+        },
+        ["GNB/DRK"] = new()
+        {
+            ["GNB"] = new Entry[] { new(24, "Powder Mark Trail 1", "Bolide"), new(40, "Burn Mark 1", "Rampart, Camo, HoC"), new(130, "Powder Mark Trail 2", "*Great Nebula, (Late) Rampart/Camo, HoC"), new(146, "Burn Mark 2", "Rampart, Camo"), new(597, "Black Halo", "*Bolide / Kitchen Sink"), new(646, "Darkest Dance", "Buddy Mit: HoC"), new(751, "7/1 Akh Morn 1", "(Right After 1st Somber) Rampart/Camo, HoC / or Buddy Mit: HoC"), new(820, "Hallowed Wings", "Great Nebula"), new(834, "7/1 Akh Morn 2", "Buddy Mit: HoC / or Rampart, Camo, HoC"), new(1086, "Wings Dark and Light 1", "Bolide / Buddy Mit 2nd Hit: HoC"), new(1204, "Wings Dark and Light 2", "Kitchen Sink") },
+            ["DRK"] = new Entry[] { new(40, "Burn Mark 1", "Rampart, Dark Mind, TBN"), new(130, "Powder Mark Trail 2", "Provoke / Buddy Mit: Oblation, TBN"), new(146, "Burn Mark 2", "Shadowed Vigil, Rampart, Dark Mind / Buddy Mit: TBN, Oblation"), new(215, "Quadruple Slap", "Living Dead"), new(597, "Black Halo", "Buddy Mit: TBN, Oblation"), new(646, "Darkest Dance", "Kitchen Sink"), new(738, "Somber Dance", "Living Dead"), new(751, "7/1 Akh Morn 1", "Buddy Mit: TBN, Oblation / or (Right After 1st Somber) Rampart, TBN, Oblation"), new(820, "Hallowed Wings", "Shadowed Vigil, Dark Mind"), new(834, "7/1 Akh Morn 2", "Rampart, TBN, Oblation / or Buddy Mit: TBN, Oblation"), new(1086, "Wings Dark and Light 1", "Kitchen Sink (TBN 2nd hit)"), new(1204, "Wings Dark and Light 2", "Living Dead / Buddy Mit 2nd Hit: TBN, Oblation") },
+        },
+        ["GNB/PLD"] = new()
+        {
+            ["GNB"] = new Entry[] { new(24, "Powder Mark Trail 1", "Bolide"), new(40, "Burn Mark 1", "Rampart, Camo, HoC"), new(130, "Powder Mark Trail 2", "*Great Nebula, (Late) Rampart/Camo, HoC"), new(146, "Burn Mark 2", "Rampart, Camo"), new(597, "Black Halo", "Kitchen Sink"), new(646, "Darkest Dance", "Buddy Mit: HoC"), new(738, "Somber Dance", "Bolide"), new(751, "7/1 Akh Morn 1", "Buddy Mit: HoC / or (Right After 1st Somber) Rampart/Camo, HoC"), new(820, "Hallowed Wing", "Great Nebula"), new(834, "7/1 Akh Morn 2", "Rampart, Camo, HoC / or Buddy Mit: HoC"), new(1086, "Wings Dark and Light 1", "Kitchen Sink"), new(1204, "Wings Dark and Light 2", "Bolide / Buddy Mit 2nd Hit: HoC") },
+            ["PLD"] = new Entry[] { new(40, "Burn Mark 1", "Rampart, Bulwark"), new(130, "Powder Mark Trail 2", "Provoke / Buddy Mit: Intervention"), new(146, "Burn Mark 2", "Guardian, Rampart, Bulwark / Buddy Mit: Intervention"), new(215, "Quadruple Slap", "Hallowed"), new(646, "Darkest Dance", "Kitchen Sink"), new(751, "7/1 Akh Morn 1", "(Right After 1st Somber) Rampart, Bulwark, Sheltron / or Buddy Mit: Intervention"), new(820, "Hallowed Wing", "Guardian"), new(834, "7/1 Akh Morn 2", "Buddy Mit: Intervention / or Rampart, Bulwark, Sheltron"), new(1086, "Wings Dark and Light 1", "Hallowed Ground / Buddy Mit 2nd Hit: Intervention"), new(1204, "Wings Dark and Light 2", "Kitchen Sink") },
+        },
+        ["PLD/DRK"] = new()
+        {
+            ["PLD"] = new Entry[] { new(24, "Powder Mark Trail 1", "Hallowed"), new(40, "Burn Mark 1", "Rampart, Bulwark, Sheltron"), new(130, "Powder Mark Trail 2", "*Guardian, Bulwark, (Late) Rampart, Sheltron"), new(146, "Burn Mark 2", "Rampart, Sheltron"), new(597, "Black Halo", "Kitchen Sink"), new(646, "Darkest Dance", "Buddy Mit: Intervention"), new(751, "7/1 Akh Morn 1", "(Right After 1st Somber) Rampart, Sheltron, Bulwark / or Buddy Mit: Intervention"), new(820, "Hallowed Wing", "Guardian"), new(834, "7/1 Akh Morn 2", "Buddy Mit: Intervention / or Rampart, Bulwark, Sheltron"), new(1086, "Wings Dark and Light 1", "Hallowed / Buddy Mit 2nd Hit: Intervention"), new(1204, "Wings Dark and Light 2", "Kitchen Sink") },
+            ["DRK"] = new Entry[] { new(40, "Burn Mark 1", "Rampart, Dark Mind, TBN"), new(130, "Powder Mark Trail 2", "Provoke / Buddy Mit: Oblation, TBN"), new(146, "Burn Mark 2", "Shadowed Vigil, Rampart, Dark Mind / Buddy Mit: TBN, Oblation"), new(215, "Quadruple Slap", "Living Dead"), new(597, "Black Halo", "Buddy Mit: TBN, Oblation"), new(646, "Darkest Dance", "Kitchen Sink"), new(738, "Somber Dance", "Living Dead"), new(751, "7/1 Akh Morn 1", "Buddy Mit: TBN, Oblation / or (Right After 1st Somber) Rampart, Dark Mind, TBN, Oblation"), new(820, "Hallowed Wing", "Shadowed Vigil, Dark Mind"), new(834, "7/1 Akh Morn 2", "Rampart, TBN, Oblation / or Buddy Mit: TBN, Oblation"), new(1086, "Wings Dark and Light 1", "Kitchen Sink (TBN 2nd hit)"), new(1204, "Wings Dark and Light 2", "Living Dead / Buddy Mit 2nd Hit: TBN, Oblation") },
         },
     };
 

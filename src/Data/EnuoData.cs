@@ -136,16 +136,8 @@ public static class EnuoData
 
     public static List<SyncPoint> SyncPoints()
     {
-        var points = new List<SyncPoint>();
-        var phaseSeen = new HashSet<string>();
-        var prevTime = float.NegativeInfinity;
-        foreach (var e in Timeline.Where(e => e.Sync != 0).OrderBy(e => e.Time))
-        {
-            var isPhaseAnchor = phaseSeen.Add(e.Phase) || (e.Time - prevTime) > 90f;
-            points.Add(new SyncPoint { Ability = e.Sync, Time = e.Time, IsPhase = isPhaseAnchor, Label = $"{e.Phase} {e.Mechanic}" });
-            prevTime = e.Time;
-        }
-        return points;
+        return SyncAnchors.Build(
+            Timeline.Select(e => (e.Sync, (float)e.Time, e.Phase, e.Mechanic)));
     }
 
     public static List<BossAnchor> BossAnchors() => new();

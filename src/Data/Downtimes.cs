@@ -142,10 +142,11 @@ public static class Downtimes
     private static readonly List<DowntimeWindow> Fru = new()
     {
         new() { Start = 35,  Duration = 45,  Learn = true }, // P1 Utopian Sky intermission
-        new() { Start = 236, Duration = 40,  Learn = true }, // P1 -> P2 (Fatebreaker -> Usurper)
+        new() { Start = 239, Duration = 37,  Learn = true }, // P2 Diamond Dust
         new() { Start = 336, Duration = 29,  Learn = true }, // P2 Light Rampant
         new() { Start = 389, Duration = 31,  Learn = true }, // P2 Absolute Zero
         new() { Start = 481, Duration = 33,  Learn = true }, // P2 -> P3 Junction transition
+        new() { Start = 780, Duration = 49,  Learn = true }, // P4 Crystallize Time
         new() { Start = 857, Duration = 173, Learn = true, Cutscene = true }, // P4 -> P5 Pandora cutscene
     };
 

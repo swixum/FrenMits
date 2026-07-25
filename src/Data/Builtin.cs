@@ -235,11 +235,15 @@ public static class Builtin
 
     public static List<CustomRow> CustomRows(uint territory) => territory switch
     {
+        FruTerritory => FruData.CustomRows(),
+        DmuTerritory => DmuData.CustomRows(),
+        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.CustomRows(territory),
         DoomtrainTerritory => DoomtrainData.CustomRows(),
         EnuoTerritory => EnuoData.CustomRows(),
         M9sTerritory => M9sData.CustomRows(),
         M10sTerritory => M10sData.CustomRows(),
         M11sTerritory => M11sData.CustomRows(),
+        M12sTerritory => M12sData.CustomRows(),
         _ => new List<CustomRow>(),
     };
 
