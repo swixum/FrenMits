@@ -291,6 +291,23 @@ public static class ConfigMigrations
             config.Version = 26;
             config.Save();
         }
+
+        // v27: FRU's Pandora phase was stacked on top of itself. Akh Morn 1, 2 and
+        // 3 all sat at 17:48 and both Polarizing Strikes at 18:27, because the rows
+        // were matched to a cast id and every repeat landed on the first one - so
+        // two thirds of the Akh Morn calls never fired at all. The logs put them
+        // 113s and 91s apart, the same in all eight kills read, and three stray
+        // rows tagged P4 turned out to be Pandora's too. Re-bake so the moved calls
+        // land, snapshotting first because a saved plan wins over the bake.
+        if (config.Version < 27)
+        {
+            foreach (var f in config.Fights)
+                if (f.TerritoryId == Builtin.FruTerritory)
+                    host.SnapshotFight(f, "before the Pandora phase was un-stacked");
+            ResetDutyFights(config, f => f.TerritoryId == Builtin.FruTerritory);
+            config.Version = 27;
+            config.Save();
+        }
     }
 
     // A custom sheet whose duty has since become an official fight.

@@ -18,7 +18,7 @@ public static class FruData
         new(35, "P1", "Utopian Sky", 0x9CDA, new[]{"","","Concit","EukProg","Confession","","","","",""}),
         new(86, "P1", "Burnished Glory 1", 0x9CEA, new[]{"Rep","Party Mit","(Early) Soil/Spread-Lo","(Early) Kera/Holos","Bell","Macro/CU","","Feint","","Addle"}),
         new(86, "P1", "Burnished Glory 2", 0x9CEA, new[]{"Party Mit","(Late) Rep","Fey/Concit/Soil","EukProg/Kera","Temp/Confession/Caress","Sun","(Late) Feint","","Party Mit",""}),
-        new(101, "P1", "Fall of Faith (1/2)", 0x9CC9, new[]{"","","Fey/Seraph/ism","Panhaima/Sophia","Temp","Neutral","","","",""}),
+        new(101, "P1", "Fall of Faith (1/2)", 0x9CC9, new[]{"","","Fey/Seraph/Seraphism","Panhaima/Sophia","Temp","Neutral","","","",""}),
         new(101, "P1", "Fall of Faith (3/4)", 0x9CC9, new[]{"Party Mit","","Fey/Consolation/Soil","Kera","Temp","Neutral/Sun","","","Party Mit",""}),
         new(246, "P2", "House of Light", 0x9D0E, new[]{"","Rep","Concit/Exp","Holos","","","","","",""}),
         new(255, "P2", "Sinbound Holy", 0x9D10, new[]{"","","Spread-Lo/Exp**","Zoe EukProg/Holos","","","","","Party Mit**",""}),
@@ -38,15 +38,13 @@ public static class FruData
         new(672, "P3", "Memory's End", 0x9D6C, new[]{"Rep","","Concit/Soil","(Early) Holos/Kera","","CU","Feint","","Party Mit","Addle"}),
         new(1041, "P5", "Fulgent Blade 2", 0x9D72, new[]{"","Rep","Concit/Soil","EukProg/Kera","Confession","CU","Feint","","",""}),
         new(1041, "P5", "Fulgent Blade 3", 0x9D72, new[]{"","Rep","Concit/Soil","EukProg/Kera","Temp/Confession","Neutral/CU","Feint","","",""}),
-        new(1052, "P4", "The Path of Light", 0x9CB6, new[]{"","Rep","Soil","Kera","Temp/Caress/Confession","Neutral/Sun","","","",""}),
-        new(1068, "P4", "Akh Morn Afah", 0x9D76, new[]{"Rep","","Concit/Seraph/Soil*","EukProg/Panhaima/Kera*","","","Feint (Shiva)","","Party Mit",""}),
-        new(1068, "P4", "Akh Morn Afah", 0x9D76, new[]{"Rep","","Concit/Soil","EukProg/Kera","Confession/Temp/Caress","Neutral/Sun/CU","Feint (Shiva)","","Party Mit",""}),
+        new(1052, "P5", "The Path of Light", 0x9CB6, new[]{"","Rep","Soil","Kera","Temp/Caress/Confession","Neutral/Sun","","","",""}),
         new(1068, "P5", "Akh Morn 1", 0x9D76, new[]{"Party Mit","Rep","Spread-Lo/Soil","(Early) Holos*/EukProg/Kera","","","","Feint","","Addle"}),
-        new(1068, "P5", "Akh Morn 2", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Holos/EukProg/Kera","","","","Feint","","Addle"}),
-        new(1068, "P5", "Akh Morn 3", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Zoe EukProg/Kera","","","","Feint","","Addle"}),
         new(1107, "P5", "Polarizing Strikes 1", 0x9D7C, new[]{"Rep","Party Mit","Seraph/Fey/Exped/Soil","Panhaima/Kera","Temp/Caress","Neutral/Sun","","","Party Mit",""}),
-        new(1107, "P5", "Polarizing Strikes 2", 0x9D7C, new[]{"","Party Mit","Seraph/ism/Exped/Fey","Panhaima/Sophia","Temp/Bell/Caress","Neutral/Sun/Macro","","","Party Mit",""}),
         new(1142, "P5", "Pandora's Box", 0x9D86, new[]{"TANK LB","Rep**","Concit/Soil**","EukProg/Kera**","","","Feint**","","",""}),
+        new(1181, "P5", "Akh Morn 2", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Holos/EukProg/Kera","","","","Feint","","Addle"}),
+        new(1220, "P5", "Polarizing Strikes 2", 0x9D7C, new[]{"","Party Mit","Seraph/Seraphism/Exped/Fey","Panhaima/Sophia","Temp/Bell/Caress","Neutral/Sun/Macro","","","Party Mit",""}),
+        new(1272, "P5", "Akh Morn 3", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Zoe EukProg/Kera","","","","Feint","","Addle"}),
     };
 
     public static List<MitLine> BuildLines(string slot)
@@ -104,14 +102,19 @@ public static class FruData
     // which is what confirms the two share a clock.
     //
     // Written out rather than folded up from the rows' Phase tags, the way every
-    // other fight's is, because THIS file's tags don't survive it: three rows are
-    // tagged P4 but sit at 1052-1068, inside Pandora's stretch and interleaved
-    // with P5's own rows. Grouping by tag puts P4 after P5 and drops a "P4"
-    // divider into the middle of phase five.
+    // other fight's is, because this file has no P4 rows to fold: the sheet it
+    // came from doesn't plan the duo.
     //
-    // The sheet has no P4 rows at all, so that mark draws nothing today - the gap
-    // it lands in ends at P5's first row, and the later phase owns the gap. It's
-    // here so it starts working the day someone writes P4 calls.
+    // It used to have three, tagged P4 but sitting at 1052-1068 in the middle of
+    // Pandora's stretch. The logs settled what they were - Pandora casts The Path
+    // of Light and every Akh Morn herself, Shiva casts none of them - so the tag
+    // was simply wrong and they are P5 rows now. While they carried it, the first
+    // one planted a wide re-base anchor at 1052s that would drag the clock a
+    // couple of minutes on a cast that fires much earlier than that.
+    //
+    // The P4 mark below draws nothing today, since the gap it lands in ends at
+    // P5's first row and the later phase owns the gap. It's here so it starts
+    // working the day someone writes duo calls.
     public static List<(string Name, float Time)> PhaseStarts() => new()
     {
         ("P1", 0f),

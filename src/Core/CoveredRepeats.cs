@@ -163,7 +163,10 @@ public static class CoveredRepeats
             if (only != null) return null;
             only = name;
         }
-        return only != null && string.Equals(only, clean, StringComparison.OrdinalIgnoreCase)
+        if (only == null) return null;
+        // Either spelling counts: the sheets write "Soil" as often as "Sacred Soil".
+        return string.Equals(only, clean, StringComparison.OrdinalIgnoreCase)
+               || string.Equals(only, Cooldowns.Canonical(clean), StringComparison.OrdinalIgnoreCase)
             ? only : null;
     }
 }

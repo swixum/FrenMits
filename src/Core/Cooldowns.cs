@@ -21,9 +21,10 @@ public static class Cooldowns
         "Shadowed Vigil", "Shadow Wall", "Dark Mind", "Living Dead", "The Blackest Night", "Oblation", "Dark Missionary",
         "Camouflage", "Great Nebula", "Nebula", "Superbolide", "Heart of Light", "Heart of Stone", "Heart of Corundum", "Aurora",
         "Sacred Soil", "Expedient", "Fey Illumination", "Seraph", "Recitation", "Whispering Dawn",
+        "Consolation", "Excogitation",
         "Temperance", "Plenary Indulgence", "Asylum", "Liturgy of the Bell", "Divine Caress",
         "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Exaltation", "Sun Sign",
-        "Kerachole", "Holos", "Panhaima", "Physis II", "Krasis", "Zoe", "Philosophia",
+        "Kerachole", "Holos", "Panhaima", "Haima", "Physis II", "Krasis", "Zoe", "Philosophia",
         "Magick Barrier", "Addle", "Tactician", "Troubadour", "Shield Samba", "Improvisation", "Dismantle",
         "Tempera Grassa", "Seraphism", "Earthly Star", "Celestial Opposition",
     };
@@ -81,8 +82,10 @@ public static class Cooldowns
 
             if (!_idByText.TryGetValue(actionText!, out var id))
             {
+                // Same matching the planner uses, so "Rep" reads the Reprisal
+                // timer instead of nothing at all.
                 foreach (var kv in _byName)
-                    if (actionText!.Contains(kv.Key, StringComparison.OrdinalIgnoreCase)) { id = kv.Value; break; }
+                    if (Mentions(actionText!, kv.Key)) { id = kv.Value; break; }
                 _idByText[actionText!] = id;
             }
             if (id == 0) return null;
@@ -141,7 +144,8 @@ public static class Cooldowns
         ["Liturgy of the Bell"] = 20, ["Divine Caress"] = 10,
         ["Collective Unconscious"] = 10, ["Neutral Sect"] = 20, ["Macrocosmos"] = 15,
         ["Exaltation"] = 8, ["Sun Sign"] = 15,
-        ["Kerachole"] = 15, ["Holos"] = 20, ["Panhaima"] = 15, ["Physis II"] = 15,
+        ["Consolation"] = 30, ["Excogitation"] = 45,
+        ["Kerachole"] = 15, ["Holos"] = 20, ["Panhaima"] = 15, ["Haima"] = 15, ["Physis II"] = 15,
         ["Krasis"] = 10, ["Philosophia"] = 20,
         ["Magick Barrier"] = 10, ["Tactician"] = 15, ["Troubadour"] = 15,
         ["Shield Samba"] = 15, ["Improvisation"] = 15,
@@ -204,9 +208,9 @@ public static class Cooldowns
         ["DRK"] = new[] { "Reprisal", "Rampart", "Dark Missionary", "Shadowed Vigil", "Shadow Wall", "The Blackest Night", "Oblation", "Dark Mind" },
         ["GNB"] = new[] { "Reprisal", "Rampart", "Heart of Light", "Great Nebula", "Nebula", "Heart of Corundum", "Heart of Stone", "Camouflage", "Aurora" },
         ["WHM"] = new[] { "Temperance", "Asylum", "Plenary Indulgence", "Liturgy of the Bell", "Divine Caress" },
-        ["SCH"] = new[] { "Sacred Soil", "Expedient", "Seraphism", "Fey Illumination", "Seraph", "Whispering Dawn", "Recitation" },
+        ["SCH"] = new[] { "Sacred Soil", "Expedient", "Seraphism", "Fey Illumination", "Seraph", "Consolation", "Excogitation", "Whispering Dawn", "Recitation" },
         ["AST"] = new[] { "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Earthly Star", "Celestial Opposition", "Exaltation", "Sun Sign" },
-        ["SGE"] = new[] { "Kerachole", "Holos", "Panhaima", "Physis II", "Krasis", "Zoe", "Philosophia" },
+        ["SGE"] = new[] { "Kerachole", "Holos", "Panhaima", "Haima", "Physis II", "Krasis", "Zoe", "Philosophia" },
         ["MNK"] = new[] { "Feint" }, ["DRG"] = new[] { "Feint" }, ["NIN"] = new[] { "Feint" },
         ["SAM"] = new[] { "Feint" }, ["RPR"] = new[] { "Feint" }, ["VPR"] = new[] { "Feint" },
         ["BRD"] = new[] { "Troubadour" },
@@ -263,7 +267,7 @@ public static class Cooldowns
         EnsurePlanMap();
         if (_planByName == null) yield break;
         foreach (var pm in _planByName.Values)
-            if (NamedIn(actionText!, pm.Name)) yield return pm;
+            if (Mentions(actionText!, pm.Name)) yield return pm;
     }
 
     // Does this action text name that mit as a word of its own? Every occurrence
@@ -283,6 +287,102 @@ public static class Cooldowns
         return false;
     }
 
+    // The shorthand the sheets are actually written in.
+    //
+    // None of this used to resolve. 450 of the 1,495 cells across the shipped
+    // sheets named no ability the plugin could see, so the timing solver skipped
+    // them and the cooldown checker could never turn one red - including "Rep",
+    // which is how every tank column in FRU and the legacy ultimates spells the
+    // most-pressed mit in the game.
+    //
+    // Keyed by the real name, because that keeps one press one entry however it
+    // was written: "Fey Illumination" and "Fey" both resolve to the same mit and
+    // it is still reported once.
+    //
+    // Only the unambiguous ones are here. "Spreadlo", "Confession", "Short Mit"
+    // and "Party Mit" are deliberately absent - the first two aren't single
+    // actions and the last two are a role's pick among several, which the
+    // auto-planner models properly and a fixed cooldown here would only fake.
+    private static readonly Dictionary<string, string[]> Shorthand = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Reprisal"] = new[] { "Rep" },
+        ["Sacred Soil"] = new[] { "Soil" },
+        ["Kerachole"] = new[] { "Kera" },
+        ["Expedient"] = new[] { "Exp", "Exped" },
+        ["Fey Illumination"] = new[] { "Fey" },
+        ["Collective Unconscious"] = new[] { "CU" },
+        ["Temperance"] = new[] { "Temp" },
+        ["Divine Caress"] = new[] { "Caress" },
+        ["Liturgy of the Bell"] = new[] { "Bell" },
+        ["Macrocosmos"] = new[] { "Macro" },
+        ["Neutral Sect"] = new[] { "Neutral" },
+        ["Sun Sign"] = new[] { "Sun" },
+        ["Philosophia"] = new[] { "Sophia" },
+        // "Concit" is the Recitation-into-Consolation pairing, but only Consolation
+        // is claimed for it: FRU's healer is told "Concit" nine times, and reading
+        // each one as a Recitation press too would report a 90s recast broken over
+        // and over on a button that shields nobody anyway.
+        ["Consolation"] = new[] { "Concit" },
+    };
+
+    // A cell can say outright that it is NOT a press: the legacy sheets write
+    // "Carry Over" for a buff that is still up from earlier, which is the same
+    // thing the grid draws as a dim arrow. Reading those as presses would report a
+    // broken recast on a button nobody touched.
+    private static bool CarriedOver(string part)
+        => part.Contains("carry over", StringComparison.OrdinalIgnoreCase);
+
+    // Top-level "/" and "+" pieces of a cell; the "/" inside a job gate such as
+    // "Party Mit (WAR/PLD)" is not a separator.
+    private static IEnumerable<string> Parts(string action)
+    {
+        var depth = 0;
+        var start = 0;
+        for (var i = 0; i < action.Length; i++)
+        {
+            if (action[i] == '(') depth++;
+            else if (action[i] == ')') { if (depth > 0) depth--; }
+            else if (depth == 0 && (action[i] == '/' || action[i] == '+'))
+            {
+                yield return action[start..i];
+                start = i + 1;
+            }
+        }
+        yield return action[start..];
+    }
+
+    // Does this action text call for that mit, by its real name or by any of the
+    // shorthand the sheets use for it?
+    private static bool Mentions(string text, string name)
+    {
+        Shorthand.TryGetValue(name, out var shorts);
+        foreach (var part in Parts(text))
+        {
+            if (CarriedOver(part)) continue;
+            if (NamedIn(part, name)) return true;
+            if (shorts == null) continue;
+            foreach (var s in shorts)
+                if (NamedIn(part, s)) return true;
+        }
+        return false;
+    }
+
+    // The real name for a cell that is nothing but one mit, written either way
+    // ("Soil" -> Sacred Soil), or null when it says anything more than that.
+    public static string? Canonical(string text)
+    {
+        var t = (text ?? "").Trim();
+        if (t.Length == 0) return null;
+        foreach (var name in Tracked)
+        {
+            if (string.Equals(name, t, StringComparison.OrdinalIgnoreCase)) return name;
+            if (!Shorthand.TryGetValue(name, out var shorts)) continue;
+            foreach (var s in shorts)
+                if (string.Equals(s, t, StringComparison.OrdinalIgnoreCase)) return name;
+        }
+        return null;
+    }
+
     // Distinct tracked names that have a curated buff duration. Names lists a few
     // twice (Rampart and Addle each belong to two roles' kits).
     private static readonly string[] BuffNames = Names
@@ -300,7 +400,7 @@ public static class Cooldowns
     {
         if (string.IsNullOrWhiteSpace(actionText)) yield break;
         foreach (var name in BuffNames)
-            if (NamedIn(actionText!, name)) yield return (name, Durations[name]);
+            if (Mentions(actionText!, name)) yield return (name, Durations[name]);
     }
 
     private static unsafe float? RecastRemaining(uint id)

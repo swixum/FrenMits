@@ -112,14 +112,21 @@ public static class Downtimes
         new() { Start = 207, Duration = 22, TargetHp = -1f }, // top kills reach it at ~194 (7/8)
     };
 
-    // The Unmaking (Enuo EX). Both windows sit past the end of every top kill
-    // (470-485s), so they are the sheet's own and unverified against faster
-    // parties. The logs do show a third at ~242s in 5 of 8, which this sheet's
-    // own pull didn't have - see the official-fight notes in tools/ (kept local) on re-deriving these.
+    // The Unmaking (Enuo EX). Read straight off the logs this time: ten kills and
+    // eight wipes long enough to run past ten minutes, and every one of the
+    // eighteen has exactly these two lulls and no others.
+    //
+    // The two that used to be here, at 461s and 500s, were quiet stretches in the
+    // sheet's own pull rather than the boss going away - no pull has downtime
+    // there, and a kill is over by 480s. Nothing was ever untargetable that late.
+    //
+    // The second one drifts with how fast the party is: 236-245s across the kills,
+    // 252-268s across the wipes. Learn refines it from your own pulls, since which
+    // end of that you land on depends on your damage.
     private static readonly List<DowntimeWindow> Enuo = new()
     {
-        new() { Start = 461, Duration = 21, TargetHp = -1f },
-        new() { Start = 500, Duration = 21, TargetHp = -1f },
+        new() { Start = 156, Duration = 21, TargetHp = -1f },                // 18/18, to within a second
+        new() { Start = 242, Duration = 10, TargetHp = -1f, Learn = true },  // 18/18, start moves with pace
     };
 
     private static readonly List<DowntimeWindow> Dmu = new()
