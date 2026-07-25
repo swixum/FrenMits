@@ -363,4 +363,55 @@ public class MigrationTests
         Assert.Equal(before, dmu.SavedSlots.Count);
         Assert.Empty(host.Snapshots);
     }
+
+    [Fact]
+    public void ASheetThatBecameOfficialIsReplacedByTheShippedOne()
+    {
+        // Doomtrain shipped as a built-in while the config still held the custom
+        // sheet it was built from - 53 rows of boss auto-attack the shipped version
+        // doesn't have - and a saved copy wins over the bake. Once the duty is
+        // official that sheet can't be edited in game either, so nothing but this
+        // can clear it.
+        var stale = new FightProfile
+        {
+            Name = "Doomtrain", TerritoryId = Builtin.DoomtrainTerritory, Slot = "T1",
+        };
+        stale.CustomSlots.AddRange(new[] { "T1", "T2", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" });
+        stale.CustomRows.Add(new CustomRow { Time = 2f, Mechanic = "unknown_b294", Hurt = 1, Buster = true });
+        stale.SavedSlots["T1"] = new List<MitLine> { Fx.Line(2, "unknown_b294", "Short Mit") };
+
+        var config = Fx.ConfigAt(Latest, stale);
+        var snapshots = new List<string>();
+        var adopted = ConfigMigrations.AdoptSupersededSheets(config, (f, why) => snapshots.Add(why));
+
+        Assert.Equal(1, adopted);
+        Assert.Empty(stale.CustomSlots);
+        Assert.NotEmpty(stale.Lines);                 // freshly baked from the built-in
+        // ResetSlot re-stashes the active slot, so what matters is that nothing
+        // from the old sheet came back with it.
+        Assert.DoesNotContain(stale.CustomRows,
+            r => r.Mechanic.StartsWith("unknown", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(stale.SavedSlots.Values.SelectMany(v => v),
+            l => l.Mechanic.StartsWith("unknown", StringComparison.OrdinalIgnoreCase));
+        Assert.Single(snapshots);                     // and the old one is recoverable
+    }
+
+    [Fact]
+    public void AdoptingRunsOnceAndLeavesRealCustomSheetsAlone()
+    {
+        // It runs on every load, so a second pass must be a no-op - and a custom
+        // sheet for a duty that ISN'T official is somebody's own work.
+        var official = new FightProfile { Name = "Enuo", TerritoryId = Builtin.EnuoTerritory, Slot = "T1" };
+        official.CustomSlots.AddRange(new[] { "T1", "T2" });
+        var mine = new FightProfile { Name = "My sheet", TerritoryId = 999_999, Slot = "T1" };
+        mine.CustomSlots.AddRange(new[] { "T1", "T2" });
+        mine.CustomRows.Add(new CustomRow { Time = 10f, Mechanic = "Mine", Hurt = 3 });
+
+        var config = Fx.ConfigAt(Latest, official, mine);
+
+        Assert.Equal(1, ConfigMigrations.AdoptSupersededSheets(config));
+        Assert.Equal(0, ConfigMigrations.AdoptSupersededSheets(config));
+        Assert.Equal(2, mine.CustomSlots.Count);
+        Assert.Single(mine.CustomRows);
+    }
 }

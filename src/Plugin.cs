@@ -102,6 +102,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         if (seeded) Config.Save();
 
+        AdoptSupersededSheets();
+
         // NOTE: the default-slot prebake and the "already inside a boss room"
         // auto-load both need main-thread game state, so they are deferred to the
         // first Framework.Update tick (see RunFirstTickInit()).
@@ -315,6 +317,21 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     // IMigrationHost: the migrations only ever snapshot through here.
     public void SnapshotFight(FightProfile fight, string reason) => Snapshots.Save(fight, reason);
+
+    private void AdoptSupersededSheets()
+    {
+        var adopted = ConfigMigrations.AdoptSupersededSheets(Config, (f, why) =>
+        {
+            try { Snapshots.Save(f, why); }
+            catch (Exception ex) { Swallowed.Report("snapshot superseded sheet", ex); }
+        });
+        if (adopted > 0)
+        {
+            Config.Save();
+            Service.Log.Information($"FrenMits: {adopted} sheet(s) now ship officially; "
+                                    + "replaced the custom copies (snapshots kept).");
+        }
+    }
 
     // Apply a canonical role to every fight that has a sheet (the sidebar's
     // YOUR ROLE and the entry popup both route here).

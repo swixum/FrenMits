@@ -274,6 +274,37 @@ public static class ConfigMigrations
         }
     }
 
+    // A custom sheet whose duty has since become an official fight.
+    //
+    // This is how every official fight starts: someone builds it as a custom sheet,
+    // and it ships as a built-in a release later. The moment it does, that sheet
+    // stops being editable in game - Build and Auto-plan are custom-only - while
+    // the user's own copy still WINS over the bake, because saved slots always do.
+    // So whatever it held before it was cleaned up stays on the board with nothing
+    // left to reach it: Doomtrain kept 53 rows of boss auto-attack the shipped
+    // version doesn't have, and M9S-M11S kept caster calls no caster can press.
+    //
+    // Unversioned on purpose - it runs every load, because the next fight to be
+    // promoted needs it too and shouldn't need a migration written for it.
+    // CustomSlots is the marker (an official fight has no business carrying its own
+    // column list), and clearing it is what stops this running twice.
+    public static int AdoptSupersededSheets(Configuration config, Action<FightProfile, string>? snapshot = null)
+    {
+        var adopted = 0;
+        foreach (var f in config.Fights)
+        {
+            if (f.CustomSlots.Count == 0 || !Builtin.Has(f.TerritoryId)) continue;
+            snapshot?.Invoke(f, "before the official sheet took over");
+            f.CustomSlots.Clear();
+            f.SavedSlots.Clear();
+            f.CustomRows.Clear();
+            if (!string.IsNullOrEmpty(f.Slot)) Builtin.ResetSlot(f, f.Slot);
+            else { f.Lines.Clear(); f.AutoLoaded = false; }
+            adopted++;
+        }
+        return adopted;
+    }
+
     // The clean-reset shape shared by v6/v7/v11-v14: wipe the duty's saved slots
     // and freshly bake the active one (or leave it for auto-load).
     private static void ResetDutyFights(Configuration config, Func<FightProfile, bool> match)
