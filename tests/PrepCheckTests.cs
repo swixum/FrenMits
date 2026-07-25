@@ -361,7 +361,27 @@ public class PrepCheckTests
     [InlineData(true, false, false, false)]  // open world: nagging
     [InlineData(false, true, false, false)]  // switched off
     public void ItOnlyShowsWhereItIsActionable(bool enabled, bool inDuty, bool inCombat, bool expected)
-        => Assert.Equal(expected, PrepCheck.ShouldShow(enabled, inDuty, inCombat));
+        => Assert.Equal(expected, PrepCheck.ShouldShow(enabled, inDuty, inCombat, readyCheck: false));
+
+    [Theory]
+    [InlineData(true, true, false, true)]    // the ordinary case, with a check running
+    [InlineData(true, true, true, true)]     // in combat: a check still gets an answer
+    [InlineData(true, false, false, true)]   // outside a duty: still somebody asking
+    [InlineData(false, true, false, false)]  // switched off outranks everything
+    public void AReadyCheckOverridesBothGates(bool enabled, bool inDuty, bool inCombat, bool expected)
+        => Assert.Equal(expected, PrepCheck.ShouldShow(enabled, inDuty, inCombat, readyCheck: true));
+
+    [Fact]
+    public void AReadyCheckShowsHealthyFoodToo()
+    {
+        // Silence would be indistinguishable from the check not running at all, so
+        // the ready check path turns the timer on however the extras are set.
+        var fine = Up(1800f);
+        Assert.False(PrepCheck.FoodVerdict(fine, true, true, Off()).Any);
+        var answered = PrepCheck.FoodVerdict(fine, true, true, new PrepCheck.FoodOpts(240f, false, false, true));
+        Assert.Equal("Food 30:00", answered.Text);
+        Assert.Equal(PrepCheck.Level.Info, answered.Level);
+    }
 
     [Fact]
     public void TheStatusIdsAreTheOnesTheGameUses()

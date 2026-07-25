@@ -219,6 +219,9 @@ public class Configuration : IPluginConfiguration
     public bool PrepCheckWarnNq { get; set; }
     // Keep the food timer on screen even when there's nothing wrong.
     public bool PrepCheckAlwaysShowFood { get; set; }
+    // Also answer the in-game ready check, in combat and outside a duty included
+    // - the one moment somebody is actually asking whether you're ready.
+    public bool PrepCheckOnReadyCheck { get; set; }
     // Count down to the pot being ready, rather than only saying so when it is.
     public bool PrepCheckPotCountdown { get; set; }
     // Append how many you have left in your bags.

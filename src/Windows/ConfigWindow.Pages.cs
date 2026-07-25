@@ -56,14 +56,15 @@ public partial class ConfigWindow
     private void DrawPrepCheckPage()
     {
         SeparatorText("Food & Pot");
-        ImGui.TextWrapped("Two small reminders on one line, both duty-only. Your food is checked before the "
-                          + "pull and flagged if it's missing or would run out partway through. Your pot is "
-                          + "watched during the fight, and called out once when it comes back up.");
+        ImGui.TextWrapped("Two small reminders on one line. Your food is checked before the pull and flagged "
+                          + "if it's missing or would run out partway through, and again the moment a ready "
+                          + "check goes out. Your pot is watched during the fight, and called out once when "
+                          + "it comes back up.");
         ImGui.Spacing();
 
         C.PrepCheckEnabled = CfgCheck("Enable Food & Pot", C.PrepCheckEnabled);
-        Tip("Off by default. Nothing is drawn while your food is fine, and nothing is ever drawn out in "
-            + "the world - only inside a duty.");
+        Tip("Off by default. Nothing is drawn while your food is fine, and nothing is drawn out in the "
+            + "world at all unless you switch on the ready check below.");
         if (!C.PrepCheckEnabled) return;
 
         C.PrepCheckSheetsOnly = Toggle("Only in fights with a sheet", C.PrepCheckSheetsOnly);
@@ -81,6 +82,14 @@ public partial class ConfigWindow
             ImGui.TextWrapped("Shown out of combat, and stays up for as long as there's a problem: red for "
                               + "no food at all, amber with a countdown once it's nearly gone. The icon is "
                               + "the dish you actually ate.");
+            ImGui.Spacing();
+
+            C.PrepCheckOnReadyCheck = Toggle("Answer the ready check", C.PrepCheckOnReadyCheck);
+            Tip("Checks your food the moment a ready check goes out, and speaks it again even if it had "
+                + "already been said. Standing in a duty out of combat also describes everyone stood around "
+                + "afk; a ready check is somebody asking, right now. Shows either way, so healthy food "
+                + "reports back as a muted timer rather than as silence, and it's the one thing here that "
+                + "works in combat and outside a duty too.");
             ImGui.Spacing();
 
             C.PrepCheckUseFightLength = Toggle("Use the fight's own length", C.PrepCheckUseFightLength);

@@ -165,8 +165,27 @@ public static class PrepCheck
     // fight there is nothing you can do about your food, and in the open world
     // it's nagging. (The potion note below runs on its own rules and does show
     // in combat.)
-    public static bool ShouldShow(bool enabled, bool inDuty, bool inCombat)
-        => enabled && inDuty && !inCombat;
+    //
+    // A ready check overrides both of those gates. "Stood in a duty, out of
+    // combat" also describes everyone afk, watching a video or arguing about
+    // uptime; a ready check is somebody asking, right now, whether you're ready,
+    // and it's the only unambiguous "we are about to pull" signal the game has.
+    public static bool ShouldShow(bool enabled, bool inDuty, bool inCombat, bool readyCheck)
+        => enabled && (readyCheck || (inDuty && !inCombat));
+
+    // True while the ready check window is up, whether you called it or somebody
+    // else did. The agent stays active for the results as well, so the answer
+    // lingers a few seconds past the last person responding - which is exactly
+    // when you'd want to still be looking at it.
+    public static unsafe bool ReadyCheckActive()
+    {
+        try
+        {
+            var agent = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentReadyCheck.Instance();
+            return agent != null && agent->IsAgentActive();
+        }
+        catch (Exception ex) { Swallowed.Report("prep ready check", ex); return false; }
+    }
 
     // ---- the potion timer --------------------------------------------------
 

@@ -5,12 +5,13 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Two small readouts sharing one line of screen, both duty-only:
+// Two small readouts sharing one line of screen:
 //
 //   the food check   - pre-pull, and persistent while the problem lasts
 //   the potion note  - mid-fight, once, when the pot you used comes back
 //
-// Silent the rest of the time, and never outside a duty.
+// Silent the rest of the time, and duty-only unless the ready check option is on
+// - a ready check is pre-pull wherever it's called from.
 public class PrepWindow : Window
 {
     private readonly Plugin _plugin;
@@ -19,9 +20,10 @@ public class PrepWindow : Window
 
     // Resolved once per frame in DrawConditions, which runs whether or not the
     // window draws.
-    private bool _prePull;   // food rows are worth showing
-    private bool _potNote;   // the potion note is inside its few seconds
-    private float _potLeft;  // seconds until the pot is back (0 = don't show)
+    private bool _prePull;     // food rows are worth showing
+    private bool _readyCheck;  // a ready check is up: answer it, one way or the other
+    private bool _potNote;     // the potion note is inside its few seconds
+    private float _potLeft;    // seconds until the pot is back (0 = don't show)
 
     // The last food we saw you eating, so "No food" can still say how many are
     // in your bag - with none up there's no status to read the item from.
@@ -99,13 +101,22 @@ public class PrepWindow : Window
         _potLeft = potLive && C.PrepCheckPotCountdown && !_potNote
             ? _potTimer.Remaining(ImGui.GetTime()) : 0f;
 
-        // Food is a pre-pull matter only.
-        _prePull = PrepCheck.ShouldShow(on, Plugin.InDuty, Plugin.InCombat);
+        // Food is a pre-pull matter only - unless a ready check is up, which is
+        // pre-pull by definition wherever it happens. The game read is behind the
+        // option, so nobody who leaves it off pays for it.
+        var readyCheck = on && C.PrepCheckOnReadyCheck && PrepCheck.ReadyCheckActive();
+        // A ready check starting re-arms the speech, so "no food" gets said again
+        // at the moment somebody is actually asking - even if it was already said,
+        // and already sat on screen ignored, ten minutes ago.
+        if (readyCheck && !_readyCheck) _foodSay.Reset();
+        _readyCheck = readyCheck;
+
+        _prePull = PrepCheck.ShouldShow(on, Plugin.InDuty, Plugin.InCombat, readyCheck);
         if (!_prePull) _foodSay.Reset();
 
         if (!C.PrepCheckEnabled) return false;
-        // Test mode draws a placement sample; it is the ONLY thing that ever puts
-        // this on screen outside a duty.
+        // Test mode draws a placement sample. Along with a ready check, it's one of
+        // only two things that ever put this on screen outside a duty.
         if (C.TestMode) return true;
         return _prePull || _potNote || _potLeft > 0f;
     }
@@ -130,7 +141,11 @@ public class PrepWindow : Window
             var verdict = PrepCheck.FoodVerdict(food,
                 !C.PrepCheckWarnWrongFood || PrepCheck.IsBattleFood(food),
                 !C.PrepCheckWarnNq || PrepCheck.IsHq(food),
-                new PrepCheck.FoodOpts(warn, C.PrepCheckWarnWrongFood, C.PrepCheckWarnNq, C.PrepCheckAlwaysShowFood));
+                // A ready check gets an answer either way: silence would be
+                // indistinguishable from the check not running, so healthy food
+                // reports itself as a muted timer rather than as nothing.
+                new PrepCheck.FoodOpts(warn, C.PrepCheckWarnWrongFood, C.PrepCheckWarnNq,
+                    C.PrepCheckAlwaysShowFood || _readyCheck));
 
             if (verdict.Any)
             {
