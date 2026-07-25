@@ -75,6 +75,42 @@ public static class PlanStore
         }
     }
 
+    // Which copy to believe when the config STILL carries fights and a plan file
+    // exists as well.
+    //
+    // From this version on the config never writes them, so a config that has
+    // them was written by an older build - i.e. somebody rolled back, edited, and
+    // came forward again. Whichever file was written last is the real one.
+    //
+    // Pure so the decision is testable; the timestamps come from the caller.
+    public static bool PreferConfigCopy(bool planFileExists, int legacyCount, bool configIsNewer)
+        => legacyCount > 0 && (!planFileExists || configIsNewer);
+
+    // True when the config file was written more recently than the plan file.
+    // Unknowable (either file missing, or the clock/filesystem objects) counts as
+    // false, which keeps the newer format as the default answer.
+    public static bool ConfigIsNewerThanPlans()
+    {
+        try
+        {
+            var cfg = Service.PluginInterface.ConfigFile;
+            var plans = PlanPath;
+            if (cfg is not { Exists: true } || !File.Exists(plans)) return false;
+            return File.GetLastWriteTimeUtc(cfg.FullName) > File.GetLastWriteTimeUtc(plans);
+        }
+        catch (Exception ex)
+        {
+            Service.Log?.Warning(ex, "FrenMits: could not compare config and plan file times");
+            return false;
+        }
+    }
+
+    public static bool Exists()
+    {
+        try { return File.Exists(PlanPath); }
+        catch { return false; }
+    }
+
     public static void Save(List<FightProfile>? fights)
     {
         if (fights == null || Broken || Configuration.SuppressSave) return;

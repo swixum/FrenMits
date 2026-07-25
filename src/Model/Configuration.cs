@@ -193,7 +193,7 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingBoardShowSeverity { get; set; } = true;      // !/!!/!!! marks from graded sheets
     public bool UpcomingBoardShowType { get; set; } = true;          // raidwide / tank-buster icon per row
     public bool UpcomingBossPosition { get; set; } = true;           // live boss compass position row (North/Middle...)
-    public bool UpcomingBoardPhases { get; set; }                    // labelled rule where a phase begins
+    public bool UpcomingBoardPhases { get; set; } = true;            // labelled rule where a phase begins
 
     // The next-mits timeline lives in its own window with its own placement.
     public bool TimelineLocked { get; set; }

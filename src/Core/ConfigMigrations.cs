@@ -245,6 +245,16 @@ public static class ConfigMigrations
             config.Version = 23;
             config.Save();
         }
+
+        // v24: phase dividers on the board are on by default. They shipped OFF in
+        // 1.0.0.344-345, so those two builds wrote a stored "false" that a changed
+        // C# default would never reach.
+        if (config.Version < 24)
+        {
+            config.UpcomingBoardPhases = true;
+            config.Version = 24;
+            config.Save();
+        }
     }
 
     // The clean-reset shape shared by v6/v7/v11-v14: wipe the duty's saved slots

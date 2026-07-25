@@ -134,6 +134,34 @@ public class PlanStoreTests
         Assert.Null(c.LegacyFights);
     }
 
+    // ---- which copy wins ----------------------------------------------------
+
+    [Fact]
+    public void TheFirstLoadAfterTheSplitTakesTheConfigsCopy()
+        => Assert.True(PlanStore.PreferConfigCopy(planFileExists: false, legacyCount: 11, configIsNewer: false));
+
+    [Fact]
+    public void OnceTheresAPlanFileTheConfigsLeftoverIsIgnored()
+        => Assert.False(PlanStore.PreferConfigCopy(planFileExists: true, legacyCount: 11, configIsNewer: false));
+
+    [Fact]
+    public void ADowngradeThatEditedPlansIsPickedUpOnTheWayBack()
+    {
+        // From this version the config never writes fights, so a config that HAS
+        // them and was written more recently than the plan file can only be an
+        // older build's work - and its copy is the newer one.
+        Assert.True(PlanStore.PreferConfigCopy(planFileExists: true, legacyCount: 11, configIsNewer: true));
+    }
+
+    [Fact]
+    public void AnEmptyLegacyListNeverWinsOverAPlanFile()
+    {
+        // "I deleted all my fights" must not be mistaken for "there is nothing
+        // here yet", in either direction.
+        Assert.False(PlanStore.PreferConfigCopy(planFileExists: true, legacyCount: 0, configIsNewer: true));
+        Assert.False(PlanStore.PreferConfigCopy(planFileExists: false, legacyCount: 0, configIsNewer: false));
+    }
+
     // ---- the slimmed line ---------------------------------------------------
 
     [Fact]

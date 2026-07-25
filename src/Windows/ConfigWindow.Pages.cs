@@ -773,7 +773,7 @@ public partial class ConfigWindow
         C.UpcomingBoardStripe = true; C.UpcomingBoardDrain = true;
         C.UpcomingBoardShowActions = true; C.UpcomingBoardShowSeverity = true;
         C.UpcomingBoardShowType = true; C.UpcomingBossPosition = true;
-        C.UpcomingBoardPhases = false;
+        C.UpcomingBoardPhases = true;
         C.UpcomingCount = 3; C.UpcomingLookaheadSeconds = 30f;
         C.UpcomingFontSizePx = 20f; C.OverlayColorUpcoming = 0xB0FFFFFF;
         C.TimelineLocked = false; C.TimelinePosition = new Vector2(0.5f, 0.62f);

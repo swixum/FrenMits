@@ -317,4 +317,15 @@ public class MigrationTests
         => string.Join("\n", config.Fights.Select(f =>
             $"{f.Name}|{f.TerritoryId}|{f.Slot}|{f.Category}|" +
             string.Join(";", f.Lines.Select(l => $"{l.Time:0.###}:{l.Mechanic}:{l.Action}:{l.Sound}:{l.OffsetSeconds}"))));
+
+    [Fact]
+    public void V24TurnsPhaseDividersOnForProfilesThatShippedWithThemOff()
+    {
+        // They were off in 1.0.0.344-345, so those configs hold a stored "false"
+        // that changing the C# default can never reach.
+        var config = Fx.ConfigAt(23, Fx.LegacyDmu());
+        config.UpcomingBoardPhases = false;
+        Run(config);
+        Assert.True(config.UpcomingBoardPhases);
+    }
 }

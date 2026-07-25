@@ -220,40 +220,41 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     private static void LoadPlans(Configuration config)
     {
         var plans = PlanStore.Load();
-        if (plans != null)
-        {
-            // The plan file is the source of truth once it exists. Anything still
-            // sat in the config is a leftover from before the split.
-            config.Fights = plans;
-            config.LegacyFights = null;
-            return;
-        }
 
         if (PlanStore.Broken)
         {
-            // The file is there but unreadable, and PlanStore has already stopped
-            // writing so it stays recoverable. Fall back to whatever the config
-            // still holds rather than starting the session with no fights.
+            // The plan file is there but unreadable. PlanStore has already stopped
+            // writing it so it stays recoverable - and the CONFIG has to stop being
+            // written too: the fights it may still hold are the only readable copy
+            // left, and this version never writes them back, so one settings save
+            // would take them out of the file as well.
             if (config.LegacyFights is { Count: > 0 }) config.Fights = config.LegacyFights;
-            Service.Log?.Error("FrenMits: running on the config's copy of your plans; plans.json needs recovering.");
+            Configuration.SuppressSave = true;
+            Service.Log?.Error(
+                $"FrenMits: {PlanStore.FileName} could not be read. Running WITHOUT saving anything this " +
+                "session so both copies of your plans stay recoverable.");
             return;
         }
 
-        if (config.LegacyFights is not { Count: > 0 })
-        {
-            // Fresh install, or a profile with no fights. Nothing to move.
-            config.LegacyFights = null;
-            return;
-        }
-
-        // First load after the split. Take a copy of the old config before the
-        // next save drops the fights out of it, then write the new file at once
-        // rather than waiting for whatever edit happens to save first.
-        config.Fights = config.LegacyFights;
+        // Never written back whatever happens next, so drop it either way.
+        var legacy = config.LegacyFights;
         config.LegacyFights = null;
-        PlanStore.BackupConfigBeforeSplit();
-        PlanStore.Save(config.Fights);
-        Service.Log?.Information($"FrenMits: moved {config.Fights.Count} fight plans out of the config into {PlanStore.FileName}.");
+
+        if (PlanStore.PreferConfigCopy(plans != null, legacy?.Count ?? 0, PlanStore.ConfigIsNewerThanPlans()))
+        {
+            // Either the normal first load after the split, or a rollback that
+            // edited plans in the old build and came forward again. Keep a copy of
+            // the config before the next save drops the fights out of it, and
+            // write the new file at once rather than waiting for an edit.
+            config.Fights = legacy!;
+            PlanStore.BackupConfigBeforeSplit();
+            PlanStore.Save(config.Fights);
+            Service.Log?.Information(
+                $"FrenMits: took {config.Fights.Count} fight plans from the config into {PlanStore.FileName}.");
+            return;
+        }
+
+        if (plans != null) config.Fights = plans;
     }
 
     // Seamless auto-load: on entering a boss room we support, top up the fight's
