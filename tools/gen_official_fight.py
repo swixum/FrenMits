@@ -146,8 +146,63 @@ def slot_line_map(profile, canon_slots):
 # 15s is the duration of the standard party mitigations (Reprisal, Feint, Addle,
 # Sacred Soil, Kerachole): press one earlier than that and it has expired before
 # the hit, so it cannot have been meant for it.
+#
+# Only a floor, though. A mit that lasts longer can legitimately be planned
+# further ahead - Doomtrain leads Asylum (24s) twenty seconds into Dead Man's
+# Blastpipe - so the real bound is the buff's own length, read below.
 EARLY_S = 15.0
 LATE_S = 2.5
+
+
+def _load_durations():
+    """Buff lengths, read out of the plugin's own hand-curated table.
+
+    Parsed rather than copied so there is one place to maintain: the generator
+    and the plugin can't disagree about how long Asylum lasts.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "src", "Core", "Cooldowns.cs")
+    try:
+        with open(path, encoding="utf-8-sig") as fh:
+            text = fh.read()
+        block = text[text.index("Durations = new"):]
+        block = block[:block.index("};")]
+        return {m.group(1): float(m.group(2))
+                for m in re.finditer(r'\["([^"]+)"\] = (\d+(?:\.\d+)?)', block)}
+    except Exception as ex:                                   # noqa: BLE001
+        print(f"! note: couldn't read buff durations ({ex}); using {EARLY_S:g}s for every press.",
+              file=sys.stderr)
+        return {}
+
+
+DURATIONS = _load_durations()
+
+
+def early_window(action):
+    """How far ahead of its mechanic a press may sit and still belong to it.
+
+    The longest buff named in the cell, floored at the standard 15s. Longest,
+    not shortest, because this only decides which ROW the press belongs to, and
+    assign_lines already takes the nearest row of that name - being generous here
+    cannot pull a press onto a different instance, it can only stop one being
+    orphaned.
+    """
+    lower = action.lower()
+    hits = [d for name, d in DURATIONS.items() if name.lower() in lower]
+    return max(hits + [EARLY_S])
+
+
+# FFLogs names an ability it doesn't know "unknown_<hex>", and for some the game's
+# own Action sheet has no name either. Those are never mechanics: Doomtrain's
+# unknown_b294 is the boss auto-attack, 104 hits on exactly two targets, and the
+# import turned it into 53 of that sheet's 118 rows. A bar with no name to show is
+# not worth a row, and the tank mits the planner hung on them were being spent on
+# auto-attacks.
+UNNAMED_RE = re.compile(r"^unknown[_ ]?[0-9a-f]+$", re.IGNORECASE)
+
+
+def is_unnamed(mechanic):
+    return bool(UNNAMED_RE.match((mechanic or "").strip()))
 
 
 # A generic mit term reads as whatever the player looking at it actually presses,
@@ -196,13 +251,14 @@ def assign_lines(custom_rows, slot_lines, canon_slots, dropped=None):
                 continue
             lt = float(l.get("Time", 0))
             lm = l.get("Mechanic", "")
+            early = early_window(act)
             best, best_gap = None, None
             for i, cr in enumerate(custom_rows):
                 if not mech_eq(cr.get("Mechanic", ""), lm):
                     continue
                 rt = float(cr.get("Time", 0))
                 delta = rt - lt              # + => the press is early, which is normal
-                if delta > EARLY_S or delta < -LATE_S:
+                if delta > early or delta < -LATE_S:
                     continue
                 gap = abs(delta)
                 if best_gap is None or gap < best_gap:
@@ -498,6 +554,8 @@ def verify_bake(out_path, profile, canon_slots, legacy_slots, rows):
     left = list(baked)
     for cr in profile.get("CustomRows") or []:
         t, mech = float(cr.get("Time", 0)), (cr.get("Mechanic") or "")
+        if is_unnamed(mech):
+            continue                        # skipped on purpose, and reported
         hit = next((b for b in left if mech_eq(b["mech"], mech) and abs(b["t"] - t) <= 1), None)
         if hit is None:
             problems.append(f"row lost: {mech!r} at {t:g}s")
@@ -516,12 +574,13 @@ def verify_bake(out_path, profile, canon_slots, legacy_slots, rows):
             # What the sheet asked for, minus anything this column has no button
             # for. Deliberately dropped, and reported above, so it is not missing.
             act = pressable((l.get("Action", "") or "").strip(), slot)
-            if not act:
+            if not act or is_unnamed(l.get("Mechanic")):
                 continue
             total += 1
             lt = float(l.get("Time", 0))
+            early = early_window(act) + 2.0
             if not any(act in b["cells"].get(col, "")
-                       for b in baked if -LATE_S <= b["t"] - lt <= EARLY_S + 2.0):
+                       for b in baked if -LATE_S <= b["t"] - lt <= early):
                 missing += 1
                 if missing <= 5:
                     problems.append(f"press dropped: {slot} {act!r} at {lt:g}s ({l.get('Mechanic','')})")
@@ -531,7 +590,7 @@ def verify_bake(out_path, profile, canon_slots, legacy_slots, rows):
     # 2. every graded row still carries at least the grade it had
     for cr in profile.get("CustomRows") or []:
         hurt, bust = int(cr.get("Hurt", 0) or 0), bool(cr.get("Buster"))
-        if not (hurt or bust):
+        if not (hurt or bust) or is_unnamed(cr.get("Mechanic")):
             continue
         t, mech = float(cr.get("Time", 0)), (cr.get("Mechanic") or "")
         near = [b for b in baked if abs(b["t"] - t) <= 3.5]
@@ -609,6 +668,15 @@ def main():
     custom_rows = sorted((profile.get("CustomRows") or []), key=lambda r: float(r.get("Time", 0)))
     if not custom_rows:
         sys.exit("That profile has no CustomRows - nothing to bake (import a log first).")
+
+    unnamed = [r for r in custom_rows if is_unnamed(r.get("Mechanic"))]
+    if unnamed:
+        custom_rows = [r for r in custom_rows if not is_unnamed(r.get("Mechanic"))]
+        names = sorted({(r.get("Mechanic") or "").strip() for r in unnamed})
+        print(f"  skipped {len(unnamed)} row(s) the game has no name for ({', '.join(names)}) - "
+              f"{len(custom_rows)} left", file=sys.stderr)
+        if not custom_rows:
+            sys.exit("Every row was an unnamed ability - nothing to bake.")
 
     unreliable = []
     if args.unreliable:

@@ -30,6 +30,8 @@ public static class Downtimes
         Builtin.TeaTerritory => Tea,
         Builtin.DsrTerritory => Dsr,
         Builtin.TopTerritory => Top,
+        Builtin.DoomtrainTerritory => Doomtrain,
+        Builtin.EnuoTerritory => Enuo,
         _ => None,
     };
 
@@ -99,6 +101,27 @@ public static class Downtimes
     // Dancing Mad (UMAD); the untargetable/targetable TIMES are the median across
     // six top logs kills, and the gate %s are the fight's design (P1 15%, P2 0%,
     // P4 25%).
+    // Hell on Rails (Doomtrain EX), from the log-built sheet and checked against
+    // eight top kills. The first window matches them exactly; the second starts
+    // later here than a speed kill reaches it, because the phase is gated on the
+    // boss's HP - a faster party gets there sooner, and the resync anchors are
+    // what take up the difference.
+    private static readonly List<DowntimeWindow> Doomtrain = new()
+    {
+        new() { Start = 156, Duration = 18, TargetHp = -1f }, // logs agree 8/8
+        new() { Start = 207, Duration = 22, TargetHp = -1f }, // top kills reach it at ~194 (7/8)
+    };
+
+    // The Unmaking (Enuo EX). Both windows sit past the end of every top kill
+    // (470-485s), so they are the sheet's own and unverified against faster
+    // parties. The logs do show a third at ~242s in 5 of 8, which this sheet's
+    // own pull didn't have - see tools/OFFICIAL_FIGHT.md on re-deriving these.
+    private static readonly List<DowntimeWindow> Enuo = new()
+    {
+        new() { Start = 461, Duration = 21, TargetHp = -1f },
+        new() { Start = 500, Duration = 21, TargetHp = -1f },
+    };
+
     private static readonly List<DowntimeWindow> Dmu = new()
     {
         new() { Start = 199, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 (targetable 209)

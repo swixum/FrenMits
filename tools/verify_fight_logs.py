@@ -128,6 +128,10 @@ def median(xs):
     return statistics.median(xs) if xs else None
 
 
+def mech_eq(a, b):
+    return (a or "").strip().casefold() == (b or "").strip().casefold()
+
+
 def anchors_from_profile(profile):
     """Anchored mechanics: (ability_id, time, label) from SyncPoints."""
     out = []
@@ -151,13 +155,21 @@ def nearest_time(casts, ability, near, window):
     return best
 
 
+# How far from its sheet time a cast may be and still be recognised as the same
+# occurrence. Wide on purpose: a 20s window quietly HID the worst kind of wrong
+# anchor, one whose cast fires nowhere near where the sheet says. Enuo draws Airy
+# or Dense Emptiness per pull, so the sheet's Dense at 58s is really at 122s in
+# every log, and with a narrow window that anchor was simply never judged.
+NEAREST_S = 90.0
+
+
 def verify_anchors(profile, logs, tol):
     """Per anchor: median log time, drift vs profile, presence count."""
     rows = []
     for a in anchors_from_profile(profile):
         times = []
         for lg in logs:
-            t = nearest_time(lg["casts"], a["ability"], a["time"], window=20.0)
+            t = nearest_time(lg["casts"], a["ability"], a["time"], window=NEAREST_S)
             if t is not None:
                 times.append(t)
         med = median(times)
@@ -165,6 +177,10 @@ def verify_anchors(profile, logs, tol):
             "ability": a["ability"], "label": a["label"],
             "profile": a["time"], "median": med,
             "present": len(times), "of": len(logs),
+            # How far apart the pulls put this cast. A fight running fast moves
+            # every pull together and stays tight; a cast drawn at random from
+            # several ids lands in a different slot each time and spreads out.
+            "spread": (max(times) - min(times)) if len(times) > 1 else 0.0,
             "drift": (med - a["time"]) if med is not None else None,
             "flag": (med is not None and abs(med - a["time"]) > tol),
         })
@@ -190,11 +206,58 @@ def unanchorable(anchors, tol):
     The tell is an id the logs DO cast, in pull after pull, reliably at a time
     that is not the one the sheet has. That is different from an id anchored so
     late that faster kills never reach it, which is simply unjudged.
+
+    Crucially it is also different from a whole STRETCH of the fight sitting
+    early. An extreme trial's phases are HP-gated, so a faster party reaches them
+    sooner and every anchor after that point shares one offset - Doomtrain runs
+    9.3s ahead from 260s on, Enuo 16s from 292s. Nothing there is unanchorable:
+    those anchors are exactly what re-bases the clock for a party of a different
+    speed, and dropping them would remove the fix for the problem. So a drift is
+    only suspicious when it disagrees with its NEIGHBOURS' drift, not when it
+    merely disagrees with the sheet.
     """
     limit = max(UNANCHORABLE_S, tol)
+    judged = [a for a in anchors if a["median"] is not None and a["present"] * 2 >= a["of"]]
+
+    def neighbours(a, window=45.0):
+        """Judged anchors around this one, of OTHER mechanics.
+
+        Same-named ones are left out on purpose: a randomised mechanic is several
+        ability ids wearing one name, so counting them would let a cluster vouch
+        for itself - M11S's four Assault Evolveds hid one of their own that way.
+        Whatever is true of this part of the fight shows up across unrelated
+        mechanics, which is what makes them the honest baseline.
+        """
+        return [x for x in judged
+                if abs(x["profile"] - a["profile"]) <= window
+                and not mech_eq(x["label"], a["label"])]
+
+    def local(a, key, need=3):
+        near = [x[key] for x in neighbours(a)]
+        return median(near) if len(near) >= need else 0.0
+
+    # How many DISTINCT ability ids wear each mechanic name. More than one is the
+    # shape a randomised mechanic has - the same telegraph cast as any of several
+    # abilities - and it is what makes the scatter test below meaningful rather
+    # than just noisy.
+    ids_per_label = {}
+    for a in judged:
+        ids_per_label.setdefault((a["label"] or "").strip().casefold(), set()).add(a["ability"])
+
     bad = {}
-    for a in anchors:
-        if a["median"] is None or a["present"] * 2 < a["of"] or abs(a["drift"]) <= limit:
+    for a in judged:
+        # Two ways to fail. Landing somewhere its neighbours don't explain, or -
+        # for a mechanic that HAS several ids to choose from - landing somewhere
+        # different in each pull. Four variants five seconds apart barely move the
+        # median, so the second test is the only one that sees them.
+        astray = abs(a["drift"] - local(a, "drift"))
+        variants = len(ids_per_label.get((a["label"] or "").strip().casefold(), ())) > 1
+        # Scatter alone isn't enough: a cast that recurs late in a fight looks
+        # scattered simply because the pulls have drifted apart by then, and M9S's
+        # Sanguine Scratch pair lands dead on its sheet time in all eight logs. So
+        # the cast has to be BOTH off its mark and unable to agree with itself.
+        scattered = variants and astray > limit / 2 and a["spread"] - local(a, "spread") > 2 * limit
+        if not (astray > limit or scattered):
             continue
         bad.setdefault(a["ability"], []).append(a)
     return bad

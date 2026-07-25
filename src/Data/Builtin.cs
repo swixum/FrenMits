@@ -9,7 +9,12 @@ public static class Builtin
 {
     public const ushort DmuTerritory = 1363;
     public const ushort FruTerritory = 1238;
-    // M12S (AAC Heavyweight M4 Savage), per the cactbot r12s timeline.
+    // Dawntrail extremes: Hell on Rails and the Unmaking, from log-built sheets
+    // (see tools/OFFICIAL_FIGHT.md).
+    public const ushort DoomtrainTerritory = 1308;
+    public const ushort EnuoTerritory = 1362;
+    // The AAC Heavyweight tier. M12S is per the cactbot r12s timeline, the rest
+    // are log-built sheets.
     public const ushort M9sTerritory = 1321;
     public const ushort M10sTerritory = 1323;
     public const ushort M11sTerritory = 1325;
@@ -36,6 +41,8 @@ public static class Builtin
         (M10sTerritory, "M10S - Red Hot / Deep Blue", "Savage", "Dawntrail"),
         (M11sTerritory, "M11S - The Tyrant", "Savage", "Dawntrail"),
         (M12sTerritory, "M12S - Lindwurm", "Savage", "Dawntrail"),
+        (DoomtrainTerritory, "Doomtrain (EX)", "Extreme", "Dawntrail"),
+        (EnuoTerritory, "Enuo (EX)", "Extreme", "Dawntrail"),
         (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate", "Endwalker"),
         (TopTerritory, "The Omega Protocol (TOP)", "Ultimate", "Endwalker"),
         (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate", "Shadowbringers"),
@@ -44,11 +51,14 @@ public static class Builtin
     };
 
     public static bool Has(uint territory) =>
-        territory is DmuTerritory or FruTerritory or M9sTerritory or M10sTerritory or M11sTerritory or M12sTerritory || IkuyaTimelines.Has(territory);
+        territory is DmuTerritory or FruTerritory or M9sTerritory or M10sTerritory or M11sTerritory
+            or M12sTerritory or DoomtrainTerritory or EnuoTerritory || IkuyaTimelines.Has(territory);
 
     public static string Name(uint territory) => territory switch
     {
         FruTerritory => "Futures Rewritten (FRU)",
+        DoomtrainTerritory => "Doomtrain (EX)",
+        EnuoTerritory => "Enuo (EX)",
         M9sTerritory => "M9S - Vamp Fatale",
         M10sTerritory => "M10S - Red Hot / Deep Blue",
         M11sTerritory => "M11S - The Tyrant",
@@ -146,6 +156,8 @@ public static class Builtin
     public static List<MitLine> BuildLines(uint territory, string slot) => territory switch
     {
         FruTerritory => FruData.BuildLines(SlotNames.ToFru(slot)),
+        DoomtrainTerritory => DoomtrainData.BuildLines(SlotNames.ToLegacy(slot)),
+        EnuoTerritory => EnuoData.BuildLines(SlotNames.ToLegacy(slot)),
         M9sTerritory => M9sData.BuildLines(SlotNames.ToLegacy(slot)),
         M10sTerritory => M10sData.BuildLines(SlotNames.ToLegacy(slot)),
         M11sTerritory => M11sData.BuildLines(SlotNames.ToLegacy(slot)),
@@ -157,6 +169,8 @@ public static class Builtin
     public static List<SyncPoint> SyncPoints(uint territory) => Dedupe(territory switch
     {
         FruTerritory => FruData.SyncPoints(),
+        DoomtrainTerritory => DoomtrainData.SyncPoints(),
+        EnuoTerritory => EnuoData.SyncPoints(),
         M9sTerritory => M9sData.SyncPoints(),
         M10sTerritory => M10sData.SyncPoints(),
         M11sTerritory => M11sData.SyncPoints(),
@@ -205,6 +219,8 @@ public static class Builtin
 
     public static List<CustomRow> CustomRows(uint territory) => territory switch
     {
+        DoomtrainTerritory => DoomtrainData.CustomRows(),
+        EnuoTerritory => EnuoData.CustomRows(),
         M9sTerritory => M9sData.CustomRows(),
         M10sTerritory => M10sData.CustomRows(),
         M11sTerritory => M11sData.CustomRows(),
@@ -214,6 +230,8 @@ public static class Builtin
     public static List<BossAnchor> BossAnchors(uint territory) => territory switch
     {
         FruTerritory => FruData.BossAnchors(),
+        DoomtrainTerritory => DoomtrainData.BossAnchors(),
+        EnuoTerritory => EnuoData.BossAnchors(),
         M9sTerritory => M9sData.BossAnchors(),
         M10sTerritory => M10sData.BossAnchors(),
         M11sTerritory => M11sData.BossAnchors(),

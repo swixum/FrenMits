@@ -121,11 +121,22 @@ public partial class SheetViewWindow
             var name = names != null && names.TryGetValue(id, out var n) && n.Length > 0 ? n : ActionName(id);
             if (name.Length == 0) continue;
             if (string.Equals(name, "attack", StringComparison.OrdinalIgnoreCase)) continue;
+            // A log labels an ability it doesn't know "unknown_<hex>", and for some
+            // of those the game's own Action sheet has no name either. Those are the
+            // hidden ones, and they are not mechanics: Doomtrain's unknown_b294 is
+            // the boss auto-attack - 104 hits on the two tanks - and it alone became
+            // 53 of that sheet's 118 rows, each a bar with no name to show.
+            if (IsUnnamedAbility(name) && ActionName(id).Length == 0) continue;
             if (events.Count > 0 && events[^1].Id == id && time - events[^1].Time < 3f) continue;
             events.Add(new BuildEvent(id, time, name, anchorable));
         }
         return events;
     }
+
+    // The log's placeholder for an ability it has no name for.
+    internal static bool IsUnnamedAbility(string? name)
+        => name != null && System.Text.RegularExpressions.Regex.IsMatch(
+            name.Trim(), @"^unknown[_ ]?[0-9a-fA-F]+$");
 
     private void ApplyBuild(List<BuildEvent> events, bool rows, bool anchors, string source,
         Dictionary<uint, FFLogsClient.AbilityDamage>? damage = null,

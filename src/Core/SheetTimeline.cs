@@ -148,6 +148,8 @@ public static class SheetTimeline
         // theirs as plain P1/P2/P3, which is what people call them anyway.
         if (territory == Builtin.DmuTerritory) Add(DmuData.PhaseStarts(), DmuData.PhaseTitle);
         else if (territory == Builtin.FruTerritory) Add(FruData.PhaseStarts());
+        else if (territory == Builtin.DoomtrainTerritory) Add(DoomtrainData.PhaseStarts());
+        else if (territory == Builtin.EnuoTerritory) Add(EnuoData.PhaseStarts());
         else if (territory == Builtin.M9sTerritory) Add(M9sData.PhaseStarts());
         else if (territory == Builtin.M10sTerritory) Add(M10sData.PhaseStarts());
         else if (territory == Builtin.M11sTerritory) Add(M11sData.PhaseStarts());
