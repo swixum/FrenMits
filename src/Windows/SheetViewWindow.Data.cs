@@ -208,8 +208,12 @@ public partial class SheetViewWindow
             foreach (var row in _rows)
             {
                 if (row.Ghost || row.Cells.Length <= i || row.Cells[i].Count > 0) continue;
-                // Only lines close enough that any buff could still be up.
-                while (start < lines.Count && lines[start].Time < row.Time - 45f
+                // Only lines close enough that any buff could still be up. The
+                // horizon comes from the duration table rather than a number typed
+                // here, which was 45s - exactly Excogitation's length, so the
+                // longest buff in the game sat right on the edge of being missed.
+                var horizon = Cooldowns.LongestWindow + 5f;
+                while (start < lines.Count && lines[start].Time < row.Time - horizon
                        && lines[start].CoverUntil < row.Time - 0.5f) start++;
                 List<string>? parts = null;
                 for (var k = start; k < lines.Count && lines[k].Time < row.Time - 0.5f; k++)

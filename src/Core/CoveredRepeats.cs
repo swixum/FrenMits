@@ -18,6 +18,9 @@ namespace FrenMits;
 // covering the hit. Nothing is lost from the sheet, and the call stops firing for
 // a button that has not come back.
 //
+// Nothing with a second charge is ever taken: for those the buff being up says
+// nothing about whether you can press it.
+//
 // Only whole words get taken - a part has to BE the mit's name and nothing else.
 // "Zoe EukProg/Holos" loses Holos and keeps the rest; "Rep Short CD on M1" and
 // "Party Mit (WAR/PLD)" are never touched. Lines you edited yourself are left
@@ -60,7 +63,11 @@ public static class CoveredRepeats
             foreach (var p in parts)
             {
                 var mit = ours ? BareMit(p.Text, buffsIn) : null;
-                if (mit != null && upUntil.TryGetValue(mit, out var end) && end > line.Time + Slop)
+                // A second charge is a second press: Consolation runs 30s but comes
+                // in twos, so FRU's healer laying one at 0:15 and another at 0:35 is
+                // doing it right, not repeating themselves.
+                if (mit != null && !Cooldowns.HasCharges(mit)
+                    && upUntil.TryGetValue(mit, out var end) && end > line.Time + Slop)
                     continue;
                 kept.Add(p);
             }

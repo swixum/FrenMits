@@ -84,8 +84,18 @@ public static class Cooldowns
             {
                 // Same matching the planner uses, so "Rep" reads the Reprisal
                 // timer instead of nothing at all.
+                //
+                // A cell often names several ("Concit/Soil"), and the readiness
+                // warning can only be about one of them - so it is the one the cell
+                // leads with. Taking whichever the dictionary happened to hand over
+                // first made it arbitrary, and arbitrary between two real answers is
+                // the kind of thing nobody ever notices is wrong.
+                var first = int.MaxValue;
                 foreach (var kv in _byName)
-                    if (Mentions(actionText!, kv.Key)) { id = kv.Value; break; }
+                {
+                    var at = MentionAt(actionText!, kv.Key);
+                    if (at >= 0 && at < first) { first = at; id = kv.Value; }
+                }
                 _idByText[actionText!] = id;
             }
             if (id == 0) return null;
@@ -170,6 +180,20 @@ public static class Cooldowns
 
     // How long this mit's buff runs, or 0 if it doesn't have one.
     public static float WindowOf(string name) => Durations.GetValueOrDefault(name);
+
+    // The tracked mits the game gives more than one charge (MaxCharges on the
+    // Action sheet). It matters because "the buff is still up" stops meaning "you
+    // can't press it again" - the second charge is right there, and for these two
+    // the press brings a heal with it whether or not the shield is still on.
+    private static readonly string[] Charged = { "Consolation", "Oblation" };
+
+    public static bool HasCharges(string name)
+        => Charged.Contains(name, StringComparer.OrdinalIgnoreCase);
+
+    // The longest any tracked buff runs (Excogitation's 45s today). Callers that
+    // scan back for "is anything still up" need a horizon, and reading it off the
+    // table means adding a longer ability can't quietly put one out of reach.
+    public static readonly float LongestWindow = Durations.Count == 0 ? 0f : Durations.Values.Max();
 
     private static Dictionary<string, PlanMit>? _planByName;
 
@@ -270,10 +294,10 @@ public static class Cooldowns
             if (Mentions(actionText!, pm.Name)) yield return pm;
     }
 
-    // Does this action text name that mit as a word of its own? Every occurrence
+    // Where this text names that mit as a word of its own, or -1. Every occurrence
     // gets checked: "Seraphism + Seraph" must still find the standalone Seraph
     // even though the first occurrence fails the boundary test inside "Seraphism".
-    private static bool NamedIn(string text, string name)
+    private static int IndexIn(string text, string name)
     {
         var idx = text.IndexOf(name, StringComparison.OrdinalIgnoreCase);
         while (idx >= 0)
@@ -281,10 +305,10 @@ public static class Cooldowns
             var before = idx == 0 ? ' ' : text[idx - 1];
             var end = idx + name.Length;
             var after = end >= text.Length ? ' ' : text[end];
-            if (!char.IsLetter(before) && !char.IsLetter(after)) return true;
+            if (!char.IsLetter(before) && !char.IsLetter(after)) return idx;
             idx = text.IndexOf(name, idx + 1, StringComparison.OrdinalIgnoreCase);
         }
-        return false;
+        return -1;
     }
 
     // The shorthand the sheets are actually written in.
@@ -353,18 +377,30 @@ public static class Cooldowns
 
     // Does this action text call for that mit, by its real name or by any of the
     // shorthand the sheets use for it?
-    private static bool Mentions(string text, string name)
+    private static bool Mentions(string text, string name) => MentionAt(text, name) >= 0;
+
+    // Where it first calls for it, or -1. The position is what lets a cell naming
+    // several mits pick the one it leads with.
+    private static int MentionAt(string text, string name)
     {
         Shorthand.TryGetValue(name, out var shorts);
+        var offset = 0;
         foreach (var part in Parts(text))
         {
-            if (CarriedOver(part)) continue;
-            if (NamedIn(part, name)) return true;
-            if (shorts == null) continue;
-            foreach (var s in shorts)
-                if (NamedIn(part, s)) return true;
+            if (!CarriedOver(part))
+            {
+                var at = IndexIn(part, name);
+                if (shorts != null)
+                    foreach (var alt in shorts)
+                    {
+                        var i = IndexIn(part, alt);
+                        if (i >= 0 && (at < 0 || i < at)) at = i;
+                    }
+                if (at >= 0) return offset + at;
+            }
+            offset += part.Length + 1;   // the separator this part was split on
         }
-        return false;
+        return -1;
     }
 
     // The real name for a cell that is nothing but one mit, written either way

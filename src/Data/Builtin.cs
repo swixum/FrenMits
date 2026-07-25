@@ -162,7 +162,11 @@ public static class Builtin
     {
         var lines = Bake(territory, slot);
         CoveredRepeats.Strip(lines);
-        return lines;
+        // In time order, because a data file need not be: UCOB's sheet lists
+        // Thermionic Beam at 693s above Megaflare at 682s, and everything that
+        // walks a column forwards - the board, the solver, the carry-over scan -
+        // takes the order on trust.
+        return lines.OrderBy(l => l.Time).ToList();
     }
 
     private static List<MitLine> Bake(uint territory, string slot) => territory switch
