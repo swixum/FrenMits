@@ -16,12 +16,33 @@ internal static class OverlayChrome
     public static bool Locked(bool userLock, Configuration c)
         => userLock || (Plugin.InCombat && !c.TestMode);
 
-    // Pushes a crisp Dalamud font handle at the given px size, falling back to
-    // SetWindowFontScale if the handle is not ready yet.
+    // Pushes a crisp Dalamud font handle at the given px size.
+    //
+    // A handle isn't ready the instant it's asked for - the atlas builds on a
+    // background thread - so the interesting part is what gets drawn meanwhile.
     public static IDisposable PushFont(FontManager fonts, float sizePx, string family, bool bold, bool italic)
     {
+        // Asking for it is also what starts it building, so the exact handle is on
+        // its way even on the frames we end up drawing with something else.
         var handle = fonts.Get(sizePx, family, bold, italic);
         if (handle is { Available: true }) return handle.Push();
+
+        // Not ready (first draw, or a size never used before). Borrow the nearest
+        // handle of the SAME font that IS ready and correct the difference: a real
+        // glyph atlas scaled a little, rather than the ~12px bitmap scaled a lot.
+        // The call overlay defaults to 40px, so the old path magnified a bitmap
+        // 2.2x - which is exactly what looked pixelated for those frames.
+        if (fonts.Nearest(sizePx, family, bold, italic) is { } near)
+        {
+            var push = near.Handle.Push();
+            var scale = FontManager.Correction(FontManager.SnapPx(sizePx), near.Px);
+            if (scale == 1f) return push;
+            ImGui.SetWindowFontScale(scale);
+            return new PopScaledFont(push);
+        }
+
+        // Nothing of this font is built yet at all - the first frame of the first
+        // overlay, before the warm-up has landed. Same last resort as before.
         ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
         return ResetFontScale.Instance;
     }
@@ -30,6 +51,19 @@ internal static class OverlayChrome
     {
         public static readonly ResetFontScale Instance = new();
         public void Dispose() => ImGui.SetWindowFontScale(1f);
+    }
+
+    // Clears the correction AND pops the borrowed handle.
+    private sealed class PopScaledFont : IDisposable
+    {
+        private readonly IDisposable _push;
+        public PopScaledFont(IDisposable push) => _push = push;
+
+        public void Dispose()
+        {
+            ImGui.SetWindowFontScale(1f);
+            _push.Dispose();
+        }
     }
 
     // Pin the window's CENTER to the saved work-area fraction: every frame while

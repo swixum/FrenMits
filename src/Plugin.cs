@@ -940,6 +940,17 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private void DrawUi()
     {
+        try
+        {
+            // Before any window draws: age out retired font handles, and make sure
+            // the sizes actually configured are already building. Without this the
+            // first frames of an overlay drew with a magnified bitmap, which is
+            // what looked pixelated right after pressing Test.
+            Fonts.Tick();
+            Fonts.WarmIfNeeded(Config);
+        }
+        catch (Exception ex) { Swallowed.Report("font warm", ex); }
+
         try { Windows.Draw(); }
         catch (Exception ex)
         {
