@@ -353,6 +353,43 @@ public partial class ConfigWindow
             }
 
             ImGui.Spacing();
+            SeparatorText("Pre-pull check");
+            C.PrepCheckEnabled = CfgCheck("Food check", C.PrepCheckEnabled);
+            Tip("Inside a duty, out of combat, warns when you have no food up or when the food you do have "
+                + "is about to expire mid-pull. Says nothing while your food is fine, never shows the food "
+                + "warning in combat, and never shows anything out in the world.");
+            if (C.PrepCheckEnabled)
+            {
+                ImGui.Indent(20f);
+                var warnMin = C.PrepCheckWarnMinutes;
+                if (Widgets.SliderInput("Warn under", ref warnMin, 1f, 30f, "%.0f min", width: 200f))
+                { C.PrepCheckWarnMinutes = warnMin; C.Save(); }
+                Tip("How much food time left starts the warning. Set it a little longer than your pulls run, "
+                    + "so food that would expire partway through gets flagged before you engage.");
+
+                C.PrepCheckPotion = Toggle("Potion reminder", C.PrepCheckPotion);
+                Tip("Mid-fight, not pre-pull: once you've actually used a pot, this shows "
+                    + "\"Potion is Available!\" for five seconds when the 4m30s recast is back, so the second "
+                    + "one doesn't get forgotten. Says nothing until it has seen you use one.");
+
+                C.PrepCheckTts = Toggle("Speak it", C.PrepCheckTts);
+                Tip("Says each warning out loud once, as it appears - \"no food\", \"food is running out\", "
+                    + "\"potion is available\" - in the voice set on the Audio page. Separate from the combat "
+                    + "cue switch, so you can have these spoken without the in-fight callouts.");
+
+                var prepLocked = C.PrepCheckLocked;
+                if (GreenCheckbox("Lock position##prep", ref prepLocked))
+                { C.PrepCheckLocked = prepLocked; _plugin.PrepWindow.RequestReposition(); C.Save(); }
+                ImGui.SameLine();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextDisabled("Auto-locks in combat; use Test mode to place it.");
+
+                var prepPx = C.PrepCheckFontSizePx;
+                if (Widgets.SliderInput("Text size##prep", ref prepPx, 10f, 48f, "%.0f px")) { C.PrepCheckFontSizePx = prepPx; C.Save(); }
+                ImGui.Unindent(20f);
+            }
+
+            ImGui.Spacing();
             SeparatorText("Accessibility");
             C.ColorblindMode = CfgCheck("Colorblind-safe status colors", C.ColorblindMode);
             Theme.Colorblind = C.ColorblindMode; // keep the live palette in sync with the setting

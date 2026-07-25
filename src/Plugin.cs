@@ -33,6 +33,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public TimelineWindow TimelineWindow { get; }
     public MitBarWindow MitBarWindow { get; }
     public CombatTimerWindow CombatTimerWindow { get; }
+    public PrepWindow PrepWindow { get; }
     public WhatsNewWindow WhatsNewWindow { get; }
     public RecapButtonWindow RecapButtonWindow { get; }
     public RecapWindow RecapWindow { get; }
@@ -111,6 +112,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         TimelineWindow = new TimelineWindow(this);
         MitBarWindow = new MitBarWindow(this);
         CombatTimerWindow = new CombatTimerWindow(this);
+        PrepWindow = new PrepWindow(this);
         RecapButtonWindow = new RecapButtonWindow(this);
         RecapWindow = new RecapWindow(this);
         SheetViewWindow = new SheetViewWindow(this);
@@ -122,6 +124,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Windows.AddWindow(TimelineWindow);
         Windows.AddWindow(MitBarWindow);
         Windows.AddWindow(CombatTimerWindow);
+        Windows.AddWindow(PrepWindow);
         Windows.AddWindow(RecapButtonWindow);
         Windows.AddWindow(RecapWindow);
         Windows.AddWindow(SheetViewWindow);
@@ -132,6 +135,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;
         CombatTimerWindow.IsOpen = true;
+        PrepWindow.IsOpen = true;
         RecapButtonWindow.IsOpen = true;
         // Pop the "What's New" panel once after an update with notes.
         WhatsNewWindow.IsOpen = Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
@@ -487,6 +491,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public static string PluginVersion =>
         typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
+    // Inside an instanced duty (any of the three bound-by-duty flags the game
+    // uses), as opposed to the open world.
+    public static bool InDuty =>
+        Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty]
+        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty56]
+        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty95];
+
     // True while actually in a pull, when the HUD displays force-lock (see each
     // window's EffectiveLocked) so a stray drag can't grab them mid-fight.
     public static bool InCombat =>
@@ -528,10 +539,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     private bool ComputeLearningHere()
     {
         if (!Config.LearnTimelines) return false;
-        if (!Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty]
-            && !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty56]
-            && !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty95])
-            return false;
+        if (!InDuty) return false;
         var territory = Service.ClientState.TerritoryType;
         if (UniversalTimelines.Has(territory)) return false;
         foreach (var f in Config.Fights)

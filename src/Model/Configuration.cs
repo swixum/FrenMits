@@ -197,6 +197,20 @@ public class Configuration : IPluginConfiguration
     public Vector2 MitBarPosition { get; set; } = new(0.5f, 0.88f);
     public float MitBarFontSizePx { get; set; } = 18f;
 
+    // Food check: inside a duty, out of combat, warn when your food is missing or
+    // about to expire mid-pull. Off by default, like the other extras.
+    public bool PrepCheckEnabled { get; set; }
+    // Minutes of food left at which the warning starts.
+    public float PrepCheckWarnMinutes { get; set; } = 4f;
+    // Mid-fight "Potion is Available!" note when a used pot comes off recast.
+    public bool PrepCheckPotion { get; set; }
+    // Speak each of the above once as it appears, using the voice from the Audio
+    // page.
+    public bool PrepCheckTts { get; set; }
+    public bool PrepCheckLocked { get; set; } = true;
+    public Vector2 PrepCheckPosition { get; set; } = new(0.5f, 0.72f);
+    public float PrepCheckFontSizePx { get; set; } = 18f;
+
     // Combat timer: a plain stopwatch (mm:ss) of the current pull, its own overlay.
     public bool ShowCombatTimer { get; set; }
     public bool CombatTimerLocked { get; set; } = true;
