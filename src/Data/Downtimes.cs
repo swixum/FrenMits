@@ -33,6 +33,10 @@ public static class Downtimes
         Builtin.DoomtrainTerritory => Doomtrain,
         Builtin.EnuoTerritory => Enuo,
         Builtin.ZeleniaTerritory => Zelenia,
+        Builtin.M1sTerritory => M1s,
+        Builtin.M2sTerritory => M2s,
+        Builtin.M3sTerritory => M3s,
+        Builtin.M4sTerritory => M4s,
         Builtin.M5sTerritory => M5s,
         Builtin.M6sTerritory => M6s,
         Builtin.M7sTerritory => M7s,
@@ -133,6 +137,41 @@ public static class Downtimes
     private static readonly List<DowntimeWindow> Zelenia = new()
     {
         new() { Start = 46.9f, Duration = 16.4f, TargetHp = -1f },
+    };
+
+    // The Light-heavyweight tier. Plain lulls throughout: the phase changes in
+    // this tier happen across windows of twenty seconds or so, short enough that
+    // the anchors either side already carry the clock across them.
+    private static readonly List<DowntimeWindow> M1s = new()
+    {
+        new() { Start = 125.0f, Duration = 19.4f, TargetHp = -1f },
+        new() { Start = 148.4f, Duration = 17.1f, TargetHp = -1f },
+        new() { Start = 302.1f, Duration = 22.5f, TargetHp = -1f },
+        new() { Start = 349.9f, Duration = 19.6f, TargetHp = -1f },
+        new() { Start = 373.5f, Duration = 19.4f, TargetHp = -1f },
+        new() { Start = 396.9f, Duration = 17.0f, TargetHp = -1f },
+    };
+
+    private static readonly List<DowntimeWindow> M2s = new()
+    {
+        new() { Start = 211.8f, Duration = 34.2f, TargetHp = -1f },
+        new() { Start = 369.4f, Duration = 17.4f, TargetHp = -1f },
+        new() { Start = 464.6f, Duration = 18.8f, TargetHp = -1f },
+    };
+
+    private static readonly List<DowntimeWindow> M3s = new()
+    {
+        new() { Start = 112.2f, Duration = 29.5f, TargetHp = -1f },
+        new() { Start = 374.4f, Duration = 16.3f, TargetHp = -1f },
+    };
+
+    private static readonly List<DowntimeWindow> M4s = new()
+    {
+        new() { Start = 18.0f, Duration = 18.6f, TargetHp = -1f },
+        new() { Start = 294.4f, Duration = 21.0f, TargetHp = -1f },
+        new() { Start = 390.0f, Duration = 20.3f, TargetHp = -1f },
+        new() { Start = 596.0f, Duration = 17.2f, TargetHp = -1f },
+        new() { Start = 634.3f, Duration = 21.3f, TargetHp = -1f },
     };
 
     // The Cruiserweight tier, measured as the gaps where twelve logged kills

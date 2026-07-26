@@ -16,6 +16,12 @@ public static class Builtin
     // Zelenia, built end to end from twenty logged kills and planned by the
     // plugin's own Auto-planner - no in-game sheet went into it.
     public const ushort ZeleniaTerritory = 1271;
+    // The AAC Light-heavyweight tier - the first Dawntrail savage tier - built the
+    // same way the rest were, from twelve logged kills each.
+    public const ushort M1sTerritory = 1226;
+    public const ushort M2sTerritory = 1228;
+    public const ushort M3sTerritory = 1230;
+    public const ushort M4sTerritory = 1232;
     // The AAC Cruiserweight tier, built the same way Zelenia was: twelve logged
     // kills each, graded off what those parties actually took, planned by the
     // Auto-planner. M8S is the only one with a second phase.
@@ -47,6 +53,10 @@ public static class Builtin
     {
         (FruTerritory, "Futures Rewritten (FRU)", "Ultimate", "Dawntrail"),
         (DmuTerritory, "Dancing Mad (UMAD)", "Ultimate", "Dawntrail"),
+        (M1sTerritory, "M1S - Black Cat", "Savage", "Dawntrail"),
+        (M2sTerritory, "M2S - Honey B. Lovely", "Savage", "Dawntrail"),
+        (M3sTerritory, "M3S - Brute Bomber", "Savage", "Dawntrail"),
+        (M4sTerritory, "M4S - Wicked Thunder", "Savage", "Dawntrail"),
         (M5sTerritory, "M5S - Dancing Green", "Savage", "Dawntrail"),
         (M6sTerritory, "M6S - Sugar Riot", "Savage", "Dawntrail"),
         (M7sTerritory, "M7S - Brute Abombinator", "Savage", "Dawntrail"),
@@ -66,7 +76,9 @@ public static class Builtin
     };
 
     public static bool Has(uint territory) =>
-        territory is DmuTerritory or FruTerritory or M5sTerritory or M6sTerritory or M7sTerritory
+        territory is DmuTerritory or FruTerritory
+            or M1sTerritory or M2sTerritory or M3sTerritory or M4sTerritory
+            or M5sTerritory or M6sTerritory or M7sTerritory
             or M8sTerritory or M9sTerritory or M10sTerritory or M11sTerritory
             or M12sTerritory or DoomtrainTerritory or EnuoTerritory or ZeleniaTerritory
             || IkuyaTimelines.Has(territory);
@@ -77,6 +89,10 @@ public static class Builtin
         DoomtrainTerritory => "Doomtrain",
         ZeleniaTerritory => "Zelenia",
         EnuoTerritory => "Enuo",
+        M1sTerritory => "M1S - Black Cat",
+        M2sTerritory => "M2S - Honey B. Lovely",
+        M3sTerritory => "M3S - Brute Bomber",
+        M4sTerritory => "M4S - Wicked Thunder",
         M5sTerritory => "M5S - Dancing Green",
         M6sTerritory => "M6S - Sugar Riot",
         M7sTerritory => "M7S - Brute Abombinator",
@@ -201,6 +217,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.BuildLines(SlotNames.ToLegacy(slot)),
         ZeleniaTerritory => ZeleniaData.BuildLines(SlotNames.ToLegacy(slot)),
         EnuoTerritory => EnuoData.BuildLines(SlotNames.ToLegacy(slot)),
+        M1sTerritory => M1sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M2sTerritory => M2sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M3sTerritory => M3sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M4sTerritory => M4sData.BuildLines(SlotNames.ToLegacy(slot)),
         M5sTerritory => M5sData.BuildLines(SlotNames.ToLegacy(slot)),
         M6sTerritory => M6sData.BuildLines(SlotNames.ToLegacy(slot)),
         M7sTerritory => M7sData.BuildLines(SlotNames.ToLegacy(slot)),
@@ -219,6 +239,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.SyncPoints(),
         ZeleniaTerritory => ZeleniaData.SyncPoints(),
         EnuoTerritory => EnuoData.SyncPoints(),
+        M1sTerritory => M1sData.SyncPoints(),
+        M2sTerritory => M2sData.SyncPoints(),
+        M3sTerritory => M3sData.SyncPoints(),
+        M4sTerritory => M4sData.SyncPoints(),
         M5sTerritory => M5sData.SyncPoints(),
         M6sTerritory => M6sData.SyncPoints(),
         M7sTerritory => M7sData.SyncPoints(),
@@ -277,6 +301,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.CustomRows(),
         ZeleniaTerritory => ZeleniaData.CustomRows(),
         EnuoTerritory => EnuoData.CustomRows(),
+        M1sTerritory => M1sData.CustomRows(),
+        M2sTerritory => M2sData.CustomRows(),
+        M3sTerritory => M3sData.CustomRows(),
+        M4sTerritory => M4sData.CustomRows(),
         M5sTerritory => M5sData.CustomRows(),
         M6sTerritory => M6sData.CustomRows(),
         M7sTerritory => M7sData.CustomRows(),
@@ -294,6 +322,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.BossAnchors(),
         ZeleniaTerritory => ZeleniaData.BossAnchors(),
         EnuoTerritory => EnuoData.BossAnchors(),
+        M1sTerritory => M1sData.BossAnchors(),
+        M2sTerritory => M2sData.BossAnchors(),
+        M3sTerritory => M3sData.BossAnchors(),
+        M4sTerritory => M4sData.BossAnchors(),
         M5sTerritory => M5sData.BossAnchors(),
         M6sTerritory => M6sData.BossAnchors(),
         M7sTerritory => M7sData.BossAnchors(),

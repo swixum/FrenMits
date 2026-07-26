@@ -48,12 +48,30 @@ overlay calls.
 These ship planned: every column filled, mechanics graded by real damage, and
 resync anchors so the clock follows your pull. Load one and raid.
 
-| Expansion | Ultimate | Savage | Extreme |
-| --- | --- | --- | --- |
-| **Dawntrail** | Futures Rewritten (FRU), Dancing Mad (UMAD) | M5S - Dancing Green, M6S - Sugar Riot, M7S - Brute Abombinator, M8S - Howling Blade, M9S - Vamp Fatale, M10S - Red Hot / Deep Blue, M11S - The Tyrant, M12S - Lindwurm | Doomtrain, Enuo, Zelenia |
-| **Endwalker** | Dragonsong's Reprise (DSR), The Omega Protocol (TOP) | | |
-| **Shadowbringers** | Epic of Alexander (TEA) | | |
-| **Stormblood** | Unending Coil of Bahamut (UCOB), Weapon's Refrain (UWU) | | |
+| Expansion | Tier | Fight |
+| --- | --- | --- |
+| **Dawntrail** | Ultimate | Futures Rewritten (FRU) |
+| | Ultimate | Dancing Mad (UMAD) |
+| | Savage | M1S - Black Cat |
+| | Savage | M2S - Honey B. Lovely |
+| | Savage | M3S - Brute Bomber |
+| | Savage | M4S - Wicked Thunder |
+| | Savage | M5S - Dancing Green |
+| | Savage | M6S - Sugar Riot |
+| | Savage | M7S - Brute Abombinator |
+| | Savage | M8S - Howling Blade |
+| | Savage | M9S - Vamp Fatale |
+| | Savage | M10S - Red Hot / Deep Blue |
+| | Savage | M11S - The Tyrant |
+| | Savage | M12S - Lindwurm |
+| | Extreme | Doomtrain |
+| | Extreme | Enuo |
+| | Extreme | Zelenia |
+| **Endwalker** | Ultimate | Dragonsong's Reprise (DSR) |
+| | Ultimate | The Omega Protocol (TOP) |
+| **Shadowbringers** | Ultimate | Epic of Alexander (TEA) |
+| **Stormblood** | Ultimate | Unending Coil of Bahamut (UCOB) |
+| | Ultimate | Weapon's Refrain (UWU) |
 
 Every other duty still gets a timeline; add a custom sheet when you want calls.
 

@@ -402,6 +402,29 @@ public static class ConfigMigrations
             config.Version = 31;
             config.Save();
         }
+
+        // v32: an official fight is named by Builtin, not by whatever it was called
+        // on the day it was added.
+        //
+        // A profile stores its own Name, set once when the fight was added and never
+        // revisited, so renaming a built-in in code only reached people who had
+        // never added it. Zelenia went on reading "Zelenia (EX)" in the sidebar next
+        // to a plain "Enuo" and "Doomtrain" - and those two were only plain because
+        // THEY predate the suffix. The list was a record of release order rather
+        // than a list of fights.
+        //
+        // Custom sheets keep their names: those are the user's to choose.
+        if (config.Version < 32)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (!Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) continue;
+                var proper = Builtin.Name(f.TerritoryId);
+                if (!string.IsNullOrEmpty(proper)) f.Name = proper;
+            }
+            config.Version = 32;
+            config.Save();
+        }
     }
 
     // A custom sheet whose duty has since become an official fight.
