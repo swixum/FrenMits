@@ -33,6 +33,10 @@ public static class Downtimes
         Builtin.DoomtrainTerritory => Doomtrain,
         Builtin.EnuoTerritory => Enuo,
         Builtin.ZeleniaTerritory => Zelenia,
+        Builtin.M5sTerritory => M5s,
+        Builtin.M6sTerritory => M6s,
+        Builtin.M7sTerritory => M7s,
+        Builtin.M8sTerritory => M8s,
         _ => None,
     };
 
@@ -129,6 +133,36 @@ public static class Downtimes
     private static readonly List<DowntimeWindow> Zelenia = new()
     {
         new() { Start = 46.9f, Duration = 16.4f, TargetHp = -1f },
+    };
+
+    // The Cruiserweight tier, measured as the gaps where twelve logged kills
+    // recorded no cast at all. All plain lulls: none of these four has a DPS gate
+    // that pushes the boss out early, so nothing here carries a TargetHp.
+    private static readonly List<DowntimeWindow> M5s = new()
+    {
+        new() { Start = 253.3f, Duration = 21.8f, TargetHp = -1f },
+    };
+
+    private static readonly List<DowntimeWindow> M6s = new()
+    {
+        new() { Start = 37.9f, Duration = 30.8f, TargetHp = -1f },
+        new() { Start = 366.8f, Duration = 21.9f, TargetHp = -1f },
+        new() { Start = 432.6f, Duration = 22.6f, TargetHp = -1f },
+    };
+
+    private static readonly List<DowntimeWindow> M7s = new()
+    {
+        new() { Start = 355f, Duration = 25.5f, TargetHp = -1f },
+        new() { Start = 457.4f, Duration = 18.6f, TargetHp = -1f },
+        new() { Start = 554.2f, Duration = 25.8f, TargetHp = -1f },
+    };
+
+    // The first one is the P1/P2 cutscene, which is why M8S is the only fight in
+    // the tier with a phase anchor - see Builtin.PhaseStarts.
+    private static readonly List<DowntimeWindow> M8s = new()
+    {
+        new() { Start = 375.2f, Duration = 66.5f, TargetHp = -1f },
+        new() { Start = 691f, Duration = 17.6f, TargetHp = -1f },
     };
 
     private static readonly List<DowntimeWindow> Enuo = new()

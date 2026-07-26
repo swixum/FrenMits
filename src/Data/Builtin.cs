@@ -13,9 +13,16 @@ public static class Builtin
     // (see the official-fight notes in tools/ (kept local)).
     public const ushort DoomtrainTerritory = 1308;
     public const ushort EnuoTerritory = 1362;
-    // Zelenia (EX), built end to end from twenty logged kills and planned by the
+    // Zelenia, built end to end from twenty logged kills and planned by the
     // plugin's own Auto-planner - no in-game sheet went into it.
     public const ushort ZeleniaTerritory = 1271;
+    // The AAC Cruiserweight tier, built the same way Zelenia was: twelve logged
+    // kills each, graded off what those parties actually took, planned by the
+    // Auto-planner. M8S is the only one with a second phase.
+    public const ushort M5sTerritory = 1257;
+    public const ushort M6sTerritory = 1259;
+    public const ushort M7sTerritory = 1261;
+    public const ushort M8sTerritory = 1263;
     // The AAC Heavyweight tier. M12S is per the cactbot r12s timeline, the rest
     // are log-built sheets.
     public const ushort M9sTerritory = 1321;
@@ -40,13 +47,17 @@ public static class Builtin
     {
         (FruTerritory, "Futures Rewritten (FRU)", "Ultimate", "Dawntrail"),
         (DmuTerritory, "Dancing Mad (UMAD)", "Ultimate", "Dawntrail"),
+        (M5sTerritory, "M5S - Dancing Green", "Savage", "Dawntrail"),
+        (M6sTerritory, "M6S - Sugar Riot", "Savage", "Dawntrail"),
+        (M7sTerritory, "M7S - Brute Abombinator", "Savage", "Dawntrail"),
+        (M8sTerritory, "M8S - Howling Blade", "Savage", "Dawntrail"),
         (M9sTerritory, "M9S - Vamp Fatale", "Savage", "Dawntrail"),
         (M10sTerritory, "M10S - Red Hot / Deep Blue", "Savage", "Dawntrail"),
         (M11sTerritory, "M11S - The Tyrant", "Savage", "Dawntrail"),
         (M12sTerritory, "M12S - Lindwurm", "Savage", "Dawntrail"),
-        (DoomtrainTerritory, "Doomtrain (EX)", "Extreme", "Dawntrail"),
-        (EnuoTerritory, "Enuo (EX)", "Extreme", "Dawntrail"),
-        (ZeleniaTerritory, "Zelenia (EX)", "Extreme", "Dawntrail"),
+        (DoomtrainTerritory, "Doomtrain", "Extreme", "Dawntrail"),
+        (EnuoTerritory, "Enuo", "Extreme", "Dawntrail"),
+        (ZeleniaTerritory, "Zelenia", "Extreme", "Dawntrail"),
         (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate", "Endwalker"),
         (TopTerritory, "The Omega Protocol (TOP)", "Ultimate", "Endwalker"),
         (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate", "Shadowbringers"),
@@ -55,16 +66,21 @@ public static class Builtin
     };
 
     public static bool Has(uint territory) =>
-        territory is DmuTerritory or FruTerritory or M9sTerritory or M10sTerritory or M11sTerritory
+        territory is DmuTerritory or FruTerritory or M5sTerritory or M6sTerritory or M7sTerritory
+            or M8sTerritory or M9sTerritory or M10sTerritory or M11sTerritory
             or M12sTerritory or DoomtrainTerritory or EnuoTerritory or ZeleniaTerritory
             || IkuyaTimelines.Has(territory);
 
     public static string Name(uint territory) => territory switch
     {
         FruTerritory => "Futures Rewritten (FRU)",
-        DoomtrainTerritory => "Doomtrain (EX)",
-        ZeleniaTerritory => "Zelenia (EX)",
-        EnuoTerritory => "Enuo (EX)",
+        DoomtrainTerritory => "Doomtrain",
+        ZeleniaTerritory => "Zelenia",
+        EnuoTerritory => "Enuo",
+        M5sTerritory => "M5S - Dancing Green",
+        M6sTerritory => "M6S - Sugar Riot",
+        M7sTerritory => "M7S - Brute Abombinator",
+        M8sTerritory => "M8S - Howling Blade",
         M9sTerritory => "M9S - Vamp Fatale",
         M10sTerritory => "M10S - Red Hot / Deep Blue",
         M11sTerritory => "M11S - The Tyrant",
@@ -139,6 +155,10 @@ public static class Builtin
     {
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.PhaseStarts(territory),
         DmuTerritory => DmuData.PhaseStarts(),
+        // Howling Blade's P1 ends on a cutscene the party can arrive at well off
+        // the fitted kills' clock, so it is the one Cruiserweight fight with a
+        // phase to jump to (and the one whose anchor re-bases rather than nudges).
+        M8sTerritory => M8sData.PhaseStarts(),
         _ => new(),
     };
 
@@ -181,6 +201,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.BuildLines(SlotNames.ToLegacy(slot)),
         ZeleniaTerritory => ZeleniaData.BuildLines(SlotNames.ToLegacy(slot)),
         EnuoTerritory => EnuoData.BuildLines(SlotNames.ToLegacy(slot)),
+        M5sTerritory => M5sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M6sTerritory => M6sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M7sTerritory => M7sData.BuildLines(SlotNames.ToLegacy(slot)),
+        M8sTerritory => M8sData.BuildLines(SlotNames.ToLegacy(slot)),
         M9sTerritory => M9sData.BuildLines(SlotNames.ToLegacy(slot)),
         M10sTerritory => M10sData.BuildLines(SlotNames.ToLegacy(slot)),
         M11sTerritory => M11sData.BuildLines(SlotNames.ToLegacy(slot)),
@@ -195,6 +219,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.SyncPoints(),
         ZeleniaTerritory => ZeleniaData.SyncPoints(),
         EnuoTerritory => EnuoData.SyncPoints(),
+        M5sTerritory => M5sData.SyncPoints(),
+        M6sTerritory => M6sData.SyncPoints(),
+        M7sTerritory => M7sData.SyncPoints(),
+        M8sTerritory => M8sData.SyncPoints(),
         M9sTerritory => M9sData.SyncPoints(),
         M10sTerritory => M10sData.SyncPoints(),
         M11sTerritory => M11sData.SyncPoints(),
@@ -249,6 +277,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.CustomRows(),
         ZeleniaTerritory => ZeleniaData.CustomRows(),
         EnuoTerritory => EnuoData.CustomRows(),
+        M5sTerritory => M5sData.CustomRows(),
+        M6sTerritory => M6sData.CustomRows(),
+        M7sTerritory => M7sData.CustomRows(),
+        M8sTerritory => M8sData.CustomRows(),
         M9sTerritory => M9sData.CustomRows(),
         M10sTerritory => M10sData.CustomRows(),
         M11sTerritory => M11sData.CustomRows(),
@@ -262,6 +294,10 @@ public static class Builtin
         DoomtrainTerritory => DoomtrainData.BossAnchors(),
         ZeleniaTerritory => ZeleniaData.BossAnchors(),
         EnuoTerritory => EnuoData.BossAnchors(),
+        M5sTerritory => M5sData.BossAnchors(),
+        M6sTerritory => M6sData.BossAnchors(),
+        M7sTerritory => M7sData.BossAnchors(),
+        M8sTerritory => M8sData.BossAnchors(),
         M9sTerritory => M9sData.BossAnchors(),
         M10sTerritory => M10sData.BossAnchors(),
         M11sTerritory => M11sData.BossAnchors(),
