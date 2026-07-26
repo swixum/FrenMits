@@ -451,6 +451,13 @@ public static class ConfigMigrations
             f.CustomSlots.Clear();
             f.SavedSlots.Clear();
             f.CustomRows.Clear();
+            // The name goes with everything else. This runs AFTER the migration
+            // chain, and that pass skips a sheet still carrying CustomSlots - so a
+            // sheet adopted here would otherwise keep the label its author gave it
+            // forever, sitting in the Savage list as "m1s prog" between M2S and
+            // M4S, with the version gate making sure nothing ever revisited it.
+            var official = Builtin.Name(f.TerritoryId);
+            if (!string.IsNullOrEmpty(official)) f.Name = official;
             if (!string.IsNullOrEmpty(f.Slot)) Builtin.ResetSlot(f, f.Slot);
             else { f.Lines.Clear(); f.AutoLoaded = false; }
             adopted++;

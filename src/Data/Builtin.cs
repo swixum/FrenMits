@@ -165,16 +165,47 @@ public static class Builtin
         return null;
     }
 
-    // Phase start times for the practice phase-jump, empty for fights with no
-    // phase data.
-    public static List<(string Name, float Time)> PhaseStarts(uint territory) => territory switch
+    // Where each of a fight's phases begins.
+    //
+    // The one table. SheetTimeline used to keep a second one for the timeline's
+    // phase markers, and the two had drifted apart in both directions: FRU, M12S,
+    // Doomtrain, Enuo and M9S-M11S drew markers but offered no practice phase-jump,
+    // while M8S offered the jump and drew no marker. Same question, two answers,
+    // and nothing to make them agree.
+    //
+    // A fight with ONE phase has none worth naming, so it reports none. Its whole
+    // timeline is "P1", which is not a boundary: as a marker it draws a line at the
+    // pull, and as a phase-jump it replaces the practice row picker (which lets you
+    // jump anywhere) with a menu of one. Both are worse than nothing.
+    public static List<(string Name, float Time)> PhaseStarts(uint territory)
+    {
+        var starts = RawPhaseStarts(territory);
+        return starts.Count > 1 ? starts : new();
+    }
+
+    private static List<(string Name, float Time)> RawPhaseStarts(uint territory) => territory switch
     {
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.PhaseStarts(territory),
         DmuTerritory => DmuData.PhaseStarts(),
+        FruTerritory => FruData.PhaseStarts(),
+        DoomtrainTerritory => DoomtrainData.PhaseStarts(),
+        EnuoTerritory => EnuoData.PhaseStarts(),
+        ZeleniaTerritory => ZeleniaData.PhaseStarts(),
+        M1sTerritory => M1sData.PhaseStarts(),
+        M2sTerritory => M2sData.PhaseStarts(),
+        M3sTerritory => M3sData.PhaseStarts(),
+        M4sTerritory => M4sData.PhaseStarts(),
+        M5sTerritory => M5sData.PhaseStarts(),
+        M6sTerritory => M6sData.PhaseStarts(),
+        M7sTerritory => M7sData.PhaseStarts(),
         // Howling Blade's P1 ends on a cutscene the party can arrive at well off
-        // the fitted kills' clock, so it is the one Cruiserweight fight with a
-        // phase to jump to (and the one whose anchor re-bases rather than nudges).
+        // the fitted kills' clock, which is why it is the one log-built fight with
+        // a phase to jump to (and the one whose anchor re-bases rather than nudges).
         M8sTerritory => M8sData.PhaseStarts(),
+        M9sTerritory => M9sData.PhaseStarts(),
+        M10sTerritory => M10sData.PhaseStarts(),
+        M11sTerritory => M11sData.PhaseStarts(),
+        M12sTerritory => M12sData.PhaseStarts(),
         _ => new(),
     };
 

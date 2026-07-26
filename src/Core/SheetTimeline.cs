@@ -144,17 +144,15 @@ public static class SheetTimeline
         }
 
         var territory = fight.TerritoryId;
+        // Straight from Builtin, which is the one place that answers this. Naming
+        // the fights again here is what let the two drift apart: a fight added to
+        // one list and not the other got a phase-jump with no marker, or a marker
+        // with no phase-jump, and nothing could notice.
+        //
         // DMU spells its phases out ("Phase 3: Chaos & Exdeath"); the rest tag
         // theirs as plain P1/P2/P3, which is what people call them anyway.
-        if (territory == Builtin.DmuTerritory) Add(DmuData.PhaseStarts(), DmuData.PhaseTitle);
-        else if (territory == Builtin.FruTerritory) Add(FruData.PhaseStarts());
-        else if (territory == Builtin.DoomtrainTerritory) Add(DoomtrainData.PhaseStarts());
-        else if (territory == Builtin.EnuoTerritory) Add(EnuoData.PhaseStarts());
-        else if (territory == Builtin.M9sTerritory) Add(M9sData.PhaseStarts());
-        else if (territory == Builtin.M10sTerritory) Add(M10sData.PhaseStarts());
-        else if (territory == Builtin.M11sTerritory) Add(M11sData.PhaseStarts());
-        else if (territory == Builtin.M12sTerritory) Add(M12sData.PhaseStarts());
-        else if (IkuyaTimelines.Has(territory)) Add(IkuyaTimelines.PhaseStarts(territory));
+        Add(Builtin.PhaseStarts(territory),
+            territory == Builtin.DmuTerritory ? DmuData.PhaseTitle : null);
 
         if (marks.Count == 0)
             foreach (var a in fight.BossAnchors)
