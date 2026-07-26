@@ -32,6 +32,7 @@ public static class Downtimes
         Builtin.TopTerritory => Top,
         Builtin.DoomtrainTerritory => Doomtrain,
         Builtin.EnuoTerritory => Enuo,
+        Builtin.ZeleniaTerritory => Zelenia,
         _ => None,
     };
 
@@ -123,6 +124,13 @@ public static class Downtimes
     // The second one drifts with how fast the party is: 236-245s across the kills,
     // 252-268s across the wipes. Learn refines it from your own pulls, since which
     // end of that you land on depends on your damage.
+    // Read off the twenty kills the fight was built from: the one stretch with no
+    // cast at all, which is Zelenia stepping away after the opener.
+    private static readonly List<DowntimeWindow> Zelenia = new()
+    {
+        new() { Start = 46.9f, Duration = 16.4f, TargetHp = -1f },
+    };
+
     private static readonly List<DowntimeWindow> Enuo = new()
     {
         new() { Start = 156, Duration = 21, TargetHp = -1f },                // 18/18, to within a second

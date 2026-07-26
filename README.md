@@ -50,7 +50,7 @@ resync anchors so the clock follows your pull. Load one and raid.
 
 | Expansion | Ultimate | Savage | Extreme |
 | --- | --- | --- | --- |
-| **Dawntrail** | Futures Rewritten (FRU), Dancing Mad (UMAD) | M9S - Vamp Fatale, M10S - Red Hot / Deep Blue, M11S - The Tyrant, M12S - Lindwurm | Doomtrain (EX), Enuo (EX) |
+| **Dawntrail** | Futures Rewritten (FRU), Dancing Mad (UMAD) | M9S - Vamp Fatale, M10S - Red Hot / Deep Blue, M11S - The Tyrant, M12S - Lindwurm | Doomtrain (EX), Enuo (EX), Zelenia (EX) |
 | **Endwalker** | Dragonsong's Reprise (DSR), The Omega Protocol (TOP) | | |
 | **Shadowbringers** | Epic of Alexander (TEA) | | |
 | **Stormblood** | Unending Coil of Bahamut (UCOB), Weapon's Refrain (UWU) | | |

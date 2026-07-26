@@ -13,6 +13,9 @@ public static class Builtin
     // (see the official-fight notes in tools/ (kept local)).
     public const ushort DoomtrainTerritory = 1308;
     public const ushort EnuoTerritory = 1362;
+    // Zelenia (EX), built end to end from twenty logged kills and planned by the
+    // plugin's own Auto-planner - no in-game sheet went into it.
+    public const ushort ZeleniaTerritory = 1271;
     // The AAC Heavyweight tier. M12S is per the cactbot r12s timeline, the rest
     // are log-built sheets.
     public const ushort M9sTerritory = 1321;
@@ -43,6 +46,7 @@ public static class Builtin
         (M12sTerritory, "M12S - Lindwurm", "Savage", "Dawntrail"),
         (DoomtrainTerritory, "Doomtrain (EX)", "Extreme", "Dawntrail"),
         (EnuoTerritory, "Enuo (EX)", "Extreme", "Dawntrail"),
+        (ZeleniaTerritory, "Zelenia (EX)", "Extreme", "Dawntrail"),
         (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate", "Endwalker"),
         (TopTerritory, "The Omega Protocol (TOP)", "Ultimate", "Endwalker"),
         (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate", "Shadowbringers"),
@@ -52,12 +56,14 @@ public static class Builtin
 
     public static bool Has(uint territory) =>
         territory is DmuTerritory or FruTerritory or M9sTerritory or M10sTerritory or M11sTerritory
-            or M12sTerritory or DoomtrainTerritory or EnuoTerritory || IkuyaTimelines.Has(territory);
+            or M12sTerritory or DoomtrainTerritory or EnuoTerritory or ZeleniaTerritory
+            || IkuyaTimelines.Has(territory);
 
     public static string Name(uint territory) => territory switch
     {
         FruTerritory => "Futures Rewritten (FRU)",
         DoomtrainTerritory => "Doomtrain (EX)",
+        ZeleniaTerritory => "Zelenia (EX)",
         EnuoTerritory => "Enuo (EX)",
         M9sTerritory => "M9S - Vamp Fatale",
         M10sTerritory => "M10S - Red Hot / Deep Blue",
@@ -173,6 +179,7 @@ public static class Builtin
     {
         FruTerritory => FruData.BuildLines(SlotNames.ToFru(slot)),
         DoomtrainTerritory => DoomtrainData.BuildLines(SlotNames.ToLegacy(slot)),
+        ZeleniaTerritory => ZeleniaData.BuildLines(SlotNames.ToLegacy(slot)),
         EnuoTerritory => EnuoData.BuildLines(SlotNames.ToLegacy(slot)),
         M9sTerritory => M9sData.BuildLines(SlotNames.ToLegacy(slot)),
         M10sTerritory => M10sData.BuildLines(SlotNames.ToLegacy(slot)),
@@ -186,6 +193,7 @@ public static class Builtin
     {
         FruTerritory => FruData.SyncPoints(),
         DoomtrainTerritory => DoomtrainData.SyncPoints(),
+        ZeleniaTerritory => ZeleniaData.SyncPoints(),
         EnuoTerritory => EnuoData.SyncPoints(),
         M9sTerritory => M9sData.SyncPoints(),
         M10sTerritory => M10sData.SyncPoints(),
@@ -239,6 +247,7 @@ public static class Builtin
         DmuTerritory => DmuData.CustomRows(),
         _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.CustomRows(territory),
         DoomtrainTerritory => DoomtrainData.CustomRows(),
+        ZeleniaTerritory => ZeleniaData.CustomRows(),
         EnuoTerritory => EnuoData.CustomRows(),
         M9sTerritory => M9sData.CustomRows(),
         M10sTerritory => M10sData.CustomRows(),
@@ -251,6 +260,7 @@ public static class Builtin
     {
         FruTerritory => FruData.BossAnchors(),
         DoomtrainTerritory => DoomtrainData.BossAnchors(),
+        ZeleniaTerritory => ZeleniaData.BossAnchors(),
         EnuoTerritory => EnuoData.BossAnchors(),
         M9sTerritory => M9sData.BossAnchors(),
         M10sTerritory => M10sData.BossAnchors(),
