@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
@@ -20,15 +21,20 @@ public static class UniversalTimelines
 
     private static Dictionary<uint, Zone>? _zones;
 
+    // Built into a LOCAL dictionary and published in one go at the end. Assigning
+    // _zones first and filling it afterwards means anything reading it during the
+    // load sees a half-populated table and decides the duty has no timeline - the
+    // plugin only ever loads from the framework thread, so it never hit this, but
+    // it is one line to make the field mean what it says.
     private static void Load()
     {
         if (_zones != null) return;
-        _zones = new Dictionary<uint, Zone>();
+        var zones = new Dictionary<uint, Zone>();
         try
         {
             using var s = typeof(UniversalTimelines).Assembly
                 .GetManifestResourceStream("FrenMits.universal_timelines.json.gz");
-            if (s == null) { Service.Log?.Warning("[FrenMits] universal timelines resource missing"); return; }
+            if (s == null) { Service.Log?.Warning("[FrenMits] universal timelines resource missing"); _zones = zones; return; }
             using var gz = new GZipStream(s, CompressionMode.Decompress);
             using var r = new StreamReader(gz);
             var root = JObject.Parse(r.ReadToEnd());
@@ -46,20 +52,29 @@ public static class UniversalTimelines
                 // to be time-sorted (older bakes weren't for branching fights).
                 zone.Entries.Sort((a, b) => a.Time.CompareTo(b.Time));
                 zone.Syncs.Sort((a, b) => a.Time.CompareTo(b.Time));
-                _zones[terr] = zone;
+                zones[terr] = zone;
             }
-            Service.Log?.Information($"[FrenMits] universal timelines loaded: {_zones.Count} duties");
+            Service.Log?.Information($"[FrenMits] universal timelines loaded: {zones.Count} duties");
         }
         catch (Exception e)
         {
             Service.Log?.Error(e, "[FrenMits] universal timelines failed to load");
         }
+        _zones = zones;
     }
 
     public static bool Has(uint territory)
     {
         Load();
         return _zones!.ContainsKey(territory);
+    }
+
+    // Every duty that ships a timeline, so the whole set can be checked at once
+    // rather than one territory at a time.
+    public static IEnumerable<uint> Territories()
+    {
+        Load();
+        return _zones!.Keys;
     }
 
     // A fresh IN-MEMORY timeline-only fight for this duty, rebuilt on territory
@@ -80,6 +95,11 @@ public static class UniversalTimelines
             f.Lines.Add(new MitLine { Time = t, Mechanic = name, Action = "", Sound = false });
         foreach (var (t, id, phase) in z.Syncs)
             f.SyncPoints.Add(new SyncPoint { Ability = id, Time = t, IsPhase = phase, Label = "auto" });
+        // Only an ability's FIRST anchor may re-base the clock. A duty gives phase
+        // anchors a 20000s forward window to reach each boss's own block, so one
+        // that re-bases on an ability an EARLIER boss also casts drags the board a
+        // whole boss or more ahead, mid fight. See SyncAnchors.Guard.
+        SyncAnchors.Guard(f.SyncPoints, SyncAnchors.EncounterStarts(f.Lines.Select(l => l.Time)));
         return f;
     }
 
