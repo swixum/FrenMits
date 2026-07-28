@@ -52,7 +52,7 @@ public static class M9sData
         new(191, "P1", "Aetherletting", 0xB38F, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
         new(194, "P1", "Aetherletting", 0xB392, new[]{"", "", "", "", "Seraphism", "Philosophia", "", "", "", ""}, 2, false),
         new(198, "P1", "Aetherletting", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 2, false),
-        new(208, "P1", "Aetherletting", 0xB393, new[]{"Rampart + Short Mit", "Buddy Mit", "", "", "", "", "", "", "", ""}, 2, true),
+        new(208, "P1", "Aetherletting", 0xB393, new[]{"Rampart + Short Mit", "Buddy Mit", "", "", "", "", "", "", "", ""}, 2),
         new(212, "P1", "Aetherletting", 0, new[]{"Reprisal", "", "Plenary Indulgence", "Earthly Star + Collective Unconscious", "Whispering Dawn", "Physis II", "", "", "", ""}),
         new(219, "P1", "Hardcore", 0xB35A, new[]{"", "Rampart", "", "", "", "", "", "", "", ""}, 2, true),
         new(221, "P1", "Hardcore", 0xB37F, new[]{"Invulnerability", "", "", "", "", "", "", "", "", ""}, 3, true),

@@ -425,6 +425,68 @@ public static class ConfigMigrations
             config.Version = 32;
             config.Save();
         }
+
+        // v33: the anchor repairs, and the five Dancing Mad calls that moved with
+        // them.
+        //
+        // Saved plans keep their own copy of the anchor list, so a fixed anchor only
+        // reaches somebody who has the fight loaded if that copy is replaced - the
+        // same reason v31 exists.
+        //
+        // The calls are the other half. Three Grand Crosses, Ultima Blaster and
+        // Celestriad were each a few seconds from where the boss actually casts
+        // them, agreeing to a tenth of a second across the fastest and slowest kills
+        // logs holds, so the times moved. Leaving the calls behind would be worse
+        // than not moving anything: the anchor would put the mechanic at its true
+        // moment and the call would still fire against the old one.
+        //
+        // Matched on the exact old time and mechanic, so a call somebody has already
+        // dragged themselves is left where they put it. Per-line offsets ride along
+        // untouched, since those are stored apart from the time.
+        if (config.Version < 33)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (!Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) continue;
+                f.SyncPoints = Builtin.SyncPoints(f.TerritoryId);
+                var graded = Builtin.CustomRows(f.TerritoryId);
+                if (graded.Count > 0) f.CustomRows = graded;
+                if (f.TerritoryId != Builtin.DmuTerritory) continue;
+
+                foreach (var lines in AllLineSets(f))
+                    foreach (var l in lines)
+                        foreach (var (old, mech, now) in DmuRetimed)
+                            if (MathF.Abs(l.Time - old) < 0.6f && l.Mechanic == mech)
+                            {
+                                l.Time = now;
+                                break;
+                            }
+                foreach (var lines in AllLineSets(f))
+                    lines.Sort((a, b) => a.Time.CompareTo(b.Time));
+            }
+            config.Version = 33;
+            config.Save();
+        }
+    }
+
+    // Dancing Mad rows re-timed in 1.0.0.373 (old time, mechanic, new time).
+    private static readonly (float Old, string Mechanic, float New)[] DmuRetimed =
+    {
+        (507f, "Ultima Blaster", 511f),
+        (763f, "Grand Cross", 759f),
+        (778f, "Grand Cross", 774f),
+        (793f, "Grand Cross", 789f),
+        (971f, "Celestriad", 963f),
+    };
+
+    // The live slot plus every saved one. A fight's calls live in both, and a
+    // migration that touches only Lines leaves the other slots holding the old data
+    // until the next time one of them is picked.
+    private static IEnumerable<List<MitLine>> AllLineSets(FightProfile fight)
+    {
+        yield return fight.Lines;
+        foreach (var key in fight.SavedSlots.Keys)
+            yield return fight.SavedSlots[key];
     }
 
     // A custom sheet whose duty has since become an official fight.

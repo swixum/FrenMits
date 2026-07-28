@@ -45,7 +45,9 @@ public static class FruData
         new(236, "P2", "Diamond Dust", 0x9D05, new[]{"Rep","Party Mit","Concit/Soil","EukProg/Kera","Confession","CU","","Feint*","","Addle*"}, 3),
         new(246, "P2", "Frigid Stone", 0x9D07, new[]{"","","","","","","","","",""}, 2),
         new(246, "P2", "The House of Light", 0x9D0E, new[]{"","","","","","","","","",""}, 2),
-        new(255, "P2", "Sinbound Holy", 0x9D10, new[]{"","","Spread-Lo/Exp**","Zoe EukProg/Holos","","","","","Party Mit**",""}, 2),
+        // 0x9D10 is a Sinbound Holy the boss never casts; 0x9D11 is the one logs
+        // records, in every kill.
+        new(255, "P2", "Sinbound Holy", 0x9D11, new[]{"","","Spread-Lo/Exp**","Zoe EukProg/Holos","","","","","Party Mit**",""}, 2),
         new(283, "P2", "Hallowed Ray", 0x9D12, new[]{"Party Mit","Rep","Concit/Soil","EukProg/Kera","","","Feint","","",""}, 3),
         new(293, "P2", "Mirror Mirror", 0x9CF3, new[]{"","","Fey/Seraph","Panhaima","Confession/Temp","Neutral/Sun","","","",""}),
         new(307, "P2", "The House of Light", 0x9D0E, new[]{"","","","","","","","","",""}, 2),
@@ -62,17 +64,23 @@ public static class FruData
         new(431, "P2", "Hiemal Ray", 0x9D41, new[]{"","","","","","","","","",""}, 1, true),
         new(500, "P2", "Junction (Transition)", 0x9D22, new[]{"","Party Mit","Concit/Soil","EukProg/Kera","","CU","","","",""}, 3),
         new(532, "P3", "Ultimate Relativity", 0x9D4A, new[]{"Rep*/Party Mit","","Concit/Soil*","EukProg/Kera*","","","Feint","","","Addle"}, 3),
-        new(544, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1, true),
+        new(544, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1),
         new(544, "P3", "Fire/Dark Set 1/2", 0, new[]{"","","Spread-Lo/Seraph/Soil","EukProg/Holos/Panhaima/Kera","Temp/Confession","Neutral","","","Party Mit",""}),
         new(544, "P3", "Unholy Darkness", 0x9D55, new[]{"","","","","","","","","",""}, 2),
-        new(549, "P3", "Sinbound Meltdown", 0x9D2B, new[]{"","","","","","","","","",""}, 1, true),
-        new(554, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1, true),
+        new(549, "P3", "Sinbound Meltdown", 0x9D2B, new[]{"","","","","","","","","",""}, 1),
+        new(554, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1),
         new(554, "P3", "Unholy Darkness", 0x9D55, new[]{"","","","","","","","","",""}, 2),
-        new(559, "P3", "Sinbound Meltdown", 0x9D64, new[]{"","","","","","","","","",""}, 1, true),
-        new(564, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1, true),
+        // Unanchored on purpose. 0x9D64 is the version of Sinbound Meltdown that runs
+        // as a sixteen-second channel rather than a single cast, so anchoring it held
+        // the clock at 559 for that whole channel and the next fourteen anchors -
+        // every Dark Fire, Dark Water, Shockwave Pulsar and Memory's End in the phase
+        // - then sat outside their windows and never fired. The two casts either side
+        // of it (0x9D2B at 549 and 570) carry the resync for this stretch.
+        new(559, "P3", "Sinbound Meltdown", 0, new[]{"","","","","","","","","",""}, 1),
+        new(564, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1),
         new(564, "P3", "Set 3 and Rewind", 0, new[]{"","Rep","Concit/Seraphism","EukProg/Philosophia","Caress/Bell","Macro/Sun","","","",""}),
         new(564, "P3", "Unholy Darkness", 0x9D55, new[]{"","","","","","","","","",""}, 2),
-        new(570, "P3", "Sinbound Meltdown", 0x9D2B, new[]{"","","","","","","","","",""}, 1, true),
+        new(570, "P3", "Sinbound Meltdown", 0x9D2B, new[]{"","","","","","","","","",""}, 1),
         new(576, "P3", "Dark Eruption", 0x9D52, new[]{"","","","","","","","","",""}, 1),
         new(576, "P3", "Dark Water III", 0x9D4F, new[]{"","","","","","","","","",""}, 1),
         new(580, "P3", "Shell Crusher", 0x9D5E, new[]{"Rep","Party Mit","Soil","Kera","","CU","","Feint","",""}, 2),
@@ -102,7 +110,7 @@ public static class FruData
         new(790, "P4", "Longing of the Lost", 0x9D31, new[]{"","","","","","","","","",""}, 2),
         new(791, "P4", "Crystallize Mech", 0, new[]{"","","Spread-Lo/Exped/Seraphism","EukProg/Holos/Sophia","Bell**","Macro**","","","",""}),
         new(791, "P4", "Dark Aero III", 0x9D58, new[]{"","","","","","","","","",""}, 1),
-        new(791, "P4", "Dark Eruption", 0x9D52, new[]{"","","","","","","","","",""}, 1, true),
+        new(791, "P4", "Dark Eruption", 0x9D52, new[]{"","","","","","","","","",""}, 1),
         new(794, "P4", "Unholy Darkness", 0x9D55, new[]{"","","","","","","","","",""}, 2),
         new(808, "P4", "Quietus", 0x9D59, new[]{"","","","","","","","","",""}, 1),
         new(814, "P4", "Spirit Taker", 0x9D60, new[]{"","","","","","","","","",""}, 1, true),
@@ -111,7 +119,6 @@ public static class FruData
         new(841, "P4", "Edge of Oblivion", 0x9CEE, new[]{"","","","","","","","","",""}, 1),
         new(844, "P4", "Morn Afah", 0x9D70, new[]{"","","","","","","","","",""}, 3),
         new(1041, "P5", "Fulgent Blade 1", 0x9D72, new[]{"Rep","","Concit/Soil","EukProg/Kera","Confession","CU","Feint","","",""}, 3),
-        new(1052, "P5", "The Path of Light", 0x9CB6, new[]{"","","","","","","","","",""}),
         new(1068, "P5", "Akh Morn 1", 0x9D76, new[]{"Party Mit","Rep","Spread-Lo/Soil","(Early) Holos*/EukProg/Kera","","","","Feint","","Addle"}, 3),
         new(1086, "P5", "Explosion", 0x9D80, new[]{"","","","","","","","","",""}, 1),
         new(1086, "P5", "Wings Dark and Light", 0x9D29, new[]{"","","","","","","","","",""}, 2, true),
@@ -123,7 +130,10 @@ public static class FruData
         new(1181, "P5", "Akh Morn 2", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Holos/EukProg/Kera","","","","Feint","","Addle"}, 3),
         new(1203, "P5", "Explosion", 0x9D80, new[]{"","","","","","","","","",""}, 1),
         new(1204, "P5", "Wings Dark and Light", 0x9D79, new[]{"","","","","","","","","",""}, 2, true),
-        new(1219, "P5", "Cruel Path of Darkness", 0x9D7E, new[]{"","","","","","","","","",""}, 2),
+        // Unanchored: Cruel Path of Light and Cruel Path of Darkness land in the same
+        // instant, so the pair only needs one anchor, and keeping both had this one
+        // snapping the clock backward onto its own second volley.
+        new(1219, "P5", "Cruel Path of Darkness", 0, new[]{"","","","","","","","","",""}, 2),
         new(1219, "P5", "Cruel Path of Light", 0x9D7D, new[]{"","","","","","","","","",""}, 2),
         new(1220, "P5", "Polarizing Strikes 2", 0x9D7C, new[]{"","Party Mit","Seraph/ism/Exped/Fey","Panhaima/Sophia","Temp/Bell/Caress","Neutral/Sun/Macro","","","Party Mit",""}),
         new(1244, "P5", "Fulgent Blade 3", 0x9D72, new[]{"","Rep","Concit/Soil","EukProg/Kera","Temp/Confession","Neutral/CU","Feint","","",""}, 3),

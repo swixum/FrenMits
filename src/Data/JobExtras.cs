@@ -29,7 +29,7 @@ public static class JobExtras
                 (250, "Towers I"),
                 (450, "Bowels of Agony (Chaos)"),
                 (637, "Thunder III (5th Set)"),
-                (793, "Grand Cross"),
+                (789, "Grand Cross"),
                 (928, "Chaotic Flood"),
                 (1062, "Forsaken (1st Hit)"),
             }),
@@ -50,7 +50,7 @@ public static class JobExtras
                 (63, "Light of Judgment"),
                 (343, "Light of Judgement"),
                 (609, "Shocking Impact/Shockwave"),
-                (793, "Grand Cross"),
+                (789, "Grand Cross"),
                 (928, "Chaotic Flood"),
             }),
             // DNC/MCH/RDM schedules below are OPTIMIZED from raalm.com m-spec

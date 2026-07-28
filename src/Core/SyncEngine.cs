@@ -13,6 +13,7 @@ public class SyncEngine
     private readonly Plugin _plugin;
     private readonly Dictionary<uint, uint> _lastCast = new(); // actor -> last seen cast action id
     private readonly HashSet<uint> _seenBoss = new();          // boss NameIds seen this pull
+    private readonly HashSet<(uint Ability, float Time)> _fired = new(); // anchors already used this pull
     private bool _wasRunning;
     private DateTime _playbackEnemyAt = DateTime.UtcNow;       // last live enemy seen (playback watchdog)
     private bool _lastPullArmed; // LastPull cleared once per pull, on its first frame
@@ -293,6 +294,22 @@ public class SyncEngine
                 : _plugin.Config.SyncWindowSeconds;
             var ahead = sp.Time - predictedElapsed; // + => anchor is ahead of the clock
             if (ahead > fwd || ahead < -bwd) continue;
+            // An anchor that has already fired may not drag the clock BACKWARD onto
+            // itself again. Plenty of mechanics are one ability cast many times over
+            // several seconds - a channel, a per-target application, a multi-hit -
+            // and every one of those casts snapped the clock back so THAT cast landed
+            // on the row's time, which stops the board advancing for as long as the
+            // ability keeps going. The board then reads late by exactly the length of
+            // the burst, with no single row looking wrong, and the anchors that follow
+            // fall outside their windows and never fire at all.
+            //
+            // Measured against ten kills each: this cost FRU 16s in P3 (which broke
+            // fourteen anchors after it and left the whole Oracle phase uncorrected),
+            // TOP 10s, DMU 6s, UWU 6s, and smaller amounts in TEA and DSR. The first
+            // cast of a burst is the one the row means, so keeping it and refusing the
+            // rest is all that is needed. Forward corrections still work, so an anchor
+            // can still pull a clock that has fallen behind.
+            if (ahead < 0 && _fired.Contains((sp.Ability, sp.Time))) continue;
             // Take the NEAREST anchor, breaking a tie only toward a phase anchor (not
             // a strong bias, or a repeated ability whose later cast is a phase anchor
             // would drag an earlier cast forward onto it).
@@ -305,6 +322,7 @@ public class SyncEngine
         }
 
         if (best == null) return false;
+        _fired.Add((best.Ability, best.Time));
 
         // Self-tuning telemetry: how far the clock was off when this mechanic
         // anchor (not a big phase re-base) fired, a small EMA feel for how well the
@@ -338,5 +356,6 @@ public class SyncEngine
     {
         _lastCast.Clear();
         _seenBoss.Clear();
+        _fired.Clear();
     }
 }

@@ -19,11 +19,11 @@ public static class M2sData
     public static readonly Entry[] Timeline =
     {
         new(11, "P1", "Call Me Honey", 0x9183, new[]{"Party Mit + Reprisal + Short Mit", "Party Mit + Short Mit", "Liturgy of the Bell + Temperance + Asylum", "Macrocosmos + Neutral Sect + Celestial Opposition", "Seraphism + Expedient + Seraph", "Philosophia + Holos + Panhaima", "Feint", "", "Party Mit", "Addle"}, 3, false),
-        new(18, "P1", "Splash of Venom", 0x9184, new[]{"Rampart", "", "", "", "", "", "", "", "", ""}, 1, true),
+        new(18, "P1", "Splash of Venom", 0x9184, new[]{"Rampart", "", "", "", "", "", "", "", "", ""}, 1),
         new(34, "P1", "Splash of Venom", 0, new[]{"", "Reprisal", "Plenary Indulgence", "Earthly Star + Collective Unconscious", "Fey Illumination + Whispering Dawn + Sacred Soil", "Physis II + Kerachole", "", "Feint", "", ""}, 3, false),
         new(38, "P1", "Tempting Twist", 0, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(38, "P1", "Honey Beeline", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 2, false),
-        new(40, "P1", "Drop of Venom", 0x9185, new[]{"", "Short Mit", "", "", "", "", "", "", "", ""}, 1, true),
+        new(40, "P1", "Drop of Venom", 0x9185, new[]{"", "Short Mit", "", "", "", "", "", "", "", ""}, 1),
         new(53, "P1", "Drop of Venom", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 3, false),
         new(60, "P1", "Stinging Slash", 0x919B, new[]{"Invulnerability", "", "", "", "", "", "", "", "", ""}, 3, true),
         new(73, "P1", "Honey B. Live: 1st Beat", 0x9C24, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
@@ -57,7 +57,7 @@ public static class M2sData
         new(297, "P1", "Honey Beeline", 0x9B0C, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, false),
         new(302, "P1", "Drop of Love", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 2, false),
         new(311, "P1", "Honey B. Finale", 0x918F, new[]{"", "", "", "", "Sacred Soil", "Panhaima + Kerachole", "", "", "", ""}, 3, false),
-        new(329, "P1", "Drop of Venom", 0x9185, new[]{"Short Mit", "", "", "", "", "", "", "", "", ""}, 1, true),
+        new(329, "P1", "Drop of Venom", 0x9185, new[]{"Short Mit", "", "", "", "", "", "", "", "", ""}, 1),
         new(334, "P1", "Alarm Pheromones", 0x917D, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, true),
         new(342, "P1", "Poison Sting", 0x9194, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
         new(347, "P1", "Poison Sting", 0, new[]{"Party Mit + Reprisal + Rampart", "Party Mit + Rampart + Short Mit", "Asylum + Plenary Indulgence", "Earthly Star + Collective Unconscious", "Whispering Dawn", "Physis II", "", "Feint", "", ""}, 2, false),

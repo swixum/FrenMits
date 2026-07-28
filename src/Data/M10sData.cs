@@ -69,7 +69,7 @@ public static class M10sData
         new(303, "P1", "Sickest Take-Off", 0xB5CE, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
         new(303, "P1", "Sick Swell", 0xB5CC, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, false),
         new(305, "P1", "Awesome Slab", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 2, false),
-        new(308, "P1", "Cutback Blaze", 0xB5C9, new[]{"Rampart + Short Mit", "Buddy Mit", "", "", "", "", "", "", "", ""}, 2, true),
+        new(308, "P1", "Cutback Blaze", 0xB5C9, new[]{"Rampart + Short Mit", "Buddy Mit", "", "", "", "", "", "", "", ""}, 2),
         new(315, "P1", "Deep Impact", 0xB5B7, new[]{"", "Invulnerability", "", "", "", "", "", "", "", ""}, 3, true),
         new(322, "P1", "Divers' Dare", 0xB5B8, new[]{"Reprisal", "Rampart", "Temperance + Plenary Indulgence", "Neutral Sect", "Expedient + Seraph", "Holos", "", "", "", ""}, 2, false),
         new(335, "P1", "Deep Aerial", 0xB5E3, new[]{"Short Mit", "", "", "", "", "", "", "", "", ""}, 1, true),

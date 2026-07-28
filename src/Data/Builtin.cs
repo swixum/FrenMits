@@ -324,7 +324,35 @@ public static class Builtin
         if (rows.Count > 0) fight.CustomRows = rows;
     }
 
-    public static List<CustomRow> CustomRows(uint territory) => territory switch
+    // One mechanic, one row. A sheet that spells a mechanic out per strategy - DSR's
+    // Trinity is listed three times at 881s, once per group's assignment - was handing
+    // the board three identical rows stacked on the same second, and the same for six
+    // more Trinities and six Akh Morn's Edges. Folding here rather than in each data
+    // file means a fight added later cannot reintroduce it.
+    //
+    // The strongest reading wins: the copies disagree (Akh Morn's Edge at 1054 is
+    // listed both as a light raidwide and as a deadly buster), and a row that
+    // understates what is coming is the one that gets someone killed.
+    public static List<CustomRow> CustomRows(uint territory)
+    {
+        var folded = new List<CustomRow>();
+        var at = new Dictionary<(float, string), CustomRow>();
+        foreach (var r in RawCustomRows(territory))
+        {
+            if (at.TryGetValue((r.Time, r.Mechanic), out var seen))
+            {
+                seen.Hurt = Math.Max(seen.Hurt, r.Hurt);
+                seen.Buster |= r.Buster;
+                seen.Enrage |= r.Enrage;
+                continue;
+            }
+            at[(r.Time, r.Mechanic)] = r;
+            folded.Add(r);
+        }
+        return folded;
+    }
+
+    private static List<CustomRow> RawCustomRows(uint territory) => territory switch
     {
         FruTerritory => FruData.CustomRows(),
         DmuTerritory => DmuData.CustomRows(),
