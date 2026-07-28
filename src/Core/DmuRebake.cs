@@ -4,10 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// The Dancing Mad sheet-update merge engine: re-bakes the built-in from the
-// latest baked timeline while KEEPING the custom lines people added and every
-// per-line tweak, by diffing against the frozen previous bake (DmuLegacy /
-// TankMitsLegacy). Only the config migrations drive this.
+// Re-bakes the DMU built-in while keeping custom lines and per-line tweaks.
 public static class DmuRebake
 {
     // Re-bake the Dancing Mad built-in from the (updated) sheet while KEEPING the
@@ -71,9 +68,7 @@ public static class DmuRebake
 
         foreach (var c in customs) c.Custom = true; // flag survivors so future updates keep them cleanly
 
-        // Before a replaced sheet-owned line goes, carry its per-line tweaks onto
-        // the new baked call it corresponds to, so a sheet update never costs
-        // anyone their offsets or settings.
+        // Carry a replaced line's per-line tweaks onto the new baked call.
         var donors = existing.Except(customs).ToList();
         var matched = new HashSet<MitLine>();
 
@@ -181,9 +176,7 @@ public static class DmuRebake
                                         && string.Equals(l.Jobs[0], job, StringComparison.OrdinalIgnoreCase)).ToList();
             if (mine.Count == 0) continue;
 
-            // Find which pairing's old plan these came from by counting exact
-            // matches against each old bake, with the remembered dropdown pick
-            // breaking ties.
+            // Find which pairing's old plan these came from by counting exact matches.
             string? comp = null;
             var matched = new List<MitLine>();
             foreach (var c in TankMits.Comps(Builtin.DmuTerritory))

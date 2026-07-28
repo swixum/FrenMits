@@ -4,17 +4,10 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Optional, job-specific mitigation timers derived from logs clears (raalm.com),
-// offered as a one-click add on the fight page and flagged Custom so a sheet
-// re-bake keeps them.
-//
-// Every schedule is spaced to the ability's real recast - no call ever asks you to
-// press something that's still on cooldown.
+// Optional, job-specific mitigation timers derived from log clears.
 public static class JobExtras
 {
-    // Steps: for a SEQUENCE extra (e.g. SMN summons) each entry carries its OWN
-    // action at that time, instead of one Action repeated across Lines (null for
-    // normal single-ability extras).
+    // Steps: for a sequence extra each entry carries its own action at that time.
     public sealed record Extra(string Job, string Action, float Recast, (int Time, string Mechanic)[] Lines,
         (int Time, string Summon)[]? Steps = null);
 
@@ -53,10 +46,7 @@ public static class JobExtras
                 (789, "Grand Cross"),
                 (928, "Chaotic Flood"),
             }),
-            // DNC/MCH/RDM schedules below are OPTIMIZED from raalm.com m-spec
-            // top-100 kill logs: every window real players use (>=10% of kills,
-            // phase-normalized medians), then the max number of presses that fits
-            // the recast.
+            // DNC/MCH/RDM schedules are optimized from raalm.com top-100 kill logs.
 
             // Dancer - Curing Waltz (60s recast), 10 presses
             // (68/60/16/77/17/35/68/75/68/84% usage).
@@ -73,9 +63,8 @@ public static class JobExtras
                 (928, "Chaotic Flood"),
                 (1063, "Forsaken (1st Hit)"),
             }),
-            // Dismantle / Magick Barrier / Tempera Grassa follow the sheet's
-            // "Extras" checkmark column (v5.0 marks 8 rows), 7 presses exactly
-            // filling the 120s recast.
+            // Dismantle / Magick Barrier / Tempera Grassa follow the sheet's Extras
+            // column.
             new Extra("MCH", "Dismantle", 120f, new[]
             {
                 (62, "Light of Judgment"),
@@ -106,9 +95,7 @@ public static class JobExtras
                 (910, "Ultima Repeater"),
                 (1061, "Forsaken (1st Hit)"),
             }),
-            // Summoner - which primal to summon next, straight from a top Dancing
-            // Mad kill log (that SMN's real Ifrit/Titan/Garuda order), SMN-only and
-            // a rotation guide rather than mitigation.
+            // Summoner: which primal to summon next, from a top Dancing Mad kill log.
             new Extra("SMN", "Summon", 0f, Array.Empty<(int, string)>(), new[]
             {
                 (19, "Garuda"), (33, "Titan"), (48, "Ifrit"),
@@ -140,9 +127,7 @@ public static class JobExtras
             ? null
             : For(territory).FirstOrDefault(e => string.Equals(e.Job, job, StringComparison.OrdinalIgnoreCase));
 
-    // Each job's optional extra abilities, for sheets we have no baked schedule
-    // for: never part of the core plan (they stay out of the auto-planner kit),
-    // offered as a one-click opt-in add.
+    // Each job's optional extras, for sheets with no baked schedule.
     private static readonly (string Job, string Action, float Recast, int Level)[] Kit =
     {
         ("BRD", "Nature's Minne", 120f, 66),
@@ -155,9 +140,7 @@ public static class JobExtras
         ("PCT", "Tempera Grassa", 120f, 88),
     };
 
-    // Every universal-kit extra for a CUSTOM sheet, each computed from its own
-    // rows: presses land on the hardest-graded hits first, then whatever else
-    // still fits the recast.
+    // Every universal-kit extra for a custom sheet, from its own rows.
     public static IReadOnlyList<Extra> ForCustomSheet(FightProfile fight, string? job)
     {
         if (string.IsNullOrEmpty(job) || fight.CustomRows.Count == 0) return Array.Empty<Extra>();
@@ -194,9 +177,7 @@ public static class JobExtras
         return lines.Length == 0 ? null : new Extra(kit.Job, kit.Action, kit.Recast, lines);
     }
 
-    // Everything to offer on the fight page for this job: the baked schedule(s)
-    // for a built-in zone, plus any universal-kit ability computed from a
-    // custom sheet's own rows (baked wins on a name clash).
+    // Everything to offer on the fight page for this job; baked wins on a clash.
     public static IReadOnlyList<Extra> AllFor(FightProfile fight, string? job)
     {
         if (string.IsNullOrEmpty(job)) return Array.Empty<Extra>();

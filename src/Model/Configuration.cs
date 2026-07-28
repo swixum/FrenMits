@@ -13,15 +13,11 @@ public class Configuration : IPluginConfiguration
     // Last plugin version whose "What's New" panel was dismissed.
     public string LastWhatsNew { get; set; } = "";
 
-    // Your fight plans. In memory they still live here, so every window and every
-    // migration reads them exactly as before - but they are no longer part of the
-    // config FILE. PlanStore owns that now; see the note there for why.
+    // Your fight plans.
     [Newtonsoft.Json.JsonIgnore]
     public List<FightProfile> Fights { get; set; } = new();
 
-    // Where fights used to sit, INSIDE the config. Still read, so an existing
-    // profile hands its plans over on first load; never written back, so the next
-    // save is the one that leaves them out.
+    // Where fights used to sit, INSIDE the config.
     [Newtonsoft.Json.JsonProperty("Fights")]
     public List<FightProfile>? LegacyFights { get; set; }
 
@@ -43,9 +39,7 @@ public class Configuration : IPluginConfiguration
     // Color Sheet View mits by type (party / tank / personal).
     public bool SheetColorByType { get; set; }
 
-    // Colorblind-safe status colors: swaps the green/amber/red status palette for
-    // an Okabe-Ito set (bluish-green / orange / reddish-purple) that stays
-    // distinguishable under the common forms of color blindness.
+    // Colorblind-safe status colors: an Okabe-Ito set in place of green/amber/red.
     public bool ColorblindMode { get; set; }
 
     // Learned downtime lengths per territory (key = territory id as string): filled
@@ -55,16 +49,12 @@ public class Configuration : IPluginConfiguration
     // Slot codes the user pinned in Sheet View (right-click a column header).
     public List<string> SheetPinnedSlots { get; set; } = new();
 
-    // logs API client credentials (the user creates a client once at
-    // fflogs.com/api/clients); used by Sheet View's "Import log" to turn a
-    // report's casts into rows + anchors. The id is public-ish; the secret is
-    // stored DPAPI-encrypted (see SecretVault) so the config file never holds
-    // it in plaintext.
+    // logs API client credentials, used by Sheet View's log import.
     public string FflogsClientId { get; set; } = "";
     public string FflogsClientSecretEnc { get; set; } = "";
 
     // Plaintext view of the secret for call sites: decrypts lazily (cached, so
-    // per-frame UI checks stay cheap) and re-encrypts on set. Never serialized.
+    // per-frame UI checks stay cheap) and re-encrypts on set.
     [Newtonsoft.Json.JsonIgnore]
     public string FflogsClientSecret
     {
@@ -93,7 +83,7 @@ public class Configuration : IPluginConfiguration
     private string LegacyFflogsSecret { get; set; } = "";
 
     // Move a pre-v23 plaintext secret into the encrypted slot; clears the old
-    // key either way. Returns true when anything changed (caller saves).
+    // key either way.
     public bool MigrateFflogsSecret()
     {
         if (LegacyFflogsSecret.Length == 0) return false;
@@ -109,9 +99,7 @@ public class Configuration : IPluginConfiguration
     // "Auto" follows your current job; otherwise a job abbreviation override.
     public string JobSelection { get; set; } = "Auto";
 
-    // Global sheet-role pick (e.g. "Melee 1", "Main Tank"), applied when set to
-    // every built-in fight, mapping to whichever slot code that fight uses for
-    // the role.
+    // Global sheet-role pick, applied to every built-in fight.
     public string RoleSelection { get; set; } = "";
 
     // Seconds of lead time the warning appears before the mit time.
@@ -143,9 +131,7 @@ public class Configuration : IPluginConfiguration
     public int UpcomingCount { get; set; } = 3;
     public float UpcomingLookaheadSeconds { get; set; } = 30f;
 
-    // Next-mits timeline style: 1 = mechanic board (every upcoming hit as a
-    // countdown bar with your presses underneath), 0 = compact list of just
-    // your own calls (the original look).
+    // Next-mits style: 1 = mechanic board, 0 = compact list of your own calls.
     public int UpcomingStyle { get; set; } = 1;
     // Board style: how many mechanic bars show at once.
     public int UpcomingBoardRows { get; set; } = 8;
@@ -167,14 +153,10 @@ public class Configuration : IPluginConfiguration
     // board lists the bosses' casts (no mits, no audio).
     public bool UniversalTimelines { get; set; } = true;
 
-    // Learn a boss's timeline from your own pulls wherever there's no baked one
-    // (cactbot has nothing for roughly 150 older duties), so the board fills in
-    // the second time you meet a boss instead of staying blank forever.
+    // Learn a boss's timeline from your own pulls where there's no baked one.
     public bool LearnTimelines { get; set; } = true;
 
     // Learned boss timelines, keyed by the boss's NameId - see TimelineLearner.
-    // Keyed by boss rather than duty so a 3-boss dungeon or an alliance raid just
-    // works, each encounter being its own fight from zero.
     public Dictionary<string, LearnedFight> LearnedFights { get; set; } = new();
     // Board style: trim the board to just the rows you have a press for.
     public bool UpcomingBoardOnlyMine { get; set; }
@@ -210,8 +192,8 @@ public class Configuration : IPluginConfiguration
     public Vector2 MitBarPosition { get; set; } = new(0.5f, 0.88f);
     public float MitBarFontSizePx { get; set; } = 18f;
 
-    // Food check: inside a duty, out of combat, warn when your food is missing or
-    // about to expire mid-pull. Off by default, like the other extras.
+    // Food check: inside a duty, out of combat, warn when your food is missing
+    // or about to expire mid-pull.
     public bool PrepCheckEnabled { get; set; }
     // Minutes of food left at which the warning starts.
     public float PrepCheckWarnMinutes { get; set; } = 4f;
@@ -223,8 +205,6 @@ public class Configuration : IPluginConfiguration
 
     // Optional extras, ALL off by default: with every one of these false the
     // check behaves exactly as it did when it shipped.
-    //
-    // Threshold comes from the fight's own length instead of the slider.
     public bool PrepCheckUseFightLength { get; set; }
     // Flag food whose every stat is a crafting one (raiding on crafter food).
     public bool PrepCheckWarnWrongFood { get; set; }
@@ -273,9 +253,7 @@ public class Configuration : IPluginConfiguration
     public bool PulseWhenImminent { get; set; } = true;
     public bool ShowAbilityIcon { get; set; } = true;
 
-    // Center-call presentation: 0 = classic centered text, 1 = timeline board look
-    // (near-black panel, accent stripe, draining fill), 2 = icon + clock (the ability
-    // icon with a centered countdown, sweeping away like a cooldown as time runs out).
+    // Center-call presentation: 0 = classic text, 1 = board look, 2 = icon + clock.
     public int OverlayStyle { get; set; }
 
     // Colour the call text by the kind of mit (party / tank / personal).
@@ -290,9 +268,7 @@ public class Configuration : IPluginConfiguration
     // won't be ready in time.
     public bool CooldownAwareCalls { get; set; }
 
-    // Auto cooldown timing: on zone-in / slot change, run the offset solver so
-    // every plan (baked and custom) presses its mits early enough that the buff
-    // blankets the hit and the recast is back for the next mechanic.
+    // Auto cooldown timing: run the offset solver on zone-in and slot change.
     public bool AutoCooldownTiming { get; set; }
 
     // Prep press-window text: when a solved press fires early to stay up for a
@@ -316,11 +292,7 @@ public class Configuration : IPluginConfiguration
     // an anchor may be and still snap onto it.
     public float SyncForwardWindowSeconds { get; set; } = 2000f;
 
-    // Start the clock on the party's pull countdown instead of waiting for the
-    // combat flag: the timeline, the call and the cues all go live while the
-    // numbers run down, the clock reads negative until the pull, and zero lands on
-    // the countdown's own zero rather than a frame or two after it. A party that
-    // jumps the gun re-zeroes the clock to when combat actually started.
+    // Start the clock on the party's countdown instead of the combat flag.
     public bool StartOnCountdown { get; set; } = true;
 
     // Which sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras) the baked DMU
@@ -347,17 +319,15 @@ public class Configuration : IPluginConfiguration
     public bool OverlayLocked { get; set; }
     public Vector2 OverlayPosition { get; set; } = new(0.5f, 0.35f); // fractions of the screen
 
-    // Set when the on-disk config existed but could not be loaded, so we keep
-    // working defaults in memory but must NOT write them back or we would
-    // overwrite the user's real (recoverable) settings with defaults.
+    // The config existed but wouldn't load: work from defaults but never write them
+    // back.
     public static bool SuppressSave;
 
     // When the config last hit disk, so the UI can show a truthful live status
     // ("All changes saved · 3s ago") instead of a ceremonial Save button.
     public static DateTime LastSavedAt { get; private set; } = DateTime.MinValue;
 
-    // Settings AND plans. The safe default, and what every existing call site
-    // still gets: leaving one on this is only ever slower, never wrong.
+    // Settings AND plans.
     public void Save()
     {
         SaveSettings();
@@ -365,12 +335,7 @@ public class Configuration : IPluginConfiguration
     }
 
     // Settings only, for paths that provably cannot have touched a plan - the
-    // config window's toggles and the overlays' drag-to-move. This is the whole
-    // point of the split: it writes about 6KB instead of re-serializing every
-    // fight you own.
-    //
-    // Use it only where that's certain. Getting it wrong loses a plan edit;
-    // leaving something on Save() just costs it the speed-up.
+    // config window's toggles and the overlays' drag-to-move.
     public void SaveSettings()
     {
         if (SuppressSave) return;

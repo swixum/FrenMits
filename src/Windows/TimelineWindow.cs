@@ -8,9 +8,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The "next mits" timeline: a separate, independently placeable window that
-// lists the upcoming calls, since the main call-out window only ever shows the
-// single imminent mit.
+// The next-mits timeline: a separate window listing the upcoming calls.
 public class TimelineWindow : Window
 {
     private readonly Plugin _plugin;
@@ -50,9 +48,8 @@ public class TimelineWindow : Window
         if (!C.ShowBackground)
             Flags |= ImGuiWindowFlags.NoBackground;
 
-        // Movement is handled manually (HandleManualDrag): we always pin to the
-        // saved position and let a drag edit that saved value, since ImGui only
-        // moves a window from its title bar and NoTitleBar stays on.
+        // Movement is handled manually, since ImGui only moves a window from its title
+        // bar.
         Flags |= ImGuiWindowFlags.NoMove;
         if (EffectiveLocked)
             Flags |= ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMouseInputs;
@@ -140,9 +137,8 @@ public class TimelineWindow : Window
                 var inSec = (int)MathF.Round(l.CueTime - elapsed);
                 var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.ActionFor(job), job);
                 var icon = C.ShowAbilityIcon ? Icons.For(l, job) : 0u;
-                // Mark a mit that won't be off cooldown by the time it's called:
-                // only the ABILITY dims, so the time and the rest of the line
-                // stay fully readable.
+                // Mark a mit that won't be off cooldown when it's called; only the
+                // ability dims.
                 var notReady = C.CooldownAwareCalls
                     && Cooldowns.Remaining(l.Action) is { } cd && cd > (l.CueTime - elapsed) + 0.5f;
                 Row(icon, $"+{inSec}s  ", name + (notReady ? "  (cd)" : ""), notReady);
@@ -150,9 +146,7 @@ public class TimelineWindow : Window
     }
 
     // ---- mechanic board ----------------------------------------------------
-    // The board style: every upcoming mechanic is a draining countdown bar
-    // (name left, seconds right), with YOUR presses written under the rows they
-    // belong to.
+    // The board style: every upcoming mechanic is a draining countdown bar.
 
     // Board palette (ABGR) - FrenMits' own look: the near-black panels and blue
     // accent from the config window's theme, at over-game friendly alphas.
@@ -170,9 +164,7 @@ public class TimelineWindow : Window
     private uint NowCol => C.UpcomingBoardNowColor != 0 ? C.UpcomingBoardNowColor : 0xFF64DC64;
     private float BoardRound => Math.Clamp(C.UpcomingBoardRounding, 0f, 12f);
 
-    // The fight's full mechanic list is derived from every column of its sheet,
-    // so it's cached: rebuilt when the fight or pull changes, and refreshed out
-    // of combat so sheet edits show up while you're arranging things.
+    // The full mechanic list is derived from every column, so it's cached.
     private List<SheetTimeline.MechRow> _board = new();
     private string _boardFightId = "";
     private int _boardGen = -1;
@@ -181,10 +173,7 @@ public class TimelineWindow : Window
 
     private List<SheetTimeline.MechRow> BoardRows(FightProfile fight)
     {
-        // Cheap change fingerprint so plan edits show up even mid-combat: counts
-        // alone miss equal-count edits (retime, rename, delete-one-add-one), so
-        // fold times and actions in, including the OTHER columns' stashes that
-        // feed the board's rows too.
+        // Cheap change fingerprint, since counts alone miss equal-count edits.
         var stamp = fight.Lines.Count * 31 + fight.CustomRows.Count;
         unchecked
         {
@@ -232,9 +221,8 @@ public class TimelineWindow : Window
     private static readonly List<SheetTimeline.MechRow> NoRows = new();
 
     // ---- per-frame scratch ------------------------------------------------
-    // The board is the one part of FrenMits that redraws on every frame of a
-    // pull, so everything it needs per frame lives in buffers that are cleared
-    // and refilled rather than reallocated.
+    // The board redraws every frame of a pull, so its buffers are refilled, not
+    // reallocated.
     private readonly List<SheetTimeline.MechRow> _windowRows = new();
     private readonly List<SheetTimeline.MechRow> _visibleRows = new();
     private readonly List<List<MitLine>> _mineForVisible = new();
@@ -262,9 +250,7 @@ public class TimelineWindow : Window
         }
     }
 
-    // Insertion sort, because it is STABLE like the LINQ OrderBy it replaces (rows
-    // sharing a time must keep their source order) and the board only ever holds a
-    // few rows at a time.
+    // Insertion sort, because it is stable and the board holds only a few rows.
     private static void StableSortByTime(List<SheetTimeline.MechRow> rows)
     {
         for (var i = 1; i < rows.Count; i++)
@@ -276,9 +262,7 @@ public class TimelineWindow : Window
         }
     }
 
-    // Both derived row sets further down are pure functions of the fight's windows,
-    // but the board asked for them (and rebuilt every row object) on every frame,
-    // so they're cached and only rebuilt when the underlying windows actually move.
+    // Cached, and rebuilt only when the underlying windows actually move.
     private IReadOnlyList<DowntimeWindow>? _downWins;
     private List<DowntimeWindow>? _downBase;
     private string _downFightId = "";
@@ -288,22 +272,15 @@ public class TimelineWindow : Window
     private uint _posTerritory = uint.MaxValue;
     private List<SheetTimeline.MechRow>? _posRows;
 
-    // Credit: the idea of surfacing boss untargetable/targetable windows on a fight
-    // timeline, and the timing data these windows are built from, come from cactbot
-    // (github.com/OverlayPlugin/cactbot, Apache License 2.0, Copyright the cactbot
-    // authors), which FrenMits adapts onto its own clock (see Data/Downtimes.cs) and
-    // renders its own way.
-    //
-    // Every downtime window that applies to this fight: the built-in table for its
-    // territory (with live-learned refinements) plus any the fight owns itself (a
-    // custom sheet's windows derived from an imported log), merged so the board's
-    // untargetable/targetable washes work for both without branching everywhere.
+    // Credit: the idea of surfacing boss untargetable/targetable windows on a
+    // fight timeline, and the timing data these windows are built from, come
+    // from cactbot (github.com/OverlayPlugin/cactbot, Apache License 2.0,
+    // Copyright the cactbot authors), which FrenMits adapts onto its own clock
+    // (see Data/Downtimes.cs) and renders its own way.
     private IReadOnlyList<DowntimeWindow> EffectiveDowntimes(FightProfile fight)
     {
         // Downtimes.Effective hands back a cached list, so its identity is a valid
-        // "did the built-in windows change" signal on its own; the fight id plus the
-        // custom list's identity and length cover the half the fight owns (a rebuild
-        // from a log swaps the list, an edit changes its length).
+        // change signal.
         var baseWins = Downtimes.Effective(fight.TerritoryId, C.LearnedDowntimes);
         if (_downWins != null && ReferenceEquals(_downBase, baseWins) && _downFightId == fight.Id
             && ReferenceEquals(_downCustomSrc, fight.CustomDowntimes)
@@ -382,8 +359,6 @@ public class TimelineWindow : Window
         var look = MathF.Max(10f, C.UpcomingBoardLookaheadSeconds);
         var width = widthOverride ?? MathF.Max(180f, C.UpcomingBoardWidth);
         // A just-hit row lingers 2s at "now" so it doesn't vanish mid-press.
-        // Gathered into reused buffers rather than a LINQ chain: this is the one
-        // thing on screen that redraws every single frame of a pull.
         _windowRows.Clear();
         AddWindowRows(rowsOverride ?? BoardRows(fight), elapsed, look);
         AddWindowRows(DowntimeRows(fight), elapsed, look);
@@ -393,9 +368,8 @@ public class TimelineWindow : Window
 
         if (HeaderVisible) DrawBoardHeader(fight, elapsed, width);
 
-        // Learned downtimes ride inline as their own rows (Untargetable / Targetable);
-        // the banner is only the fallback while we're still LEARNING a lull the first
-        // time (no row exists yet).
+        // Learned downtimes ride inline as rows; the banner is only the fallback while
+        // learning.
         if (_plugin.DowntimeActive && _plugin.DowntimeRemaining < 0f) DrawDowntimeBanner(width);
 
         // Attach each of your presses to its single NEAREST row, so a mechanic
@@ -424,7 +398,6 @@ public class TimelineWindow : Window
 
         // "Just my own mits": trim to the rows you actually press on, BEFORE
         // the row cap, so your later presses aren't crowded out by other hits.
-        // Rows and their presses are collected in one pass into reused buffers.
         _visibleRows.Clear();
         _mineForVisible.Clear();
         var rowCap = Math.Max(1, C.UpcomingBoardRows);
@@ -445,9 +418,8 @@ public class TimelineWindow : Window
             return;
         }
 
-        // Green matches the main call EXACTLY: a press is "now" when it enters
-        // its warning window on the cue clock, so per-line offsets (a call set
-        // to fire early or late) keep the board and the big call in lockstep.
+        // Green matches the main call exactly, so per-line offsets keep them in
+        // lockstep.
         bool InWindow(MitLine l)
             => l.CueTime - elapsed <= (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds);
 
@@ -471,9 +443,7 @@ public class TimelineWindow : Window
         for (var i = 0; i < visible.Count; i++)
         {
             var r = visible[i];
-            // A phase beginning between this row and the one above it. Drawn
-            // INSTEAD of the row gap, never on top of it: a negative gap (the
-            // overlap look) would drag the divider up into the bar above.
+            // A phase beginning between this row and the one above it.
             var phase = i > 0 && C.UpcomingBoardPhases
                 ? SheetTimeline.PhaseBetween(PhaseMarks(fight), visible[i - 1].Time, r.Time)
                 : "";
@@ -519,9 +489,8 @@ public class TimelineWindow : Window
                 : r.Position.Length > 0 ? 7
                 : RowKind(r, bareTimer);
             if (kind == 3 || kind == 8) name = $"DPS check ({gateTgt * 100f:0}%)";
-            // A targetable still more than the heads-up window away reads as the
-            // lull you're sitting through, not a green "you can hit it" tick: a real
-            // cutscene shows "Cutscene", a plain transition stays "Untargetable".
+            // A targetable further off than the heads-up window reads as the lull
+            // you're in.
             if (kind == 5 && rem > TargetableHeadsup)
             {
                 if (DowntimeIsCutscene(fight, r.Time)) { kind = 6; name = "Cutscene"; }
@@ -582,7 +551,6 @@ public class TimelineWindow : Window
         if (C.UpcomingHeaderTitle)
         {
             // The little FrenMits tick: an accent diamond in front of the name.
-            // Sized and spaced off the font so big overlay fonts don't collide.
             var d = MathF.Max(3.5f, lineH * 0.18f);
             var c = new Vector2(pos.X + d + 1f, MathF.Round(pos.Y + lineH * 0.5f));
             dl.AddQuadFilled(c + new Vector2(0f, -d), c + new Vector2(d, 0f),
@@ -667,10 +635,8 @@ public class TimelineWindow : Window
 
         var back = ((uint)(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24) | BoardPanelRgb;
         dl.AddRectFilled(p0, p1, back, round);
-        // Kind wash: fill the whole bar with a soft color keyed to what the row
-        // IS, so its nature reads before you parse the text, red for a DPS check
-        // to push, green for targetable, grey for a plain untargetable lull, purple
-        // for a cutscene.
+        // Kind wash: a soft color keyed to what the row is, so its nature reads before
+        // the text.
         var wash = kind switch
         {
             3 => 0xFF4646FFu, // DPS check (at risk): red
@@ -693,16 +659,13 @@ public class TimelineWindow : Window
             // press accent (or the board accent when no press owns the row).
             var baseCol = (wash != 0 ? wash : accent == 0 ? AccentCol : accent) & 0x00FFFFFF;
             var edgeX = p0.X + width * frac;
-            // Brighter than before (was ~30% alpha, hard to read over the game):
-            // a solid base plus a gradient that peaks at the moving edge, so the
-            // sweep pops without washing out the text on top.
+            // A solid base plus a gradient peaking at the moving edge, so the sweep
+            // pops.
             var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
             dl.AddRectFilled(p0, new Vector2(edgeX, p1.Y), baseCol | 0x66000000, round, corners);
             dl.AddRectFilledMultiColor(p0, new Vector2(edgeX, p1.Y),
                 baseCol | 0x14000000, baseCol | 0x7A000000, baseCol | 0x7A000000, baseCol | 0x14000000);
-            // A crisp bright edge rides the boundary so the countdown is obvious
-            // at a glance, hidden right at the ends where it would just double
-            // the bar's own border.
+            // A crisp bright edge rides the boundary, hidden at the ends.
             if (frac > 0.02f && frac < 0.985f)
                 dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
                     new Vector2(edgeX + 0.5f, p1.Y - 1f), baseCol | 0xF0000000);
@@ -736,9 +699,7 @@ public class TimelineWindow : Window
         var timeText = isNow ? "NOW" : rem < 3f ? $"{rem:0.0}s" : $"{MathF.Ceiling(rem):0}s";
         var timeW = C.UpcomingBoardTimeText ? ImGui.CalcTextSize(timeText).X : 0f;
 
-        // Row icon, left of the name: the tank-buster shield (toggle), or an
-        // always-on marker for an at-risk mit (skull), a lull start (untargetable)
-        // or its end (targetable).
+        // Row icon, left of the name: buster shield, at-risk skull, or a lull marker.
         var nameX = p0.X + 10f;
         var showIcon = kind switch
         {
@@ -766,7 +727,7 @@ public class TimelineWindow : Window
         // (or off the bar, when the countdown text is hidden).
         dl.PushClipRect(p0, new Vector2(p1.X - (timeW > 0f ? timeW + 14f : 8f), p1.Y), true);
         BoardText(dl, new Vector2(nameX, textY), textCol, name);
-        // Severity marks from a graded custom sheet: ! light, !! hurts, !!! deadly.
+        // Severity marks from a graded custom sheet: !
         if (C.UpcomingBoardShowSeverity && hurt > 0)
         {
             var markCol = hurt >= 3 ? 0xFF4646FFu : hurt == 2 ? 0xFF008CFFu : 0xFF00D7FFu;
@@ -805,23 +766,6 @@ public class TimelineWindow : Window
 
     // What kind of hit a row is, for its board icon: 2 = tank buster, 1 =
     // raidwide (party damage), 0 = no icon.
-    //
-    // The shield means TANK BUSTER: one tank is about to be hit, press a personal.
-    // Measured Buster says so outright. Failing that the NAME is asked, because
-    // most rows in the plugin are ungraded - every duty timeline is - and without
-    // it those boards would carry no buster marks at all.
-    //
-    // Only "buster" is trusted for that now. It used to accept "cleave" too, and
-    // that half was wrong far more often than it was right: a cleave is usually a
-    // frontal the party is already dodging, so the shield went to M8S's Mooncleaver
-    // (a tower you soak or die to, four times a pull), to Let's Dance (Cleave), and
-    // to Lifescleaver x8 - which says in its own name that it hits eight people.
-    // Meanwhile "X Buster" in this game is a tank buster essentially without
-    // exception: Rock Buster, Mountain Buster, Citadel Buster, 179 rows of them.
-    //
-    // The asymmetry is the point. A missing shield costs a tank nothing they didn't
-    // already know from the mechanic's name; a wrong one spends a personal on the
-    // wrong cast and leaves the real buster bare.
     private static int RowKind(SheetTimeline.MechRow r, bool bareTimer)
     {
         if (r.Buster) return 2;
@@ -835,9 +779,7 @@ public class TimelineWindow : Window
         return 1; // a named mechanic on a mit board is there because it hits
     }
 
-    // Draw a FontAwesome glyph into the draw list, centered on `center` and sized
-    // to `size`, borrowing the icon font since the board renders through the draw
-    // list (not ImGui widgets).
+    // Draw a FontAwesome glyph into the draw list, centered and sized.
     private void BoardIcon(ImDrawListPtr dl, Vector2 center, float size, uint col, FontAwesomeIcon icon)
     {
         var glyph = icon.ToIconString();
@@ -882,22 +824,14 @@ public class TimelineWindow : Window
     private string _phaseSrc = "";
     private string _phaseUpper = "";
 
-    // The phase divider: a tick in the same 3px column every bar's stripe occupies,
-    // the phase name, and a hairline running out to the right edge.
-    //
-    // Deliberately NOT built like a row - no background, no border, no countdown.
-    // A full-height bar with no seconds on it, sat among bars that all have them,
-    // reads as a bug before it reads as a divider, and the board's row cap means
-    // anything row-shaped here is space a mechanic doesn't get.
+    // The phase divider: a tick in the same 3px column every bar's stripe
+    // occupies, the phase name, and a hairline running out to the right edge.
     private void BoardPhase(string label, float width)
     {
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
-        // Upper-cased so it reads as a label rather than as another mechanic name;
-        // the board has no small-caps to lean on. Memoized because this is a live
-        // draw loop and ToUpperInvariant allocates - one slot is enough, since two
-        // phases starting inside one look-ahead is vanishingly rare and only costs
-        // what it used to.
+        // Upper-cased so it reads as a label rather than as another mechanic
+        // name; the board has no small-caps to lean on.
         if (!string.Equals(label, _phaseSrc, StringComparison.Ordinal))
         {
             _phaseSrc = label;
@@ -985,16 +919,12 @@ public class TimelineWindow : Window
     private static string TimeText(float seconds) => Fmt.MmssRound(seconds);
 
     // ---- on-screen preview -------------------------------------------------
-    // The Next Mits settings page pings this every frame it's open; while the
-    // pings are fresh, the REAL window shows on screen and plays a sample, so
-    // you're placing and styling the actual thing.
+    // The Next Mits settings page pings this every frame it's open.
     private DateTime _screenPreviewPing = DateTime.MinValue;
     public void PingScreenPreview() => _screenPreviewPing = DateTime.Now;
     private bool ScreenPreviewing => (DateTime.Now - _screenPreviewPing).TotalSeconds < 0.3;
 
-    // The sample both previews play: Dancing Mad's real rows with the MT
-    // column's presses, looping through the opener so bars drain, a press goes
-    // gold, fires green, and lingers, exactly like a pull.
+    // The sample both previews play: Dancing Mad's opener on a loop.
     private FightProfile? _previewFight;
     private List<SheetTimeline.MechRow>? _previewRows;
 
@@ -1009,10 +939,7 @@ public class TimelineWindow : Window
         };
         _previewRows ??= SheetTimeline.Build(_previewFight);
 
-        // DMU has no phase names of its own and the preview fight is synthetic, so
-        // with dividers switched on the preview - the one place you'd go to look at
-        // them - would show nothing. Anchor a sample phase exactly ON a row inside
-        // the looped window, which is where a real phase's first hit sits anyway.
+        // DMU has no phase names, so with dividers on the preview would show nothing.
         if (C.UpcomingBoardPhases && _previewFight.BossAnchors.Count == 0)
             foreach (var r in _previewRows)
                 if (r.Time is >= 70f and <= 100f)
@@ -1094,9 +1021,7 @@ public class TimelineWindow : Window
     private IDisposable PushFont(float sizePx)
         => OverlayChrome.PushFont(_plugin.Fonts, sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
 
-    // Drag the board to move it (when unlocked), done ourselves rather than leaning
-    // on ImGui's window-move, which in this build only triggers from a title bar
-    // that the board deliberately lacks.
+    // Drag the board to move it, since ImGui's window-move needs a title bar.
     private void HandleManualDrag()
     {
         if (EffectiveLocked) { _dragging = false; return; }

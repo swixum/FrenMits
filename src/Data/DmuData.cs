@@ -1,8 +1,4 @@
-// AUTO-GENERATED from the Ikuya "Dancing Mad (Ultimate)" mit sheet v5.0
-// (2026-07-16), with resync ability ids cross-referenced from the cactbot
-// dancing_mad timeline so the anchors snap the clock onto each real cast and
-// keep the authored mit times aligned through all five phases (times = seconds
-// from the pull, continuous).
+// AUTO-GENERATED from the Ikuya "Dancing Mad (Ultimate)" mit sheet v5.0 (2026-07-16).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +9,7 @@ public static class DmuData
 {
     public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
-    // Hurt: 0 unknown, 1 light, 2 hurts, 3 deadly. Buster: lands on a tank rather
-    // than the party. Measured - see the note above CustomRows.
+    // Hurt: 0 unknown, 1 light, 2 hurts, 3 deadly.
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions,
         int Hurt = 0, bool Buster = false);
 
@@ -52,11 +47,7 @@ public static class DmuData
         new(323, "P2", "Towers VIII (Past/Future's End)", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, true),
         new(343, "P2", "Light of Judgement", 0xBABD, new[]{"", "Reprisal + Party Mit", "Asylum", "", "Spreadlo + Sacred Soil", "Kerachole + Holos + Zoe Shields", "Feint", "", "Party Mit", "Addle"}, 3),
         new(364, "P2", "Wings of Destruction", 0, new[]{"","","","","","","","","",""}, 2, true),
-        // Was anchored to Ultimate Embrace, which is the row seven seconds later, not
-        // this one - the boss only casts it twice all fight (221 and 378) and both are
-        // spoken for. 0xBACF is Wings of Destruction itself, at 371 in all ten kills.
-        // The 361 pair (0xBACD/0xBACE) are drawn per pull and appear in four and six
-        // kills, so neither can anchor anything.
+        // Was anchored to Ultimate Embrace, which is the row seven seconds later.
         new(371, "P2", "Wings of Destruction", 0xBACF, new[]{"Reprisal + Party Mit", "", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil + Fey Illumination + Seraph", "Kerachole + Panhaima", "", "Feint", "", ""}, 3, true),
         new(378, "P2", "Ultimate Embrace", 0xC24C, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(450, "P3", "Bowels of Agony (Chaos)", 0xBAF2, new[]{"Reprisal", "", "Plenary Indulgence + Asylum", "Collective Unconscious", "Sacred Soil", "Kerachole", "Feint (Chaos)", "", "", ""}, 1),
@@ -159,9 +150,7 @@ public static class DmuData
         _ => phase,
     };
 
-    // The sheet's per-phase "Notes" footer (shown under the Sheet View) plus
-    // short per-mechanic play guidance shown under a board row when no sheet
-    // note applies.
+    // The sheet's per-phase notes footer plus short per-mechanic guidance.
     public static string PressNote(string mechanic)
     {
         var m = (mechanic ?? "").Trim();
@@ -235,9 +224,6 @@ public static class DmuData
     };
 
     // Build mit lines for a sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras).
-    // Severity and tank-buster flags, measured from six kills: every damaging cast
-    // paired with what it lands for unmitigated, graded against the 90th percentile
-    // of the fight's own raidwides.
     public static List<CustomRow> CustomRows()
     {
         var rows = new List<CustomRow>();
@@ -257,26 +243,20 @@ public static class DmuData
         {
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
-            // Some mechanics are listed across several note-rows (group / alt-strat)
-            // at the same time + ability, so take only the first or the call (and
-            // its audio) fires twice or more.
+            // Take only the first note-row, or the call fires twice.
             if (!seen.Add((e.Time, e.Sync))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }
         return list;
     }
 
-    // Resync anchors (ability id -> expected resolve time): the earliest synced
-    // cast in each phase is a phase anchor that re-bases the whole clock so every
-    // following call in that phase stays accurate.
+    // Resync anchors; the earliest synced cast in each phase re-bases the whole clock.
     public static List<SyncPoint> SyncPoints()
     {
         return SyncAnchors.Build(
             Timeline.Select(e => (e.Sync, (float)e.Time, e.Phase, e.Mechanic)));
     }
 
-    // No boss-appearance anchors, because the old Chaos@451 one fired the "Bowels
-    // of Agony" call the moment Chaos appeared (before the real cast), so P3 now
-    // re-bases on the real Bowels cast (BAF2, a phase anchor at 451s).
+    // No boss-appearance anchors: Chaos@451 fired the call before the real cast.
     public static List<BossAnchor> BossAnchors() => new();
 }

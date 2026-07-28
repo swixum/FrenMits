@@ -3,12 +3,7 @@ using Dalamud.Bindings.ImGui;
 
 namespace FrenMits.Windows;
 
-// A cohesive dark theme for the config window, inspired by clean panel-based
-// plugin UIs: near-black backgrounds, soft borders, rounded controls and a single
-// blue accent for anything interactive.
-//
-// Colors are packed ABGR (0xAABBGGRR) - the byte order ImGui wants - so the hex
-// reads back-to-front from CSS.
+// A cohesive dark theme for the config window.
 internal static class Theme
 {
     // --- chrome (fixed regardless of colorblind mode) --------------------

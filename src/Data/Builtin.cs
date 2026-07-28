@@ -22,15 +22,12 @@ public static class Builtin
     public const ushort M2sTerritory = 1228;
     public const ushort M3sTerritory = 1230;
     public const ushort M4sTerritory = 1232;
-    // The AAC Cruiserweight tier, built the same way Zelenia was: twelve logged
-    // kills each, graded off what those parties actually took, planned by the
-    // Auto-planner. M8S is the only one with a second phase.
+    // The AAC Cruiserweight tier, built the same way Zelenia was.
     public const ushort M5sTerritory = 1257;
     public const ushort M6sTerritory = 1259;
     public const ushort M7sTerritory = 1261;
     public const ushort M8sTerritory = 1263;
-    // The AAC Heavyweight tier. M12S is per the cactbot r12s timeline, the rest
-    // are log-built sheets.
+    // The AAC Heavyweight tier.
     public const ushort M9sTerritory = 1321;
     public const ushort M10sTerritory = 1323;
     public const ushort M11sTerritory = 1325;
@@ -44,8 +41,7 @@ public static class Builtin
     public const ushort TopTerritory = 1122;
 
     // Newest expansion first, and in release order inside it: the fight someone
-    // is raiding today is the one they came to add. Expansions[] fixes that order
-    // once, so the menus and the README can't drift apart.
+    // is raiding today is the one they came to add.
     public static readonly string[] Expansions =
         { "Dawntrail", "Endwalker", "Shadowbringers", "Stormblood" };
 
@@ -127,9 +123,7 @@ public static class Builtin
     // the data files' native labels are translated in BuildLines.
     public static string[] Slots(uint territory) => SlotNames.Standard;
 
-    // Canonical cross-fight roles for the global role picker; one pick maps to
-    // the standard slot code (aliases kept so custom sheets that still name a
-    // column MT/D1-style resolve too).
+    // Canonical cross-fight roles for the global role picker.
     public static readonly string[] Roles =
         { "Main Tank", "Off Tank", "WHM", "AST", "SCH", "SGE", "Melee 1", "Melee 2", "Phys Ranged", "Caster" };
 
@@ -153,9 +147,8 @@ public static class Builtin
     public static string? RoleSlot(uint territory, string role)
         => RoleSlotIn(Slots(territory), role);
 
-    // Same, resolved against ANY sheet's column list (custom sheets included -
-    // since the slot standard they speak the same codes), returning the sheet's
-    // own column string so the caller can apply it verbatim.
+    // Same, resolved against any sheet's column list, returning that sheet's own
+    // string.
     public static string? RoleSlotIn(IReadOnlyList<string> slots, string role)
     {
         if (string.IsNullOrEmpty(role) || !RoleSlotCodes.TryGetValue(role, out var codes)) return null;
@@ -166,17 +159,6 @@ public static class Builtin
     }
 
     // Where each of a fight's phases begins.
-    //
-    // The one table. SheetTimeline used to keep a second one for the timeline's
-    // phase markers, and the two had drifted apart in both directions: FRU, M12S,
-    // Doomtrain, Enuo and M9S-M11S drew markers but offered no practice phase-jump,
-    // while M8S offered the jump and drew no marker. Same question, two answers,
-    // and nothing to make them agree.
-    //
-    // A fight with ONE phase has none worth naming, so it reports none. Its whole
-    // timeline is "P1", which is not a boundary: as a marker it draws a line at the
-    // pull, and as a phase-jump it replaces the practice row picker (which lets you
-    // jump anywhere) with a menu of one. Both are worse than nothing.
     public static List<(string Name, float Time)> PhaseStarts(uint territory)
     {
         var starts = RawPhaseStarts(territory);
@@ -198,9 +180,8 @@ public static class Builtin
         M5sTerritory => M5sData.PhaseStarts(),
         M6sTerritory => M6sData.PhaseStarts(),
         M7sTerritory => M7sData.PhaseStarts(),
-        // Howling Blade's P1 ends on a cutscene the party can arrive at well off
-        // the fitted kills' clock, which is why it is the one log-built fight with
-        // a phase to jump to (and the one whose anchor re-bases rather than nudges).
+        // Howling Blade's P1 ends on a cutscene, so it is the one log-built fight with
+        // a phase jump.
         M8sTerritory => M8sData.PhaseStarts(),
         M9sTerritory => M9sData.PhaseStarts(),
         M10sTerritory => M10sData.PhaseStarts(),
@@ -226,19 +207,11 @@ public static class Builtin
 
     // Accepts the standard slot names (or any alias) and translates to each
     // data file's native labels.
-    //
-    // Everything a built-in sheet hands out goes through here, which is why the
-    // covered-repeat pass sits here too: every source sheet these are transcribed
-    // from writes a mit again on each hit one press covers, and those copies would
-    // otherwise ship as calls for a button still on recast.
     public static List<MitLine> BuildLines(uint territory, string slot)
     {
         var lines = Bake(territory, slot);
         CoveredRepeats.Strip(lines);
-        // In time order, because a data file need not be: UCOB's sheet lists
-        // Thermionic Beam at 693s above Megaflare at 682s, and everything that
-        // walks a column forwards - the board, the solver, the carry-over scan -
-        // takes the order on trust.
+        // In time order, because a data file need not be.
         return lines.OrderBy(l => l.Time).ToList();
     }
 
@@ -286,13 +259,7 @@ public static class Builtin
         _ => DmuData.SyncPoints(),
     });
 
-    // A sheet can carry two rows for ONE cast (FRU splits Burnished Glory and
-    // Fulgent Blade into a row per group), which used to bake the same anchor
-    // twice. Harmless for the snap itself, but the duty-replay auto-start only
-    // trusts an ability that appears EXACTLY once - so a doubled entry quietly
-    // made that cast unusable for starting the clock. Collapse them, keeping the
-    // phase flag if either copy had it (a phase anchor already won the tie-break
-    // in SnapToCast, so the surviving entry behaves exactly as before).
+    // A sheet can carry two rows for one cast, which used to bake the anchor twice.
     private static List<SyncPoint> Dedupe(List<SyncPoint> points)
     {
         var byCoord = new Dictionary<(uint, int), int>();
@@ -311,10 +278,7 @@ public static class Builtin
         return result;
     }
 
-    // Severity grades and tank-buster flags for a built-in. They live on
-    // FightProfile.CustomRows, which is where the board reads them from - a
-    // built-in that doesn't hand them over draws every row as a plain hit, with
-    // no ! marks and no buster shields, however well graded its source sheet was.
+    // Severity grades and tank-buster flags for a built-in.
 
     // Only overwrites when the built-in actually HAS graded rows, so a user's own
     // custom sheet (whose CustomRows are theirs) can never be wiped by a reload.
@@ -324,15 +288,7 @@ public static class Builtin
         if (rows.Count > 0) fight.CustomRows = rows;
     }
 
-    // One mechanic, one row. A sheet that spells a mechanic out per strategy - DSR's
-    // Trinity is listed three times at 881s, once per group's assignment - was handing
-    // the board three identical rows stacked on the same second, and the same for six
-    // more Trinities and six Akh Morn's Edges. Folding here rather than in each data
-    // file means a fight added later cannot reintroduce it.
-    //
-    // The strongest reading wins: the copies disagree (Akh Morn's Edge at 1054 is
-    // listed both as a light raidwide and as a deadly buster), and a row that
-    // understates what is coming is the one that gets someone killed.
+    // One mechanic, one row.
     public static List<CustomRow> CustomRows(uint territory)
     {
         var folded = new List<CustomRow>();
@@ -403,10 +359,8 @@ public static class Builtin
         => MathF.Abs(a.Time - b.Time) < 0.75f
            && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
-    // A deletion tombstone suppresses a baked line when the spoken action matches
-    // within a wide window (same "a fight never reuses one mit that close"
-    // reasoning as the de-overlap in ApplySlot), so a sheet update that re-times
-    // or renames the mechanic can't resurrect a deleted call.
+    // A deletion tombstone suppresses a baked line whose action matches within a wide
+    // window.
     public static bool MatchesTombstone(DeletedCall d, string slot, MitLine baked)
         => string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase)
            && MathF.Abs(d.Time - baked.Time) < 6f
@@ -447,9 +401,7 @@ public static class Builtin
 
         if (string.IsNullOrEmpty(fight.Slot))
         {
-            // First use / migrating an older profile: adopt this slot, keeping any
-            // existing lines as-is (can't assume they're this slot's) or baking
-            // the slot fresh.
+            // First use or an older profile: adopt this slot, keeping existing lines.
             fight.Slot = slot;
             if (fight.Lines.Count == 0) fight.Lines = Bake(slot);
             else topUp = false;
@@ -471,9 +423,7 @@ public static class Builtin
         if (topUp)
         {
             var baked = BuildLines(fight.TerritoryId, slot);
-            // The bake minus deleted calls: what this slot is actually entitled to
-            // (the de-overlap below checks against THIS list, so a custom
-            // replacement isn't swept as a duplicate of the suppressed original).
+            // The bake minus deleted calls: what this slot is actually entitled to.
             var live = baked.Where(b => !IsDeleted(fight, slot, b)).ToList();
             foreach (var b in live)
                 if (!fight.Lines.Any(l => SameCall(l, b)))
@@ -482,10 +432,8 @@ public static class Builtin
                     added++;
                 }
 
-            // Drop stale leftovers from an earlier build: remove any surviving line
-            // that no longer matches a current baked call yet shadows one (same
-            // spoken mit within a few seconds), since a real fight never reuses one
-            // mit that close.
+            // Drop a surviving line that shadows a current baked call, since a fight
+            // never reuses a mit that close.
             fight.Lines.RemoveAll(l =>
                 !string.IsNullOrWhiteSpace(l.Action)
                 && !live.Any(b => SameCall(l, b))
@@ -533,9 +481,7 @@ public static class Builtin
         return hit.Length > 0 ? hit : slots[0];
     }
 
-    // Same guess against ANY sheet's column list, with NO first-column fallback:
-    // "" means no confident match, so a custom sheet asks instead of guessing
-    // someone's seat.
+    // Same guess with no first-column fallback: "" means ask rather than guess.
     public static string DefaultSlotForJobIn(IReadOnlyList<string> slots, string? jobAbbr)
     {
         if (slots.Count == 0 || Jobs.ByAbbreviation(jobAbbr) is not { } job) return "";

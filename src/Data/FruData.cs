@@ -1,13 +1,4 @@
-// Futures Rewritten (Ultimate). Times and ability ids come from the community
-// futures_rewritten timeline; severity and buster flags are measured from kills;
-// every call is the official FMBG mit sheet's five phase tabs, placed on the
-// mechanic each one actually names rather than matched by proximity.
-//
-// The sheet keeps its own clock per tab, running behind this one by 0s in P1,
-// 46s in P2, 513s in P3 and P4 and 619s in P5. Every row below was checked
-// against that, which is what caught the calls the old pass had landed on the
-// wrong Cyclonic Break, the wrong Burnished Glory, the wrong Dark Water and a
-// Path of Light three hundred seconds from the one the sheet meant.
+// Futures Rewritten (Ultimate).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +9,7 @@ public static class FruData
 {
     public static readonly string[] Slots = { "T1", "T2", "SCH", "SGE", "WHM", "AST", "M1", "M2", "R", "Caster" };
 
-    // Hurt: 0 unknown, 1 light, 2 hurts, 3 deadly. Buster: lands on a tank rather
-    // than the party. Both measured - see the note above CustomRows.
+    // Hurt: 0 unknown, 1 light, 2 hurts, 3 deadly.
     public sealed record Entry(int Time, string Phase, string Mechanic, uint Sync, string[] Actions,
         int Hurt = 0, bool Buster = false);
 
@@ -36,10 +26,7 @@ public static class FruData
         new(111, "P1", "Fall of Faith (3/4)", 0, new[]{"Party Mit","","Fey/Consolation/Soil","Kera","Temp","Neutral/Sun","","","Party Mit",""}, 2),
         new(121, "P1", "Burnished Glory 2", 0x9CEA, new[]{"Party Mit","(Late) Rep","Fey/Concit/Soil","EukProg/Kera","Temp/Confession/Caress","Sun","(Late) Feint","","Party Mit",""}, 2),
         new(130, "P1", "Powder Mark Trail", 0x9CE8, new[]{"","","","","","","","","",""}, 3, true),
-        // Usurper's opening pair. Ungraded on purpose: the logs record no unmitigated
-        // figure for either, because a tank is invulning or eating them behind a full
-        // kit every time. They land on one person, which is what the shield says, and
-        // they are the pair every tank tab plans for.
+        // Usurper's opening pair.
         new(215, "P2", "Quadruple Slap", 0x9CFF, new[]{"","","","","","","","","",""}, 0, true),
         new(219, "P2", "Quadruple Slap", 0x9D00, new[]{"","","","","","","","","",""}, 0, true),
         new(236, "P2", "Diamond Dust", 0x9D05, new[]{"Rep","Party Mit","Concit/Soil","EukProg/Kera","Confession","CU","","Feint*","","Addle*"}, 3),
@@ -70,12 +57,7 @@ public static class FruData
         new(549, "P3", "Sinbound Meltdown", 0x9D2B, new[]{"","","","","","","","","",""}, 1),
         new(554, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1),
         new(554, "P3", "Unholy Darkness", 0x9D55, new[]{"","","","","","","","","",""}, 2),
-        // Unanchored on purpose. 0x9D64 is the version of Sinbound Meltdown that runs
-        // as a sixteen-second channel rather than a single cast, so anchoring it held
-        // the clock at 559 for that whole channel and the next fourteen anchors -
-        // every Dark Fire, Dark Water, Shockwave Pulsar and Memory's End in the phase
-        // - then sat outside their windows and never fired. The two casts either side
-        // of it (0x9D2B at 549 and 570) carry the resync for this stretch.
+        // Unanchored on purpose.
         new(559, "P3", "Sinbound Meltdown", 0, new[]{"","","","","","","","","",""}, 1),
         new(564, "P3", "Dark Fire III", 0x9D54, new[]{"","","","","","","","","",""}, 1),
         new(564, "P3", "Set 3 and Rewind", 0, new[]{"","Rep","Concit/Seraphism","EukProg/Philosophia","Caress/Bell","Macro/Sun","","","",""}),
@@ -130,9 +112,8 @@ public static class FruData
         new(1181, "P5", "Akh Morn 2", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Holos/EukProg/Kera","","","","Feint","","Addle"}, 3),
         new(1203, "P5", "Explosion", 0x9D80, new[]{"","","","","","","","","",""}, 1),
         new(1204, "P5", "Wings Dark and Light", 0x9D79, new[]{"","","","","","","","","",""}, 2, true),
-        // Unanchored: Cruel Path of Light and Cruel Path of Darkness land in the same
-        // instant, so the pair only needs one anchor, and keeping both had this one
-        // snapping the clock backward onto its own second volley.
+        // Unanchored: the Cruel Path pair lands in one instant, so one anchor is
+        // enough.
         new(1219, "P5", "Cruel Path of Darkness", 0, new[]{"","","","","","","","","",""}, 2),
         new(1219, "P5", "Cruel Path of Light", 0x9D7D, new[]{"","","","","","","","","",""}, 2),
         new(1220, "P5", "Polarizing Strikes 2", 0x9D7C, new[]{"","Party Mit","Seraph/ism/Exped/Fey","Panhaima/Sophia","Temp/Bell/Caress","Neutral/Sun/Macro","","","Party Mit",""}),
@@ -140,14 +121,8 @@ public static class FruData
         new(1272, "P5", "Akh Morn 3", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Zoe EukProg/Kera","","","","Feint","","Addle"}, 3),
     };
 
-    // Severity and tank-buster flags, measured from six kills: every damaging cast
-    // paired with what it actually lands for, unmitigated.
-    //
-    // Graded against the 90th percentile of the fight's raidwides rather than the
-    // single hardest one. FRU needs that difference - Pandora's Box lands for four
-    // times any other raidwide, so the hardest-hit yardstick called all sixty of the
-    // real ones "light". Somber Dance's second hit is worse still at nearly nine
-    // million, which is the punish for failing it rather than a hit anyone mitigates.
+    // Severity and tank-buster flags, measured from six kills: every damaging
+    // cast paired with what it actually lands for, unmitigated.
     public static List<CustomRow> CustomRows()
     {
         var rows = new List<CustomRow>();
@@ -167,9 +142,7 @@ public static class FruData
         {
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
-            // Some mechanics are listed across several note-rows (group / alt-strat)
-            // at the same time + ability, so take only the first or the call (and
-            // its audio) fires twice or more.
+            // Take only the first note-row, or the call fires twice.
             if (!seen.Add((e.Time, e.Sync))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }
@@ -186,25 +159,16 @@ public static class FruData
     public static List<BossAnchor> BossAnchors()
     {
         var list = new List<BossAnchor>();
-        // These re-base the clock when each boss APPEARS, sitting before that
-        // phase's first call so they correct the clock without firing a call
-        // early (Pandora was dropped because it would have fired P5's first call
-        // the instant it spawned).
+        // These re-base the clock when each boss appears, before that phase's first
+        // call.
         BossNames.Add(list, "Fatebreaker", 0f, "P1 Fatebreaker");
         BossNames.Add(list, "Usurper of Frost", 215.3f, "P2 Shiva");
         BossNames.Add(list, "Oracle of Darkness", 500.0f, "P3 Gaia");
         return list;
     }
 
-    // Phase starts on this file's own clock, read off the same community timeline
-    // the rows above are matched to. P2 and P3 are the anchors' times exactly,
-    // which is what confirms the two share a clock.
-    //
-    // Written out rather than folded up from the rows' Phase tags, the way every
-    // other fight's is, because P4 and P5 both start during downtime - the duo
-    // materialises well before its first mechanic, and Pandora spends nearly two
-    // minutes in a cutscene - so the first tagged row in each sits far later than
-    // the phase itself does.
+    // Phase starts on this file's own clock, read off the same community
+    // timeline the rows above are matched to.
     public static List<(string Name, float Time)> PhaseStarts() => new()
     {
         ("P1", 0f),

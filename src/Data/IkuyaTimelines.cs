@@ -1,7 +1,4 @@
-// AUTO-GENERATED from Ikuya's ultimate mitigation sheets, which carry no
-// timestamps, so each mechanic is aligned by name to its boss ability id and
-// timed from real logs clears (median pull-relative cast time) with the resync
-// engine correcting the DPS-variable phase offsets live.
+// AUTO-GENERATED from Ikuya's ultimate mitigation sheets, timed from real log clears.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +9,7 @@ public static class IkuyaTimelines
 {
     public static readonly string[] Slots = { "MT", "OT", "WHM", "AST", "SCH", "SGE", "D1", "D2", "D3", "D4" };
 
-    // Hurt: 0 unknown, 1 light, 2 hurts, 3 deadly. Buster: lands on a tank rather
-    // than the party. Measured - see the note above CustomRows.
+    // Hurt: 0 unknown, 1 light, 2 hurts, 3 deadly.
     public sealed record Entry(int Time, string Phase, string Mechanic, string[] Actions,
         int Hurt = 0, bool Buster = false);
 
@@ -36,20 +32,7 @@ public static class IkuyaTimelines
                               .OrderBy(p => p.Item2)
                               .ToList();
 
-    // Severity and tank-buster flags, and every mechanic the sheets never listed,
-    // measured from six kills of each fight and checked against six more that none
-    // of it was built from.
-    //
-    // These sheets name strategy points rather than abilities ("Program Loop",
-    // "Delta"), so nothing could be matched to a log by name, and the fights gate
-    // their phases on the boss's HP, so no fixed time is right for every party.
-    // Both are handled the same way: each row is measured as a distance back to the
-    // resync anchor before it, which is the one thing that doesn't move - the boss's
-    // script between two of its own casts doesn't care how fast the party is. The
-    // plugin redoes that arithmetic at runtime the moment it sees the anchor cast.
-    //
-    // Held-out kills put the error at a third of a second, against absolute times
-    // that moved by seven to twenty seconds between the same kills.
+    // Severity and buster flags measured from six kills, checked against six more.
     public static List<CustomRow> CustomRows(uint territory)
     {
         var rows = new List<CustomRow>();
@@ -149,11 +132,8 @@ public static class IkuyaTimelines
         new() { Ability = 0x26E5, Time = 455.5f, IsPhase = false, Label = "P3 Heavensfall Trio" },
         new() { Ability = 0x26E6, Time = 516.7f, IsPhase = false, Label = "P3 Tenstrike Trio" },
         new() { Ability = 0x26E7, Time = 573.7f, IsPhase = false, Label = "P3 Grand Octet" },
-        // Both Thermionic Beams are fine-drift anchors, NOT phase anchors: a phase
-        // anchor gets a 2000s forward window, and Bahamut casts this same ability
-        // again around 5:54 with no anchor of its own - so as a phase anchor it
-        // dragged the clock five and a half minutes forward, into P4, in the middle
-        // of P3. P4 still re-bases, on Megaflare I nine seconds earlier.
+        // Both Thermionic Beams are fine-drift anchors, NOT phase anchors: Bahamut
+        // recasts this at ~5:54.
         new() { Ability = 0x26BD, Time = 692.8f, IsPhase = false, Label = "P4 Thermionic Beam (1st Quote)" },
         new() { Ability = 0x26BA, Time = 682.2f, IsPhase = true , Label = "P4 Megaflare I" },
         new() { Ability = 0x26BD, Time = 730.3f, IsPhase = false, Label = "P4 Thermionic Beam (2nd Quote)" },
@@ -206,17 +186,8 @@ public static class IkuyaTimelines
         new(678, "P4", "Ultima", new[]{"Reprisal + LB3","","","","Fey Illumination","","","Feint","","Addle"}, 3),
         new(688, "P4", "Aetheric Boom", new[]{"LB1","Reprisal","","","Sacred Soil","Kerachole","","","",""}),
         new(692, "P4", "Aetheroplasm", new[]{"","","","","","","","","",""}, 1),
-        // Ultima closes on three primal attacks, and WHICH one lands in each slot is
-        // random - across twelve kills slot 1 came up Aerial Blast three times,
-        // Hellfire twice and Earthen Fury once - which is why the sheet numbers them
-        // instead of naming them, and why none of them could ever be matched to a log
-        // by name. All three used to sit on 12:10 together, so a healer was told to
-        // lay Sacred Soil and Spreadlo in the same second and the last two calls of
-        // the fight never fired. The slots themselves are steady: measured off the
-        // Aetheric Boom anchor they land 41s, 63s and 81s after it, agreeing within
-        // three seconds across kills and within one and a half on six the times were
-        // not fitted to. Slot three only happens if the pull runs long enough to see
-        // it - one of six fast kills, five of six slower ones.
+        // Ultima's three closing primals are random per slot, which is why the sheet
+        // numbers them.
         new(730, "P4", "Primal I", new[]{"","Party Mit","","","Sacred Soil","Kerachole","","","",""}, 1),
         new(751, "P4", "Primal II", new[]{"","","Plenary Indulgence","Collective Unconscious","Spreadlo","Zoe Shields","","","Party Mit",""}, 1),
         new(769, "P4", "Primal III", new[]{"Party Mit","","","","Sacred Soil","Kerachole","","","",""}, 1),
@@ -240,10 +211,7 @@ public static class IkuyaTimelines
         new() { Ability = 0x2B8B, Time = 428.7f, IsPhase = true , Label = "P4 Ultima" },
         new() { Ability = 0x2B87, Time = 472.5f, IsPhase = true , Label = "P4 Tank Purge" },
         new() { Ability = 0x2B7A, Time = 485.9f, IsPhase = false, Label = "P4 Viscous Aetheroplasm" },
-        // Fine drift only, not a phase re-base: Garuda casts Mesohigh at about 2:09
-        // as well, with no anchor of its own, so as a phase anchor it threw the clock
-        // seven and a half minutes forward in the middle of P2. P4 re-bases on Ultima
-        // and Tank Purge, both well before this.
+        // Fine drift only: Garuda casts Mesohigh again at about 2:09 with no anchor.
         new() { Ability = 0x2B49, Time = 587.4f, IsPhase = false, Label = "P4 Mesohigh" },
         new() { Ability = 0x2B49, Time = 604.8f, IsPhase = false, Label = "P4 Mesohigh" },
         new() { Ability = 0x2B87, Time = 607.6f, IsPhase = false, Label = "P4 Tank Purge" },

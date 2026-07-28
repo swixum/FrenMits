@@ -19,9 +19,7 @@ public readonly record struct JobInfo(uint RowId, string Abbreviation, string Na
 // shape changing between game patches.
 public static class Jobs
 {
-    // Backed by an array so the lookups below enumerate it directly: through the
-    // IReadOnlyList interface every ask boxed an enumerator, and the overlay
-    // resolves the active job several times a frame.
+    // Backed by an array so the lookups below don't box an enumerator.
     private static readonly JobInfo[] Table =
     {
         new(19, "PLD", "Paladin", JobRole.Tank),

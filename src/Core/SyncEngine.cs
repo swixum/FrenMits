@@ -4,10 +4,8 @@ using Dalamud.Game.ClientState.Objects.Types;
 
 namespace FrenMits;
 
-// Timeline resync, the safe way: instead of hooking the game we watch boss cast
-// bars, and when a known ability begins casting we snap the pull-clock so the
-// timeline lines up with its scripted time, correcting DPS-dependent drift between
-// phases without ever counting on a fixed phase length.
+// Timeline resync: watch boss cast bars and snap the pull-clock onto their scripted
+// times.
 public class SyncEngine
 {
     private readonly Plugin _plugin;
@@ -25,31 +23,21 @@ public class SyncEngine
     public string LastSyncNice { get; private set; } = "";
     public DateTime LastSyncAt { get; private set; } = DateTime.MinValue;
 
-    // Bumps whenever a phase anchor (or boss-appearance anchor) re-bases the clock,
-    // which the cue engine watches to know a fresh phase has actually started after
-    // a cutscene, rather than releasing on any minor mid-phase drift correction.
+    // Bumps whenever a phase anchor re-bases the clock.
     public int PhaseSyncGeneration { get; private set; }
 
-    // Running estimate of how far the clock drifts from the baked timeline before
-    // a mechanic anchor corrects it (+ = the clock runs ahead of the fight, i.e.
-    // mechanics resolve later than the sheet says, i.e. your group runs behind).
+    // Running estimate of the drift before a mechanic anchor corrects it.
     public float AvgDrift { get; private set; }
     public int DriftSamples { get; private set; }
 
-    // CasterNameId is what lets a captured pull be split back up by WHO cast
-    // what: in a dungeon the same pull contains trash and then a boss, and only
-    // the boss's half is a timeline worth learning.
+    // CasterNameId is what lets a captured pull be split back up by who cast what.
     public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss, uint CasterNameId = 0);
 
-    // Automatic capture for CUSTOM sheets: every enemy cast of the current/last
-    // pull, no toggle needed, so Sheet View's "Build from pull" can turn a wipe
-    // into rows + anchors.
+    // Automatic capture for custom sheets: every enemy cast of the current pull.
     public readonly List<Capture> LastPull = new();
     public uint LastPullTerritory { get; private set; }
 
-    // A pull's capture is bounded, but it fills from the FRONT and then stops:
-    // this used to drop the oldest entry to make room, which quietly ate the
-    // opener - the most valuable part of a timeline - on any long fight.
+    // The capture fills from the front and stops, so a long fight can't eat the opener.
     private const int MaxCaptures = 2000;
 
     private void AutoCapture(uint id, float time, string caster, bool isBoss, uint casterNameId = 0)
@@ -82,24 +70,16 @@ public class SyncEngine
             return;
         }
 
-        // Custom sheets get a hands-free capture of every pull (Sheet View's
-        // "Build from pull" turns a wipe into rows + anchors), resolved up front
-        // because the playback watchdog needs to know whether the enemy scan below
-        // is actually running.
+        // Custom sheets get a hands-free capture of every pull.
         var fight = _plugin.ActiveFight();
-        // Duties with no sheet AND no baked timeline get their casts recorded so
-        // TimelineLearner can build one from your own pulls - that's the only way
-        // the long tail cactbot never covered ever gets a board.
+        // Duties with no sheet and no baked timeline get their casts recorded to learn
+        // from.
         var learning = _plugin.LearningHere;
         var autoCapture = (fight != null && fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId))
                           || learning;
         var scanning = (fight != null && (c.EnableSync || autoCapture)) || learning;
 
-        // Duty-recorder playback watchdog: with no combat flag to stop the clock
-        // between the recording's pulls, two signals end a viewing (a load screen
-        // for a chapter jump / pull reset, and every enemy gone for a few seconds
-        // for a wipe fade), each stopping the timer so the auto-start re-locks onto
-        // whatever plays next.
+        // Playback watchdog: a load screen or every enemy gone ends a viewing.
         if (Plugin.InDutyPlayback)
         {
             if (Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
@@ -112,9 +92,7 @@ public class SyncEngine
             // Cutscene time is a phase transition, not a wipe; keep the watchdog
             // fed so it can't fire the instant the cutscene ends.
             if (Plugin.CutsceneActive) _playbackEnemyAt = DateTime.UtcNow;
-            // Judge "no enemies" only while the scan below is feeding the
-            // watchdog; otherwise a manually started clock (resync off, or no
-            // profile for the duty) would be killed 4s in with enemies visible.
+            // Judge "no enemies" only while the scan below is feeding the watchdog.
             else if (scanning && (DateTime.UtcNow - _playbackEnemyAt).TotalSeconds > 4)
             {
                 _plugin.Timer.Reset();
@@ -124,18 +102,14 @@ public class SyncEngine
         }
         if (!scanning) return;
 
-        // Work in the same clock the overlay reads (includes any door-boss phase
-        // offset), so anchors line up in both phases. While purely learning there
-        // is no fight yet, so the raw pull clock is the schedule.
+        // Work in the same clock the overlay reads (includes any door-boss
+        // phase offset), so anchors line up in both phases.
         var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
 
         foreach (var obj in Service.ObjectTable)
         {
-            // A game object can go stale mid-frame (an actor despawning during a
-            // phase transition leaves BattleChara.IsCasting dereferencing a null
-            // pointer), so skip just that object and let the rest of the table and
-            // the cue engine still run this tick instead of the NRE aborting the
-            // whole framework update.
+            // A game object can go stale mid-frame, so skip it rather than abort the
+            // tick.
             try
             {
                 // Feed the playback watchdog: any live enemy means the recording
@@ -166,9 +140,8 @@ public class SyncEngine
                 var timeToResolve = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);
                 var resolveTime = elapsed + timeToResolve;
 
-                // Auto capture takes ENEMY casts only (subkind 5): player,
-                // trust-NPC and pet casts are noise for a mechanic timeline
-                // (and would poison anchors).
+                // Auto capture takes enemy casts only; player and pet casts would
+                // poison anchors.
                 if (autoCapture && bc.MaxHp > 0
                     && bc is IBattleNpc enemyNpc && (byte)enemyNpc.BattleNpcKind == 5)
                     AutoCapture(castId, resolveTime, bc.Name.ToString(), false, enemyNpc.NameId);
@@ -180,10 +153,7 @@ public class SyncEngine
         }
     }
 
-    // Duty-recorder playback (A Realm Recorded and friends): with no combat flag
-    // the timer would never start by itself, so the first enemy cast matching a
-    // resync anchor both starts AND places the clock, and from there the normal
-    // anchor pipeline keeps it honest through chapter skips (phase anchors re-base).
+    // In playback the first matching enemy cast both starts and places the clock.
     private void TryPlaybackAutoStart(Configuration c)
     {
         if (!Plugin.InDutyPlayback || !c.EnableSync) return;
@@ -198,10 +168,7 @@ public class SyncEngine
                 var castId = bc.CastActionId;
                 if (castId == 0) continue;
 
-                // Only start from an ability that appears EXACTLY once in the
-                // timeline, since a repeated ability (DMU's Ultimate Embrace anchors
-                // 221/371/378) is ambiguous after a chapter jump and guessing the
-                // earliest instance could start the clock minutes off.
+                // Only start from an ability that appears exactly once in the timeline.
                 SyncPoint? best = null;
                 var hits = 0;
                 foreach (var sp in fight.SyncPoints)
@@ -248,13 +215,8 @@ public class SyncEngine
     // reasoning live in SyncCore, next to the windows it feeds.
     public const float TimelineBlockReach = SyncCore.TimelineBlockReach;
 
-    // Snap the clock so a cast of `actionId` resolving `timeToResolve` from now
-    // lands on its scripted time, returning true if a matching anchor snapped the
-    // clock.
-    //
-    // Which anchor, and where the clock lands, are SyncCore's - the same functions
-    // the offline replay in tests/ drives with real kill logs. What's left here is
-    // the part that needs a game: reading the clock, moving it, and saying so.
+    // Snap the clock so this cast lands on its scripted time; true if an anchor
+    // matched.
     private bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
     {
         if (fight.SyncPoints.Count == 0) return false;
@@ -267,10 +229,7 @@ public class SyncEngine
         if (best == null) return false;
         _fired.Add(SyncCore.Key(best));
 
-        // Self-tuning telemetry: how far the clock was off when this mechanic
-        // anchor (not a big phase re-base) fired, a small EMA feel for how well the
-        // baked timeline matches your group's pace, ignoring the large phase jumps
-        // which aren't drift.
+        // Telemetry: how far the clock was off when a mechanic anchor fired.
         if (!best.IsPhase)
         {
             AvgDrift = SyncCore.Ema(AvgDrift, DriftSamples, SyncCore.DriftAt(best, predictedElapsed));

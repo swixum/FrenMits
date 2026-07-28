@@ -149,9 +149,7 @@ public partial class SheetViewWindow : Window
         _undoStack.RemoveAt(_undoStack.Count - 1);
         if (!C.Fights.Contains(s.Fight)) { Flash("Can't undo: that fight no longer exists."); return; }
 
-        // Jumping to another fight's undo entry: reset the view filters (they
-        // may not exist there) and keep a disk snapshot as insurance, since the
-        // user may not have that fight's current state in their head.
+        // Jumping to another fight's undo entry: reset the filters and snapshot first.
         var jumped = s.Fight != _fight;
         if (jumped)
         {
@@ -235,9 +233,7 @@ public partial class SheetViewWindow : Window
     private Row? _hoverLivePrev;
     private string _noteBuf = "";
 
-    // Tight window (4s): some mechanics repeat under 10s apart with the same
-    // label (Ultimate Embrace at 371/378), and a wider match would cross-link
-    // one note to both rows.
+    // Tight window (4s): some mechanics repeat under 10s apart with the same label.
     private SheetNote? NoteFor(Row row)
         => _fight?.Notes.FirstOrDefault(n =>
             MechEquals(n.Mechanic, row.Mechanic) && MathF.Abs(n.Time - row.Time) < 4f);
@@ -423,7 +419,7 @@ public partial class SheetViewWindow : Window
         var label = _phaseFilter.Length > 0 ? $"Sheet notes ({_phaseFilter})" : "Sheet notes";
         var open = ImGui.CollapsingHeader($"{label}###sheetnotes");
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("The notes section from the bottom of each phase's sheet tab.");
+            ImGui.SetTooltip("Notes from the bottom of each phase tab.");
         if (open != C.SheetNotesOpen) { C.SheetNotesOpen = open; C.Save(); }
         if (!open) return;
 

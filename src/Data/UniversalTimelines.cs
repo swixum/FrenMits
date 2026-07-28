@@ -7,10 +7,8 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Baked boss timelines for (nearly) every instanced duty in the game (per
-// territory, the bosses' named casts plus resync anchors), powering a "runs
-// everywhere" Next Mits board of what the boss is about to do with no mits or
-// audio, resynced off the bosses' own casts.
+// Baked boss timelines for nearly every instanced duty, for a board with no mits or
+// audio.
 public static class UniversalTimelines
 {
     private sealed class Zone
@@ -21,11 +19,7 @@ public static class UniversalTimelines
 
     private static Dictionary<uint, Zone>? _zones;
 
-    // Built into a LOCAL dictionary and published in one go at the end. Assigning
-    // _zones first and filling it afterwards means anything reading it during the
-    // load sees a half-populated table and decides the duty has no timeline - the
-    // plugin only ever loads from the framework thread, so it never hit this, but
-    // it is one line to make the field mean what it says.
+    // Built into a LOCAL dictionary and published in one go at the end.
     private static void Load()
     {
         if (_zones != null) return;
@@ -77,9 +71,7 @@ public static class UniversalTimelines
         return _zones!.Keys;
     }
 
-    // A fresh IN-MEMORY timeline-only fight for this duty, rebuilt on territory
-    // change and never saved, carrying only mechanic names so the board lists
-    // them while the call overlay and audio stay silent.
+    // A fresh in-memory timeline-only fight for this duty, never saved.
     public static FightProfile? Build(uint territory)
     {
         Load();
@@ -95,10 +87,7 @@ public static class UniversalTimelines
             f.Lines.Add(new MitLine { Time = t, Mechanic = name, Action = "", Sound = false });
         foreach (var (t, id, phase) in z.Syncs)
             f.SyncPoints.Add(new SyncPoint { Ability = id, Time = t, IsPhase = phase, Label = "auto" });
-        // Only an ability's FIRST anchor may re-base the clock. A duty gives phase
-        // anchors a 20000s forward window to reach each boss's own block, so one
-        // that re-bases on an ability an EARLIER boss also casts drags the board a
-        // whole boss or more ahead, mid fight. See SyncAnchors.Guard.
+        // Only an ability's FIRST anchor may re-base the clock.
         SyncAnchors.Guard(f.SyncPoints, SyncAnchors.EncounterStarts(f.Lines.Select(l => l.Time)));
         return f;
     }

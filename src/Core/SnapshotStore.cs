@@ -4,9 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Plan snapshots: the whole FightProfile serialized to a file under the plugin
-// config directory, taken automatically before destructive operations and on
-// demand (Sheet View's History button). Newest 12 kept per fight.
+// Plan snapshots: a whole FightProfile written to the plugin config directory.
 public sealed class SnapshotStore
 {
     private readonly Configuration _config;

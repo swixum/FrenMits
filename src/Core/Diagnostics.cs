@@ -5,10 +5,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Per-pull diagnostics: while enabled, buffers resync / cue / phase events and
-// writes ONE structured, entirely local text file per pull into
-//   <pluginConfigDir>/diagnostics/yyyyMMdd-HHmmss.txt
-// so the resync behaviour (especially the late phases) can be reviewed afterwards.
+// Per-pull diagnostics: one local text file per pull, for reviewing resync afterwards.
 public class Diagnostics
 {
     private readonly Plugin _plugin;
@@ -27,9 +24,7 @@ public class Diagnostics
     {
         if (!_plugin.Config.Diagnostics) return;
 
-        // Running, not Live: this file is the record of a PULL, and a countdown
-        // called off would otherwise open and close one for a fight that never
-        // happened - pushing a real pull out of the thirty that are kept.
+        // Running, not Live: this file is the record of a pull that actually happened.
         var running = _plugin.Timer.Running;
         if (running)
         {

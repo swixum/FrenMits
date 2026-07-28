@@ -5,13 +5,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Two small readouts sharing one line of screen:
-//
-//   the food check   - pre-pull, and persistent while the problem lasts
-//   the potion note  - mid-fight, once, when the pot you used comes back
-//
-// Silent the rest of the time, and duty-only unless the ready check option is on
-// - a ready check is pre-pull wherever it's called from.
+// The food check before the pull and the potion note during it, on one line.
 public class PrepWindow : Window
 {
     private readonly Plugin _plugin;
@@ -65,9 +59,8 @@ public class PrepWindow : Window
 
     public override bool DrawConditions()
     {
-        // This runs every frame whether or not the window draws, which is what
-        // makes it the only safe home for the potion clock: Medicated is up for
-        // 30 seconds, and a frame spent not looking is a use missed.
+        // This runs every frame whether or not the window draws, which the potion clock
+        // needs.
         var on = C.PrepCheckEnabled
                  && !Plugin.CutsceneActive
                  // No player yet (zoning in) reads exactly like "no food is up",
@@ -77,8 +70,7 @@ public class PrepWindow : Window
                  // roulette (where nobody brings food) stays quiet.
                  && (!C.PrepCheckSheetsOnly || _plugin.ActiveFight() is { TimelineOnly: false });
 
-        // Leaving the duty forgets the potion clock. Nothing else does: it has to
-        // survive combat starting and ending, or it would never reach the full recast.
+        // Leaving the duty forgets the potion clock.
         var territory = Service.ClientState.TerritoryType;
         if (territory != _territory)
         {
@@ -87,9 +79,8 @@ public class PrepWindow : Window
             _potSay.Reset();
         }
 
-        // The potion clock runs for as long as you're in the duty, combat included.
-        // The pot's OWN recast is handed to the timer, read off the tincture that's
-        // up, so a future item with a different number just works.
+        // The potion clock runs for as long as you're in the duty, combat
+        // included.
         var potLive = on && Plugin.InDuty && C.PrepCheckPotion;
         _potNote = potLive && PotionTick();
         // Once the note's few seconds are up, re-arm the speech so a SECOND pot
@@ -102,12 +93,9 @@ public class PrepWindow : Window
             ? _potTimer.Remaining(ImGui.GetTime()) : 0f;
 
         // Food is a pre-pull matter only - unless a ready check is up, which is
-        // pre-pull by definition wherever it happens. The game read is behind the
-        // option, so nobody who leaves it off pays for it.
+        // pre-pull by definition wherever it happens.
         var readyCheck = on && C.PrepCheckOnReadyCheck && PrepCheck.ReadyCheckActive();
-        // A ready check starting re-arms the speech, so "no food" gets said again
-        // at the moment somebody is actually asking - even if it was already said,
-        // and already sat on screen ignored, ten minutes ago.
+        // A ready check re-arms the speech, so "no food" is said again when it's asked.
         if (readyCheck && !_readyCheck) _foodSay.Reset();
         _readyCheck = readyCheck;
 
@@ -115,8 +103,7 @@ public class PrepWindow : Window
         if (!_prePull) _foodSay.Reset();
 
         if (!C.PrepCheckEnabled) return false;
-        // Test mode draws a placement sample. Along with a ready check, it's one of
-        // only two things that ever put this on screen outside a duty.
+        // Test mode draws a placement sample.
         if (C.TestMode) return true;
         return _prePull || _potNote || _potLeft > 0f;
     }
@@ -134,16 +121,14 @@ public class PrepWindow : Window
             if (food.Present) { _lastFoodItem = PrepCheck.ItemOf(food); _lastFoodHq = PrepCheck.IsHq(food); }
 
             // Each optional check is only RESOLVED when it's switched on, so an
-            // extra nobody uses costs nothing per frame. The "true" defaults are
-            // also the ones FoodVerdict treats as "nothing to report".
+            // extra nobody uses costs nothing per frame.
             var warn = PrepCheck.WarnSecondsFor(C.PrepCheckUseFightLength, C.PrepCheckWarnMinutes,
                 C.PrepCheckUseFightLength ? PrepCheck.FightSeconds(_plugin.ActiveFight()) : 0f);
             var verdict = PrepCheck.FoodVerdict(food,
                 !C.PrepCheckWarnWrongFood || PrepCheck.IsBattleFood(food),
                 !C.PrepCheckWarnNq || PrepCheck.IsHq(food),
-                // A ready check gets an answer either way: silence would be
-                // indistinguishable from the check not running, so healthy food
-                // reports itself as a muted timer rather than as nothing.
+                // A ready check gets an answer either way, so healthy food shows a
+                // muted timer.
                 new PrepCheck.FoodOpts(warn, C.PrepCheckWarnWrongFood, C.PrepCheckWarnNq,
                     C.PrepCheckAlwaysShowFood || _readyCheck));
 
@@ -172,9 +157,7 @@ public class PrepWindow : Window
             drew = true;
         }
 
-        // Test mode always leaves something on screen to drag, whatever your real
-        // food and pot happen to be doing - otherwise the one moment you'd want to
-        // place this (stood in a duty, well fed) is the moment it draws nothing.
+        // Test mode always leaves something on screen to drag.
         if (!drew && C.TestMode)
         {
             Row(PrepCheck.StatusIcon(PrepCheck.WellFedStatus), "Food 3:41", Theme.Warn);
@@ -214,9 +197,8 @@ public class PrepWindow : Window
     private bool PotionTick()
     {
         var medicated = PrepCheck.Read(PrepCheck.MedicatedStatus);
-        // Remember the tincture while it's up: by the time the note fires the
-        // buff is five minutes gone, so this is the only chance to learn which
-        // pot it was.
+        // Remember the tincture while it's up: it is long gone by the time the note
+        // fires.
         if (medicated.Present)
         {
             _lastPotItem = PrepCheck.ItemOf(medicated);
@@ -227,13 +209,6 @@ public class PrepWindow : Window
     }
 
     // Speak a phrase the first frame it becomes true.
-    //
-    // The announcer is advanced whether or not speech is switched on, so that
-    // turning it on mid-duty doesn't immediately announce a state that had
-    // already been true and on screen for a minute.
-    //
-    // Deliberately independent of the combat-cue audio switch: wanting these
-    // shouldn't mean turning on in-fight callouts as well.
     private void Announce(PrepCheck.Announcer announcer, string phrase)
     {
         var say = announcer.Next(phrase);

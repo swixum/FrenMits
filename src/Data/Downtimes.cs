@@ -4,19 +4,10 @@ using System.Linq;
 
 namespace FrenMits;
 
-// ATTRIBUTION: the untargetable/targetable window times below are adapted from the
-// cactbot project's timeline files (github.com/OverlayPlugin/cactbot, Apache License
-// 2.0, Copyright the cactbot authors), anchored to fight mechanics and converted
-// onto FrenMits' compressed sheet clock.
-//
-// Hardcoded downtime / DPS-gate knowledge per fight - the plugin KNOWS where a
-// boss goes untargetable and what HP it must be pushed below by then, instead of
-// learning it off pulls.
-//
-//  Start     - seconds from pull when the boss goes untargetable
-//  Duration  - how long the lull lasts (Targetable = Start + Duration)
-//  TargetHp  - the phase's DPS check: the HP fraction (0..1) you must push it below
-//              by Start, or -1 for a plain lull (cutscene) with no push check
+// ATTRIBUTION: the untargetable/targetable window times below are adapted from
+// the cactbot project's timeline files (github.com/OverlayPlugin/cactbot,
+// Apache License 2.0, Copyright the cactbot authors), anchored to fight
+// mechanics and converted onto FrenMits' compressed sheet clock.
 public static class Downtimes
 {
     private static readonly List<DowntimeWindow> None = new();
@@ -44,10 +35,7 @@ public static class Downtimes
         _ => None,
     };
 
-    // Effective() results per territory, kept because the board asks for them once
-    // per row per frame (plus the downtime tick) and each ask used to rebuild the
-    // whole list. Invalidated by a fingerprint of the learned refinements, which
-    // only change when a pull finishes measuring one.
+    // Cached: the board asks once per row per frame.
     private static readonly Dictionary<uint, (int Stamp, List<DowntimeWindow> Windows)> _effective = new();
 
     // Territory -> its config key, so the per-frame lookups below don't allocate a
@@ -73,9 +61,7 @@ public static class Downtimes
         return stamp;
     }
 
-    // The hardcoded windows with any learnable ones (Learn=true, where cactbot
-    // couldn't pin the time) refined by a measured Start/Duration recorded from a
-    // pull.
+    // The hardcoded windows, with learnable ones refined by a measured pull.
     public static List<DowntimeWindow> Effective(uint territory, Dictionary<string, List<DowntimeWindow>>? learned)
     {
         var baseWins = For(territory);
@@ -107,41 +93,20 @@ public static class Downtimes
         return result;
     }
 
-    // Dancing Mad (UMAD); the untargetable/targetable TIMES are the median across
-    // six top logs kills, and the gate %s are the fight's design (P1 15%, P2 0%,
-    // P4 25%).
-    // Hell on Rails (Doomtrain EX), from the log-built sheet and checked against
-    // eight top kills. The first window matches them exactly; the second starts
-    // later here than a speed kill reaches it, because the phase is gated on the
-    // boss's HP - a faster party gets there sooner, and the resync anchors are
-    // what take up the difference.
+    // Dancing Mad (UMAD): times are the median across six top logs kills.
     private static readonly List<DowntimeWindow> Doomtrain = new()
     {
         new() { Start = 156, Duration = 18, TargetHp = -1f }, // logs agree 8/8
         new() { Start = 207, Duration = 22, TargetHp = -1f }, // top kills reach it at ~194 (7/8)
     };
 
-    // The Unmaking (Enuo EX). Read straight off the logs this time: ten kills and
-    // eight wipes long enough to run past ten minutes, and every one of the
-    // eighteen has exactly these two lulls and no others.
-    //
-    // The two that used to be here, at 461s and 500s, were quiet stretches in the
-    // sheet's own pull rather than the boss going away - no pull has downtime
-    // there, and a kill is over by 480s. Nothing was ever untargetable that late.
-    //
-    // The second one drifts with how fast the party is: 236-245s across the kills,
-    // 252-268s across the wipes. Learn refines it from your own pulls, since which
-    // end of that you land on depends on your damage.
-    // Read off the twenty kills the fight was built from: the one stretch with no
-    // cast at all, which is Zelenia stepping away after the opener.
+    // The Unmaking (Enuo EX).
     private static readonly List<DowntimeWindow> Zelenia = new()
     {
         new() { Start = 46.9f, Duration = 16.4f, TargetHp = -1f },
     };
 
-    // The Light-heavyweight tier. Plain lulls throughout: the phase changes in
-    // this tier happen across windows of twenty seconds or so, short enough that
-    // the anchors either side already carry the clock across them.
+    // The Light-heavyweight tier.
     private static readonly List<DowntimeWindow> M1s = new()
     {
         new() { Start = 125.0f, Duration = 19.4f, TargetHp = -1f },
@@ -175,8 +140,7 @@ public static class Downtimes
     };
 
     // The Cruiserweight tier, measured as the gaps where twelve logged kills
-    // recorded no cast at all. All plain lulls: none of these four has a DPS gate
-    // that pushes the boss out early, so nothing here carries a TargetHp.
+    // recorded no cast at all.
     private static readonly List<DowntimeWindow> M5s = new()
     {
         new() { Start = 253.3f, Duration = 21.8f, TargetHp = -1f },
@@ -217,9 +181,7 @@ public static class Downtimes
         new() { Start = 857, Duration = 31, TargetHp = 0.25f }, // P4 -> P5 (targetable 888)
     };
 
-    // Futures Rewritten (FRU); these times are on the SHEET clock (forcejump-
-    // inflated, not real time), so windows are placed by anchoring to nearby sheet
-    // mechanics rather than a fixed offset.
+    // Futures Rewritten (FRU): these times are on the sheet clock, not real time.
     private static readonly List<DowntimeWindow> Fru = new()
     {
         new() { Start = 35,  Duration = 45,  Learn = true }, // P1 Utopian Sky intermission
@@ -231,10 +193,8 @@ public static class Downtimes
         new() { Start = 857, Duration = 173, Learn = true, Cutscene = true }, // P4 -> P5 Pandora cutscene
     };
 
-    // The five older ultimates share the same story: their Ikuya sheet clock is
-    // compressed vs the cactbot timeline (nonlinearly, per phase), so each window
-    // was converted by anchoring the cactbot marker to the nearest same-phase sheet
-    // mechanic and subtracting that phase's offset.
+    // The five older ultimates: each window was converted by anchoring to the nearest
+    // same-phase sheet mechanic.
 
     // Unending Coil (UCOB); every window log-verified across two independent 6-kill
     // sets, converted onto the sheet clock through the fight's own anchor casts.
@@ -264,9 +224,7 @@ public static class Downtimes
         new() { Start = 642, Duration = 19, Learn = true }, // P5 Ultimate Suppression
     };
 
-    // Epic of Alexander (TEA); log-verified across two independent 6-kill sets, with
-    // big per-phase clock jumps (+82/+188/+234) so seams straddling a jump are best
-    // estimates.
+    // Epic of Alexander (TEA): log-verified across two independent 6-kill sets.
     private static readonly List<DowntimeWindow> Tea = new()
     {
         new() { Start = 114, Duration = 32, Learn = true }, // P1 -> P2 Living Liquid -> BJCC
@@ -279,9 +237,7 @@ public static class Downtimes
         new() { Start = 839, Duration = 27, Learn = true }, // P4 Fate Calibration Beta
     };
 
-    // Dragonsong's Reprise (DSR); a 7-phase nonlinear clock, log-verified across two
-    // independent 6-kill sets (the P6/P7 dragon phase is left off as a run of brief
-    // merged flickers with no stable single window).
+    // Dragonsong's Reprise (DSR): a 7-phase nonlinear clock; P6/P7 is left off.
     private static readonly List<DowntimeWindow> Dsr = new()
     {
         new() { Start = 33,  Duration = 31, Learn = true }, // P2 Strength of the Ward adds

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Action id -> its display name, memoized. Used when turning a captured pull into
-// timeline rows, where the same handful of boss abilities get looked up over and
-// over across a fight.
+// Action id -> its display name, memoized.
 public static class ActionNames
 {
     // Concurrent for the same reason as BossNames: cheap insurance against a

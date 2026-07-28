@@ -8,22 +8,6 @@ namespace FrenMits;
 
 // Builds crisp font handles for the overlay, each (family, style, size) built
 // once and cached.
-//
-// A handle is NOT ready the moment it's created: NewDelegateFontHandle kicks off
-// an atlas build on a background thread and Available stays false until it lands,
-// a few frames later. Anything drawn in the meantime used to fall back to
-// magnifying the ~12px bitmap atlas, which is where the blocky first frames after
-// pressing Test came from - the main call overlay defaults to 40px, so that was a
-// 2.2x blow-up of a bitmap.
-//
-// Three things keep that off the screen now:
-//   Warm       - build the sizes actually configured before anything draws them
-//   Nearest    - if a handle still isn't ready, borrow the closest one that IS,
-//                so the worst case is a real font scaled slightly rather than a
-//                bitmap scaled a lot
-//   LRU + Tick - evict one handle at a time instead of dumping every one of them
-//                (which made every overlay go blocky at once), and hold the
-//                disposal for a few frames in case a window is mid-draw with it
 public class FontManager : IDisposable
 {
     private sealed class Entry
@@ -38,19 +22,10 @@ public class FontManager : IDisposable
     private readonly List<(IFontHandle Handle, long Frame)> _retired = new();
     private long _frame;
 
-    // Steady state is about seven handles (five overlays plus the call's two
-    // derived sizes), so this is headroom rather than a working set - handles are
-    // fonts baked into a shared atlas, and hoarding them costs texture memory.
-    //
-    // The cap mattering less is the point: it used to be 24 and dumped ALL of them
-    // on overflow, which one text-size slider could trigger on its own (the combat
-    // timer's runs 12-120px, or 55 handles on the 2px grid) and took every overlay
-    // blocky with it. Evicting one at a time means a slider drag now pushes out the
-    // sizes it just passed through, not the ones being drawn.
+    // Headroom, not a working set: steady state is about seven handles.
     private const int MaxHandles = 32;
 
-    // Frames a handle sits retired before it's really disposed. Anything mid-draw
-    // has long since popped it by then.
+    // Frames a handle sits retired before it's really disposed.
     private const int RetireFrames = 3;
 
     // Selectable families -> (regular, bold, italic, bold-italic) filenames in the
@@ -101,8 +76,7 @@ public class FontManager : IDisposable
             : ResolveFile(family, bold, italic)) ?? "";
 
     // Once per frame: age the retirement list and actually dispose what's old
-    // enough. Kept separate from Get so eviction never disposes a handle that a
-    // window pushed earlier in this same frame.
+    // enough.
     public void Tick()
     {
         _frame++;
@@ -128,8 +102,7 @@ public class FontManager : IDisposable
             return hit.Handle;
         }
 
-        // Full: retire the least recently used ONE, not the whole cache. Dumping
-        // everything meant every overlay on screen went blocky together.
+        // Full: retire the least recently used ONE, not the whole cache.
         if (_entries.Count >= MaxHandles)
         {
             var oldest = "";
@@ -160,12 +133,8 @@ public class FontManager : IDisposable
         }
     }
 
-    // The closest handle that is ACTUALLY ready, for the frames before the exact
-    // one finishes building. Same font file only - borrowing a different typeface
-    // would be a worse lie than a slight size correction.
-    //
-    // Returns the handle and the size it was really built at, so the caller can
-    // correct the difference. Null when nothing of this font is ready yet.
+    // The closest handle that is ACTUALLY ready, for the frames before the
+    // exact one finishes building.
     public (IFontHandle Handle, int Px)? Nearest(float sizePx, string family, bool bold, bool italic)
     {
         var want = SnapPx(sizePx);
@@ -186,11 +155,6 @@ public class FontManager : IDisposable
     }
 
     // Build the sizes that are actually configured, before anything draws them.
-    // This is what stops the Test button showing a blocky first frame: by the time
-    // an overlay appears its handle has been building for a while already.
-    //
-    // Re-runs only when a font setting actually changes, so it costs one string
-    // compare a frame the rest of the time.
     public void WarmIfNeeded(Configuration c)
     {
         var stamp = $"{c.OverlayFontFamily}|{c.OverlayFontBold}|{c.OverlayFontItalic}|"
@@ -207,20 +171,13 @@ public class FontManager : IDisposable
         Get(c.MitBarFontSizePx, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.PrepCheckFontSizePx, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.CombatTimerFontSizePx, c.CombatTimerFontFamily, c.CombatTimerFontBold, c.CombatTimerFontItalic);
-        // The call overlay's secondary text is a fixed fraction of its own size
-        // (the mechanic line and the countdown), so those are real configured
-        // sizes too. Its radial-ring number scales with the ring's diameter and
-        // can't be predicted - Nearest covers that one.
+        // The call overlay's secondary text is a fixed fraction of its own size.
         Get(c.OverlayFontSizePx * 0.5f, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.OverlayFontSizePx * 0.55f, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
     }
 
-    // The scale to draw at when the handle we WANT isn't ready and we're borrowing
-    // one built at another size.
-    //
-    // Exactly 1 when they're close enough that resampling would cost more than it
-    // fixes - a correction under 2% is invisible, and leaving the scale alone keeps
-    // glyphs on whole pixels.
+    // The scale to draw at when the handle we WANT isn't ready and we're
+    // borrowing one built at another size.
     public static float Correction(int wantPx, int havePx)
     {
         if (havePx <= 0 || wantPx <= 0) return 1f;

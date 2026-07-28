@@ -6,15 +6,6 @@ using Newtonsoft.Json;
 namespace FrenMits;
 
 // Fight plans live in their own file next to the config, rather than inside it.
-//
-// They were 99.6% of what the config weighed - about 700KB of plans against 6KB
-// of actual settings - and Configuration.Save() is called from nearly 200 places,
-// so before this every checkbox re-serialized and rewrote every plan you own.
-// Ticking a box now writes 6KB.
-//
-// Owning the serializer is also what lets the plan file drop the "$type" marker
-// Dalamud's config serializer stamps on every single line, and honour the
-// ShouldSerialize rules on MitLine.
 public static class PlanStore
 {
     public const string FileName = "plans.json";
@@ -26,16 +17,10 @@ public static class PlanStore
     // (Save runs on every plan edit, and most of them touch one line).
     private static string _onDisk = "";
 
-    // Set when the file EXISTS but wouldn't load. Mirrors Configuration.SuppressSave:
-    // a plan file we can't read is one we must not overwrite, because the copy on
-    // disk is the only one the user still has.
+    // Set when the file EXISTS but wouldn't load.
     public static bool Broken { get; private set; }
 
-    // The plans on disk, or null when there is no plan file yet (a fresh install,
-    // or a profile that predates the split and still carries them in its config).
-    //
-    // Null is deliberately NOT the same as an empty list: empty means "this user
-    // deleted all their fights", and must not trigger the migration below.
+    // The plans on disk, or null when there is no plan file yet.
     public static List<FightProfile>? Load()
     {
         string json;
@@ -63,9 +48,7 @@ public static class PlanStore
         }
         catch (Exception ex)
         {
-            // Keep the unreadable file intact and stop writing for the session, so
-            // it stays recoverable instead of being replaced by whatever ended up
-            // in memory.
+            // Keep an unreadable file intact and stop writing for the session.
             Backup(file, ".corrupt.bak");
             Service.Log?.Error(ex,
                 $"FrenMits: plans.json exists ({json.Length} bytes) but failed to parse. " +
@@ -75,20 +58,12 @@ public static class PlanStore
         }
     }
 
-    // Which copy to believe when the config STILL carries fights and a plan file
-    // exists as well.
-    //
-    // From this version on the config never writes them, so a config that has
-    // them was written by an older build - i.e. somebody rolled back, edited, and
-    // came forward again. Whichever file was written last is the real one.
-    //
-    // Pure so the decision is testable; the timestamps come from the caller.
+    // Which copy to believe when the config STILL carries fights and a plan
+    // file exists as well.
     public static bool PreferConfigCopy(bool planFileExists, int legacyCount, bool configIsNewer)
         => legacyCount > 0 && (!planFileExists || configIsNewer);
 
     // True when the config file was written more recently than the plan file.
-    // Unknowable (either file missing, or the clock/filesystem objects) counts as
-    // false, which keeps the newer format as the default answer.
     public static bool ConfigIsNewerThanPlans()
     {
         try
@@ -136,9 +111,8 @@ public static class PlanStore
         }
     }
 
-    // Taken once, immediately before the first save that leaves plans out of the
-    // config. Rolling back to an older FrenMits would otherwise find no fights,
-    // since that build only ever looked inside the config for them.
+    // Taken once, immediately before the first save that leaves plans out of
+    // the config.
     public static void BackupConfigBeforeSplit()
     {
         try

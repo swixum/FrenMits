@@ -29,14 +29,14 @@ public partial class ConfigWindow
             ImGui.TextUnformatted(fight.Name);
             ImGui.SameLine(0, 8);
             ImGui.TextDisabled("(official sheet)");
-            Tip("Line times are seconds from the pull, one continuous timeline across every phase; resets on a wipe.");
+            Tip("Times are seconds from the pull.");
             return true;
         }
 
         var name = fight.Name;
         ImGui.SetNextItemWidth(260f);
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
-        Tip("Line times are seconds from the pull, one continuous timeline across every phase; resets on a wipe.");
+        Tip("Times are seconds from the pull.");
 
         var ci = Array.IndexOf(FightTypes, fight.Category);
         if (ci < 0) ci = FightTypes.Length - 1;
@@ -46,7 +46,7 @@ public partial class ConfigWindow
             fight.Category = FightTypes[ci];
             C.Save();
         }
-        Tip("Ultimate / Savage / Extreme: which sidebar group this fight files under.");
+        Tip("Which sidebar group this fight files under.");
 
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
@@ -94,9 +94,7 @@ public partial class ConfigWindow
     private static bool IsTankSlot(string? slot)
         => slot != null && TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase);
 
-    // Tank-buster mit plan from the fight's sheet (pick your pairing, add your
-    // job's lines), shown only for fights that have tank-combo data when you're set
-    // to a tank slot (MT/OT/T1/T2), since it's irrelevant on any other role.
+    // Tank-buster mit plan from the fight's sheet, shown only on a tank slot.
     private void DrawTankSection(FightProfile fight)
     {
         if (!TankMits.Has(fight.TerritoryId)) return;
@@ -155,9 +153,7 @@ public partial class ConfigWindow
     private Vector2 _cardTopLeft;
     private float _cardWidth;
 
-    // Begin an auto-height styled card (panel background + left accent bar + an
-    // icon title, drawn behind the content via draw-list channels so the panel fits
-    // whatever's inside); every BeginCard must be paired with EndCard.
+    // Begin an auto-height styled card; every BeginCard must be paired with EndCard.
     private void BeginCard(FontAwesomeIcon icon, Vector4 iconColor, string title, string subtitle = "")
     {
         ImGui.Spacing();
@@ -227,23 +223,21 @@ public partial class ConfigWindow
         if (ImGui.Combo("Your slot##customslot", ref idx, slots, slots.Length)
             && idx >= 0 && !string.Equals(slots[idx], fight.Slot, StringComparison.OrdinalIgnoreCase))
         {
-            // SetSlot parks the old column's lines and gives a never-picked
-            // column a FRESH list; assigning fight.Lines here instead would
-            // alias two columns to one list.
+            // SetSlot parks the old column's lines; assigning here would alias two
+            // columns.
             _plugin.SetSlot(fight, slots[idx]);
             _plugin.SheetViewWindow.MarkPlanDirty();
         }
-        Tip("Which column of this sheet is YOURS; that column's lines are what the overlay calls.");
+        Tip("Which column is yours.");
         var slot = idx >= 0 ? slots[idx] : slots[0];
 
         ImGui.SameLine();
         if (ImGui.SmallButton("Reset this column")) ImGui.OpenPopup("##confirm-customreset");
-        Tip("Empties this column's mits. The rows, grades and notes stay; a snapshot is saved first.");
+        Tip("Clears this column's mits. Snapshot saved first.");
 
         ImGui.SameLine();
         if (ImGui.SmallButton("Reset all columns")) ImGui.OpenPopup("##confirm-customresetall");
-        Tip("Empties EVERY column's mits; rows, grades and notes stay. A snapshot is saved first, "
-            + "so Sheet View > Plan > History can restore the old plan.");
+        Tip("Clears every column's mits. Snapshot saved first.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
@@ -326,9 +320,7 @@ public partial class ConfigWindow
     private int _pracRowIdx;
     private readonly Dictionary<string, int> _pracRowIdxs = new(); // per fight; headers can co-exist
 
-    // Practice, contextual: one row of phase-jump buttons inside the fight it
-    // belongs to (the old Practice page, dissolved), with custom sheets (having no
-    // baked phases) practicing from any of their own rows instead.
+    // Practice: one row of phase-jump buttons inside the fight it belongs to.
     private void DrawPracticeRow(FightProfile fight)
     {
         var phases = Builtin.PhaseStarts(fight.TerritoryId);
@@ -338,7 +330,7 @@ public partial class ConfigWindow
             if (rows.Count == 0) return;
             ImGui.AlignTextToFramePadding();
             ImGui.TextDisabled("Practice:");
-            Tip("Jump the overlay to a row to preview and place its calls; no pull needed.\nPicking a row turns on Test Mode; Stop (or a real pull) ends it.");
+            Tip("Preview a row's calls. Turns on Test Mode.");
             _pracRowIdx = Math.Clamp(_pracRowIdxs.GetValueOrDefault(fight.Id), 0, rows.Count - 1);
             var labels = rows.Select(r => $"{Mmss(r.Time)}  {r.Mechanic}").ToArray();
             ImGui.SameLine(0, 6);
@@ -357,13 +349,13 @@ public partial class ConfigWindow
 
         ImGui.AlignTextToFramePadding();
         ImGui.TextDisabled("Practice:");
-        Tip("Jump the overlay to a phase to preview and place its calls; no pull needed.\nPicking a phase turns on Test Mode; Stop (or a real pull) ends it.");
+        Tip("Preview a phase's calls. Turns on Test Mode.");
         for (var i = 0; i < phases.Count; i++)
         {
             ImGui.SameLine(0, 4);
             if (ImGui.SmallButton($"{phases[i].Name}##prac{i}"))
                 _plugin.PracticeJump(fight, phases[i].Time);
-            Tip($"Preview from {(int)phases[i].Time / 60}:{(int)phases[i].Time % 60:00} (~6s before the first call).");
+            Tip($"Preview from {(int)phases[i].Time / 60}:{(int)phases[i].Time % 60:00}.");
         }
         if (Plugin.PreviewFight == fight && C.TestMode)
         {
@@ -374,9 +366,8 @@ public partial class ConfigWindow
         }
     }
 
-    // Potions card: baked top-log potion windows for your job with a one-click add,
-    // or the standard 2-minute burst meta for custom sheets (pot the opener, re-pot
-    // each 6:00 burst that fits the fight).
+    // Potions card: baked top-log windows, or the 2-minute burst meta for custom
+    // sheets.
     private void DrawPotionsSection(FightProfile fight)
     {
         var customPots = PotionTimings.BossSlug(fight.TerritoryId) == null
@@ -434,7 +425,7 @@ public partial class ConfigWindow
         }
         ImGui.PopStyleColor(2);
         ImGui.EndDisabled();
-        Tip("Adds these as job-tagged lines (replacing any existing potion lines for this job), so they only show when you're on it.");
+        Tip("Adds them tagged to your job.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
@@ -444,17 +435,12 @@ public partial class ConfigWindow
         EndCard();
     }
 
-    // Job-mitigation card: optional job-specific mit timers from logs (Asylum-style,
-    // e.g. BRD Nature's Minne, MNK Mantra, PLD Passage of Arms), shown only when
-    // you're on a job that has one for this fight.
+    // Job-mitigation card: optional job-specific mit timers from logs.
     private void DrawJobExtrasSection(FightProfile fight)
     {
         var job = _plugin.ActiveJobAbbreviation();
         if (string.IsNullOrEmpty(job)) return; // also lets the compiler see job is non-null below
-        // Baked schedule(s) for built-ins, or computed from a custom sheet's own
-        // rows (hardest-graded hits first); a job may offer several (e.g. DNC's
-        // Curing Waltz + Improvisation), optional either way like the Ikuya sheets'
-        // Extras column.
+        // Baked schedules for built-ins, or computed from a custom sheet's own rows.
         var extras = JobExtras.AllFor(fight, job);
         if (extras.Count == 0) return;
         var custom = JobExtras.For(fight.TerritoryId, job) == null; // no baked zone schedule -> from the sheet
@@ -473,10 +459,8 @@ public partial class ConfigWindow
 
             if (extra.Steps is { Length: > 0 } steps)
             {
-                // Sequence extra (SMN summons): each step is its own action, and
-                // bursts group consecutive summons (up to 3, split on a >20s gap) so
-                // it can be added as one spoken cue per burst ("Garuda / Titan /
-                // Ifrit") or one per summon.
+                // Sequence extra (SMN summons): each step is its own action, grouped
+                // into bursts.
                 var names = steps.Select(s => s.Summon).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
                 var bursts = new List<List<(int Time, string Summon)>>();
                 foreach (var s in steps)
@@ -517,11 +501,11 @@ public partial class ConfigWindow
                 ImGui.TextDisabled($"{steps.Length} summons in {bursts.Count} bursts");
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Grouped ({bursts.Count})"))
                     AddSummons(true);
-                Tip("One cue per burst of three (\"Garuda / Titan / Ifrit\") - the fewest lines.");
+                Tip("One cue per burst of three.");
                 ImGui.SameLine();
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Singles ({steps.Length})"))
                     AddSummons(false);
-                Tip($"One cue per summon. Either replaces any existing summon cues and is {job}-only.");
+                Tip($"One cue per summon. {job} only.");
             }
             else
             {
@@ -545,7 +529,7 @@ public partial class ConfigWindow
                     SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
                     FlashBuiltin($"Added {extra.Lines.Length} {job} {extra.Action} line(s).");
                 }
-                Tip($"Adds {extra.Action} as {job}-tagged lines (replacing any existing ones), so they only show on {job}.");
+                Tip($"Adds {extra.Action}, tagged to {job}.");
             }
 
             ImGui.PopStyleColor(2);
@@ -577,15 +561,13 @@ public partial class ConfigWindow
                     TerritoryId = fight.TerritoryId,
                     Category = fight.Category,
                     TimerOffset = fight.TimerOffset,
-                    // The copy starts disabled because with both live the original
-                    // would keep winning the zone and edits to the copy would
-                    // silently never fire.
+                    // The copy starts disabled: with both live the original would keep
+                    // winning the zone.
                     Enabled = false,
                     Slot = fight.Slot,
                     Lines = fight.Lines.Select(CloneLine).ToList(),
-                    // Deep-copy the rest too: for a custom fight the hand-built
-                    // anchors are its most laborious data, and sharing object
-                    // references between two profiles would make edits bleed over.
+                    // Deep-copy the rest too, or edits would bleed between the two
+                    // profiles.
                     SyncPoints = fight.SyncPoints.Select(s => new SyncPoint
                     { Ability = s.Ability, Time = s.Time, IsPhase = s.IsPhase, Label = s.Label }).ToList(),
                     BossAnchors = fight.BossAnchors.Select(b => new BossAnchor
@@ -602,13 +584,13 @@ public partial class ConfigWindow
                 });
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("The copy starts disabled - enable whichever version should be live.");
+                ImGui.SetTooltip("The copy starts disabled.");
             ImGui.SameLine();
         }
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Upload, "Export to clipboard")) ExportFight(fight);
         ImGui.SameLine();
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Download, "Import from clipboard")) ImportFightFromClipboard();
-        Tip("Share a whole fight (lines included) with a friend via a clipboard code.");
+        Tip("Share the fight as a clipboard code.");
 
         ImGui.Spacing();
         ImGui.BeginDisabled(locked); // a built-in's zone is fixed

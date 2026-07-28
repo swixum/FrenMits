@@ -11,9 +11,7 @@ using System.Threading.Tasks;
 
 namespace FrenMits;
 
-// Text-to-speech via Windows SAPI voices (offline, via COM) or Microsoft Edge
-// "Read Aloud" online neural voices (free, no key, no install, fetched as WAV),
-// best-effort and silent on failure with Edge falling back to SAPI.
+// Text-to-speech via Windows SAPI voices or Edge online neural voices.
 public class Audio : IDisposable
 {
     // Curated English Edge neural voices, tagged by gender so the UI can show a
@@ -47,10 +45,7 @@ public class Audio : IDisposable
     // AND thread-pool tasks (the Edge fallback); one lock serializes all of it.
     private readonly object _sapiLock = new();
 
-    // Cue ordering: each Speak gets a rising sequence number, and playback only
-    // accepts a cue newer than the last one played across BOTH engines, so a
-    // slow Edge fetch can't play over a newer cue that already went out via the
-    // Windows voice.
+    // Cue ordering: playback only accepts a cue newer than the last one played.
     private long _speakSeq;
     private long _playedSeq;
     private volatile bool _disposed;
@@ -87,9 +82,8 @@ public class Audio : IDisposable
         {
             var t = text;
             var v = voice;
-            // Fire-and-forget: an OUTER catch-all guarantees the task can never
-            // fault unobserved (which, with ThrowUnobservedTaskExceptions on, would
-            // crash the game).
+            // An outer catch-all keeps the task from faulting unobserved and crashing
+            // the game.
             _ = Task.Run(() =>
             {
                 try
@@ -350,9 +344,7 @@ public class Audio : IDisposable
         return wav.Length > 44 ? wav : null;
     }
 
-    // Rolling security token Microsoft requires: SHA-256 of (Windows file-time ticks
-    // rounded down to 5 minutes) + the client token, in EXACT integer math since
-    // doubles lose precision at ~1.3e17 and produce a 403.
+    // Rolling security token Microsoft requires; doubles lose precision here and 403.
     private static string EdgeSecToken()
     {
         long seconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 11644473600L; // -> Windows epoch
@@ -389,10 +381,7 @@ public class Audio : IDisposable
 
     // ---- MP3 playback (NAudio) --------------------------------------------
 
-    // Single shared output so online cues never overlap: a new clip STOPS the one
-    // currently playing (the "interrupt, latest wins" behaviour SAPI gets from
-    // PurgeBeforeSpeak), otherwise cues close together would play on top of each
-    // other and sound doubled.
+    // One shared output, so a new clip stops the one playing instead of doubling.
     private readonly object _playLock = new();
     private NAudio.Wave.WaveOutEvent? _output;
     private NAudio.Wave.Mp3FileReader? _reader;

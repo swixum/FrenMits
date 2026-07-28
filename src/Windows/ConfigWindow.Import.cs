@@ -107,15 +107,14 @@ public partial class ConfigWindow
         {
             if (_importJobMode == 1 && pickedJobs.Count == 0)
             {
-                // "My selected job" resolved to nothing (Job selection on Auto with
-                // no player loaded). Empty Jobs means "everyone", so importing now
-                // would silently give every job these lines - block it instead.
+                // "My selected job" resolved to nothing (Job selection on Auto
+                // with no player loaded).
                 FlashBuiltin("Couldn't resolve your job - pick jobs manually or set Job selection first.");
             }
             else
             {
-                // Always additive: imported lines are appended onto whatever this slot
-                // already has, then sorted. Nothing is replaced.
+                // Always additive: imported lines are appended onto whatever
+                // this slot already has, then sorted.
                 var imported = SheetImport.BuildLines(_importGrid, opt);
                 var merged = new List<MitLine>(fight.Lines);
                 merged.AddRange(imported);

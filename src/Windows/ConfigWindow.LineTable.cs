@@ -22,7 +22,7 @@ public partial class ConfigWindow
         if (ImGui.SmallButton("Sort by time")) SetFightLines(fight, fight.Lines.OrderBy(l => l.Time).ToList());
         ImGui.SameLine();
         ImGui.TextDisabled("(?)");
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Right-click a line's time / mechanic / action cell to copy, paste, duplicate, reorder, or delete it.");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Right-click a cell for more tools.");
 
         // Deleted sheet calls are remembered (so updates can't re-add them); show
         // that hidden state and offer the way back.
@@ -39,7 +39,7 @@ public partial class ConfigWindow
                 C.Save();
                 FlashBuiltin($"Restored {back} deleted sheet call{(back == 1 ? "" : "s")}.");
             }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Bring every deleted sheet call for this slot back from the sheet.");
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Restore this slot's deleted calls.");
         }
 
         // Grow the table to fill what's left, leaving room for the import header
@@ -88,11 +88,7 @@ public partial class ConfigWindow
             if (ImGui.IsItemActivated()) { _editTimeLine = line; _editTimeBuf = line.TimeText; }
             if (ImGui.IsItemDeactivatedAfterEdit())
             {
-                // Commit ONLY if the shared buffer still belongs to this line, since
-                // clicking straight into an earlier row's time cell activates that
-                // cell first in the frame (overwriting the buffer), so committing
-                // unconditionally here would write the OTHER row's time into this
-                // line.
+                // Commit only if the shared buffer still belongs to this line.
                 if (_editTimeLine == line && SheetImport.TryParseTime(_editTimeBuf, out var sec)
                     && MathF.Abs(sec - line.Time) > 0.001f)
                 {
@@ -158,8 +154,8 @@ public partial class ConfigWindow
                 }
                 if (line.OffsetSeconds != 0f) ImGui.PopStyleColor();
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Offset just this call: + = earlier, - = later. Click to edit."
-                        + (line.OffsetSeconds != 0f ? $"\nCurrently {line.OffsetSeconds:+0.#;-0.#}s." : ""));
+                    ImGui.SetTooltip("+ earlier, - later. Click to edit."
+            + (line.OffsetSeconds != 0f ? $"\nNow {line.OffsetSeconds:+0.#;-0.#}s." : ""));
             }
 
             ImGui.TableNextColumn();
@@ -196,9 +192,8 @@ public partial class ConfigWindow
             ImGui.SetNextItemWidth(-1);
             if (ImGui.InputText("##action", ref action, 256))
             {
-                // Tombstone here too, not just on time/mechanic edits: otherwise
-                // editing the ACTION first would leave later tombstones recording
-                // the mutated action, which no longer matches the baked original.
+                // Tombstone here too, or editing the action first would record the
+                // mutated one.
                 PreserveBakedEdit(fight, line);
                 line.Action = action;
                 C.Save();
@@ -235,9 +230,7 @@ public partial class ConfigWindow
         deferred?.Invoke();
         if (toDelete != null)
         {
-            // Sheet-baked lines get a tombstone so the zone-in top-up / slot
-            // switches / sheet re-bakes can't resurrect them, while custom lines
-            // exist only in the saved lists, so removal alone is final for those.
+            // Sheet-baked lines get a tombstone so a re-bake can't resurrect them.
             if (!toDelete.Custom && Builtin.Has(fight.TerritoryId) && !string.IsNullOrEmpty(fight.Slot))
             {
                 fight.DeletedCalls.Add(new DeletedCall
@@ -258,10 +251,7 @@ public partial class ConfigWindow
         }
     }
 
-    // Right-click line menu shared by the time / mechanic / action cells (copy a
-    // line to the in-memory clipboard, paste above / below / over this one,
-    // duplicate, reorder, or delete), with list-mutating actions deferred so the
-    // caller can run them once the row loop finishes.
+    // Right-click line menu shared by the time / mechanic / action cells.
     private void LineContextItems(FightProfile fight, MitLine line, int index, ref Action? deferred, ref MitLine? toDelete)
     {
         if (ImGui.MenuItem("Copy line")) _copiedLine = CloneLine(line);
@@ -309,11 +299,7 @@ public partial class ConfigWindow
         if (ImGui.MenuItem("Delete line")) toDelete = line;
     }
 
-    // Editing the time or mechanic of a sheet-baked line breaks its identity with
-    // the bake (SameCall keys on time + mechanic), so preserve it the same way
-    // delete does by recording a tombstone at the ORIGINAL coordinates (call
-    // BEFORE mutating the line) and flagging the line Custom so it's the user's
-    // from here on.
+    // Editing time or mechanic breaks a baked line's identity, so tombstone it first.
     private static void PreserveBakedEdit(FightProfile fight, MitLine line)
         => Builtin.PreserveEdit(fight, fight.Slot, line);
 

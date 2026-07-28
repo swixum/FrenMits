@@ -4,32 +4,13 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Cooldown-aware offset solver (Sheet View's "Solve timing" button and the
-// automatic AutoCooldownTiming pass) that times each active-slot press so one
-// press blankets the run of hits its buff can reach and its cooldown is back for
-// the next mechanic.
+// Cooldown-aware offset solver: one press blankets the hits its buff can reach.
 public static class TimingSolver
 {
     // How much buff has to be LEFT when the last hit of a run lands.
-    //
-    // Without it the solver treats a buff as reaching exactly one duration ahead,
-    // so a 15s Feint stretched back to a hit 15s earlier expires on the very hit
-    // it was planned for - M11S solved Feint for Impact at 26s to a press at 11s,
-    // fading at 26.0. A press that lands on the boundary is a press that did
-    // nothing, and it burns the recast too.
-    //
-    // 1.5s is the slop worth allowing for: a sheet's row time is the log's damage
-    // timestamp, the game snapshots a little before that, and no two pulls run at
-    // exactly the same pace.
     private const float Grace = 1.5f;
 
-    // Time the fight's active-slot lines against the given mechanic hit times,
-    // mutating line.OffsetSeconds / CoverUntil in place and returning how many
-    // lines actually changed.
-    //
-    // `mitsFor` resolves an action's tracked mits; it defaults to the live game
-    // sheets and is only passed explicitly by the tests, which need a fixed mit
-    // table to assert the solver's invariants without a game running.
+    // Time the active-slot lines against the given hit times, in place.
     public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes, float lead = 5f,
         Func<string, IEnumerable<Cooldowns.PlanMit>>? mitsFor = null)
     {
@@ -63,11 +44,7 @@ public static class TimingSolver
             var mits = mitsFor(line.Action).ToList();
             if (mits.Count == 0) continue;
 
-            // Only something with a real buff behind it can be pressed early. Zoe,
-            // Recitation and Second Wind are tracked for their recast but shield
-            // nobody by themselves, and this used to read their missing duration as
-            // fifteen seconds and shift the call back a dozen seconds for a window
-            // that was never there. Book the recast and leave the timing alone.
+            // Only something with a real buff behind it can be pressed early.
             var covering = mits.Where(m => m.Duration > 0f).ToList();
             if (covering.Count == 0)
             {
@@ -92,10 +69,7 @@ public static class TimingSolver
             var iT = Nearest(line.Time);
             var T = hits[iT];
 
-            // Grow the run: back to the earliest still-uncovered hit the buff can
-            // reach (and the cooldown allows), then forward within the buff window.
-            // Capped at `reach`, not the full duration, so pressing at the front of
-            // the run still leaves buff on the back of it.
+            // Grow the run back to the earliest hit the buff reaches, then forward.
             int lo = iT, hi = iT;
             while (lo - 1 >= 0 && !covered[lo - 1]
                    && hits[hi] - hits[lo - 1] <= reach
@@ -106,9 +80,8 @@ public static class TimingSolver
             var last = hits[hi];
             var readyFloor = MathF.Max(ready, 0f);
 
-            // Press as EARLY as the cooldown allows while the buff still reaches the
-            // last hit of the run, keeping a margin so the recast starts ASAP and
-            // the mit is back for the NEXT mechanic.
+            // Press as early as the cooldown allows while the buff still reaches the
+            // last hit.
             var margin = MathF.Min(lead, dur * 0.5f);
             var press = MathF.Max(readyFloor, last - dur + margin);
             // ...but never so early the buff has faded by the run's FRONT hit.

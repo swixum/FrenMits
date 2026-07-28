@@ -7,9 +7,7 @@ using Dalamud.Interface.Textures;
 
 namespace FrenMits;
 
-// Resolves action names to game icon ids (built once from the Action sheet) and
-// draws those icons; a line may pin an explicit icon, otherwise the icon is
-// inferred from the action text.
+// Resolves action names to game icon ids and draws them.
 public static class Icons
 {
     private static Dictionary<string, uint>? _exact;
@@ -133,9 +131,7 @@ public static class Icons
         return 0;
     }
 
-    // A keyword-bucket match: a whole word equal to a single-word keyword, or the
-    // text containing a multi-word keyword (word-level so short keys like "kb"
-    // don't false-match inside longer words).
+    // A keyword-bucket match, at word level so short keys can't match inside a word.
     private static uint KeywordIcon(string text)
     {
         EnsureKeywords();
@@ -173,16 +169,11 @@ public static class Icons
                 yield return (char.ToUpper(kw[0]).ToString() + kw.Substring(1), ic);
     }
 
-    // The icon a line should display: its pinned icon, else the potion icon for a
-    // potion line, else the active job's matching ability for a generic mit term
-    // ("Party Mit" -> Troubadour on BRD, Shake It Off on WAR, ...), else inferred
-    // from the action text.
+    // The icon a line should display: pinned, potion, job ability, else inferred.
     public static uint For(MitLine line, string? job = null)
     {
         if (line.IconId != 0) return line.IconId;
-        // Memoized per (action, mechanic, job): the overlays ask for every
-        // visible call every frame, and the resolution below is all text parsing
-        // over pure inputs (ActionFor depends only on the action text + job).
+        // Memoized per (action, mechanic, job): the overlays ask every frame.
         var key = (line.Action, line.Mechanic, job ?? "");
         if (_forCache.TryGetValue(key, out var cached)) return cached;
         uint icon;
@@ -234,9 +225,7 @@ public static class Icons
             },
         };
 
-    // The active job's ability for a generic mit term in the action, honoring an
-    // optional job qualifier like "Party Mit (WAR/PLD)": resolves only when the job
-    // has no qualifier or is named in it.
+    // The active job's ability for a generic mit term, honoring a job qualifier.
     private static string? ResolveMitAbility(string? action, string? job)
     {
         if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return null;
@@ -347,9 +336,7 @@ public static class Icons
         if (_textCache.TryGetValue(text, out var cached)) return cached;
         EnsureBuilt();
 
-        // Priority: exact action > exact status > keyword bucket > action substring
-        // > status substring, so exact matches keep every existing line's icon and
-        // keywords/statuses only fill in where nothing matched before.
+        // Priority: exact action, exact status, keyword bucket, then substrings.
         var t = text.Trim();
         uint icon = 0;
         if (_exact!.TryGetValue(t, out var ax)) icon = ax;
@@ -363,12 +350,6 @@ public static class Icons
     }
 
     // The picker's own index, in the CLIENT's language.
-    //
-    // The matching indices above are English on purpose (our sheets are written
-    // in English), but this one is typed into by a person: a French player
-    // searching the icon picker should be able to type French. Built lazily, so
-    // an English client - where it only duplicates the index above - pays for it
-    // just once, and only if the picker is ever opened.
     private static List<(string Name, uint Icon)>? _searchIndex;
 
     private static List<(string Name, uint Icon)> SearchIndex()

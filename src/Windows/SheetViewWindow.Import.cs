@@ -20,9 +20,7 @@ public partial class SheetViewWindow
 
     private bool _bpRows = true;
     private bool _bpAnchors = true;
-    // logs import extras (a full kill log carries damage + gaps a live capture
-    // doesn't): keep only casts that mattered, and turn its downtime gaps into
-    // untargetable windows - so an imported fight reads like a built-in one.
+    // logs import extras: keep only casts that mattered and turn gaps into windows.
     private bool _flMeaningful = true;
     private bool _flDowntime = true;
 
@@ -94,9 +92,7 @@ public partial class SheetViewWindow
         "Thrill of Battle", "Dark Mind", "Bulwark",
     };
 
-    // Grade an ability's hardest unmitigated hit against the fight's hardest
-    // RAIDWIDE (busters are excluded from the yardstick): the top band is
-    // deadly, the middle hurts, anything known is at least light.
+    // Grade an ability's hardest unmitigated hit against the fight's hardest raidwide.
     private static int HurtLevel(long dmg, long max)
         => dmg <= 0 || max <= 0 ? 0
          : dmg >= max * 0.75 ? 3
@@ -121,11 +117,8 @@ public partial class SheetViewWindow
             var name = names != null && names.TryGetValue(id, out var n) && n.Length > 0 ? n : ActionName(id);
             if (name.Length == 0) continue;
             if (string.Equals(name, "attack", StringComparison.OrdinalIgnoreCase)) continue;
-            // A log labels an ability it doesn't know "unknown_<hex>", and for some
-            // of those the game's own Action sheet has no name either. Those are the
-            // hidden ones, and they are not mechanics: Doomtrain's unknown_b294 is
-            // the boss auto-attack - 104 hits on the two tanks - and it alone became
-            // 53 of that sheet's 118 rows, each a bar with no name to show.
+            // A log labels an ability it doesn't know "unknown_<hex>", and for
+            // some of those the game's own Action sheet has no name either.
             if (IsUnnamedAbility(name) && ActionName(id).Length == 0) continue;
             if (events.Count > 0 && events[^1].Id == id && time - events[^1].Time < 3f) continue;
             events.Add(new BuildEvent(id, time, name, anchorable));
@@ -155,19 +148,14 @@ public partial class SheetViewWindow
         PushUndo($"build from {source}");
         _plugin.Snapshots.Save(_fight, $"before build from {source}");
 
-        // The fight's timer, if this pull ran into it. Kept out of everything
-        // below: it can't be mitigated, so it isn't a mechanic to grade or plan,
-        // and its damage is an order of magnitude past every real hit - left in
-        // the scale it would grade the whole fight "light" (see Enrages).
+        // The fight's timer, if this pull ran into it.
         bool IsEnrage(BuildEvent e)
             => Enrages.Is(_fight.TerritoryId, e.Id)
                || (damage != null && damage.TryGetValue(e.Id, out var d)
                    && Enrages.LooksLikeOne(d.Worst, d.Targets));
 
-        // Raidwides (hit the party) and busters (only ever hit a player or two)
-        // are graded on SEPARATE scales: each against the hardest of its own
-        // kind, so a 400k buster neither drowns the raidwide scale nor reads as
-        // a party-mit moment.
+        // Raidwides and busters are graded on separate scales, each against its own
+        // kind.
         var maxDmg = 0L;   // hardest raidwide
         var maxTb = 0L;    // hardest buster
         if (damage is { Count: > 0 })
@@ -178,14 +166,10 @@ public partial class SheetViewWindow
                     else if (d.Worst > maxTb) maxTb = d.Worst;
                 }
 
-        // With the log's damage we can tell the real mechanics - a cast that hurt
-        // someone, or one telegraphed by a cast bar - from that filler, and build
-        // rows from only those.
+        // With the log's damage we can tell real mechanics from filler.
         bool Meaningful(BuildEvent e)
             => e.Anchorable || (damage != null && damage.ContainsKey(e.Id));
-        // Only filter when we actually have the damage data to judge with: without
-        // it the sole signal is cast bars, and dropping every instant cast would
-        // lose real mechanics, so keep them all instead of over-trimming.
+        // Only filter when we have the damage data to judge with.
         var rowEvents = meaningfulOnly && damage is { Count: > 0 }
             ? events.Where(Meaningful).ToList() : events;
         var filteredOut = events.Count - rowEvents.Count;
@@ -284,15 +268,12 @@ public partial class SheetViewWindow
             var lastById = new Dictionary<uint, float>();
             foreach (var e in events)
             {
-                // The gap detector runs over EVERY event; the phase flag then
-                // lands on the next anchorable cast (a log's instant abilities
-                // can't anchor, but they mustn't hide the downtime gap either).
+                // The gap detector runs over every event; the phase flag lands on the
+                // next anchorable cast.
                 if (e.Time - prev > (deriveDowntime ? ImportSeamGap : 90f)) pendingPhase = true;
                 prev = e.Time;
                 if (!e.Anchorable) continue;
-                // Same ability again within ~two match windows: skip the anchor
-                // (multi-hit raidwides), or overlapping windows could snap the
-                // clock to the wrong instance.
+                // Same ability again within two match windows: skip the anchor.
                 if (lastById.TryGetValue(e.Id, out var lt) && e.Time - lt < 18f) continue;
                 lastById[e.Id] = e.Time;
                 points.Add(new SyncPoint { Ability = e.Id, Time = e.Time, IsPhase = pendingPhase, Label = e.Name });
@@ -423,9 +404,8 @@ public partial class SheetViewWindow
             return;
         }
 
-        // Fastest path to an official-quality skeleton (#8): type the FIGHT name
-        // and pull the current top-speed kill straight from the rankings - no log
-        // link to find.
+        // Fastest path to an official-quality skeleton: type the fight name, no log
+        // link needed.
         ImGui.SetNextItemWidth(320f);
         ImGui.InputTextWithHint("##flfightname", "fight name (e.g. Futures Rewritten) - pulls the top kill", ref _flFightName, 128);
         ImGui.SameLine();
@@ -433,7 +413,7 @@ public partial class SheetViewWindow
         if (ImGui.SmallButton("Find top kill")) SearchEncounter();
         ImGui.EndDisabled();
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Looks up the encounter by name and loads its current #1 speed\nkill, ready to Import. The best starting point for an official sheet.");
+            ImGui.SetTooltip("Loads the current #1 speed kill, ready to import.");
 
         ImGui.TextDisabled("or paste a specific log:");
         ImGui.SetNextItemWidth(320f);
@@ -495,17 +475,13 @@ public partial class SheetViewWindow
                 ImGui.BeginDisabled(!_bpRows);
                 ImGui.Checkbox("Only meaningful mechanics", ref _flMeaningful);
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Keep only casts that dealt damage or had a cast bar,\n"
-                        + "so the timeline reads like a built-in fight instead of\n"
-                        + "listing every filler cast. Anchors still use every cast.");
+                    ImGui.SetTooltip("Keep only casts that hit or had a cast bar.");
                 ImGui.EndDisabled();
                 // Untargetable windows come from the log's silences, not the rows, so
                 // they're available even when you only want anchors + downtime.
                 ImGui.Checkbox("Add untargetable windows", ref _flDowntime);
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Turn the log's downtime gaps (the boss goes away for a\n"
-                        + "transition or cutscene) into untargetable -> targetable rows,\n"
-                        + "the grey/green washes that count down on the board.");
+                    ImGui.SetTooltip("Turn the log's downtime gaps into untargetable rows.");
                 ImGui.TextDisabled("Their kill's timings become this sheet's skeleton; anchors");
                 ImGui.TextDisabled("snap it to YOUR pulls live. Make sure the log is this duty.");
                 ImGui.BeginDisabled(!_bpRows && !_bpAnchors && !_flDowntime);

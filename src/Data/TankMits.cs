@@ -3,17 +3,13 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Tank-buster mit plans per tank pairing and per job, with times in seconds from
-// the pull (continuous, same clock as the main mit timeline). The Ikuya sheets
-// supply every fight here except FRU, which carries tank tabs of its own.
+// Tank-buster mit plans per tank pairing and per job, with times in seconds
+// from the pull (continuous, same clock as the main mit timeline).
 public static class TankMits
 {
     public sealed record Entry(int Time, string Mechanic, string Action);
 
-    // DMU and FRU, plus the legacy ultimates whose sheets carry per-pairing tank
-    // tabs (DSR/TOP) or a generic "All Comps" tank tab (UCOB/UWU) replicated across
-    // the standard six pairings, with TEA not baked yet since its tab doesn't split
-    // cleanly per job.
+    // DMU and FRU, plus the legacy ultimates whose sheets carry tank tabs.
     public static bool Has(uint territory) => territory is
         Builtin.DmuTerritory or Builtin.UcobTerritory or Builtin.UwuTerritory
         or Builtin.DsrTerritory or Builtin.TopTerritory or Builtin.FruTerritory;
@@ -44,9 +40,7 @@ public static class TankMits
         return data.TryGetValue(comp, out var d) && d.TryGetValue(job, out var e) ? e : Array.Empty<Entry>();
     }
 
-    // DMU per-pairing plans re-baked from the sheet v5.0 tank tabs, which
-    // replaced the old "90s/40%/Short Mit" shorthand with explicit ability names
-    // (TankMitsLegacy keeps the old bake for the v18 migration).
+    // DMU per-pairing plans re-baked from the sheet v5.0 tank tabs.
     static readonly Dictionary<string, Dictionary<string, Entry[]>> DmuTank = new()
     {
         ["WAR/DRK"] = new()
@@ -115,13 +109,7 @@ public static class TankMits
         },
     };
 
-    // FRU per-pairing plans from the official sheet's six tank tabs. Each tab puts
-    // the main tank in the left column and the off tank in the right, then repeats
-    // the whole plan with the roles swapped and again with the invulns traded; only
-    // the first block is baked, since a pairing here is one plan per job.
-    //
-    // Times are the community timeline's. Burn Mark 2 at 2:26 is in because the
-    // sheet plans it, though a party that pushes P1 on schedule never sees it.
+    // FRU per-pairing plans from the official sheet's six tank tabs.
     static readonly Dictionary<string, Dictionary<string, Entry[]>> FruTank = new()
     {
         ["WAR/DRK"] = new()

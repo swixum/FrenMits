@@ -4,15 +4,10 @@ using System.Linq;
 
 namespace FrenMits.Windows;
 
-// The mit auto-planner: from a custom sheet's graded rows it fills every column
-// with cooldowns the way the reference sheets play it - big buttons saved for the
-// big hits, short kits rolled, tank lanes and personals layered.
+// The mit auto-planner: fills every column from a custom sheet's graded rows.
 public partial class SheetViewWindow
 {
-    // Each job's CORE party-wide mitigation for auto-planning, mirroring what
-    // the reference sheets put in their main columns: personal mits live in the
-    // tank tabs, and extras-card abilities (Dismantle, Magick Barrier, Nature's
-    // Minne, ...) stay optional extras.
+    // Each job's core party-wide mitigation for auto-planning.
     private static readonly Dictionary<string, (string Name, float Recast)[]> JobPartyKit =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -28,9 +23,8 @@ public partial class SheetViewWindow
             ["NIN"] = new[] { ("Feint", 90f) }, ["SAM"] = new[] { ("Feint", 90f) },
             ["RPR"] = new[] { ("Feint", 90f) }, ["VPR"] = new[] { ("Feint", 90f) },
             ["BRD"] = new[] { ("Troubadour", 90f) },
-            // Dismantle / Magick Barrier / Tempera Grassa are deliberately NOT
-            // here: they are JobExtras (per-job add-on cards with their own
-            // log-derived schedules), and extras stay extras.
+            // Dismantle / Magick Barrier / Tempera Grassa are JobExtras: extras stay
+            // extras.
             ["MCH"] = new[] { ("Tactician", 90f) },
             ["DNC"] = new[] { ("Shield Samba", 90f) },
             ["BLM"] = new[] { ("Addle", 90f) }, ["SMN"] = new[] { ("Addle", 90f) },
@@ -38,9 +32,8 @@ public partial class SheetViewWindow
             ["PCT"] = new[] { ("Addle", 90f) },
         };
 
-    // A column's toolset: a column NAMED for a job (WHM, SGE, MCH...) plans
-    // with that job's real party kit; a role column (MT, H1, D3...) gets the
-    // generic terms that resolve per job at call time.
+    // A column's toolset: a job column plans with that job's kit, a role column with
+    // generics.
     private static (string Term, float Recast)[] PoolFor(string slot)
     {
         var t = slot.Trim().ToUpperInvariant();
@@ -51,12 +44,7 @@ public partial class SheetViewWindow
             "MT" or "OT" or "T" or "T1" or "T2" or "TANK" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
             "D1" or "D2" or "M1" or "M2" or "MELEE" or "D" or "DPS" => new[] { ("Feint", 90f) },
             "D3" or "R1" => new[] { ("Party Mit", 90f) },
-            // Casters get Addle and nothing else. Every phys ranged has a party
-            // mit (Troubadour / Tactician / Shield Samba) so the generic is safe
-            // in D3, but no caster has one as baseline: Magick Barrier and
-            // Tempera Grassa belong to RDM and PCT alone, they are JobExtras with
-            // their own schedules, and a BLM or SMN handed a "Party Mit" call has
-            // no button to press for it.
+            // Casters get Addle and nothing else.
             "D4" or "R2" => new[] { ("Addle", 90f) },
             // Healer party mits differ per job; the generic term resolves at
             // call time, spaced to the slowest of them so the button is never dead.
@@ -73,10 +61,7 @@ public partial class SheetViewWindow
     private static readonly HashSet<string> TankJobAbbrs = new(StringComparer.OrdinalIgnoreCase)
         { "WAR", "PLD", "DRK", "GNB" };
 
-    // Cooldowns whose TOOLTIP says their value scales with the NUMBER of
-    // damage instances while active (Liturgy of the Bell heals on each hit
-    // taken, Panhaima re-shields as its stacks break, Macrocosmos compiles
-    // damage taken and heals it back), so they belong on multi-hit strings.
+    // Cooldowns whose value scales with the number of damage instances while active.
     private static readonly HashSet<string> OnDamageMits = new(StringComparer.OrdinalIgnoreCase)
         { "Liturgy of the Bell", "Panhaima", "Macrocosmos" };
 
@@ -111,9 +96,8 @@ public partial class SheetViewWindow
         public float ReadyAt = -9999f; // ready even for pre-pull (negative-time) rows
         public float LastUse = -9999f;
         public int Order;
-        // Float-early state: the last SOLO line this run planned for this tool,
-        // and how many seconds it could still move earlier (bounded by its buff
-        // still covering its own row, and by when the tool was ready before it).
+        // Float-early state: the last solo line planned for this tool, and how far it
+        // can move.
         public MitLine? LastLine;
         public float FloatSlack;
         // Times the USER's own cells press this tool; the planner may not land
@@ -121,14 +105,9 @@ public partial class SheetViewWindow
         public List<float> UserTimes = new();
     }
 
-    // The planner, patterned on how the reference sheets actually play: deadly hits
-    // stack the whole party, big cooldowns are saved for big hits, and every press
-    // respects its recast (the game's numbers when available) with the load rotating
-    // least-recently-used first.
+    // The planner, patterned on how the reference sheets actually play.
     // ---- Timing solver -----------------------------------------------------
-    // Auto-offsets for the active slot: from the sheet's OWN row times, time each
-    // mit so one press blankets the run of hits its buff can reach (pressed at the
-    // front of that run) and its cooldown is back in time for the next mechanic.
+    // Auto-offsets for the active slot, from the sheet's own row times.
     private int SolveTiming()
     {
         if (_fight == null) return 0;
@@ -155,9 +134,7 @@ public partial class SheetViewWindow
 
     private int AutoPlanMits(FightProfile fight)
     {
-        // The fight's timer is not a mechanic. A hard enrage lands for ten million
-        // whatever is up, so a cooldown spent on it is a cooldown thrown away -
-        // and it would drag the party's big buttons away from the hit before it.
+        // The fight's timer is not a mechanic.
         var rows = fight.CustomRows
             .Where(r => !Enrages.IsEnrageRow(fight.TerritoryId, r))
             .OrderBy(r => r.Time).ToList();
@@ -177,9 +154,8 @@ public partial class SheetViewWindow
             => Cooldowns.PlanInfo(term)?.Duration is { } d and > 5f ? d : 18f;
         int TickScore(PlanTool t, CustomRow r)
             => OnDamageMits.Contains(t.Term) ? HitsWithin(r.Time, OnDmgDur(t.Term)) : 0;
-        // Tooltip-aware hold: never spend an on-damage cooldown where it ticks
-        // little when a strictly DENSER string it could ride starts within its
-        // recast - pressing it now is exactly what would rob that string.
+        // Never spend an on-damage cooldown where a denser string starts within its
+        // recast.
         bool HoldForCluster(PlanTool t, CustomRow r)
         {
             if (!OnDamageMits.Contains(t.Term)) return false;
@@ -187,15 +163,12 @@ public partial class SheetViewWindow
             return rows.Any(r2 => !r2.Buster && r2.Time > r.Time && r2.Time <= r.Time + t.Recast
                                   && HitsWithin(r2.Time, OnDmgDur(t.Term)) >= floor);
         }
-        // A dense string is one big hit split into ticks: a row that OPENS a
-        // 3+ hit string is sized one grade harder, so the plan stacks for the
-        // string's TOTAL damage instead of its first tick.
+        // A dense string is one big hit split into ticks, so its opener is sized a
+        // grade harder.
         int EffHurt(CustomRow r)
             => !r.Buster && r.Hurt is 1 or 2 && HitsWithin(r.Time, 18f) >= 3 ? r.Hurt + 1 : r.Hurt;
 
-        // How long a planned line's mitigation actually lasts: the shortest
-        // buff in it (game data; generic party terms fall back to a Reprisal-ish
-        // 15s, the short tank generics to their real ~8-10s).
+        // How long a planned line's mitigation lasts: the shortest buff in it.
         static float LineCover(MitLine l) => l.Action
             .Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(part => Cooldowns.PlanInfo(part)?.Duration is { } d and > 0f ? d
@@ -227,10 +200,7 @@ public partial class SheetViewWindow
         }
         if (tools.Count == 0) return 0;
 
-        // Cooldowns the USER already spent: a hand-written Bell at 4:00 blocks
-        // the planner from any press whose recast would overlap it - in either
-        // direction - while the stretch clear of it stays fair game, word-boundary
-        // matched so an annotated cell ("Kerachole ASAP") still counts.
+        // Cooldowns the user already spent block the planner from an overlapping press.
         static bool ActionHas(string action, string term)
         {
             var i = action.IndexOf(term, StringComparison.OrdinalIgnoreCase);
@@ -257,27 +227,19 @@ public partial class SheetViewWindow
             return false;
         }
 
-        // Spending this tool now would steal it from an upcoming deadly hit: top-log
-        // play holds the 90s and 60s workhorses (~55% utilization) for the real
-        // raidwides, while short rollers (Kerachole-class, <55s) stay below the gate
-        // and keep covering the light rows.
+        // Spending this tool now would steal it from an upcoming deadly hit.
         bool StealsFromDeadly(PlanTool t, float now)
             => t.Recast >= 55f && deadlyTimes.Any(td => td > now && td < now + t.Recast);
 
-        // Press-early bridging, the way the sheets play it: when a tool misses
-        // a hit by a few seconds, its PREVIOUS press (if it was a solo line
-        // this run wrote and nothing rides it yet) floats earlier - the buff
-        // still covers its own row from the tail end - so the recast comes
-        // back in time.
+        // Press-early bridging: a previous solo press floats earlier so the recast
+        // returns in time.
         float BuffDur(PlanTool t)
             => Cooldowns.PlanInfo(t.Term)?.Duration is { } d and > 0f ? d : 15f;
         bool CanReach(PlanTool t, float time)
         {
             if (UserBlocked(t, time)) return false;
             if (t.ReadyAt <= time + 0.01f) return true;
-            // Bridging float: only a solo line this run wrote, that nothing
-            // rides yet (CoverUntil vs its OWN time - a pull-time ride stamps
-            // 0), landing clear of user windows and other cells.
+            // Bridging float: only a solo line this run wrote that nothing rides yet.
             var l = t.LastLine;
             if (l == null || l.CoverUntil > l.Time - 0.01f) return false;
             var shift = t.ReadyAt - time;
@@ -304,9 +266,7 @@ public partial class SheetViewWindow
             if (setSize == 1)
             {
                 t.LastLine = line;
-                // How far this press can later move earlier: the buff must
-                // still cover its own row (D-1) and the tool must have been
-                // ready that early.
+                // How far this press can later move earlier.
                 t.FloatSlack = MathF.Min(BuffDur(t) - 1f, MathF.Max(0f, time - t.ReadyAt));
             }
             else t.LastLine = null;
@@ -320,18 +280,15 @@ public partial class SheetViewWindow
         var lastAdded = new List<MitLine>(); // this run's presses at lastCovered
         var ungradedTarget = rows.Any(r => r.Hurt > 0) ? 1 : Math.Max(2, lists.Count / 3);
 
-        // Tank personal timers: ONE timeline per tank, shared between buster
-        // rows and the personal presses on heavy raid hits, so the plan can
-        // never ask for a Rampart that a buster already spent.
+        // Tank personal timers: one timeline per tank, shared with the buster rows.
         var tanks = fight.CustomSlots.Where(IsTankColumn).ToList();
         // -9999 not 0: pre-pull (negative-time) rows must see everything ready.
         var invulnAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         var rampartAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         var shortAt = tanks.ToDictionary(t2 => t2, _ => -9999f, StringComparer.OrdinalIgnoreCase);
         const float ShortRecast = 25f;
-        // Tank cooldowns the user already wrote into cells: same window rule
-        // as the party seeding - the planner may not land inside their recast
-        // in either direction, but the clear stretches stay usable.
+        // Tank cooldowns the user already wrote in: same window rule as the party
+        // seeding.
         var invulnNames = new[] { "Invulnerability", "Holmgang", "Hallowed Ground", "Living Dead", "Superbolide" };
         var shortNames = new[] { "Short Mit", "Buddy Mit", "Bloodwhetting", "Nascent Flash", "Holy Sheltron", "Intervention", "The Blackest Night", "Heart of Corundum" };
         var invulnUser = tanks.ToDictionary(t2 => t2, _ => new List<float>(), StringComparer.OrdinalIgnoreCase);
@@ -363,9 +320,7 @@ public partial class SheetViewWindow
             {
                 // ---- tank-buster lane: the sheets' tank-tab pattern --------
                 if (tanks.Count == 0) continue;
-                // Ride only an EQUAL-OR-HARDER previous buster: a deadly buster
-                // 8s after a light one must still get its invuln, not coast on
-                // a short mit sized for the light hit.
+                // Ride only an equal-or-harder previous buster.
                 if (row.Time - lastTb < 10f && row.Hurt <= lastTbHurt)
                 {
                     foreach (var l in lastTbLines)
@@ -441,13 +396,8 @@ public partial class SheetViewWindow
                 lastTbHurt = row.Hurt;
                 continue;
             }
-            // Hits inside the previous press's window ride it, UNLESS this one
-            // is graded harder than what that press was sized for, or none of
-            // our presses' buffs actually last this long (real durations from
-            // the game data).
-            // Ride on EFFECTIVE grades (same scale the sizing below uses), so a
-            // row that OPENS a dense string breaks out of the previous press's
-            // window and gets stacked for the whole string.
+            // Hits inside the previous press's window ride it, unless this one is
+            // graded harder.
             var eff = EffHurt(row);
             if (row.Time - lastCovered < 15f && eff <= lastCoveredHurt
                 && (lastAdded.Count == 0 || lastAdded.Any(l => row.Time <= l.Time + LineCover(l) + 0.01f)))
@@ -459,9 +409,7 @@ public partial class SheetViewWindow
             }
             var have = lists.Values.Count(l => l.Any(x =>
                 MathF.Abs(x.Time - row.Time) < 1f && !string.IsNullOrWhiteSpace(x.Action)));
-            // Depth per severity, matching the reference sheets' stacking: the
-            // planner decides ungraded rows itself (leftovers on a graded sheet, a
-            // solid baseline on a fully ungraded one).
+            // Depth per severity, matching the reference sheets' stacking.
             var target = eff switch
             {
                 3 => lists.Count,
@@ -481,15 +429,12 @@ public partial class SheetViewWindow
             // opening a dense string counts as the string, not its first tick).
             if (eff is 1 or 0)
                 ready.RemoveAll(t => StealsFromDeadly(t, row.Time));
-            // The cluster hold never keeps anything from a DEADLY hit: a lone
-            // deadly is worth a Bell/Panhaima burst, and Macrocosmos compiles
-            // one huge hit at full value (its tooltip counts damage, not hits).
+            // The cluster hold never keeps anything from a deadly hit.
             if (row.Hurt < 3)
                 ready.RemoveAll(t => HoldForCluster(t, row));
 
-            // Enemy debuffs don't stack from two sources: one Reprisal, one
-            // Feint, one Addle per hit, party-wide; the sheets rotate WHO casts
-            // them and the LRU ordering reproduces that.
+            // Enemy debuffs don't stack from two sources: one Reprisal, one Feint, one
+            // Addle.
             var claimed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var l in lists.Values)
                 foreach (var x in l)
@@ -497,15 +442,11 @@ public partial class SheetViewWindow
                         foreach (var d in DebuffMits)
                             if (x.Action.Contains(d, StringComparison.OrdinalIgnoreCase)) claimed.Add(d);
 
-            // Per column, its candidates in preference order: the biggest ready
-            // mit on deadly rows (two of them joined, like the sheets' worst
-            // hits), the smallest that does the job on light rows, and on
-            // medium rows whatever does not rob an upcoming deadly hit.
+            // Per column, its candidates in preference order.
             var byCol = ready.GroupBy(t => t.Slot).Select(g => (eff switch
                 {
-                    // On multi-hit strings the on-damage cooldowns come first,
-                    // ranked by how many hits they'd tick through (tooltip
-                    // behavior: more ticks = more value).
+                    // On multi-hit strings the on-damage cooldowns come first, ranked
+                    // by hits ticked.
                     3 => g.OrderByDescending(t => TickScore(t, row) >= 2 ? TickScore(t, row) : 0)
                           .ThenByDescending(t => t.Recast).ThenBy(t => t.Order),
                     1 or 0 => g.OrderBy(t => t.Recast).ThenBy(t => t.Order),
@@ -524,9 +465,8 @@ public partial class SheetViewWindow
                 var set = new List<PlanTool>();
                 foreach (var t in opts)
                 {
-                    // One player CAN layer several of their own mits on one
-                    // mechanic: deadly hits stack up to three per cell (the
-                    // sheets' triple cells), hurts pairs, light takes one.
+                    // One player can layer several of their own mits: three on deadly,
+                    // two on hurts, one on light.
                     if (set.Count >= (eff >= 3 ? 3 : eff >= 2 ? 2 : 1)) break;
                     if (DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)) continue;
                     set.Add(t);
@@ -551,10 +491,7 @@ public partial class SheetViewWindow
                 added++;
             }
 
-            // Saturation, the sheets' use-it-or-lose-it rule: any cooldown that is
-            // back, not owed to an upcoming deadly hit, and not a debuff already on
-            // this hit goes on it NOW, so healer kits roll continuously instead of
-            // sitting unused between big moments.
+            // Saturation, the use-it-or-lose-it rule, so healer kits roll continuously.
             foreach (var g in tools.GroupBy(t => t.Slot))
             {
                 var col = lists[g.Key];
@@ -568,10 +505,8 @@ public partial class SheetViewWindow
                     .OrderByDescending(t => TickScore(t, row) >= 2 ? TickScore(t, row) : 0)
                     .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)
                     .ThenBy(t => t.Recast).ThenBy(t => t.Order);
-                // Deadly hits stack up to three from one player, hurts pairs,
-                // and on lighter hits a QUICK second tool (60s or less) may
-                // still join, so the short-recast kit pieces roll instead of
-                // queuing behind one cell per row.
+                // On lighter hits a quick second tool may still join, so short kit
+                // pieces roll.
                 var satCap = eff >= 3 ? 3 : 2;
                 var picks = new List<PlanTool>();
                 foreach (var t in satOrder)
@@ -600,9 +535,7 @@ public partial class SheetViewWindow
                 }
             }
 
-            // Tank personals on heavy raid hits, tank-tab style (Rampart and
-            // the short mit on the big raid moments), sharing the buster
-            // lane's timers and never robbing an upcoming buster.
+            // Tank personals on heavy raid hits, sharing the buster lane's timers.
             if (row.Hurt >= 2)
                 foreach (var tk in tanks)
                 {
@@ -643,9 +576,8 @@ public partial class SheetViewWindow
                     }
                 }
 
-            // Coverage bookkeeping AFTER every pass, so a row covered only by
-            // saturation or tank personals still starts a ride window and its
-            // buffs get CoverUntil stamps on the hits they carry.
+            // Coverage bookkeeping after every pass, so saturation rows still start a
+            // ride window.
             if (rowLines.Count > 0 || have > 0)
             {
                 lastCovered = row.Time;

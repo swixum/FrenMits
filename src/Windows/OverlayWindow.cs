@@ -16,13 +16,13 @@ public class OverlayWindow : Window
     private readonly List<MitLine> _activeLines = new();
     private int _lastGen = -1;
 
-    // Per-frame scratch: the candidate lines for this job and the call group being
-    // drawn. Cleared and refilled each frame instead of reallocated.
+    // Per-frame scratch: the candidate lines for this job and the call group
+    // being drawn.
     private readonly List<MitLine> _lines = new();
     private readonly List<MitLine> _group = new();
 
     // Stable, like the LINQ OrderBy it replaces, so calls tied on the cue clock
-    // keep the order they were baked in. The group is never more than a few calls.
+    // keep the order they were baked in.
     private static void StableSortByCueTime(List<MitLine> lines)
     {
         for (var i = 1; i < lines.Count; i++)
@@ -45,9 +45,7 @@ public class OverlayWindow : Window
 
     public override void PreDraw()
     {
-        // NoTitleBar is always on: a title bar shown only when unlocked shifts the
-        // content down by its height, so the display would jump the moment you lock
-        // it, and without one the content top IS the window top in both states.
+        // NoTitleBar is always on, or the content would jump the moment you lock it.
         Flags = ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings
@@ -87,9 +85,7 @@ public class OverlayWindow : Window
 
     private bool _applyPos = true;
 
-    // Locked for real if you ticked the lock OR you're in a live pull (but not
-    // while previewing), since combat always pins/click-throughs the overlay so
-    // it can't be grabbed and "stuck" mid-fight.
+    // Locked if you ticked the lock or you're in a live pull.
     private bool EffectiveLocked => OverlayChrome.Locked(C.OverlayLocked, C);
 
     // Snap the overlay back to the saved position next frame (used by Reset).
@@ -103,10 +99,7 @@ public class OverlayWindow : Window
 
     public override bool DrawConditions()
     {
-        // Test mode shows the placement sample anywhere - but never render a
-        // universal (board-only) timeline's lines as center calls: with the
-        // clock running (duty-recorder playback starts it with no combat flag
-        // to auto-off Test mode) that would leak every boss mechanic here.
+        // Test mode shows the sample anywhere, but never a universal timeline's lines.
         if (C.TestMode)
             return _plugin.ActiveFight() is not { TimelineOnly: true } || !_plugin.Timer.Live;
         if (Plugin.CutsceneActive) return false; // hide while a cutscene is playing
@@ -118,11 +111,6 @@ public class OverlayWindow : Window
     }
 
     // How far before its cue time a call first appears.
-    //
-    // Auto cooldown timing already pushes a press EARLY (a positive, solver-set
-    // OffsetSeconds), and the solver keeps CooldownLeadSeconds of buff past the last
-    // hit for exactly this, so the call shows for that whole window and you can press
-    // anywhere in it and still cover the mechanic.
     private float LeadFor(MitLine line)
     {
         if (line.LeadOverride > 0f) return line.LeadOverride;
@@ -147,9 +135,7 @@ public class OverlayWindow : Window
     {
         SavePositionIfDragged();
 
-        // Right-click quick menu, only reachable while the overlay accepts the
-        // mouse at all (unlocked, out of combat), so it can never eat a click
-        // mid-fight.
+        // Right-click quick menu, only reachable while the overlay accepts the mouse.
         if (ImGui.BeginPopupContextWindow("##fmoverlayctx"))
         {
             if (ImGui.MenuItem("Lock position", "", C.OverlayLocked))
@@ -213,9 +199,8 @@ public class OverlayWindow : Window
         // stale line from the previous run can't carry over.
         if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLines.Clear(); }
 
-        // The calls we count down to: the soonest line inside its lead window, plus
-        // any other line tied at (about) the same time, so simultaneous mits stack
-        // instead of one hiding the other.
+        // The calls we count down to: the soonest in its lead window, plus any tied
+        // with it.
         var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
@@ -236,9 +221,8 @@ public class OverlayWindow : Window
                 if (rem >= 0f && rem <= LeadFor(l) && rem <= bestRemaining + tieWindow) group.Add(l);
             }
             StableSortByCueTime(group);
-            // Keep a just-passed call's "NOW" up for its full hold, stacked with
-            // the next call, instead of cutting it short the moment another call
-            // enters its lead window (calls 1-3s apart are routine).
+            // Keep a just-passed call's NOW up for its full hold, stacked with the next
+            // call.
             var heldCount = 0;
             foreach (var l in _activeLines)
             {
@@ -252,9 +236,8 @@ public class OverlayWindow : Window
         }
         else
         {
-            // Nothing upcoming: briefly hold the calls we actually counted down so
-            // "NOW" lingers, but never resurrect a line the clock snapped past (it
-            // was never in the active set).
+            // Nothing upcoming: hold the calls we counted down, but never resurrect a
+            // skipped one.
             foreach (var l in _activeLines)
             {
                 var rem = l.CueTime - elapsed;
@@ -459,9 +442,7 @@ public class OverlayWindow : Window
             dl.AddRectFilled(p0, p1, (accent & 0x00FFFFFF) | 0xB4000000, rounding);
         }
 
-        // Cooldown sweep: a dark wedge over the ELAPSED portion, growing clockwise
-        // from 12 o'clock as the countdown drains, so the icon "goes away" by the
-        // call.
+        // Cooldown sweep: a dark wedge over the elapsed portion, growing clockwise.
         if (imminent && lead > 0.01f)
         {
             var frac = Math.Clamp(remaining / lead, 0f, 1f);
@@ -505,9 +486,8 @@ public class OverlayWindow : Window
     private string PrepText(MitLine call)
     {
         if (!C.PrepAlerts) return "";
-        // A prep window only exists when the press blankets a LATER hit than its own
-        // (the solver presses at the front of the run and books the last covered hit
-        // in CoverUntil), so gate on the coverage, not the offset.
+        // A prep window only exists when the press covers a later hit, so gate on
+        // coverage.
         var windowEnd = call.Time - call.OffsetSeconds; // latest press: the front hit
         if (call.CoverUntil <= windowEnd + 2f) return ""; // covers only itself: nothing to prep
         var dur = MinDuration(Cooldowns.PlanMitsCached(call.Action));
@@ -700,10 +680,8 @@ public class OverlayWindow : Window
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
-        // Only capture during a REAL drag of this window (focused + mouse drag):
-        // the anchor derives from the window CENTER, and AlwaysAutoResize width
-        // changes during any stray left-button hold (camera turns) would
-        // otherwise be saved as position drift.
+        // Only capture during a real drag, or a stray left-button hold saves position
+        // drift.
         if (!ImGui.IsMouseDragging(ImGuiMouseButton.Left) || !ImGui.IsWindowFocused()) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();

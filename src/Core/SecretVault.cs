@@ -5,9 +5,7 @@ using System.Text;
 namespace FrenMits;
 
 // Encrypts small secrets with Windows DPAPI (current-user scope) so they never
-// sit on disk in plaintext. The ciphertext only decrypts on the same Windows
-// account it was made on, so a copied, shared, synced, or stolen config file
-// gives up nothing. P/Invoked directly so we don't ship another assembly.
+// sit on disk in plaintext.
 internal static class SecretVault
 {
     [StructLayout(LayoutKind.Sequential)]
@@ -41,9 +39,7 @@ internal static class SecretVault
         catch { return ""; }
     }
 
-    // Base64 ciphertext -> plaintext. Anything unreadable (different Windows
-    // account, corrupt blob) comes back "", which the UI treats as "not set up
-    // yet" so the user just re-enters it.
+    // Base64 ciphertext -> plaintext.
     public static string Unprotect(string? cipher)
     {
         if (string.IsNullOrEmpty(cipher)) return "";

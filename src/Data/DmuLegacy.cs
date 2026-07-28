@@ -1,6 +1,4 @@
-// FROZEN SNAPSHOT of the pre-v5.0 DMU timeline that the smart re-bake migration
-// diffs against to tell sheet-baked lines from user-added ones, so do not edit
-// it (it must match what shipped previously).
+// FROZEN SNAPSHOT the re-bake migration diffs against; do not edit.
 using System;
 using System.Collections.Generic;
 
@@ -103,9 +101,7 @@ public static class DmuLegacy
         {
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
-            // Some mechanics are listed across several note-rows (group / alt-strat)
-            // at the same time + ability, so take only the first or the call (and
-            // its audio) fires twice or more.
+            // Take only the first note-row, or the call fires twice.
             if (!seen.Add((e.Time, e.Sync))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action.Replace("*", "").Trim(), Enabled = true });
         }

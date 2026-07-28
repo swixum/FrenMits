@@ -38,10 +38,8 @@ public static class MitTypes
         "second wind", "bloodbath", "personal", "feather", "stem the flow",
     };
 
-    // Memoized: the overlay and the board classify every visible call every frame,
-    // and the answer depends only on the two texts - which come from a fixed sheet,
-    // so the table settles within a pull's first frames. Without it each ask built
-    // two throwaway strings and walked ~120 keywords.
+    // Memoized: the answer depends only on the two texts, which come from a fixed
+    // sheet.
     private static readonly System.Collections.Generic.Dictionary<(string Action, string Mech), Kind> _cache = new();
 
     public static Kind Classify(string? action, string? mechanic = null)

@@ -71,13 +71,6 @@ public class FightProfile
 
     // Derived; ignored by the serializer so share codes and plan snapshots
     // don't carry every line twice.
-    //
-    // Cached, because the overlay, the board, the mit tuner and the server-bar
-    // entry each ask for this EVERY frame and a bare OrderBy sorted a fresh copy
-    // for every ask. Only three things can change the order - the list being
-    // swapped wholesale (SwapCustomSlot), a line added/removed, or a line
-    // retimed - so the fingerprint below covers all of them exactly (bit-exact
-    // on Time, so even a hairline retime in the editor invalidates).
     [Newtonsoft.Json.JsonIgnore]
     public IReadOnlyList<MitLine> OrderedLines
     {
@@ -130,9 +123,7 @@ public class CustomRow
     // Tank buster: the hit lands on one tank or two, not the party.
     public bool Buster { get; set; }
 
-    // The fight's timer running out. Not a mechanic anyone plans for - see
-    // Enrages - so the planner leaves it alone and its damage, which is an order
-    // of magnitude past everything else, never sets the severity scale.
+    // The fight's timer running out.
     public bool Enrage { get; set; }
 
     public bool ShouldSerializeEnrage() => Enrage;
@@ -211,9 +202,7 @@ public class MitLine
     // last hit it covers).
     public float CoverUntil { get; set; }
 
-    // Where this call actually fires on the cue clock. Derived, so it is never
-    // written: it can't be read back into a get-only property anyway, and it was
-    // riding along in every plan code and snapshot as well as the config.
+    // Where this call actually fires on the cue clock.
     [Newtonsoft.Json.JsonIgnore]
     public float CueTime => Time - OffsetSeconds;
 
@@ -224,13 +213,7 @@ public class MitLine
     public uint Color { get; set; }            // ABGR text color; 0 = default
     public uint IconId { get; set; }           // pinned game icon id; 0 = infer from action
 
-    // A line at its defaults writes nothing for these, which is most of them: of
-    // 1770 saved lines in a real config, Enabled/Sound/LeadOverride/Color/IconId
-    // were at their default on every single one.
-    //
-    // Each skipped value has to be the one the field initializer above already
-    // gives, or a re-read would come back different - that's why Enabled and Sound
-    // are skipped when TRUE.
+    // A line at its defaults writes nothing for these, which is most of them.
     public bool ShouldSerializeJobs() => Jobs is { Count: > 0 };
     public bool ShouldSerializeEnabled() => !Enabled;
     public bool ShouldSerializeSound() => !Sound;
@@ -251,9 +234,7 @@ public class MitLine
            // also count: on a DRK that call is someone else's press.
            && (string.IsNullOrEmpty(jobAbbr) || string.IsNullOrWhiteSpace(Action) || ActionFor(jobAbbr).Length > 0);
 
-    // Plain loop instead of LINQ Contains: this runs for every line of the fight,
-    // every frame, in four places (overlay, board, tuner, cues), and the LINQ
-    // overload boxes the list's enumerator on each ask.
+    // Plain loop instead of LINQ Contains: this runs for every line, every frame.
     private bool JobListHas(string jobAbbr)
     {
         for (var i = 0; i < Jobs.Count; i++)
@@ -261,16 +242,11 @@ public class MitLine
         return false;
     }
 
-    // The parts of this call that apply to a job, honoring job qualifiers in the
-    // text: "Reprisal + Party Mit (GNB/DRK)" is "Reprisal" for a WAR, unchanged
-    // for a DRK.
+    // The parts of this call that apply to a job, honoring job qualifiers.
     public string ActionFor(string? jobAbbr)
     {
         if (string.IsNullOrWhiteSpace(Action) || string.IsNullOrEmpty(jobAbbr)) return Action;
-        // Fast path for the overwhelming majority of calls: a gate is always
-        // written as a parenthetical, so with no '(' anywhere nothing can be
-        // dropped and the split below would just rebuild the same string. This
-        // runs per line per frame, so the array it saves matters.
+        // Fast path: a gate is always a parenthetical, so no '(' means nothing to drop.
         if (Action.IndexOf('(') < 0) return Action;
         List<string>? kept = null;
         var dropped = false;

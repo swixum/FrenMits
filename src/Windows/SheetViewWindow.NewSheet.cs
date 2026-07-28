@@ -179,7 +179,7 @@ public partial class SheetViewWindow
         if (ImGui.Combo("fight type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
             _newCatTouched = true;
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Ultimate / Savage / Extreme: which sidebar group the sheet files\nunder. Auto-guessed from the duty name; your pick wins.");
+            ImGui.SetTooltip("Which sidebar group the sheet files under.");
 
         // The zone the sheet binds to: prefilled with where you stand, or type a
         // zone id, or type a duty name and pick it from the matches.
@@ -265,9 +265,8 @@ public partial class SheetViewWindow
 
     private void CreateCustomSheet(string name, string[] slots, string mySlot, uint terr, string category)
     {
-        // A fight for this zone already exists: UPGRADE it into a sheet instead
-        // of adding a duplicate profile (ActiveFight and imports take the first
-        // territory match, so a duplicate would never fire).
+        // A fight for this zone already exists, so upgrade it rather than add a
+        // duplicate.
         var existing = C.Fights.FirstOrDefault(f => f.TerritoryId == terr && !Builtin.Has(f.TerritoryId));
         if (existing != null)
         {

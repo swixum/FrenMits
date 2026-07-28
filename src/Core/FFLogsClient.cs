@@ -21,9 +21,8 @@ public sealed class FFLogsClient
 
     public sealed record FightInfo(int Id, string Name, bool Kill, float DurationSec, double StartMs, double EndMs);
 
-    // One enemy cast: game ability id, seconds from the fight start (resolve
-    // moment), and whether it had a cast bar (only those can be resync anchors:
-    // the sync engine watches cast bars).
+    // One enemy cast: ability id, seconds from the fight start, and whether it had a
+    // cast bar.
     public sealed record LogCast(uint AbilityId, float Time, bool HasCastBar);
 
     // Pull the report code out of a pasted URL (or accept a bare code).
@@ -31,7 +30,7 @@ public sealed class FFLogsClient
     {
         input = (input ?? "").Trim();
         if (input.Length == 0) return null;
-        // (?:a:)? = anonymized report codes keep their prefix.
+        // (?:a:)?
         var m = System.Text.RegularExpressions.Regex.Match(input, @"reports/((?:a:)?[A-Za-z0-9]{8,})");
         if (m.Success) return m.Groups[1].Value;
         return System.Text.RegularExpressions.Regex.IsMatch(input, @"^(?:a:)?[A-Za-z0-9]{8,}$") ? input : null;
@@ -150,9 +149,7 @@ public sealed class FFLogsClient
         return casts;
     }
 
-    // The report's ability id -> display name map (from masterData), so imported
-    // enemy casts carry the SAME names logs and cactbot show - including ids the
-    // local game Action sheet can't resolve.
+    // The report's ability id to display name map, so imported casts match the logs.
     public async Task<Dictionary<uint, string>> GetAbilityNamesAsync(string clientId, string secret, string code)
     {
         const string q = @"query($code:String!){reportData{report(code:$code){
@@ -224,9 +221,7 @@ public sealed class FFLogsClient
         return null;
     }
 
-    // Per enemy ability: the hardest single hit it landed on anyone
-    // (unmitigatedAmount = what it would do with NO mitigation up) and how many
-    // DISTINCT players it ever hit.
+    // Per enemy ability: its hardest unmitigated hit and how many players it hit.
     public sealed record AbilityDamage(long Worst, int Targets);
 
     public async Task<Dictionary<uint, AbilityDamage>> GetDamageAsync(string clientId, string secret, string code, FightInfo fight)

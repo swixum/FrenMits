@@ -23,28 +23,18 @@ public class CueEngine
     {
         var c = _plugin.Config;
 
-        // Only a genuine FRESH pull (the clock resets to ~0) re-arms every call by
-        // clearing the fired-set, while a mid-pull bump (a resync snap or brief
-        // combat flicker) leaves it untouched, since re-advancing already-fired
-        // lines onto a backward snap is what replayed a call we'd already spoken
-        // (the double-audio).
+        // Only a fresh pull re-arms every call; a mid-pull bump leaves the fired-set
+        // alone.
         if (_plugin.Timer.Generation != _generation)
         {
             _generation = _plugin.Timer.Generation;
-            // Freshness is judged on the RAW timer, not a sheet clock: the
-            // door-boss phase offset (M12S P2 = +420s) would otherwise read
-            // "7 minutes in" at every P2 repull and never re-arm the fired-set,
-            // silencing every already-spoken call for the rest of the session.
+            // Freshness is judged on the raw timer, not a sheet clock with a phase
+            // offset.
             var fresh = _plugin.Timer.Elapsed < 5f;
             if (fresh) _fired.Clear();
         }
 
-        // While waiting for the post-cutscene phase re-base to land, stay silent so
-        // we don't announce against a drifted clock, releasing when a PHASE anchor
-        // snaps the clock (a mid-phase mechanic resync isn't enough to trust the new
-        // phase yet) or the timeout passes, and running BEFORE the audio gate since
-        // Holding also hides the overlay and board and would otherwise latch forever
-        // after the first cutscene with audio off.
+        // Stay silent until a phase anchor re-bases the clock after a cutscene.
         if (_holding && (_plugin.Sync.PhaseSyncGeneration != _holdPhaseGen || DateTime.UtcNow >= _holdUntil))
             _holding = false;
 
@@ -78,17 +68,12 @@ public class CueEngine
         }
     }
 
-    // After a phase-transition cutscene the wall clock has run on but hasn't been
-    // snapped back onto the timeline yet, so hold cues until the resync engine
-    // actually snaps (LastSync changes) or this deadline passes, whichever comes
-    // first.
+    // How long to hold cues after a cutscene while waiting for the snap.
     private bool _holding;
     private int _holdPhaseGen;
     private DateTime _holdUntil;
 
-    // Re-arm every cue, since a practice phase-jump parks the clock mid-sheet with
-    // SetElapsed (no Generation bump, elapsed far from 0), so without this a
-    // second jump to the same phase would stay silent.
+    // Re-arm every cue: a practice phase-jump parks the clock mid-sheet.
     public void Rearm() => _fired.Clear();
 
     public void HoldForResync(int phaseGen, double maxSeconds)
@@ -98,9 +83,7 @@ public class CueEngine
         _holdUntil = DateTime.UtcNow.AddSeconds(maxSeconds);
     }
 
-    // True while we're waiting for the post-cutscene phase re-base to land, during
-    // which the overlay and timeline windows hide so nothing visual fires against
-    // the drifted clock either.
+    // True while waiting for the post-cutscene re-base; the overlays hide too.
     public bool Holding => _holding;
 
     // When each spoken phrase was last said, to debounce identical calls.
@@ -110,9 +93,7 @@ public class CueEngine
     {
         if (!c.TtsEnabled) return;
 
-        // Per-line override wins, otherwise speak the action (or mechanic if chosen),
-        // job-filtered (only your segments of a combined call) and job-resolved so
-        // "Party Mit" is spoken as e.g. "Troubadour".
+        // Per-line override wins, otherwise speak the action or mechanic.
         var fallback = c.TtsSpeakMechanic
             ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.ActionFor(job), job) : line.Mechanic)
             : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.ActionFor(job), job));
@@ -121,10 +102,7 @@ public class CueEngine
 
         var now = DateTime.UtcNow;
 
-        // Hard guard against doubled audio: never speak the exact same phrase twice
-        // within a short window, whatever caused the second trigger (a resync
-        // re-fire, a brief combat flicker resetting the fired-set, an in-editor time
-        // change).
+        // Never speak the same phrase twice within a short window.
         if (_spokenAt.TryGetValue(text, out var lastSame) && (now - lastSame).TotalSeconds < 2.0)
         {
             Service.Log.Information($"[FrenMits] (debounced duplicate '{text}', {(now - lastSame).TotalSeconds:0.00}s after last)");

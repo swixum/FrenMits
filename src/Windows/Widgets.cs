@@ -4,9 +4,7 @@ using Dalamud.Bindings.ImGui;
 
 namespace FrenMits.Windows;
 
-// Small reusable UI pieces shared across the plugin's windows, so every window
-// draws the same section headers, stat chips and accent buttons instead of each
-// re-deriving them.
+// Small reusable UI pieces shared across the plugin's windows.
 internal static class Widgets
 {
     private const uint CardBorder = 0xFF2F2724; // #24272F soft panel outline
@@ -66,9 +64,7 @@ internal static class Widgets
     }
 
     // One number control that does both: drag left/right to adjust, or
-    // double-click / Ctrl+click to type the exact value. Typed values clamp to
-    // the range. A hover hint teaches the typing; a caller's Tip() on the same
-    // control simply overrides it.
+    // double-click / Ctrl+click to type the exact value.
     public static bool SliderInput(string label, ref float v, float min, float max, string fmt, float width = 150f)
     {
         ImGui.SetNextItemWidth(width);

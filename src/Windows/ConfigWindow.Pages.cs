@@ -9,9 +9,7 @@ using Dalamud.Interface.Components;
 
 namespace FrenMits.Windows;
 
-// The individual config pages (Party Mit Recap, Combat Timer, Display, Next Mits,
-// Audio) plus their small helpers, split out of the ConfigWindow partial so the
-// nav/scaffold file stays navigable.
+// The individual config pages plus their small helpers.
 public partial class ConfigWindow
 {
     // ---- Party Mit Recap --------------------------------------------------
@@ -26,7 +24,7 @@ public partial class ConfigWindow
         ImGui.Spacing();
 
         C.RecapEnabled = CfgCheck("Enable Party Mit Recap", C.RecapEnabled);
-        Tip("Off by default. When on, every pull is tracked automatically and a small \"Mit Recap\" popup offers the recap after each wipe.");
+        Tip("Tracks every pull and offers a recap after a wipe.");
 
         if (C.RecapEnabled)
         {
@@ -48,7 +46,7 @@ public partial class ConfigWindow
             _plugin.Recap.ShowTestPopup();          // popup appears so it can be dragged
             _plugin.RecapWindow.IsOpen = true;      // window opens for placement too
         }
-        Tip("Fills the recap with a sample pull and pops up the window + popup, so you can see the look and drag everything into place without wiping.");
+        Tip("Fills the recap with a sample pull.");
     }
 
     // ---- Food & Pot -------------------------------------------------------
@@ -63,16 +61,13 @@ public partial class ConfigWindow
         ImGui.Spacing();
 
         C.PrepCheckEnabled = CfgCheck("Enable Food & Pot", C.PrepCheckEnabled);
-        Tip("Off by default. Nothing is drawn while your food is fine, and nothing is drawn out in the "
-            + "world at all unless you switch on the ready check below.");
+        Tip("Nothing is drawn while your food is fine.");
         if (!C.PrepCheckEnabled) return;
 
         C.PrepCheckSheetsOnly = Toggle("Only in fights with a sheet", C.PrepCheckSheetsOnly);
-        Tip("Skips duties you have no sheet for, so a leveling roulette - where nobody brings food - "
-            + "stays quiet and only the content you actually prepared for gets checked.");
+        Tip("Only check duties you have a sheet for.");
         C.PrepCheckShowCounts = Toggle("Show how many you have left", C.PrepCheckShowCounts);
-        Tip("Appends \"(12 left)\" from your bags. Knowing you're on your last pot changes whether you "
-            + "use it, and \"no food, none in the bag\" tells you to go buy some before raid rather than after.");
+        Tip("Appends \"(12 left)\" from your bags.");
 
         if (!ImGui.BeginTabBar("##preptabs", ImGuiTabBarFlags.None)) return;
 
@@ -89,9 +84,7 @@ public partial class ConfigWindow
             ImGui.Spacing();
 
             C.PrepCheckUseFightLength = Toggle("Use the fight's own length", C.PrepCheckUseFightLength);
-            Tip("Instead of a fixed number, warn when your food wouldn't last THIS fight - the plugin "
-                + "already knows how long it runs from its timeline. Falls back to the slider in duties "
-                + "with no sheet of their own.");
+            Tip("Warn if your food won't last this fight.");
 
             if (!C.PrepCheckUseFightLength)
             {
@@ -99,21 +92,17 @@ public partial class ConfigWindow
                 var warnMin = C.PrepCheckWarnMinutes;
                 if (Widgets.SliderInput("Warn under", ref warnMin, 1f, 30f, "%.0f min", width: 200f))
                 { C.PrepCheckWarnMinutes = warnMin; C.SaveSettings(); }
-                Tip("How much food time left starts the warning. Set it a little longer than your pulls run, "
-                    + "so food that would expire partway through gets flagged before you engage.");
+                Tip("How much food time left starts the warning.");
                 ImGui.Unindent(20f);
             }
 
             ImGui.Spacing();
             C.PrepCheckWarnWrongFood = Toggle("Warn on crafter food", C.PrepCheckWarnWrongFood);
-            Tip("Flags a dish whose every stat is a crafting or gathering one - CP, Control, Craftsmanship "
-                + "and friends. Eating it into a raid does nothing at all, and nothing in the game tells you.");
+            Tip("Flags food whose stats are all crafting ones.");
             C.PrepCheckWarnNq = Toggle("Warn on NQ food", C.PrepCheckWarnNq);
-            Tip("HQ food caps noticeably higher - Baked Eggplant caps Vitality at 114 NQ against 143 HQ - "
-                + "and it's an easy mistake to make in a hurry.");
+            Tip("HQ food caps noticeably higher.");
             C.PrepCheckAlwaysShowFood = Toggle("Always show the timer", C.PrepCheckAlwaysShowFood);
-            Tip("Keeps the food countdown on screen even when there's nothing wrong, drawn muted rather "
-                + "than as a warning.");
+            Tip("Keep the food timer on screen when it's fine.");
             ImGui.EndTabItem();
         }
 
@@ -128,15 +117,13 @@ public partial class ConfigWindow
             ImGui.Spacing();
 
             C.PrepCheckPotion = Toggle("Potion reminder", C.PrepCheckPotion);
-            Tip("Telling you a pot is ready while you're stood there about to pull is telling you something "
-                + "you already know, so it waits for the moment that matters.");
+            Tip("Waits for the moment it matters, mid-fight.");
 
             if (C.PrepCheckPotion)
             {
                 ImGui.Indent(20f);
                 C.PrepCheckPotCountdown = Toggle("Count down to it", C.PrepCheckPotCountdown);
-                Tip("Shows a running \"Pot 1:23\" while the recast ticks away, instead of only speaking up "
-                    + "at the moment it lands. Muted, and never spoken.");
+                Tip("Shows \"Pot 1:23\" while the recast runs.");
                 ImGui.Unindent(20f);
             }
             ImGui.EndTabItem();
@@ -149,9 +136,7 @@ public partial class ConfigWindow
             ImGui.Spacing();
 
             C.PrepCheckTts = Toggle("Speak it", C.PrepCheckTts);
-            Tip("Says \"no food\", \"food is running out\" and \"potion is available\" in the voice set on "
-                + "the Audio page. Separate from the combat cue switch, so you can have these spoken "
-                + "without the in-fight callouts.");
+            Tip("Speaks these in the Audio page voice.");
 
             if (C.PrepCheckTts)
             {
@@ -276,10 +261,7 @@ public partial class ConfigWindow
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this page to defaults.");
 
-        // Tabs by concern, with every center-call tab scoped to the CENTER CALL
-        // only - the board, timer, and recap keep their own sidebar pages, and
-        // the shared timing and small extra readouts get tabs of their own
-        // (previously the "Content" tab mixed all of them together).
+        // Tabs by concern, each center-call tab scoped to the center call only.
         if (!ImGui.BeginTabBar("##displaytabs", ImGuiTabBarFlags.None)) return;
 
         if (ImGui.BeginTabItem("Placement"))
@@ -314,7 +296,7 @@ public partial class ConfigWindow
                 if (ImGui.Combo("Call style", ref style,
                         "Classic (centered text)\0Board (timeline look)\0Icon + clock\0"))
                 { C.OverlayStyle = style; C.SaveSettings(); }
-                Tip("How the center call is drawn. Board matches the timeline; Icon + clock shows just the ability icon with a countdown that sweeps away like a cooldown.");
+                Tip("How the center call is drawn.");
             }
             if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
             {
@@ -439,16 +421,12 @@ public partial class ConfigWindow
         {
             ImGui.Spacing();
             C.StartOnCountdown = Toggle("Start on the pull countdown", C.StartOnCountdown);
-            Tip("Goes live the moment anyone in the party starts a countdown, instead of waiting for "
-                + "combat: the timeline, the call and the voice all run while the numbers come down, "
-                + "the clock reads negative until the pull, and zero lands on the countdown's own zero "
-                + "rather than a frame or two after it. Pull early and the clock re-zeroes to when "
-                + "combat actually started.");
+            Tip("Timeline, call and voice run through the countdown.");
             ImGui.Spacing();
 
             var warn = C.WarningSeconds;
             if (Widgets.SliderInput("Show ahead", ref warn, 1f, 12f, "%.1fs")) { C.WarningSeconds = warn; C.SaveSettings(); }
-            Tip("How early a call appears before its mit time. Per-line leads override this.");
+            Tip("How early a call appears.");
             ImGui.SameLine(0, 18);
             var hold = C.HoldSeconds;
             if (Widgets.SliderInput("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.SaveSettings(); }
@@ -464,7 +442,7 @@ public partial class ConfigWindow
                 else _plugin.AutoTime(_plugin.ActiveFight());
                 C.Save();
             }
-            Tip("On zone-in and slot change, times every plan (baked and custom) so each mit presses early enough to cover its hit AND have its recast back for the next mechanic. Offsets you set by hand are left alone; turning this off erases the auto ones.");
+            Tip("Times every plan so mits cover their hit and come back up.");
             ImGui.Indent(20f);
             if (C.AutoCooldownTiming)
             {
@@ -472,10 +450,10 @@ public partial class ConfigWindow
                 if (Widgets.SliderInput("Press window", ref cdLead, 2f, 8f, "%.1f s", width: 200f))
                 { C.CooldownLeadSeconds = cdLead; C.SaveSettings(); }
                 if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.AutoTime(_plugin.ActiveFight());
-                Tip("How long an auto-timed cooldown call shows before you must press it - your reaction window. The press keeps this much buff in reserve, so hitting it anywhere in the window still covers the mechanic. Bigger = pops earlier and more relaxed.");
+                Tip("Your reaction window before the press is due.");
             }
             C.PrepAlerts = Toggle("Prep window text", C.PrepAlerts);
-            Tip("Adds a \"(use between X and Y)\" line under the main call when a press is pulled early to stay up for a later mechanic. Text only; the early timing still happens either way. Off by default.");
+            Tip("Adds a \"(use between X and Y)\" line to the call.");
             ImGui.Unindent(20f);
             ImGui.EndTabItem();
         }
@@ -487,7 +465,7 @@ public partial class ConfigWindow
             C.ShowDtrBar = CfgCheck("Server-bar next mit", C.ShowDtrBar);
             Tip("Shows the next mit on the server-info bar.");
             C.ShowMitBar = CfgCheck("Active-mits bar", C.ShowMitBar);
-            Tip("A row of your active defensive buffs with seconds remaining, tinted by mit type.");
+            Tip("Your active defensive buffs with seconds left.");
             if (C.ShowMitBar)
             {
                 ImGui.Indent(20f);
@@ -504,9 +482,7 @@ public partial class ConfigWindow
             SeparatorText("Accessibility");
             C.ColorblindMode = CfgCheck("Colorblind-safe status colors", C.ColorblindMode);
             Theme.Colorblind = C.ColorblindMode; // keep the live palette in sync with the setting
-            Tip("Swaps the green / amber / red status colors (recap, coverage counts, plan check) "
-                + "for an Okabe-Ito set - bluish-green, orange, reddish-purple - that stays distinct "
-                + "under the common forms of color blindness.");
+            Tip("Color-blind safe status colors.");
             ImGui.EndTabItem();
         }
 
@@ -529,8 +505,7 @@ public partial class ConfigWindow
                 _nextMitsPreview ? "Stop preview" : "Preview"))
             _nextMitsPreview = !_nextMitsPreview;
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Plays a looping Dancing Mad sample in the real window, right where it sits in fights.\n"
-                             + "Unlock and drag it to place it; every change below shows there live.");
+            ImGui.SetTooltip("Plays a sample in the real window so you can place it.");
         ImGui.SameLine(0, 8);
         if (ImGui.SmallButton("Reset position"))
         {
@@ -592,7 +567,7 @@ public partial class ConfigWindow
 
                 ImGui.Spacing();
                 C.UpcomingBoardOnlyMine = CfgCheck("Only hits I have a press for", C.UpcomingBoardOnlyMine);
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Off = the whole fight shows, with your mits highlighted on their rows.");
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Off shows the whole fight.");
                 ImGui.SameLine(300f);
                 C.UpcomingShowHeader = CfgCheck("Header:", C.UpcomingShowHeader);
                 if (C.UpcomingShowHeader)
@@ -605,10 +580,10 @@ public partial class ConfigWindow
                     C.UpcomingHeaderRule = CfgCheck("Underline", C.UpcomingHeaderRule);
                     ImGui.SameLine(0, 14);
                     C.UpcomingHeaderSlot = CfgCheck("Slot badge", C.UpcomingHeaderSlot);
-                    Tip("Your seat and job ('T1 · WAR') as a small badge in the header.");
+                    Tip("Your seat and job in the header.");
                     ImGui.SameLine(0, 14);
                     C.UpcomingHeaderSync = CfgCheck("Synced note", C.UpcomingHeaderSync);
-                    Tip("Shows what the clock last locked onto for a few seconds after each resync.");
+                    Tip("Shows what the clock last locked onto.");
                 }
             }
             else
@@ -686,15 +661,13 @@ public partial class ConfigWindow
             C.UpcomingBoardShowSeverity = CfgCheck("Severity marks (! !! !!!)", C.UpcomingBoardShowSeverity);
             ImGui.SameLine(300f);
             C.UpcomingBoardShowType = CfgCheck("Tank buster icon", C.UpcomingBoardShowType);
-            Tip("An orange shield on tank-buster rows. (At-risk, untargetable and targetable markers always show their own icons.)");
+            Tip("An orange shield on tank-buster rows.");
             ImGui.Spacing();
             C.UpcomingBossPosition = CfgCheck("Boss reposition calls", C.UpcomingBossPosition);
-            Tip("A cyan row counting down to when the boss moves to a known spot (e.g. returns to Middle), for fights that have the data.");
+            Tip("Counts down to the boss returning to a known spot.");
             ImGui.Spacing();
             C.UpcomingBoardPhases = CfgCheck("Phase dividers", C.UpcomingBoardPhases);
-            Tip("A slim labelled rule where a new phase begins, so the board reads as \"two more hits, then "
-                + "P2\" instead of as one long list. Only fights whose phases are named have anything to draw "
-                + "- everywhere else nothing changes.");
+            Tip("A labelled rule where each phase begins.");
             ImGui.EndTabItem();
         }
 
@@ -872,7 +845,7 @@ public partial class ConfigWindow
             ImGui.Spacing();
             var mech = C.TtsSpeakMechanic;
             if (ImGui.RadioButton("Speak the mit", !mech)) { C.TtsSpeakMechanic = false; C.SaveSettings(); }
-            Tip("Reads the action you press, e.g. \"Reprisal\". Override the exact words per line with the \"...\" button.");
+            Tip("Reads the action you press, e.g. \"Reprisal\".");
             ImGui.SameLine();
             if (ImGui.RadioButton("Speak the mechanic", mech)) { C.TtsSpeakMechanic = true; C.SaveSettings(); }
 
@@ -880,7 +853,7 @@ public partial class ConfigWindow
             {
                 var gap = C.TtsMinGapSeconds;
                 if (Widgets.SliderInput("Min gap between cues (s)", ref gap, 0f, 5f, "%.1f", width: 220f)) { C.TtsMinGapSeconds = gap; C.SaveSettings(); }
-                Tip("Skips a cue if one was spoken within this many seconds. 0 = never skip.");
+                Tip("Skip a cue spoken this recently. 0 = never.");
                 ImGui.TreePop();
             }
             ImGui.EndTabItem();
@@ -1000,7 +973,7 @@ public partial class ConfigWindow
             ImGui.TreePop();
         }
 
-        // Browse any icon by id (paged grid) — pick literally anything.
+        // Browse any icon by id (paged grid) - pick literally anything.
         if (ImGui.TreeNode("Browse all icons"))
         {
             ImGui.SetNextItemWidth(120f);
@@ -1046,9 +1019,7 @@ public partial class ConfigWindow
             C.Save();
             _plugin.SheetViewWindow.MarkPlanDirty();
         }
-        Tip("Shift only THIS call: + fires it earlier, - later. The plan time stays put and "
-            + "resync can't cancel it. A big + offset on a very early call can push it before "
-            + "the pull starts (it won't fire). Also editable in the ±s column.");
+        Tip("Shift this call only: + earlier, - later.");
 
         var tts = line.Tts;
         ImGui.SetNextItemWidth(220f);
@@ -1105,11 +1076,7 @@ public partial class ConfigWindow
 
     // ---- helpers ---------------------------------------------------------
 
-    // The best-matching baked built-in line for the right-click "reset to default"
-    // options on time / mechanic / action, scored by time proximity with a strong
-    // bonus for a matching mechanic and/or action so whichever field you typo'd,
-    // the OTHER fields (and the time) still pin the right baked line (null when
-    // there's no baked default).
+    // The best-matching baked line for the right-click reset options.
     private MitLine? DefaultLineFor(FightProfile fight, MitLine line)
     {
         if (!Builtin.Has(fight.TerritoryId)) return null;
@@ -1135,7 +1102,7 @@ public partial class ConfigWindow
             }
         }
         // Only offer a default when a baked line actually corresponds to this one
-        // (shares its mechanic or action) — not just the nearest in time.
+        // (shares its mechanic or action) - not just the nearest in time.
         return bestHasMatch ? best : null;
     }
 

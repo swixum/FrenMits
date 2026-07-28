@@ -4,9 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Every versioned config migration, run once at load in order. Each block
-// bumps Config.Version and saves, so a crash mid-chain resumes where it left
-// off. Keep new migrations at the bottom.
+// Every versioned config migration, run once at load in order.
 public static class ConfigMigrations
 {
     public static void Run(IMigrationHost host)
@@ -71,9 +69,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v8: re-bake DMU to the new timeline, but KEEP custom lines people added -
-        // a smart merge that only replaces the lines matching the previous bake
-        // (DmuLegacy snapshot).
+        // v8: re-bake DMU to the new timeline, keeping custom lines.
         if (config.Version < 8)
         {
             DmuRebake.SmartRebake(config);
@@ -81,9 +77,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v9: re-run the smart re-bake with the hardened de-overlap so nothing
-        // doubles up, and flag surviving custom lines so future sheet updates keep
-        // them cleanly.
+        // v9: re-run the re-bake with the hardened de-overlap.
         if (config.Version < 9)
         {
             DmuRebake.SmartRebake(config);
@@ -246,9 +240,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v24: phase dividers on the board are on by default. They shipped OFF in
-        // 1.0.0.344-345, so those two builds wrote a stored "false" that a changed
-        // C# default would never reach.
+        // v24: phase dividers on the board are on by default.
         if (config.Version < 24)
         {
             config.UpcomingBoardPhases = true;
@@ -256,12 +248,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v25: M9S/M10S/M11S were built as custom sheets and Auto-planned before the
-        // planner stopped handing the caster column a "Party Mit" it has no button
-        // for. Now that they ship as official fights those sheets aren't editable in
-        // game, so a saved copy - which wins over the bake - would keep calling it
-        // forever with no way to take it out. Reset them onto the corrected bake,
-        // snapshotting first so the old plan is still restorable.
+        // v25: M9S/M10S/M11S were Auto-planned before the caster fix.
         if (config.Version < 25)
         {
             var fixedUp = new ushort[] { Builtin.M9sTerritory, Builtin.M10sTerritory, Builtin.M11sTerritory };
@@ -273,13 +260,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v26: the sheets built-ins are transcribed from repeat a mit on every hit
-        // one press covers, which reads as a second press of a button that has most
-        // of its recast left - FRU asks the melee for Feint at 5:23 and again at
-        // 5:33. New bakes drop those; this takes them out of the plans already
-        // saved, since an official sheet can't be edited in game. Nothing you wrote
-        // yourself is touched, and the hit still shows what covers it as a
-        // carry-over arrow.
+        // v26: drop repeat presses of a button that still has most of its recast left.
         if (config.Version < 26)
         {
             foreach (var f in config.Fights)
@@ -292,13 +273,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v27: FRU's Pandora phase was stacked on top of itself. Akh Morn 1, 2 and
-        // 3 all sat at 17:48 and both Polarizing Strikes at 18:27, because the rows
-        // were matched to a cast id and every repeat landed on the first one - so
-        // two thirds of the Akh Morn calls never fired at all. The logs put them
-        // 113s and 91s apart, the same in all eight kills read, and three stray
-        // rows tagged P4 turned out to be Pandora's too. Re-bake so the moved calls
-        // land, snapshotting first because a saved plan wins over the bake.
+        // v27: FRU's Pandora phase was stacked on top of itself.
         if (config.Version < 27)
         {
             foreach (var f in config.Fights)
@@ -309,11 +284,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v28: FRU's timeline was only ever the mit sheet, so the board had 31 rows
-        // for a twenty-minute fight and nothing at all to show for the six minutes
-        // of the duo. It carries every damaging cast now, measured from six kills
-        // and checked against five more it wasn't built from, with the severity and
-        // tank-buster flags it never had. Re-bake so the new rows land.
+        // v28: FRU's timeline was only the mit sheet, so the board had 31 rows.
         if (config.Version < 28)
         {
             foreach (var f in config.Fights)
@@ -324,14 +295,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v29: severity and tank-buster flags for the fights that never had any -
-        // Dancing Mad and all five legacy ultimates drew every mechanic as the same
-        // flat bar, with no buster shields and no DPS-check gates. Measured from six
-        // kills each.
-        //
-        // A refresh, not a re-bake: the grades live on the built-in and the new rows
-        // carry no calls, so nothing in anyone's plan has to move. Every clean reset
-        // since v14 has deliberately kept custom lines, and this keeps them too.
+        // v29: severity and tank-buster flags for the fights that had none.
         if (config.Version < 29)
         {
             foreach (var f in config.Fights)
@@ -345,18 +309,6 @@ public static class ConfigMigrations
         }
 
         // v30: FRU's calls re-read off the official sheet, row by row.
-        //
-        // The first pass matched the sheet's rows to the timeline by name and kept
-        // the earliest hit for each, so a mechanic the fight does twice collected
-        // both rows' calls on the first one and left the second blank. Cyclonic
-        // Break 2's mits sat on break 1, both Burnished Glory rows on the 1:26 one,
-        // the Light Rampant stack on the Mirror Mirror one, the Gaia tab's Dark
-        // Water 49s early, and the duo's Path of Light five minutes late inside
-        // Pandora - a plan for a mechanic that had already happened. The whole duo
-        // phase and both Relativity sets had no calls at all, though the sheet
-        // plans them.
-        //
-        // A re-bake rather than a refresh, because unlike v29 these calls do move.
         if (config.Version < 30)
         {
             foreach (var f in config.Fights)
@@ -367,29 +319,8 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v31: the five legacy ultimates rebuilt, and their resync anchors fixed.
-        //
-        // The anchors first, because they were the bigger problem. A phase anchor
-        // gets a very wide forward window so a clock still in an earlier segment can
-        // land on the next phase; UCOB and UWU each had one sitting on an ability the
-        // boss also casts much earlier, with no anchor of its own, so meeting that
-        // early cast threw the clock most of a phase forward and left it there. Read
-        // against six kills apiece that none of the data came from, UCOB's board was
-        // more than thirty seconds wrong on 96 readings out of 168 and UWU's on 120
-        // out of 150. Both are down to a third of a second now.
-        //
-        // Then the rows. These sheets name strategy points rather than abilities, so
-        // nothing matched a log by name, and the fights gate their phases on the
-        // boss's HP, so no fixed time is right for every party - which is why the
-        // earlier pass could only grade what it could name. Measuring each row as a
-        // distance back to the anchor before it solves both at once, and holds to a
-        // third of a second on kills it was never fitted to.
-        //
-        // A refresh, not a re-bake. Every existing row kept its time, its name and
-        // its calls - what changed is the grades on them, the rows added around them
-        // (which carry no calls), and the anchors, all of which live on the built-in.
-        // Saved plans hold their own copy of the anchor list, so that copy is the one
-        // that has to be replaced or the fixed anchors never reach anybody.
+        // v31: the five legacy ultimates rebuilt, and their resync anchors
+        // fixed.
         if (config.Version < 31)
         {
             foreach (var f in config.Fights)
@@ -403,17 +334,8 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v32: an official fight is named by Builtin, not by whatever it was called
-        // on the day it was added.
-        //
-        // A profile stores its own Name, set once when the fight was added and never
-        // revisited, so renaming a built-in in code only reached people who had
-        // never added it. Zelenia went on reading "Zelenia (EX)" in the sidebar next
-        // to a plain "Enuo" and "Doomtrain" - and those two were only plain because
-        // THEY predate the suffix. The list was a record of release order rather
-        // than a list of fights.
-        //
-        // Custom sheets keep their names: those are the user's to choose.
+        // v32: an official fight is named by Builtin, not by whatever it was
+        // called on the day it was added.
         if (config.Version < 32)
         {
             foreach (var f in config.Fights)
@@ -426,23 +348,8 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v33: the anchor repairs, and the five Dancing Mad calls that moved with
-        // them.
-        //
-        // Saved plans keep their own copy of the anchor list, so a fixed anchor only
-        // reaches somebody who has the fight loaded if that copy is replaced - the
-        // same reason v31 exists.
-        //
-        // The calls are the other half. Three Grand Crosses, Ultima Blaster and
-        // Celestriad were each a few seconds from where the boss actually casts
-        // them, agreeing to a tenth of a second across the fastest and slowest kills
-        // logs holds, so the times moved. Leaving the calls behind would be worse
-        // than not moving anything: the anchor would put the mechanic at its true
-        // moment and the call would still fire against the old one.
-        //
-        // Matched on the exact old time and mechanic, so a call somebody has already
-        // dragged themselves is left where they put it. Per-line offsets ride along
-        // untouched, since those are stored apart from the time.
+        // v33: the anchor repairs, and the five Dancing Mad calls that moved
+        // with them.
         if (config.Version < 33)
         {
             RefreshBuiltins(config, Builtin.DmuTerritory, DmuRetimed);
@@ -450,17 +357,8 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v34: the same again for the rest of the roster, once every fight had been
-        // replayed against real kills rather than only the ultimates.
-        //
-        // M8S carried three anchors on abilities the boss casts somewhere else
-        // entirely - Windfang and Stonefang at 30s and 364s, Hero's Blow at 480s and
-        // 697s - so none could ever fire where they sat, and all three are gone.
-        //
-        // M2S is the re-time. Four rows between Fracture and Alarm Pheromones sat
-        // eight seconds early, the anchors either side of them being correct, which
-        // is what makes it a mistimed block rather than a party running fast. One of
-        // them is the Killer Sting invuln call.
+        // v34: the same again for the rest of the roster, once every fight had
+        // been replayed against real kills rather than only the ultimates.
         if (config.Version < 34)
         {
             RefreshBuiltins(config, Builtin.M2sTerritory, M2sRetimed);
@@ -469,18 +367,8 @@ public static class ConfigMigrations
         }
     }
 
-    // Hand every built-in fight the current anchor table and grades, and re-time one
-    // fight's saved calls onto rows that moved.
-    //
-    // A saved plan holds its own copy of both, so a repaired anchor or a corrected
-    // grade reaches nobody who already has the fight loaded unless that copy is
-    // replaced. The calls move with their rows or the pairing breaks: the anchor
-    // would put the mechanic at its true moment while the call still fired against
-    // the old one.
-    //
-    // Matched on the exact old time and mechanic, so a call somebody has already
-    // dragged themselves is left where they put it. Per-line offsets ride along
-    // untouched, since those are stored apart from the time.
+    // Hand every built-in fight the current anchor table and grades, and
+    // re-time one fight's saved calls onto rows that moved.
     private static void RefreshBuiltins(Configuration config, ushort retimed,
                                         (float Old, string Mechanic, float New)[] moves)
     {
@@ -524,9 +412,7 @@ public static class ConfigMigrations
         (971f, "Celestriad", 963f),
     };
 
-    // The live slot plus every saved one. A fight's calls live in both, and a
-    // migration that touches only Lines leaves the other slots holding the old data
-    // until the next time one of them is picked.
+    // The live slot plus every saved one.
     private static IEnumerable<List<MitLine>> AllLineSets(FightProfile fight)
     {
         yield return fight.Lines;
@@ -535,19 +421,6 @@ public static class ConfigMigrations
     }
 
     // A custom sheet whose duty has since become an official fight.
-    //
-    // This is how every official fight starts: someone builds it as a custom sheet,
-    // and it ships as a built-in a release later. The moment it does, that sheet
-    // stops being editable in game - Build and Auto-plan are custom-only - while
-    // the user's own copy still WINS over the bake, because saved slots always do.
-    // So whatever it held before it was cleaned up stays on the board with nothing
-    // left to reach it: Doomtrain kept 53 rows of boss auto-attack the shipped
-    // version doesn't have, and M9S-M11S kept caster calls no caster can press.
-    //
-    // Unversioned on purpose - it runs every load, because the next fight to be
-    // promoted needs it too and shouldn't need a migration written for it.
-    // CustomSlots is the marker (an official fight has no business carrying its own
-    // column list), and clearing it is what stops this running twice.
     public static int AdoptSupersededSheets(Configuration config, Action<FightProfile, string>? snapshot = null)
     {
         var adopted = 0;
@@ -558,11 +431,7 @@ public static class ConfigMigrations
             f.CustomSlots.Clear();
             f.SavedSlots.Clear();
             f.CustomRows.Clear();
-            // The name goes with everything else. This runs AFTER the migration
-            // chain, and that pass skips a sheet still carrying CustomSlots - so a
-            // sheet adopted here would otherwise keep the label its author gave it
-            // forever, sitting in the Savage list as "m1s prog" between M2S and
-            // M4S, with the version gate making sure nothing ever revisited it.
+            // The name goes with everything else.
             var official = Builtin.Name(f.TerritoryId);
             if (!string.IsNullOrEmpty(official)) f.Name = official;
             if (!string.IsNullOrEmpty(f.Slot)) Builtin.ResetSlot(f, f.Slot);

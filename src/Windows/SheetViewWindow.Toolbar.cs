@@ -27,9 +27,7 @@ public partial class SheetViewWindow
                          && !JobPartyKit.ContainsKey(sl.Trim()))
             .ToList();
 
-    // Turn generic healer seats into ALL FOUR healer job columns, the way the
-    // official sheets carry WHM/AST/SCH/SGE side by side so any comp finds its
-    // column.
+    // Turn generic healer seats into all four healer job columns.
     private void ExpandHealerSeats(FightProfile fight)
     {
         var seats = GenericHealerCols();
@@ -234,7 +232,7 @@ public partial class SheetViewWindow
         ImGui.SetNextItemWidth(140f);
         ImGui.InputTextWithHint("##sheetfilter", "filter...", ref _filter, 64);
         if (DelayedHover() && !ImGui.IsItemActive())
-            ImGui.SetTooltip("Show only rows whose mechanic or any slot's mit contains this text.");
+            ImGui.SetTooltip("Show only rows matching this text.");
         if (_filter.Length > 0)
         {
             ImGui.SameLine(0, 2);
@@ -253,13 +251,9 @@ public partial class SheetViewWindow
         ImGui.SameLine(0, 8);
         ImGui.TextDisabled("(?)");
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(
-                "Click a time to re-time a mechanic for every slot; click a cell to edit that slot only.\n"
-                + "While editing: Enter moves down, Tab moves right. Ctrl+Z undoes any edit.\n"
-                + "Orange * = your edit; red cell = cooldown conflict; amber = above the duty's level sync; dim = deleted.\n"
-                + "A faint -> means an earlier press's buff still covers that hit (carry-over).\n"
-                + "Drag column edges to resize (double-click to fit) or drag headers to reorder.\n"
-                + "Right-click cells, mechanics and column headers; most tools live there.");
+            ImGui.SetTooltip("Click a time to re-time every slot; click a cell to edit one.\n"
+            + "Orange * = your edit, red = conflict, amber = above level sync, dim = deleted.\n"
+            + "Right-click cells, mechanics and headers for more.");
 
         // Right side: Undo | Build (custom sheets) | Plan | Share plan.
         var rightW = ImGui.CalcTextSize("Undo").X + ImGui.CalcTextSize("Plan").X
@@ -270,9 +264,7 @@ public partial class SheetViewWindow
         if (ImGui.SmallButton("Undo")) Undo();
         ImGui.EndDisabled();
         if (DelayedHover(ImGuiHoveredFlags.AllowWhenDisabled))
-            ImGui.SetTooltip(_undoStack.Count == 0
-                ? "Nothing to undo yet. Ctrl+Z also works."
-                : $"Undo: {_undoStack[^1].Label} (Ctrl+Z). Restores the plan to how it was before that edit.");
+            ImGui.SetTooltip(_undoStack.Count == 0 ? "Nothing to undo. Ctrl+Z also works." : $"Undo: {_undoStack[^1].Label} (Ctrl+Z).");
 
         // Deferred popup opens: OpenPopup can't run inside another popup's
         // scope, so menu items set flags and the popups open out here.
@@ -288,18 +280,18 @@ public partial class SheetViewWindow
             ImGui.SameLine();
             if (ImGui.SmallButton("Build")) ImGui.OpenPopup("##buildmenu");
             if (DelayedHover())
-                ImGui.SetTooltip("Grow this sheet: add rows by hand, from your own pulls, or from an FFLogs kill.");
+                ImGui.SetTooltip("Add rows by hand, from your pulls, or from a kill log.");
             if (ImGui.BeginPopup("##buildmenu"))
             {
                 if (ImGui.MenuItem("Add row...")) openAddRow = true;
                 if (ImGui.MenuItem("Build from pull...")) openBuildPull = true;
                 if (ImGui.MenuItem("Build from FFLogs...")) openLog = true;
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Type a fight name to pull its current top kill, or paste a specific\nlog. Its casts become rows + anchors, graded by real damage.");
+                    ImGui.SetTooltip("Pull a fight's top kill, or paste a specific log.");
                 ImGui.Separator();
                 if (ImGui.MenuItem("Auto-plan mits...")) _openAutoPlan = true;
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Fills the grid with party cooldowns for every row: spaced to each\nrecast, rotated across columns, never overwriting your own cells.");
+                    ImGui.SetTooltip("Fills every row with party cooldowns.");
                 ImGui.EndPopup();
             }
         }
@@ -307,7 +299,7 @@ public partial class SheetViewWindow
         ImGui.SameLine();
         if (ImGui.SmallButton("Plan")) ImGui.OpenPopup("##planmenu");
         if (DelayedHover())
-            ImGui.SetTooltip("Export / import, bulk replace, plan history, and view options.");
+            ImGui.SetTooltip("Export, import, history and view options.");
         if (ImGui.BeginPopup("##planmenu"))
         {
             // Land any half-typed edit first, so the clipboard never captures
@@ -320,11 +312,11 @@ public partial class SheetViewWindow
             }
             if (ImGui.MenuItem("Import plan code")) ImportPlan();
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Paste a friend's Share plan code from your clipboard.\nTheir slot is replaced; your other slots are kept.");
+                ImGui.SetTooltip("Paste a friend's plan code. Your other slots are kept.");
             if (ImGui.MenuItem("Replace a mit...")) openReplace = true;
             if (ImGui.MenuItem("Plan history...")) openHistory = true;
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Snapshots taken automatically before imports, replaces and\ncolumn pastes; restore any of them.");
+                ImGui.SetTooltip("Restore an automatic snapshot.");
             if (ImGui.MenuItem("Solve timing (offsets)") && !AbortIfStale())
             {
                 PushUndo("solve timing");
@@ -332,16 +324,16 @@ public partial class SheetViewWindow
                 Service.Log.Information($"[FrenMits] Solve timing: set {solved} offset(s) on '{_fight?.Slot}'.");
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Auto-sets each mit's offset (this column) so one press blankets the run of\nhits its buff can reach and is back in time for later mechanics. Works on\nofficial sheets too; uses real durations/recasts and respects offsets you set\nby hand. The press-window hints below show the result.");
+                ImGui.SetTooltip("Auto-sets offsets so each press covers as much as it can.");
             if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
             if (!_isCustom && ImGui.IsItemHovered())
-                ImGui.SetTooltip("Reload EVERY column from the baked sheet: all slots' edits and\ndeletions go, including added potion, job and tank lines.\nA snapshot is saved first; Plan > History restores it.");
+                ImGui.SetTooltip("Reload every column from the sheet. Snapshot saved first.");
             if (ImGui.MenuItem("Open fight page")) _plugin.ConfigWindow.OpenFightPage(_fight!);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Per-line options, anchors and import tools live there.");
             if (ImGui.MenuItem("Open Mit Tuner")) _plugin.MiniSheetWindow.IsOpen = true;
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("A pocket version for mid-pull use: the calls around now,\neach with +/- nudges for its offset. Also /fm mini.");
+                ImGui.SetTooltip("A pocket version for mid-pull use. Also /fm mini.");
             if (_isCustom)
             {
                 ImGui.Separator();
@@ -362,7 +354,7 @@ public partial class SheetViewWindow
         if (ImGui.SmallButton("Share plan")) SharePlan();
         ImGui.PopStyleColor(2);
         if (DelayedHover())
-            ImGui.SetTooltip("Copy the whole plan as a clipboard code. Friends use Plan > Import plan code\n(or the fight page); it updates their fight in place (their slot's plan).");
+            ImGui.SetTooltip("Copy the plan as a clipboard code.");
 
         if (openReplace) { _replFind = _filter; ImGui.OpenPopup("##sheetreplace"); }
         DrawReplacePopup();
@@ -410,7 +402,7 @@ public partial class SheetViewWindow
         ImGui.SetNextItemWidth(200f);
         ImGui.Combo("hits##arhurt", ref _rowHurt, HurtChoices, HurtChoices.Length);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("How hard the hit is unmitigated. Auto-plan stacks mitigation deeper\non harder hits; log imports grade this automatically from real damage.");
+            ImGui.SetTooltip("How hard the hit is unmitigated.");
         var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
         ImGui.BeginDisabled(!okRow);
         if (ImGui.Button("Add row", new Vector2(110, 0)))
@@ -431,9 +423,7 @@ public partial class SheetViewWindow
         var (fight, _, message) = PlanCodes.Import(_plugin, ImGui.GetClipboardText());
         if (fight != null)
         {
-            // Ctrl+Z entries older than the import would also revert the import
-            // under a misleading label; the pre-import disk snapshot (History)
-            // is the way back instead.
+            // Older Ctrl+Z entries would revert the import under a misleading label.
             _undoStack.RemoveAll(s => s.Fight == fight);
             if (Sheetable(fight))
             {
@@ -552,7 +542,7 @@ public partial class SheetViewWindow
                     .Concat(_plugin.Snapshots.ListOrphans(_fight.TerritoryId, _fight.Id))
                     .ToList();
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Lists snapshots from sheets you previously deleted in this duty,\nso a deleted sheet can be restored here.");
+                ImGui.SetTooltip("Restore a sheet you deleted in this duty.");
         }
         ImGui.EndPopup();
     }

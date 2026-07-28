@@ -4,7 +4,7 @@ using System.Linq;
 namespace FrenMits;
 
 // FRENMITS share codes: a FightProfile serialized to a clipboard-friendly
-// string. FRENMITS2 is gzip-compressed; FRENMITS1 (plain base64) still imports.
+// string.
 public static class PlanCodes
 {
     public static string Encode(FightProfile fight)
@@ -26,9 +26,8 @@ public static class PlanCodes
         return t.StartsWith("FRENMITS2:") || t.StartsWith("FRENMITS1:");
     }
 
-    // The pure half of Import: a plan code back into the fight it carries, or null
-    // when the text isn't a code or won't decode. Split out from Import so a code
-    // can be round-tripped in a test without a plugin or a config.
+    // The pure half of Import: a plan code back into the fight it carries, or
+    // null when the text isn't a code or won't decode.
     public static FightProfile? Decode(string? codeText)
     {
         try
@@ -55,9 +54,8 @@ public static class PlanCodes
         catch { return null; }
     }
 
-    // Decode a FRENMITS plan code and apply it: a same-territory code UPDATES the
-    // existing profile in place (the sender's active slot only, notes merged);
-    // anything else is added as a new fight.
+    // Decode a plan code and apply it; a same-territory code updates the profile in
+    // place.
     public static (FightProfile? Fight, bool IsNew, string Message) Import(Plugin plugin, string? clipboardText)
     {
         var config = plugin.Config;
@@ -72,24 +70,18 @@ public static class PlanCodes
             // before matching so slots line up with the receiver's (normalized) data.
             SlotNames.NormalizeFight(fight);
 
-            // A same-territory import UPDATES the existing profile instead of
-            // adding a duplicate: a second profile for one territory never fires
-            // (ActiveFight takes the first match), and a duplicate of a built-in
-            // renders locked, with no way to delete it.
+            // A same-territory import updates the existing profile instead of adding a
+            // duplicate.
             var existing = fight.TerritoryId != 0
                 ? config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId)
                 : null;
             if (existing != null)
             {
                 plugin.Snapshots.Save(existing, $"before importing \"{fight.Name}\"");
-                // Slot-scoped update: the import replaces the sender's ACTIVE slot
-                // only, since wholesale-replacing SavedSlots/DeletedCalls would wipe
-                // your saved edits for every other slot in the fight.
+                // Slot-scoped: the import replaces the sender's active slot only.
                 existing.Lines = fight.Lines;
                 existing.TimerOffset = fight.TimerOffset;
-                // Sheet notes MERGE: take the sender's note where they wrote one,
-                // keep yours everywhere else (wholesale replace would wipe your
-                // notes with a v131-era code's empty list).
+                // Sheet notes merge, so an old code's empty list can't wipe yours.
                 foreach (var n in fight.Notes)
                 {
                     existing.Notes.RemoveAll(o =>
@@ -108,9 +100,8 @@ public static class PlanCodes
                 }
                 if (!Builtin.Has(existing.TerritoryId))
                 {
-                    // Custom fights carry their hand-built anchors + sheet layout;
-                    // built-ins keep the canonical baked ones (ApplySlot refreshes
-                    // those anyway).
+                    // Custom fights carry their own anchors and layout; built-ins keep
+                    // the baked ones.
                     existing.Name = fight.Name;
                     existing.SyncPoints = fight.SyncPoints;
                     existing.BossAnchors = fight.BossAnchors;

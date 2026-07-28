@@ -3,14 +3,10 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Resolves boss display names to their BNpcName row id (the NameId an actor
-// reports), so boss-presence anchors can be baked by name without hardcoding
-// ids.
+// Resolves boss display names to their BNpcName row id.
 public static class BossNames
 {
-    // Concurrent, not a plain Dictionary: in game this only ever runs on the
-    // framework thread, but a torn write here corrupts the table for the rest of
-    // the session, and that is far too cheap to insure against not to.
+    // Concurrent: a torn write would corrupt the table for the rest of the session.
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, uint> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
@@ -34,10 +30,8 @@ public static class BossNames
         }
         catch (Exception ex)
         {
-            // Data not ready yet: return without caching so a later call retries,
-            // instead of pinning this name to 0 for the session. Null-conditional
-            // because this path is reached precisely when services may not be up,
-            // and the log call throwing here would defeat the whole catch.
+            // Data not ready yet: return without caching so a later call
+            // retries, instead of pinning this name to 0 for the session.
             Service.Log?.Warning(ex, "FrenMits: BNpcName resolve failed");
             return 0;
         }

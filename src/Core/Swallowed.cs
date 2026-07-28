@@ -4,16 +4,6 @@ using System.Collections.Generic;
 namespace FrenMits;
 
 // Reporting for errors that are deliberately swallowed.
-//
-// Reading game state from a draw loop has to be defensive: an actor can go stale
-// mid-frame, and a sheet can move under us on patch day. Catching that is right.
-// Catching it SILENTLY is not - when a game patch changes a sheet's shape, the
-// feature that depends on it dies for good and the log says nothing, so it reads
-// as "the recap just stopped working" with nothing to go on.
-//
-// So each site reports through here instead: counted forever, logged at most once
-// a minute, and surfaced on the settings page so a bug report can say which part
-// is failing and how often.
 public static class Swallowed
 {
     private sealed class Site

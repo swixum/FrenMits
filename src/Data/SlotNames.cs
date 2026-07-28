@@ -4,9 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// One naming standard for sheet columns everywhere: T1 T2 for tanks, the four
-// healer jobs as their own columns (WHM/AST fill the H1 seat, SCH/SGE fill H2),
-// M1 M2 for melee, R1 R2 for phys ranged / caster.
+// One naming standard for sheet columns: T1 T2, the four healer jobs, M1 M2, R1 R2.
 public static class SlotNames
 {
     // The canonical column set (and order) every built-in sheet presents.
@@ -48,9 +46,7 @@ public static class SlotNames
         var c => c,
     };
 
-    // Rename a saved fight onto the standard, idempotently: active slot,
-    // per-slot stashes, custom columns and deletion tombstones (returns true
-    // when anything actually changed).
+    // Rename a saved fight onto the standard, idempotently.
     public static bool NormalizeFight(FightProfile fight)
     {
         var changed = false;
@@ -79,9 +75,7 @@ public static class SlotNames
             if (!string.Equals(c, fight.CustomSlots[i], StringComparison.Ordinal))
             { fight.CustomSlots[i] = c; changed = true; }
         }
-        // Two old names can land on one standard name (a sheet with both MT
-        // and T1 columns): drop the later duplicate; the stashes for both keys
-        // were already merged by the rename above.
+        // Two old names can land on one standard name; drop the later duplicate.
         for (var i = fight.CustomSlots.Count - 1; i > 0; i--)
             if (fight.CustomSlots.Take(i).Contains(fight.CustomSlots[i], StringComparer.OrdinalIgnoreCase))
             { fight.CustomSlots.RemoveAt(i); changed = true; }
@@ -101,12 +95,7 @@ public static class SlotNames
             if (changed && fight.SavedSlots.TryGetValue(fight.Slot, out var winner)
                 && !ReferenceEquals(winner, fight.Lines) && winner.Count > fight.Lines.Count)
                 fight.Lines = winner;
-            // Re-aliased on EVERY load, not only when a rename happened. Loading
-            // the config deserializes Lines and the stash into SEPARATE lists, so
-            // without this the invariant the rest of the code is written against
-            // is quietly false for the whole session - and an edit path that
-            // mutated Lines then read the stash would lose the edit. Deliberately
-            // does NOT mark the fight changed: nothing needs saving for it.
+            // Re-aliased on EVERY load, not only when a rename happened.
             fight.SavedSlots[fight.Slot] = fight.Lines;
         }
 

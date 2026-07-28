@@ -4,30 +4,8 @@ using System.Linq;
 
 namespace FrenMits;
 
-// One place that decides which timeline rows become resync anchors, and which of
-// those may re-base a phase.
-//
-// Every built-in sheet used to answer that inline, and every one of them answered
-// it the same way: the first row of a phase re-bases, and so does any row more
-// than 90s after the last anchor, to get the clock back after downtime.
-//
-// The part that was missing is the guard below. A phase anchor is given a 2000s
-// forward window so a clock still sitting in an earlier segment can land on the
-// next phase the moment its boss casts. The boss then only has to use that same
-// ability once more, earlier, somewhere the table says nothing about, and the
-// clock leaps forward the whole gap - and stays there until something drags it
-// back. Measured against six kills apiece that none of the data came from, that
-// was costing UCOB more than thirty seconds of accuracy on 96 readings out of 168
-// and UWU on 120 out of 150, with median errors of five and a half and seven and a
-// half minutes.
-//
-// So only an ability's FIRST anchor may re-base. A later one still corrects fine
-// drift, within the tight mechanic window, where being wrong costs seconds instead
-// of phases.
-//
-// A phase that would have re-based on a repeat doesn't just lose the re-base: it
-// hands it to the next row whose ability hasn't been anchored yet, so the clock
-// still gets back on, a few seconds later and on something unambiguous.
+// One place that decides which timeline rows become resync anchors, and which
+// of those may re-base a phase.
 public static class SyncAnchors
 {
     // How far past a phase start to look for an ability that can carry its re-base.
@@ -73,32 +51,11 @@ public static class SyncAnchors
         }).ToList();
     }
 
-    // The same rule applied to a list that already knows which anchors re-base:
-    // the baked duty timelines, whose IsPhase flags come out of the bake rather
-    // than from Build above.
-    //
-    // Those needed it more than anything else does. A duty packs each boss into
-    // its own 1000-second block and a phase anchor is given a 20000-second forward
-    // window to reach them, so an ability that re-bases a later boss and is ALSO
-    // cast by an earlier one drags the clock a whole boss or more forward, mid
-    // fight. Across the 310 shipped duties, 355 anchors were shaped that way, the
-    // worst able to jump 8792 seconds - the board would sit on the last boss's
-    // mechanics while the party fought the first.
-    //
-    // A denied re-base is handed on, first to a neighbour within HandoffReach as
-    // Build does, then to anywhere in the same block, because a block that loses
-    // its last re-base is never reached at all and shows no timeline whatsoever.
-    // Where a block has nothing safe to offer - every ability in it is cast
-    // earlier too - the risky anchor is KEPT: a wrong clock beats no clock, and
-    // that is the honest trade rather than a silent regression.
-    // Where one encounter in a baked duty ends and the next begins. NOT time/1000:
-    // a segment can run long enough to cross the next thousand, so the boundary is
-    // the gap itself.
+    // The same rule for a list that already knows which anchors re-base.
     private const float EncounterGap = 150f;
 
-    // Where each encounter of a baked duty starts, taken from the ROW times, which
-    // is how the bake splits them. Anchor times alone give different boundaries and
-    // hand a re-base to the wrong encounter.
+    // Where each encounter of a baked duty starts, taken from the ROW times,
+    // which is how the bake splits them.
     public static List<float> EncounterStarts(IEnumerable<float> rowTimes)
     {
         var times = rowTimes.OrderBy(t => t).ToList();
@@ -115,8 +72,8 @@ public static class SyncAnchors
         if (points.Count == 0) return;
         var order = points.Select((p, i) => (p, i)).OrderBy(x => x.p.Time).Select(x => x.i).ToList();
 
-        // Which encounter each anchor belongs to, and which encounters could re-base
-        // before any of this ran. Whatever else happens, none of them may lose that.
+        // Which encounter each anchor belongs to, and which encounters could
+        // re-base before any of this ran.
         var segment = new int[points.Count];
         if (encounterStarts is { Count: > 0 })
         {
@@ -166,9 +123,8 @@ public static class SyncAnchors
             if (take >= 0) points[take].IsPhase = true;
         }
 
-        // The invariant, enforced rather than hoped for: an encounter that could be
-        // entered before must still be enterable. Where nothing safe was found, the
-        // risky anchor goes back - a wrong clock beats a boss with no timeline.
+        // The invariant, enforced rather than hoped for: an encounter that
+        // could be entered before must still be enterable.
         var canEnter = new HashSet<int>();
         foreach (var i in order)
             if (points[i].IsPhase) canEnter.Add(segment[i]);

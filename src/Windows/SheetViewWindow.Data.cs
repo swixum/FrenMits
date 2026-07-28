@@ -11,7 +11,7 @@ using Dalamud.Interface.Windowing;
 namespace FrenMits.Windows;
 
 // Sheet View: building the grid's rows from the fight, and applying edits back
-// onto the plan. No drawing lives here.
+// onto the plan.
 public partial class SheetViewWindow
 {
     // ---- data -------------------------------------------------------------
@@ -116,10 +116,8 @@ public partial class SheetViewWindow
             }
         }
 
-        // Anchor live rows to baked instances ORDER-PRESERVINGLY per mechanic,
-        // not by raw nearest time: a row re-timed past the midpoint between two
-        // repeats of one mechanic must still anchor to ITS instance, or reset
-        // would wipe it and its twin would double up.
+        // Anchor live rows to baked instances order-preservingly per mechanic, not by
+        // nearest time.
         var referenced = new HashSet<BakedRow>();
         AnchorRows(referenced);
         foreach (var row in _rows)
@@ -193,10 +191,8 @@ public partial class SheetViewWindow
         BuildCarryGhosts();
     }
 
-    // Carry-over ghosts, like the reference sheets' arrows: an empty cell shows
-    // a dim "-> Name" when a buff pressed on an EARLIER row is still up on this
-    // one (real durations, per part), so while building you can SEE what a hit
-    // is already covered by before adding more.
+    // Carry-over ghosts: an empty cell shows a dim arrow when an earlier buff still
+    // covers it.
     private void BuildCarryGhosts()
     {
         foreach (var row in _rows) row.Carry = null;
@@ -208,10 +204,7 @@ public partial class SheetViewWindow
             foreach (var row in _rows)
             {
                 if (row.Ghost || row.Cells.Length <= i || row.Cells[i].Count > 0) continue;
-                // Only lines close enough that any buff could still be up. The
-                // horizon comes from the duration table rather than a number typed
-                // here, which was 45s - exactly Excogitation's length, so the
-                // longest buff in the game sat right on the edge of being missed.
+                // Only lines close enough that any buff could still be up.
                 var horizon = Cooldowns.LongestWindow + 5f;
                 while (start < lines.Count && lines[start].Time < row.Time - horizon
                        && lines[start].CoverUntil < row.Time - 0.5f) start++;
@@ -303,9 +296,8 @@ public partial class SheetViewWindow
     // press-window hints plus the top-down feasibility walk.
     private void CheckMitTimer(List<(float Time, MitLine Line, string Name, string Tag)> list, float recast, int charges)
     {
-                // Press-window HINTS: coverage pushes the press EARLIER (the
-                // buff must reach the last covered hit), a same-timer reuse
-                // caps how LATE it can go.
+                // Press-window hints: coverage pushes the press earlier, a reuse caps
+                // how late it can go.
                 for (var u = 0; u < list.Count; u++)
                 {
                     var (t, line, name, _) = list[u];
@@ -483,9 +475,8 @@ public partial class SheetViewWindow
         return cells;
     }
 
-    // Our cached references would write stale data back if the fight page
-    // replaced a list object, so every commit verifies them first and turns a
-    // mismatch into a harmless "try again".
+    // Every commit verifies our cached references, so a replaced list can't take stale
+    // data.
     private bool PlanChangedElsewhere()
     {
         if (_fight == null) return true;
@@ -535,9 +526,8 @@ public partial class SheetViewWindow
 
     // ---- edits ------------------------------------------------------------
 
-    // Land any edit still in progress: clicking from a half-typed cell into an
-    // earlier row (or the toolbar) must not drop the text, since draw order can
-    // skip the old editor's commit frame.
+    // Land any edit still in progress, since draw order can skip the old editor's
+    // commit.
     private bool CommitPending()
     {
         var committed = false;
@@ -619,9 +609,7 @@ public partial class SheetViewWindow
         if (below != null) _pendingEdit = (below.Time, below.Mechanic, i);
     }
 
-    // Cell edits touch the FIRST line in the cell only; a cell holding two real
-    // lines (rare merge of near-simultaneous casts) stacks them and leaves the
-    // second line alone.
+    // Cell edits touch the first line in the cell only.
     private void ApplyCellText(Row row, int i, string raw)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
@@ -663,17 +651,13 @@ public partial class SheetViewWindow
         _dirty = true;
     }
 
-    // Reset one mechanic instance to the baked sheet, every slot: precise to the
-    // anchored instance (row.Bake), so neighbors and other instances of the same
-    // mechanic are never touched.
+    // Reset one mechanic instance to the baked sheet, every slot.
     private void ResetRow(Row row)
     {
         if (_fight == null || AbortIfStale()) return;
         if (row.Bake == null)
         {
-            // No baked instance pairs with this row: it's an extra instance the
-            // sheet doesn't have, or a leftover edit under a mechanic name the
-            // sheet renamed.
+            // No baked instance pairs with this row.
             PushUndo($"remove \"{row.Mechanic}\" (not on the sheet)");
             var removed = 0;
             for (var i = 0; i < _slots.Length; i++)

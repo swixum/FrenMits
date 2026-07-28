@@ -59,9 +59,7 @@ public class SlotPopupWindow : Window
             ImGui.TextDisabled("Your slot:");
             ImGui.SameLine();
 
-            // No slot yet must SHOW as no slot ("(pick)"), never as the first
-            // entry: a combo that pre-displays MT reads as already saved, so
-            // picking that same entry did nothing and OK saved nothing either.
+            // No slot yet must show as "(pick)", never as the first entry.
             var current = _fight.Slot ?? "";
             var preview = string.IsNullOrEmpty(current) ? "(pick)" : current;
             ImGui.SetNextItemWidth(90f);

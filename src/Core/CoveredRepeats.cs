@@ -5,36 +5,11 @@ using System.Text;
 namespace FrenMits;
 
 // A mit a sheet asks for while it is already running from an earlier press.
-//
-// Reference sheets write the name again on every hit one press covers - that is
-// how they say "you are still shielded here". Read back as instructions it turns
-// into a press nobody can make: FRU lists Feint for Banish III at 5:23 and again
-// for Light Rampant at 5:33, ten seconds into a fifteen second buff with eighty
-// seconds of recast to go. The same goes for the melee Feint across Shell Crusher
-// and Shockwave Pulsar, and the caster Addle beside the first pair.
-//
-// Taking them out is also what makes the carry-over ghost appear: the cell empties,
-// and the grid fills it with a dim "-> Feint" pointing at the press that IS
-// covering the hit. Nothing is lost from the sheet, and the call stops firing for
-// a button that has not come back.
-//
-// Nothing with a second charge is ever taken: for those the buff being up says
-// nothing about whether you can press it.
-//
-// Only whole words get taken - a part has to BE the mit's name and nothing else.
-// "Zoe EukProg/Holos" loses Holos and keeps the rest; "Rep Short CD on M1" and
-// "Party Mit (WAR/PLD)" are never touched. Lines you edited yourself are left
-// alone too, though their presses still count against what follows.
 public static class CoveredRepeats
 {
     private const float Slop = 0.01f;
 
-    // Strip every already-covered repeat from one slot's lines, editing the list
-    // in place and returning how many lines changed (a line whose every part goes
-    // is removed outright).
-    //
-    // `buffsIn` resolves an action's mits and their durations; it defaults to the
-    // curated table and is only passed by tests wanting a fixed one.
+    // Strip every already-covered repeat from one slot's lines, in place.
     public static int Strip(List<MitLine>? lines,
         Func<string, IEnumerable<(string Name, float Duration)>>? buffsIn = null)
     {
@@ -50,11 +25,8 @@ public static class CoveredRepeats
 
         foreach (var line in order)
         {
-            // A disabled line is never pressed, so it neither covers anything nor
-            // needs cleaning up. A line you wrote or edited is yours: it still
-            // counts as a press, but it is not ours to rewrite. Job-gated lines
-            // belong to one job in a shared column, which is a different player's
-            // timer from the column's own.
+            // A disabled line is never pressed, so it neither covers anything
+            // nor needs cleaning up.
             if (!line.Enabled || string.IsNullOrWhiteSpace(line.Action)) continue;
             var ours = !line.Custom && line.Jobs.Count == 0;
 
@@ -63,9 +35,7 @@ public static class CoveredRepeats
             foreach (var p in parts)
             {
                 var mit = ours ? BareMit(p.Text, buffsIn) : null;
-                // A second charge is a second press: Consolation runs 30s but comes
-                // in twos, so FRU's healer laying one at 0:15 and another at 0:35 is
-                // doing it right, not repeating themselves.
+                // A second charge is a second press, not a repeat.
                 if (mit != null && !Cooldowns.HasCharges(mit)
                     && upUntil.TryGetValue(mit, out var end) && end > line.Time + Slop)
                     continue;
@@ -122,9 +92,7 @@ public static class CoveredRepeats
         return parts;
     }
 
-    // Put the survivors back, each behind the separator it arrived with. A "+"
-    // gets its spaces back and a "/" stays tight, which is how the sheets that use
-    // each one write them.
+    // Put the survivors back, each behind the separator it arrived with.
     private static string Join(List<Part> parts)
     {
         var sb = new StringBuilder();
@@ -138,10 +106,7 @@ public static class CoveredRepeats
         return sb.ToString();
     }
 
-    // A part the sheet is hedging on rather than promising: UCOB's healer gets
-    // "Kerachole (If Available)" at 11:22 and a plain Kerachole eleven seconds
-    // later, so the second one is the press for anyone the first didn't have. A
-    // maybe can't be what covers the next hit, and the line that follows it stays.
+    // A part the sheet hedges on, e.g. "Kerachole (If Available)".
     private static bool Conditional(string text)
     {
         var i = text.IndexOf("if", StringComparison.OrdinalIgnoreCase);
@@ -155,9 +120,7 @@ public static class CoveredRepeats
         return false;
     }
 
-    // The mit this part names, when the part is nothing BUT that name. Anything
-    // carrying extra words ("Feint (Shiva)", "Rep Short CD on M1") means something
-    // the sheet is saying beyond the button, so it stays.
+    // The mit this part names, when the part is nothing BUT that name.
     private static string? BareMit(string text,
         Func<string, IEnumerable<(string Name, float Duration)>> buffsIn)
     {

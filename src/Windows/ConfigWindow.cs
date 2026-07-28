@@ -81,9 +81,7 @@ public partial class ConfigWindow : Window, IDisposable
     // "Other" categories display and file as Extreme (CategoryOf).
     private static readonly string[] FightTypes = { "Ultimate", "Savage", "Extreme" };
 
-    // The sidebar group a fight belongs to: built-ins use their baked category, and
-    // a fight whose stored category is no longer a tab (e.g. the removed Raids /
-    // Other) falls back to Extreme so it isn't orphaned.
+    // The sidebar group a fight belongs to, falling back to Extreme if its tab is gone.
     private static string CategoryOf(FightProfile f)
     {
         if (!string.IsNullOrEmpty(f.Category) && Array.IndexOf(Categories, f.Category) >= 0)
@@ -168,16 +166,12 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PopStyleVar(4);
         Theme.PopWidgets();
 
-        // Toggle()/CfgCheck()/GridCheck() return the new value for the CALLER to
-        // assign, so rather than save inside them (which would persist the
-        // pre-assignment state) they mark this flag and the save runs here, after
-        // every assignment this frame.
+        // Toggle and friends return the new value for the caller to assign, so the save
+        // runs here.
         if (_toggleDirty)
         {
             _toggleDirty = false;
-            // Settings only: every Toggle/CfgCheck/GridCheck in the config window
-            // assigns its result straight back to a C.<setting>, so nothing that
-            // reaches here can have edited a plan.
+            // Settings only: nothing that reaches here can have edited a plan.
             C.SaveSettings();
         }
     }
@@ -231,9 +225,7 @@ public partial class ConfigWindow : Window, IDisposable
         return v;
     }
 
-    // The one checkbox style used across the whole config: fills green with a white
-    // tick when checked, mirroring ImGui.Checkbox's signature/return so it's a
-    // drop-in everywhere.
+    // The one checkbox style used across the whole config.
     private static bool GreenCheckbox(string label, ref bool v)
     {
         var on = v; // style by the current state; push and pop must use the same flag
@@ -371,7 +363,7 @@ public partial class ConfigWindow : Window, IDisposable
             var test = C.TestMode;
             if (GreenCheckbox("Test", ref test)) { C.TestMode = test; C.Save(); }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Show a sample call so you can place / size the overlay.\nTurns itself off automatically when a real pull starts.");
+                ImGui.SetTooltip("Show a sample call so you can place the overlay.");
 
             // Status dots on the second line.
             Dot(job != null, $"Job: {job ?? "?"}");
@@ -386,11 +378,8 @@ public partial class ConfigWindow : Window, IDisposable
                 ImGui.SameLine(0, 18);
                 WarnDot($"internal errors ({_plugin.FrameErrorCount}): check /xllog");
             }
-            // Anything that failed quietly (a sheet moving under us on patch day,
-            // a status read going stale). Named here so "the recap stopped
-            // working" comes with something to report instead of a shrug.
-            // Swallowed.Any is a lock-free read; the list is only built when the
-            // dot is actually hovered, not on every frame this window is open.
+            // Anything that failed quietly (a sheet moving under us on patch
+            // day, a status read going stale).
             if (Swallowed.Any)
             {
                 ImGui.SameLine(0, 18);
@@ -509,9 +498,7 @@ public partial class ConfigWindow : Window, IDisposable
         return clicked;
     }
 
-    // Job + role in one compact block; the role pick applies to every built-in
-    // fight, mapping to whatever slot that fight uses for the role (e.g. Melee 1
-    // -> D1 in DMU, M1 in FRU).
+    // Job + role in one block; the role pick applies to every built-in fight.
     private void DrawSidebarSetup()
     {
         ImGui.Spacing();
@@ -534,11 +521,9 @@ public partial class ConfigWindow : Window, IDisposable
             C.JobSelection = jobIdx == 0 ? "Auto" : Jobs.Abbreviations[jobIdx - 1];
             C.Save();
         }
-        Tip($"The job your mits and calls are read for. Active now: {_plugin.ActiveJobAbbreviation() ?? "?"}.");
+        Tip($"The job your calls are read for. Now: {_plugin.ActiveJobAbbreviation() ?? "?"}.");
 
-        // One click to pin whatever you're playing right now; hidden on Auto, which
-        // already follows the live job, so pinning there would only stop it
-        // following the NEXT job change.
+        // One click to pin whatever you're playing; hidden on Auto.
         var live = Plugin.LocalPlayer?.ClassJob.RowId is { } rid ? Jobs.ByRowId(rid)?.Abbreviation : null;
         if (live != null
             && !string.Equals(C.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase)
@@ -550,7 +535,7 @@ public partial class ConfigWindow : Window, IDisposable
                 C.JobSelection = live;
                 C.Save();
             }
-            Tip("Pin your job with one click instead of picking it from the list.");
+            Tip("Pin your current job.");
         }
 
         // Role row.
@@ -580,10 +565,7 @@ public partial class ConfigWindow : Window, IDisposable
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Every fight is on this role's slot.");
         }
 
-        // One click to match the role to the job you're playing right now, hidden
-        // when already on it or when the pick is the other seat of the same pair
-        // (Off Tank while tanking, Melee 2 on a melee), since that pick is
-        // deliberate.
+        // One click to match the role to your job, hidden when the pick is deliberate.
         var liveRole = RoleForJob(_plugin.ActiveJobAbbreviation());
         if (liveRole != null
             && !string.Equals(C.RoleSelection, liveRole, StringComparison.OrdinalIgnoreCase)
@@ -592,15 +574,13 @@ public partial class ConfigWindow : Window, IDisposable
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8f);
             if (ImGui.SmallButton($"Use current ({liveRole})"))
                 SelectRoleForAll(liveRole);
-            Tip("Set the role from your current job with one click. Tanks and melee "
-                + "land on the first seat (Main Tank / Melee 1); pick Off Tank or "
-                + "Melee 2 from the list if that's your spot.");
+            Tip("Set the role from your current job.");
         }
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         var ask = C.ShowSlotPopupOnEntry;
         if (GreenCheckbox("Ask on duty entry", ref ask)) { C.ShowSlotPopupOnEntry = ask; C.Save(); }
-        Tip("When you enter a fight that has a sheet, a tiny popup shows which slot is yours\nand lets you change it. Shows once per entry; hides when combat starts. Off by default.");
+        Tip("A popup on entry showing which slot is yours.");
     }
 
     // Both roles are seats of the same pair (MT/OT, or Melee 1/2), so the

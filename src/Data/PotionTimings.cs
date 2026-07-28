@@ -4,14 +4,10 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Consensus potion timings per job, clustered from the top logs the raalm.com /
-// Lorrgs "m-spec" site serves, baked offline so nothing is added to a sheet unless
-// the user clicks.
+// Consensus potion timings per job, clustered from top logs and baked offline.
 public static class PotionTimings
 {
-    // Fights the site has potion-cast data for (its boss slug), else null; only the
-    // current tier (this ultimate + this savage) is tracked, since the older
-    // ultimates (UCOB/UWU/TEA/DSR/TOP) and FRU expose only rotational abilities.
+    // Fights with potion-cast data, else null; only the current tier is tracked.
     public static string? BossSlug(uint territory) => territory switch
     {
         Builtin.DmuTerritory => "dancing-mad",
@@ -73,9 +69,7 @@ public static class PotionTimings
         },
     };
 
-    // The standard 2-minute-meta potion plan for a fight of this length: pot
-    // the opener, then each 6:00 burst (item recast is 270s, bursts land on the
-    // even minutes) while at least half a minute of fight remains.
+    // The standard 2-minute-meta plan: pot the opener, then each 6:00 burst that fits.
     public static List<float> GenericWindows(float fightEnd)
     {
         var times = new List<float>();

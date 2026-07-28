@@ -4,22 +4,14 @@ using Dalamud.Bindings.ImGui;
 
 namespace FrenMits.Windows;
 
-// Chrome shared by the on-screen HUD windows (center call, next-mits board, mit
-// bar, combat timer, recap popup): the lock rule, crisp font pushing,
-// center-anchored placement, drag-to-place geometry, and the pulse/shadow
-// drawing they all use. One implementation instead of a copy per window.
+// Chrome shared by the on-screen HUD windows.
 internal static class OverlayChrome
 {
-    // Locked for real if the user ticked the lock OR a live pull is running (but
-    // not while previewing) - combat always pins a HUD window so it can't be
-    // grabbed and "stuck" mid-fight.
+    // Locked if the user ticked the lock or a live pull is running.
     public static bool Locked(bool userLock, Configuration c)
         => userLock || (Plugin.InCombat && !c.TestMode);
 
     // Pushes a crisp Dalamud font handle at the given px size.
-    //
-    // A handle isn't ready the instant it's asked for - the atlas builds on a
-    // background thread - so the interesting part is what gets drawn meanwhile.
     public static IDisposable PushFont(FontManager fonts, float sizePx, string family, bool bold, bool italic)
     {
         // Asking for it is also what starts it building, so the exact handle is on
@@ -27,11 +19,7 @@ internal static class OverlayChrome
         var handle = fonts.Get(sizePx, family, bold, italic);
         if (handle is { Available: true }) return handle.Push();
 
-        // Not ready (first draw, or a size never used before). Borrow the nearest
-        // handle of the SAME font that IS ready and correct the difference: a real
-        // glyph atlas scaled a little, rather than the ~12px bitmap scaled a lot.
-        // The call overlay defaults to 40px, so the old path magnified a bitmap
-        // 2.2x - which is exactly what looked pixelated for those frames.
+        // Not ready (first draw, or a size never used before).
         if (fonts.Nearest(sizePx, family, bold, italic) is { } near)
         {
             var push = near.Handle.Push();
@@ -41,8 +29,8 @@ internal static class OverlayChrome
             return new PopScaledFont(push);
         }
 
-        // Nothing of this font is built yet at all - the first frame of the first
-        // overlay, before the warm-up has landed. Same last resort as before.
+        // Nothing of this font is built yet at all - the first frame of the
+        // first overlay, before the warm-up has landed.
         ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
         return ResetFontScale.Instance;
     }
@@ -78,8 +66,7 @@ internal static class OverlayChrome
     }
 
     // The window's current CENTER as a work-area fraction when it differs from
-    // the saved one (i.e. the user dragged it); null while unmoved. The caller
-    // stores the new fraction and saves ONCE when the mouse releases.
+    // the saved one (i.e. the user dragged it); null while unmoved.
     public static Vector2? MovedCenterFrac(Vector2 saved)
     {
         var vp = ImGui.GetMainViewport();

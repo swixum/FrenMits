@@ -5,16 +5,6 @@ using System.Linq;
 namespace FrenMits;
 
 // One boss's timeline, learned from your own pulls.
-//
-// The baked timelines (UniversalTimelines) come from cactbot, which covers most
-// current content but has nothing at all for a long tail of older duties - about
-// 150 of them. Rather than leave those blank forever, the plugin watches the
-// bosses' casts while you fight them and builds the timeline itself, so the
-// second time you meet a boss the board already knows what it does.
-//
-// Keyed by the boss's NameId rather than the duty, which is what makes a 3-boss
-// dungeon or an alliance raid work without any of the block arithmetic the baked
-// timelines need: each boss is simply its own fight, starting from zero.
 [Serializable]
 public class LearnedFight
 {
@@ -49,8 +39,8 @@ public static class TimelineLearner
     // ticking, not two rows worth showing.
     private const float RepeatWindow = 3f;
 
-    // How far apart two pulls may place the same cast and still be considered the
-    // same moment. Generous, because a boss's schedule shifts with kill speed.
+    // How far apart two pulls may place the same cast and still be considered
+    // the same moment.
     private const float MatchWindow = 8f;
 
     // Turn one pull's raw enemy casts into timeline rows: drop autos and
@@ -76,20 +66,12 @@ public static class TimelineLearner
     }
 
     // Fold a fresh pull into what's already known.
-    //
-    // Deliberately monotone: a cast that has been seen once is never removed, so
-    // wiping thirty seconds in can't erase the timeline learned from a much longer
-    // pull. Matching casts have their times averaged (weighted by how many pulls
-    // are already behind the stored value), and anything the fresh pull saw past
-    // the end of what's known gets appended. Returns true if anything changed.
     public static bool Merge(LearnedFight into, List<LearnedCast> fresh)
     {
         if (fresh.Count == 0) return false;
 
         var changed = false;
-        // Capped: with an uncapped pull count a hundredth pull moves the stored
-        // time by 1%, so a boss retuned in a patch would effectively never be
-        // re-learned. Capping keeps it a converged-but-still-adaptive average.
+        // Capped, or a boss retuned in a patch would effectively never be re-learned.
         var weight = MathF.Min(MathF.Max(1, into.Pulls), 8f);
         var searchFrom = 0;
 
@@ -121,9 +103,7 @@ public static class TimelineLearner
                 searchFrom = into.Casts.Count;
                 changed = true;
             }
-            // Anything else is a cast the boss does sometimes (a branch, an add
-            // phase order): left out rather than allowed to fight with the
-            // schedule everyone else's pulls agree on.
+            // Anything else is a cast the boss only does sometimes, so leave it out.
         }
 
         if (changed || fresh.Count > 0)
@@ -137,14 +117,7 @@ public static class TimelineLearner
     }
 
     // ---- segmenting a pull ------------------------------------------------
-    // One captured "pull" is not one fight. In a dungeon the clock starts on the
-    // first trash pack, so the boss's opener sits at t=300 with five minutes of
-    // trash in front of it. Learning that verbatim produces a timeline that is
-    // wrong in every way: wrong start, wrong contents, filed under whichever mob
-    // happened to have the most HP.
-    //
-    // So a pull is cut down to the boss's own engagement first: everything from
-    // the boss's first cast onward, rebased so that moment is zero.
+    // One captured "pull" is not one fight.
 
     // A boss fight that produced almost nothing isn't a fight worth learning -
     // it's a trash pack, or someone pulling and immediately wiping.
@@ -153,15 +126,7 @@ public static class TimelineLearner
 
     public readonly record struct PullCast(uint Ability, float Time, string Name, uint CasterNameId);
 
-    // The boss's own slice of a captured pull, rebased to start at zero. Empty
-    // when the pull doesn't contain a real boss engagement.
-    //
-    // Casts from OTHER enemies after the boss engages are kept: adds are part of
-    // the fight, and their casts are mechanics worth seeing on the board.
-    // `requireEngagement` applies the "this was really a boss" gates. On by
-    // default for anything being written to disk; off for the live first-pull
-    // read, where the loop detection is itself the evidence and the fight is
-    // still in progress.
+    // The boss's own slice of a captured pull, rebased to start at zero.
     public static List<LearnedCast> Segment(IEnumerable<PullCast> casts, uint bossNameId,
         bool requireEngagement = true)
     {
@@ -187,9 +152,8 @@ public static class TimelineLearner
         return Distill(engaged.Select(c => (c.Ability, MathF.Max(0f, c.Time - start), c.Name)));
     }
 
-    // Record a finished pull against its boss, cutting the boss's engagement out
-    // of everything else the capture picked up. Returns true when the store
-    // changed (the caller saves).
+    // Record a finished pull against its boss, cutting the boss's engagement
+    // out of everything else the capture picked up.
     public static bool LearnPull(Configuration config, uint bossNameId, string bossName, uint territory,
         IEnumerable<PullCast> casts)
     {
@@ -230,11 +194,7 @@ public static class TimelineLearner
     }
 
     // ---- first-pull projection --------------------------------------------
-    // Learning only pays off from the second pull. The first one would show a
-    // blank board - except that most bosses, especially in the older duties that
-    // have no baked timeline, run their mechanics on a LOOP. Once a cycle has been
-    // seen through twice, the rest of the fight is predictable from the pull
-    // that's already happening.
+    // Learning only pays off from the second pull.
 
     // A cycle has to repeat at least twice to be believed, and be long enough not
     // to be one mechanic double-tapping.
@@ -244,7 +204,6 @@ public static class TimelineLearner
     private const int ProjectCycles = 3;
 
     // The repeating tail of a pull, or null when nothing convincing repeats.
-    // Returned as the casts of ONE cycle plus how long the cycle takes.
     public static (List<LearnedCast> Cycle, float Period)? FindLoop(List<LearnedCast> casts)
     {
         // Longest cycle first: a boss looping A B C A B C should be read as a
@@ -272,9 +231,8 @@ public static class TimelineLearner
         return null;
     }
 
-    // What the boss is about to do, projected from the loop it has been running.
-    // Empty when nothing repeats yet, which is the honest answer for the opening
-    // of a fight nobody has ever seen.
+    // What the boss is about to do, projected from the loop it has been
+    // running.
     public static List<LearnedCast> ProjectLoop(List<LearnedCast> casts)
     {
         var result = new List<LearnedCast>();
@@ -291,8 +249,7 @@ public static class TimelineLearner
     }
 
     // The board for a boss nobody has fought yet: whatever its loop says is
-    // coming. Rebuilt as the pull goes, so the timeline appears the moment the
-    // boss repeats itself rather than only on the next pull.
+    // coming.
     public static FightProfile? BuildFromLivePull(uint territory, string bossName, uint bossNameId,
         IEnumerable<PullCast> casts)
     {
@@ -338,9 +295,7 @@ public static class TimelineLearner
         return fight;
     }
 
-    // Every boss ever met in a duty with no baked timeline gets an entry, and the
-    // whole config is rewritten on each save - so the store is bounded, dropping
-    // whatever hasn't been seen for longest.
+    // Bounded, dropping whatever hasn't been seen for longest.
     private const int MaxLearnedFights = 400;
 
     private static void Prune(Configuration config)

@@ -6,14 +6,6 @@ namespace FrenMits;
 
 // Pre-pull checks: is your food actually up and going to last the pull, and is
 // your potion there to be used?
-//
-// The game never tells you either. Food expiring four minutes into a nine-minute
-// fight is a silent loss nobody notices until the parse, and walking in with no
-// food at all is the kind of mistake you only catch after the wipe. Both are
-// plain to see in your own status list, so the check costs nothing.
-//
-// Everything that decides anything here is pure and unit-tested; only the reads
-// at the bottom touch the game.
 public static class PrepCheck
 {
     // Verified against the Status sheet: both rows are unique and have been
@@ -36,9 +28,8 @@ public static class PrepCheck
     public static Grade GradeOf(Buff buff, float warnSeconds)
     {
         if (!buff.Present) return Grade.Missing;
-        // A present buff whose timer reads non-positive is a status we can't
-        // time rather than one about to drop; saying nothing beats crying wolf
-        // every frame for the rest of the duty.
+        // A present buff with no readable timer is one we can't time, not one about to
+        // drop.
         if (buff.Remaining <= 0f) return Grade.Ok;
         return buff.Remaining <= warnSeconds ? Grade.Expiring : Grade.Ok;
     }
@@ -68,8 +59,7 @@ public static class PrepCheck
 
     // ---- the fuller food verdict -------------------------------------------
 
-    // How loudly a line reads. Info is for the always-on timer, which is a
-    // readout rather than a complaint.
+    // How loudly a line reads.
     public enum Level { None, Info, Warn, Danger }
 
     // Everything the optional checks need, so the verdict below stays pure and
@@ -86,9 +76,6 @@ public static class PrepCheck
     }
 
     // The food line and how loudly to say it, worst problem first.
-    //
-    // `isBattleFood` and `isHq` are passed in because resolving them needs the
-    // game's sheets; everything about what to DO with them lives here.
     public static Verdict FoodVerdict(Buff food, bool isBattleFood, bool isHq, FoodOpts o)
     {
         if (!food.Present) return new Verdict("No food", Level.Danger);
@@ -116,9 +103,8 @@ public static class PrepCheck
     // How long this fight runs, or 0 when that isn't a meaningful question.
     public static float FightSeconds(FightProfile? fight)
     {
-        // A baked duty timeline packs every encounter of an instance onto ONE
-        // clock in 1000-second blocks, so its last time is not a fight length -
-        // it's boss three's coordinate. Only a real sheet can answer this.
+        // A baked duty timeline packs several encounters onto one clock in 1000-second
+        // blocks.
         if (fight == null || fight.TimelineOnly) return 0f;
         var last = 0f;
         foreach (var l in fight.Lines) if (l.Time > last) last = l.Time;
@@ -131,9 +117,7 @@ public static class PrepCheck
 
     // ---- speech ------------------------------------------------------------
 
-    // What each food state is worth saying out loud. The spoken phrase carries no
-    // countdown on purpose: a phrase that changes every second is a phrase that
-    // gets SPOKEN every second.
+    // What each food state is worth saying out loud.
     public static string SpeechFor(Grade grade) => grade switch
     {
         Grade.Missing => "No food",
@@ -144,8 +128,7 @@ public static class PrepCheck
     public const string PotionSpeech = "Potion is available";
 
     // Says each phrase once, when it becomes true, instead of on every frame it
-    // stays true. The food line sits on screen for as long as the problem lasts,
-    // so without this it would be spoken a hundred times a second.
+    // stays true.
     public sealed class Announcer
     {
         private string _said = "";
@@ -161,22 +144,12 @@ public static class PrepCheck
         public void Reset() => _said = "";
     }
 
-    // When the FOOD warning is worth drawing: inside a duty, out of combat. Mid
-    // fight there is nothing you can do about your food, and in the open world
-    // it's nagging. (The potion note below runs on its own rules and does show
-    // in combat.)
-    //
-    // A ready check overrides both of those gates. "Stood in a duty, out of
-    // combat" also describes everyone afk, watching a video or arguing about
-    // uptime; a ready check is somebody asking, right now, whether you're ready,
-    // and it's the only unambiguous "we are about to pull" signal the game has.
+    // When the FOOD warning is worth drawing: inside a duty, out of combat.
     public static bool ShouldShow(bool enabled, bool inDuty, bool inCombat, bool readyCheck)
         => enabled && (readyCheck || (inDuty && !inCombat));
 
-    // True while the ready check window is up, whether you called it or somebody
-    // else did. The agent stays active for the results as well, so the answer
-    // lingers a few seconds past the last person responding - which is exactly
-    // when you'd want to still be looking at it.
+    // True while the ready check window is up, whether you called it or
+    // somebody else did.
     public static unsafe bool ReadyCheckActive()
     {
         try
@@ -189,38 +162,18 @@ public static class PrepCheck
 
     // ---- the potion timer --------------------------------------------------
 
-    // The potion note is NOT a pre-pull check. Telling you a pot is available
-    // while you're stood there about to pull is telling you something you already
-    // know - the useful moment is mid-fight, when the one you opened with comes
-    // back up and it's time for the second.
-    //
-    // So it says nothing until it has actually seen you use a pot: Medicated
-    // appearing starts the clock, and the note fires once when the recast is up
-    // AND you are in the pull that pot was spent on. Both halves of that are the
-    // point. A bare five-minute clock that outlives the pull it belongs to lands
-    // wherever the party happens to be five minutes later - stood at the wall
-    // after a wipe, walking to the boss, partway through the next attempt - which
-    // is indistinguishable from firing at random.
-    //
-    // Pure: the caller supplies the clock, so every path is testable.
+    // The potion note is NOT a pre-pull check.
     public sealed class PotionTimer
     {
-        // Only used when the item's own recast can't be read. Every tincture and
-        // gemdraught in the game carries Cooldowns = 300, checked across all
-        // grades and expansions, so this is the answer rather than a guess.
+        // Only used when the item's own recast can't be read.
         public const float DefaultCooldownSeconds = 300f;
         public const float ShowSeconds = 5f;
 
-        // A status list that reads empty for a frame or two - zoning, a raise, a
-        // busy frame, a read that threw - is not the buff falling off. Bridging
-        // that gap matters because the far side of it looks exactly like a fresh
-        // pot: without this a single blink re-arms the clock and moves the note a
-        // whole recast later, to a moment with no relationship to anything.
+        // A status list that reads empty for a frame or two - zoning, a raise,
+        // a busy frame, a read that threw - is not the buff falling off.
         public const float BlinkGraceSeconds = 2f;
 
-        // How long combat has to stay off before the pull counts as over. Long
-        // enough to ride out the flicker at a phase transition, short enough that
-        // the clock is clear well before anyone pulls again.
+        // How long combat has to stay off before the pull counts as over.
         public const float PullOverSeconds = 3f;
 
         private bool _wasUp;
@@ -231,19 +184,14 @@ public static class PrepCheck
         private bool _sawCombat;                           // a pull has been under way
         private double _leftCombatAt = double.NegativeInfinity;
 
-        // Returns whether the note should be on screen this frame. Must be called
-        // EVERY frame, in combat included: Medicated is only up for 30 seconds,
-        // and missing that edge means missing the use entirely.
-        //
-        // The recast is passed in (rather than assumed) so the real number from
-        // the pot you actually drank is used when we can resolve it.
+        // Returns whether the note should be on screen this frame.
         public bool Update(bool medicatedUp, float recastSeconds, double now, bool inCombat)
         {
             // Treat a blink as still up, so only a real expiry ends the buff.
             if (medicatedUp) _lastUpAt = now;
             var up = medicatedUp || now - _lastUpAt < BlinkGraceSeconds;
 
-            // Rising edge: a pot was just used. Time it.
+            // Rising edge: a pot was just used.
             if (up && !_wasUp)
             {
                 _readyAt = now + (recastSeconds > 0f ? recastSeconds : DefaultCooldownSeconds);
@@ -251,14 +199,7 @@ public static class PrepCheck
             }
             _wasUp = up;
 
-            // The pull ended. Whatever you spent on it is a dead pull's problem:
-            // you will open the next one with another pot, and this clock would
-            // otherwise run straight across the wipe and surface partway through
-            // whatever happens next.
-            //
-            // Deliberately NOT "out of combat", which would throw away a pot taken
-            // during the countdown. Only combat that was running and has now
-            // stopped ends a pull.
+            // The pull ended.
             if (inCombat)
             {
                 _sawCombat = true;
@@ -269,9 +210,8 @@ public static class PrepCheck
                 if (double.IsNegativeInfinity(_leftCombatAt)) _leftCombatAt = now;
                 else if (now - _leftCombatAt >= PullOverSeconds)
                 {
-                    // The buff edge above is left alone on purpose: a pot used in
-                    // the last seconds of the pull can still be up, and clearing
-                    // _wasUp here would read it as a brand new use.
+                    // The buff edge above is left alone: a pot used late in the pull
+                    // can still be up.
                     _pending = false;
                     _firedAt = double.NegativeInfinity;
                     _sawCombat = false;
@@ -279,11 +219,7 @@ public static class PrepCheck
                 }
             }
 
-            // Back off recast: say so, once, and only in a pull. Out of combat
-            // there is nothing to do with the news, and the option says as much.
-            // The pending use is kept rather than dropped, so a recast that lands
-            // inside a phase-transition cutscene is still announced on the far
-            // side of it.
+            // Back off recast: say so, once, and only in a pull.
             if (_pending && now >= _readyAt && inCombat)
             {
                 _pending = false;
@@ -293,8 +229,7 @@ public static class PrepCheck
             return now - _firedAt < ShowSeconds;
         }
 
-        // Seconds until the pot is back, or 0 when nothing is being timed. Only
-        // meaningful once a use has been seen.
+        // Seconds until the pot is back, or 0 when nothing is being timed.
         public float Remaining(double now)
             => _pending ? (float)Math.Max(0.0, _readyAt - now) : 0f;
 
@@ -337,9 +272,7 @@ public static class PrepCheck
         return default;
     }
 
-    // The icon for a food row: the dish you actually ate when we can resolve it,
-    // otherwise the generic Well Fed icon (which is all there is to show when
-    // you have no food up at all).
+    // The dish you actually ate when we can resolve it, otherwise the Well Fed icon.
     public static uint FoodIcon(Buff food)
     {
         if (food.Present && food.Param != 0)
@@ -355,8 +288,7 @@ public static class PrepCheck
     private static readonly ConcurrentDictionary<uint, uint> _statusIcons = new();
     private static readonly ConcurrentDictionary<uint, uint> _itemIcons = new();
 
-    // A status's own icon. Cached, since a missing buff has no status row on the
-    // player to read one from and has to come from the sheet.
+    // A status's own icon.
     public static uint StatusIcon(uint statusId)
         => Cached(_statusIcons, statusId, id =>
             GameSheets.English<Status>()?.GetRowOrDefault(id) is { } row ? (uint)row.Icon : 0u,
@@ -390,22 +322,16 @@ public static class PrepCheck
     public static bool IsHq(Buff buff) => buff.Param > 10000;
 
     // Crafting and gathering stats, by BaseParam row: GP, CP, Craftsmanship,
-    // Control, Gathering, Perception. Read off the sheet and confirmed stable.
+    // Control, Gathering, Perception.
     private static readonly uint[] CraftParams = { 10, 11, 70, 71, 72, 73 };
 
-    // True when the dish boosts at least one stat that matters in a fight. A
-    // meal whose every stat is a crafting one is crafter food, and wearing it
-    // into a raid does nothing at all.
-    //
-    // Unknown food counts as battle food: never accuse on a failed lookup.
+    // True when the dish boosts at least one stat that matters in a fight.
     public static bool IsBattleFood(Buff food)
     {
         var itemId = ItemOf(food);
         if (itemId == 0) return true;
-        // BOTH answers are encoded non-zero (1 crafter, 2 battle) because Cached
-        // treats 0 as "the lookup failed, ask again later". Returning a plain
-        // false/0 for crafter food would mean re-walking three sheets every
-        // single frame for exactly the case the warning is on screen for.
+        // BOTH answers are encoded non-zero (1 crafter, 2 battle) because
+        // Cached treats 0 as "the lookup failed, ask again later".
         return Cached(_battleFood, itemId, id =>
         {
             var item = GameSheets.English<Item>()?.GetRowOrDefault(id);
@@ -423,7 +349,7 @@ public static class PrepCheck
                 sawAny = true;
                 if (Array.IndexOf(CraftParams, bp) < 0) return Battle;
             }
-            // Every stat was a crafting one. No stats at all is not an accusation.
+            // Every stat was a crafting one.
             return sawAny ? Crafter : Battle;
         }, "prep food stats") != Crafter;
     }
@@ -433,8 +359,7 @@ public static class PrepCheck
 
     private static readonly ConcurrentDictionary<uint, uint> _battleFood = new();
 
-    // How many of an item are in your bags, or 0 when it can't be read. Knowing
-    // you're on your last pot changes whether you use it.
+    // How many of an item are in your bags, or 0 when it can't be read.
     public static unsafe int BagCount(uint itemId, bool hq)
     {
         if (itemId == 0) return 0;

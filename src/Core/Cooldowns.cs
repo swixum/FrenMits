@@ -50,13 +50,8 @@ public static class Cooldowns
                     // action; the real one has a job level and is not PvP.
                     if (row.ClassJobLevel == 0 || row.IsPvP) continue;
                     if (string.IsNullOrEmpty(n) || !want.Contains(n)) continue;
-                    // The fairy carries her own copies of Whispering Dawn and Fey
-                    // Illumination: same name, same level, no recast - and hers sit
-                    // EARLIER in the sheet, so taking the first match picked the pet's.
-                    // A 0s recast then failed the "is this a real cooldown" test in
-                    // EnsurePlanMap, and both went missing from the timing solver and
-                    // the conflict checker entirely. The player's row is the one that
-                    // actually has a recast.
+                    // The fairy carries her own Whispering Dawn and Fey Illumination:
+                    // same name, no recast.
                     if (map.ContainsKey(n) && recastOf[n] >= row.Recast100ms) continue;
                     map[n] = row.RowId;
                     recastOf[n] = row.Recast100ms;
@@ -84,12 +79,6 @@ public static class Cooldowns
             {
                 // Same matching the planner uses, so "Rep" reads the Reprisal
                 // timer instead of nothing at all.
-                //
-                // A cell often names several ("Concit/Soil"), and the readiness
-                // warning can only be about one of them - so it is the one the cell
-                // leads with. Taking whichever the dictionary happened to hand over
-                // first made it arbitrary, and arbitrary between two real answers is
-                // the kind of thing nobody ever notices is wrong.
                 var first = int.MaxValue;
                 foreach (var kv in _byName)
                 {
@@ -107,9 +96,7 @@ public static class Cooldowns
 
     // ---- static planning data (from the game sheets, no combat needed) ----
 
-    // Family is a hand-curated shared-cooldown family key, NOT the Action sheet's
-    // CooldownGroup, whose per-actor slots are reused across jobs (Temperance and
-    // Panhaima collide) and so can never pool timers.
+    // A hand-curated shared-cooldown key, not the Action sheet's CooldownGroup.
     public readonly record struct PlanMit(string Name, float Recast, int Charges, string Family, int Level, float Duration);
 
     private static readonly Dictionary<string, string> SharedFamily = new(StringComparer.OrdinalIgnoreCase)
@@ -123,18 +110,8 @@ public static class Cooldowns
         ["Nebula"] = "gnb-nebula", ["Great Nebula"] = "gnb-nebula",
     };
 
-    // How long each buff lasts, hand-curated (7.x values) because the game sheets
-    // don't expose status uptime cleanly.
-    //
-    // Every value here was checked against real pulls - applybuff to removebuff,
-    // read off nineteen logs - and they match. A status routinely ends EARLY
-    // (consumed, dispelled, the holder dies, the fight ends), so what confirms a
-    // value is the longest it was ever seen to run, not the average. Reading the
-    // middle instead would have "corrected" Sacred Soil to 5s.
-    //
-    // The numbers matter more than they look: the timing solver stretches a press
-    // back by nearly a full duration, so one that is too LONG plans a press whose
-    // buff has faded by the time the damage lands.
+    // How long each buff lasts, hand-curated (7.x values) because the game
+    // sheets don't expose status uptime cleanly.
     private static readonly Dictionary<string, float> Durations = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Reprisal"] = 15, ["Feint"] = 15, ["Addle"] = 15, ["Dismantle"] = 10,
@@ -163,15 +140,7 @@ public static class Cooldowns
         ["Earthly Star"] = 20, ["Celestial Opposition"] = 15,
     };
 
-    // Tracked for their recast, but they shield nobody on their own: an enabler
-    // the next spell eats (Zoe, Recitation), a pet summon (Seraph), a heal with no
-    // buff behind it (Second Wind). The logs show what that means in practice -
-    // Zoe's nominal thirty seconds actually ended after one to four in every pull
-    // sampled, because the Prognosis it was saved for went out immediately.
-    //
-    // They need naming rather than just leaving out, because "no duration" used to
-    // mean "assume fifteen seconds" to the timing solver, which would then plan a
-    // press up to thirteen seconds early for a window that was never there.
+    // Tracked for their recast, but they shield nobody on their own.
     public static readonly string[] Windowless = { "Zoe", "Recitation", "Seraph", "Second Wind" };
 
     // Every mit the plugin tracks, once each (Names lists Rampart and Addle twice,
@@ -182,17 +151,13 @@ public static class Cooldowns
     public static float WindowOf(string name) => Durations.GetValueOrDefault(name);
 
     // The tracked mits the game gives more than one charge (MaxCharges on the
-    // Action sheet). It matters because "the buff is still up" stops meaning "you
-    // can't press it again" - the second charge is right there, and for these two
-    // the press brings a heal with it whether or not the shield is still on.
+    // Action sheet).
     private static readonly string[] Charged = { "Consolation", "Oblation" };
 
     public static bool HasCharges(string name)
         => Charged.Contains(name, StringComparer.OrdinalIgnoreCase);
 
-    // The longest any tracked buff runs (Excogitation's 45s today). Callers that
-    // scan back for "is anything still up" need a horizon, and reading it off the
-    // table means adding a longer ability can't quietly put one out of reach.
+    // The longest any tracked buff runs (Excogitation's 45s today).
     public static readonly float LongestWindow = Durations.Count == 0 ? 0f : Durations.Values.Max();
 
     private static Dictionary<string, PlanMit>? _planByName;
@@ -281,10 +246,7 @@ public static class Cooldowns
         return list;
     }
 
-    // Every tracked mit referenced in an action text ("Sacred Soil + Spreadlo"
-    // yields Sacred Soil), with its full recast and charge count from the game
-    // sheets. One-shot callers (solver, auto-plan, sheet rebuild) use this
-    // directly; per-frame callers go through PlanMitsCached.
+    // Every tracked mit named in an action text, with its recast and charges.
     public static IEnumerable<PlanMit> PlanMits(string? actionText)
     {
         if (string.IsNullOrWhiteSpace(actionText)) yield break;
@@ -294,9 +256,7 @@ public static class Cooldowns
             if (Mentions(actionText!, pm.Name)) yield return pm;
     }
 
-    // Where this text names that mit as a word of its own, or -1. Every occurrence
-    // gets checked: "Seraphism + Seraph" must still find the standalone Seraph
-    // even though the first occurrence fails the boundary test inside "Seraphism".
+    // Where this text names that mit as a word of its own, or -1.
     private static int IndexIn(string text, string name)
     {
         var idx = text.IndexOf(name, StringComparison.OrdinalIgnoreCase);
@@ -312,21 +272,6 @@ public static class Cooldowns
     }
 
     // The shorthand the sheets are actually written in.
-    //
-    // None of this used to resolve. 450 of the 1,495 cells across the shipped
-    // sheets named no ability the plugin could see, so the timing solver skipped
-    // them and the cooldown checker could never turn one red - including "Rep",
-    // which is how every tank column in FRU and the legacy ultimates spells the
-    // most-pressed mit in the game.
-    //
-    // Keyed by the real name, because that keeps one press one entry however it
-    // was written: "Fey Illumination" and "Fey" both resolve to the same mit and
-    // it is still reported once.
-    //
-    // Only the unambiguous ones are here. "Spreadlo", "Confession", "Short Mit"
-    // and "Party Mit" are deliberately absent - the first two aren't single
-    // actions and the last two are a role's pick among several, which the
-    // auto-planner models properly and a fixed cooldown here would only fake.
     private static readonly Dictionary<string, string[]> Shorthand = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Reprisal"] = new[] { "Rep" },
@@ -342,17 +287,11 @@ public static class Cooldowns
         ["Neutral Sect"] = new[] { "Neutral" },
         ["Sun Sign"] = new[] { "Sun" },
         ["Philosophia"] = new[] { "Sophia" },
-        // "Concit" is the Recitation-into-Consolation pairing, but only Consolation
-        // is claimed for it: FRU's healer is told "Concit" nine times, and reading
-        // each one as a Recitation press too would report a 90s recast broken over
-        // and over on a button that shields nobody anyway.
+        // "Concit" claims only Consolation; Recitation shields nobody anyway.
         ["Consolation"] = new[] { "Concit" },
     };
 
-    // A cell can say outright that it is NOT a press: the legacy sheets write
-    // "Carry Over" for a buff that is still up from earlier, which is the same
-    // thing the grid draws as a dim arrow. Reading those as presses would report a
-    // broken recast on a button nobody touched.
+    // A cell can say outright that it is not a press, e.g. "Carry Over".
     private static bool CarriedOver(string part)
         => part.Contains("carry over", StringComparison.OrdinalIgnoreCase);
 
@@ -379,8 +318,7 @@ public static class Cooldowns
     // shorthand the sheets use for it?
     private static bool Mentions(string text, string name) => MentionAt(text, name) >= 0;
 
-    // Where it first calls for it, or -1. The position is what lets a cell naming
-    // several mits pick the one it leads with.
+    // Where it first calls for it, or -1.
     private static int MentionAt(string text, string name)
     {
         Shorthand.TryGetValue(name, out var shorts);
@@ -419,19 +357,13 @@ public static class Cooldowns
         return null;
     }
 
-    // Distinct tracked names that have a curated buff duration. Names lists a few
-    // twice (Rampart and Addle each belong to two roles' kits).
+    // Distinct tracked names that have a curated buff duration.
     private static readonly string[] BuffNames = Names
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .Where(n => Durations.ContainsKey(n))
         .ToArray();
 
     // The mits an action text names, with how long each one's buff lasts.
-    //
-    // PlanMits answers a bigger question (recast, charges, level) and needs the
-    // game's Action sheet for it. This needs neither: both tables it reads are
-    // hand-curated and compiled in, so it gives the same answer before Lumina is
-    // ready, on a localized client, and inside a test with no game running.
     public static IEnumerable<(string Name, float Duration)> BuffsIn(string? actionText)
     {
         if (string.IsNullOrWhiteSpace(actionText)) yield break;

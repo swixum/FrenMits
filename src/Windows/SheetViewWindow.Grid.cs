@@ -130,9 +130,8 @@ public partial class SheetViewWindow
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit
                   | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
-        // Settings (widths, drag order) are saved by column INDEX, so the ID
-        // bakes in the fight + pin layout: a layout change resets them instead
-        // of re-attaching them to the wrong slots.
+        // Settings are saved by column index, so the ID bakes in the fight and pin
+        // layout.
         var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}";
         if (!ImGui.BeginTable(tableId, 2 + _slots.Length, flags, new Vector2(0, -footerH)))
             return;
@@ -161,11 +160,8 @@ public partial class SheetViewWindow
             var headMax = ImGui.GetItemRectMax();
             var pinned = IsPinnedColumn(i);
             if (DelayedHover())
-                ImGui.SetTooltip((IsActiveSlot(i)
-                    ? $"{SlotTip(_slots[i])}, your slot. These are the lines your overlay calls."
-                    : SlotTip(_slots[i]))
-                    + (pinned ? "\nPinned. Right-click to unpin."
-                              : "\nRight-click to pin this column next to Mechanic."));
+                ImGui.SetTooltip((IsActiveSlot(i) ? $"{SlotTip(_slots[i])}, your slot." : SlotTip(_slots[i]))
+                    + (pinned ? "\nPinned. Right-click to unpin." : "\nRight-click to pin."));
             if (ImGui.BeginPopupContextItem($"##colpin{i}"))
             {
                 if (_isCustom && !IsActiveSlot(i) && ImGui.MenuItem("Make this my column"))
@@ -254,9 +250,7 @@ public partial class SheetViewWindow
         ImGui.EndTable();
         DrawStickyPhasePill();
 
-        // An editor whose row was hidden this frame (filter change, rebuild race)
-        // can never deactivate normally; land it now instead of leaving a zombie
-        // edit that silently blocks rebuilds and commits minutes later.
+        // An editor whose row was hidden this frame can never deactivate normally.
         if (Editing && !_editorDrawn && !_focusPending) CommitPending();
     }
 
@@ -276,9 +270,8 @@ public partial class SheetViewWindow
         // Tiny window: don't cover the frozen columns (time+mechanic+your slot).
         if (p0.X < rectMin.X + 460f) return;
 
-        // Foreground list: the table's rows live in an inner scrolling child,
-        // which renders AFTER the window's own draw list; drawing there would
-        // put the pill underneath the cells.
+        // Foreground list: the rows live in an inner child that renders after this draw
+        // list.
         var dl = ImGui.GetForegroundDrawList();
         dl.PushClipRect(rectMin, rectMax);
         dl.AddRectFilled(p0, p0 + size + pad * 2f, 0xE619130F, 5f);
@@ -330,7 +323,7 @@ public partial class SheetViewWindow
             {
                 _hoverRow = row; _hoverLive = row;
                 if (DelayedHover())
-                    ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time \"{row.Mechanic}\" for EVERY slot at once.");
+                    ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time every slot.");
             }
         }
     }
@@ -346,7 +339,7 @@ public partial class SheetViewWindow
             ImGui.SameLine(0, 4);
             if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("This mechanic is deleted from your plan. The undo button restores the sheet's version.");
+                ImGui.SetTooltip("Deleted from your plan. Undo restores it.");
             return;
         }
 
@@ -407,7 +400,7 @@ public partial class SheetViewWindow
                 ImGui.SameLine(0, 6);
                 ImGui.TextColored(ImGuiColors.TankBlue, "buster");
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Hits one tank or two, not the party. Auto-plan gives it the tanks'\nown plan (invuln or Rampart + short mit, Buddy Mit from the co-tank).\nRight-click the mechanic to change.");
+                    ImGui.SetTooltip("Hits one or two tanks, not the party. Right-click to change.");
             }
             // The severity grade, visible at a glance (right-click to change).
             if (CustomRowFor(row) is { Hurt: > 0 } gr)
@@ -421,7 +414,7 @@ public partial class SheetViewWindow
                 };
                 ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(color), mark);
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip($"Hits {HurtChoices[gr.Hurt]} unmitigated. Right-click the mechanic to regrade;\nAuto-plan stacks {gr.Hurt} mit(s) here.");
+                    ImGui.SetTooltip($"Hits {HurtChoices[gr.Hurt]} unmitigated. Right-click to regrade.");
             }
             // Custom-sheet rows are all yours; the only row action is delete.
             ImGui.SameLine(0, 6);
@@ -438,8 +431,7 @@ public partial class SheetViewWindow
             ImGui.SameLine(0, 6);
             ImGui.TextDisabled("job extra");
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("A job-specific line (like the fight page's Job extras): it only fires "
-                    + "for the listed job, and sits at its own time on purpose. Nothing is wrong.");
+                ImGui.SetTooltip("A job-specific line at its own time. Nothing is wrong.");
             ImGui.SameLine(0, 4);
             if (IconSmallButton(FontAwesomeIcon.Times, "##delextra")) DeleteExtraRow(row);
             if (ImGui.IsItemHovered())
@@ -511,9 +503,7 @@ public partial class SheetViewWindow
         var jobOnly = cell.Count > 0 && cell.All(l => l.Custom && l.Jobs.Count > 0);
         var custom = !_isCustom && !jobOnly && cell.Any(l => l.Custom);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
-        // Every line here is another job's press (a "(WAR/PLD)" style tag, or a
-        // job-tagged extra): dim it, since it will never fire on your current
-        // job.
+        // Every line here is another job's press, so dim it.
         var foreign = !string.IsNullOrEmpty(_gridJob) && cell.Count > 0
             && cell.All(l => !l.AppliesTo(_gridJob));
 
@@ -536,9 +526,7 @@ public partial class SheetViewWindow
         var body = cell.Count > 1 ? string.Join("\n", cell.Select(l => l.Action)) : first;
         var label = (custom ? "* " : "") + (body.Length == 0 ? carry ?? " " : body) + (off ? "  (off)" : "");
 
-        // Text color: your edits stay orange, disabled lines dim, carry-over
-        // ghosts dimmer still, and with the Colors box ticked the rest is
-        // colored by mit type (overlay colors).
+        // Text color: edits orange, disabled dim, ghosts dimmer, the rest by mit type.
         var kindCol = C.SheetColorByType && !custom && !off && first.Length > 0
             ? MitTypes.Color(MitTypes.Classify(first), C) : 0u;
         var pushed = true;
@@ -891,9 +879,7 @@ public partial class SheetViewWindow
          : HealSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? "Healer slot"
          : "DPS slot";
 
-    // One quiet line: a flash message when something just happened, otherwise
-    // the hovered row's note (Ikuya-footer style, sticky on the last hovered
-    // row so it stays readable while the mouse travels down here).
+    // One quiet line: a flash message, otherwise the hovered row's note.
     private void DrawFooter()
     {
         ImGui.Spacing();

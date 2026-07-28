@@ -4,14 +4,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 namespace FrenMits;
 
 // The party's pull countdown, read straight off the game's own agent.
-//
-// No hook and no signature: AgentCountDownSettingDialog is the thing that runs the
-// countdown, and it already holds everything wanted here - how long is left, and
-// who started it. A signature would rot on the next patch for no gain.
-//
-// This is the only moment before a pull when the game says exactly when the fight
-// begins, which is what lets the clock be right from the first second instead of
-// starting a frame or two late on the combat flag.
 public static class Countdown
 {
     // What the game says about the countdown right now.
@@ -19,7 +11,7 @@ public static class Countdown
 
     public static readonly State None = default;
 
-    // The game's own cap. A value past it is a stale read, not a countdown.
+    // The game's own cap.
     public const float MaxSeconds = 30f;
 
     public static unsafe State Read()
@@ -29,11 +21,8 @@ public static class Countdown
             var agent = AgentCountDownSettingDialog.Instance();
             if (agent == null) return None;
 
-            // TimeRemaining is the signal that decides it: it is only ever counting
-            // while a countdown runs, so a stale flag can't fake one. The two flags
-            // are read together on purpose - `Active` is the countdown itself and
-            // `ShowingCountdown` the display it puts up, and taking either means
-            // this keeps working whichever of them the game moves next.
+            // TimeRemaining is the signal that decides it: it is only ever
+            // counting while a countdown runs, so a stale flag can't fake one.
             var remaining = agent->TimeRemaining;
             if (remaining <= 0f || remaining > MaxSeconds) return None;
             if (!agent->Active && !agent->ShowingCountdown) return None;

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Frozen copy of the PRE-v5.0 Dancing Mad tank-buster plans, kept only so the
-// v18 migration can recognize lines users added from the old bake and swap them
-// for the reworked v5.0 plans (the live data is in TankMits).
+// Frozen pre-v5.0 DMU tank-buster plans for the v18 migration; do not edit.
 public static class TankMitsLegacy
 {
     public static TankMits.Entry[] DmuFor(string comp, string job)

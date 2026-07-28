@@ -27,9 +27,7 @@ public partial class ConfigWindow
         _expandFightId = fight.Id;
     }
 
-    // The expansion a fight's zone belongs to, from the game data
-    // (TerritoryType.ExVersion), cached per territory since this runs inside the
-    // per-frame sort.
+    // The expansion a fight's zone belongs to, cached per territory.
     private static readonly Dictionary<uint, uint> ExCache = new();
 
     private static uint ExpansionOf(FightProfile f)
@@ -112,9 +110,7 @@ public partial class ConfigWindow
 
             ImGui.PushID(fight.Id);
 
-            // Drag handle to reorder fights within their expansion group; the list
-            // is a stable sort of C.Fights, so swapping two same-group fights in
-            // C.Fights is all it takes and the display and save follow.
+            // Drag handle to reorder fights within their expansion group.
             DrawReorderGrip(fights, i);
             ImGui.SameLine();
 
@@ -124,16 +120,13 @@ public partial class ConfigWindow
             ImGui.SameLine();
 
             if (fight.Id == _expandFightId) { ImGui.SetNextItemOpen(true); _expandFightId = ""; }
-            // Gold star after the name = official (ships with the plugin, baked
-            // from the community sheet), drawn in the icon font since the text font
-            // has no star.
+            // Gold star after the name = official, drawn in the icon font.
             var official = Builtin.Has(fight.TerritoryId);
             var headerStartX = ImGui.GetCursorPosX();
             var headerLabel = fight.Name;
             var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
-            // The star tooltip and the sheet button are drawn ON TOP of this
-            // header row; without allow-overlap the header claims the mouse
-            // first and they can never be hovered or clicked.
+            // Without allow-overlap the header claims the mouse and the star can't be
+            // hovered.
             ImGui.SetItemAllowOverlap();
             // A framed tree node indents its label one extra FramePadding.X
             // beyond GetTreeNodeToLabelSpacing().
@@ -205,9 +198,7 @@ public partial class ConfigWindow
         if (toDelete != null) { C.Fights.Remove(toDelete); C.Save(); }
     }
 
-    // A small grip you drag up/down to reorder a fight within its expansion group;
-    // only same-group neighbours swap, since crossing a group line would just be
-    // snapped back by the group header sort.
+    // A small grip you drag to reorder a fight within its expansion group.
     private void DrawReorderGrip(List<FightProfile> shown, int i)
     {
         ImGui.PushStyleColor(ImGuiCol.Button, 0u);
@@ -250,9 +241,7 @@ public partial class ConfigWindow
             ImGui.OpenPopup("##addfight");
         if (!ImGui.BeginPopup("##addfight")) return;
 
-        // A blank fight in an official-sheet zone would be a locked, never-firing
-        // duplicate of the built-in (ActiveFight takes the first match), so the
-        // item goes disabled there.
+        // A blank fight in an official-sheet zone would be a locked duplicate.
         var zone = Service.ClientState.TerritoryType;
         if (Builtin.Has(zone))
             ImGui.MenuItem("New blank fight (this zone has an official sheet)", false);
@@ -323,7 +312,7 @@ public partial class ConfigWindow
     private DateTime _builtinMsgAt = DateTime.MinValue;
 
     // True if your current lines differ from a fresh bake of this slot (added,
-    // removed, or a changed action) — i.e. a Replace would throw away your work.
+    // removed, or a changed action) - i.e. a Replace would throw away your work.
     private bool HasBuiltinEdits(FightProfile fight, string slot)
     {
         if (fight.Lines.Count == 0) return false;
@@ -363,9 +352,7 @@ public partial class ConfigWindow
         var slots = Builtin.Slots(fight.TerritoryId);
 
         // Reflect the fight's active slot in the picker, falling back to the first
-        // slot when this fight has no valid slot yet (fresh profile / removed legacy
-        // slot) rather than whatever index the LAST fight's picker used, which would
-        // bake this fight onto a stale slot.
+        // slot.
         var savedIdx = Array.IndexOf(slots, fight.Slot);
         _builtinSlot = savedIdx >= 0 ? savedIdx : 0;
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
@@ -374,7 +361,7 @@ public partial class ConfigWindow
         ImGui.SetNextItemWidth(170f);
         if (ImGui.Combo("Your slot", ref _builtinSlot, slotLabels, slotLabels.Length))
             SelectBuiltinSlot(fight, slots[_builtinSlot]);  // load that slot now
-        Tip("Pick your slot and its mits load automatically (and again when you enter the zone). Each slot keeps its own edits; tanks pick a tank slot, healers their job, DPS their role slot.");
+        Tip("Your seat. Each slot keeps its own edits.");
         var slot = slots[_builtinSlot];
 
         ImGui.SameLine();
@@ -383,13 +370,11 @@ public partial class ConfigWindow
             if (HasBuiltinEdits(fight, slot)) ImGui.OpenPopup("##confirm-replace");
             else ResetBuiltinSlot(fight, slot);
         }
-        Tip("Reloads this slot from the baked sheet, discarding only this slot's edits.");
+        Tip("Reload this slot from the sheet.");
 
         ImGui.SameLine();
         if (ImGui.SmallButton("Reset all columns")) ImGui.OpenPopup("##confirm-resetall");
-        Tip("Reloads EVERY column from the baked sheet: all slots' edits and deletions go, "
-            + "including added potion, job and tank lines. A snapshot is saved first, so "
-            + "Sheet View > Plan > History can restore the old plan.");
+        Tip("Reload every column from the sheet. Snapshot saved first.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
@@ -401,9 +386,7 @@ public partial class ConfigWindow
         DrawResetAllConfirm(fight, slot);
     }
 
-    // Full reset across every column, for when single-slot resets aren't enough
-    // (stale edits living in OTHER slots' preview columns); snapshot-first and
-    // confirmed, so it's safe to reach for.
+    // Full reset across every column; snapshot-first and confirmed.
     private void DrawResetAllConfirm(FightProfile fight, string slot)
     {
         var open = true;
@@ -485,9 +468,7 @@ public partial class ConfigWindow
     // line under the territory controls for a few seconds.
     private double _zoneRejectUntil;
 
-    // The canonical profile for a built-in zone is the first in the list, like
-    // ActiveFight resolves; a stray DUPLICATE on a built-in zone (old configs
-    // could produce one) stays a normal editable fight so it can be deleted.
+    // The canonical profile for a built-in zone is the first in the list.
     private bool IsOfficial(FightProfile f)
         => Builtin.Has(f.TerritoryId)
            && ReferenceEquals(C.Fights.FirstOrDefault(x => x.TerritoryId == f.TerritoryId), f);

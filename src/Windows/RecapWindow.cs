@@ -8,9 +8,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The Party Mit Recap as its own movable / resizable window, themed to match the
-// config UI: what mits were on the boss and the party this pull, when, by whom,
-// and which standard raid mits never landed.
+// The Party Mit Recap as its own movable window, themed to match the config UI.
 public class RecapWindow : Window
 {
     private readonly Plugin _plugin;
@@ -76,7 +74,7 @@ public class RecapWindow : Window
             }
             ImGui.Spacing();
             if (Button("Load sample pull")) r.LoadSample();
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fill the recap with a fake pull to see how everything reads.");
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fill the recap with a sample pull.");
             return;
         }
 
@@ -91,7 +89,7 @@ public class RecapWindow : Window
         var copyW = ImGui.CalcTextSize("Copy").X + ImGui.GetStyle().FramePadding.X * 2;
         ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 12, ImGui.GetContentRegionMax().X - copyW));
         if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text; paste it into Discord or your notes.");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text.");
 
         // Pull history: the last few wipes stay browsable, newest first, so a
         // fix can be checked against the pull it was made for.
@@ -131,7 +129,7 @@ public class RecapWindow : Window
             if (Widgets.ChipButton("deaths", r.LastDeaths.Count.ToString(), Theme.Danger, _deathsOpen))
                 _deathsOpen = !_deathsOpen;
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(_deathsOpen ? "Hide who died and how" : "Click to see who died and how");
+                ImGui.SetTooltip(_deathsOpen ? "Hide deaths" : "Show deaths");
         }
         else
         {
@@ -178,9 +176,7 @@ public class RecapWindow : Window
             }
         }
 
-        // Coverage timeline: the whole pull as one chart - where the party's
-        // mitigation stacked (tall/green) and where it thinned (low/red), deaths
-        // marked.
+        // Coverage timeline: the whole pull as one chart, deaths marked.
         Widgets.SectionHeader("Coverage timeline");
         DrawScrubber(r);
         ImGui.TextColored(Theme.V(Theme.Muted), "tall & green = more mit up · dips = thin ·");
@@ -244,9 +240,7 @@ public class RecapWindow : Window
             }
         }
 
-        // Full per-mechanic detail, collapsed by default: the chart above is the
-        // at-a-glance view, so the long table only opens when you want the exact
-        // rows.
+        // Full per-mechanic detail, collapsed by default.
         ImGui.Dummy(new Vector2(0, 2));
         if (!ImGui.CollapsingHeader("Timeline details")) return;
         ImGui.TextColored(Theme.V(Theme.Muted), "mit colors:");
@@ -390,9 +384,7 @@ public class RecapWindow : Window
         }
     }
 
-    // What the plan expected near this moment that the recap never saw, judging
-    // only mits the recap can recognize (tracked status names) so a fancy plan
-    // label can't produce a phantom "missing".
+    // What the plan expected near this moment that the recap never saw.
 
     private string PlanDelta(FightProfile fight, List<MitRecap.MitEvent> group,
         List<MitRecap.MitEvent> events, List<string> party, HashSet<string> reported)
@@ -461,9 +453,7 @@ public class RecapWindow : Window
         _ => 0.05f,
     };
 
-    // The at-a-glance coverage chart: an area whose HEIGHT and COLOR both show how
-    // much mitigation was up across the pull - tall/green where mits stacked, low/
-    // red where coverage thinned - with death markers and mechanic ticks.
+    // The at-a-glance coverage chart: height and color both show how much was up.
     private void DrawScrubber(MitRecap r)
     {
         var evs = r.LastEvents();

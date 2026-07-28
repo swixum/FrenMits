@@ -4,9 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Parses text pasted straight from a mit-sheet (Google Sheets / Excel copy is
-// tab-separated, CSV comma-separated); the caller maps which columns hold the
-// time, mechanic, and action.
+// Parses text pasted straight from a mit sheet, tab- or comma-separated.
 public static class SheetImport
 {
     public static List<string[]> ParseGrid(string raw, out char delimiter)
