@@ -222,7 +222,8 @@ public class PrepWindow : Window
             _lastPotItem = PrepCheck.ItemOf(medicated);
             _lastPotHq = PrepCheck.IsHq(medicated);
         }
-        return _potTimer.Update(medicated.Present, PrepCheck.RecastFor(medicated), ImGui.GetTime());
+        return _potTimer.Update(medicated.Present, PrepCheck.RecastFor(medicated),
+            ImGui.GetTime(), Plugin.InCombat);
     }
 
     // Speak a phrase the first frame it becomes true.

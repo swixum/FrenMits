@@ -195,7 +195,12 @@ public static class PrepCheck
     // back up and it's time for the second.
     //
     // So it says nothing until it has actually seen you use a pot: Medicated
-    // appearing starts the clock, and the note fires once when the recast is up.
+    // appearing starts the clock, and the note fires once when the recast is up
+    // AND you are in the pull that pot was spent on. Both halves of that are the
+    // point. A bare five-minute clock that outlives the pull it belongs to lands
+    // wherever the party happens to be five minutes later - stood at the wall
+    // after a wipe, walking to the boss, partway through the next attempt - which
+    // is indistinguishable from firing at random.
     //
     // Pure: the caller supplies the clock, so every path is testable.
     public sealed class PotionTimer
@@ -206,10 +211,25 @@ public static class PrepCheck
         public const float DefaultCooldownSeconds = 300f;
         public const float ShowSeconds = 5f;
 
+        // A status list that reads empty for a frame or two - zoning, a raise, a
+        // busy frame, a read that threw - is not the buff falling off. Bridging
+        // that gap matters because the far side of it looks exactly like a fresh
+        // pot: without this a single blink re-arms the clock and moves the note a
+        // whole recast later, to a moment with no relationship to anything.
+        public const float BlinkGraceSeconds = 2f;
+
+        // How long combat has to stay off before the pull counts as over. Long
+        // enough to ride out the flicker at a phase transition, short enough that
+        // the clock is clear well before anyone pulls again.
+        public const float PullOverSeconds = 3f;
+
         private bool _wasUp;
+        private double _lastUpAt = double.NegativeInfinity;
         private double _readyAt;
         private bool _pending;                             // a use is being timed
         private double _firedAt = double.NegativeInfinity;
+        private bool _sawCombat;                           // a pull has been under way
+        private double _leftCombatAt = double.NegativeInfinity;
 
         // Returns whether the note should be on screen this frame. Must be called
         // EVERY frame, in combat included: Medicated is only up for 30 seconds,
@@ -217,18 +237,54 @@ public static class PrepCheck
         //
         // The recast is passed in (rather than assumed) so the real number from
         // the pot you actually drank is used when we can resolve it.
-        public bool Update(bool medicatedUp, float recastSeconds, double now)
+        public bool Update(bool medicatedUp, float recastSeconds, double now, bool inCombat)
         {
+            // Treat a blink as still up, so only a real expiry ends the buff.
+            if (medicatedUp) _lastUpAt = now;
+            var up = medicatedUp || now - _lastUpAt < BlinkGraceSeconds;
+
             // Rising edge: a pot was just used. Time it.
-            if (medicatedUp && !_wasUp)
+            if (up && !_wasUp)
             {
                 _readyAt = now + (recastSeconds > 0f ? recastSeconds : DefaultCooldownSeconds);
                 _pending = true;
             }
-            _wasUp = medicatedUp;
+            _wasUp = up;
 
-            // Back off recast: say so, once.
-            if (_pending && now >= _readyAt)
+            // The pull ended. Whatever you spent on it is a dead pull's problem:
+            // you will open the next one with another pot, and this clock would
+            // otherwise run straight across the wipe and surface partway through
+            // whatever happens next.
+            //
+            // Deliberately NOT "out of combat", which would throw away a pot taken
+            // during the countdown. Only combat that was running and has now
+            // stopped ends a pull.
+            if (inCombat)
+            {
+                _sawCombat = true;
+                _leftCombatAt = double.NegativeInfinity;
+            }
+            else if (_sawCombat)
+            {
+                if (double.IsNegativeInfinity(_leftCombatAt)) _leftCombatAt = now;
+                else if (now - _leftCombatAt >= PullOverSeconds)
+                {
+                    // The buff edge above is left alone on purpose: a pot used in
+                    // the last seconds of the pull can still be up, and clearing
+                    // _wasUp here would read it as a brand new use.
+                    _pending = false;
+                    _firedAt = double.NegativeInfinity;
+                    _sawCombat = false;
+                    _leftCombatAt = double.NegativeInfinity;
+                }
+            }
+
+            // Back off recast: say so, once, and only in a pull. Out of combat
+            // there is nothing to do with the news, and the option says as much.
+            // The pending use is kept rather than dropped, so a recast that lands
+            // inside a phase-transition cutscene is still announced on the far
+            // side of it.
+            if (_pending && now >= _readyAt && inCombat)
             {
                 _pending = false;
                 _firedAt = now;
@@ -247,9 +303,12 @@ public static class PrepCheck
         public void Reset()
         {
             _wasUp = false;
+            _lastUpAt = double.NegativeInfinity;
             _pending = false;
             _readyAt = 0;
             _firedAt = double.NegativeInfinity;
+            _sawCombat = false;
+            _leftCombatAt = double.NegativeInfinity;
         }
     }
 

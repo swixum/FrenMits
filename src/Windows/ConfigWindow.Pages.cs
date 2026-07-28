@@ -123,7 +123,8 @@ public partial class ConfigWindow
             ImGui.TextWrapped("Mid-fight, not pre-pull. It says nothing until it has seen you actually use "
                               + "a pot; from there it times that pot's own recast and shows "
                               + "\"Potion is Available!\" for five seconds when it's back, so the second one "
-                              + "doesn't get forgotten.");
+                              + "doesn't get forgotten. It belongs to the pull it was used on: a wipe clears "
+                              + "it, and it never speaks up while you're stood out of combat.");
             ImGui.Spacing();
 
             C.PrepCheckPotion = Toggle("Potion reminder", C.PrepCheckPotion);
