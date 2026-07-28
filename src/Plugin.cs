@@ -266,7 +266,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     {
         // A replay-started clock has no combat flag to stop it; leaving the
         // playback (or any zone) out of combat shuts it down.
-        if (Timer.Running && !InCombat) Timer.Reset();
+        if (Timer.Live && !InCombat) Timer.Reset();
 
         // Leaving / re-entering the instance resets the door-boss phase to 1.
         _phaseTwo = false;
@@ -809,6 +809,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             var gameDt = realDt > 0f && realDt < 1f ? realDt * ReplayGameSpeed() : 0f;
 
             RefreshAutoFight();
+            UpdateCountdown();   // arm the clock on a countdown before Update reads it
             Timer.Update();
             UpdateDowntime(gameDt);
             UpdateLearning();
@@ -839,6 +840,40 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // clock, and combat never drops (the timer freezes through them), so the
     // resync engine never re-arms on its own.
     private bool _wasInCutscene;
+
+    // The party's pull countdown, fed to the clock so the board and the calls are
+    // already live and already right as the numbers run down.
+    //
+    // Only inside an instance: a countdown in a hunt train or at a world boss is
+    // somebody organising a group, not the start of a fight this plugin has a
+    // timeline for.
+    private const uint NoCountdown = uint.MaxValue;   // 0 is a real initiator id (unresolved)
+    private uint _countdownFrom = NoCountdown;
+
+    private void UpdateCountdown()
+    {
+        if (!Config.StartOnCountdown || !InDuty)
+        { Timer.CancelCountdown(); _countdownFrom = NoCountdown; return; }
+
+        var cd = Countdown.Read();
+        if (!cd.Active)
+        {
+            // Called off, rather than run out: CancelCountdown tells the two apart
+            // by whether the zero it is holding has passed.
+            Timer.CancelCountdown();
+            _countdownFrom = NoCountdown;
+            return;
+        }
+
+        if (_countdownFrom != cd.InitiatorId)
+        {
+            _countdownFrom = cd.InitiatorId;
+            var who = Countdown.InitiatorName(cd.InitiatorId);
+            Service.Log.Information($"[FrenMits] Countdown{(who.Length > 0 ? $" from {who}" : "")}: "
+                                  + $"{cd.Remaining:0.0}s; the clock is live.");
+        }
+        Timer.SetCountdown(cd.Remaining);
+    }
 
     private void HandleCutsceneBoundary()
     {
@@ -917,7 +952,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     private void UpdateDtr()
     {
         if (_dtr == null) return;
-        if (!Config.ShowDtrBar || !Timer.Running || ActiveFight() is not { } fight || fight.TimelineOnly
+        if (!Config.ShowDtrBar || !Timer.Live || ActiveFight() is not { } fight || fight.TimelineOnly
             // Same silence rules as the overlay and cues: during a phase
             // cutscene (and until the post-cutscene resync lands) the clock is
             // known-drifted, so don't count calls down against it.

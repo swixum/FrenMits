@@ -83,7 +83,9 @@ public class TimelineWindow : Window
         // downtime (with its countdown) reads on the board instead of vanishing.
         if (_plugin.ActiveFight() is not { } fight) return false;
         if (C.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return false;
-        return _plugin.Timer.Running;
+        // Live, so the board is already up and counting while a pull countdown
+        // runs instead of appearing a beat after the fight starts.
+        return _plugin.Timer.Live;
     }
 
     public override void Draw()
@@ -92,7 +94,7 @@ public class TimelineWindow : Window
 
         // Both preview paths (the header's Live preview and the Next Mits
         // settings page) play the same real sample in the real window.
-        if ((C.TestMode || ScreenPreviewing) && !_plugin.Timer.Running)
+        if ((C.TestMode || ScreenPreviewing) && !_plugin.Timer.Live)
         {
             DrawDmuSample();
             return;
@@ -549,7 +551,9 @@ public class TimelineWindow : Window
         var clockW = 0f;
         if (C.UpcomingHeaderClock)
         {
-            var clock = TimeText(MathF.Max(0f, elapsed));
+            // Signed, so a countdown reads -0:05 down to the pull instead of
+            // sitting at 0:00 through it.
+            var clock = elapsed < 0f ? Fmt.MmssSigned(elapsed) : TimeText(elapsed);
             clockW = ImGui.CalcTextSize(clock).X;
             BoardText(dl, new Vector2(pos.X + width - clockW, pos.Y), accent, clock);
         }

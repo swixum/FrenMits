@@ -244,85 +244,28 @@ public class SyncEngine
         return false;
     }
 
+    // Kept as the name the rest of the code already imports; the value and the
+    // reasoning live in SyncCore, next to the windows it feeds.
+    public const float TimelineBlockReach = SyncCore.TimelineBlockReach;
+
     // Snap the clock so a cast of `actionId` resolving `timeToResolve` from now
     // lands on its scripted time, returning true if a matching anchor snapped the
     // clock.
-    // A baked duty timeline packs every encounter of one instance onto a single
-    // clock, each in its own 1000-second block: boss 1 sits at 1000+, boss 2 at
-    // 2000+, and an alliance raid or a 3-boss dungeon runs to 4000+. Each fight
-    // starts its own combat from zero, so reaching boss N's block means jumping
-    // N thousand seconds forward from a standing start - and the normal 2000s
-    // forward window only ever reached the FIRST one. Everything past boss 1
-    // silently showed no timeline at all.
     //
-    // Real sheets keep the configured window: their anchors are all on one pull
-    // clock, so a window wide enough to cross blocks would be far too loose.
-    public const float TimelineBlockReach = 20000f;
-
-    private float ForwardWindow(FightProfile fight)
-        => fight.TimelineOnly
-            ? MathF.Max(_plugin.Config.SyncForwardWindowSeconds, TimelineBlockReach)
-            : _plugin.Config.SyncForwardWindowSeconds;
-
+    // Which anchor, and where the clock lands, are SyncCore's - the same functions
+    // the offline replay in tests/ drives with real kill logs. What's left here is
+    // the part that needs a game: reading the clock, moving it, and saying so.
     private bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
     {
         if (fight.SyncPoints.Count == 0) return false;
         var elapsed = _plugin.ElapsedFor(fight);
 
         var predictedElapsed = elapsed + timeToResolve; // where the clock will be at resolve
-
-        // Match the way cactbot does: a wide FORWARD window (a phase can sit far
-        // ahead of a clock still at the previous segment's loop/jump coordinate) but
-        // a tight BACKWARD one (or a repeated ability later in a segment would snap
-        // the clock back to the segment start), taking the nearest candidate ahead.
-        SyncPoint? best = null;
-        var bestDelta = float.MaxValue;
-        foreach (var sp in fight.SyncPoints)
-        {
-            if (sp.Ability != actionId) continue;
-            // Phase / transition anchors get the wide forward window to jump onto a
-            // loop/jump coordinate; mechanic anchors stay tight in both directions
-            // (fine drift only) so an early stray cast can't snap the clock far
-            // forward onto a later anchor.
-            var fwd = sp.IsPhase ? ForwardWindow(fight) : _plugin.Config.SyncWindowSeconds;
-            // The backward window stays tight even in duty-recorder playback, since a
-            // phase anchor's ability can RECAST later in the fight (DMU's
-            // Revolting Ruin III comes back at ~98s) and a wide backward window
-            // would yank the clock to the phase start mid-run.
-            var bwd = sp.IsPhase
-                ? MathF.Max(_plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncWindowSeconds)
-                : _plugin.Config.SyncWindowSeconds;
-            var ahead = sp.Time - predictedElapsed; // + => anchor is ahead of the clock
-            if (ahead > fwd || ahead < -bwd) continue;
-            // An anchor that has already fired may not drag the clock BACKWARD onto
-            // itself again. Plenty of mechanics are one ability cast many times over
-            // several seconds - a channel, a per-target application, a multi-hit -
-            // and every one of those casts snapped the clock back so THAT cast landed
-            // on the row's time, which stops the board advancing for as long as the
-            // ability keeps going. The board then reads late by exactly the length of
-            // the burst, with no single row looking wrong, and the anchors that follow
-            // fall outside their windows and never fire at all.
-            //
-            // Measured against ten kills each: this cost FRU 16s in P3 (which broke
-            // fourteen anchors after it and left the whole Oracle phase uncorrected),
-            // TOP 10s, DMU 6s, UWU 6s, and smaller amounts in TEA and DSR. The first
-            // cast of a burst is the one the row means, so keeping it and refusing the
-            // rest is all that is needed. Forward corrections still work, so an anchor
-            // can still pull a clock that has fallen behind.
-            if (ahead < 0 && _fired.Contains((sp.Ability, sp.Time))) continue;
-            // Take the NEAREST anchor, breaking a tie only toward a phase anchor (not
-            // a strong bias, or a repeated ability whose later cast is a phase anchor
-            // would drag an earlier cast forward onto it).
-            var score = MathF.Abs(ahead) - (sp.IsPhase ? 0.01f : 0f);
-            if (score < bestDelta)
-            {
-                bestDelta = score;
-                best = sp;
-            }
-        }
+        var windows = SyncCore.WindowsFor(_plugin.Config, fight.TimelineOnly);
+        var best = SyncCore.Choose(fight.SyncPoints, actionId, predictedElapsed, windows, _fired);
 
         if (best == null) return false;
-        _fired.Add((best.Ability, best.Time));
+        _fired.Add(SyncCore.Key(best));
 
         // Self-tuning telemetry: how far the clock was off when this mechanic
         // anchor (not a big phase re-base) fired, a small EMA feel for how well the
@@ -330,16 +273,11 @@ public class SyncEngine
         // which aren't drift.
         if (!best.IsPhase)
         {
-            var drift = predictedElapsed - best.Time; // + => clock was running ahead
-            AvgDrift = DriftSamples == 0 ? drift : AvgDrift * 0.7f + drift * 0.3f;
+            AvgDrift = SyncCore.Ema(AvgDrift, DriftSamples, SyncCore.DriftAt(best, predictedElapsed));
             DriftSamples++;
         }
 
-        // Snap so that, timeToResolve from now, ElapsedFor == best.Time: SetElapsed
-        // sets the raw timer so subtract the phase offset back out, but NOT the
-        // fight's timer offset, which lives on the cue clock (CueClockFor) so a
-        // user's call-shift survives every snap.
-        var desiredElapsedNow = best.Time - timeToResolve - _plugin.PhaseOffsetFor(fight);
+        var desiredElapsedNow = SyncCore.SnapElapsed(best, timeToResolve, _plugin.PhaseOffsetFor(fight));
         _plugin.Timer.SetElapsed(desiredElapsedNow);
         // Door-boss follow-up: a phase anchor sitting in the second segment lets
         // the plugin latch Phase 2 (offset-compensated, so this snap stands).

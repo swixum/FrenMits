@@ -66,8 +66,56 @@ Worth knowing:
 - **The built-in sheet tests walk every shipped fight and every column**, so a
   malformed row in a new savage fails here instead of mid-pull. Adding a fight
   picks that coverage up for free.
+- **The anchor replay runs real kills through the real resync** - see below.
 - Anything that reads the game's Excel sheets (icons, cooldown recasts, boss name
   ids) can't be checked here and still needs a replay or a real pull.
+
+## 4b. The anchor replay
+
+Anchors are the highest-churn surface in the plugin and the one whose bugs cost
+the most: a re-base landing in the wrong place puts the board a whole phase away
+and leaves it there. Both times that shipped, it was only found by pointing the
+board at several kills and reading how wrong it was.
+
+`AnchorReplayTests` does that offline. Three real kills per built-in fight are
+cached on disk; their enemy casts run through the same `SyncCore` the game calls,
+and every anchored mechanic is asked one question: when this actually happened,
+what did the board say the time was? The whole corpus replays in about a second.
+
+**Fetch the kills once** (they're gitignored, like `tests/` itself, so a fresh
+clone starts empty and the tests say so rather than passing on nothing):
+
+```bash
+python3 tools/fetch_log_fixtures.py --kills 3
+```
+
+Needs FFLogs creds in `~/.config/frenmits/fflogs.json`, same as the rest of
+`tools/`. It writes `tests/fixtures/logs/<territory>/<report>-<fight>.json`,
+skips anything already there, and takes a few minutes for all 22 fights.
+
+**What it measures.** For each kill, which log cast IS the mechanic behind each
+anchor is decided up front from the two fixed lists, never from what the clock
+did - ground truth an engine worked out for itself would agree with the engine by
+construction. Then:
+
+- **median** board error at a mechanic (most fights: under a second),
+- **run** - the longest stretch of consecutive mechanics the board got wrong,
+  which is the real signal. One mechanic out is drift or a sheet row a few
+  seconds off; a run of them is the clock off the fight with nothing pulling it
+  back, and that is the shape both shipped bugs had.
+
+`PuttingTheHistoricalBugBackBreaksTheReplay` stages that exact shape on a fight
+that reads clean today and fails if the replay *doesn't* catch it, so the limits
+are demonstrated rather than asserted.
+
+**Reading the results.** `WriteTheReplayReport` writes every fight's numbers to
+`%TEMP%\frenmits_anchor_replay.txt`. Run it before and after an anchor change.
+
+**The recorded baselines.** Two tables at the top of the test file name what the
+corpus says is wrong today - fights whose board drifts off for a stretch (Enuo,
+M6S, DSR P6) and anchors sitting on an ability id the game never telegraphs. They
+are ceilings, not permission: the numbers can't grow, and a pair of ratchet tests
+fail when an entry has been fixed but not deleted.
 
 ## 5. Iterate
 

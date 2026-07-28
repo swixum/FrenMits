@@ -108,13 +108,13 @@ public class OverlayWindow : Window
         // clock running (duty-recorder playback starts it with no combat flag
         // to auto-off Test mode) that would leak every boss mechanic here.
         if (C.TestMode)
-            return _plugin.ActiveFight() is not { TimelineOnly: true } || !_plugin.Timer.Running;
+            return _plugin.ActiveFight() is not { TimelineOnly: true } || !_plugin.Timer.Live;
         if (Plugin.CutsceneActive) return false; // hide while a cutscene is playing
         if (_plugin.Cues.Holding) return false; // and until the post-cutscene resync lands
         if (_plugin.ActiveFight() is not { } fight) return false;
         if (fight.TimelineOnly) return false; // board-only: no center call
         if (C.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return false;
-        return _plugin.Timer.Running;
+        return _plugin.Timer.Live;
     }
 
     // How far before its cue time a call first appears.
@@ -173,7 +173,7 @@ public class OverlayWindow : Window
             ImGui.EndPopup();
         }
 
-        if (C.TestMode && !_plugin.Timer.Running)
+        if (C.TestMode && !_plugin.Timer.Live)
         {
             if (C.OverlayStyle == 1)
                 using (PushFont(C.OverlayFontSizePx))

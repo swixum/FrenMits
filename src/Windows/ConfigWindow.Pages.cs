@@ -437,6 +437,14 @@ public partial class ConfigWindow
         if (ImGui.BeginTabItem("Timing"))
         {
             ImGui.Spacing();
+            C.StartOnCountdown = Toggle("Start on the pull countdown", C.StartOnCountdown);
+            Tip("Goes live the moment anyone in the party starts a countdown, instead of waiting for "
+                + "combat: the timeline, the call and the voice all run while the numbers come down, "
+                + "the clock reads negative until the pull, and zero lands on the countdown's own zero "
+                + "rather than a frame or two after it. Pull early and the clock re-zeroes to when "
+                + "combat actually started.");
+            ImGui.Spacing();
+
             var warn = C.WarningSeconds;
             if (Widgets.SliderInput("Show ahead", ref warn, 1f, 12f, "%.1fs")) { C.WarningSeconds = warn; C.SaveSettings(); }
             Tip("How early a call appears before its mit time. Per-line leads override this.");

@@ -27,6 +27,9 @@ public class Diagnostics
     {
         if (!_plugin.Config.Diagnostics) return;
 
+        // Running, not Live: this file is the record of a PULL, and a countdown
+        // called off would otherwise open and close one for a fight that never
+        // happened - pushing a real pull out of the thirty that are kept.
         var running = _plugin.Timer.Running;
         if (running)
         {

@@ -316,6 +316,13 @@ public class Configuration : IPluginConfiguration
     // an anchor may be and still snap onto it.
     public float SyncForwardWindowSeconds { get; set; } = 2000f;
 
+    // Start the clock on the party's pull countdown instead of waiting for the
+    // combat flag: the timeline, the call and the cues all go live while the
+    // numbers run down, the clock reads negative until the pull, and zero lands on
+    // the countdown's own zero rather than a frame or two after it. A party that
+    // jumps the gun re-zeroes the clock to when combat actually started.
+    public bool StartOnCountdown { get; set; } = true;
+
     // Which sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras) the baked DMU
     // timeline was last loaded for, for display.
     public string DmuSlot { get; set; } = "";

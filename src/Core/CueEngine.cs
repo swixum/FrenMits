@@ -48,7 +48,9 @@ public class CueEngine
         if (_holding && (_plugin.Sync.PhaseSyncGeneration != _holdPhaseGen || DateTime.UtcNow >= _holdUntil))
             _holding = false;
 
-        if (!c.AudioEnabled || !_plugin.Timer.Running || Plugin.CutsceneActive) return;
+        // Live, not Running: the countdown is part of the pull, and a sheet's
+        // pre-pull presses are only worth anything if they're called before it.
+        if (!c.AudioEnabled || !_plugin.Timer.Live || Plugin.CutsceneActive) return;
         if (_holding) return;
 
         if (_plugin.ActiveFight() is not { } fight) return;

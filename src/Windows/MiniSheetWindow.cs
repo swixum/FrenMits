@@ -57,7 +57,7 @@ public class MiniSheetWindow : Window
 
         var job = _plugin.ActiveJobAbbreviation();
         var elapsed = _plugin.CueClockFor(fight);
-        var running = _plugin.Timer.Running;
+        var running = _plugin.Timer.Live;
         var lines = fight.OrderedLines
             .Where(l => l.Enabled && l.AppliesTo(job))
             .OrderBy(l => l.CueTime)
