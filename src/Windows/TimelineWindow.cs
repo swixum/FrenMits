@@ -801,6 +801,23 @@ public class TimelineWindow : Window
 
     // What kind of hit a row is, for its board icon: 2 = tank buster, 1 =
     // raidwide (party damage), 0 = no icon.
+    //
+    // The shield means TANK BUSTER: one tank is about to be hit, press a personal.
+    // Measured Buster says so outright. Failing that the NAME is asked, because
+    // most rows in the plugin are ungraded - every duty timeline is - and without
+    // it those boards would carry no buster marks at all.
+    //
+    // Only "buster" is trusted for that now. It used to accept "cleave" too, and
+    // that half was wrong far more often than it was right: a cleave is usually a
+    // frontal the party is already dodging, so the shield went to M8S's Mooncleaver
+    // (a tower you soak or die to, four times a pull), to Let's Dance (Cleave), and
+    // to Lifescleaver x8 - which says in its own name that it hits eight people.
+    // Meanwhile "X Buster" in this game is a tank buster essentially without
+    // exception: Rock Buster, Mountain Buster, Citadel Buster, 179 rows of them.
+    //
+    // The asymmetry is the point. A missing shield costs a tank nothing they didn't
+    // already know from the mechanic's name; a wrong one spends a personal on the
+    // wrong cast and leaves the real buster bare.
     private static int RowKind(SheetTimeline.MechRow r, bool bareTimer)
     {
         if (r.Buster) return 2;
@@ -809,8 +826,7 @@ public class TimelineWindow : Window
         // Ordinal-ignore-case compares in place; lower-casing first allocated a
         // string per row per frame.
         var n = r.Mechanic;
-        if (n.Contains("buster", StringComparison.OrdinalIgnoreCase)
-            || n.Contains("cleave", StringComparison.OrdinalIgnoreCase)) return 2;
+        if (n.Contains("buster", StringComparison.OrdinalIgnoreCase)) return 2;
         if (n.Contains("enrage", StringComparison.OrdinalIgnoreCase)) return 0; // lethal, not something you mit
         return 1; // a named mechanic on a mit board is there because it hits
     }
