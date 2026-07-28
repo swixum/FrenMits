@@ -445,29 +445,74 @@ public static class ConfigMigrations
         // untouched, since those are stored apart from the time.
         if (config.Version < 33)
         {
-            foreach (var f in config.Fights)
-            {
-                if (!Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) continue;
-                f.SyncPoints = Builtin.SyncPoints(f.TerritoryId);
-                var graded = Builtin.CustomRows(f.TerritoryId);
-                if (graded.Count > 0) f.CustomRows = graded;
-                if (f.TerritoryId != Builtin.DmuTerritory) continue;
-
-                foreach (var lines in AllLineSets(f))
-                    foreach (var l in lines)
-                        foreach (var (old, mech, now) in DmuRetimed)
-                            if (MathF.Abs(l.Time - old) < 0.6f && l.Mechanic == mech)
-                            {
-                                l.Time = now;
-                                break;
-                            }
-                foreach (var lines in AllLineSets(f))
-                    lines.Sort((a, b) => a.Time.CompareTo(b.Time));
-            }
+            RefreshBuiltins(config, Builtin.DmuTerritory, DmuRetimed);
             config.Version = 33;
             config.Save();
         }
+
+        // v34: the same again for the rest of the roster, once every fight had been
+        // replayed against real kills rather than only the ultimates.
+        //
+        // M8S carried three anchors on abilities the boss casts somewhere else
+        // entirely - Windfang and Stonefang at 30s and 364s, Hero's Blow at 480s and
+        // 697s - so none could ever fire where they sat, and all three are gone.
+        //
+        // M2S is the re-time. Four rows between Fracture and Alarm Pheromones sat
+        // eight seconds early, the anchors either side of them being correct, which
+        // is what makes it a mistimed block rather than a party running fast. One of
+        // them is the Killer Sting invuln call.
+        if (config.Version < 34)
+        {
+            RefreshBuiltins(config, Builtin.M2sTerritory, M2sRetimed);
+            config.Version = 34;
+            config.Save();
+        }
     }
+
+    // Hand every built-in fight the current anchor table and grades, and re-time one
+    // fight's saved calls onto rows that moved.
+    //
+    // A saved plan holds its own copy of both, so a repaired anchor or a corrected
+    // grade reaches nobody who already has the fight loaded unless that copy is
+    // replaced. The calls move with their rows or the pairing breaks: the anchor
+    // would put the mechanic at its true moment while the call still fired against
+    // the old one.
+    //
+    // Matched on the exact old time and mechanic, so a call somebody has already
+    // dragged themselves is left where they put it. Per-line offsets ride along
+    // untouched, since those are stored apart from the time.
+    private static void RefreshBuiltins(Configuration config, ushort retimed,
+                                        (float Old, string Mechanic, float New)[] moves)
+    {
+        foreach (var f in config.Fights)
+        {
+            if (!Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) continue;
+            f.SyncPoints = Builtin.SyncPoints(f.TerritoryId);
+            var graded = Builtin.CustomRows(f.TerritoryId);
+            if (graded.Count > 0) f.CustomRows = graded;
+            if (f.TerritoryId != retimed) continue;
+
+            foreach (var lines in AllLineSets(f))
+                foreach (var l in lines)
+                    foreach (var (old, mech, now) in moves)
+                        if (MathF.Abs(l.Time - old) < 0.6f && l.Mechanic == mech)
+                        {
+                            l.Time = now;
+                            break;
+                        }
+            foreach (var lines in AllLineSets(f))
+                lines.Sort((a, b) => a.Time.CompareTo(b.Time));
+        }
+    }
+
+    // M2S rows re-timed in 1.0.0.374 (old time, mechanic, new time).
+    private static readonly (float Old, string Mechanic, float New)[] M2sRetimed =
+    {
+        (136f, "Loveseeker", 144f),
+        (150f, "Love Me Tender", 158f),
+        (187f, "Honey B. Finale", 195f),
+        (201f, "Killer Sting", 209f),
+    };
 
     // Dancing Mad rows re-timed in 1.0.0.373 (old time, mechanic, new time).
     private static readonly (float Old, string Mechanic, float New)[] DmuRetimed =

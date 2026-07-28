@@ -50,8 +50,10 @@ public static class M8sData
         new(168, "P1", "Sovereign Scar", 0, new[]{"", "Reprisal", "Liturgy of the Bell + Plenary Indulgence", "Macrocosmos + Neutral Sect + Celestial Opposition", "", "", "", "", "", ""}, 3, false),
         new(180, "P1", "Tactical Pack", 0xA3C8, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(189, "P1", "Howling Havoc", 0xA3DB, new[]{"", "", "", "", "Expedient + Seraph", "Physis II + Holos", "", "", "", ""}, 1, false),
-        new(196, "P1", "Windfang", 0xA39F, new[]{"Party Mit + Short Mit", "Party Mit + Short Mit", "Asylum", "", "Seraphism + Fey Illumination", "Philosophia", "Feint", "", "Party Mit", "Addle"}, 2, false),
-        new(196, "P1", "Stonefang", 0xA3B0, new[]{"", "", "", "", "", "", "", "", "", ""}, 2, false),
+        // Unanchored: 0xA39F is cast at 30s and 364s, never here, so this could only
+        // ever snap the clock onto the wrong one of those.
+        new(196, "P1", "Windfang", 0, new[]{"Party Mit + Short Mit", "Party Mit + Short Mit", "Asylum", "", "Seraphism + Fey Illumination", "Philosophia", "Feint", "", "Party Mit", "Addle"}, 2, false),
+        new(196, "P1", "Stonefang", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 2, false),
         new(199, "P1", "Pack Predation", 0xA3CC, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(200, "P1", "Alpha Wind", 0, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(200, "P1", "Stalking Wind", 0, new[]{"", "", "", "", "", "", "", "", "", ""}),
@@ -118,7 +120,8 @@ public static class M8sData
         new(566, "P2", "Twofold Tempest", 0, new[]{"Reprisal", "", "Temperance", "", "", "", "", "", "", ""}, 1, false),
         new(573, "P2", "Twofold Tempest", 0, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(585, "P2", "Bare Fangs", 0xA475, new[]{"", "", "", "", "Sacred Soil", "Kerachole", "", "", "", ""}),
-        new(589, "P2", "Hero's Blow", 0xA461, new[]{"", "Reprisal", "Plenary Indulgence", "Earthly Star + Collective Unconscious", "", "", "", "", "", ""}, 1, false),
+        // Unanchored: Hero's Blow lands at 480s and 697s and this row is neither.
+        new(589, "P2", "Hero's Blow", 0, new[]{"", "Reprisal", "Plenary Indulgence", "Earthly Star + Collective Unconscious", "", "", "", "", "", ""}, 1, false),
         new(596, "P2", "Champion's Circuit", 0xA478, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(600, "P2", "Champion's Circuit", 0, new[]{"", "Short Mit", "", "", "", "", "", "", "", ""}, 1, true),
         new(605, "P2", "Champion's Circuit", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, true),
