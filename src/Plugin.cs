@@ -570,17 +570,27 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // The boss sweep walks the whole object table, so it's gated on a running
         // clock.
         IBattleNpc? boss = null;
+        IBattleNpc? targetable = null;
         IBattleNpc? biggest = null;
         if (Timer.Running)
             foreach (var o in Service.ObjectTable)
             {
                 if (o is not IBattleNpc n || (byte)n.BattleNpcKind != 5) continue;
-                // The DPS-gate readout wants a raid boss, so it keeps the HP floor.
-                if (n.MaxHp > 1_000_000 && (boss is null || n.MaxHp > boss.MaxHp)) boss = n;
+                if (n.MaxHp > 1_000_000)
+                {
+                    // The DPS-gate readout wants a raid boss, so it keeps the HP floor.
+                    if (boss is null || n.MaxHp > boss.MaxHp) boss = n;
+                    // A fight can carry huge untargetable extras (clones, set
+                    // pieces, a corpse not yet despawned); the one you can hit is
+                    // the boss, not the biggest.
+                    if (n is { IsTargetable: true, CurrentHp: > 0 }
+                        && (targetable is null || n.MaxHp > targetable.MaxHp)) targetable = n;
+                }
                 // Learning wants whoever the fight is about, at any level.
                 if (n.NameId != 0 && (biggest is null || n.MaxHp > biggest.MaxHp)) biggest = n;
             }
-        BossHpFraction = boss is { MaxHp: > 0 } ? (float)boss.CurrentHp / boss.MaxHp : -1f;
+        var hpOf = targetable ?? boss;
+        BossHpFraction = hpOf is { MaxHp: > 0 } ? (float)hpOf.CurrentHp / hpOf.MaxHp : -1f;
         if (biggest != null)
         {
             CurrentBossNameId = biggest.NameId;
@@ -591,8 +601,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var down = false;
         if (Timer.Running)
         {
+            // Downtime means there's nothing boss-sized to hit, not that the
+            // biggest actor happens to be untargetable.
             if (CutsceneActive) down = true;
-            else if (boss is { IsTargetable: false }) down = true;
+            else if (boss != null && targetable == null) down = true;
         }
 
         // Tick the lull's length in game-time so replay speed / pauses can't skew it.
