@@ -14,8 +14,24 @@ public class RecapWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
-    // Whether the deaths chip is expanded into its who/how detail list.
+    // Whether the deaths chip has expanded every death row (per-row carets can
+    // still open and close them one at a time).
     private bool _deathsOpen;
+    // Which death rows are expanded, by time order; reset when the shown pull
+    // changes so one pull's clicks never open another pull's rows.
+    private readonly HashSet<int> _openDeaths = new();
+    private Guid _deathsPull;
+    // Set by a click on a scrubber death marker (or the chip): scroll the
+    // deaths section into view on the frame it draws.
+    private bool _scrollToDeaths;
+
+    private void EnsureDeathState(MitRecap r)
+    {
+        if (r.Shown.PullId == _deathsPull) return;
+        _deathsPull = r.Shown.PullId;
+        _openDeaths.Clear();
+        _deathsOpen = false;
+    }
 
     public RecapWindow(Plugin plugin) : base("Party Mit Recap###recapwin")
     {
@@ -125,11 +141,20 @@ public class RecapWindow : Window
         ImGui.SameLine(0, 6);
         if (r.LastDeaths.Count > 0)
         {
-            // Clickable: opens the who-died-and-how list below the chip row.
+            // Clickable: expands every death below into its hit-by-hit detail.
             if (Widgets.ChipButton("deaths", r.LastDeaths.Count.ToString(), Theme.Danger, _deathsOpen))
+            {
+                EnsureDeathState(r);
                 _deathsOpen = !_deathsOpen;
+                _openDeaths.Clear();
+                if (_deathsOpen)
+                {
+                    for (var i = 0; i < r.LastDeaths.Count; i++) _openDeaths.Add(i);
+                    _scrollToDeaths = true;
+                }
+            }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(_deathsOpen ? "Hide deaths" : "Show deaths");
+                ImGui.SetTooltip(_deathsOpen ? "Collapse the deaths" : "Expand every death's last hits");
         }
         else
         {
@@ -152,37 +177,13 @@ public class RecapWindow : Window
             ImGui.TextColored(Theme.V(Theme.Warn), "Never landed:  " + string.Join("   ", missed));
         }
 
-        // Deaths, expanded from the chip: who dropped, when, how fast, and what
-        // they still had up (or that nothing was).
-        if (_deathsOpen && r.LastDeaths.Count > 0)
-        {
-            Widgets.SectionHeader("Deaths");
-            foreach (var d in r.LastDeaths.OrderBy(d => d.Time))
-            {
-                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-                    ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
-                ImGui.SameLine(0, 6);
-                ImGui.TextColored(Theme.V(Theme.Danger), d.Name);
-                ImGui.SameLine(0, 6);
-                ImGui.TextColored(Theme.V(Theme.Muted), Mmss(d.Time));
-                var story = new List<string>();
-                if (d.FromPct > 0f && d.Seconds > 0f)
-                    story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
-                if (d.KilledBy.Length > 0) story.Add("killed by " + d.KilledBy);
-                story.Add(d.Had.Length > 0 ? "had " + d.Had : "nothing up");
-                ImGui.SameLine(0, 6);
-                ImGui.PushTextWrapPos(0f);
-                ImGui.TextColored(Theme.V(Theme.Muted), "· " + string.Join(" · ", story));
-                ImGui.PopTextWrapPos();
-            }
-        }
-
         // Coverage timeline: the whole pull as one chart, deaths marked.
         Widgets.SectionHeader("Coverage timeline");
         DrawScrubber(r);
         ImGui.TextColored(Theme.V(Theme.Muted), "tall & green = more mit up · dips = thin ·");
         ImGui.SameLine(0, 5); ImGui.TextColored(Theme.V(Theme.Danger), "red = deaths");
-        ImGui.SameLine(0, 6); ImGui.TextColored(Theme.V(Theme.Muted), "· hover to inspect");
+        ImGui.SameLine(0, 6); ImGui.TextColored(Theme.V(Theme.Muted),
+            r.LastDeaths.Count > 0 ? "(click one to inspect) · hover to inspect" : "· hover to inspect");
 
         // Plan vs. actual: the sheet graded against the pull.
         if (r.Shown.PlanTotal > 0)
@@ -208,6 +209,8 @@ public class RecapWindow : Window
             if (r.Shown.PlanProblems.Count > 10)
                 ImGui.TextColored(Theme.V(Theme.Muted), $"+{r.Shown.PlanProblems.Count - 10} more in Copy");
         }
+
+        DrawDeaths(r);
 
         // Cooldowns that sat unused all pull - the most actionable line a
         // raid lead can read after a wipe.
@@ -454,6 +457,92 @@ public class RecapWindow : Window
         _ => 0.05f,
     };
 
+    // Deaths as clickable rows: the headline story, expanding into the last
+    // hits that led in, each with what the player had up as it was delivered.
+    private void DrawDeaths(MitRecap r)
+    {
+        if (r.LastDeaths.Count == 0) return;
+        EnsureDeathState(r);
+        Widgets.SectionHeader("Deaths");
+        if (_scrollToDeaths) { ImGui.SetScrollHereY(0.25f); _scrollToDeaths = false; }
+        var deaths = r.LastDeaths.OrderBy(d => d.Time).ToList();
+        var dl = ImGui.GetWindowDrawList();
+        for (var i = 0; i < deaths.Count; i++)
+        {
+            var d = deaths[i];
+            var open = _openDeaths.Contains(i);
+            var rowTop = ImGui.GetCursorScreenPos();
+            var rowWidth = MathF.Max(60f, ImGui.GetContentRegionAvail().X);
+
+            // The caret only reads out state; the WHOLE row is the button, so
+            // nobody has to hunt a tiny target after a wipe.
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                ImGui.TextColored(Theme.V(Theme.Muted),
+                    (open ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight).ToIconString());
+            ImGui.SameLine(0, 6);
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
+            ImGui.SameLine(0, 6);
+            ImGui.TextColored(Theme.V(Theme.Danger), d.Name);
+            ImGui.SameLine(0, 6);
+            ImGui.TextColored(Theme.V(Theme.Muted), Mmss(d.Time));
+            var story = new List<string>();
+            if (d.FromPct > 0f && d.Seconds > 0f)
+                story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
+            if (d.KilledBy.Length > 0) story.Add("killed by " + d.KilledBy);
+            story.Add(d.Had.Length > 0 ? "had " + d.Had : "nothing up");
+            ImGui.SameLine(0, 6);
+            ImGui.PushTextWrapPos(0f);
+            ImGui.TextColored(Theme.V(Theme.Muted), "· " + string.Join(" · ", story));
+            ImGui.PopTextWrapPos();
+
+            var rowH = MathF.Max(ImGui.GetCursorScreenPos().Y - rowTop.Y, ImGui.GetTextLineHeight());
+            ImGui.SetCursorScreenPos(rowTop);
+            if (ImGui.InvisibleButton($"##deathrow{i}", new Vector2(rowWidth, rowH)))
+            {
+                if (!_openDeaths.Remove(i)) _openDeaths.Add(i);
+                open = !open;
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                ImGui.SetTooltip(open ? "Hide the last hits" : "Show the last hits");
+                // Selectable-style wash, so the row reads as one click target.
+                dl.AddRectFilled(rowTop, new Vector2(rowTop.X + rowWidth, rowTop.Y + rowH), 0x14FFFFFFu, 4f);
+            }
+            if (!open) continue;
+
+            ImGui.Indent(26f);
+            if (d.Hits is { Count: > 0 } hits)
+            {
+                for (var j = 0; j < hits.Count; j++)
+                {
+                    var h = hits[j];
+                    var blow = j == hits.Count - 1 && d.KilledBy.Length > 0;
+                    ImGui.TextColored(Theme.V(Theme.Muted), Mmss(h.Time));
+                    ImGui.SameLine(0, 8);
+                    ImGui.TextColored(blow ? Theme.V(Theme.Danger) : Theme.V(Theme.TextBright),
+                        h.Action.Length > 0 ? h.Action : "hit");
+                    if (h.Amount > 0)
+                    {
+                        ImGui.SameLine(0, 8);
+                        ImGui.TextColored(Theme.V(Theme.TextBright), h.Amount.ToString("N0"));
+                    }
+                    ImGui.SameLine(0, 8);
+                    ImGui.PushTextWrapPos(0f);
+                    ImGui.TextColored(Theme.V(Theme.Muted),
+                        "· " + (h.Mits.Length > 0 ? "had " + h.Mits : "nothing up")
+                        + (blow ? " · killing blow" : ""));
+                    ImGui.PopTextWrapPos();
+                }
+            }
+            else
+                ImGui.TextColored(Theme.V(Theme.Muted),
+                    "No hit trail for this death (a dot tick or a fall, or the capture was off).");
+            ImGui.Unindent(26f);
+        }
+    }
+
     // The at-a-glance coverage chart: height and color both show how much was up.
     private void DrawScrubber(MitRecap r)
     {
@@ -479,7 +568,7 @@ public class RecapWindow : Window
         // ---- geometry ----
         const float padL = 10f, padR = 10f, bandH = 58f, axisH = 15f;
         var hasDeaths = r.LastDeaths.Count > 0;
-        var topPad = hasDeaths ? 16f : 6f; // room for the death labels above the band
+        var topPad = hasDeaths ? 20f : 6f; // room for the death skulls above the band
         var width = ImGui.GetContentRegionAvail().X;
         var plotW = MathF.Max(60f, width - padL - padR);
         var height = topPad + bandH + 5f + axisH;
@@ -535,21 +624,35 @@ public class RecapWindow : Window
                 }
         }
 
-        // deaths: cluster close ones so labels never stack; red line + dot + label
+        // deaths: cluster close ones so labels never stack; red line + dot +
+        // label, and each is a link to its detail rows below the plan check
+        var clusters = new List<(float T, List<int> Idx, List<string> Names)>();
         if (hasDeaths)
         {
-            var clusters = new List<(float T, List<string> Names)>();
-            foreach (var d in r.LastDeaths.OrderBy(d => d.Time))
-                if (clusters.Count > 0 && d.Time - clusters[^1].T < 6f) clusters[^1].Names.Add(d.Name);
-                else clusters.Add((d.Time, new List<string> { d.Name }));
-            foreach (var (ct, names) in clusters)
+            var ordered = r.LastDeaths.OrderBy(d => d.Time).ToList();
+            for (var i = 0; i < ordered.Count; i++)
+            {
+                var d = ordered[i];
+                if (clusters.Count > 0 && d.Time - clusters[^1].T < 6f)
+                {
+                    clusters[^1].Idx.Add(i);
+                    clusters[^1].Names.Add(d.Name);
+                }
+                else clusters.Add((d.Time, new List<int> { i }, new List<string> { d.Name }));
+            }
+            // A skull above each line, names in the hover tooltip: painted-on
+            // labels clamped to the right edge and read as a jumble when two
+            // deaths landed near the end of a pull.
+            foreach (var (ct, _, _) in clusters)
             {
                 var dx = X(ct);
-                dl.AddLine(new Vector2(dx, bandTop - 9f), new Vector2(dx, bandBot), Theme.Danger, 1.5f);
-                dl.AddCircleFilled(new Vector2(dx, bandTop - 9f), 2.6f, Theme.Danger);
-                var lbl = names.Count == 1 ? Trunc(names[0], 9) : $"{names.Count} deaths";
-                var lx = MathF.Min(dx + 4f, right - ImGui.CalcTextSize(lbl).X);
-                dl.AddText(new Vector2(lx, bandTop - 16f), Theme.Danger, lbl);
+                dl.AddLine(new Vector2(dx, bandTop - 4f), new Vector2(dx, bandBot), Theme.Danger, 1.5f);
+                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                {
+                    var icon = FontAwesomeIcon.SkullCrossbones.ToIconString();
+                    var sz = ImGui.CalcTextSize(icon);
+                    dl.AddText(new Vector2(dx - sz.X / 2f, bandTop - 5f - sz.Y), Theme.Danger, icon);
+                }
             }
         }
 
@@ -571,6 +674,23 @@ public class RecapWindow : Window
             dl.AddCircleFilled(new Vector2(cx, Y(cN)), 3f, Theme.Accent);
             dl.AddCircle(new Vector2(cx, Y(cN)), 3.4f, 0xFFFFFFFFu);
             ScrubTooltip(r, evs, fight, t, cN);
+
+            // A death line under the cursor is a link: clicking opens that
+            // death's hit-by-hit rows and brings them into view.
+            var mx = ImGui.GetMousePos().X;
+            var near = clusters.FindAll(c => MathF.Abs(X(c.T) - mx) <= 8f);
+            if (near.Count > 0)
+            {
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                {
+                    EnsureDeathState(r);
+                    foreach (var c in near)
+                        foreach (var ix in c.Idx)
+                            _openDeaths.Add(ix);
+                    _scrollToDeaths = true;
+                }
+            }
         }
     }
 
@@ -609,6 +729,8 @@ public class RecapWindow : Window
                 ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
             ImGui.SameLine(0, 5);
             ImGui.TextColored(Theme.V(Theme.Danger), d.Name + " died");
+            ImGui.SameLine(0, 5);
+            ImGui.TextColored(Theme.V(Theme.Muted), "· click to inspect");
         }
         ImGui.EndTooltip();
     }
@@ -632,8 +754,6 @@ public class RecapWindow : Window
         }
         return (Ch(24) << 24) | (Ch(16) << 16) | (Ch(8) << 8) | Ch(0);
     }
-
-    private static string Trunc(string s, int n) => s.Length <= n ? s : s[..(n - 1)] + "…";
 
     // The plan mechanic nearest this moment (within a window), so recap rows can
     // group under the same names the calls used.

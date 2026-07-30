@@ -34,13 +34,14 @@ public unsafe class DamageCapture : IDisposable
     public List<EnemyHit> Hits { get; } = new();
     private const int MaxHits = 3000;
 
-    // The most recent enemy hit each player took: what struck them, for how
+    // The last few enemy hits each player took: what struck them, for how
     // much, and what they had up AS IT LANDED. The death story reads this
     // instead of a status scan that can be a beat stale by the time HP shows
-    // zero.
+    // zero, and the recap's death detail plays the ring back hit by hit.
     public readonly record struct PlayerHit(float Time, string Action, uint Amount, string Mits);
 
-    public Dictionary<string, PlayerHit> LastHitOn { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, List<PlayerHit>> RecentHits { get; } = new(StringComparer.OrdinalIgnoreCase);
+    private const int HitRing = 6;
 
     // Hooking can fail after a game patch; the recap then falls back to its
     // status-scan grading rather than losing the feature outright.
@@ -65,7 +66,7 @@ public unsafe class DamageCapture : IDisposable
     public void Clear()
     {
         Hits.Clear();
-        LastHitOn.Clear();
+        RecentHits.Clear();
     }
 
     private void OnEffect(uint casterEntityId, Character* caster, System.Numerics.Vector3* targetPos,
@@ -118,7 +119,10 @@ public unsafe class DamageCapture : IDisposable
             var mits = string.Join(", ", MitRecap.MitNamesOn(pc));
             var shield = pc.ShieldPercentage;
             if (shield > 0) mits = mits.Length > 0 ? $"{mits}, {shield}% shield" : $"{shield}% shield";
-            LastHitOn[pc.Name.ToString()] = new PlayerHit(elapsed, action, amount, mits);
+            var who = pc.Name.ToString();
+            if (!RecentHits.TryGetValue(who, out var ring)) ring = RecentHits[who] = new List<PlayerHit>();
+            ring.Add(new PlayerHit(elapsed, action, amount, mits));
+            if (ring.Count > HitRing) ring.RemoveAt(0);
         }
         if (players == 0) return;
 

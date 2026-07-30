@@ -31,8 +31,10 @@ public class MitRecap
     public sealed record Active(uint Icon, string Mit, string Source, float Remaining, MitTypes.Kind Kind, bool OnBoss);
 
     // A death with its story: what killed them, what was running as it landed,
-    // and how fast they dropped.
-    public readonly record struct Death(float Time, string Name, string Had, float FromPct, float Seconds, string KilledBy = "");
+    // how fast they dropped, and the last hits leading in (frozen at death, so
+    // a browsed history entry keeps them).
+    public readonly record struct Death(float Time, string Name, string Had, float FromPct, float Seconds,
+        string KilledBy = "", List<DamageCapture.PlayerHit>? Hits = null);
 
     // One frozen pull; a short history is kept so wipes stay comparable.
     public sealed class PullRecap
@@ -266,28 +268,36 @@ public class MitRecap
         var had = _lastMits.TryGetValue(name, out var lm) && lm.Count > 0
             ? string.Join(", ", lm.Take(4)) : "";
         var killedBy = "";
-        if (_plugin.Damage.LastHitOn.TryGetValue(name, out var hit) && t - hit.Time <= KillingBlowWindow)
+        List<DamageCapture.PlayerHit>? hits = null;
+        if (_plugin.Damage.RecentHits.TryGetValue(name, out var ring) && ring.Count > 0)
         {
-            killedBy = hit.Action.Length > 0
-                ? (hit.Amount > 0 ? $"{hit.Action} ({hit.Amount:N0})" : hit.Action)
-                : hit.Amount > 0 ? $"{hit.Amount:N0} damage" : "";
-            // What the hit was calculated against beats what a scan saw last;
-            // an empty read there means genuinely nothing was up.
-            had = hit.Mits;
+            var hit = ring[^1];
+            if (t - hit.Time <= KillingBlowWindow)
+            {
+                killedBy = hit.Action.Length > 0
+                    ? (hit.Amount > 0 ? $"{hit.Action} ({hit.Amount:N0})" : hit.Action)
+                    : hit.Amount > 0 ? $"{hit.Amount:N0} damage" : "";
+                // What the hit was calculated against beats what a scan saw
+                // last; an empty read there means genuinely nothing was up.
+                had = hit.Mits;
+            }
+            // The run-in: only hits close enough to be part of the same story.
+            hits = ring.Where(h => t - h.Time <= 12f).ToList();
+            if (hits.Count == 0) hits = null;
         }
         var from = 0f; var secs = 0f;
-        if (_hp.TryGetValue(name, out var ring) && ring.Count > 0)
+        if (_hp.TryGetValue(name, out var hpRing) && hpRing.Count > 0)
         {
             // The most recent healthy-ish moment; failing that, the best HP we
             // saw in the trace window.
             (float T, float Pct)? healthy = null;
-            for (var i = ring.Count - 1; i >= 0; i--)
-                if (ring[i].Pct >= 0.7f) { healthy = ring[i]; break; }
-            var pick = healthy ?? ring.OrderByDescending(x => x.Pct).First();
+            for (var i = hpRing.Count - 1; i >= 0; i--)
+                if (hpRing[i].Pct >= 0.7f) { healthy = hpRing[i]; break; }
+            var pick = healthy ?? hpRing.OrderByDescending(x => x.Pct).First();
             from = pick.Pct;
             secs = MathF.Max(0.1f, t - pick.T);
         }
-        return new Death(t, name, had, from, secs, killedBy);
+        return new Death(t, name, had, from, secs, killedBy, hits);
     }
 
     // The recognized mit names currently on a player, for the packet capture's
@@ -384,8 +394,9 @@ public class MitRecap
 
     // The game decides a cast's damage a beat before the hit lands (the cast
     // bar's end), and the sheet's row time is the hit itself. A mit graded "on
-    // plan" therefore has to be up HERE, not at the row time.
-    private const float SnapshotLead = 0.7f;
+    // plan" therefore has to be up HERE, not at the row time. Internal so the
+    // timing solver plans by the same physics the recap grades by.
+    internal const float SnapshotLead = 0.7f;
     // Poll-scan slack on interval edges: a status is first seen (and last seen)
     // up to a scan late.
     private const float EdgeGrace = 0.6f;
@@ -692,11 +703,23 @@ public class MitRecap
                 .ToList();
             if (sampleLog.Count > 2)
             {
+                var d1 = sampleLog[sampleLog.Count / 2].Time + 2f;
+                var d2 = sampleLog[^1].Time + 1f;
                 pr.Deaths = new List<Death>
                 {
-                    new(sampleLog[sampleLog.Count / 2].Time + 2f, comp.Count > 0 ? comp[0] : "Someone",
-                        "Rampart, Sacred Soil, 8% shield", 0.86f, 3.4f, "Mortal Slash (154,201)"),
-                    new(sampleLog[^1].Time + 1f, comp.Count > 1 ? comp[1] : "Someone Else", "", 0.97f, 1.8f),
+                    new(d1, comp.Count > 0 ? comp[0] : "Someone",
+                        "Rampart, Sacred Soil, 8% shield", 0.86f, 3.4f, "Mortal Slash (154,201)",
+                        new List<DamageCapture.PlayerHit>
+                        {
+                            new(d1 - 3.1f, "Attack", 38112, "Rampart, Sacred Soil, 22% shield"),
+                            new(d1 - 1.4f, "Mortal Slash", 154201, "Rampart, Sacred Soil, 8% shield"),
+                        }),
+                    new(d2, comp.Count > 1 ? comp[1] : "Someone Else", "", 0.97f, 1.8f, "Ruinous Omen (118,455)",
+                        new List<DamageCapture.PlayerHit>
+                        {
+                            new(d2 - 2.2f, "Attack", 24860, ""),
+                            new(d2 - 0.8f, "Ruinous Omen", 118455, ""),
+                        }),
                 };
             }
             pr.Unused = ComputeUnused(pr);
@@ -757,10 +780,18 @@ public class MitRecap
             sb.AppendLine();
             sb.AppendLine("Deaths:");
             foreach (var d in LastDeaths.OrderBy(d => d.Time))
+            {
                 sb.AppendLine($"  {(int)d.Time / 60}:{(int)d.Time % 60:00}  {d.Name}"
                     + (d.FromPct > 0 ? $"  ({(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s)" : "")
                     + (d.KilledBy.Length > 0 ? $"  killed by {d.KilledBy}" : "")
                     + (d.Had.Length > 0 ? $"  had {d.Had}" : "  nothing up"));
+                if (d.Hits is { Count: > 0 })
+                    foreach (var h in d.Hits)
+                        sb.AppendLine($"      {(int)h.Time / 60}:{(int)h.Time % 60:00}  "
+                            + (h.Action.Length > 0 ? h.Action : "hit")
+                            + (h.Amount > 0 ? $"  {h.Amount:N0}" : "")
+                            + $"  ({(h.Mits.Length > 0 ? "had " + h.Mits : "nothing up")})");
+            }
         }
 
         if (Shown.PlanTotal > 0)
