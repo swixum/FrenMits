@@ -246,8 +246,27 @@ public class Configuration : IPluginConfiguration
     public Vector2 MeterPosition { get; set; } = new(0.8f, 0.72f);
     public Vector2 MeterSize { get; set; } = new(360f, 250f);
     public int MeterMode { get; set; }                   // 0 damage, 1 healing, 2 taken, 3 deaths
+    // Replace, or the loader appends the saved list into these seeded defaults
+    // and every reload doubles the columns.
+    [Newtonsoft.Json.JsonProperty(ObjectCreationHandling = Newtonsoft.Json.ObjectCreationHandling.Replace)]
     public List<string> MeterColumns { get; set; } = new() { "rdps", "dps", "dmgpct" };
+
+    // Repairs a column list a pre-fix load doubled up: the last copy of each
+    // key is the saved one, so keeping it preserves the user's order.
+    public static bool DedupeMeterColumns(List<string> cols)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var changed = false;
+        for (var i = cols.Count - 1; i >= 0; i--)
+            if (!seen.Add(cols[i]))
+            {
+                cols.RemoveAt(i);
+                changed = true;
+            }
+        return changed;
+    }
     public int MeterHeaderStyle { get; set; }            // 0 full, 1 slim, 2 none
+    public int MeterBarStyle { get; set; }               // 0 flat, 1 glass, 2 gradient
     public bool MeterColumnHeader { get; set; } = true;
     public bool MeterShowRank { get; set; } = true;
     public bool MeterShowJobIcons { get; set; } = true;
@@ -267,6 +286,10 @@ public class Configuration : IPluginConfiguration
     public uint MeterSubColor { get; set; } = 0xFFFFFFFF;     // ranks, labels, other columns
     public uint MeterBgColor { get; set; } = 0xB80D0A09;      // window, alpha included
     public uint MeterRowColor { get; set; } = 0x17FFFFFF;     // bar background
+
+    // Saved meter profiles (name -> share code) and which one is active.
+    public Dictionary<string, string> MeterProfiles { get; set; } = new();
+    public string MeterProfileName { get; set; } = "";
 
     // Text templates; placeholders: {action} {mechanic} {time} {count} {remaining}.
     public string HeadlineFormat { get; set; } = "{action} ({remaining})";

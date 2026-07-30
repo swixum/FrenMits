@@ -34,6 +34,7 @@ public static class MeterProfile
             ["barh"] = c.MeterBarHeight,
             ["gap"] = c.MeterBarGap,
             ["round"] = c.MeterRounding,
+            ["bars"] = c.MeterBarStyle,
             ["jobcol"] = c.MeterJobColors,
             ["accent"] = c.MeterAccentColor,
             ["text"] = c.MeterTextColor,
@@ -85,6 +86,7 @@ public static class MeterProfile
             if (o["barh"] is { } bh) c.MeterBarHeight = Math.Clamp((float)bh, 16f, 44f);
             if (o["gap"] is { } g) c.MeterBarGap = Math.Clamp((float)g, 0f, 10f);
             if (o["round"] is { } ro) c.MeterRounding = Math.Clamp((float)ro, 0f, 14f);
+            if (o["bars"] is { } br) c.MeterBarStyle = Math.Clamp((int)br, 0, 2);
             if (o["jobcol"] is { } jc) c.MeterJobColors = (bool)jc;
             if (o["accent"] is { } ac) c.MeterAccentColor = (uint)ac;
             if (o["text"] is { } tx) c.MeterTextColor = (uint)tx;

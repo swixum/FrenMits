@@ -75,10 +75,13 @@ public class MeterWindow : Window
         dl.AddRectFilled(wp, wp + ws, C.MeterBgColor, C.MeterRounding);
         dl.AddRect(wp, wp + ws, 0x24FFFFFF, C.MeterRounding);
 
-        // Soft top sheen, matching the glass look of the design comp.
-        var sheenH = MathF.Min(46f, ws.Y * 0.4f);
-        dl.AddRectFilledMultiColor(wp + new Vector2(1, 1), wp + new Vector2(ws.X - 1, sheenH),
-            0x14FFFFFF, 0x14FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
+        if (C.MeterBarStyle == 1)
+        {
+            // Glass style gets a soft top sheen on the window too.
+            var sheenH = MathF.Min(46f, ws.Y * 0.4f);
+            dl.AddRectFilledMultiColor(wp + new Vector2(1, 1), wp + new Vector2(ws.X - 1, sheenH),
+                0x14FFFFFF, 0x14FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
+        }
 
         using var font = OverlayChrome.PushFont(
             _plugin.Fonts, C.MeterFontSizePx, C.MeterFontFamily, C.MeterFontBold, C.MeterFontItalic);
@@ -250,8 +253,9 @@ public class MeterWindow : Window
         var need = C.MeterMode switch { 1 => "hps", 2 => "taken", 3 => "deaths", _ => null };
         if (need != null && !keys.Contains(need)) keys.Insert(0, need);
         var cols = new List<Col>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var k in keys)
-            if (ColOf(k) is { } c)
+            if (seen.Add(k) && ColOf(k) is { } c)
                 cols.Add(c);
         return cols;
     }
@@ -388,12 +392,24 @@ public class MeterWindow : Window
             var fill = (float)(Metric(r) / max) * (w - pad * 2 + 6f);
             if (fill > 2f)
             {
-                dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(pad - 3f + fill, rowH),
-                    rgb | 0x5C000000, 4f);
-                // Glass shine across the fill's top half.
-                dl.AddRectFilledMultiColor(p + new Vector2(pad - 2f, 1f), p + new Vector2(pad - 3f + fill, rowH * 0.55f),
-                    0x24FFFFFF, 0x24FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
-                dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(pad, rowH), rgb | 0xE6000000, 2f);
+                var a = p + new Vector2(pad - 3f, 0);
+                var b = p + new Vector2(pad - 3f + fill, rowH);
+                switch (C.MeterBarStyle)
+                {
+                    case 1: // glass: solid fill with a shine across the top half
+                        dl.AddRectFilled(a, b, rgb | 0x5C000000, 4f);
+                        dl.AddRectFilledMultiColor(a + new Vector2(1f, 1f), new Vector2(b.X, p.Y + rowH * 0.55f),
+                            0x24FFFFFF, 0x24FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
+                        break;
+                    case 2: // gradient: strong at the left, fading right
+                        dl.AddRectFilledMultiColor(a + new Vector2(0f, 1f), b - new Vector2(0f, 1f),
+                            rgb | 0x8C000000, rgb | 0x26000000, rgb | 0x26000000, rgb | 0x8C000000);
+                        break;
+                    default: // flat
+                        dl.AddRectFilled(a, b, rgb | 0x5C000000, 4f);
+                        break;
+                }
+                dl.AddRectFilled(a, p + new Vector2(pad, rowH), rgb | 0xE6000000, 2f);
             }
 
             var ty = p.Y + (rowH - lineH) * 0.5f;
@@ -518,6 +534,21 @@ public class MeterWindow : Window
             }
             ImGui.EndMenu();
         }
+        if (C.MeterProfiles.Count > 0 && ImGui.BeginMenu("Profile"))
+        {
+            foreach (var kv in C.MeterProfiles)
+                if (ImGui.MenuItem(kv.Key, "", C.MeterProfileName == kv.Key))
+                {
+                    if (MeterProfile.Import(C, kv.Value))
+                    {
+                        C.MeterProfileName = kv.Key;
+                        C.SaveSettings();
+                        RequestReposition();
+                    }
+                    break;
+                }
+            ImGui.EndMenu();
+        }
         if (ImGui.BeginMenu("Theme"))
         {
             foreach (var t in Themes)
@@ -532,6 +563,10 @@ public class MeterWindow : Window
             if (ImGui.MenuItem("Column labels", "", C.MeterColumnHeader)) { C.MeterColumnHeader = !C.MeterColumnHeader; C.SaveSettings(); }
             if (ImGui.MenuItem("Raid total", "", C.MeterShowRaidTotal)) { C.MeterShowRaidTotal = !C.MeterShowRaidTotal; C.SaveSettings(); }
             if (ImGui.MenuItem("\"You\" instead of your name", "", C.MeterYou)) { C.MeterYou = !C.MeterYou; C.SaveSettings(); }
+            var bars = C.MeterBarStyle;
+            if (ImGui.MenuItem("Bars: flat", "", bars == 0)) { C.MeterBarStyle = 0; C.SaveSettings(); }
+            if (ImGui.MenuItem("Bars: glass", "", bars == 1)) { C.MeterBarStyle = 1; C.SaveSettings(); }
+            if (ImGui.MenuItem("Bars: gradient", "", bars == 2)) { C.MeterBarStyle = 2; C.SaveSettings(); }
             var style = C.MeterHeaderStyle;
             if (ImGui.MenuItem("Header: full", "", style == 0)) { C.MeterHeaderStyle = 0; C.SaveSettings(); }
             if (ImGui.MenuItem("Header: slim", "", style == 1)) { C.MeterHeaderStyle = 1; C.SaveSettings(); }
@@ -596,16 +631,17 @@ public class MeterWindow : Window
     // ---- themes ------------------------------------------------------------
 
     public readonly record struct MeterTheme(
-        string Name, uint Accent, uint Text, uint Sub, uint Bg, uint Rows, float Rounding, bool JobColors);
+        string Name, uint Accent, uint Text, uint Sub, uint Bg, uint Rows, float Rounding, bool JobColors,
+        int BarStyle);
 
     public static readonly MeterTheme[] Themes =
     {
-        new("Fren Mits", 0xFFF6823B, 0xFFFFFFFF, 0xFFFFFFFF, 0xB80D0A09, 0x17FFFFFF, 5f, true),
-        new("Dark Mode", 0xFFFFB48A, 0xFFFFFFFF, 0xFFD8CDC8, 0xE6000000, 0x12FFFFFF, 6f, true),
-        new("Glass", 0xFFC5D14F, 0xFFFFFFFF, 0xFFF2F0E6, 0x5916120E, 0x22FFFFFF, 10f, true),
-        new("Ember", 0xFF3C8AFF, 0xFFFFFFFF, 0xFFC0D9FF, 0xCC060B14, 0x145C9AFF, 5f, true),
-        new("Jade", 0xFF99D334, 0xFFFFFFFF, 0xFFDCE8D2, 0xCC101307, 0x16FFFFFF, 5f, true),
-        new("Mono", 0xFFB8A99D, 0xFFFFFFFF, 0xFFC4C4C4, 0xD8101010, 0x1AFFFFFF, 2f, false),
+        new("Fren Mits", 0xFFF6823B, 0xFFFFFFFF, 0xFFFFFFFF, 0xB80D0A09, 0x17FFFFFF, 5f, true, 0),
+        new("Dark Mode", 0xFFFFB48A, 0xFFFFFFFF, 0xFFD8CDC8, 0xE6000000, 0x12FFFFFF, 6f, true, 0),
+        new("Glass", 0xFFC5D14F, 0xFFFFFFFF, 0xFFF2F0E6, 0x5916120E, 0x22FFFFFF, 10f, true, 1),
+        new("Ember", 0xFF3C8AFF, 0xFFFFFFFF, 0xFFC0D9FF, 0xCC060B14, 0x145C9AFF, 5f, true, 2),
+        new("Jade", 0xFF99D334, 0xFFFFFFFF, 0xFFDCE8D2, 0xCC101307, 0x16FFFFFF, 5f, true, 2),
+        new("Mono", 0xFFB8A99D, 0xFFFFFFFF, 0xFFC4C4C4, 0xD8101010, 0x1AFFFFFF, 2f, false, 0),
     };
 
     public static void ApplyTheme(Configuration c, MeterTheme t)
@@ -617,6 +653,7 @@ public class MeterWindow : Window
         c.MeterRowColor = t.Rows;
         c.MeterRounding = t.Rounding;
         c.MeterJobColors = t.JobColors;
+        c.MeterBarStyle = t.BarStyle;
         c.SaveSettings();
     }
 

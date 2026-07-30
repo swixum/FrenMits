@@ -87,6 +87,11 @@ public partial class ConfigWindow
 
             ImGui.Spacing();
             ImGui.SetNextItemWidth(220f);
+            var barStyle = C.MeterBarStyle;
+            if (ImGui.Combo("Bars", ref barStyle, "Flat\0Glass\0Gradient\0"))
+            { C.MeterBarStyle = barStyle; C.SaveSettings(); }
+
+            ImGui.SetNextItemWidth(220f);
             var header = C.MeterHeaderStyle;
             if (ImGui.Combo("Header", ref header, "Full\0Slim\0Hidden\0"))
             { C.MeterHeaderStyle = header; C.SaveSettings(); }
@@ -173,32 +178,133 @@ public partial class ConfigWindow
         if (ImGui.BeginTabItem("Profiles"))
         {
             ImGui.Spacing();
-            ImGui.TextDisabled("Share your meter layout and look as a code.");
-            ImGui.Spacing();
-
-            if (ImGui.Button("Copy share code"))
-            {
-                ImGui.SetClipboardText(MeterProfile.Export(C));
-                MeterFlash("Code copied to clipboard.");
-            }
-            ImGui.SameLine(0, 10);
-            if (ImGui.Button("Import from clipboard"))
-                ImportMeterProfile(ImGui.GetClipboardText());
-
-            ImGui.SetNextItemWidth(320f);
-            ImGui.InputText("##mprofilecode", ref _meterProfileBuf, 4096);
-            ImGui.SameLine(0, 6);
-            if (ImGui.Button("Import")) ImportMeterProfile(_meterProfileBuf);
-
-            if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
-                ImGui.TextColored(_meterFlashOk ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, _meterFlash);
+            DrawMeterProfiles();
             ImGui.EndTabItem();
         }
 
         ImGui.EndTabBar();
     }
 
+    private void DrawMeterProfiles()
+    {
+        var active = C.MeterProfileName;
+        var saved = active.Length > 0 && C.MeterProfiles.ContainsKey(active);
+        var edited = saved && C.MeterProfiles[active] != MeterProfile.Export(C);
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Profile");
+        ImGui.SameLine(0, 8);
+        ImGui.SetNextItemWidth(220f);
+        var preview = !saved ? "(unsaved)" : edited ? $"{active} (edited)" : active;
+        if (ImGui.BeginCombo("##mprofsel", preview))
+        {
+            foreach (var kv in C.MeterProfiles)
+                if (ImGui.Selectable(kv.Key, kv.Key == active))
+                    ApplyMeterProfile(kv.Key);
+            ImGui.EndCombo();
+        }
+
+        if (saved)
+        {
+            ImGui.SameLine(0, 8);
+            if (ImGui.SmallButton(edited ? "Save changes" : "Save"))
+            {
+                C.MeterProfiles[active] = MeterProfile.Export(C);
+                C.SaveSettings();
+                MeterFlash("Profile saved.");
+            }
+            ImGui.SameLine(0, 6);
+            // Two-click delete so one stray click can't eat a profile.
+            if ((DateTime.Now - _meterDeleteAt).TotalSeconds < 3)
+            {
+                if (ImGui.SmallButton("Sure?"))
+                {
+                    C.MeterProfiles.Remove(active);
+                    C.MeterProfileName = "";
+                    C.SaveSettings();
+                    MeterFlash("Profile deleted.");
+                }
+            }
+            else if (ImGui.SmallButton("Delete")) _meterDeleteAt = DateTime.Now;
+
+            if (_meterRenameFor != active) { _meterRenameFor = active; _meterRenameBuf = active; }
+            ImGui.SetNextItemWidth(180f);
+            ImGui.InputText("##mprofrename", ref _meterRenameBuf, 48);
+            ImGui.SameLine(0, 6);
+            if (ImGui.SmallButton("Rename"))
+            {
+                var name = _meterRenameBuf.Trim();
+                if (name.Length == 0 || (C.MeterProfiles.ContainsKey(name) && name != active))
+                    MeterFlash("That name is taken or empty.", ok: false);
+                else if (name != active)
+                {
+                    C.MeterProfiles[name] = C.MeterProfiles[active];
+                    C.MeterProfiles.Remove(active);
+                    C.MeterProfileName = name;
+                    C.SaveSettings();
+                    MeterFlash("Profile renamed.");
+                }
+            }
+        }
+
+        ImGui.SetNextItemWidth(180f);
+        ImGui.InputTextWithHint("##mprofnew", "new profile name", ref _meterNameBuf, 48);
+        ImGui.SameLine(0, 6);
+        if (ImGui.Button("Save as profile"))
+        {
+            var name = _meterNameBuf.Trim();
+            if (name.Length == 0) MeterFlash("Give the profile a name first.", ok: false);
+            else
+            {
+                C.MeterProfiles[name] = MeterProfile.Export(C);
+                C.MeterProfileName = name;
+                C.SaveSettings();
+                _meterNameBuf = "";
+                MeterFlash($"Saved as \"{name}\".");
+            }
+        }
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextDisabled("Share codes carry the whole layout and look.");
+        if (ImGui.Button("Copy share code"))
+        {
+            ImGui.SetClipboardText(MeterProfile.Export(C));
+            MeterFlash("Code copied to clipboard.");
+        }
+        ImGui.SameLine(0, 10);
+        if (ImGui.Button("Import from clipboard"))
+            ImportMeterProfile(ImGui.GetClipboardText());
+
+        ImGui.SetNextItemWidth(320f);
+        ImGui.InputText("##mprofilecode", ref _meterProfileBuf, 4096);
+        ImGui.SameLine(0, 6);
+        if (ImGui.Button("Import")) ImportMeterProfile(_meterProfileBuf);
+
+        if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
+            ImGui.TextColored(_meterFlashOk ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, _meterFlash);
+    }
+
+    private void ApplyMeterProfile(string name)
+    {
+        if (!C.MeterProfiles.TryGetValue(name, out var code)) return;
+        if (MeterProfile.Import(C, code))
+        {
+            C.MeterProfileName = name;
+            C.SaveSettings();
+            _plugin.MeterWindow.RequestReposition();
+            MeterFlash($"Profile \"{name}\" applied.");
+        }
+        else
+            MeterFlash("That profile could not be read.", ok: false);
+    }
+
     private string _meterProfileBuf = "";
+    private string _meterNameBuf = "";
+    private string _meterRenameBuf = "";
+    private string _meterRenameFor = "";
+    private DateTime _meterDeleteAt = DateTime.MinValue;
     private string _meterFlash = "";
     private bool _meterFlashOk = true;
     private DateTime _meterFlashAt = DateTime.MinValue;
@@ -214,10 +320,11 @@ public partial class ConfigWindow
     {
         if (MeterProfile.Import(C, code ?? ""))
         {
+            C.MeterProfileName = ""; // an imported look starts unsaved
             C.SaveSettings();
             _plugin.MeterWindow.RequestReposition();
             _meterProfileBuf = "";
-            MeterFlash("Profile imported.");
+            MeterFlash("Imported. Use \"Save as profile\" to keep it.");
         }
         else
             MeterFlash("That code didn't read as a meter profile.", ok: false);
