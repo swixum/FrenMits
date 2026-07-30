@@ -201,10 +201,18 @@ public class RecapWindow : Window
                 if (h.Icon != 0) { Icons.Draw(h.Icon, new Vector2(plh, plh)); ImGui.SameLine(0, 6); }
                 ImGui.TextColored(h.Missed ? Theme.V(Theme.Danger) : Theme.V(Theme.Warn), h.Mit);
                 ImGui.SameLine();
-                ImGui.TextColored(Theme.V(Theme.Muted),
-                    $"· {(int)h.Time / 60}:{(int)h.Time % 60:00}"
-                    + (h.Why.Length > 0 ? $" · {h.Why}" : h.Missed ? " · never went out" : $" · {h.Delta:0}s late")
-                    + (h.Mechanic.Length > 0 ? $" · {h.Mechanic}" : ""));
+                ImGui.TextColored(Theme.V(Theme.Muted), $"· {(int)h.Time / 60}:{(int)h.Time % 60:00} ·");
+                // The verdict is the row's payload; the diagnosed ones read in
+                // full ink so "fell off before the hit" can't fade into the
+                // timestamps around it.
+                var verdict = h.Why.Length > 0 ? h.Why : h.Missed ? "never went out" : $"{h.Delta:0}s late";
+                ImGui.SameLine(0, 4);
+                ImGui.TextColored(h.Why.Length > 0 ? Theme.V(Theme.TextBright) : Theme.V(Theme.Muted), verdict);
+                if (h.Mechanic.Length > 0)
+                {
+                    ImGui.SameLine(0, 4);
+                    ImGui.TextColored(Theme.V(Theme.Muted), $"· {h.Mechanic}");
+                }
             }
             if (r.Shown.PlanProblems.Count > 10)
                 ImGui.TextColored(Theme.V(Theme.Muted), $"+{r.Shown.PlanProblems.Count - 10} more in Copy");
