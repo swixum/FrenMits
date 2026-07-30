@@ -24,6 +24,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public CueEngine Cues { get; }
     public SyncEngine Sync { get; }
     public DamageCapture Damage { get; }
+    public Meter Meter { get; }
     public FFLogsClient FFLogs { get; } = new();
     public MitRecap Recap { get; }
     public SnapshotStore Snapshots { get; }
@@ -34,6 +35,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public TimelineWindow TimelineWindow { get; }
     public MitBarWindow MitBarWindow { get; }
     public CombatTimerWindow CombatTimerWindow { get; }
+    public MeterWindow MeterWindow { get; }
     public PrepWindow PrepWindow { get; }
     public WhatsNewWindow WhatsNewWindow { get; }
     public RecapButtonWindow RecapButtonWindow { get; }
@@ -106,6 +108,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
         Damage = new DamageCapture(this);
+        Meter = new Meter(this);
         Recap = new MitRecap(this);
         Diag = new Diagnostics(this);
         ConfigWindow = new ConfigWindow(this);
@@ -113,6 +116,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         TimelineWindow = new TimelineWindow(this);
         MitBarWindow = new MitBarWindow(this);
         CombatTimerWindow = new CombatTimerWindow(this);
+        MeterWindow = new MeterWindow(this);
         PrepWindow = new PrepWindow(this);
         RecapButtonWindow = new RecapButtonWindow(this);
         RecapWindow = new RecapWindow(this);
@@ -125,6 +129,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Windows.AddWindow(TimelineWindow);
         Windows.AddWindow(MitBarWindow);
         Windows.AddWindow(CombatTimerWindow);
+        Windows.AddWindow(MeterWindow);
         Windows.AddWindow(PrepWindow);
         Windows.AddWindow(RecapButtonWindow);
         Windows.AddWindow(RecapWindow);
@@ -136,6 +141,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;
         CombatTimerWindow.IsOpen = true;
+        MeterWindow.IsOpen = true;
         PrepWindow.IsOpen = true;
         RecapButtonWindow.IsOpen = true;
         // Pop the "What's New" panel once after an update with notes.
@@ -770,6 +776,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             Diag.Update();   // open/close the pull record before the engines log into it
             Sync.Update();
             Cues.Update();
+            Meter.Update();
             UpdateDtr();
         }
         catch (Exception ex)
@@ -1201,6 +1208,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.CommandManager.RemoveHandler(CommandAlias);
 
         _dtr?.Remove();
+        Meter.Dispose();
         Damage.Dispose();
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();

@@ -237,6 +237,31 @@ public class Configuration : IPluginConfiguration
     public bool CombatTimerShowBackground { get; set; }
     public uint CombatTimerBackgroundColor { get; set; } = 0xB0000000; // ABGR (dim black)
 
+    // Fren Meter: the parser-fed damage meter overlay with rDPS.
+    public bool MeterEnabled { get; set; }
+    public int MeterConnection { get; set; }             // 0 auto, 1 in-process parser, 2 WebSocket
+    public string MeterSocketAddress { get; set; } = "ws://127.0.0.1:10501/ws";
+    public bool MeterLocked { get; set; }
+    public bool MeterClickThrough { get; set; }
+    public Vector2 MeterPosition { get; set; } = new(0.8f, 0.72f);
+    public Vector2 MeterSize { get; set; } = new(360f, 250f);
+    public int MeterMode { get; set; }                   // 0 damage, 1 healing, 2 taken, 3 deaths
+    public List<string> MeterColumns { get; set; } = new() { "rdps", "dps", "dmgpct" };
+    public int MeterHeaderStyle { get; set; }            // 0 full, 1 slim, 2 none
+    public bool MeterColumnHeader { get; set; } = true;
+    public bool MeterShowRank { get; set; } = true;
+    public bool MeterShowJobIcons { get; set; } = true;
+    public int MeterNameStyle { get; set; }              // 0 full, 1 first name, 2 initials
+    public bool MeterYou { get; set; } = true;           // your own row reads "You"
+    public bool MeterShowRaidTotal { get; set; } = true;
+    public float MeterFontSizePx { get; set; } = 15f;
+    public float MeterBarHeight { get; set; } = 24f;
+    public float MeterBarGap { get; set; } = 3f;
+    public float MeterRounding { get; set; } = 5f;
+    public float MeterBgOpacity { get; set; } = 0.72f;
+    public bool MeterJobColors { get; set; } = true;
+    public uint MeterAccentColor { get; set; } = 0xFFF6823B;
+
     // Text templates; placeholders: {action} {mechanic} {time} {count} {remaining}.
     public string HeadlineFormat { get; set; } = "{action} ({remaining})";
     public string ActiveSuffix { get; set; } = "  NOW";

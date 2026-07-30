@@ -71,7 +71,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck }
+    private enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter }
     private NavKind _nav = NavKind.Home;
     private string _navCategory = "Ultimate";
 
@@ -440,6 +440,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits & Timeline", _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
         if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
+        if (NavItem(FontAwesomeIcon.ChartBar, "Fren Meter", _nav == NavKind.Meter)) _nav = NavKind.Meter;
         if (NavItem(FontAwesomeIcon.Utensils, "Food & Pot", _nav == NavKind.PrepCheck)) _nav = NavKind.PrepCheck;
 
         ImGui.Spacing();
@@ -640,6 +641,7 @@ public partial class ConfigWindow : Window, IDisposable
             case NavKind.PartyRecap: DrawPartyRecapPage(); break;
             case NavKind.CombatTimer: DrawCombatTimerPage(); break;
             case NavKind.PrepCheck: DrawPrepCheckPage(); break;
+            case NavKind.Meter: DrawMeterPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }
