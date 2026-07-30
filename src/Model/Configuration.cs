@@ -255,12 +255,18 @@ public class Configuration : IPluginConfiguration
     public bool MeterYou { get; set; } = true;           // your own row reads "You"
     public bool MeterShowRaidTotal { get; set; } = true;
     public float MeterFontSizePx { get; set; } = 15f;
+    public string MeterFontFamily { get; set; } = "Default";
+    public bool MeterFontBold { get; set; }
+    public bool MeterFontItalic { get; set; }
     public float MeterBarHeight { get; set; } = 24f;
     public float MeterBarGap { get; set; } = 3f;
     public float MeterRounding { get; set; } = 5f;
-    public float MeterBgOpacity { get; set; } = 0.72f;
     public bool MeterJobColors { get; set; } = true;
     public uint MeterAccentColor { get; set; } = 0xFFF6823B;
+    public uint MeterTextColor { get; set; } = 0xFFFFFFFF;    // names and lead values
+    public uint MeterSubColor { get; set; } = 0xFFFFFFFF;     // ranks, labels, other columns
+    public uint MeterBgColor { get; set; } = 0xB80D0A09;      // window, alpha included
+    public uint MeterRowColor { get; set; } = 0x17FFFFFF;     // bar background
 
     // Text templates; placeholders: {action} {mechanic} {time} {count} {remaining}.
     public string HeadlineFormat { get; set; } = "{action} ({remaining})";

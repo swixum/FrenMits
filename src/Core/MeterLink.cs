@@ -10,10 +10,8 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// The pipe between the ACT parser and the meter. Two transports, tried in
-// order: the parser plugin's in-process message gate, then the overlay
-// WebSocket server. Whatever arrives lands in one queue the framework thread
-// drains, so no parsing ever happens off the game thread.
+// The pipe to the parser: the in-process message gate first, then the overlay
+// WebSocket, everything queued for the framework thread to drain.
 public class MeterLink : IDisposable
 {
     public enum LinkStatus { Off, Searching, Ipc, Socket }

@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 
@@ -17,20 +16,12 @@ public partial class ConfigWindow
     private void DrawMeterPage()
     {
         SeparatorText("Fren Meter");
-        ImGui.TextWrapped("A live damage meter fed by ACT, drawn in-game as its own compact overlay. "
-                          + "Bars are colored by job, the columns are yours to pick, and everything mid-pull "
-                          + "lives on the meter's right-click menu: mode, past pulls, columns, lock.");
-        ImGui.Spacing();
-        ImGui.TextWrapped("It also shows rDPS, worked out here in the plugin from the raw combat log: each "
-                          + "player's damage minus what other people's raid buffs added to it, plus what their "
-                          + "own buffs added to everyone else's.");
+        ImGui.TextWrapped("A damage meter fed by ACT, with rDPS computed from the combat log.");
         ImGui.Spacing();
 
         C.MeterEnabled = CfgCheck("Enable Fren Meter", C.MeterEnabled);
-        Tip("Connects to your parser and shows the meter overlay.");
         if (!C.MeterEnabled) return;
 
-        // Connection status, truthful and live.
         var connected = _plugin.Meter.Connected;
         StatusDot(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow);
         ImGui.SameLine(0, 6);
@@ -42,15 +33,11 @@ public partial class ConfigWindow
         if (ImGui.BeginTabItem("Connection"))
         {
             ImGui.Spacing();
-            ImGui.TextWrapped("Auto finds the parser by itself: the in-process parser plugin first, then "
-                              + "ACT's overlay WebSocket. Pick one explicitly only if you run both.");
-            ImGui.Spacing();
-
             ImGui.SetNextItemWidth(240f);
             var conn = C.MeterConnection;
-            if (ImGui.Combo("Source", ref conn, "Auto\0Parser plugin (in-process)\0ACT WebSocket\0"))
+            if (ImGui.Combo("Source", ref conn, "Auto\0Parser plugin\0ACT WebSocket\0"))
             { C.MeterConnection = conn; C.SaveSettings(); ReconnectMeter(); }
-            Tip("Where the combat data comes from.");
+            Tip("Auto tries the parser plugin, then ACT.");
 
             if (C.MeterConnection != 1)
             {
@@ -58,15 +45,10 @@ public partial class ConfigWindow
                 var addr = C.MeterSocketAddress;
                 if (ImGui.InputText("WebSocket address", ref addr, 128))
                 { C.MeterSocketAddress = addr; C.SaveSettings(); }
-                Tip("ACT: OverlayPlugin WSServer, usually ws://127.0.0.1:10501/ws.");
             }
 
             ImGui.Spacing();
             if (ImGui.Button("Reconnect")) ReconnectMeter();
-            Tip("Drops the link and searches again now.");
-
-            ImGui.Spacing();
-            ImGui.TextDisabled("The meter needs ACT (or a parser plugin) running with the FFXIV plugin loaded.");
             ImGui.EndTabItem();
         }
 
@@ -74,9 +56,8 @@ public partial class ConfigWindow
         {
             ImGui.Spacing();
             C.MeterLocked = CfgCheck("Lock position and size", C.MeterLocked);
-            Tip("Unlock, then drag the meter or its edges.");
             C.MeterClickThrough = CfgCheck("Click-through", C.MeterClickThrough);
-            Tip("Mouse ignores the meter entirely. The right-click menu goes with it; turn it back off here.");
+            Tip("Also disables the right-click menu; turn it back off here.");
 
             var pos = C.MeterPosition;
             if (Widgets.SliderInput("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
@@ -85,27 +66,21 @@ public partial class ConfigWindow
             if (Widgets.SliderInput("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
             { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
 
-            ImGui.Spacing();
-            var px = C.MeterFontSizePx;
-            if (Widgets.SliderInput("Text size", ref px, 11f, 26f, "%.0f px")) { C.MeterFontSizePx = px; C.SaveSettings(); }
             var barH = C.MeterBarHeight;
             if (Widgets.SliderInput("Bar height", ref barH, 16f, 44f, "%.0f px")) { C.MeterBarHeight = barH; C.SaveSettings(); }
             var gap = C.MeterBarGap;
             if (Widgets.SliderInput("Bar spacing", ref gap, 0f, 10f, "%.0f px")) { C.MeterBarGap = gap; C.SaveSettings(); }
-            var op = C.MeterBgOpacity;
-            if (Widgets.SliderInput("Background", ref op, 0f, 1f, "%.2f")) { C.MeterBgOpacity = op; C.SaveSettings(); }
             var round = C.MeterRounding;
-            if (Widgets.SliderInput("Corner rounding", ref round, 0f, 14f, "%.0f px")) { C.MeterRounding = round; C.SaveSettings(); }
+            if (Widgets.SliderInput("Rounding", ref round, 0f, 14f, "%.0f px")) { C.MeterRounding = round; C.SaveSettings(); }
 
             ImGui.Spacing();
             if (ImGui.BeginTable("##meterdisplaygrid", 2))
             {
                 C.MeterShowRank = GridCheck("Rank numbers", C.MeterShowRank);
                 C.MeterShowJobIcons = GridCheck("Job icons", C.MeterShowJobIcons);
-                C.MeterJobColors = GridCheck("Color bars by job", C.MeterJobColors, "Off = every bar uses the accent color.");
+                C.MeterJobColors = GridCheck("Color bars by job", C.MeterJobColors);
                 C.MeterColumnHeader = GridCheck("Column labels", C.MeterColumnHeader);
-                C.MeterShowRaidTotal = GridCheck("Raid rDPS total", C.MeterShowRaidTotal,
-                    "The whole group's combined rDPS at the top right.");
+                C.MeterShowRaidTotal = GridCheck("Raid rDPS total", C.MeterShowRaidTotal);
                 C.MeterYou = GridCheck("Call your row \"You\"", C.MeterYou);
                 ImGui.EndTable();
             }
@@ -113,60 +88,139 @@ public partial class ConfigWindow
             ImGui.Spacing();
             ImGui.SetNextItemWidth(220f);
             var header = C.MeterHeaderStyle;
-            if (ImGui.Combo("Header", ref header, "Full (title + totals)\0Slim (one line)\0Hidden\0"))
+            if (ImGui.Combo("Header", ref header, "Full\0Slim\0Hidden\0"))
             { C.MeterHeaderStyle = header; C.SaveSettings(); }
-            Tip("Double-clicking the meter's header cycles this too.");
+            Tip("Double-click the meter's header to cycle.");
 
             ImGui.SetNextItemWidth(220f);
             var names = C.MeterNameStyle;
             if (ImGui.Combo("Names", ref names, "Full name\0First name\0First name + initial\0"))
             { C.MeterNameStyle = names; C.SaveSettings(); }
 
-            if (!C.MeterJobColors)
-            {
-                var col = ColorToVec4(C.MeterAccentColor);
-                if (ImGui.ColorEdit4("Accent color", ref col, ImGuiColorEditFlags.NoInputs))
-                { C.MeterAccentColor = Vec4ToColor(col); C.SaveSettings(); }
-            }
-
             ImGui.Spacing();
-            ImGui.TextDisabled("Turn on Test mode in the header to place it with a sample pull.");
+            MeterColor("Text", () => C.MeterTextColor, v => C.MeterTextColor = v);
+            ImGui.SameLine(0, 14);
+            MeterColor("Details", () => C.MeterSubColor, v => C.MeterSubColor = v);
+            ImGui.SameLine(0, 14);
+            MeterColor("Accent", () => C.MeterAccentColor, v => C.MeterAccentColor = v);
+            Tip("Totals, your row, and bars when job colors are off.");
+            MeterColor("Background", () => C.MeterBgColor, v => C.MeterBgColor = v);
+            ImGui.SameLine(0, 14);
+            MeterColor("Rows", () => C.MeterRowColor, v => C.MeterRowColor = v);
+            ImGui.SameLine(0, 14);
+            if (ImGui.SmallButton("Reset colors"))
+            {
+                C.MeterTextColor = 0xFFFFFFFF;
+                C.MeterSubColor = 0xFFFFFFFF;
+                C.MeterAccentColor = 0xFFF6823B;
+                C.MeterBgColor = 0xB80D0A09;
+                C.MeterRowColor = 0x17FFFFFF;
+                C.SaveSettings();
+            }
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Font"))
+        {
+            ImGui.Spacing();
+            var fonts = FontManager.FamilyNames;
+            var fIdx = Math.Max(0, Array.IndexOf(fonts, C.MeterFontFamily));
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.MeterFontFamily = fonts[fIdx]; C.SaveSettings(); }
+            ImGui.SameLine(0, 12);
+            var bold = C.MeterFontBold;
+            if (GreenCheckbox("Bold", ref bold)) { C.MeterFontBold = bold; C.SaveSettings(); }
+            ImGui.SameLine();
+            var italic = C.MeterFontItalic;
+            if (GreenCheckbox("Italic", ref italic)) { C.MeterFontItalic = italic; C.SaveSettings(); }
+            if (C.MeterFontFamily == "Default" && (C.MeterFontBold || C.MeterFontItalic))
+            {
+                ImGui.SameLine();
+                ImGui.TextDisabled("(pick a font)");
+            }
+            var px = C.MeterFontSizePx;
+            if (Widgets.SliderInput("Text size", ref px, 11f, 26f, "%.0f px")) { C.MeterFontSizePx = px; C.SaveSettings(); }
+            ImGui.EndTabItem();
+        }
+
+        if (ImGui.BeginTabItem("Themes"))
+        {
+            ImGui.Spacing();
+            var i = 0;
+            foreach (var t in MeterWindow.Themes)
+            {
+                if (i++ % 3 != 0) ImGui.SameLine(0, 10);
+                ImGui.ColorButton($"##sw_{t.Name}", ColorToVec4(t.Accent),
+                    ImGuiColorEditFlags.NoTooltip | ImGuiColorEditFlags.NoDragDrop);
+                ImGui.SameLine(0, 5);
+                if (ImGui.Button(t.Name)) MeterWindow.ApplyTheme(C, t);
+            }
+            ImGui.Spacing();
+            ImGui.TextDisabled("A theme sets the colors and rounding; tweak anything after in Display.");
             ImGui.EndTabItem();
         }
 
         if (ImGui.BeginTabItem("Columns"))
         {
             ImGui.Spacing();
-            ImGui.TextWrapped("Ticked columns show on the meter, in this order. Reorder with the arrows here, "
-                              + "or just drag the column labels around on the meter itself. The active mode's "
-                              + "own number is always shown first.");
+            ImGui.TextDisabled("Drag the labels on the meter to reorder, or use the arrows.");
             ImGui.Spacing();
-
             foreach (var key in new[] { "rdps", "dps", "dmgpct", "crit", "dh", "hps", "overheal", "taken", "deaths" })
                 DrawColumnRow(key);
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("About rDPS"))
+        if (ImGui.BeginTabItem("Profiles"))
         {
             ImGui.Spacing();
-            ImGui.TextWrapped("rDPS answers \"what did this player really bring\": their own damage, minus the "
-                              + "part other people's raid buffs added to it, plus the damage their buffs added "
-                              + "to everyone else. A support job that pumps the party reads honestly instead of "
-                              + "looking flat.");
+            ImGui.TextDisabled("Share your meter layout and look as a code.");
             ImGui.Spacing();
-            ImGui.TextWrapped("It is computed here from the raw combat log line by line. Flat buffs (Embolden, "
-                              + "Divination, Dokumori, ...) are split out exactly; crit and direct-hit buffs "
-                              + "(Battle Litany, Chain Stratagem, Battle Voice, Devilment) are priced at their "
-                              + "expected value per hit. Numbers land within a percent or two of the logs "
-                              + "site's live figure; that site can also read gear, so treat theirs as the "
-                              + "final word.");
-            ImGui.Spacing();
-            ImGui.TextDisabled("rDPS needs the raw line stream, so it fills in a second or two behind the bars.");
+
+            if (ImGui.Button("Copy share code"))
+            {
+                ImGui.SetClipboardText(MeterProfile.Export(C));
+                MeterFlash("Code copied to clipboard.");
+            }
+            ImGui.SameLine(0, 10);
+            if (ImGui.Button("Import from clipboard"))
+                ImportMeterProfile(ImGui.GetClipboardText());
+
+            ImGui.SetNextItemWidth(320f);
+            ImGui.InputText("##mprofilecode", ref _meterProfileBuf, 4096);
+            ImGui.SameLine(0, 6);
+            if (ImGui.Button("Import")) ImportMeterProfile(_meterProfileBuf);
+
+            if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
+                ImGui.TextColored(_meterFlashOk ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, _meterFlash);
             ImGui.EndTabItem();
         }
 
         ImGui.EndTabBar();
+    }
+
+    private string _meterProfileBuf = "";
+    private string _meterFlash = "";
+    private bool _meterFlashOk = true;
+    private DateTime _meterFlashAt = DateTime.MinValue;
+
+    private void MeterFlash(string text, bool ok = true)
+    {
+        _meterFlash = text;
+        _meterFlashOk = ok;
+        _meterFlashAt = DateTime.Now;
+    }
+
+    private void ImportMeterProfile(string code)
+    {
+        if (MeterProfile.Import(C, code ?? ""))
+        {
+            C.SaveSettings();
+            _plugin.MeterWindow.RequestReposition();
+            _meterProfileBuf = "";
+            MeterFlash("Profile imported.");
+        }
+        else
+            MeterFlash("That code didn't read as a meter profile.", ok: false);
     }
 
     private void DrawColumnRow(string key)
@@ -200,6 +254,13 @@ public partial class ConfigWindow
             }
             ImGui.PopID();
         }
+    }
+
+    private void MeterColor(string label, Func<uint> get, Action<uint> set)
+    {
+        var col = ColorToVec4(get());
+        if (ImGui.ColorEdit4($"{label}##meter", ref col, ImGuiColorEditFlags.NoInputs))
+        { set(Vec4ToColor(col)); C.SaveSettings(); }
     }
 
     // Drop the link; the next framework tick reconnects with the fresh settings.

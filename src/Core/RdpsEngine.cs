@@ -4,18 +4,9 @@ using System.Globalization;
 
 namespace FrenMits;
 
-// Turns the parser's raw combat-log line stream into per-player raid-buff
-// contributions: the difference between plain DPS and rDPS. Your rDPS is your
-// own damage minus what other people's buffs added to it, plus what your buffs
-// added to everyone else's.
-//
-// Per damage event: divide out the tracked multipliers (and the observed crit
-// or direct-hit bonus) to get the hit's unbuffed base, then price every active
-// buff that came from another player. A flat multiplier m is worth
-// damage * (1 - 1/m); a crit- or direct-hit-rate buff is worth its expected
-// value, base * rate * bonus. Credits land in per-second buckets so any
-// encounter window can be summed after the fact, no matter when the parser
-// decided the pull started.
+// Prices every raid buff per damage event from the raw log stream: a flat
+// multiplier m is worth damage * (1 - 1/m), rate buffs their expected value,
+// bucketed per second so any encounter window can be summed later.
 public class RdpsEngine
 {
     // Crit lands at +40% (the community baseline; gear moves it a little);

@@ -4,9 +4,8 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Fren Meter's brain: drains the parser link, feeds log lines to the rDPS
-// engine, and turns each summary update into the encounter snapshot the
-// overlay draws. Finished pulls are kept as history.
+// Fren Meter's brain: drains the parser link, feeds the rDPS engine, and keeps
+// the current encounter plus history for the overlay.
 public class Meter : IDisposable
 {
     private readonly Plugin _plugin;
@@ -18,6 +17,12 @@ public class Meter : IDisposable
     public MeterEncounter? Current { get; private set; }
     public List<MeterEncounter> History { get; } = new();
     private const int MaxHistory = 10;
+
+    // The prior update of the running pull, so the overlay can glide between
+    // the parser's once-a-second ticks instead of jumping.
+    public MeterEncounter? Previous { get; private set; }
+    public DateTime CurrentAt { get; private set; }
+    public float LerpSpan { get; private set; } = 1f;
 
     private DateTime _nextTrim = DateTime.MinValue;
 
@@ -91,6 +96,16 @@ public class Meter : IDisposable
             History.Insert(0, enc);
             while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
         }
+
+        // Glide only within the same running pull; a fresh pull or the final
+        // update snaps exact.
+        Previous = enc.Active && Current is { Active: true } cur
+                   && cur.Title == enc.Title && enc.Seconds + 0.5f >= cur.Seconds
+            ? Current
+            : null;
+        if (Previous != null)
+            LerpSpan = Math.Clamp((float)(DateTime.UtcNow - CurrentAt).TotalSeconds, 0.25f, 1.5f);
+        CurrentAt = DateTime.UtcNow;
         Current = enc;
     }
 
