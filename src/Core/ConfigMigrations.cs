@@ -365,6 +365,14 @@ public static class ConfigMigrations
             config.Version = 34;
             config.Save();
         }
+
+        // v35: the meter's slim header became the default look.
+        if (config.Version < 35)
+        {
+            config.MeterHeaderStyle = 1;
+            config.Version = 35;
+            config.Save();
+        }
     }
 
     // Hand every built-in fight the current anchor table and grades, and

@@ -35,12 +35,17 @@ public static class MeterProfile
             ["gap"] = c.MeterBarGap,
             ["round"] = c.MeterRounding,
             ["bars"] = c.MeterBarStyle,
+            ["btns"] = c.MeterButtons,
+            ["healtab"] = c.MeterHealingTab,
+            ["hlyou"] = c.MeterHighlightYou,
             ["jobcol"] = c.MeterJobColors,
             ["accent"] = c.MeterAccentColor,
             ["text"] = c.MeterTextColor,
             ["sub"] = c.MeterSubColor,
             ["bg"] = c.MeterBgColor,
             ["rows"] = c.MeterRowColor,
+            ["youcol"] = c.MeterYouColor,
+            ["timercol"] = c.MeterTimerColor,
         };
         var raw = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o));
         using var ms = new MemoryStream();
@@ -87,12 +92,17 @@ public static class MeterProfile
             if (o["gap"] is { } g) c.MeterBarGap = Math.Clamp((float)g, 0f, 10f);
             if (o["round"] is { } ro) c.MeterRounding = Math.Clamp((float)ro, 0f, 14f);
             if (o["bars"] is { } br) c.MeterBarStyle = Math.Clamp((int)br, 0, 2);
+            if (o["btns"] is { } bt) c.MeterButtons = (bool)bt;
+            if (o["healtab"] is { } ht) c.MeterHealingTab = (bool)ht;
+            if (o["hlyou"] is { } hy) c.MeterHighlightYou = (bool)hy;
             if (o["jobcol"] is { } jc) c.MeterJobColors = (bool)jc;
             if (o["accent"] is { } ac) c.MeterAccentColor = (uint)ac;
             if (o["text"] is { } tx) c.MeterTextColor = (uint)tx;
             if (o["sub"] is { } su) c.MeterSubColor = (uint)su;
             if (o["bg"] is { } bg) c.MeterBgColor = (uint)bg;
             if (o["rows"] is { } rw) c.MeterRowColor = (uint)rw;
+            if (o["youcol"] is { } yc) c.MeterYouColor = (uint)yc;
+            if (o["timercol"] is { } tc) c.MeterTimerColor = (uint)tc;
             return true;
         }
         catch

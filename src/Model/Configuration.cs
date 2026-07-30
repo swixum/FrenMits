@@ -265,8 +265,11 @@ public class Configuration : IPluginConfiguration
             }
         return changed;
     }
-    public int MeterHeaderStyle { get; set; }            // 0 full, 1 slim, 2 none
+    public int MeterHeaderStyle { get; set; } = 1;       // 0 full, 1 slim, 2 none
     public int MeterBarStyle { get; set; }               // 0 flat, 1 glass, 2 gradient
+    public bool MeterButtons { get; set; } = true;       // footer bar: pulls, pause, reset
+    public bool MeterHealingTab { get; set; } = true;    // Damage / Healing tabs in the footer
+    public bool MeterHighlightYou { get; set; } = true;  // outline your own row
     public bool MeterColumnHeader { get; set; } = true;
     public bool MeterShowRank { get; set; } = true;
     public bool MeterShowJobIcons { get; set; } = true;
@@ -286,6 +289,8 @@ public class Configuration : IPluginConfiguration
     public uint MeterSubColor { get; set; } = 0xFFFFFFFF;     // ranks, labels, other columns
     public uint MeterBgColor { get; set; } = 0xB80D0A09;      // window, alpha included
     public uint MeterRowColor { get; set; } = 0x17FFFFFF;     // bar background
+    public uint MeterYouColor { get; set; } = 0xFFF6823B;     // your name and row highlight
+    public uint MeterTimerColor { get; set; } = 0xFFFFFFFF;   // the encounter clock
 
     // Saved meter profiles (name -> share code) and which one is active.
     public Dictionary<string, string> MeterProfiles { get; set; } = new();

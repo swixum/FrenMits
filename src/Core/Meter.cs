@@ -6,6 +6,12 @@ namespace FrenMits;
 
 // Fren Meter's brain: drains the parser link, feeds the rDPS engine, and keeps
 // the current encounter plus history for the overlay.
+//
+// The parser splits an encounter whenever the log goes quiet, which happens
+// mid-boss in every downtime phase. Fights are stitched back together here:
+// while the game still says the party is in combat with a boss, a "new"
+// parser encounter is a continuation, its segments summed. Dungeon trash
+// resets per pack as normal, and only boss fights are kept as history.
 public class Meter : IDisposable
 {
     private readonly Plugin _plugin;
@@ -18,11 +24,21 @@ public class Meter : IDisposable
     public List<MeterEncounter> History { get; } = new();
     private const int MaxHistory = 10;
 
+    // Freezes the display (log lines keep flowing so rDPS stays honest).
+    public bool Paused { get; set; }
+
     // The prior update of the running pull, so the overlay can glide between
     // the parser's once-a-second ticks instead of jumping.
     public MeterEncounter? Previous { get; private set; }
     public DateTime CurrentAt { get; private set; }
     public float LerpSpan { get; private set; } = 1f;
+
+    // The fight being stitched across parser splits.
+    private FightCarry? _carry;
+    private MeterEncounter? _rawSeg;
+    private long _fightStartSec;
+    private string _fightTitle = "";
+    private bool _sawBoss;
 
     private DateTime _nextTrim = DateTime.MinValue;
 
@@ -61,17 +77,48 @@ public class Meter : IDisposable
         }
         Link.EnsureStarted();
 
-        // Everything queued since last tick; combat peaks are a few hundred
-        // lines a second, far under the cap.
         var budget = 5000;
         while (budget-- > 0 && Link.TryDequeue(out var msg)) Handle(msg);
+
+        // A boss on the field marks this fight as one worth stitching and keeping.
+        if (Plugin.InCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
+
+        // A stitched fight that ended inside the quiet gap (a wipe during
+        // downtime): no further segment is coming, settle it when combat drops.
+        if (!Paused && _carry != null && _rawSeg is not { Active: true } && !Plugin.InCombat)
+        {
+            if (Current != null)
+            {
+                Current.Active = false;
+                if (_sawBoss) PushHistory(Current);
+            }
+            EndFight();
+        }
 
         if (DateTime.UtcNow >= _nextTrim)
         {
             _nextTrim = DateTime.UtcNow + TimeSpan.FromMinutes(1);
             Engine.Trim();
         }
+
+        // The active profile follows every tweak by itself; no manual save.
+        if (DateTime.UtcNow >= _nextProfileSync)
+        {
+            _nextProfileSync = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            var name = C.MeterProfileName;
+            if (name.Length > 0 && C.MeterProfiles.TryGetValue(name, out var stored))
+            {
+                var now = MeterProfile.Export(C);
+                if (!string.Equals(stored, now, StringComparison.Ordinal))
+                {
+                    C.MeterProfiles[name] = now;
+                    C.SaveSettings();
+                }
+            }
+        }
     }
+
+    private DateTime _nextProfileSync = DateTime.MinValue;
 
     private void Handle(JObject msg)
     {
@@ -86,19 +133,92 @@ public class Meter : IDisposable
             return;
         }
 
-        if (MeterEncounter.Parse(msg) is not { Rows.Count: > 0 } enc) return;
-        ApplyRdps(enc);
+        if (Paused) return;
+        if (MeterEncounter.Parse(msg) is not { Rows.Count: > 0 } raw) return;
+        OnSummary(raw);
+    }
 
-        // A pull's last living update freezes into history the moment the
-        // parser calls it over.
-        if (!enc.Active && Current is { Active: true })
+    private void OnSummary(MeterEncounter raw)
+    {
+        SetTitle(raw);
+
+        if (raw.Active)
         {
-            History.Insert(0, enc);
-            while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
+            var continuing = _rawSeg is { Active: true } && raw.Seconds + 0.5f >= _rawSeg.Seconds;
+            if (!continuing)
+            {
+                // A segment ended without its final update: settle it first.
+                if (_rawSeg is { Active: true }) EndSegment(_rawSeg);
+                if (_carry == null)
+                {
+                    _fightStartSec = Math.Max(0, Engine.LatestSec - (long)raw.Seconds);
+                    _fightTitle = raw.Title;
+                    _sawBoss = false;
+                }
+            }
+            _rawSeg = raw;
+            Publish(Merge(_carry, raw));
+            return;
         }
 
-        // Glide only within the same running pull; a fresh pull or the final
-        // update snaps exact.
+        // The segment's final numbers.
+        if (_rawSeg is { Active: true })
+        {
+            _rawSeg = raw;
+            EndSegment(raw);
+        }
+        else
+            _rawSeg = raw;
+    }
+
+    private void EndSegment(MeterEncounter final)
+    {
+        var display = Merge(_carry, final);
+        if (Plugin.InCombat && _sawBoss)
+        {
+            // Mid-boss split (downtime): stitch, and keep reading as a live fight.
+            _carry ??= new FightCarry { StartSec = _fightStartSec, Title = _fightTitle };
+            Fold(_carry, final);
+            display.Active = true;
+            Publish(display);
+            return;
+        }
+
+        display.Active = false;
+        Publish(display);
+        if (_sawBoss) PushHistory(display);
+        EndFight();
+    }
+
+    private void EndFight()
+    {
+        _carry = null;
+        _fightStartSec = 0;
+        _fightTitle = "";
+        _sawBoss = false;
+    }
+
+    private void PushHistory(MeterEncounter enc)
+    {
+        History.Insert(0, enc);
+        while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
+    }
+
+    // The parser calls every fight "Encounter" while it runs; the party's
+    // actual target is the honest name. The first name a fight gets sticks.
+    private void SetTitle(MeterEncounter e)
+    {
+        var t = e.Title;
+        if (t.Length == 0 || t.Equals("Encounter", StringComparison.OrdinalIgnoreCase))
+            t = Engine.CurrentEnemy;
+        if (_fightTitle.Length == 0 && t.Length > 0) _fightTitle = t;
+        e.Title = _fightTitle.Length > 0 ? _fightTitle : t;
+    }
+
+    private void Publish(MeterEncounter enc)
+    {
+        ApplyRdps(enc);
+        // Glide only within the same running fight; anything else snaps.
         Previous = enc.Active && Current is { Active: true } cur
                    && cur.Title == enc.Title && enc.Seconds + 0.5f >= cur.Seconds
             ? Current
@@ -109,12 +229,104 @@ public class Meter : IDisposable
         Current = enc;
     }
 
+    // ---- segment stitching -------------------------------------------------
+
+    public sealed class FightCarry
+    {
+        public long StartSec;
+        public float Seconds;
+        public string Title = "";
+        public Dictionary<string, MeterCombatant> Rows { get; } = new(StringComparer.OrdinalIgnoreCase);
+    }
+
+    // Bank a finished segment's numbers into the running fight.
+    public static void Fold(FightCarry carry, MeterEncounter final)
+    {
+        foreach (var r in final.Rows)
+            carry.Rows[r.Name] = Combine(carry.Rows.GetValueOrDefault(r.Name), r);
+        carry.Seconds += final.Seconds;
+        if (final.Title.Length > 0) carry.Title = final.Title;
+    }
+
+    // The banked segments plus the live one, presented as a single fight.
+    public static MeterEncounter Merge(FightCarry? carry, MeterEncounter seg)
+    {
+        if (carry == null || carry.Seconds <= 0f) return seg;
+        var secs = Math.Max(1f, carry.Seconds + seg.Seconds);
+        var e = new MeterEncounter
+        {
+            Title = seg.Title.Length > 0 ? seg.Title : carry.Title,
+            Active = seg.Active,
+            Seconds = secs,
+            Duration = $"{(int)secs / 60:00}:{(int)secs % 60:00}",
+            When = seg.When,
+        };
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var r in seg.Rows)
+        {
+            seen.Add(r.Name);
+            e.Rows.Add(Combine(carry.Rows.GetValueOrDefault(r.Name), r));
+        }
+        foreach (var kv in carry.Rows)
+            if (seen.Add(kv.Key))
+                e.Rows.Add(Combine(null, kv.Value));
+
+        foreach (var r in e.Rows)
+        {
+            r.Dps = r.Damage / secs;
+            r.RDps = r.Dps;
+            r.Hps = r.Healed / secs;
+            e.TotalDamage += r.Damage;
+            e.TotalTaken += r.Taken;
+            e.TotalDeaths += r.Deaths;
+        }
+        e.TotalDps = e.TotalDamage / secs;
+        e.TotalHps = 0;
+        foreach (var r in e.Rows)
+        {
+            e.TotalHps += r.Hps;
+            r.DamagePct = e.TotalDamage > 0 ? $"{r.Damage / e.TotalDamage * 100:0}%" : "";
+        }
+        return e;
+    }
+
+    // Two chunks of the same player's fight, damage-weighted where it matters.
+    public static MeterCombatant Combine(MeterCombatant? a, MeterCombatant b)
+    {
+        a ??= new MeterCombatant();
+        var dmg = a.Damage + b.Damage;
+        var healed = a.Healed + b.Healed;
+        return new MeterCombatant
+        {
+            Name = b.Name.Length > 0 ? b.Name : a.Name,
+            Display = b.Display.Length > 0 ? b.Display : a.Display,
+            Job = b.Job.Length > 0 ? b.Job : a.Job,
+            Damage = dmg,
+            Healed = healed,
+            Taken = a.Taken + b.Taken,
+            Deaths = a.Deaths + b.Deaths,
+            CritPct = dmg > 0 ? (a.CritPct * a.Damage + b.CritPct * b.Damage) / dmg : b.CritPct,
+            DirectHitPct = dmg > 0 ? (a.DirectHitPct * a.Damage + b.DirectHitPct * b.Damage) / dmg : b.DirectHitPct,
+            OverhealPct = healed > 0 ? (a.OverhealPct * a.Healed + b.OverhealPct * b.Healed) / healed : b.OverhealPct,
+            MaxHit = MaxHitValue(b.MaxHit) >= MaxHitValue(a.MaxHit) ? b.MaxHit : a.MaxHit,
+        };
+    }
+
+    private static double MaxHitValue(string maxHit)
+    {
+        var dash = maxHit.LastIndexOf('-');
+        return dash >= 0 && double.TryParse(maxHit[(dash + 1)..], out var v) ? v : 0;
+    }
+
+    // ---- rDPS --------------------------------------------------------------
+
     private void ApplyRdps(MeterEncounter enc)
     {
-        // The engine's newest event is "now" on the log clock; the encounter
-        // window reaches back its own duration (a small pad absorbs the
-        // summary feed lagging the line stream).
-        var from = Engine.LatestSec - (long)enc.Seconds - 2;
+        // The window reaches back over the whole stitched fight, downtime
+        // included; a small pad absorbs the summary feed lagging the lines.
+        var from = (_carry?.StartSec
+                    ?? (enc.Active && _fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)enc.Seconds)) - 2;
         var totals = Engine.WindowTotals(from);
         var seconds = Math.Max(1f, enc.Seconds);
         var you = LocalName();
@@ -141,7 +353,10 @@ public class Meter : IDisposable
     public void Clear()
     {
         Current = null;
+        Previous = null;
         History.Clear();
+        _rawSeg = null;
+        EndFight();
     }
 
     public string StatusText => !C.MeterEnabled ? "off" : Link.Status switch

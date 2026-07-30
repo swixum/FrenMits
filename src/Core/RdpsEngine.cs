@@ -31,6 +31,9 @@ public class RdpsEngine
     // never pay buff credits. The host supplies the id check (game sheet).
     public Func<uint, bool>? IsLimitBreak;
 
+    // Whoever the party is actually hitting, for naming the encounter.
+    public string CurrentEnemy { get; private set; } = "";
+
     // ---- actor bookkeeping -------------------------------------------------
 
     private readonly Dictionary<uint, string> _names = new();
@@ -131,6 +134,7 @@ public class RdpsEngine
         if (owner == 0) return;              // not a player, not a player's pet
         var target = Hex(f[6]);
         if (target < 0x40000000) return;     // only damage into enemies counts
+        if (f[7].Length > 0) CurrentEnemy = f[7];
         if (IsLimitBreak?.Invoke(Hex(f[4])) == true) return;
 
         // The first connected damage pair (fields 8..23 are eight flag|value

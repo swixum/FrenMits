@@ -82,6 +82,10 @@ public partial class ConfigWindow
                 C.MeterColumnHeader = GridCheck("Column labels", C.MeterColumnHeader);
                 C.MeterShowRaidTotal = GridCheck("Raid rDPS total", C.MeterShowRaidTotal);
                 C.MeterYou = GridCheck("Call your row \"You\"", C.MeterYou);
+                C.MeterHighlightYou = GridCheck("Highlight your row", C.MeterHighlightYou);
+                C.MeterButtons = GridCheck("Buttons bar", C.MeterButtons, "Pulls, pause and reset along the bottom.");
+                C.MeterHealingTab = GridCheck("Healing tab", C.MeterHealingTab,
+                    "Damage / Healing tabs at the bottom of the meter.");
                 ImGui.EndTable();
             }
 
@@ -108,9 +112,13 @@ public partial class ConfigWindow
             MeterColor("Details", () => C.MeterSubColor, v => C.MeterSubColor = v);
             ImGui.SameLine(0, 14);
             MeterColor("Accent", () => C.MeterAccentColor, v => C.MeterAccentColor = v);
-            Tip("Totals, your row, and bars when job colors are off.");
-            MeterColor("Background", () => C.MeterBgColor, v => C.MeterBgColor = v);
+            Tip("Totals, and bars when job colors are off.");
+            MeterColor("You", () => C.MeterYouColor, v => C.MeterYouColor = v);
+            Tip("Your name and row highlight.");
             ImGui.SameLine(0, 14);
+            MeterColor("Timer", () => C.MeterTimerColor, v => C.MeterTimerColor = v);
+            ImGui.SameLine(0, 14);
+            MeterColor("Background", () => C.MeterBgColor, v => C.MeterBgColor = v);
             MeterColor("Rows", () => C.MeterRowColor, v => C.MeterRowColor = v);
             ImGui.SameLine(0, 14);
             if (ImGui.SmallButton("Reset colors"))
@@ -118,6 +126,8 @@ public partial class ConfigWindow
                 C.MeterTextColor = 0xFFFFFFFF;
                 C.MeterSubColor = 0xFFFFFFFF;
                 C.MeterAccentColor = 0xFFF6823B;
+                C.MeterYouColor = 0xFFF6823B;
+                C.MeterTimerColor = 0xFFFFFFFF;
                 C.MeterBgColor = 0xB80D0A09;
                 C.MeterRowColor = 0x17FFFFFF;
                 C.SaveSettings();
@@ -189,14 +199,12 @@ public partial class ConfigWindow
     {
         var active = C.MeterProfileName;
         var saved = active.Length > 0 && C.MeterProfiles.ContainsKey(active);
-        var edited = saved && C.MeterProfiles[active] != MeterProfile.Export(C);
 
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted("Profile");
         ImGui.SameLine(0, 8);
         ImGui.SetNextItemWidth(220f);
-        var preview = !saved ? "(unsaved)" : edited ? $"{active} (edited)" : active;
-        if (ImGui.BeginCombo("##mprofsel", preview))
+        if (ImGui.BeginCombo("##mprofsel", saved ? active : "(unsaved)"))
         {
             foreach (var kv in C.MeterProfiles)
                 if (ImGui.Selectable(kv.Key, kv.Key == active))
@@ -207,13 +215,8 @@ public partial class ConfigWindow
         if (saved)
         {
             ImGui.SameLine(0, 8);
-            if (ImGui.SmallButton(edited ? "Save changes" : "Save"))
-            {
-                C.MeterProfiles[active] = MeterProfile.Export(C);
-                C.SaveSettings();
-                MeterFlash("Profile saved.");
-            }
-            ImGui.SameLine(0, 6);
+            ImGui.TextDisabled("changes save into it automatically");
+            ImGui.SameLine(0, 8);
             // Two-click delete so one stray click can't eat a profile.
             if ((DateTime.Now - _meterDeleteAt).TotalSeconds < 3)
             {
