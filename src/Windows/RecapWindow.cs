@@ -168,6 +168,7 @@ public class RecapWindow : Window
                 var story = new List<string>();
                 if (d.FromPct > 0f && d.Seconds > 0f)
                     story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
+                if (d.KilledBy.Length > 0) story.Add("killed by " + d.KilledBy);
                 story.Add(d.Had.Length > 0 ? "had " + d.Had : "nothing up");
                 ImGui.SameLine(0, 6);
                 ImGui.PushTextWrapPos(0f);
@@ -201,7 +202,7 @@ public class RecapWindow : Window
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted),
                     $"· {(int)h.Time / 60}:{(int)h.Time % 60:00}"
-                    + (h.Missed ? " · never went out" : $" · {h.Delta:0}s late")
+                    + (h.Why.Length > 0 ? $" · {h.Why}" : h.Missed ? " · never went out" : $" · {h.Delta:0}s late")
                     + (h.Mechanic.Length > 0 ? $" · {h.Mechanic}" : ""));
             }
             if (r.Shown.PlanProblems.Count > 10)

@@ -16,15 +16,23 @@ public class MitRecap
     private bool _wasRunning;
     private DateTime _lastScan;
     private readonly HashSet<string> _active = new(StringComparer.OrdinalIgnoreCase); // "source|mit" currently up
+    private readonly Dictionary<string, Applied> _activeRef = new(StringComparer.OrdinalIgnoreCase); // its open log entry
 
     // Damage-down debuffs a full party lands on the boss.
     public static readonly string[] StandardRaidMits = { "Reprisal", "Feint", "Addle", "Dismantle" };
 
-    public sealed record Applied(float Time, string Mit, string Source, MitTypes.Kind Kind, bool OnBoss, uint Icon);
+    public sealed record Applied(float Time, string Mit, string Source, MitTypes.Kind Kind, bool OnBoss, uint Icon)
+    {
+        // When it fell off, so grading can ask "was it STILL up at the hit?"
+        // rather than only "was it pressed nearby?". Stamped when the status
+        // drops off the scan; still-running mits get the pull's end at freeze.
+        public float End { get; set; } = -1f;
+    }
     public sealed record Active(uint Icon, string Mit, string Source, float Remaining, MitTypes.Kind Kind, bool OnBoss);
 
-    // A death with its story: what was running just before, and how fast they dropped.
-    public readonly record struct Death(float Time, string Name, string Had, float FromPct, float Seconds);
+    // A death with its story: what killed them, what was running as it landed,
+    // and how fast they dropped.
+    public readonly record struct Death(float Time, string Name, string Had, float FromPct, float Seconds, string KilledBy = "");
 
     // One frozen pull; a short history is kept so wipes stay comparable.
     public sealed class PullRecap
@@ -46,11 +54,14 @@ public class MitRecap
         public int PlanTotal;
         public int PlanGood;
         public List<PlanHit> PlanProblems = new();
+        // Enemy hits from the packet capture, each carrying the boss debuffs
+        // that were up as its damage was calculated.
+        public List<DamageCapture.EnemyHit> Hits = new();
     }
 
-    // One planned press that went wrong: never seen, or up Delta seconds after
-    // the mechanic it was planned for.
-    public readonly record struct PlanHit(float Time, string Mit, string Mechanic, float Delta, bool Missed, uint Icon);
+    // One planned press that went wrong: never seen, up Delta seconds after the
+    // mechanic it was planned for, or (Why) up at the wrong time entirely.
+    public readonly record struct PlanHit(float Time, string Mit, string Mechanic, float Delta, bool Missed, uint Icon, string Why = "");
 
     public List<Applied> Log { get; } = new();
 
@@ -109,9 +120,10 @@ public class MitRecap
             var running = _plugin.Timer.Running;
             if (running && !_wasRunning)
             {
-                Log.Clear(); _active.Clear(); Party.Clear(); _deaths.Clear(); _dead.Clear();
+                Log.Clear(); _active.Clear(); _activeRef.Clear(); Party.Clear(); _deaths.Clear(); _dead.Clear();
                 _jobs.Clear(); _lastMits.Clear(); _hp.Clear(); _liveBoss = "";
                 _pullId = Guid.NewGuid();
+                _plugin.Damage.Clear();
             }
             else if (!running && _wasRunning && Log.Count > 0) FinalizePull(); // pull ended -> freeze recap
             _wasRunning = running;
@@ -164,12 +176,24 @@ public class MitRecap
                 {
                     var key = src + "|" + m.Mit;
                     now.Add(key);
-                    if (_active.Add(key)) Log.Add(new Applied(elapsed, m.Mit, src, m.Kind, onBoss, m.Icon));
+                    if (_active.Add(key))
+                    {
+                        var a = new Applied(elapsed, m.Mit, src, m.Kind, onBoss, m.Icon);
+                        Log.Add(a);
+                        _activeRef[key] = a;
+                    }
                     live.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
                     mine?.Add(m.Mit);
                 }
             }
-            _active.RemoveWhere(k => !now.Contains(k)); // dropped -> can log again on re-apply
+            // Dropped mits close their interval (and can log again on re-apply).
+            foreach (var k in _active)
+                if (!now.Contains(k) && _activeRef.TryGetValue(k, out var gone))
+                {
+                    gone.End = elapsed;
+                    _activeRef.Remove(k);
+                }
+            _active.RemoveWhere(k => !now.Contains(k));
             _snapLive = live; // keep "what's up" current, so the wipe snapshot has the boss mits
                               // from the last live moment (the boss resets the instant combat ends)
         }
@@ -191,6 +215,10 @@ public class MitRecap
 
     private PullRecap BuildPull(List<Active> snapshot)
     {
+        // Mits still up when the pull ended never dropped off a scan; their
+        // interval runs to the freeze.
+        foreach (var a in Log)
+            if (a.End < 0f) a.End = MathF.Max(a.Time, _liveElapsed);
         var pr = new PullRecap
         {
             PullId = _pullId,
@@ -203,6 +231,7 @@ public class MitRecap
             CaptureElapsed = _liveElapsed,
             Territory = Service.ClientState.TerritoryType,
             CapturedAt = DateTime.UtcNow,
+            Hits = new List<DamageCapture.EnemyHit>(_plugin.Damage.Hits),
         };
         pr.Unused = ComputeUnused(pr);
         // Grade the plan NOW, while this is still the active fight: a browsed
@@ -224,12 +253,28 @@ public class MitRecap
         View = 0;
     }
 
-    // The death story from the frozen last-alive state: what was still running
-    // on them, and how fast they went from healthy to dead.
+    // How long after its last recorded hit a death still reads as that hit.
+    // Past this the killing blow was something the packet capture can't see
+    // (a dot tick, a fall), so the story stays quiet rather than blaming the
+    // wrong mechanic.
+    private const float KillingBlowWindow = 8f;
+
+    // The death story: the killing blow and what was up AS IT LANDED when the
+    // packet capture saw it; the frozen last-alive scan otherwise.
     private Death MakeDeath(float t, string name)
     {
         var had = _lastMits.TryGetValue(name, out var lm) && lm.Count > 0
             ? string.Join(", ", lm.Take(4)) : "";
+        var killedBy = "";
+        if (_plugin.Damage.LastHitOn.TryGetValue(name, out var hit) && t - hit.Time <= KillingBlowWindow)
+        {
+            killedBy = hit.Action.Length > 0
+                ? (hit.Amount > 0 ? $"{hit.Action} ({hit.Amount:N0})" : hit.Action)
+                : hit.Amount > 0 ? $"{hit.Amount:N0} damage" : "";
+            // What the hit was calculated against beats what a scan saw last;
+            // an empty read there means genuinely nothing was up.
+            had = hit.Mits;
+        }
         var from = 0f; var secs = 0f;
         if (_hp.TryGetValue(name, out var ring) && ring.Count > 0)
         {
@@ -242,7 +287,14 @@ public class MitRecap
             from = pick.Pct;
             secs = MathF.Max(0.1f, t - pick.T);
         }
-        return new Death(t, name, had, from, secs);
+        return new Death(t, name, had, from, secs, killedBy);
+    }
+
+    // The recognized mit names currently on a player, for the packet capture's
+    // at-the-hit read.
+    internal static IEnumerable<string> MitNamesOn(IBattleChara chara)
+    {
+        foreach (var h in MitsOn(chara, onBoss: false)) yield return h.Mit;
     }
 
     // Follow-up abilities that only exist inside another cooldown's window; a
@@ -330,13 +382,24 @@ public class MitRecap
         }
     }
 
-    // Grade the sheet against the pull: each planned press landed, was late, or never
-    // went out.
-    private static void ComputePlanCheck(PullRecap p, FightProfile fight, string? myJob)
+    // The game decides a cast's damage a beat before the hit lands (the cast
+    // bar's end), and the sheet's row time is the hit itself. A mit graded "on
+    // plan" therefore has to be up HERE, not at the row time.
+    private const float SnapshotLead = 0.7f;
+    // Poll-scan slack on interval edges: a status is first seen (and last seen)
+    // up to a scan late.
+    private const float EdgeGrace = 0.6f;
+
+    // Grade the sheet against the pull: each planned press covered its
+    // mechanic's snapshot, was late to it, fell off before it, or never went
+    // out. Boss damage-downs are graded from the packet capture when it ran:
+    // what was really on the attacker as each hit's damage was calculated.
+    // Public because the grading rules live under test with no game attached.
+    public static void ComputePlanCheck(PullRecap p, FightProfile fight, string? myJob)
     {
         try
         {
-            if (p.Log.Count == 0) return;
+            if (p.Log.Count == 0 && p.Hits.Count == 0) return;
 
             // What the plan expects: observable, comp-possible presses, deduped.
             var planned = new List<(float Time, string Name, string Mechanic)>();
@@ -356,47 +419,96 @@ public class MitRecap
             if (planned.Count == 0) return;
             planned.Sort((a, b) => a.Time.CompareTo(b.Time));
 
-            // Actual uses: log applications folded to one use per press.
-            var uses = new Dictionary<string, List<(float T, uint Icon)>>(StringComparer.OrdinalIgnoreCase);
-            var cluster = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
+            // Each mit's applications as intervals, matched through the same
+            // alias table the log entries were named with.
+            var spans = new Dictionary<string, List<(float Start, float End, uint Icon)>>(StringComparer.OrdinalIgnoreCase);
             foreach (var a in p.Log.OrderBy(a => a.Time))
-                foreach (var name in NamesFor(a.Mit))
+                foreach (var name in NamesFor(a.Mit).Distinct(StringComparer.OrdinalIgnoreCase))
                 {
-                    var key = a.Kind == MitTypes.Kind.Party || a.OnBoss ? name : name + "|" + a.Source;
-                    if (cluster.TryGetValue(key, out var lt) && a.Time - lt <= 6f) { cluster[key] = a.Time; continue; }
-                    cluster[key] = a.Time;
-                    if (!uses.TryGetValue(name, out var list)) list = uses[name] = new List<(float, uint)>();
-                    list.Add((a.Time, a.Icon));
+                    if (!spans.TryGetValue(name, out var list)) list = spans[name] = new List<(float, float, uint)>();
+                    // Party-wide statuses land one entry per member; one press
+                    // is one interval.
+                    if (list.Count > 0 && a.Time - list[^1].Start <= 6f)
+                    {
+                        if (a.End > list[^1].End) list[^1] = (list[^1].Start, a.End, list[^1].Icon);
+                        continue;
+                    }
+                    list.Add((a.Time, a.End, a.Icon));
                 }
 
-            // Claim the nearest unclaimed use for each planned press, in plan
-            // order, so "Kerachole at 1:40 and 3:20" grades as two presses.
-            var claimed = new Dictionary<string, HashSet<int>>(StringComparer.OrdinalIgnoreCase);
             foreach (var (t, name, mech) in planned)
             {
                 p.PlanTotal++;
-                var best = -1; var bestAbs = float.MaxValue; (float T, uint Icon) hit = default;
-                if (uses.TryGetValue(name, out var list))
+                var snap = t - SnapshotLead;
+                spans.TryGetValue(name, out var mine);
+
+                // Boss damage-downs: the packet capture is the ground truth for
+                // whether the debuff was baked into this mechanic's damage.
+                if (IsBossMit(name) && p.Hits.Count > 0
+                    && NearestHit(p.Hits, t, mech) is { } hit)
                 {
-                    if (!claimed.TryGetValue(name, out var taken)) taken = claimed[name] = new HashSet<int>();
-                    for (var i = 0; i < list.Count; i++)
-                    {
-                        if (taken.Contains(i)) continue;
-                        var d = list[i].T - t;
-                        if (d < -25f || d > 12f) continue; // early presses cover; way-late is a miss
-                        if (MathF.Abs(d) < bestAbs) { bestAbs = MathF.Abs(d); best = i; hit = list[i]; }
-                    }
-                    if (best >= 0) claimed[name].Add(best);
+                    if ((hit.DebuffMask & DamageCapture.BitOf(name)) != 0) { p.PlanGood++; continue; }
+                    p.PlanProblems.Add(Diagnose(t, snap, name, mech, mine));
+                    continue;
                 }
-                if (best < 0)
-                    p.PlanProblems.Add(new PlanHit(t, name, mech, 0f, true, IconFor(name)));
-                else if (hit.T - t > 1.5f)
-                    p.PlanProblems.Add(new PlanHit(t, name, mech, hit.T - t, false, hit.Icon));
-                else p.PlanGood++;
+
+                // No capture (or a party mit): grade from the interval. Covering
+                // the snapshot is what "on plan" means.
+                if (mine != null && mine.Any(s => s.Start - EdgeGrace <= snap && snap <= s.End + EdgeGrace))
+                {
+                    p.PlanGood++;
+                    continue;
+                }
+                p.PlanProblems.Add(Diagnose(t, snap, name, mech, mine));
             }
             p.PlanProblems.Sort((a, b) => a.Time.CompareTo(b.Time));
         }
         catch { p.PlanTotal = 0; p.PlanGood = 0; p.PlanProblems.Clear(); }
+    }
+
+    // Why a planned mit wasn't covering its mechanic's snapshot: late, fell off
+    // early, up at some unrelated time, or never used at all.
+    private static PlanHit Diagnose(float t, float snap, string name, string mech,
+        List<(float Start, float End, uint Icon)>? spans)
+    {
+        if (spans is { Count: > 0 })
+        {
+            // Late: it went up shortly after the snapshot (the classic "pressed
+            // during the cast" miss).
+            var late = spans.Where(s => s.Start > snap && s.Start - t <= 12f)
+                .OrderBy(s => s.Start).ToList();
+            if (late.Count > 0)
+                // A press between the snapshot and the hit still shows as (at
+                // least) a second late: the game had already done its math.
+                return new PlanHit(t, name, mech, MathF.Max(1f, late[0].Start - t), false, late[0].Icon);
+            // Fell off: it WAS up, and expired before the game took the snapshot.
+            var early = spans.Where(s => s.End < snap && snap - s.End <= 20f)
+                .OrderByDescending(s => s.End).ToList();
+            if (early.Count > 0)
+                return new PlanHit(t, name, mech, 0f, true, early[0].Icon,
+                    $"fell off {snap - early[0].End:0}s before the hit");
+            return new PlanHit(t, name, mech, 0f, true, spans[0].Icon, "up, but not for this one");
+        }
+        return new PlanHit(t, name, mech, 0f, true, IconFor(name));
+    }
+
+    // The enemy hit a planned mit was for: same mechanic name if the sheet uses
+    // real cast names, else the nearest connecting hit. Null when nothing landed
+    // near the row (the mechanic got skipped, or the clock was off): grading
+    // then falls back to intervals rather than guessing.
+    private static DamageCapture.EnemyHit? NearestHit(List<DamageCapture.EnemyHit> hits, float t, string mech)
+    {
+        DamageCapture.EnemyHit? best = null;
+        var bestAbs = float.MaxValue;
+        foreach (var h in hits)
+        {
+            var d = MathF.Abs(h.Time - t);
+            var named = mech.Length > 0 && h.Action.Length > 0 && SheetTimeline.MechEquals(h.Action, mech);
+            if (d > (named ? 10f : 5f)) continue;
+            if (named) d -= 100f; // a name match outranks any unnamed proximity
+            if (d < bestAbs) { bestAbs = d; best = h; }
+        }
+        return best;
     }
 
     // Every plan-vocabulary name a logged status can satisfy: itself, any
@@ -583,7 +695,7 @@ public class MitRecap
                 pr.Deaths = new List<Death>
                 {
                     new(sampleLog[sampleLog.Count / 2].Time + 2f, comp.Count > 0 ? comp[0] : "Someone",
-                        "Rampart, Sacred Soil", 0.86f, 3.4f),
+                        "Rampart, Sacred Soil, 8% shield", 0.86f, 3.4f, "Mortal Slash (154,201)"),
                     new(sampleLog[^1].Time + 1f, comp.Count > 1 ? comp[1] : "Someone Else", "", 0.97f, 1.8f),
                 };
             }
@@ -647,6 +759,7 @@ public class MitRecap
             foreach (var d in LastDeaths.OrderBy(d => d.Time))
                 sb.AppendLine($"  {(int)d.Time / 60}:{(int)d.Time % 60:00}  {d.Name}"
                     + (d.FromPct > 0 ? $"  ({(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s)" : "")
+                    + (d.KilledBy.Length > 0 ? $"  killed by {d.KilledBy}" : "")
                     + (d.Had.Length > 0 ? $"  had {d.Had}" : "  nothing up"));
         }
 
@@ -656,7 +769,7 @@ public class MitRecap
             sb.AppendLine($"Plan check: {Shown.PlanGood} of {Shown.PlanTotal} planned mits went out on plan.");
             foreach (var h in Shown.PlanProblems)
                 sb.AppendLine($"  {(int)h.Time / 60}:{(int)h.Time % 60:00}  {h.Mit}"
-                    + (h.Missed ? " - never went out" : $" - {h.Delta:0}s late")
+                    + (h.Why.Length > 0 ? $" - {h.Why}" : h.Missed ? " - never went out" : $" - {h.Delta:0}s late")
                     + (h.Mechanic.Length > 0 ? $" ({h.Mechanic})" : ""));
         }
 

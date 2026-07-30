@@ -23,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public Audio Audio { get; } = new();
     public CueEngine Cues { get; }
     public SyncEngine Sync { get; }
+    public DamageCapture Damage { get; }
     public FFLogsClient FFLogs { get; } = new();
     public MitRecap Recap { get; }
     public SnapshotStore Snapshots { get; }
@@ -104,6 +105,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
+        Damage = new DamageCapture(this);
         Recap = new MitRecap(this);
         Diag = new Diagnostics(this);
         ConfigWindow = new ConfigWindow(this);
@@ -1199,6 +1201,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.CommandManager.RemoveHandler(CommandAlias);
 
         _dtr?.Remove();
+        Damage.Dispose();
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();
         Fonts.Dispose();
