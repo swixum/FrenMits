@@ -240,10 +240,12 @@ public class Configuration : IPluginConfiguration
     // Fren Meter: the parser-fed damage meter overlay with rDPS.
     public bool MeterEnabled { get; set; }
     public int MeterConnection { get; set; }             // 0 auto, 1 in-process parser, 2 WebSocket
-    // Off, and the parser decides what a fight is while the meter just draws it,
-    // the way every other overlay works. On, and segments split by downtime are
-    // stitched back into one pull: it reads better on a long fight, and it is
-    // the only part of the meter that has ever counted anything twice.
+    // Not shown in the settings: the parser decides what a fight is and the
+    // meter draws it, the way every other overlay works. Stitching segments
+    // back together is the only part that ever counted anything twice, and with
+    // ACT's idle limit set past a raid's longest downtime there is nothing left
+    // to stitch. Kept as a setting so a fight that does split can still be put
+    // back together by hand, from the config file.
     public bool MeterStitchSegments { get; set; }
     public string MeterSocketAddress { get; set; } = "ws://127.0.0.1:10501/ws";
     public bool MeterLocked { get; set; }

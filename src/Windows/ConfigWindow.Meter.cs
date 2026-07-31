@@ -276,13 +276,6 @@ public partial class ConfigWindow
                          + "packs and bosses stay separate whatever ACT is doing.");
 
         ImGui.Spacing();
-        var stitch = C.MeterStitchSegments;
-        if (ImGui.Checkbox("Stitch a fight's segments together", ref stitch))
-        { C.MeterStitchSegments = stitch; C.SaveSettings(); }
-        Tip("Only needed if ACT's idle limit is left low enough to split a fight.\n"
-          + "Off: the parser decides what a fight is and the meter draws it, like any other overlay.");
-
-        ImGui.Spacing();
         if (ImGui.Button("Reconnect")) ReconnectMeter();
     }
 
