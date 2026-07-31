@@ -1005,6 +1005,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private void OpenConfig() => ConfigWindow.IsOpen = true;
 
+    // A command's answer, in the log and in front of the player who typed it.
+    private static void Chat(string message)
+    {
+        Service.Log.Information($"[FrenMits] {message}");
+        try { Service.ChatGui.Print($"[FrenMits] {message}"); }
+        catch (Exception ex) { Swallowed.Report("chat print", ex); }
+    }
+
     private void OnCommand(string command, string args)
     {
         switch (args.Trim().ToLowerInvariant())
@@ -1026,6 +1034,26 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             case "mini":
             case "tuner":
                 MiniSheetWindow.IsOpen = !MiniSheetWindow.IsOpen;
+                break;
+            // Record what the parser feeds the meter, so a pull that reads wrong
+            // can be run again and again without going back into the fight.
+            case "meterrec":
+                if (MeterFeed.Recording)
+                {
+                    var saved = MeterFeed.Stop();
+                    Chat(saved.Length > 0 ? $"Meter feed saved: {saved}" : "Nothing was recorded.");
+                }
+                else
+                {
+                    MeterFeed.Start();
+                    Chat("Recording the meter feed. Run /fm meterrec again to save it.");
+                }
+                break;
+            case "meterplay":
+                var newest = MeterFeed.Newest();
+                Chat(newest.Length == 0
+                    ? "No recordings yet - run /fm meterrec before a pull."
+                    : $"{System.IO.Path.GetFileName(newest)}: {Meter.Replay(newest)}");
                 break;
             default:
                 var pm = System.Text.RegularExpressions.Regex.Match(args.Trim().ToLowerInvariant(), @"^(?:phase|p)\s*(\d)$");

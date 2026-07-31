@@ -122,29 +122,35 @@ public class Meter : IDisposable
         var budget = 5000;
         while (budget-- > 0 && Link.TryDequeue(out var msg)) Handle(msg);
 
+        // The world the stitch reads, taken once a frame. A replay hands it the
+        // same values the recording was made under, so the decisions it makes
+        // are the ones it made in the fight.
+        _inCombat = Plugin.InCombat;
+        _cutscene = Plugin.CutsceneActive;
+
         // A boss on the field marks this fight as one worth stitching and keeping.
-        if (Plugin.InCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
-        _bossLeft = TrackBoss(_bossLeft, _plugin.BossHpFraction, Plugin.InCombat);
+        if (_inCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
+        _bossLeft = TrackBoss(_bossLeft, _plugin.BossHpFraction, _inCombat);
         // The last word on who was still up, taken while the fight was still on.
         // A cutscene can empty the object table with the party perfectly alive,
         // so nothing is counted through one.
-        if (Plugin.InCombat && !Plugin.CutsceneActive && _plugin.PlayersStanding >= 0)
+        if (_inCombat && !_cutscene && _plugin.PlayersStanding >= 0)
             _standing = _plugin.PlayersStanding;
 
         // Combat over: close this fight right away instead of waiting out the
         // parser's idle timeout. That is what makes each trash pack in a
         // dungeon start from zero, and freezes a kill at the killing blow.
-        var inCombat = Plugin.InCombat;
+        var inCombat = _inCombat;
         if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
         // A cutscene between phases drops combat without ending the pull, and
         // filing one there splits a single fight across several entries in the
         // list. The settle only starts once the game hands control back.
-        if (Plugin.CutsceneActive) _combatDropAt = DateTime.UtcNow;
+        if (_cutscene) _combatDropAt = DateTime.UtcNow;
         if (inCombat) _cutDone = false;
         _wasInCombat = inCombat;
         var sinceDrop = _combatDropAt == DateTime.MinValue
             ? 0.0 : (DateTime.UtcNow - _combatDropAt).TotalSeconds;
-        var settle = SettleDue(inCombat, Plugin.CutsceneActive, sinceDrop);
+        var settle = SettleDue(inCombat, _cutscene, sinceDrop);
 
         // A stitched fight that ended inside the quiet gap (a wipe during
         // downtime): no further segment is coming, settle it once combat has
@@ -212,8 +218,73 @@ public class Meter : IDisposable
         OnSummary(raw);
     }
 
+    // The world the stitch reads. Live these follow the game; through a replay
+    // they are whatever the recording says they were.
+    private bool _inCombat;
+    private bool _cutscene;
+    private bool _replaying;
+
+    private void RecordFeed(MeterEncounter incoming)
+    {
+        if (!MeterFeed.Recording) return;
+        var m = new MeterFeed.Message
+        {
+            At = MeterFeed.Elapsed,
+            Active = incoming.Active, Seconds = incoming.Seconds, Damage = incoming.TotalDamage,
+            InCombat = _inCombat, Cutscene = _cutscene, SawBoss = _sawBoss, LogLines = EngineTotal(),
+        };
+        foreach (var r in incoming.Rows)
+            m.Rows.Add((r.Name, r.Job, r.Damage, r.Healed, r.Taken, r.Deaths));
+        MeterFeed.Record(m);
+    }
+
+    // Run a recorded feed back through the real stitch and report what it makes
+    // of it, against what the log lines said at the time.
+    public string Replay(string path)
+    {
+        List<MeterFeed.Message> feed;
+        try { feed = MeterFeed.Load(path); }
+        catch (Exception ex) { return $"could not read that recording: {ex.Message}"; }
+        if (feed.Count == 0) return "that recording is empty";
+
+        var wasRecording = MeterFeed.Recording;
+        var keepCombat = _inCombat;
+        var keepCutscene = _cutscene;
+        var keepBoss = _sawBoss;
+        MeterFeed.Pause();
+        _replaying = true;
+        Clear(keepHistory: true);
+        // Clear baselines against whatever the parser last said live; a replay
+        // starts from nothing, the way the recorded pull did.
+        _cut = null;
+        _rawIn = null;
+
+        var logLines = 0.0;
+        foreach (var m in feed)
+        {
+            _inCombat = m.InCombat;
+            _cutscene = m.Cutscene;
+            _sawBoss = m.SawBoss;
+            logLines = Math.Max(logLines, m.LogLines);
+            OnSummary(MeterFeed.ToEncounter(m));
+        }
+
+        var shown = Current?.TotalDamage ?? 0;
+        _replaying = false;
+        _inCombat = keepCombat;
+        _cutscene = keepCutscene;
+        _sawBoss = keepBoss;
+        if (wasRecording) MeterFeed.Resume();
+
+        var drift = logLines > 0 ? shown / logLines : 0;
+        return $"{feed.Count} summaries: the board makes it {shown / 1e6:0.0}M, "
+             + $"the log lines {logLines / 1e6:0.0}M"
+             + (logLines > 0 ? $" ({drift:0.00}x)" : "");
+    }
+
     private void OnSummary(MeterEncounter incoming)
     {
+        RecordFeed(incoming);
         _rawIn = incoming;
         var raw = incoming;
         var restarted = false;
@@ -297,7 +368,7 @@ public class Meter : IDisposable
     private void EndSegment(MeterEncounter final)
     {
         var display = Merge(_carry, final);
-        if (Plugin.InCombat && _sawBoss)
+        if (_inCombat && _sawBoss)
         {
             // Mid-boss split (downtime): stitch, and keep reading as a live fight.
             _carry ??= new FightCarry { StartSec = _fightStartSec, Title = _fightTitle };
@@ -506,6 +577,7 @@ public class Meter : IDisposable
     // showing a fight that did half again the damage it really did.
     private void CheckAgainstLogLines(MeterEncounter enc)
     {
+        if (_replaying) return;   // the engine holds this session, not the recording
         var counted = EngineTotal();
         if (counted <= 0 || enc.TotalDamage <= counted * DriftWarnAbove) return;
         if (enc.TotalDamage < _warnedAt * 1.05) return;   // once per step, not per frame
