@@ -21,6 +21,9 @@ public sealed class AbilityStat
     public bool IsStatus;
     // Healing that landed on a full bar. Zero on every damage row.
     public double Over;
+    // What this row breaks down into a level further: the buffs behind a
+    // player's share of the credit. Null everywhere else.
+    public List<AbilityStat>? Parts;
 
     public double Average => Hits > 0 ? Damage / Hits : 0;
     public double CritPct => Hits > 0 ? Crits * 100.0 / Hits : 0;

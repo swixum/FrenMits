@@ -140,16 +140,16 @@ public class MeterWindow : Window
 
         if (enc == null)
         {
-            var titleW = ImGui.CalcTextSize("Fren Meter").X;
             // Connected with an empty board just means nothing has been fought
-            // yet; the link status only helps when there is no link.
-            var status = _plugin.Meter.Connected ? "waiting for the next pull" : _plugin.Meter.StatusText;
-            var statusW = ImGui.CalcTextSize(status).X;
-            var midY = ws.Y * 0.5f - ImGui.GetTextLineHeight();
-            BText(dl, wp + new Vector2((ws.X - titleW) * 0.5f, midY),
+            // yet, which needs no saying. Only a missing link is worth a line.
+            var lineH = ImGui.GetTextLineHeight();
+            var status = _plugin.Meter.Connected ? "" : _plugin.Meter.StatusText;
+            var midY = ws.Y * 0.5f - (status.Length > 0 ? lineH : lineH * 0.5f);
+            BText(dl, wp + new Vector2((ws.X - ImGui.CalcTextSize("Fren Meter").X) * 0.5f, midY),
                 C.MeterTextColor, "Fren Meter");
-            BText(dl, wp + new Vector2((ws.X - statusW) * 0.5f, midY + ImGui.GetTextLineHeight() + 3f),
-                C.MeterSubColor, status);
+            if (status.Length > 0)
+                BText(dl, wp + new Vector2((ws.X - ImGui.CalcTextSize(status).X) * 0.5f, midY + lineH + 3f),
+                    C.MeterSubColor, status);
             ContextMenu();
             return;
         }
@@ -164,7 +164,7 @@ public class MeterWindow : Window
 
         // Bars scroll in their own region when the pull outgrows the window.
         // Click-through must reach into it too, or the mouse snags on the bars.
-        var footerH = (C.MeterButtons || C.MeterHealingTab) && !C.MeterClickThrough
+        var footerH = (C.MeterButtons || C.MeterHealingTab || C.MeterFooterDeaths) && !C.MeterClickThrough
             ? MathF.Ceiling(ImGui.GetTextLineHeight()) + 10f
             : 0f;
         _overheadY = y + footerH + 4f;
@@ -235,18 +235,72 @@ public class MeterWindow : Window
             }
         }
 
+        // The right end fills in from the edge back towards the chips.
+        var ty = cy + (chipH - ImGui.GetTextLineHeight()) * 0.5f;
+        var rx = ws.X - pad;
+
         // Quiet unless there is something to say: paused, or viewing a past pull.
         var label = m.Paused ? "paused" : _histIdx >= 0 ? $"pull -{_histIdx + 1}" : "";
         if (label.Length > 0)
         {
-            var lw = ImGui.CalcTextSize(label).X;
-            BText(dl,
-                wp + new Vector2(ws.X - pad - lw, cy + (chipH - ImGui.GetTextLineHeight()) * 0.5f),
-                m.Paused ? C.MeterAccentColor : C.MeterSubColor, label);
+            rx -= ImGui.CalcTextSize(label).X;
+            BText(dl, wp + new Vector2(rx, ty), m.Paused ? C.MeterAccentColor : C.MeterSubColor, label);
+            rx -= 12f;
         }
+
+        // A gap the chips keep, so the two never read as one run of text.
+        if (C.MeterFooterDeaths) DrawDeathTotal(dl, wp, x + 10f, rx, ty, chipH);
 
         TabRenamePopup();
     }
+
+    // The pull's death count at the right end of the footer. It takes the short
+    // form when the chips leave it no room, and drops off entirely below that.
+    private void DrawDeathTotal(ImDrawListPtr dl, Vector2 wp, float leftEdge, float rx, float ty, float chipH)
+    {
+        if (_shown is not { } enc) return;
+        var deaths = enc.TotalDeaths;
+
+        var text = $"Total deaths: {deaths}";
+        var tw = ImGui.CalcTextSize(text).X;
+        if (rx - tw < leftEdge)
+        {
+            text = $"Deaths: {deaths}";
+            tw = ImGui.CalcTextSize(text).X;
+            if (rx - tw < leftEdge) return;
+        }
+
+        rx -= tw;
+        BText(dl, wp + new Vector2(rx, ty), deaths > 0 ? DeathTint : C.MeterSubColor, text);
+        if (deaths == 0) return;
+
+        // Hovering it names them, which is the part a bare count leaves out.
+        var list = _plugin.Meter.Deaths(enc);
+        if (list.Count == 0) return;
+        ImGui.SetCursorPos(new Vector2(rx, ty - 2f));
+        ImGui.InvisibleButton("##deathtotal", new Vector2(tw, chipH));
+        if (!ImGui.IsItemHovered()) return;
+
+        PushMenuTheme();
+        ImGui.BeginTooltip();
+        ImGui.TextUnformatted("Who died");
+        ImGui.Separator();
+        var shown = Math.Min(TooltipDeaths, list.Count);
+        for (var i = 0; i < shown; i++)
+        {
+            var d = list[i];
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                $"{(int)d.At / 60}:{(int)d.At % 60:00}   {d.Name}" +
+                (d.Killer.Length > 0 ? $"   {d.Killer}" : ""));
+        }
+        if (list.Count > shown)
+            ImGui.TextColored(Theme.V(Theme.Muted), $"+{list.Count - shown} more");
+        ImGui.EndTooltip();
+        PopMenuTheme();
+    }
+
+    private const int TooltipDeaths = 8;
+    private static readonly uint DeathTint = Rgb(0xF87171);
 
     // A footer icon in a uniform chip: hover wash, centered glyph.
     private bool IconChip(ImDrawListPtr dl, ref float x, float cy, float h, FontAwesomeIcon icon, string tip,
@@ -1096,37 +1150,104 @@ public class MeterWindow : Window
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + lineH + 4f);
 
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
+        var span = w - pad * 2 + 6f;
         var seconds = MathF.Max(1f, enc.Seconds);
         var i = 0;
         foreach (var a in rows)
         {
+            // Keyed by whose tab this is as well, so opening a row under one
+            // player does not open the same name under the next.
+            var key = $"{_detailFor}|{label}|{a.Name}";
+            var parts = a.Parts is { Count: > 0 } ? a.Parts : null;
+            var open = parts != null && _creditOpen.Contains(key);
+
             var p = ImGui.GetCursorScreenPos();
-            ImGui.InvisibleButton($"##cr{label}{i++}", new Vector2(w, rowH));
+            var clicked = ImGui.InvisibleButton($"##cr{label}{i++}", new Vector2(w, rowH));
             var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
             var rgb = JobRgbFor(enc, a.Name);
 
             dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
                 hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
-            DrawBar(dl, p + new Vector2(pad - 3f, 0),
-                (float)(a.Damage / max) * (w - pad * 2 + 6f), rowH, rgb, p.X + pad);
+            DrawBar(dl, p + new Vector2(pad - 3f, 0), (float)(a.Damage / max) * span, rowH, rgb, p.X + pad);
 
             var ty = p.Y + (rowH - lineH) * 0.5f;
             var right = Num(a.Damage);
             var rw = ImGui.CalcTextSize(right).X;
             BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterTextColor, right);
+
             var nx = p.X + pad + 4f;
+            // A caret where there are buffs to open, so the row says it can be.
+            if (parts != null)
+            {
+                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                {
+                    var g = (open ? FontAwesomeIcon.CaretDown : FontAwesomeIcon.CaretRight).ToIconString();
+                    dl.AddText(new Vector2(nx, ty + 1f), C.MeterSubColor, g);
+                    nx += ImGui.CalcTextSize(g).X + 5f;
+                }
+            }
             var nameMax = p.X + w - pad - rw - nx - 6f;
             if (nameMax > 12f) BText(dl, new Vector2(nx, ty), C.MeterSubColor, Clip(a.Name, nameMax));
 
             if (hovered)
             {
                 PushMenuTheme();
-                ImGui.SetTooltip($"{Num(a.Damage / seconds)} rDPS over the pull");
+                ImGui.SetTooltip(parts == null
+                    ? $"{Num(a.Damage / seconds)} rDPS over the pull"
+                    : $"{Num(a.Damage / seconds)} rDPS over the pull\n{(open ? "click to close" : "click for the buffs behind it")}");
                 PopMenuTheme();
             }
+            if (clicked && parts != null && !_creditOpen.Remove(key)) _creditOpen.Add(key);
+
             ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
+            if (open) CreditParts(key, parts!, pad, w, span, max, seconds);
         }
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5f);
+    }
+
+    // Which player rows in the Contributed tab are opened up.
+    private readonly HashSet<string> _creditOpen = new(StringComparer.Ordinal);
+
+    // The buffs behind one player's share, indented under their row and drawn
+    // against the same scale, so a small buff still reads as a small bar.
+    private void CreditParts(string key, List<AbilityStat> parts, float pad, float w, float span,
+        double max, float seconds)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        var rowH = lineH + 4f;
+        const float indent = 15f;
+        var i = 0;
+        foreach (var b in parts)
+        {
+            var p = ImGui.GetCursorScreenPos();
+            // Index first: a key that happens to end in a digit would otherwise
+            // run into the next row's number and share its id.
+            ImGui.InvisibleButton($"##cp{i++}_{key}", new Vector2(w, rowH));
+            var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
+            var rgb = TintFor(b.Name);
+
+            var left = p + new Vector2(pad - 3f + indent, 0);
+            dl.AddRectFilled(left, p + new Vector2(w - pad + 3f, rowH),
+                hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 3f);
+            DrawBar(dl, left, (float)(b.Damage / max) * (span - indent), rowH, rgb, left.X + 5f, 0.8f);
+
+            var ty = p.Y + (rowH - lineH) * 0.5f;
+            var right = Num(b.Damage);
+            var rw = ImGui.CalcTextSize(right).X;
+            BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterSubColor, right);
+            var nx = left.X + 7f;
+            var nameMax = p.X + w - pad - rw - nx - 6f;
+            if (nameMax > 12f) BText(dl, new Vector2(nx, ty), C.MeterSubColor, Clip(b.Name, nameMax));
+
+            if (hovered)
+            {
+                PushMenuTheme();
+                ImGui.SetTooltip($"{b.Name}: {Num(b.Damage / seconds)} rDPS over the pull");
+                PopMenuTheme();
+            }
+            ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + 2f));
+        }
     }
 
     // Every death this player had, with the killing blow and the run-up to it.
@@ -1340,6 +1461,8 @@ public class MeterWindow : Window
                 if (ImGui.MenuItem("Highlight your row", "", C.MeterHighlightYou)) { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
                 if (ImGui.MenuItem("Buttons bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
                 if (ImGui.MenuItem("Healing tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
+                if (ImGui.MenuItem("Death count", "", C.MeterFooterDeaths))
+                { C.MeterFooterDeaths = !C.MeterFooterDeaths; C.SaveSettings(); }
                 if (ImGui.MenuItem("Drop shadow", "", C.MeterTextShadow)) { C.MeterTextShadow = !C.MeterTextShadow; C.SaveSettings(); }
                 if (ImGui.MenuItem("Breakdown icons", "", C.MeterBreakdownIcons))
                 { C.MeterBreakdownIcons = !C.MeterBreakdownIcons; C.SaveSettings(); }

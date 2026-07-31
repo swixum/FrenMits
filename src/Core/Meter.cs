@@ -271,6 +271,7 @@ public class Meter : IDisposable
                 Name = a.Name, Hits = a.Hits, Crits = a.Crits,
                 Dhs = a.Dhs, Damage = a.Damage, Max = a.Max, Over = a.Over,
                 Id = a.Id, IsStatus = a.IsStatus,
+                Parts = a.Parts is { } parts ? Freeze(parts) : null,
             });
         return copy;
     }
@@ -326,18 +327,21 @@ public class Meter : IDisposable
         };
     }
 
-    // A player's deaths in the pull on screen, newest last.
+    // Every death in the pull on screen, in the order they happened.
+    public List<DeathRecord> Deaths(MeterEncounter enc)
+    {
+        if (enc.Deaths.Count > 0 || Banked(enc)) return enc.Deaths;
+        var start = FightStart(enc);
+        var live = new List<DeathRecord>();
+        foreach (var d in Engine.Deaths()) live.Add(Freeze(d, start));
+        return live;
+    }
+
+    // One player's, out of those.
     public List<DeathRecord> Deaths(MeterEncounter enc, string player)
     {
-        var source = enc.Deaths;
-        if (source.Count == 0 && !Banked(enc))
-        {
-            var start = FightStart(enc);
-            source = new List<DeathRecord>();
-            foreach (var d in Engine.Deaths()) source.Add(Freeze(d, start));
-        }
         var list = new List<DeathRecord>();
-        foreach (var d in source)
+        foreach (var d in Deaths(enc))
             if (string.Equals(d.Name, player, StringComparison.OrdinalIgnoreCase))
                 list.Add(d);
         return list;
@@ -717,6 +721,23 @@ public class Meter : IDisposable
         };
         var hurt = new[] { "Cleave", "Raidwide", "Tank buster", "attack" };
         var cures = new[] { "Pneuma", "Eukrasian Prognosis", "Kerachole", "Physis II" };
+        var buffs = new[]
+        {
+            "Divination", "Battle Litany", "Searing Light", "Embolden",
+            "Technical Finish", "Radiant Finale", "Battle Voice",
+        };
+
+        // One player's share of the trade, split across the buffs behind it.
+        AbilityStat Trade(string name, double amount, int seed) => new()
+        {
+            Name = name, Damage = amount,
+            Parts = new List<AbilityStat>
+            {
+                new() { Name = buffs[seed % buffs.Length], Damage = amount * 0.58 },
+                new() { Name = buffs[(seed + 3) % buffs.Length], Damage = amount * 0.27 },
+                new() { Name = buffs[(seed + 5) % buffs.Length], Damage = amount * 0.15 },
+            },
+        };
 
         foreach (var r in e.Rows)
         {
@@ -777,8 +798,8 @@ public class Meter : IDisposable
                     healed.Add(new AbilityStat { Name = name, Damage = r.Healed * share, Over = r.Healed * share * 0.14, Hits = 9 + i * 3 });
                 if (other.Healed > 0)
                     from.Add(new AbilityStat { Name = name, Damage = other.Healed * share * 0.4, Hits = 7 + i });
-                given.Add(new AbilityStat { Name = name, Damage = r.Damage * 0.012 * (1.4 - i * 0.12) });
-                got.Add(new AbilityStat { Name = name, Damage = other.Damage * 0.011 * (1.3 - i * 0.1) });
+                given.Add(Trade(name, r.Damage * 0.012 * (1.4 - i * 0.12), i));
+                got.Add(Trade(name, other.Damage * 0.011 * (1.3 - i * 0.1), i + 2));
                 i++;
             }
             if (healed.Count > 0) e.HealTargets[who] = healed;

@@ -72,6 +72,8 @@ public partial class ConfigWindow
             C.MeterHighlightYou = GridCheck("Highlight your row", C.MeterHighlightYou);
             C.MeterButtons = GridCheck("Buttons bar", C.MeterButtons, "Pulls, pause and reset at the bottom.");
             C.MeterHealingTab = GridCheck("DPS / HPS tabs", C.MeterHealingTab, "Right-click a tab to rename it.");
+            C.MeterFooterDeaths = GridCheck("Death count", C.MeterFooterDeaths,
+                "The pull's deaths in the footer; hover it for who.");
             C.MeterAlwaysShow = GridCheck("Always on screen", C.MeterAlwaysShow,
                 "Stays put with no pull to show, so a reset cannot hide it.");
             C.MeterHideOutOfCombat = GridCheck("Hide out of combat", C.MeterHideOutOfCombat);

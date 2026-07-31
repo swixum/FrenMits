@@ -218,18 +218,33 @@ public class RdpsEngine
 
     // ---- buff credit, player to player -------------------------------------
 
-    // Who fed whose rDPS, over the same fight the breakdowns cover. The
-    // per-second buckets answer "how much" for a window; this answers "from
-    // whom".
-    private readonly Dictionary<string, Dictionary<string, double>> _pairs = new(StringComparer.OrdinalIgnoreCase);
+    // Who fed whose rDPS and with which buff, over the same fight the
+    // breakdowns cover. The per-second buckets answer "how much" for a window;
+    // this answers "from whom, and off what".
+    private readonly Dictionary<string, Dictionary<string, Dictionary<string, double>>> _pairs
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    // One player's share of the trade, with the buffs behind it underneath.
+    private static AbilityStat Trade(string who, Dictionary<string, double> buffs)
+    {
+        var row = new AbilityStat { Name = who, Parts = new List<AbilityStat>() };
+        foreach (var (buff, amount) in buffs)
+        {
+            if (amount <= 0) continue;
+            row.Damage += amount;
+            row.Parts.Add(new AbilityStat { Name = buff, Damage = amount });
+        }
+        row.Parts.Sort((a, b) => b.Damage.CompareTo(a.Damage));
+        return row;
+    }
 
     public List<AbilityStat> Given(string player)
     {
         var list = new List<AbilityStat>();
         if (player.Length > 0 && _pairs.TryGetValue(player, out var by))
-            foreach (var (to, amount) in by)
-                if (amount > 0)
-                    list.Add(new AbilityStat { Name = to, Damage = amount });
+            foreach (var (to, buffs) in by)
+                if (Trade(to, buffs) is { Damage: > 0 } row)
+                    list.Add(row);
         list.Sort((a, b) => b.Damage.CompareTo(a.Damage));
         return list;
     }
@@ -239,8 +254,8 @@ public class RdpsEngine
         var list = new List<AbilityStat>();
         if (player.Length > 0)
             foreach (var (from, by) in _pairs)
-                if (by.TryGetValue(player, out var amount) && amount > 0)
-                    list.Add(new AbilityStat { Name = from, Damage = amount });
+                if (by.TryGetValue(player, out var buffs) && Trade(from, buffs) is { Damage: > 0 } row)
+                    list.Add(row);
         list.Sort((a, b) => b.Damage.CompareTo(a.Damage));
         return list;
     }
@@ -350,9 +365,9 @@ public class RdpsEngine
     // state and every tick prices against that.
     private sealed class DotSnap
     {
-        public List<(uint Src, string Name, double Mult)> Flat = new();
-        public List<(uint Src, string Name, double Rate)> Crit = new();
-        public List<(uint Src, string Name, double Rate)> Dh = new();
+        public List<(uint Src, string Name, string Buff, double Mult)> Flat = new();
+        public List<(uint Src, string Name, string Buff, double Rate)> Crit = new();
+        public List<(uint Src, string Name, string Buff, double Rate)> Dh = new();
         public double SelfCrit, SelfDh;
         public long ExpireSec;
     }
@@ -706,9 +721,9 @@ public class RdpsEngine
 
     // ---- buff state for one event ------------------------------------------
 
-    private readonly List<(uint Src, string Name, double Mult)> _extFlat = new();
-    private readonly List<(uint Src, string Name, double Rate)> _extCrit = new();
-    private readonly List<(uint Src, string Name, double Rate)> _extDh = new();
+    private readonly List<(uint Src, string Name, string Buff, double Mult)> _extFlat = new();
+    private readonly List<(uint Src, string Name, string Buff, double Rate)> _extCrit = new();
+    private readonly List<(uint Src, string Name, string Buff, double Rate)> _extDh = new();
     private double _selfCrit, _selfDh;
 
     private void Gather(uint owner, uint enemy, long sec)
@@ -739,15 +754,15 @@ public class RdpsEngine
                         // A player's own percent buffs stay personal: they are
                         // neither shared out nor divided from anyone's base.
                         if (!self && e.Amount > 1.0001f)
-                            _extFlat.Add((b.SourceId, b.SourceName, e.Amount));
+                            _extFlat.Add((b.SourceId, b.SourceName, b.Def.Name, e.Amount));
                         break;
                     case RaidBuffs.Kind.CritRate:
                         if (self) _selfCrit += e.Amount;
-                        else _extCrit.Add((b.SourceId, b.SourceName, e.Amount));
+                        else _extCrit.Add((b.SourceId, b.SourceName, b.Def.Name, e.Amount));
                         break;
                     default:
                         if (self) _selfDh += e.Amount;
-                        else _extDh.Add((b.SourceId, b.SourceName, e.Amount));
+                        else _extDh.Add((b.SourceId, b.SourceName, b.Def.Name, e.Amount));
                         break;
                 }
             }
@@ -844,19 +859,19 @@ public class RdpsEngine
         var gain = part * (m - 1.0) / m;
 
         foreach (var b in _extFlat)
-            Credit(sec, b.Name, ownerName, gain * Math.Log(b.Mult) / lnM);
+            Credit(sec, b.Name, ownerName, b.Buff, gain * Math.Log(b.Mult) / lnM);
 
         // The roll multipliers' shares go to the rate buffers, each by how
         // much rate they contributed.
         var critGain = gain * (Math.Log(critMult) + Math.Log(rc)) / lnM;
         if (critGain > 0 && extC > 0)
             foreach (var b in _extCrit)
-                Credit(sec, b.Name, ownerName, critGain * b.Rate / extC);
+                Credit(sec, b.Name, ownerName, b.Buff, critGain * b.Rate / extC);
 
         var dhGain = gain * (Math.Log(dhMult) + Math.Log(rd)) / lnM;
         if (dhGain > 0 && extD > 0)
             foreach (var b in _extDh)
-                Credit(sec, b.Name, ownerName, dhGain * b.Rate / extD);
+                Credit(sec, b.Name, ownerName, b.Buff, dhGain * b.Rate / extD);
     }
 
     // A tick carries no roll flags, so it is the odds-weighted blend of the
@@ -890,14 +905,18 @@ public class RdpsEngine
         }
     }
 
-    private void Credit(long sec, string from, string to, double amount)
+    private void Credit(long sec, string from, string to, string buff, double amount)
     {
         if (amount <= 0 || from.Length == 0) return;
         Bucket(sec, from).Given += amount;
         Bucket(sec, to).Received += amount;
+
         if (!_pairs.TryGetValue(from, out var by))
-            _pairs[from] = by = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-        by[to] = by.TryGetValue(to, out var running) ? running + amount : amount;
+            _pairs[from] = by = new Dictionary<string, Dictionary<string, double>>(StringComparer.OrdinalIgnoreCase);
+        if (!by.TryGetValue(to, out var buffs))
+            by[to] = buffs = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+        var what = buff.Length > 0 ? buff : "Buff";
+        buffs[what] = buffs.TryGetValue(what, out var running) ? running + amount : amount;
     }
 
     private void SnapshotDot(uint target, uint effectId, uint source, long sec, float dur)
