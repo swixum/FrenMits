@@ -359,6 +359,24 @@ public class Meter : IDisposable
         EndFight();
     }
 
+    // A mid-combat reset must also close the parser's own encounter, or its
+    // running totals just repopulate the meter one second later. The parser
+    // watches for an echoed "end".
+    public void ResetEncounter()
+    {
+        Clear();
+        if (!Connected) return;
+        try
+        {
+            Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry
+            {
+                Message = "end",
+                Type = Dalamud.Game.Text.XivChatType.Echo,
+            });
+        }
+        catch { /* chat can refuse during load screens */ }
+    }
+
     public string StatusText => !C.MeterEnabled ? "off" : Link.Status switch
     {
         MeterLink.LinkStatus.Ipc => "connected to the parser (in-process)",

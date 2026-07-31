@@ -42,7 +42,8 @@ public class MeterWindow : Window
         if (C.MeterLocked) Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
         if (C.MeterClickThrough) Flags |= ImGuiWindowFlags.NoMouseInputs;
 
-        ImGui.SetNextWindowSize(C.MeterSize, C.MeterLocked ? ImGuiCond.Always : ImGuiCond.Appearing);
+        ImGui.SetNextWindowSize(C.MeterSize, C.MeterLocked || _applySize ? ImGuiCond.Always : ImGuiCond.Appearing);
+        _applySize = false;
         OverlayChrome.ApplyPosition(C.MeterPosition, C.MeterLocked, ref _applyPos);
     }
 
@@ -107,98 +108,152 @@ public class MeterWindow : Window
 
         // Bars scroll in their own region when the pull outgrows the window.
         // Click-through must reach into it too, or the mouse snags on the bars.
-        var footerH = (C.MeterButtons || C.MeterHealingTab) && !C.MeterClickThrough ? 21f : 0f;
+        var footerH = (C.MeterButtons || C.MeterHealingTab) && !C.MeterClickThrough ? 24f : 0f;
+        _overheadY = y + footerH + 4f;
         ImGui.SetCursorPos(new Vector2(0, y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, 0u);
         if (ImGui.BeginChild("##meterrows", new Vector2(ws.X, ws.Y - y - footerH - 4f), false,
-                C.MeterClickThrough ? ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoNav : ImGuiWindowFlags.None))
+                ImGuiWindowFlags.NoScrollbar
+                | (C.MeterClickThrough ? ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoNav : ImGuiWindowFlags.None)))
             DrawRows(enc, cols, pad);
         ImGui.EndChild();
         ImGui.PopStyleColor();
 
         if (footerH > 0) DrawFooter(dl, wp, ws, footerH, pad);
-        ContextMenu();
-    }
-
-    // ---- footer buttons ----------------------------------------------------
-
-    private void DrawFooter(ImDrawListPtr dl, Vector2 wp, Vector2 ws, float h, float pad)
-    {
-        var m = _plugin.Meter;
-        var top = ws.Y - h - 2f;
-        dl.AddLine(wp + new Vector2(pad, top), wp + new Vector2(ws.X - pad, top), 0x22FFFFFF);
-
-        ImGui.SetCursorPos(new Vector2(pad - 3f, top + 3f));
-        ImGui.PushStyleColor(ImGuiCol.Button, 0u);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0x2EFFFFFFu);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0x45FFFFFFu);
-        ImGui.PushStyleColor(ImGuiCol.Text, C.MeterSubColor);
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5f, 0f));
-
-        if (C.MeterHealingTab)
-        {
-            TabChip(dl, "Damage", 0);
-            ImGui.SameLine(0, 2);
-            TabChip(dl, "Healing", 1);
-            if (C.MeterButtons) ImGui.SameLine(0, 10);
-        }
-
-        if (C.MeterButtons)
-        {
-            if (FooterBtn(FontAwesomeIcon.ChevronLeft, "Older pull") && _histIdx < m.History.Count - 1)
-                _histIdx++;
-            ImGui.SameLine(0, 2);
-            if (FooterBtn(FontAwesomeIcon.List, "Pulls")) ImGui.OpenPopup("##meterpulls");
-            ImGui.SameLine(0, 2);
-            if (FooterBtn(FontAwesomeIcon.ChevronRight, "Newer pull") && _histIdx >= 0)
-                _histIdx--;
-            ImGui.SameLine(0, 8);
-            if (FooterBtn(m.Paused ? FontAwesomeIcon.Play : FontAwesomeIcon.Pause,
-                    m.Paused ? "Resume" : "Pause"))
-                m.Paused = !m.Paused;
-            ImGui.SameLine(0, 2);
-            if (FooterBtn(FontAwesomeIcon.Undo, "Reset")) { m.Clear(); _histIdx = -1; }
-        }
-
-        ImGui.PopStyleVar();
-        ImGui.PopStyleColor(4);
-
-        // What the meter is showing right now.
-        var label = m.Paused ? "paused" : _histIdx >= 0 ? $"pull -{_histIdx + 1}" : "live";
-        var lw = ImGui.CalcTextSize(label).X;
-        OverlayChrome.BoardText(dl, wp + new Vector2(ws.X - pad - lw, top + 4f),
-            m.Paused ? C.MeterAccentColor : C.MeterSubColor, label, true);
-
         if (ImGui.BeginPopup("##meterpulls"))
         {
             DrawPullList();
             ImGui.EndPopup();
         }
+        ContextMenu();
     }
 
-    // A footer mode tab, underlined in the accent while active.
-    private void TabChip(ImDrawListPtr dl, string label, int mode)
+    // ---- footer bar --------------------------------------------------------
+
+    private bool _applySize;
+    private float _overheadY = 80f;
+    private float _rowStride = 27f;
+    private int _renameTab = -1;
+    private string _renameTabBuf = "";
+    private bool _tabMenuOpen;
+
+    private void DrawFooter(ImDrawListPtr dl, Vector2 wp, Vector2 ws, float h, float pad)
     {
+        var m = _plugin.Meter;
+        var top = ws.Y - h;
+        dl.AddLine(wp + new Vector2(pad, top), wp + new Vector2(ws.X - pad, top), 0x1EFFFFFF);
+
+        var chipH = h - 6f;
+        var cy = top + 3f;
+        var x = pad - 3f;
+
+        if (C.MeterHealingTab)
+        {
+            TabChip(dl, ref x, cy, chipH, C.MeterTabNameDamage.Length > 0 ? C.MeterTabNameDamage : "Damage", 0);
+            TabChip(dl, ref x, cy, chipH, C.MeterTabNameHealing.Length > 0 ? C.MeterTabNameHealing : "Healing", 1);
+            if (C.MeterButtons) x += 8f;
+        }
+
+        if (C.MeterButtons)
+        {
+            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.ChevronLeft, "Older pull")
+                && _histIdx < m.History.Count - 1) _histIdx++;
+            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.List, "Pulls"))
+                ImGui.OpenPopup("##meterpulls");
+            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.ChevronRight, "Newer pull")
+                && _histIdx >= 0) _histIdx--;
+            x += 6f;
+            if (IconChip(dl, ref x, cy, chipH, m.Paused ? FontAwesomeIcon.Play : FontAwesomeIcon.Pause,
+                    m.Paused ? "Resume" : "Pause", accent: m.Paused))
+                m.Paused = !m.Paused;
+            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.Undo, "Reset"))
+            {
+                m.ResetEncounter();
+                _histIdx = -1;
+            }
+        }
+
+        // What the meter is showing right now.
+        var label = m.Paused ? "paused" : _histIdx >= 0 ? $"pull -{_histIdx + 1}" : "live";
+        var lw = ImGui.CalcTextSize(label).X;
+        OverlayChrome.BoardText(dl,
+            wp + new Vector2(ws.X - pad - lw, cy + (chipH - ImGui.GetTextLineHeight()) * 0.5f),
+            m.Paused ? C.MeterAccentColor : C.MeterSubColor, label, true);
+
+        TabRenamePopup();
+    }
+
+    // A footer icon in a uniform chip: hover wash, centered glyph.
+    private bool IconChip(ImDrawListPtr dl, ref float x, float cy, float h, FontAwesomeIcon icon, string tip,
+        bool accent = false)
+    {
+        var w = h + 9f;
+        ImGui.SetCursorPos(new Vector2(x, cy));
+        var clicked = ImGui.InvisibleButton($"##fc{tip}", new Vector2(w, h));
+        var hovered = ImGui.IsItemHovered();
+        var min = ImGui.GetItemRectMin();
+        if (hovered) dl.AddRectFilled(min, min + new Vector2(w, h), 0x22FFFFFF, 4f);
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            var g = icon.ToIconString();
+            var gs = ImGui.CalcTextSize(g);
+            dl.AddText(min + new Vector2((w - gs.X) * 0.5f, (h - gs.Y) * 0.5f),
+                accent ? C.MeterAccentColor : hovered ? C.MeterTextColor : C.MeterSubColor, g);
+        }
+        if (hovered) ImGui.SetTooltip(tip);
+        x += w + 2f;
+        return clicked;
+    }
+
+    // A mode tab: accent pill while active, right-click to rename.
+    private void TabChip(ImDrawListPtr dl, ref float x, float cy, float h, string label, int mode)
+    {
+        var w = ImGui.CalcTextSize(label).X + 16f;
+        ImGui.SetCursorPos(new Vector2(x, cy));
+        var clicked = ImGui.InvisibleButton($"##tab{mode}", new Vector2(w, h));
+        var hovered = ImGui.IsItemHovered();
+        var min = ImGui.GetItemRectMin();
+        var max = min + new Vector2(w, h);
         var active = C.MeterMode == mode;
-        if (active) ImGui.PushStyleColor(ImGuiCol.Text, C.MeterTextColor);
-        var clicked = ImGui.SmallButton(label);
         if (active)
         {
-            ImGui.PopStyleColor();
-            var min = ImGui.GetItemRectMin();
-            var max = ImGui.GetItemRectMax();
-            dl.AddLine(new Vector2(min.X + 2, max.Y), new Vector2(max.X - 2, max.Y), C.MeterAccentColor, 2f);
+            dl.AddRectFilled(min, max, (C.MeterAccentColor & 0x00FFFFFF) | 0x30000000, 4f);
+            dl.AddLine(new Vector2(min.X + 3, max.Y - 1), new Vector2(max.X - 3, max.Y - 1), C.MeterAccentColor, 2f);
         }
+        else if (hovered)
+            dl.AddRectFilled(min, max, 0x1CFFFFFF, 4f);
+        OverlayChrome.BoardText(dl, new Vector2(min.X + 8f, min.Y + (h - ImGui.GetTextLineHeight()) * 0.5f),
+            active ? C.MeterTextColor : C.MeterSubColor, label, true);
         if (clicked && !active) { C.MeterMode = mode; C.SaveSettings(); }
+        if (hovered && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
+        {
+            _renameTab = mode;
+            _renameTabBuf = label;
+            _tabMenuOpen = true;
+            ImGui.OpenPopup("##tabrename");
+        }
+        x += w + 2f;
     }
 
-    private bool FooterBtn(FontAwesomeIcon icon, string tip)
+    private void TabRenamePopup()
     {
-        bool clicked;
-        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-            clicked = ImGui.Button($"{icon.ToIconString()}##ft{tip}");
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tip);
-        return clicked;
+        if (!ImGui.BeginPopup("##tabrename")) { _tabMenuOpen = false; return; }
+        if (ImGui.IsWindowAppearing()) ImGui.SetKeyboardFocusHere();
+        ImGui.SetNextItemWidth(140f);
+        var enter = ImGui.InputText("##tabname", ref _renameTabBuf, 24, ImGuiInputTextFlags.EnterReturnsTrue);
+        ImGui.SameLine(0, 4);
+        if (ImGui.SmallButton("Save") || enter)
+        {
+            var name = _renameTabBuf.Trim();
+            if (name.Length > 0)
+            {
+                if (_renameTab == 0) C.MeterTabNameDamage = name;
+                else C.MeterTabNameHealing = name;
+                C.SaveSettings();
+            }
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndPopup();
     }
 
     private void DrawPullList()
@@ -218,7 +273,7 @@ public class MeterWindow : Window
     private MeterEncounter Smoothed(MeterEncounter enc)
     {
         var m = _plugin.Meter;
-        if (enc != m.Current || !enc.Active || m.Previous is not { } prev) return enc;
+        if (m.Paused || enc != m.Current || !enc.Active || m.Previous is not { } prev) return enc;
         var t = (float)((DateTime.UtcNow - m.CurrentAt).TotalSeconds / m.LerpSpan);
         if (t >= 1f) return enc;
         t = MathF.Max(0f, t);
@@ -280,16 +335,15 @@ public class MeterWindow : Window
             var mainW = ImGui.CalcTextSize(main).X;
             var timeW = ImGui.CalcTextSize(timeText).X;
             OverlayChrome.BoardText(dl, wp + new Vector2(pad, y), C.MeterTimerColor, timeText, true);
-            OverlayChrome.BoardText(dl, wp + new Vector2(pad + timeW + 8f, y), C.MeterTextColor,
-                Clip(title, ws.X - pad * 2 - mainW - timeW - 20f), true);
+            TitleWithPicker(dl, wp, pad + timeW + 8f, y,
+                Clip(title, ws.X - pad * 2 - mainW - timeW - 34f));
             OverlayChrome.BoardText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main, true);
             y += lineH + 5f;
         }
         else
         {
             var mainW = ImGui.CalcTextSize(main).X;
-            OverlayChrome.BoardText(dl, wp + new Vector2(pad, y), C.MeterTextColor,
-                Clip(title, ws.X - pad * 2 - mainW - 12f), true);
+            TitleWithPicker(dl, wp, pad, y, Clip(title, ws.X - pad * 2 - mainW - 26f));
             OverlayChrome.BoardText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main, true);
             y += lineH + 2f;
 
@@ -321,6 +375,25 @@ public class MeterWindow : Window
         }
     }
 
+    // The encounter name with a small caret: click to look back at past pulls.
+    private void TitleWithPicker(ImDrawListPtr dl, Vector2 wp, float x, float y, string shown)
+    {
+        OverlayChrome.BoardText(dl, wp + new Vector2(x, y), C.MeterTextColor, shown, true);
+        var tw = ImGui.CalcTextSize(shown).X;
+        float cw;
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            var g = FontAwesomeIcon.CaretDown.ToIconString();
+            cw = ImGui.CalcTextSize(g).X;
+            dl.AddText(wp + new Vector2(x + tw + 5f, y + 1f), C.MeterSubColor, g);
+        }
+        if (C.MeterClickThrough) return;
+        ImGui.SetCursorPos(new Vector2(x, y - 1f));
+        if (ImGui.InvisibleButton("##titlepick", new Vector2(tw + cw + 9f, ImGui.GetTextLineHeight() + 2f)))
+            ImGui.OpenPopup("##meterpulls");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Pick a pull");
+    }
+
     // ---- columns -----------------------------------------------------------
 
     private readonly record struct Col(string Key, string Label, string Sample, Func<MeterCombatant, string> Text);
@@ -333,6 +406,7 @@ public class MeterWindow : Window
         new("crit", "CRIT", "99.9%", c => $"{c.CritPct:0.#}%"),
         new("dh", "DH", "99.9%", c => $"{c.DirectHitPct:0.#}%"),
         new("hps", "HPS", "999.9k", c => Num(c.Hps)),
+        new("healed", "HEALED", "9.99M", c => Num(c.Healed)),
         new("overheal", "OH%", "99.9%", c => $"{c.OverhealPct:0.#}%"),
         new("taken", "TAKEN", "999.9k", c => Num(c.Taken)),
         new("deaths", "D", "9", c => c.Deaths.ToString()),
@@ -346,10 +420,14 @@ public class MeterWindow : Window
         return null;
     }
 
+    // Which saved column list the active mode edits and shows.
+    private List<string> ActiveColumnList()
+        => C.MeterMode == 1 ? C.MeterHealColumns : C.MeterColumns;
+
     // The configured columns, with the active mode's own metric always present.
     private List<Col> DisplayColumns()
     {
-        var keys = new List<string>(C.MeterColumns);
+        var keys = new List<string>(ActiveColumnList());
         var need = C.MeterMode switch { 1 => "hps", 2 => "taken", 3 => "deaths", _ => null };
         if (need != null && !keys.Contains(need)) keys.Insert(0, need);
         var cols = new List<Col>();
@@ -380,7 +458,7 @@ public class MeterWindow : Window
 
             // Each label is a grab handle: drag it left or right to reorder.
             // The mode-injected metric column is pinned, so it gets no handle.
-            if (!C.MeterClickThrough && C.MeterColumns.Contains(slot.Col.Key))
+            if (!C.MeterClickThrough && ActiveColumnList().Contains(slot.Col.Key))
             {
                 ImGui.SetCursorPos(new Vector2(x - ColGap * 0.5f, y - 2f));
                 ImGui.InvisibleButton($"##colgrab_{slot.Col.Key}", new Vector2(slot.Width + ColGap, lineH + 4f));
@@ -398,7 +476,8 @@ public class MeterWindow : Window
 
     private void HandleColumnDrag(Vector2 wp, List<(string Key, float X0, float X1)> rects, float rowTop, float lineH)
     {
-        if (_dragCol is not { } drag || !C.MeterColumns.Contains(drag)) { _dragCol = null; return; }
+        var keys = ActiveColumnList();
+        if (_dragCol is not { } drag || !keys.Contains(drag)) { _dragCol = null; return; }
 
         // Where the drop would land: the slot under the mouse, before or after
         // its center.
@@ -432,7 +511,6 @@ public class MeterWindow : Window
         // off the row leaves things as they were).
         if (over != null && over != drag)
         {
-            var keys = C.MeterColumns;
             keys.Remove(drag);
             var idx = keys.IndexOf(over);
             idx = idx < 0 ? 0 : idx + (after ? 1 : 0);
@@ -471,6 +549,7 @@ public class MeterWindow : Window
         var slots = Slots(cols);
         var lineH = ImGui.GetTextLineHeight();
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
+        _rowStride = rowH + C.MeterBarGap;
         var you = Plugin.LocalPlayer?.Name.ToString() ?? "";
         var rank = 0;
 
@@ -600,7 +679,7 @@ public class MeterWindow : Window
         if (C.MeterClickThrough) return;
         // Open on right-click anywhere over the meter; the bars live in a child
         // region, so the stock context-window helper would miss most of it.
-        if (ImGui.IsMouseReleased(ImGuiMouseButton.Right)
+        if (!_tabMenuOpen && ImGui.IsMouseReleased(ImGuiMouseButton.Right)
             && ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
             ImGui.OpenPopup("##metermenu");
         if (!ImGui.BeginPopup("##metermenu")) return;
@@ -623,13 +702,14 @@ public class MeterWindow : Window
         ImGui.Separator();
         if (ImGui.BeginMenu("Columns"))
         {
+            var list = ActiveColumnList();
             foreach (var col in AllCols)
             {
-                var on = C.MeterColumns.Contains(col.Key);
+                var on = list.Contains(col.Key);
                 if (ImGui.MenuItem(ColumnLabel(col.Key), "", on))
                 {
-                    if (on) C.MeterColumns.Remove(col.Key);
-                    else C.MeterColumns.Add(col.Key);
+                    if (on) list.Remove(col.Key);
+                    else list.Add(col.Key);
                     C.SaveSettings();
                 }
             }
@@ -688,7 +768,7 @@ public class MeterWindow : Window
             C.SaveSettings();
         }
         ImGui.Separator();
-        if (ImGui.MenuItem("Clear data")) { m.Clear(); _histIdx = -1; }
+        if (ImGui.MenuItem("Clear data")) { m.ResetEncounter(); _histIdx = -1; }
         if (ImGui.MenuItem("Settings...")) _plugin.ConfigWindow.OpenMeterPage();
 
         ImGui.EndPopup();
@@ -704,6 +784,12 @@ public class MeterWindow : Window
         if ((size - C.MeterSize).LengthSquared() > 1f) { C.MeterSize = size; _sizeDirty = true; }
         if ((_posDirty || _sizeDirty) && !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
+            if (_sizeDirty && _rowStride > 4f)
+            {
+                var rows = MathF.Max(2f, MathF.Round((C.MeterSize.Y - _overheadY) / _rowStride));
+                C.MeterSize = new Vector2(C.MeterSize.X, _overheadY + rows * _rowStride);
+                _applySize = true;
+            }
             C.SaveSettings();
             _posDirty = _sizeDirty = false;
         }
@@ -770,6 +856,7 @@ public class MeterWindow : Window
         "crit" => "Crit %",
         "dh" => "Direct hit %",
         "hps" => "HPS",
+        "healed" => "Healed total",
         "overheal" => "Overheal %",
         "taken" => "Damage taken",
         _ => "Deaths",

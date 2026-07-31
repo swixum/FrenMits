@@ -244,12 +244,16 @@ public class Configuration : IPluginConfiguration
     public bool MeterLocked { get; set; }
     public bool MeterClickThrough { get; set; }
     public Vector2 MeterPosition { get; set; } = new(0.8f, 0.72f);
-    public Vector2 MeterSize { get; set; } = new(360f, 250f);
+    public Vector2 MeterSize { get; set; } = new(360f, 300f);
     public int MeterMode { get; set; }                   // 0 damage, 1 healing, 2 taken, 3 deaths
     // Replace, or the loader appends the saved list into these seeded defaults
     // and every reload doubles the columns.
     [Newtonsoft.Json.JsonProperty(ObjectCreationHandling = Newtonsoft.Json.ObjectCreationHandling.Replace)]
     public List<string> MeterColumns { get; set; } = new() { "rdps", "dps", "dmgpct" };
+
+    // The healing view keeps its own columns: healing numbers, no damage ones.
+    [Newtonsoft.Json.JsonProperty(ObjectCreationHandling = Newtonsoft.Json.ObjectCreationHandling.Replace)]
+    public List<string> MeterHealColumns { get; set; } = new() { "hps", "healed", "overheal" };
 
     // Repairs a column list a pre-fix load doubled up: the last copy of each
     // key is the saved one, so keeping it preserves the user's order.
@@ -269,6 +273,8 @@ public class Configuration : IPluginConfiguration
     public int MeterBarStyle { get; set; }               // 0 flat, 1 glass, 2 gradient
     public bool MeterButtons { get; set; } = true;       // footer bar: pulls, pause, reset
     public bool MeterHealingTab { get; set; } = true;    // Damage / Healing tabs in the footer
+    public string MeterTabNameDamage { get; set; } = "Damage";
+    public string MeterTabNameHealing { get; set; } = "Healing";
     public bool MeterHighlightYou { get; set; } = true;  // outline your own row
     public bool MeterColumnHeader { get; set; } = true;
     public bool MeterShowRank { get; set; } = true;

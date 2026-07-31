@@ -20,6 +20,7 @@ public static class MeterProfile
             ["size"] = new JArray(c.MeterSize.X, c.MeterSize.Y),
             ["mode"] = c.MeterMode,
             ["cols"] = new JArray(c.MeterColumns),
+            ["healcols"] = new JArray(c.MeterHealColumns),
             ["header"] = c.MeterHeaderStyle,
             ["colhead"] = c.MeterColumnHeader,
             ["rank"] = c.MeterShowRank,
@@ -37,6 +38,8 @@ public static class MeterProfile
             ["bars"] = c.MeterBarStyle,
             ["btns"] = c.MeterButtons,
             ["healtab"] = c.MeterHealingTab,
+            ["tabdmg"] = c.MeterTabNameDamage,
+            ["tabheal"] = c.MeterTabNameHealing,
             ["hlyou"] = c.MeterHighlightYou,
             ["jobcol"] = c.MeterJobColors,
             ["accent"] = c.MeterAccentColor,
@@ -70,13 +73,8 @@ public static class MeterProfile
             if (o["size"] is JArray { Count: 2 } s)
                 c.MeterSize = new Vector2(Math.Clamp((float)s[0], 230f, 2000f), Math.Clamp((float)s[1], 84f, 1600f));
             if (o["mode"] is { } m) c.MeterMode = Math.Clamp((int)m, 0, 3);
-            if (o["cols"] is JArray cols)
-            {
-                c.MeterColumns.Clear();
-                foreach (var t in cols)
-                    if (t?.ToString() is { Length: > 0 } key && !c.MeterColumns.Contains(key))
-                        c.MeterColumns.Add(key);
-            }
+            if (o["cols"] is JArray cols) FillColumns(c.MeterColumns, cols);
+            if (o["healcols"] is JArray heal) FillColumns(c.MeterHealColumns, heal);
             if (o["header"] is { } h) c.MeterHeaderStyle = Math.Clamp((int)h, 0, 2);
             if (o["colhead"] is { } ch) c.MeterColumnHeader = (bool)ch;
             if (o["rank"] is { } rk) c.MeterShowRank = (bool)rk;
@@ -94,6 +92,8 @@ public static class MeterProfile
             if (o["bars"] is { } br) c.MeterBarStyle = Math.Clamp((int)br, 0, 2);
             if (o["btns"] is { } bt) c.MeterButtons = (bool)bt;
             if (o["healtab"] is { } ht) c.MeterHealingTab = (bool)ht;
+            if (o["tabdmg"] is { } td && td.ToString() is { Length: > 0 and <= 24 } tdn) c.MeterTabNameDamage = tdn;
+            if (o["tabheal"] is { } th && th.ToString() is { Length: > 0 and <= 24 } thn) c.MeterTabNameHealing = thn;
             if (o["hlyou"] is { } hy) c.MeterHighlightYou = (bool)hy;
             if (o["jobcol"] is { } jc) c.MeterJobColors = (bool)jc;
             if (o["accent"] is { } ac) c.MeterAccentColor = (uint)ac;
@@ -109,6 +109,14 @@ public static class MeterProfile
         {
             return false;
         }
+    }
+
+    private static void FillColumns(System.Collections.Generic.List<string> list, JArray keys)
+    {
+        list.Clear();
+        foreach (var t in keys)
+            if (t?.ToString() is { Length: > 0 } key && !list.Contains(key))
+                list.Add(key);
     }
 
     private static float Clamp01(float v) => Math.Clamp(v, 0f, 1f);

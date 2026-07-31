@@ -180,8 +180,13 @@ public partial class ConfigWindow
             ImGui.Spacing();
             ImGui.TextDisabled("Drag the labels on the meter to reorder, or use the arrows.");
             ImGui.Spacing();
-            foreach (var key in new[] { "rdps", "dps", "dmgpct", "crit", "dh", "hps", "overheal", "taken", "deaths" })
-                DrawColumnRow(key);
+            ImGui.TextColored(new System.Numerics.Vector4(0.55f, 0.75f, 0.98f, 1f), "DAMAGE VIEW");
+            foreach (var key in AllMeterColumnKeys)
+                DrawColumnRow(key, C.MeterColumns, "d");
+            ImGui.Spacing();
+            ImGui.TextColored(new System.Numerics.Vector4(0.55f, 0.75f, 0.98f, 1f), "HEALING VIEW");
+            foreach (var key in AllMeterColumnKeys)
+                DrawColumnRow(key, C.MeterHealColumns, "h");
             ImGui.EndTabItem();
         }
 
@@ -333,15 +338,18 @@ public partial class ConfigWindow
             MeterFlash("That code didn't read as a meter profile.", ok: false);
     }
 
-    private void DrawColumnRow(string key)
+    private static readonly string[] AllMeterColumnKeys =
+        { "rdps", "dps", "dmgpct", "crit", "dh", "hps", "healed", "overheal", "taken", "deaths" };
+
+    private void DrawColumnRow(string key, List<string> list, string view)
     {
         var label = MeterWindow.ColumnLabel(key);
-        var idx = C.MeterColumns.IndexOf(key);
+        var idx = list.IndexOf(key);
         var on = idx >= 0;
-        if (GreenCheckbox($"##mcol_{key}", ref on))
+        if (GreenCheckbox($"##mcol_{view}_{key}", ref on))
         {
-            if (on) C.MeterColumns.Add(key);
-            else C.MeterColumns.Remove(key);
+            if (on) list.Add(key);
+            else list.Remove(key);
             C.SaveSettings();
         }
         ImGui.SameLine(0, 8);
@@ -350,16 +358,16 @@ public partial class ConfigWindow
         if (idx >= 0)
         {
             ImGui.SameLine(210f);
-            ImGui.PushID(key);
+            ImGui.PushID($"{view}_{key}");
             if (ImGui.ArrowButton("up", ImGuiDir.Up) && idx > 0)
             {
-                (C.MeterColumns[idx - 1], C.MeterColumns[idx]) = (C.MeterColumns[idx], C.MeterColumns[idx - 1]);
+                (list[idx - 1], list[idx]) = (list[idx], list[idx - 1]);
                 C.SaveSettings();
             }
             ImGui.SameLine(0, 4);
-            if (ImGui.ArrowButton("down", ImGuiDir.Down) && idx < C.MeterColumns.Count - 1)
+            if (ImGui.ArrowButton("down", ImGuiDir.Down) && idx < list.Count - 1)
             {
-                (C.MeterColumns[idx + 1], C.MeterColumns[idx]) = (C.MeterColumns[idx], C.MeterColumns[idx + 1]);
+                (list[idx + 1], list[idx]) = (list[idx], list[idx + 1]);
                 C.SaveSettings();
             }
             ImGui.PopID();

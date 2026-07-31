@@ -137,17 +137,17 @@ public class RdpsEngine
         if (f[7].Length > 0) CurrentEnemy = f[7];
         if (IsLimitBreak?.Invoke(Hex(f[4])) == true) return;
 
-        // The first connected damage pair (fields 8..23 are eight flag|value
-        // pairs); heals and pure bookkeeping entries are skipped.
+        // Every connected damage pair (fields 8..23 are eight flag|value
+        // pairs): low byte 03/05/06 is damage, 0x100 crit, 0x200 direct hit.
+        // Heals, bookkeeping entries and the odd shifted pair fall through.
         for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
         {
             var flags = Hex(f[i]);
-            if ((flags & 0xFF) != 0x03) continue;
+            if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
             var dmg = Unscramble(HexLong(f[i + 1]));
-            if (dmg == 0) return;
+            if (dmg == 0) continue;
             Credit(owner, src == owner ? f[3] : "", target, dmg,
-                crit: (flags & 0x2000) != 0, dh: (flags & 0x4000) != 0, Sec(f[1]));
-            return;
+                crit: (flags & 0x100) != 0, dh: (flags & 0x200) != 0, Sec(f[1]));
         }
     }
 

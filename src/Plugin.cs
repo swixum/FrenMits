@@ -79,7 +79,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         if (slotsRenamed) Config.Save();
 
         // Meter columns saved by a pre-Replace build carry doubled entries.
-        if (Configuration.DedupeMeterColumns(Config.MeterColumns)) Config.SaveSettings();
+        var colsFixed = Configuration.DedupeMeterColumns(Config.MeterColumns);
+        colsFixed |= Configuration.DedupeMeterColumns(Config.MeterHealColumns);
+        if (colsFixed) Config.SaveSettings();
 
         // Auto-add any built-in fight the user hasn't been shown yet.
         Config.SeededTerritories ??= new();
