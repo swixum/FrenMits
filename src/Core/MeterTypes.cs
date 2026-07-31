@@ -5,6 +5,22 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
+// One line of a player's breakdown: an ability they used, an enemy they hit,
+// or something that hit them.
+public sealed class AbilityStat
+{
+    public string Name = "";
+    public int Hits;
+    public int Crits;
+    public int Dhs;
+    public double Damage;
+    public double Max;
+
+    public double Average => Hits > 0 ? Damage / Hits : 0;
+    public double CritPct => Hits > 0 ? Crits * 100.0 / Hits : 0;
+    public double DhPct => Hits > 0 ? Dhs * 100.0 / Hits : 0;
+}
+
 // One combatant row of a parsed encounter update.
 public sealed class MeterCombatant
 {
@@ -41,6 +57,17 @@ public sealed class MeterEncounter
     public double RaidRDps;
     public DateTime When = DateTime.Now;
     public List<MeterCombatant> Rows = new();
+
+    // Per-player breakdowns, filled in when the pull finishes so a look back
+    // through history still has them.
+    public Dictionary<string, List<AbilityStat>> Dealt { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    public Dictionary<string, List<AbilityStat>> Targets { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    public Dictionary<string, List<AbilityStat>> Taken { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
 
     public static MeterEncounter? Parse(JObject msg)
     {

@@ -163,6 +163,50 @@ public class RdpsEngine
         }
     }
 
+    // ---- per-player breakdowns ---------------------------------------------
+
+    // What each player used, who they hit with it, and what hit them. Kept for
+    // the running fight only; a finished pull keeps its own copy.
+    private readonly Dictionary<string, Dictionary<string, AbilityStat>> _dealt = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Dictionary<string, AbilityStat>> _targets = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Dictionary<string, AbilityStat>> _taken = new(StringComparer.OrdinalIgnoreCase);
+
+    // Status names by id, so a damage-over-time tick can be named.
+    private readonly Dictionary<uint, string> _effectNames = new();
+
+    private static void Tally(Dictionary<string, Dictionary<string, AbilityStat>> table,
+        string who, string what, double dmg, bool crit, bool dh)
+    {
+        if (who.Length == 0 || what.Length == 0 || dmg <= 0) return;
+        if (!table.TryGetValue(who, out var by))
+            table[who] = by = new Dictionary<string, AbilityStat>(StringComparer.OrdinalIgnoreCase);
+        if (!by.TryGetValue(what, out var s)) by[what] = s = new AbilityStat { Name = what };
+        s.Hits++;
+        if (crit) s.Crits++;
+        if (dh) s.Dhs++;
+        s.Damage += dmg;
+        if (dmg > s.Max) s.Max = dmg;
+    }
+
+    private static List<AbilityStat> Ranked(Dictionary<string, Dictionary<string, AbilityStat>> table, string who)
+    {
+        var list = new List<AbilityStat>();
+        if (who.Length > 0 && table.TryGetValue(who, out var by)) list.AddRange(by.Values);
+        list.Sort((a, b) => b.Damage.CompareTo(a.Damage));
+        return list;
+    }
+
+    public List<AbilityStat> Dealt(string player) => Ranked(_dealt, player);
+    public List<AbilityStat> Targets(string player) => Ranked(_targets, player);
+    public List<AbilityStat> Taken(string player) => Ranked(_taken, player);
+
+    public void ClearBreakdown()
+    {
+        _dealt.Clear();
+        _targets.Clear();
+        _taken.Clear();
+    }
+
     // ---- damage over time snapshots ---------------------------------------
 
     // The game locks a damage-over-time effect's buffs in when it is applied,
@@ -218,6 +262,7 @@ public class RdpsEngine
                 _guards.Clear();
                 _songs.Clear();
                 _finale.Clear();
+                ClearBreakdown();
                 break;
         }
     }
@@ -240,6 +285,7 @@ public class RdpsEngine
         var tgt = Hex(f[7]);
         var src = Hex(f[5]);
         var sec = Sec(f[1]);
+        if (status.Length > 0) _effectNames[Hex(f[2])] = status;
 
         // Any player-sourced status landing on an enemy could be a damage over
         // time effect: freeze the caster's buff state for its ticks.
@@ -338,10 +384,15 @@ public class RdpsEngine
         if (f.Length < 10) return;
         var src = Hex(f[2]);
         var owner = OwnerOf(src);
-        if (owner == 0) return;              // not a player, not a player's pet
+        var target = Hex(f[6]);
+        if (owner == 0)
+        {
+            // An enemy swinging at the party: only the taken breakdown wants it.
+            if (IsPlayer(target)) OnTaken(f, target);
+            return;
+        }
         var action = f[5];
         if (action.Length > 0) Sniff(owner, action);
-        var target = Hex(f[6]);
         if (target < 0x40000000) return;     // only damage into enemies counts
         if (f[7].Length > 0) CurrentEnemy = f[7];
         if (IsLimitBreak?.Invoke(Hex(f[4])) == true) return;
@@ -365,9 +416,27 @@ public class RdpsEngine
             var crit = (flags & 0x100) != 0;
             var dh = (flags & 0x200) != 0;
 
+            Tally(_dealt, ownerName, action.Length > 0 ? action : "Attack", dmg, crit, dh);
+            if (f[7].Length > 0) Tally(_targets, ownerName, f[7], dmg, crit, dh);
+
             Gather(owner, target, sec);
             Learn(owner, crit, dh, gc && crit, gd && dh);
             Allocate(owner, ownerName, dmg, crit, dh, gc && crit, gd && dh, sec);
+        }
+    }
+
+    // Enemy damage into a player, for their taken breakdown.
+    private void OnTaken(string[] f, uint target)
+    {
+        var who = f[7];
+        if (who.Length == 0 && !_names.TryGetValue(target, out who!)) return;
+        var action = f[5].Length > 0 ? f[5] : "Attack";
+        for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
+        {
+            var flags = Hex(f[i]);
+            if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
+            var dmg = Unscramble(HexLong(f[i + 1]));
+            if (dmg > 0) Tally(_taken, who, action, dmg, (flags & 0x100) != 0, (flags & 0x200) != 0);
         }
     }
 
@@ -384,6 +453,12 @@ public class RdpsEngine
         var sec = Sec(f[1]);
         if (sec > LatestSec) LatestSec = sec;
         if (!_names.TryGetValue(owner, out var ownerName) || ownerName.Length == 0) return;
+
+        var effect = Hex(f[5]);
+        Tally(_dealt, ownerName,
+            _effectNames.TryGetValue(effect, out var en) && en.Length > 0 ? en : "Damage over time",
+            dmg, crit: false, dh: false);
+        if (f[3].Length > 0) Tally(_targets, ownerName, f[3], dmg, crit: false, dh: false);
 
         // Ticks price against the buffs frozen at application; a tick with no
         // snapshot (ground effects) falls back to what is up right now.

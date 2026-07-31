@@ -90,6 +90,7 @@ public class Meter : IDisposable
             if (Current != null)
             {
                 Current.Active = false;
+                Materialize(Current);
                 if (_sawBoss) PushHistory(Current);
             }
             EndFight();
@@ -167,9 +168,14 @@ public class Meter : IDisposable
             else
             {
                 raw = Subtract(incoming, _cut);
-                // Nothing has happened since the cut: stay idle rather than
-                // publishing an empty fight.
-                if (raw.Rows.Count == 0) return;
+                // A pull starts when damage does. Until then the cut slides
+                // along, so neither the wait after a wipe nor the healing that
+                // follows one lands on the next pull's clock.
+                if (raw.TotalDamage <= 0)
+                {
+                    _cut = Snapshot(incoming);
+                    return;
+                }
             }
         }
 
@@ -219,9 +225,46 @@ public class Meter : IDisposable
         }
 
         display.Active = false;
+        Materialize(display);
         Publish(display);
         if (_sawBoss) PushHistory(display);
         EndFight();
+    }
+
+    // A finished pull carries its own breakdowns, so looking back at it later
+    // does not depend on the engine still holding that fight.
+    private void Materialize(MeterEncounter enc)
+    {
+        foreach (var r in enc.Rows)
+        {
+            var who = r.Display.Length > 0 ? r.Display : r.Name;
+            if (Engine.Dealt(who) is { Count: > 0 } d) enc.Dealt[who] = Freeze(d);
+            if (Engine.Targets(who) is { Count: > 0 } t) enc.Targets[who] = Freeze(t);
+            if (Engine.Taken(who) is { Count: > 0 } k) enc.Taken[who] = Freeze(k);
+        }
+    }
+
+    // Copies, not the engine's own rows: it keeps tallying into those, and a
+    // finished pull must never move again.
+    public static List<AbilityStat> Freeze(List<AbilityStat> live)
+    {
+        var copy = new List<AbilityStat>(live.Count);
+        foreach (var a in live)
+            copy.Add(new AbilityStat
+            {
+                Name = a.Name, Hits = a.Hits, Crits = a.Crits,
+                Dhs = a.Dhs, Damage = a.Damage, Max = a.Max,
+            });
+        return copy;
+    }
+
+    // What a player did, or had done to them, in the pull on screen.
+    public List<AbilityStat> Breakdown(MeterEncounter enc, string player, int kind)
+    {
+        var stored = kind switch { 1 => enc.Targets, 2 => enc.Taken, _ => enc.Dealt };
+        if (stored.TryGetValue(player, out var saved)) return saved;
+        if (enc.Dealt.Count > 0 || enc.Taken.Count > 0) return new List<AbilityStat>();
+        return kind switch { 1 => Engine.Targets(player), 2 => Engine.Taken(player), _ => Engine.Dealt(player) };
     }
 
     private void EndFight()
@@ -230,6 +273,9 @@ public class Meter : IDisposable
         _fightStartSec = 0;
         _fightTitle = "";
         _sawBoss = false;
+        // Clear when a fight ENDS, not when the next one starts: the summary
+        // feed lags the log, so clearing on arrival would eat the opener.
+        Engine.ClearBreakdown();
     }
 
     private void PushHistory(MeterEncounter enc)
@@ -356,6 +402,7 @@ public class Meter : IDisposable
         {
             var display = Merge(_carry, seg);
             display.Active = false;
+            Materialize(display);
             Publish(display);
             if (_sawBoss) PushHistory(display);
             EndFight();
@@ -535,7 +582,51 @@ public class Meter : IDisposable
         e.TotalDamage = e.TotalDps * e.Seconds;
         foreach (var c in e.Rows)
             c.DamagePct = $"{c.Damage / e.TotalDamage * 100:0}%";
+        SampleBreakdowns(e);
         return _sample = e;
+    }
+
+    // Give the sample pull a breakdown too, so the detail view can be placed
+    // and styled from Test mode like everything else.
+    private static void SampleBreakdowns(MeterEncounter e)
+    {
+        // Shares of a player's damage, and of what they took, by rank.
+        var shares = new[] { 0.24, 0.19, 0.15, 0.12, 0.10, 0.08, 0.07, 0.05 };
+        var names = new[]
+        {
+            "Opener", "Burst finisher", "Filler", "Combo ender", "Combo starter",
+            "Damage over time", "Off-global", "Ranged shot",
+        };
+        var hurt = new[] { "Cleave", "Raidwide", "Tank buster", "attack" };
+
+        foreach (var r in e.Rows)
+        {
+            var who = r.Display.Length > 0 ? r.Display : r.Name;
+            var dealt = new List<AbilityStat>();
+            for (var i = 0; i < shares.Length; i++)
+                dealt.Add(new AbilityStat
+                {
+                    Name = names[i], Damage = r.Damage * shares[i],
+                    Hits = 6 + i * 7, Crits = 2 + i * 2, Dhs = 3 + i * 2,
+                    Max = r.Damage * shares[i] / (4 + i),
+                });
+            e.Dealt[who] = dealt;
+
+            e.Targets[who] = new List<AbilityStat>
+            {
+                new() { Name = "Kefka", Damage = r.Damage * 0.82, Hits = 74, Max = r.Damage * 0.04 },
+                new() { Name = "Lingering Spirit", Damage = r.Damage * 0.18, Hits = 12, Max = r.Damage * 0.03 },
+            };
+
+            var taken = new List<AbilityStat>();
+            for (var i = 0; i < hurt.Length; i++)
+                taken.Add(new AbilityStat
+                {
+                    Name = hurt[i], Damage = r.Taken * (0.42 - i * 0.09),
+                    Hits = 2 + i * 6, Max = r.Taken * 0.3,
+                });
+            e.Taken[who] = taken;
+        }
     }
 
     public void Dispose() => Link.Dispose();

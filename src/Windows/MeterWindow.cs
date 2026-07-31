@@ -66,8 +66,14 @@ public class MeterWindow : Window
     private MeterEncounter? View()
     {
         var m = _plugin.Meter;
-        // A fresh pull always pulls the meter back to live.
-        if (m.Current is { Active: true }) _histIdx = -1;
+        // A fresh pull always pulls the meter back to live, and out of a
+        // breakdown belonging to the pull before it.
+        if (m.Current is { Active: true } live)
+        {
+            _histIdx = -1;
+            if (_detailFor.Length > 0 && live.Seconds + 1f < _detailSeconds) _detailFor = "";
+            _detailSeconds = live.Seconds;
+        }
         if (_histIdx >= 0 && _histIdx < m.History.Count) return m.History[_histIdx];
         _histIdx = -1;
         return m.Current ?? (C.TestMode ? m.Sample() : null);
@@ -116,7 +122,7 @@ public class MeterWindow : Window
         DrawHeader(enc, dl, wp, ws, pad, ref y);
 
         var cols = DisplayColumns();
-        if (C.MeterColumnHeader && C.MeterHeaderStyle != 2)
+        if (C.MeterColumnHeader && C.MeterHeaderStyle != 2 && _detailFor.Length == 0)
             DrawColumnHeader(cols, dl, wp, ws, pad, ref y);
 
         // Bars scroll in their own region when the pull outgrows the window.
@@ -125,12 +131,17 @@ public class MeterWindow : Window
             ? MathF.Ceiling(ImGui.GetTextLineHeight()) + 10f
             : 0f;
         _overheadY = y + footerH + 4f;
+        // Re-established every frame by whichever row the mouse is actually over.
+        _rowUnderMouse = "";
         ImGui.SetCursorPos(new Vector2(0, y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, 0u);
         if (ImGui.BeginChild("##meterrows", new Vector2(ws.X, ws.Y - y - footerH - 4f), false,
                 ImGuiWindowFlags.NoScrollbar
                 | (C.MeterClickThrough ? ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoNav : ImGuiWindowFlags.None)))
-            DrawRows(enc, cols, pad);
+        {
+            if (_detailFor.Length > 0) DrawDetail(enc, pad);
+            else DrawRows(enc, cols, pad);
+        }
         ImGui.EndChild();
         ImGui.PopStyleColor();
 
@@ -153,6 +164,7 @@ public class MeterWindow : Window
     private int _renameTab = -1;
     private string _renameTabBuf = "";
     private bool _tabMenuOpen;
+    private string _menuPlayer = "";
 
     private void DrawFooter(ImDrawListPtr dl, Vector2 wp, Vector2 ws, float h, float pad)
     {
@@ -398,8 +410,29 @@ public class MeterWindow : Window
     }
 
     // The encounter name with a small caret: click to look back at past pulls.
+    // While a player's breakdown is open it turns into the way back out.
     private void TitleWithPicker(ImDrawListPtr dl, Vector2 wp, float x, float y, string shown)
     {
+        var lineH = ImGui.GetTextLineHeight();
+        if (_detailFor.Length > 0)
+        {
+            // A back arrow, then whose breakdown this is.
+            float bw;
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            {
+                var g = FontAwesomeIcon.CaretLeft.ToIconString();
+                bw = ImGui.CalcTextSize(g).X;
+                dl.AddText(wp + new Vector2(x, y + 1f), C.MeterSubColor, g);
+            }
+            BText(dl, wp + new Vector2(x + bw + 5f, y), C.MeterTitleColor, _detailFor);
+            if (C.MeterClickThrough) return;
+            ImGui.SetCursorPos(new Vector2(x, y - 1f));
+            var hit = bw + ImGui.CalcTextSize(_detailFor).X + 9f;
+            if (ImGui.InvisibleButton("##titleback", new Vector2(hit, lineH + 2f))) _detailFor = "";
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Back to the list");
+            return;
+        }
+
         BText(dl, wp + new Vector2(x, y), C.MeterTitleColor, shown);
         var tw = ImGui.CalcTextSize(shown).X;
         float cw;
@@ -411,7 +444,7 @@ public class MeterWindow : Window
         }
         if (C.MeterClickThrough) return;
         ImGui.SetCursorPos(new Vector2(x, y - 1f));
-        if (ImGui.InvisibleButton("##titlepick", new Vector2(tw + cw + 9f, ImGui.GetTextLineHeight() + 2f)))
+        if (ImGui.InvisibleButton("##titlepick", new Vector2(tw + cw + 9f, lineH + 2f)))
             ImGui.OpenPopup("##meterpulls");
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Pick a pull");
     }
@@ -600,37 +633,7 @@ public class MeterWindow : Window
             dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
                 hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
             var fill = (float)(Metric(r) / max) * (w - pad * 2 + 6f);
-            if (fill > 2f)
-            {
-                var a = p + new Vector2(pad - 3f, 0);
-                var b = p + new Vector2(pad - 3f + fill, rowH);
-                var op = C.MeterBarOpacity;
-                switch (C.MeterBarStyle)
-                {
-                    case 1: // glass: solid fill with a shine across the top half
-                        dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
-                        dl.AddRectFilledMultiColor(a + new Vector2(1f, 1f), new Vector2(b.X, p.Y + rowH * 0.55f),
-                            0x24FFFFFF, 0x24FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
-                        break;
-                    case 2: // gradient: strong at the left, fading right
-                        dl.AddRectFilledMultiColor(a + new Vector2(0f, 1f), b - new Vector2(0f, 1f),
-                            Fade(rgb | 0x8C000000, op), Fade(rgb | 0x26000000, op),
-                            Fade(rgb | 0x26000000, op), Fade(rgb | 0x8C000000, op));
-                        break;
-                    case 3: // outline: a hollow bar with a bright edge
-                        dl.AddRectFilled(a, b, Fade(rgb | 0x1A000000, op), 4f);
-                        dl.AddRect(a, b, Fade(rgb | 0xCC000000, op), 4f);
-                        break;
-                    case 4: // minimal: a rule under the row, no fill
-                        dl.AddRectFilled(new Vector2(a.X, b.Y - 2f), b, Fade(rgb | 0xD9000000, op));
-                        break;
-                    default: // flat
-                        dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
-                        break;
-                }
-                if (C.MeterBarStyle != 4)
-                    dl.AddRectFilled(a, p + new Vector2(pad, rowH), Fade(rgb | 0xE6000000, op), 2f);
-            }
+            DrawBar(dl, p + new Vector2(pad - 3f, 0), fill, rowH, rgb, p.X + pad);
             if (C.MeterHighlightYou && IsYou(r, you))
             {
                 var hrgb = C.MeterHighlightColor & 0x00FFFFFF;
@@ -687,8 +690,146 @@ public class MeterWindow : Window
 
             if (hovered)
             {
+                _rowUnderMouse = r.Display.Length > 0 ? r.Display : r.Name;
                 PushMenuTheme();
-                RowTooltip(r);
+                RowTooltip(enc, r);
+                PopMenuTheme();
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Left)) OpenDetail(_rowUnderMouse);
+            }
+            ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
+        }
+    }
+
+    // One bar in whichever fill style is set, plus the bright cap at its start.
+    // Shared by the player list and the breakdown so both always look alike.
+    private void DrawBar(ImDrawListPtr dl, Vector2 a, float fill, float rowH, uint rgb, float capEndX)
+    {
+        if (fill <= 2f) return;
+        var b = new Vector2(a.X + fill, a.Y + rowH);
+        var op = C.MeterBarOpacity;
+        switch (C.MeterBarStyle)
+        {
+            case 1: // glass: solid fill with a shine across the top half
+                dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
+                dl.AddRectFilledMultiColor(a + new Vector2(1f, 1f), new Vector2(b.X, a.Y + rowH * 0.55f),
+                    0x24FFFFFF, 0x24FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
+                break;
+            case 2: // gradient: strong at the left, fading right
+                dl.AddRectFilledMultiColor(a + new Vector2(0f, 1f), b - new Vector2(0f, 1f),
+                    Fade(rgb | 0x8C000000, op), Fade(rgb | 0x26000000, op),
+                    Fade(rgb | 0x26000000, op), Fade(rgb | 0x8C000000, op));
+                break;
+            case 3: // outline: a hollow bar with a bright edge
+                dl.AddRectFilled(a, b, Fade(rgb | 0x1A000000, op), 4f);
+                dl.AddRect(a, b, Fade(rgb | 0xCC000000, op), 4f);
+                break;
+            case 4: // minimal: a rule under the row, no fill
+                dl.AddRectFilled(new Vector2(a.X, b.Y - 2f), b, Fade(rgb | 0xD9000000, op));
+                return;
+            default: // flat
+                dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
+                break;
+        }
+        dl.AddRectFilled(a, new Vector2(capEndX, b.Y), Fade(rgb | 0xE6000000, op), 2f);
+    }
+
+    // ---- one player's breakdown --------------------------------------------
+
+    private string _detailFor = "";
+    private int _detailKind;          // 0 abilities, 1 targets, 2 taken
+    private string _rowUnderMouse = "";
+    private float _detailSeconds;     // the clock when the open breakdown was drawn
+
+    private void OpenDetail(string player)
+    {
+        _detailFor = player;
+        _detailKind = 0;
+    }
+
+    private static readonly string[] DetailTabs = { "Abilities", "Targets", "Taken" };
+
+    private void DrawDetail(MeterEncounter enc, float pad)
+    {
+        var w = MathF.Max(60f, ImGui.GetContentRegionAvail().X);
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+
+        // The three lists sit on one row of chips; keep every chip on that line.
+        var tabsY = ImGui.GetCursorPosY();
+        var x = pad - 3f;
+        for (var i = 0; i < DetailTabs.Length; i++)
+        {
+            var label = DetailTabs[i];
+            var tw = ImGui.CalcTextSize(label).X + 14f;
+            ImGui.SetCursorPos(new Vector2(x, tabsY));
+            var clicked = ImGui.InvisibleButton($"##dt{i}", new Vector2(tw, lineH + 6f));
+            var min = ImGui.GetItemRectMin();
+            var on = _detailKind == i;
+            if (on) dl.AddRectFilled(min, min + new Vector2(tw, lineH + 6f),
+                (C.MeterAccentColor & 0x00FFFFFF) | 0x33000000, 4f);
+            BText(dl, min + new Vector2(7f, 3f), on ? C.MeterTextColor : C.MeterSubColor, label);
+            if (clicked) _detailKind = i;
+            x += tw + 4f;
+        }
+        ImGui.SetCursorPos(new Vector2(0, tabsY + lineH + 12f));
+
+        var list = _plugin.Meter.Breakdown(enc, _detailFor, _detailKind);
+        if (list.Count == 0)
+        {
+            var msg = _detailKind == 2 ? "nothing hit them" : "nothing recorded yet";
+            BText(dl, new Vector2(ImGui.GetWindowPos().X + (w - ImGui.CalcTextSize(msg).X) * 0.5f,
+                ImGui.GetCursorScreenPos().Y + 8f), C.MeterSubColor, msg);
+            return;
+        }
+
+        var total = 0.0;
+        var max = 1.0;
+        foreach (var a in list) { total += a.Damage; max = Math.Max(max, a.Damage); }
+
+        // Their own job color, so a breakdown still reads as that player's.
+        var job = "";
+        foreach (var r in enc.Rows)
+            if (string.Equals(r.Display.Length > 0 ? r.Display : r.Name, _detailFor,
+                    StringComparison.OrdinalIgnoreCase))
+            { job = r.Job; break; }
+        var rgb = (C.MeterJobColors && JobColors.TryGetValue(job, out var jc) ? jc : C.MeterAccentColor)
+                  & 0x00FFFFFF;
+
+        var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
+        var i2 = 0;
+        foreach (var a in list)
+        {
+            var p = ImGui.GetCursorScreenPos();
+            ImGui.InvisibleButton($"##ab{i2++}", new Vector2(w, rowH));
+            var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
+
+            dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
+                hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
+            DrawBar(dl, p + new Vector2(pad - 3f, 0),
+                (float)(a.Damage / max) * (w - pad * 2 + 6f), rowH, rgb, p.X + pad);
+
+            var ty = p.Y + (rowH - lineH) * 0.5f;
+            var pct = total > 0 ? a.Damage / total * 100 : 0;
+            var right = $"{Num(a.Damage)}  ({pct:0.#}%)";
+            var rw = ImGui.CalcTextSize(right).X;
+            BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterTextColor, right);
+            var nameMax = w - pad * 2 - rw - 10f;
+            if (nameMax > 12f)
+                BText(dl, new Vector2(p.X + pad + 4f, ty), C.MeterSubColor, Clip(a.Name, nameMax));
+
+            if (hovered)
+            {
+                PushMenuTheme();
+                ImGui.BeginTooltip();
+                ImGui.TextUnformatted(a.Name);
+                ImGui.Separator();
+                ImGui.TextUnformatted($"{Num(a.Damage)} damage over {a.Hits} hit{(a.Hits == 1 ? "" : "s")}");
+                ImGui.TextColored(Theme.V(Theme.Muted),
+                    $"average {Num(a.Average)}   biggest {Num(a.Max)}");
+                if (_detailKind != 1)
+                    ImGui.TextColored(Theme.V(Theme.Muted),
+                        $"crit {a.CritPct:0.#}%   direct {a.DhPct:0.#}%");
+                ImGui.EndTooltip();
                 PopMenuTheme();
             }
             ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
@@ -715,10 +856,11 @@ public class MeterWindow : Window
         return C.MeterNameStyle == 1 ? parts[0] : $"{parts[0]} {parts[1][..1]}.";
     }
 
-    private void RowTooltip(MeterCombatant r)
+    private void RowTooltip(MeterEncounter enc, MeterCombatant r)
     {
+        var who = r.Display.Length > 0 ? r.Display : r.Name;
         ImGui.BeginTooltip();
-        ImGui.TextUnformatted(r.Display.Length > 0 ? r.Display : r.Name);
+        ImGui.TextUnformatted(who);
         ImGui.Separator();
         ImGui.TextUnformatted($"rDPS {Num(r.RDps)}   DPS {Num(r.Dps)}   damage {Num(r.Damage)}");
         ImGui.TextColored(Theme.V(Theme.Muted),
@@ -727,8 +869,30 @@ public class MeterWindow : Window
             ImGui.TextColored(Theme.V(Theme.Muted), $"HPS {Num(r.Hps)}  overheal {r.OverhealPct:0.#}%");
         if (r.MaxHit.Length > 0)
             ImGui.TextColored(Theme.V(Theme.Muted), $"biggest hit: {r.MaxHit.Replace('-', ' ')}");
+
+        // The top of what they have been casting, straight off the log.
+        var top = _plugin.Meter.Breakdown(enc, who, 0);
+        if (top.Count > 0)
+        {
+            var total = 0.0;
+            foreach (var a in top) total += a.Damage;
+            ImGui.Separator();
+            var shown = Math.Min(TooltipAbilities, top.Count);
+            for (var i = 0; i < shown; i++)
+            {
+                var a = top[i];
+                ImGui.TextColored(Theme.V(Theme.Muted),
+                    $"{a.Name}   {Num(a.Damage)}  ({(total > 0 ? a.Damage / total * 100 : 0):0.#}%)");
+            }
+            if (top.Count > shown)
+                ImGui.TextColored(Theme.V(Theme.Muted), $"+{top.Count - shown} more, click for all");
+            else
+                ImGui.TextColored(Theme.V(Theme.Muted), "click for the full breakdown");
+        }
         ImGui.EndTooltip();
     }
+
+    private const int TooltipAbilities = 5;
 
     // ---- right-click menu --------------------------------------------------
 
@@ -739,12 +903,31 @@ public class MeterWindow : Window
         // region, so the stock context-window helper would miss most of it.
         if (!_tabMenuOpen && ImGui.IsMouseReleased(ImGuiMouseButton.Right)
             && ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
+        {
+            _menuPlayer = _rowUnderMouse;
             ImGui.OpenPopup("##metermenu");
+        }
 
         PushMenuTheme();
         if (!ImGui.BeginPopup("##metermenu")) { PopMenuTheme(); return; }
 
         var m = _plugin.Meter;
+        if (_menuPlayer.Length > 0)
+        {
+            if (ImGui.BeginMenu(_menuPlayer))
+            {
+                if (ImGui.MenuItem("Abilities")) { OpenDetail(_menuPlayer); _detailKind = 0; }
+                if (ImGui.MenuItem("Targets")) { OpenDetail(_menuPlayer); _detailKind = 1; }
+                if (ImGui.MenuItem("Damage taken")) { OpenDetail(_menuPlayer); _detailKind = 2; }
+                ImGui.EndMenu();
+            }
+            ImGui.Separator();
+        }
+        else if (_detailFor.Length > 0)
+        {
+            if (ImGui.MenuItem("Back to the list")) _detailFor = "";
+            ImGui.Separator();
+        }
         if (ImGui.BeginMenu("View"))
         {
             var mode = C.MeterMode;
