@@ -108,7 +108,9 @@ public class MeterWindow : Window
 
         // Bars scroll in their own region when the pull outgrows the window.
         // Click-through must reach into it too, or the mouse snags on the bars.
-        var footerH = (C.MeterButtons || C.MeterHealingTab) && !C.MeterClickThrough ? 24f : 0f;
+        var footerH = (C.MeterButtons || C.MeterHealingTab) && !C.MeterClickThrough
+            ? MathF.Ceiling(ImGui.GetTextLineHeight()) + 10f
+            : 0f;
         _overheadY = y + footerH + 4f;
         ImGui.SetCursorPos(new Vector2(0, y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, 0u);
@@ -143,8 +145,8 @@ public class MeterWindow : Window
         var top = ws.Y - h;
         dl.AddLine(wp + new Vector2(pad, top), wp + new Vector2(ws.X - pad, top), 0x1EFFFFFF);
 
-        var chipH = h - 6f;
-        var cy = top + 3f;
+        var chipH = h - 7f;
+        var cy = top + 4f;
         var x = pad - 3f;
 
         if (C.MeterHealingTab)
@@ -156,13 +158,8 @@ public class MeterWindow : Window
 
         if (C.MeterButtons)
         {
-            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.ChevronLeft, "Older pull")
-                && _histIdx < m.History.Count - 1) _histIdx++;
             if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.List, "Pulls"))
                 ImGui.OpenPopup("##meterpulls");
-            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.ChevronRight, "Newer pull")
-                && _histIdx >= 0) _histIdx--;
-            x += 6f;
             if (IconChip(dl, ref x, cy, chipH, m.Paused ? FontAwesomeIcon.Play : FontAwesomeIcon.Pause,
                     m.Paused ? "Resume" : "Pause", accent: m.Paused))
                 m.Paused = !m.Paused;
@@ -173,12 +170,15 @@ public class MeterWindow : Window
             }
         }
 
-        // What the meter is showing right now.
-        var label = m.Paused ? "paused" : _histIdx >= 0 ? $"pull -{_histIdx + 1}" : "live";
-        var lw = ImGui.CalcTextSize(label).X;
-        OverlayChrome.BoardText(dl,
-            wp + new Vector2(ws.X - pad - lw, cy + (chipH - ImGui.GetTextLineHeight()) * 0.5f),
-            m.Paused ? C.MeterAccentColor : C.MeterSubColor, label, true);
+        // Quiet unless there is something to say: paused, or viewing a past pull.
+        var label = m.Paused ? "paused" : _histIdx >= 0 ? $"pull -{_histIdx + 1}" : "";
+        if (label.Length > 0)
+        {
+            var lw = ImGui.CalcTextSize(label).X;
+            OverlayChrome.BoardText(dl,
+                wp + new Vector2(ws.X - pad - lw, cy + (chipH - ImGui.GetTextLineHeight()) * 0.5f),
+                m.Paused ? C.MeterAccentColor : C.MeterSubColor, label, true);
+        }
 
         TabRenamePopup();
     }
