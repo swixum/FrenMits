@@ -268,12 +268,8 @@ public partial class ConfigWindow
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
-        ImGui.TextWrapped("In ACT, set Options > Main Table/Encounters > idle limit to 180 seconds.");
-        ImGui.TextDisabled("ACT ends a fight after that long without damage, and a raid's own downtime\n"
-                         + "is shorter than that: the longest is Futures Rewritten's 173s cutscene.\n"
-                         + "Left at the default, one pull arrives as several and reads as several.\n"
-                         + "The meter still starts a new pull the moment your combat ends, so trash\n"
-                         + "packs and bosses stay separate whatever ACT is doing.");
+        ImGui.TextWrapped("In ACT, set the idle limit to 180: Options > Main Table/Encounters.");
+        ImGui.TextDisabled("Lower than that splits a fight at its own downtime.");
 
         ImGui.Spacing();
         if (ImGui.Button("Reconnect")) ReconnectMeter();
