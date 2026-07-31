@@ -373,6 +373,15 @@ public static class ConfigMigrations
             config.Version = 35;
             config.Save();
         }
+
+        // v36: the meter tabs default to DPS / HPS; hand-renamed tabs stay.
+        if (config.Version < 36)
+        {
+            if (config.MeterTabNameDamage == "Damage") config.MeterTabNameDamage = "DPS";
+            if (config.MeterTabNameHealing == "Healing") config.MeterTabNameHealing = "HPS";
+            config.Version = 36;
+            config.Save();
+        }
     }
 
     // Hand every built-in fight the current anchor table and grades, and

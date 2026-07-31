@@ -75,7 +75,7 @@ public class MeterWindow : Window
         var ws = ImGui.GetWindowSize();
         var dl = ImGui.GetWindowDrawList();
         dl.AddRectFilled(wp, wp + ws, C.MeterBgColor, C.MeterRounding);
-        dl.AddRect(wp, wp + ws, 0x24FFFFFF, C.MeterRounding);
+        dl.AddRect(wp, wp + ws, (C.MeterAccentColor & 0x00FFFFFF) | 0x2E000000, C.MeterRounding);
 
         if (C.MeterBarStyle == 1)
         {
@@ -90,10 +90,14 @@ public class MeterWindow : Window
 
         if (enc == null)
         {
-            ImGui.SetCursorPos(new Vector2(10, 8));
-            ImGui.TextColored(Theme.V(C.MeterTextColor), "Fren Meter");
-            ImGui.SetCursorPosX(10);
-            ImGui.TextColored(Theme.V(C.MeterSubColor), _plugin.Meter.StatusText);
+            var titleW = ImGui.CalcTextSize("Fren Meter").X;
+            var status = _plugin.Meter.StatusText;
+            var statusW = ImGui.CalcTextSize(status).X;
+            var midY = ws.Y * 0.5f - ImGui.GetTextLineHeight();
+            OverlayChrome.BoardText(dl, wp + new Vector2((ws.X - titleW) * 0.5f, midY),
+                C.MeterTextColor, "Fren Meter", true);
+            OverlayChrome.BoardText(dl, wp + new Vector2((ws.X - statusW) * 0.5f, midY + ImGui.GetTextLineHeight() + 3f),
+                C.MeterSubColor, status, true);
             ContextMenu();
             return;
         }
@@ -122,11 +126,13 @@ public class MeterWindow : Window
         ImGui.PopStyleColor();
 
         if (footerH > 0) DrawFooter(dl, wp, ws, footerH, pad);
+        PushMenuTheme();
         if (ImGui.BeginPopup("##meterpulls"))
         {
             DrawPullList();
             ImGui.EndPopup();
         }
+        PopMenuTheme();
         ContextMenu();
     }
 
@@ -151,8 +157,8 @@ public class MeterWindow : Window
 
         if (C.MeterHealingTab)
         {
-            TabChip(dl, ref x, cy, chipH, C.MeterTabNameDamage.Length > 0 ? C.MeterTabNameDamage : "Damage", 0);
-            TabChip(dl, ref x, cy, chipH, C.MeterTabNameHealing.Length > 0 ? C.MeterTabNameHealing : "Healing", 1);
+            TabChip(dl, ref x, cy, chipH, C.MeterTabNameDamage.Length > 0 ? C.MeterTabNameDamage : "DPS", 0);
+            TabChip(dl, ref x, cy, chipH, C.MeterTabNameHealing.Length > 0 ? C.MeterTabNameHealing : "HPS", 1);
             if (C.MeterButtons) x += 8f;
         }
 
@@ -200,7 +206,12 @@ public class MeterWindow : Window
             dl.AddText(min + new Vector2((w - gs.X) * 0.5f, (h - gs.Y) * 0.5f),
                 accent ? C.MeterAccentColor : hovered ? C.MeterTextColor : C.MeterSubColor, g);
         }
-        if (hovered) ImGui.SetTooltip(tip);
+        if (hovered)
+        {
+            PushMenuTheme();
+            ImGui.SetTooltip(tip);
+            PopMenuTheme();
+        }
         x += w + 2f;
         return clicked;
     }
@@ -237,7 +248,8 @@ public class MeterWindow : Window
 
     private void TabRenamePopup()
     {
-        if (!ImGui.BeginPopup("##tabrename")) { _tabMenuOpen = false; return; }
+        PushMenuTheme();
+        if (!ImGui.BeginPopup("##tabrename")) { _tabMenuOpen = false; PopMenuTheme(); return; }
         if (ImGui.IsWindowAppearing()) ImGui.SetKeyboardFocusHere();
         ImGui.SetNextItemWidth(140f);
         var enter = ImGui.InputText("##tabname", ref _renameTabBuf, 24, ImGuiInputTextFlags.EnterReturnsTrue);
@@ -254,6 +266,7 @@ public class MeterWindow : Window
             ImGui.CloseCurrentPopup();
         }
         ImGui.EndPopup();
+        PopMenuTheme();
     }
 
     private void DrawPullList()
@@ -601,8 +614,12 @@ public class MeterWindow : Window
             var x = p.X + pad + 4f;
             if (C.MeterShowRank)
             {
-                OverlayChrome.BoardText(dl, new Vector2(x, ty), C.MeterSubColor, $"{rank}.", true);
-                x += ImGui.CalcTextSize($"{rank}.").X + 5f;
+                var rankText = $"{rank}.";
+                var rankW = ImGui.CalcTextSize(rows.Count >= 10 ? "88." : "8.").X;
+                OverlayChrome.BoardText(dl,
+                    new Vector2(x + rankW - ImGui.CalcTextSize(rankText).X, ty),
+                    C.MeterSubColor, rankText, true);
+                x += rankW + 5f;
             }
             if (C.MeterShowJobIcons && Jobs.ByAbbreviation(r.Job) is { } job)
             {
@@ -632,7 +649,12 @@ public class MeterWindow : Window
                 OverlayChrome.BoardText(dl, new Vector2(x, ty),
                     IsYou(r, you) ? C.MeterYouColor : C.MeterTextColor, Clip(name, nameMax), true);
 
-            if (hovered) RowTooltip(r);
+            if (hovered)
+            {
+                PushMenuTheme();
+                RowTooltip(r);
+                PopMenuTheme();
+            }
             ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
         }
     }
@@ -682,24 +704,25 @@ public class MeterWindow : Window
         if (!_tabMenuOpen && ImGui.IsMouseReleased(ImGuiMouseButton.Right)
             && ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
             ImGui.OpenPopup("##metermenu");
-        if (!ImGui.BeginPopup("##metermenu")) return;
+
+        PushMenuTheme();
+        if (!ImGui.BeginPopup("##metermenu")) { PopMenuTheme(); return; }
 
         var m = _plugin.Meter;
-        if (ImGui.BeginMenu("Pulls"))
+        MenuHeader("VIEW");
+        var mode = C.MeterMode;
+        if (ImGui.MenuItem("Damage", "", mode == 0)) { C.MeterMode = 0; C.SaveSettings(); }
+        if (ImGui.MenuItem("Healing", "", mode == 1)) { C.MeterMode = 1; C.SaveSettings(); }
+        if (ImGui.MenuItem("Damage taken", "", mode == 2)) { C.MeterMode = 2; C.SaveSettings(); }
+        if (ImGui.MenuItem("Deaths", "", mode == 3)) { C.MeterMode = 3; C.SaveSettings(); }
+        if (ImGui.BeginMenu("Past pulls"))
         {
             DrawPullList();
             ImGui.EndMenu();
         }
         if (ImGui.MenuItem(m.Paused ? "Resume" : "Pause")) m.Paused = !m.Paused;
 
-        ImGui.Separator();
-        var mode = C.MeterMode;
-        if (ImGui.MenuItem("Damage", "", mode == 0)) { C.MeterMode = 0; C.SaveSettings(); }
-        if (ImGui.MenuItem("Healing", "", mode == 1)) { C.MeterMode = 1; C.SaveSettings(); }
-        if (ImGui.MenuItem("Damage taken", "", mode == 2)) { C.MeterMode = 2; C.SaveSettings(); }
-        if (ImGui.MenuItem("Deaths", "", mode == 3)) { C.MeterMode = 3; C.SaveSettings(); }
-
-        ImGui.Separator();
+        MenuHeader("LOOKS");
         if (ImGui.BeginMenu("Columns"))
         {
             var list = ActiveColumnList();
@@ -713,6 +736,35 @@ public class MeterWindow : Window
                     C.SaveSettings();
                 }
             }
+            ImGui.EndMenu();
+        }
+        if (ImGui.BeginMenu("Display"))
+        {
+            if (ImGui.MenuItem("Rank numbers", "", C.MeterShowRank)) { C.MeterShowRank = !C.MeterShowRank; C.SaveSettings(); }
+            if (ImGui.MenuItem("Job icons", "", C.MeterShowJobIcons)) { C.MeterShowJobIcons = !C.MeterShowJobIcons; C.SaveSettings(); }
+            if (ImGui.MenuItem("Column labels", "", C.MeterColumnHeader)) { C.MeterColumnHeader = !C.MeterColumnHeader; C.SaveSettings(); }
+            if (ImGui.MenuItem("Raid total", "", C.MeterShowRaidTotal)) { C.MeterShowRaidTotal = !C.MeterShowRaidTotal; C.SaveSettings(); }
+            if (ImGui.MenuItem("\"You\" instead of your name", "", C.MeterYou)) { C.MeterYou = !C.MeterYou; C.SaveSettings(); }
+            if (ImGui.MenuItem("Highlight your row", "", C.MeterHighlightYou)) { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
+            if (ImGui.MenuItem("Buttons bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
+            if (ImGui.MenuItem("Healing tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
+            ImGui.Separator();
+            var bars = C.MeterBarStyle;
+            if (ImGui.MenuItem("Bars: flat", "", bars == 0)) { C.MeterBarStyle = 0; C.SaveSettings(); }
+            if (ImGui.MenuItem("Bars: glass", "", bars == 1)) { C.MeterBarStyle = 1; C.SaveSettings(); }
+            if (ImGui.MenuItem("Bars: gradient", "", bars == 2)) { C.MeterBarStyle = 2; C.SaveSettings(); }
+            ImGui.Separator();
+            var style = C.MeterHeaderStyle;
+            if (ImGui.MenuItem("Header: full", "", style == 0)) { C.MeterHeaderStyle = 0; C.SaveSettings(); }
+            if (ImGui.MenuItem("Header: slim", "", style == 1)) { C.MeterHeaderStyle = 1; C.SaveSettings(); }
+            if (ImGui.MenuItem("Header: hidden", "", style == 2)) { C.MeterHeaderStyle = 2; C.SaveSettings(); }
+            ImGui.EndMenu();
+        }
+        if (ImGui.BeginMenu("Theme"))
+        {
+            foreach (var t in Themes)
+                if (ImGui.MenuItem(t.Name))
+                    ApplyTheme(C, t);
             ImGui.EndMenu();
         }
         if (C.MeterProfiles.Count > 0 && ImGui.BeginMenu("Profile"))
@@ -730,35 +782,8 @@ public class MeterWindow : Window
                 }
             ImGui.EndMenu();
         }
-        if (ImGui.BeginMenu("Theme"))
-        {
-            foreach (var t in Themes)
-                if (ImGui.MenuItem(t.Name))
-                    ApplyTheme(C, t);
-            ImGui.EndMenu();
-        }
-        if (ImGui.BeginMenu("Display"))
-        {
-            if (ImGui.MenuItem("Rank numbers", "", C.MeterShowRank)) { C.MeterShowRank = !C.MeterShowRank; C.SaveSettings(); }
-            if (ImGui.MenuItem("Job icons", "", C.MeterShowJobIcons)) { C.MeterShowJobIcons = !C.MeterShowJobIcons; C.SaveSettings(); }
-            if (ImGui.MenuItem("Column labels", "", C.MeterColumnHeader)) { C.MeterColumnHeader = !C.MeterColumnHeader; C.SaveSettings(); }
-            if (ImGui.MenuItem("Raid total", "", C.MeterShowRaidTotal)) { C.MeterShowRaidTotal = !C.MeterShowRaidTotal; C.SaveSettings(); }
-            if (ImGui.MenuItem("\"You\" instead of your name", "", C.MeterYou)) { C.MeterYou = !C.MeterYou; C.SaveSettings(); }
-            if (ImGui.MenuItem("Highlight your row", "", C.MeterHighlightYou)) { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
-            if (ImGui.MenuItem("Buttons bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
-            if (ImGui.MenuItem("Healing tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
-            var bars = C.MeterBarStyle;
-            if (ImGui.MenuItem("Bars: flat", "", bars == 0)) { C.MeterBarStyle = 0; C.SaveSettings(); }
-            if (ImGui.MenuItem("Bars: glass", "", bars == 1)) { C.MeterBarStyle = 1; C.SaveSettings(); }
-            if (ImGui.MenuItem("Bars: gradient", "", bars == 2)) { C.MeterBarStyle = 2; C.SaveSettings(); }
-            var style = C.MeterHeaderStyle;
-            if (ImGui.MenuItem("Header: full", "", style == 0)) { C.MeterHeaderStyle = 0; C.SaveSettings(); }
-            if (ImGui.MenuItem("Header: slim", "", style == 1)) { C.MeterHeaderStyle = 1; C.SaveSettings(); }
-            if (ImGui.MenuItem("Header: hidden", "", style == 2)) { C.MeterHeaderStyle = 2; C.SaveSettings(); }
-            ImGui.EndMenu();
-        }
 
-        ImGui.Separator();
+        MenuHeader("WINDOW");
         if (ImGui.MenuItem("Lock position", "", C.MeterLocked)) { C.MeterLocked = !C.MeterLocked; C.SaveSettings(); }
         if (ImGui.MenuItem("Click-through", "", C.MeterClickThrough))
         {
@@ -772,6 +797,43 @@ public class MeterWindow : Window
         if (ImGui.MenuItem("Settings...")) _plugin.ConfigWindow.OpenMeterPage();
 
         ImGui.EndPopup();
+        PopMenuTheme();
+    }
+
+    // ---- menu theme --------------------------------------------------------
+
+    // The meter's own look carried into its popups, in place of stock ImGui.
+    private void PushMenuTheme()
+    {
+        var accent = C.MeterAccentColor & 0x00FFFFFF;
+        ImGui.PushStyleColor(ImGuiCol.PopupBg, (C.MeterBgColor & 0x00FFFFFF) | 0xF4000000);
+        ImGui.PushStyleColor(ImGuiCol.Border, 0x3CFFFFFF);
+        ImGui.PushStyleColor(ImGuiCol.Text, C.MeterTextColor);
+        ImGui.PushStyleColor(ImGuiCol.TextDisabled, (C.MeterSubColor & 0x00FFFFFF) | 0x99000000);
+        ImGui.PushStyleColor(ImGuiCol.Header, accent | 0x3A000000);
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, accent | 0x55000000);
+        ImGui.PushStyleColor(ImGuiCol.HeaderActive, accent | 0x6E000000);
+        ImGui.PushStyleColor(ImGuiCol.Separator, 0x24FFFFFF);
+        ImGui.PushStyleColor(ImGuiCol.CheckMark, C.MeterAccentColor);
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x1FFFFFFF);
+        ImGui.PushStyleVar(ImGuiStyleVar.PopupRounding, 9f);
+        ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 1f);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(11f, 9f));
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(9f, 6f));
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 5f);
+    }
+
+    private static void PopMenuTheme()
+    {
+        ImGui.PopStyleVar(5);
+        ImGui.PopStyleColor(10);
+    }
+
+    // A quiet section label inside the menu.
+    private void MenuHeader(string text)
+    {
+        ImGui.Spacing();
+        ImGui.TextColored(Theme.V((C.MeterSubColor & 0x00FFFFFF) | 0xA6000000), text);
     }
 
     // ---- persistence -------------------------------------------------------

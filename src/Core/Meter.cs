@@ -101,6 +101,21 @@ public class Meter : IDisposable
             Engine.Trim();
         }
 
+        // Combat over: close the parser's encounter right away, instead of
+        // waiting out its idle timeout. That is what makes each trash pack in
+        // a dungeon start from zero, and freezes a kill at the killing blow.
+        var inCombat = Plugin.InCombat;
+        if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
+        if (inCombat) _endSent = false;
+        else if (!_endSent && !Paused && Connected && _rawSeg is { Active: true }
+                 && _combatDropAt != DateTime.MinValue
+                 && (DateTime.UtcNow - _combatDropAt).TotalSeconds > 1.5)
+        {
+            _endSent = true;
+            SendEnd();
+        }
+        _wasInCombat = inCombat;
+
         // The active profile follows every tweak by itself; no manual save.
         if (DateTime.UtcNow >= _nextProfileSync)
         {
@@ -119,6 +134,9 @@ public class Meter : IDisposable
     }
 
     private DateTime _nextProfileSync = DateTime.MinValue;
+    private DateTime _combatDropAt = DateTime.MinValue;
+    private bool _wasInCombat;
+    private bool _endSent;
 
     private void Handle(JObject msg)
     {
@@ -140,8 +158,6 @@ public class Meter : IDisposable
 
     private void OnSummary(MeterEncounter raw)
     {
-        SetTitle(raw);
-
         if (raw.Active)
         {
             var continuing = _rawSeg is { Active: true } && raw.Seconds + 0.5f >= _rawSeg.Seconds;
@@ -152,14 +168,17 @@ public class Meter : IDisposable
                 if (_carry == null)
                 {
                     _fightStartSec = Math.Max(0, Engine.LatestSec - (long)raw.Seconds);
-                    _fightTitle = raw.Title;
+                    _fightTitle = ""; // a fresh fight names itself from scratch
                     _sawBoss = false;
                 }
             }
+            SetTitle(raw);
             _rawSeg = raw;
             Publish(Merge(_carry, raw));
             return;
         }
+
+        SetTitle(raw);
 
         // The segment's final numbers.
         if (_rawSeg is { Active: true })
@@ -204,15 +223,18 @@ public class Meter : IDisposable
         while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
     }
 
-    // The parser calls every fight "Encounter" while it runs; the party's
-    // actual target is the honest name. The first name a fight gets sticks.
+    // The parser calls every fight "Encounter" until it ends. Until it gives
+    // the real name, the boss actually on the field beats whoever got tagged
+    // first, and any target name beats the placeholder.
     private void SetTitle(MeterEncounter e)
     {
-        var t = e.Title;
-        if (t.Length == 0 || t.Equals("Encounter", StringComparison.OrdinalIgnoreCase))
-            t = Engine.CurrentEnemy;
-        if (_fightTitle.Length == 0 && t.Length > 0) _fightTitle = t;
-        e.Title = _fightTitle.Length > 0 ? _fightTitle : t;
+        if (e.Title.Length > 0 && !e.Title.Equals("Encounter", StringComparison.OrdinalIgnoreCase))
+            _fightTitle = e.Title;               // the parser named it: final word
+        else if (_plugin.BossHpFraction >= 0f && _plugin.CurrentBossName.Length > 0)
+            _fightTitle = _plugin.CurrentBossName;
+        else if (_fightTitle.Length == 0 && Engine.CurrentEnemy.Length > 0)
+            _fightTitle = Engine.CurrentEnemy;
+        e.Title = _fightTitle.Length > 0 ? _fightTitle : "Encounter";
     }
 
     private void Publish(MeterEncounter enc)
@@ -365,7 +387,11 @@ public class Meter : IDisposable
     public void ResetEncounter()
     {
         Clear();
-        if (!Connected) return;
+        if (Connected) SendEnd();
+    }
+
+    private static void SendEnd()
+    {
         try
         {
             Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry

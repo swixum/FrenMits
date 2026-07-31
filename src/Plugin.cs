@@ -560,6 +560,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // Whoever this pull is about, by NameId: the key a learned timeline is filed
     // under, and how a 3-boss dungeon keeps three separate timelines.
     public uint CurrentBossNameId { get; private set; }
+    public string CurrentBossName => _currentBossName;
     private string _currentBossName = "";
     private uint _currentBossMaxHp;
 

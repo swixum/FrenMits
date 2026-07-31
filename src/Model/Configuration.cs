@@ -273,8 +273,8 @@ public class Configuration : IPluginConfiguration
     public int MeterBarStyle { get; set; }               // 0 flat, 1 glass, 2 gradient
     public bool MeterButtons { get; set; } = true;       // footer bar: pulls, pause, reset
     public bool MeterHealingTab { get; set; } = true;    // Damage / Healing tabs in the footer
-    public string MeterTabNameDamage { get; set; } = "Damage";
-    public string MeterTabNameHealing { get; set; } = "Healing";
+    public string MeterTabNameDamage { get; set; } = "DPS";
+    public string MeterTabNameHealing { get; set; } = "HPS";
     public bool MeterHighlightYou { get; set; } = true;  // outline your own row
     public bool MeterColumnHeader { get; set; } = true;
     public bool MeterShowRank { get; set; } = true;

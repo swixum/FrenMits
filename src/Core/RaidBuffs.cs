@@ -30,6 +30,9 @@ public static class RaidBuffs
     private static Buff Crit(string name, float rate, bool onEnemy = false) => new()
     { Name = name, Effects = new[] { new Effect(Kind.CritRate, rate) }, OnEnemy = onEnemy };
 
+    private static Buff Dh(string name, float rate) => new()
+    { Name = name, Effects = new[] { new Effect(Kind.DirectHitRate, rate) } };
+
     private static readonly Buff[] Table =
     {
         // Flat party multipliers.
@@ -40,44 +43,33 @@ public static class RaidBuffs
         Dmg("Arcane Circle", 1.03f),     // RPR
         Dmg("Starry Muse", 1.05f),       // PCT
 
-        // Crit / direct-hit rate buffs, priced by expected value.
+        // Crit / direct-hit rate buffs, paid on the rolls they cause.
         Crit("Battle Litany", 0.10f),    // DRG
-        new()                            // BRD
-        {
-            Name = "Battle Voice",
-            Effects = new[] { new Effect(Kind.DirectHitRate, 0.20f) },
-        },
+        Dh("Battle Voice", 0.20f),       // BRD
         new()                            // DNC, self + dance partner
         {
             Name = "Devilment",
             Effects = new[] { new Effect(Kind.CritRate, 0.20f), new Effect(Kind.DirectHitRate, 0.20f) },
         },
 
+        // Songs sit on the whole party for most of a fight.
+        Dmg("Mage's Ballad", 1.01f),           // BRD
+        Dh("Army's Paeon", 0.03f),             // BRD
+        Crit("The Wanderer's Minuet", 0.02f),  // BRD
+
         // Enemy-side debuffs: everyone's damage into that target is louder.
         Crit("Chain Stratagem", 0.10f, onEnemy: true), // SCH
         Dmg("Dokumori", 1.05f, onEnemy: true),         // NIN
         Dmg("Mug", 1.05f, onEnemy: true),              // NIN, low level / synced
 
-        // Dance finishes: the log names each step count as its own status.
+        // Dance finishes: one status name for every step count; the engine
+        // reads the finishing move to price partial dances, full is the default.
         Dmg("Technical Finish", 1.05f),
-        Dmg("Single Technical Finish", 1.01f),
-        Dmg("Double Technical Finish", 1.02f),
-        Dmg("Triple Technical Finish", 1.03f),
-        Dmg("Quadruple Technical Finish", 1.05f),
         Dmg("Standard Finish", 1.05f),
-        Dmg("Single Standard Finish", 1.02f),
-        Dmg("Double Standard Finish", 1.05f),
 
-        // Radiant Finale scales with the codas banked (status stack count);
-        // a full three-coda finale is the default when the count is missing.
-        new()
-        {
-            Name = "Radiant Finale",
-            Dynamic = (stacks, _) => new[]
-            {
-                new Effect(Kind.Damage, stacks switch { 1 => 1.02f, 2 => 1.04f, _ => 1.06f }),
-            },
-        },
+        // Radiant Finale scales with the codas banked; the engine counts the
+        // bard's songs to price each press, full codas being the default.
+        Dmg("Radiant Finale", 1.06f),
 
         // Cards: 6% on the matching role, 3% otherwise (unknown job reads as matching).
         new()
