@@ -128,6 +128,8 @@ public class Meter : IDisposable
         _inCombat = Plugin.InCombat;
         _cutscene = Plugin.CutsceneActive;
 
+        if (!_replaying) CheckFeedAlive();
+
         // A boss on the field marks this fight as one worth stitching and keeping.
         if (_inCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
         _bossLeft = TrackBoss(_bossLeft, _plugin.BossHpFraction, _inCombat);
@@ -224,6 +226,77 @@ public class Meter : IDisposable
     private bool _cutscene;
     private bool _replaying;
 
+    // ---- is the feed even alive? -------------------------------------------
+    //
+    // A parser link can die without disconnecting. The socket stays open, the
+    // summaries keep arriving once a second, and every one of them repeats an
+    // encounter that ended some pulls ago - the board goes on showing numbers
+    // that stopped being about this fight, and nothing says so. A recorded
+    // Dancing Mad kill came back as 1111 identical messages.
+    //
+    // Two things have to be quiet at once for that to be the case: the parser's
+    // own totals, and the damage this plugin counts off the log lines itself.
+    // A real fight cannot leave both untouched.
+    public const double StaleAfterSeconds = 15;
+
+    // A fight is on and the numbers have stopped being about it.
+    public static bool FeedIsStale(bool fightOn, double sinceFresh)
+        => fightOn && sinceFresh > StaleAfterSeconds;
+
+    public bool FeedStale { get; private set; }
+
+    // A replay is the other way a fight can be underway with nothing arriving:
+    // the parser is not fed by a duty recording at all, so the board sits on
+    // whatever real pull came last. Worth saying plainly rather than leaving
+    // someone reading an old pull's numbers over a replay of a new one.
+    public bool FeedStaleInReplay { get; private set; }
+
+    private DateTime _feedFreshAt = DateTime.UtcNow;
+    private (bool Active, float Seconds, double Damage) _feedSig;
+    private double _seenLines;
+    private DateTime _nextRelink = DateTime.MinValue;
+    private DateTime _nextLineCheck = DateTime.MinValue;
+
+    private void FeedIsFresh() => _feedFreshAt = DateTime.UtcNow;
+
+    private void CheckFeedAlive()
+    {
+        var now = DateTime.UtcNow;
+        // Counting the engine's whole table is not a per-frame job.
+        if (now >= _nextLineCheck)
+        {
+            _nextLineCheck = now + TimeSpan.FromSeconds(1);
+            var lines = EngineTotal();
+            if (lines > _seenLines) FeedIsFresh();
+            _seenLines = lines;
+        }
+
+        var replay = Plugin.InDutyPlayback;
+        var stale = FeedIsStale(_inCombat || (replay && _plugin.Timer.Running),
+                                (now - _feedFreshAt).TotalSeconds);
+        FeedStaleInReplay = stale && replay;
+        if (stale != FeedStale)
+        {
+            FeedStale = stale;
+            _plugin.Diag.Note(stale
+                ? FeedStaleInReplay
+                    ? "meter: a replay feeds the parser nothing - the board is still showing the last real pull"
+                    : "meter: the parser feed has gone quiet mid-fight - what is on the board is not this pull"
+                : "meter: parser feed is live again");
+            Service.Log.Warning(stale
+                ? "[FrenMits] Meter: no new parser data and no damage counted for "
+                  + $"{StaleAfterSeconds:0}s{(replay ? " of playback" : " of combat")}."
+                : "[FrenMits] Meter: parser feed recovered.");
+        }
+
+        // Ask for the subscription again: the parser can drop a listener and
+        // leave the socket open, and a reconnect is the only way back. A replay
+        // is not a broken link, so it is left alone.
+        if (!stale || replay || now < _nextRelink) return;
+        _nextRelink = now + TimeSpan.FromSeconds(30);
+        Link.RetryNow();
+    }
+
     private void RecordFeed(MeterEncounter incoming)
     {
         if (!MeterFeed.Recording) return;
@@ -285,6 +358,9 @@ public class Meter : IDisposable
     private void OnSummary(MeterEncounter incoming)
     {
         RecordFeed(incoming);
+        // Only a summary that says something new counts as the feed being alive.
+        var sig = (incoming.Active, incoming.Seconds, incoming.TotalDamage);
+        if (sig != _feedSig) { _feedSig = sig; FeedIsFresh(); }
         _rawIn = incoming;
         var raw = incoming;
         var restarted = false;
@@ -529,6 +605,7 @@ public class Meter : IDisposable
         _bossLeft = -1f;
         _standing = -1;
         _warnedAt = 0;
+        _seenLines = 0;   // the engine's table is cleared below, so its count restarts
         // Clear when a fight ENDS, not when the next one starts: the summary
         // feed lags the log, so clearing on arrival would eat the opener.
         Engine.ClearBreakdown();
@@ -863,13 +940,15 @@ public class Meter : IDisposable
         if (_rawIn != null) _cut = Snapshot(_rawIn);
     }
 
-    public string StatusText => !C.MeterEnabled ? "off" : Link.Status switch
-    {
-        MeterLink.LinkStatus.Ipc => "connected to the parser (in-process)",
-        MeterLink.LinkStatus.Socket => "connected to ACT (WebSocket)",
-        MeterLink.LinkStatus.Searching => "searching for a parser...",
-        _ => "starting...",
-    };
+    public string StatusText => !C.MeterEnabled ? "off"
+        : FeedStale ? "connected, but the parser has stopped sending - reconnecting"
+        : Link.Status switch
+        {
+            MeterLink.LinkStatus.Ipc => "connected to the parser (in-process)",
+            MeterLink.LinkStatus.Socket => "connected to ACT (WebSocket)",
+            MeterLink.LinkStatus.Searching => "searching for a parser...",
+            _ => "starting...",
+        };
 
     public bool Connected => Link.Status is MeterLink.LinkStatus.Ipc or MeterLink.LinkStatus.Socket;
 

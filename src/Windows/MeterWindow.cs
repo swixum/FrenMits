@@ -572,6 +572,10 @@ public class MeterWindow : Window
 
         var title = enc.Title.Length > 0 ? enc.Title : "Fren Meter";
         if (_histIdx >= 0) title = $"{title} (history)";
+        // A dead feed leaves the last numbers sitting there looking live. Say so
+        // where the numbers are, not just in a log nobody has open.
+        else if (_plugin.Meter.FeedStaleInReplay) title = $"{title} (replay: not parsed)";
+        else if (_plugin.Meter.FeedStale) title = $"{title} (parser not sending)";
         var mode = C.MeterMode;
 
         // In damage mode the raid rDPS IS the headline; other modes show their
