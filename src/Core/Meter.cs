@@ -216,6 +216,7 @@ public class Meter : IDisposable
     {
         _rawIn = incoming;
         var raw = incoming;
+        var restarted = false;
         if (_cut != null)
         {
             // The parser starting its own new encounter retires the cut.
@@ -224,6 +225,7 @@ public class Meter : IDisposable
                 _plugin.Diag.Note($"meter: parser restarted (damage {raw.TotalDamage / 1e6:0.0}M "
                                 + $"under the cut's {_cut.Damage / 1e6:0.0}M); baseline dropped");
                 _cut = null;
+                restarted = true;
             }
             else
             {
@@ -245,7 +247,28 @@ public class Meter : IDisposable
             if (!continuing)
             {
                 // A segment ended without its final update: settle it first.
-                if (_rawSeg is { Active: true }) EndSegment(_rawSeg);
+                //
+                // Which one gets banked matters. Banking is what moves the
+                // baseline, so bank what THIS message shows and start the live
+                // segment from here. Banking the previous message instead left
+                // the stretch between the two in the bank and on screen at once,
+                // and the fight grew by that much at every lull.
+                if (_rawSeg is { Active: true })
+                {
+                    if (restarted)
+                    {
+                        // Nothing of the parser's new encounter is banked yet, so
+                        // the old encounter's leftovers go in and this message
+                        // stands as the whole of the new one.
+                        EndSegment(_rawSeg);
+                        _cut = null;
+                    }
+                    else
+                    {
+                        EndSegment(raw);
+                        if (_cut != null) raw = Subtract(incoming, _cut);
+                    }
+                }
                 if (_carry == null)
                 {
                     _fightStartSec = Math.Max(0, Engine.LatestSec - (long)raw.Seconds);
@@ -434,6 +457,7 @@ public class Meter : IDisposable
         _sawBoss = false;
         _bossLeft = -1f;
         _standing = -1;
+        _warnedAt = 0;
         // Clear when a fight ENDS, not when the next one starts: the summary
         // feed lags the log, so clearing on arrival would eat the opener.
         Engine.ClearBreakdown();
@@ -471,9 +495,29 @@ public class Meter : IDisposable
         e.Title = _fightTitle.Length > 0 ? _fightTitle : "Encounter";
     }
 
+    // How far the parser's running total may sit above the plugin's own count of
+    // the same log lines before something has gone wrong with the stitch.
+    private const double DriftWarnAbove = 1.10;
+    private double _warnedAt;
+
+    // The two totals come from completely separate paths: the parser's summary,
+    // and the engine adding up damage events one at a time. They should track.
+    // When they don't, the pull record says so rather than the board quietly
+    // showing a fight that did half again the damage it really did.
+    private void CheckAgainstLogLines(MeterEncounter enc)
+    {
+        var counted = EngineTotal();
+        if (counted <= 0 || enc.TotalDamage <= counted * DriftWarnAbove) return;
+        if (enc.TotalDamage < _warnedAt * 1.05) return;   // once per step, not per frame
+        _warnedAt = enc.TotalDamage;
+        _plugin.Diag.Note($"meter: DRIFT - showing {enc.TotalDamage / 1e6:0.0}M but the log lines "
+                        + $"only account for {counted / 1e6:0.0}M");
+    }
+
     private void Publish(MeterEncounter enc)
     {
         ApplyRdps(enc);
+        if (enc.Active) CheckAgainstLogLines(enc);
         // Glide only within the same running fight; anything else snaps.
         Previous = enc.Active && Current is { Active: true } cur
                    && cur.Title == enc.Title && enc.Seconds + 0.5f >= cur.Seconds
