@@ -58,6 +58,8 @@ public static class MeterProfile
             ["maxrows"] = c.MeterMaxRows,
             ["shadow"] = c.MeterTextShadow,
             ["hideooc"] = c.MeterHideOutOfCombat,
+            ["bdicons"] = c.MeterBreakdownIcons,
+            ["bdcolors"] = c.MeterBreakdownColors,
         };
         var raw = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o));
         using var ms = new MemoryStream();
@@ -121,6 +123,8 @@ public static class MeterProfile
             if (o["maxrows"] is { } mr) c.MeterMaxRows = Math.Clamp((int)mr, 0, 24);
             if (o["shadow"] is { } sh) c.MeterTextShadow = (bool)sh;
             if (o["hideooc"] is { } ho) c.MeterHideOutOfCombat = (bool)ho;
+            if (o["bdicons"] is { } bi) c.MeterBreakdownIcons = (bool)bi;
+            if (o["bdcolors"] is { } bdc) c.MeterBreakdownColors = (bool)bdc;
             return true;
         }
         catch

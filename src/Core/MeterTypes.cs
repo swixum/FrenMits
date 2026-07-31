@@ -15,6 +15,10 @@ public sealed class AbilityStat
     public int Dhs;
     public double Damage;
     public double Max;
+    // The game id behind the row, for its icon: an action, or a status when
+    // the damage came from an effect ticking. Zero for anything unresolved.
+    public uint Id;
+    public bool IsStatus;
 
     public double Average => Hits > 0 ? Damage / Hits : 0;
     public double CritPct => Hits > 0 ? Crits * 100.0 / Hits : 0;

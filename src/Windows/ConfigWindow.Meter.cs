@@ -70,6 +70,10 @@ public partial class ConfigWindow
             C.MeterButtons = GridCheck("Buttons bar", C.MeterButtons, "Pulls, pause and reset at the bottom.");
             C.MeterHealingTab = GridCheck("DPS / HPS tabs", C.MeterHealingTab, "Right-click a tab to rename it.");
             C.MeterHideOutOfCombat = GridCheck("Hide out of combat", C.MeterHideOutOfCombat);
+            C.MeterBreakdownIcons = GridCheck("Breakdown icons", C.MeterBreakdownIcons,
+                "Action icons when you click a player.");
+            C.MeterBreakdownColors = GridCheck("Color each ability", C.MeterBreakdownColors,
+                "Off = the player's job color throughout.");
             ImGui.EndTable();
         }
 

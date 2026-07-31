@@ -306,6 +306,8 @@ public class Configuration : IPluginConfiguration
     public int MeterMaxRows { get; set; }                     // 0 shows everyone
     public bool MeterTextShadow { get; set; } = true;
     public bool MeterHideOutOfCombat { get; set; }
+    public bool MeterBreakdownIcons { get; set; } = true;   // action icons in a player's breakdown
+    public bool MeterBreakdownColors { get; set; } = true;  // a color per ability, not one per job
 
     // Saved meter profiles (name -> share code) and which one is active.
     public Dictionary<string, string> MeterProfiles { get; set; } = new();

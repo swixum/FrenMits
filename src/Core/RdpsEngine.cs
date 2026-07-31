@@ -175,12 +175,13 @@ public class RdpsEngine
     private readonly Dictionary<uint, string> _effectNames = new();
 
     private static void Tally(Dictionary<string, Dictionary<string, AbilityStat>> table,
-        string who, string what, double dmg, bool crit, bool dh)
+        string who, string what, double dmg, bool crit, bool dh, uint id = 0, bool status = false)
     {
         if (who.Length == 0 || what.Length == 0 || dmg <= 0) return;
         if (!table.TryGetValue(who, out var by))
             table[who] = by = new Dictionary<string, AbilityStat>(StringComparer.OrdinalIgnoreCase);
-        if (!by.TryGetValue(what, out var s)) by[what] = s = new AbilityStat { Name = what };
+        if (!by.TryGetValue(what, out var s))
+            by[what] = s = new AbilityStat { Name = what, Id = id, IsStatus = status };
         s.Hits++;
         if (crit) s.Crits++;
         if (dh) s.Dhs++;
@@ -416,7 +417,7 @@ public class RdpsEngine
             var crit = (flags & 0x100) != 0;
             var dh = (flags & 0x200) != 0;
 
-            Tally(_dealt, ownerName, action.Length > 0 ? action : "Attack", dmg, crit, dh);
+            Tally(_dealt, ownerName, action.Length > 0 ? action : "Attack", dmg, crit, dh, Hex(f[4]));
             if (f[7].Length > 0) Tally(_targets, ownerName, f[7], dmg, crit, dh);
 
             Gather(owner, target, sec);
@@ -431,12 +432,13 @@ public class RdpsEngine
         var who = f[7];
         if (who.Length == 0 && !_names.TryGetValue(target, out who!)) return;
         var action = f[5].Length > 0 ? f[5] : "Attack";
+        var id = Hex(f[4]);
         for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
         {
             var flags = Hex(f[i]);
             if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
             var dmg = Unscramble(HexLong(f[i + 1]));
-            if (dmg > 0) Tally(_taken, who, action, dmg, (flags & 0x100) != 0, (flags & 0x200) != 0);
+            if (dmg > 0) Tally(_taken, who, action, dmg, (flags & 0x100) != 0, (flags & 0x200) != 0, id);
         }
     }
 
@@ -457,7 +459,7 @@ public class RdpsEngine
         var effect = Hex(f[5]);
         Tally(_dealt, ownerName,
             _effectNames.TryGetValue(effect, out var en) && en.Length > 0 ? en : "Damage over time",
-            dmg, crit: false, dh: false);
+            dmg, crit: false, dh: false, effect, status: true);
         if (f[3].Length > 0) Tally(_targets, ownerName, f[3], dmg, crit: false, dh: false);
 
         // Ticks price against the buffs frozen at application; a tick with no

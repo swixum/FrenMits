@@ -330,6 +330,39 @@ public static class Icons
         return icon;
     }
 
+    // Icons straight off the row id the combat log gave us, which beats
+    // matching on a name and survives anything a patch renames.
+    private static readonly Dictionary<uint, uint> _actionIcons = new();
+    private static readonly Dictionary<uint, uint> _statusIcons = new();
+
+    public static uint ByActionId(uint actionId)
+    {
+        if (actionId == 0) return 0;
+        if (_actionIcons.TryGetValue(actionId, out var cached)) return cached;
+        uint icon = 0;
+        try
+        {
+            if (GameSheets.English<Lumina.Excel.Sheets.Action>()?.GetRowOrDefault(actionId) is { } row)
+                icon = row.Icon;
+        }
+        catch { /* an id this client's sheet has never heard of */ }
+        return _actionIcons[actionId] = icon;
+    }
+
+    public static uint ByStatusId(uint statusId)
+    {
+        if (statusId == 0) return 0;
+        if (_statusIcons.TryGetValue(statusId, out var cached)) return cached;
+        uint icon = 0;
+        try
+        {
+            if (GameSheets.English<Lumina.Excel.Sheets.Status>()?.GetRowOrDefault(statusId) is { } row)
+                icon = row.Icon;
+        }
+        catch { /* same */ }
+        return _statusIcons[statusId] = icon;
+    }
+
     public static uint ResolveFromText(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return 0;

@@ -592,7 +592,27 @@ public class Meter : IDisposable
     {
         // Shares of a player's damage, and of what they took, by rank.
         var shares = new[] { 0.24, 0.19, 0.15, 0.12, 0.10, 0.08, 0.07, 0.05 };
-        var names = new[]
+        // Real actions, so the sample shows real icons and colors too.
+        var byJob = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["PCT"] = new[] { "Star Prism", "Comet in Black", "Hammer Stamp", "Rainbow Drip",
+                              "Holy in White", "Fire in Red", "Blizzard in Cyan", "Thunder in Magenta" },
+            ["VPR"] = new[] { "Reawaken", "Ouroboros", "First Generation", "Uncoiled Fury",
+                              "Flanksting Strike", "Hindsting Strike", "Steel Fangs", "Dread Fangs" },
+            ["SAM"] = new[] { "Midare Setsugekka", "Ogi Namikiri", "Higanbana", "Shoha",
+                              "Gekko", "Kasha", "Yukikaze", "Hakaze" },
+            ["MCH"] = new[] { "Full Metal Field", "Chain Saw", "Excavator", "Air Anchor",
+                              "Drill", "Heat Blast", "Clean Shot", "Split Shot" },
+            ["RDM"] = new[] { "Resolution", "Scorch", "Verholy", "Verflare",
+                              "Verthunder III", "Veraero III", "Grand Impact", "Jolt III" },
+            ["DRK"] = new[] { "Torcleaver", "Disesteem", "Bloodspiller", "Edge of Shadow",
+                              "Souleater", "Salted Earth", "Syphon Strike", "Hard Slash" },
+            ["GNB"] = new[] { "Double Down", "Gnashing Fang", "Wicked Talon", "Savage Claw",
+                              "Burst Strike", "Solid Barrel", "Brutal Shell", "Keen Edge" },
+            ["SGE"] = new[] { "Pneuma", "Phlegma III", "Eukrasian Dosis III", "Dosis III",
+                              "Toxikon II", "Dyskrasia II", "Psyche", "Eukrasia" },
+        };
+        var generic = new[]
         {
             "Opener", "Burst finisher", "Filler", "Combo ender", "Combo starter",
             "Damage over time", "Off-global", "Ranged shot",
@@ -602,6 +622,7 @@ public class Meter : IDisposable
         foreach (var r in e.Rows)
         {
             var who = r.Display.Length > 0 ? r.Display : r.Name;
+            var names = byJob.TryGetValue(r.Job, out var jobNames) ? jobNames : generic;
             var dealt = new List<AbilityStat>();
             for (var i = 0; i < shares.Length; i++)
                 dealt.Add(new AbilityStat

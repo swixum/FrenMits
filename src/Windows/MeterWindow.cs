@@ -624,7 +624,10 @@ public class MeterWindow : Window
         {
             var p = ImGui.GetCursorScreenPos();
             ImGui.InvisibleButton($"##bar{rank}", new Vector2(w, rowH));
+            // Both read straight off the bar: the job icon and the tooltip below
+            // become the "last item", and these would then be asking about those.
             var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
+            var opened = hovered && ImGui.IsItemClicked(ImGuiMouseButton.Left);
             var dl = ImGui.GetWindowDrawList();
 
             var jobColor = C.MeterJobColors && JobColors.TryGetValue(r.Job, out var jc) ? jc : C.MeterAccentColor;
@@ -694,7 +697,7 @@ public class MeterWindow : Window
                 PushMenuTheme();
                 RowTooltip(enc, r);
                 PopMenuTheme();
-                if (ImGui.IsItemClicked(ImGuiMouseButton.Left)) OpenDetail(_rowUnderMouse);
+                if (opened) OpenDetail(_rowUnderMouse);
             }
             ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
         }
@@ -792,8 +795,8 @@ public class MeterWindow : Window
             if (string.Equals(r.Display.Length > 0 ? r.Display : r.Name, _detailFor,
                     StringComparison.OrdinalIgnoreCase))
             { job = r.Job; break; }
-        var rgb = (C.MeterJobColors && JobColors.TryGetValue(job, out var jc) ? jc : C.MeterAccentColor)
-                  & 0x00FFFFFF;
+        var jobRgb = (C.MeterJobColors && JobColors.TryGetValue(job, out var jc) ? jc : C.MeterAccentColor)
+                     & 0x00FFFFFF;
 
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
         var i2 = 0;
@@ -803,19 +806,36 @@ public class MeterWindow : Window
             ImGui.InvisibleButton($"##ab{i2++}", new Vector2(w, rowH));
             var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
 
+            // One color per name, so a skill always reads the same shade.
+            var rgb = C.MeterBreakdownColors ? TintFor(a.Name) : jobRgb;
+
             dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
                 hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
             DrawBar(dl, p + new Vector2(pad - 3f, 0),
                 (float)(a.Damage / max) * (w - pad * 2 + 6f), rowH, rgb, p.X + pad);
 
             var ty = p.Y + (rowH - lineH) * 0.5f;
+            var x2 = p.X + pad + 4f;
+            if (C.MeterBreakdownIcons)
+            {
+                var icon = a.IsStatus ? Icons.ByStatusId(a.Id) : Icons.ByActionId(a.Id);
+                if (icon == 0) icon = Icons.ResolveFromText(a.Name);
+                if (icon != 0)
+                {
+                    var sz = rowH - 5f;
+                    ImGui.SetCursorScreenPos(new Vector2(x2, p.Y + 2.5f));
+                    Icons.Draw(icon, new Vector2(sz, sz));
+                    x2 += sz + 5f;
+                }
+            }
+
             var pct = total > 0 ? a.Damage / total * 100 : 0;
             var right = $"{Num(a.Damage)}  ({pct:0.#}%)";
             var rw = ImGui.CalcTextSize(right).X;
             BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterTextColor, right);
-            var nameMax = w - pad * 2 - rw - 10f;
+            var nameMax = p.X + w - pad - rw - x2 - 6f;
             if (nameMax > 12f)
-                BText(dl, new Vector2(p.X + pad + 4f, ty), C.MeterSubColor, Clip(a.Name, nameMax));
+                BText(dl, new Vector2(x2, ty), C.MeterSubColor, Clip(a.Name, nameMax));
 
             if (hovered)
             {
@@ -973,6 +993,10 @@ public class MeterWindow : Window
                 if (ImGui.MenuItem("Buttons bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
                 if (ImGui.MenuItem("Healing tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
                 if (ImGui.MenuItem("Drop shadow", "", C.MeterTextShadow)) { C.MeterTextShadow = !C.MeterTextShadow; C.SaveSettings(); }
+                if (ImGui.MenuItem("Breakdown icons", "", C.MeterBreakdownIcons))
+                { C.MeterBreakdownIcons = !C.MeterBreakdownIcons; C.SaveSettings(); }
+                if (ImGui.MenuItem("Color each ability", "", C.MeterBreakdownColors))
+                { C.MeterBreakdownColors = !C.MeterBreakdownColors; C.SaveSettings(); }
                 if (ImGui.MenuItem("Hide out of combat", "", C.MeterHideOutOfCombat))
                 { C.MeterHideOutOfCombat = !C.MeterHideOutOfCombat; C.SaveSettings(); }
                 ImGui.EndMenu();
@@ -1102,6 +1126,40 @@ public class MeterWindow : Window
     // Every piece of text on the meter, honoring the shadow toggle.
     private void BText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
         => OverlayChrome.BoardText(dl, pos, color, text, C.MeterTextShadow);
+
+    // A stable color per ability name: the same skill keeps its shade from one
+    // pull to the next, and neighbouring rows stay easy to tell apart.
+    private static readonly Dictionary<string, uint> TintCache = new(StringComparer.Ordinal);
+
+    public static uint TintFor(string name)
+    {
+        if (TintCache.TryGetValue(name, out var cached)) return cached;
+        var h = 2166136261u;
+        foreach (var ch in name) { h = (h ^ ch) * 16777619u; }
+        // Spread the hues rather than letting the hash clump them.
+        var hue = h % 360u / 360f;
+        return TintCache[name] = Hsv(hue, 0.55f, 0.98f);
+    }
+
+    // Hue, saturation and value into the packed color the draw list wants.
+    private static uint Hsv(float h, float s, float v)
+    {
+        var i = (int)MathF.Floor(h * 6f);
+        var f = h * 6f - i;
+        var p = v * (1f - s);
+        var q = v * (1f - f * s);
+        var t = v * (1f - (1f - f) * s);
+        var (r, g, b) = (i % 6) switch
+        {
+            0 => (v, t, p),
+            1 => (q, v, p),
+            2 => (p, v, t),
+            3 => (p, q, v),
+            4 => (t, p, v),
+            _ => (v, p, q),
+        };
+        return (uint)(b * 255f) << 16 | (uint)(g * 255f) << 8 | (uint)(r * 255f);
+    }
 
     // A color's alpha scaled by a factor, clamped to a byte.
     private static uint Fade(uint abgr, float scale)
