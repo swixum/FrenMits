@@ -310,6 +310,9 @@ public class Configuration : IPluginConfiguration
     public int MeterHighlightStyle { get; set; }              // 0 wash + outline, 1 wash, 2 outline, 3 stripe
     public float MeterHighlightStrength { get; set; } = 1f;
     public float MeterBarOpacity { get; set; } = 1f;
+    // Bars are drawn as a wash of the job color so the background reads through
+    // them. This fills them with the color itself instead.
+    public bool MeterBarSolid { get; set; }
     public int MeterMaxRows { get; set; }                     // 0 shows everyone
     public bool MeterTextShadow { get; set; } = true;
     public bool MeterHideOutOfCombat { get; set; }

@@ -136,6 +136,9 @@ public partial class ConfigWindow
         var barOp = C.MeterBarOpacity;
         if (Widgets.SliderInput("Bar opacity", ref barOp, 0.2f, 1.6f, "%.2f"))
         { C.MeterBarOpacity = barOp; C.SaveSettings(); }
+        var barSolid = C.MeterBarSolid;
+        if (ImGui.Checkbox("Solid bars", ref barSolid)) { C.MeterBarSolid = barSolid; C.SaveSettings(); }
+        Tip("Fill bars with the job color instead of a wash you can see through.");
 
         SeparatorText("Your row");
         ImGui.SetNextItemWidth(200f);

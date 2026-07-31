@@ -55,6 +55,7 @@ public static class MeterProfile
             ["hlstyle"] = c.MeterHighlightStyle,
             ["hlstr"] = c.MeterHighlightStrength,
             ["barop"] = c.MeterBarOpacity,
+            ["barsolid"] = c.MeterBarSolid,
             ["maxrows"] = c.MeterMaxRows,
             ["shadow"] = c.MeterTextShadow,
             ["hideooc"] = c.MeterHideOutOfCombat,
@@ -123,6 +124,7 @@ public static class MeterProfile
             if (o["hlstyle"] is { } hs) c.MeterHighlightStyle = Math.Clamp((int)hs, 0, 3);
             if (o["hlstr"] is { } hst) c.MeterHighlightStrength = Math.Clamp((float)hst, 0.2f, 2.5f);
             if (o["barop"] is { } bo) c.MeterBarOpacity = Math.Clamp((float)bo, 0.2f, 1.6f);
+            if (o["barsolid"] is { } bs) c.MeterBarSolid = (bool)bs;
             if (o["maxrows"] is { } mr) c.MeterMaxRows = Math.Clamp((int)mr, 0, 24);
             if (o["shadow"] is { } sh) c.MeterTextShadow = (bool)sh;
             if (o["hideooc"] is { } ho) c.MeterHideOutOfCombat = (bool)ho;

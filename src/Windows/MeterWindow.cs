@@ -1019,27 +1019,34 @@ public class MeterWindow : Window
         if (fill <= 2f) return;
         var b = new Vector2(a.X + fill, a.Y + rowH);
         var op = C.MeterBarOpacity * scale;
+        // Solid bars fill with the color itself rather than a wash of it. The
+        // shine, the outline and the cap stay as they are: those sit on top of
+        // the fill and are what tell the styles apart.
+        var solid = C.MeterBarSolid;
+        var wash = solid ? 0xFF000000u : 0x5C000000u;
+        var lead = solid ? 0xFF000000u : 0x8C000000u;
+        var trail = solid ? 0x99000000u : 0x26000000u;
         switch (C.MeterBarStyle)
         {
             case 1: // glass: solid fill with a shine across the top half
-                dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
+                dl.AddRectFilled(a, b, Fade(rgb | wash, op), 4f);
                 dl.AddRectFilledMultiColor(a + new Vector2(1f, 1f), new Vector2(b.X, a.Y + rowH * 0.55f),
                     0x24FFFFFF, 0x24FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
                 break;
             case 2: // gradient: strong at the left, fading right
                 dl.AddRectFilledMultiColor(a + new Vector2(0f, 1f), b - new Vector2(0f, 1f),
-                    Fade(rgb | 0x8C000000, op), Fade(rgb | 0x26000000, op),
-                    Fade(rgb | 0x26000000, op), Fade(rgb | 0x8C000000, op));
+                    Fade(rgb | lead, op), Fade(rgb | trail, op),
+                    Fade(rgb | trail, op), Fade(rgb | lead, op));
                 break;
             case 3: // outline: a hollow bar with a bright edge
-                dl.AddRectFilled(a, b, Fade(rgb | 0x1A000000, op), 4f);
+                dl.AddRectFilled(a, b, Fade(rgb | (solid ? 0xFF000000u : 0x1A000000u), op), 4f);
                 dl.AddRect(a, b, Fade(rgb | 0xCC000000, op), 4f);
                 break;
             case 4: // minimal: a rule under the row, no fill
                 dl.AddRectFilled(new Vector2(a.X, b.Y - 2f), b, Fade(rgb | 0xD9000000, op));
                 return;
             default: // flat
-                dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
+                dl.AddRectFilled(a, b, Fade(rgb | wash, op), 4f);
                 break;
         }
         dl.AddRectFilled(a, new Vector2(capEndX, b.Y), Fade(rgb | 0xE6000000, op), 2f);
