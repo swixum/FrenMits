@@ -67,6 +67,12 @@ public class Meter : IDisposable
         return current < 0f || reading < current ? reading : current;
     }
 
+    // Whether the readout is due for a fresh set of numbers. Values that move
+    // every frame are unreadable, so they are taken on a cadence and held
+    // still in between; a rate of zero is the old every-frame behavior.
+    public static bool DueToRefresh(double since, float rate)
+        => rate <= 0f || since >= rate || since < 0;
+
     private DateTime _nextTrim = DateTime.MinValue;
 
     public Meter(Plugin plugin)
@@ -197,7 +203,7 @@ public class Meter : IDisposable
         if (_cut != null)
         {
             // The parser starting its own new encounter retires the cut.
-            if (raw.Seconds + 0.5f < _cut.Seconds) _cut = null;
+            if (!CutStillHolds(raw.Seconds, _cut.Seconds)) _cut = null;
             else
             {
                 raw = Subtract(incoming, _cut);
@@ -384,6 +390,12 @@ public class Meter : IDisposable
 
     private void EndFight()
     {
+        // The parser's encounter can outlive the pull: it goes on counting
+        // through a wipe and, if it never times out, carries those totals into
+        // the next pull as one 20-minute fight that barely moves. Baselining
+        // here means the next pull starts from zero whether the parser starts
+        // a new encounter or not; if it does, the cut retires itself.
+        if (_rawIn != null) _cut = Snapshot(_rawIn);
         _carry = null;
         _fightStartSec = 0;
         _fightTitle = "";
@@ -516,6 +528,12 @@ public class Meter : IDisposable
 
     private Baseline? _cut;
     private MeterEncounter? _rawIn;
+
+    // A cut only means anything while the parser is still on the encounter it
+    // was taken from. A clock that has run backwards is a new encounter, and
+    // there is nothing left to subtract.
+    public static bool CutStillHolds(float parserSeconds, float cutSeconds)
+        => parserSeconds + 0.5f >= cutSeconds;
 
     public static Baseline Snapshot(MeterEncounter raw)
     {

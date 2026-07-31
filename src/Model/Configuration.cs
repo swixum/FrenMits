@@ -309,6 +309,7 @@ public class Configuration : IPluginConfiguration
     public bool MeterBreakdownIcons { get; set; } = true;   // action icons in a player's breakdown
     public bool MeterBreakdownColors { get; set; } = true;  // a color per ability, not one per job
     public bool MeterFooterDeaths { get; set; } = true;     // the pull's death count in the footer
+    public float MeterRefreshSeconds { get; set; } = 1f;    // how often values settle; 0 is every frame
     public bool MeterCollapsed { get; set; }                // rolled up to just its header
     public bool MeterAlwaysShow { get; set; } = true;       // stay on screen with no pull to show
 

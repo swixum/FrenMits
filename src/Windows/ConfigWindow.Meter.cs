@@ -102,6 +102,12 @@ public partial class ConfigWindow
         { C.MeterMaxRows = maxRows; C.SaveSettings(); }
         Tip("Your own row always shows.");
 
+        var refresh = C.MeterRefreshSeconds;
+        if (Widgets.SliderInput("Number refresh", ref refresh, 0f, 3f,
+                refresh <= 0f ? "every frame" : "%.1f s"))
+        { C.MeterRefreshSeconds = refresh; C.SaveSettings(); }
+        Tip("How long the numbers hold still. Bars keep moving.");
+
         ImGui.Spacing();
         ImGui.TextDisabled("Turn on Test mode in the header to place it with a sample pull.");
     }

@@ -61,6 +61,10 @@ public static class RaidBuffs
         Crit("Chain Stratagem", 0.10f, onEnemy: true), // SCH
         Dmg("Dokumori", 1.05f, onEnemy: true),         // NIN
         Dmg("Mug", 1.05f, onEnemy: true),              // NIN, low level / synced
+        // Kunai's Bane and the Trick Attack it replaced are deliberately absent.
+        // Pricing them here as another party-wide debuff triples what a ninja
+        // is paid: three ranked kills put their contribution at 1.44%, 1.54%
+        // and 1.55% of raid damage, which Dokumori alone already accounts for.
 
         // Dance finishes: one status name for every step count; the engine
         // reads the finishing move to price partial dances, full is the default.

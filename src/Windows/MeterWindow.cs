@@ -110,6 +110,8 @@ public class MeterWindow : Window
         SaveIfMoved();
         var enc = View();
         if (enc != null) enc = Smoothed(enc);
+        _live = enc;
+        enc = Held(enc);
         _shown = enc;
 
         var wp = ImGui.GetWindowPos();
@@ -519,6 +521,43 @@ public class MeterWindow : Window
         return mix;
     }
 
+    // The newest values, kept beside the held ones so the bars can go on
+    // moving while the numbers over them stand still.
+    private MeterEncounter? _live;
+    private MeterEncounter? _held;
+    private DateTime _heldAt;
+
+    // Digits that change every frame cannot be read, so a live pull takes a
+    // fresh set on a cadence and holds it. The order is held with them: a row
+    // whose number is a second old must not be ranked on a newer one.
+    private MeterEncounter? Held(MeterEncounter? enc)
+    {
+        if (enc is not { Active: true } || _plugin.Meter.Paused)
+        {
+            _held = null;
+            return enc;
+        }
+        var now = DateTime.UtcNow;
+        // A pull starting over, or somebody joining the board, shows at once:
+        // waiting out the cadence there would look like the meter had stalled.
+        if (_held == null || _held.Rows.Count != enc.Rows.Count || enc.Seconds < _held.Seconds
+            || Meter.DueToRefresh((now - _heldAt).TotalSeconds, C.MeterRefreshSeconds))
+        {
+            _held = enc;
+            _heldAt = now;
+        }
+        return _held;
+    }
+
+    // The same row as it stands right now, for the length of its bar.
+    private MeterCombatant LiveRow(MeterCombatant held)
+    {
+        if (_live is { } live && !ReferenceEquals(live, _held))
+            foreach (var c in live.Rows)
+                if (c.Name == held.Name) return c;
+        return held;
+    }
+
     // ---- header ------------------------------------------------------------
 
     private void DrawHeader(MeterEncounter enc, ImDrawListPtr dl, Vector2 wp, Vector2 ws, float pad, ref float y)
@@ -545,7 +584,10 @@ public class MeterWindow : Window
             _ => $"Raid {Num(enc.RaidRDps)} rDPS",
         };
 
-        var timeText = enc.Duration.Length > 0 ? enc.Duration : "0:00";
+        // The clock is read, not scanned, and it ticks once a second by itself.
+        // Holding it with the values would make it skip one every so often.
+        var clock = _live?.Duration is { Length: > 0 } d ? d : enc.Duration;
+        var timeText = clock.Length > 0 ? clock : "0:00";
         if (slim)
         {
             // Slim: one line, clock + title left, headline right.
@@ -858,8 +900,10 @@ public class MeterWindow : Window
     {
         var rows = new List<MeterCombatant>(enc.Rows);
         rows.Sort((a, b) => Metric(b).CompareTo(Metric(a)));
+        // Bars are scaled against the newest numbers, which is what lets them
+        // grow between one held reading and the next.
         var max = 1.0;
-        foreach (var r in rows) max = Math.Max(max, Metric(r));
+        foreach (var r in rows) max = Math.Max(max, Metric(LiveRow(r)));
         // Ranks are fixed before any trimming, so a shown row keeps its real place.
         var ranked = new List<(MeterCombatant Row, int Rank)>(rows.Count);
         for (var i = 0; i < rows.Count; i++) ranked.Add((rows[i], i + 1));
@@ -895,7 +939,7 @@ public class MeterWindow : Window
 
             dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
                 hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
-            var fill = (float)(Metric(r) / max) * (w - pad * 2 + 6f);
+            var fill = (float)(Metric(LiveRow(r)) / max) * (w - pad * 2 + 6f);
             DrawBar(dl, p + new Vector2(pad - 3f, 0), fill, rowH, rgb, p.X + pad);
             if (C.MeterHighlightYou && IsYou(r, you))
             {

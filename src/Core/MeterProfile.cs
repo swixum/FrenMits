@@ -62,6 +62,7 @@ public static class MeterProfile
             ["bdcolors"] = c.MeterBreakdownColors,
             ["always"] = c.MeterAlwaysShow,
             ["deathtotal"] = c.MeterFooterDeaths,
+            ["refresh"] = c.MeterRefreshSeconds,
         };
         var raw = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o));
         using var ms = new MemoryStream();
@@ -129,6 +130,7 @@ public static class MeterProfile
             if (o["bdcolors"] is { } bdc) c.MeterBreakdownColors = (bool)bdc;
             if (o["always"] is { } aw) c.MeterAlwaysShow = (bool)aw;
             if (o["deathtotal"] is { } dt) c.MeterFooterDeaths = (bool)dt;
+            if (o["refresh"] is { } rf) c.MeterRefreshSeconds = Math.Clamp((float)rf, 0f, 3f);
             return true;
         }
         catch
