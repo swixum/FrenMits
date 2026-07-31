@@ -146,6 +146,10 @@ public class Meter : IDisposable
         // dungeon start from zero, and freezes a kill at the killing blow.
         var inCombat = Plugin.InCombat;
         if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
+        // A cutscene between phases drops combat without ending the pull, and
+        // filing one there splits a single fight across several entries in the
+        // list. The settle only starts once the game hands control back.
+        if (Plugin.CutsceneActive) _combatDropAt = DateTime.UtcNow;
         if (inCombat) _cutDone = false;
         else if (!_cutDone && !Paused && _rawSeg is { Active: true }
                  && _combatDropAt != DateTime.MinValue
@@ -257,7 +261,12 @@ public class Meter : IDisposable
         {
             // Mid-boss split (downtime): stitch, and keep reading as a live fight.
             _carry ??= new FightCarry { StartSec = _fightStartSec, Title = _fightTitle };
-            Fold(_carry, final);
+            Fold(_carry, final, Engine.LatestSec);
+            // This segment is banked now, so the parser has to be measured from
+            // here on. Without it, a parser that resumes its old encounter
+            // instead of starting a new one hands back totals this fight has
+            // already counted, and every split doubles the clock.
+            if (_rawIn != null) _cut = Snapshot(_rawIn);
             display.Active = true;
             Publish(display);
             return;
@@ -463,12 +472,17 @@ public class Meter : IDisposable
         public Dictionary<string, MeterCombatant> Rows { get; } = new(StringComparer.OrdinalIgnoreCase);
     }
 
-    // Bank a finished segment's numbers into the running fight.
-    public static void Fold(FightCarry carry, MeterEncounter final)
+    // Bank a finished segment's numbers into the running fight. A stitched
+    // fight leaves the gaps between its segments out, so its clock can never
+    // pass the time actually elapsed since it started: that ceiling is what
+    // stops a miscounted segment from compounding into an hour-long pull.
+    public static void Fold(FightCarry carry, MeterEncounter final, long nowSec = 0)
     {
         foreach (var r in final.Rows)
             carry.Rows[r.Name] = Combine(carry.Rows.GetValueOrDefault(r.Name), r);
         carry.Seconds += final.Seconds;
+        if (nowSec > 0 && carry.StartSec > 0)
+            carry.Seconds = Math.Min(carry.Seconds, Math.Max(0, nowSec - carry.StartSec));
         if (final.Title.Length > 0) carry.Title = final.Title;
     }
 
