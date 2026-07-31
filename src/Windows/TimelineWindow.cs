@@ -294,10 +294,7 @@ public class TimelineWindow : Window
         _downRows = null; // the row set below is derived from this
         if (fight.CustomDowntimes.Count == 0) return _downWins = baseWins;
         if (baseWins.Count == 0) return _downWins = fight.CustomDowntimes;
-        var merged = new List<DowntimeWindow>(baseWins.Count + fight.CustomDowntimes.Count);
-        merged.AddRange(baseWins);
-        merged.AddRange(fight.CustomDowntimes);
-        return _downWins = merged;
+        return _downWins = Downtimes.Merge(baseWins, fight.CustomDowntimes);
     }
 
     // Learned downtimes as inline board rows: an Untargetable entry when the boss

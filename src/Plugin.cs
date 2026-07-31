@@ -547,12 +547,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // length.
     public float DowntimeElapsed => _downtimeElapsed;
     // Seconds left until targetable, once this lull has been seen before (learned);
-    // -1 the very first time, when we're still measuring it.
-    public float DowntimeRemaining => DowntimeActive && _downtimeKnownDur > 0f
-        ? MathF.Max(0f, _downtimeKnownDur - DowntimeElapsed) : -1f;
+    // -1 the very first time, when we're still measuring it. Counted to the
+    // window's own targetable time rather than down from its length, so a lull
+    // the game flags a few seconds off the sheet still ends where it really ends.
+    public float DowntimeRemaining => _downtimeRemaining;
     private float _downtimeElapsed;
+    private float _downtimeRemaining = -1f;
     private float _downtimeStartElapsed;
-    private float _downtimeKnownDur = -1f;
+    private float _downtimeKnownEnd = -1f;
 
     // The current boss's HP as a 0..1 fraction (-1 when there's no boss).
     public float BossHpFraction { get; private set; } = -1f;
@@ -634,30 +636,40 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // Tick the lull's length in game-time so replay speed / pauses can't skew it.
         if (down && DowntimeActive) _downtimeElapsed += gameDt;
 
+        var fight = ActiveFight();
+        var clock = fight != null ? ElapsedFor(fight) : Timer.Elapsed;
         if (down && !DowntimeActive)
         {
-            // Just started: stamp it and recall its hardcoded length for the banner.
+            // Just started: stamp it and recall when the sheet says the boss is
+            // back, for the banner.
             _downtimeElapsed = 0f;
-            var f = ActiveFight();
-            _downtimeStartElapsed = f != null ? ElapsedFor(f) : Timer.Elapsed;
-            _downtimeKnownDur = LookupDowntime(f?.TerritoryId, _downtimeStartElapsed);
+            _downtimeStartElapsed = clock;
+            _downtimeKnownEnd = LookupTargetable(fight?.TerritoryId, clock);
+            Diag.Note(_downtimeKnownEnd > 0f
+                ? $"downtime START clock={clock:0.0}  targetable={_downtimeKnownEnd:0.0}"
+                : $"downtime START clock={clock:0.0}  (no window)");
         }
         else if (!down && DowntimeActive)
         {
             // Just ended: refine the TIME of any learnable window (one cactbot
             // couldn't pin) from what we just measured.
-            if (ActiveFight() is { } f) MaybeLearnDowntime(f.TerritoryId, _downtimeStartElapsed, DowntimeElapsed);
-            _downtimeKnownDur = -1f;
+            if (fight != null) MaybeLearnDowntime(fight.TerritoryId, _downtimeStartElapsed, DowntimeElapsed);
+            Diag.Note($"downtime END   clock={clock:0.0}  lasted={DowntimeElapsed:0.0}s");
+            _downtimeKnownEnd = -1f;
         }
         DowntimeActive = down;
+        _downtimeRemaining = down && _downtimeKnownEnd > 0f
+            ? MathF.Max(0f, _downtimeKnownEnd - clock) : -1f;
     }
 
-    // The known length of the lull starting near `start` (-1 if none).
-    private float LookupDowntime(uint? territory, float start)
+    // When the sheet says the boss is targetable again, for the lull starting
+    // near `start` (-1 if none). The game can flag a lull a few seconds either
+    // side of the sheet, so the countdown reads the window's end, not its length.
+    private float LookupTargetable(uint? territory, float start)
     {
         if (territory is not { } t) return -1f;
         foreach (var w in Downtimes.Effective(t, Config.LearnedDowntimes))
-            if (MathF.Abs(w.Start - start) < 8f) return w.Duration;
+            if (MathF.Abs(w.Start - start) < 8f) return w.Start + w.Duration;
         return -1f;
     }
 

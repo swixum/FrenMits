@@ -73,6 +73,15 @@ public class Meter : IDisposable
     public static bool DueToRefresh(double since, float rate)
         => rate <= 0f || since >= rate || since < 0;
 
+    // A pull is only over once combat has stayed off for a beat with the game
+    // back in the player's hands. The flag alone says nothing: every phase
+    // cutscene drops it mid-fight, and filing there would leave one pull spread
+    // across several entries in the list.
+    public const double SettleSeconds = 1.5;
+
+    public static bool SettleDue(bool inCombat, bool cutscene, double sinceDrop)
+        => !inCombat && !cutscene && sinceDrop > SettleSeconds;
+
     private DateTime _nextTrim = DateTime.MinValue;
 
     public Meter(Plugin plugin)
@@ -122,9 +131,25 @@ public class Meter : IDisposable
         if (Plugin.InCombat && !Plugin.CutsceneActive && _plugin.PlayersStanding >= 0)
             _standing = _plugin.PlayersStanding;
 
+        // Combat over: close this fight right away instead of waiting out the
+        // parser's idle timeout. That is what makes each trash pack in a
+        // dungeon start from zero, and freezes a kill at the killing blow.
+        var inCombat = Plugin.InCombat;
+        if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
+        // A cutscene between phases drops combat without ending the pull, and
+        // filing one there splits a single fight across several entries in the
+        // list. The settle only starts once the game hands control back.
+        if (Plugin.CutsceneActive) _combatDropAt = DateTime.UtcNow;
+        if (inCombat) _cutDone = false;
+        _wasInCombat = inCombat;
+        var sinceDrop = _combatDropAt == DateTime.MinValue
+            ? 0.0 : (DateTime.UtcNow - _combatDropAt).TotalSeconds;
+        var settle = SettleDue(inCombat, Plugin.CutsceneActive, sinceDrop);
+
         // A stitched fight that ended inside the quiet gap (a wipe during
-        // downtime): no further segment is coming, settle it when combat drops.
-        if (!Paused && _carry != null && _rawSeg is not { Active: true } && !Plugin.InCombat)
+        // downtime): no further segment is coming, settle it once combat has
+        // really gone.
+        if (!Paused && _carry != null && _rawSeg is not { Active: true } && settle)
         {
             if (Current != null)
             {
@@ -141,24 +166,11 @@ public class Meter : IDisposable
             Engine.Trim();
         }
 
-        // Combat over: close this fight right away instead of waiting out the
-        // parser's idle timeout. That is what makes each trash pack in a
-        // dungeon start from zero, and freezes a kill at the killing blow.
-        var inCombat = Plugin.InCombat;
-        if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
-        // A cutscene between phases drops combat without ending the pull, and
-        // filing one there splits a single fight across several entries in the
-        // list. The settle only starts once the game hands control back.
-        if (Plugin.CutsceneActive) _combatDropAt = DateTime.UtcNow;
-        if (inCombat) _cutDone = false;
-        else if (!_cutDone && !Paused && _rawSeg is { Active: true }
-                 && _combatDropAt != DateTime.MinValue
-                 && (DateTime.UtcNow - _combatDropAt).TotalSeconds > 1.5)
+        if (!_cutDone && !Paused && _rawSeg is { Active: true } && settle)
         {
             _cutDone = true;
             CutHere();
         }
-        _wasInCombat = inCombat;
 
         // The active profile follows every tweak by itself; no manual save.
         if (DateTime.UtcNow >= _nextProfileSync)

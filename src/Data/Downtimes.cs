@@ -75,6 +75,27 @@ public static class Downtimes
         return built;
     }
 
+    // Two windows this close apart are the same lull described twice.
+    private const float SameLull = 5f;
+
+    // A fight's own imported windows on top of the hardcoded ones. An import
+    // derives its windows from the same lulls the built-ins already cover, so
+    // one that lands on a built-in is dropped rather than drawn a second time.
+    public static List<DowntimeWindow> Merge(
+        IReadOnlyList<DowntimeWindow> baseWins, IReadOnlyList<DowntimeWindow> custom)
+    {
+        var merged = new List<DowntimeWindow>(baseWins.Count + custom.Count);
+        merged.AddRange(baseWins);
+        foreach (var w in custom)
+        {
+            var dup = false;
+            foreach (var b in baseWins)
+                if (MathF.Abs(b.Start - w.Start) < SameLull) { dup = true; break; }
+            if (!dup) merged.Add(w);
+        }
+        return merged;
+    }
+
     private static List<DowntimeWindow> BuildEffective(
         IReadOnlyList<DowntimeWindow> baseWins, List<DowntimeWindow>? seen)
     {
