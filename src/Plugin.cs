@@ -585,6 +585,33 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return true;
     }
 
+    // A raid boss's health bar rather than a trash mob's. A flat floor only tells
+    // the two apart at the level cap: under sync a boss can hold less health than
+    // a capped player does, and the meter would then see no boss in the duty at
+    // all - no stitching across a lull, no kill on the pull. The lower of the two
+    // tests wins, so capped content reads exactly as it did.
+    public const uint BossHpFloor = 1_000_000;
+    private const uint BossHpPlayerMultiple = 15;
+
+    public static bool BossSized(uint maxHp, uint playerMaxHp)
+        => maxHp > (playerMaxHp > 0 ? Math.Min(BossHpFloor, playerMaxHp * BossHpPlayerMultiple) : BossHpFloor);
+
+    // Who in your own party is still up, which is what a wipe empties. The object
+    // table counts every player in the zone: the other two alliances, or whoever
+    // happened to be standing in the same FATE.
+    private static int StandingInParty()
+    {
+        var party = Service.PartyList;
+        // Solo, or between zones with nobody to read: unknown beats calling it a
+        // wipe, which is what a zero here would mean.
+        if (party.Length == 0)
+            return LocalPlayer is { } me ? (me.CurrentHp > 0 ? 1 : 0) : -1;
+        var up = 0;
+        foreach (var m in party)
+            if (m.CurrentHP > 0) up++;
+        return up;
+    }
+
     private void UpdateDowntime(float gameDt)
     {
         // The boss sweep walks the whole object table, so it's gated on a running
@@ -592,18 +619,15 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         IBattleNpc? boss = null;
         IBattleNpc? targetable = null;
         IBattleNpc? biggest = null;
-        var standing = Timer.Running ? 0 : -1;
+        var playerMaxHp = LocalPlayer?.MaxHp ?? 0u;
+        var standing = Timer.Running ? StandingInParty() : -1;
         if (Timer.Running)
             foreach (var o in Service.ObjectTable)
             {
-                // In a duty the players in the object table are the party, and
-                // a wipe is what empties this count.
-                if (o is Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter
-                    { MaxHp: > 0, CurrentHp: > 0 }) standing++;
                 if (o is not IBattleNpc n || (byte)n.BattleNpcKind != 5) continue;
-                if (n.MaxHp > 1_000_000)
+                if (BossSized(n.MaxHp, playerMaxHp))
                 {
-                    // The DPS-gate readout wants a raid boss, so it keeps the HP floor.
+                    // The DPS-gate readout wants a raid boss, so trash stays out.
                     if (boss is null || n.MaxHp > boss.MaxHp) boss = n;
                     // A fight can carry huge untargetable extras (clones, set
                     // pieces, a corpse not yet despawned); the one you can hit is
@@ -666,12 +690,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // near `start` (-1 if none). The game can flag a lull a few seconds either
     // side of the sheet, so the countdown reads the window's end, not its length.
     private float LookupTargetable(uint? territory, float start)
-    {
-        if (territory is not { } t) return -1f;
-        foreach (var w in Downtimes.Effective(t, Config.LearnedDowntimes))
-            if (MathF.Abs(w.Start - start) < 8f) return w.Start + w.Duration;
-        return -1f;
-    }
+        => territory is { } t
+            ? Downtimes.TargetableAt(Downtimes.Effective(t, Config.LearnedDowntimes), start)
+            : -1f;
 
     // Record a measured Start/Duration ONLY when it matches a learnable hardcoded
     // window (Learn=true) - the few transitions cactbot leaves uncertain.

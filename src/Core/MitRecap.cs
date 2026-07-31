@@ -836,8 +836,10 @@ public class MitRecap
     private static IBattleNpc? FindBoss()
     {
         IBattleNpc? boss = null;
+        var playerMaxHp = Plugin.LocalPlayer?.MaxHp ?? 0u;
         foreach (var o in Service.ObjectTable)
-            if (o is IBattleNpc n && n.MaxHp > 1_000_000 && (boss is null || n.MaxHp > boss.MaxHp))
+            if (o is IBattleNpc n && Plugin.BossSized(n.MaxHp, playerMaxHp)
+                && (boss is null || n.MaxHp > boss.MaxHp))
                 boss = n;
         return boss;
     }

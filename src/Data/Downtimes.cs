@@ -75,6 +75,29 @@ public static class Downtimes
         return built;
     }
 
+    // How far from a window's start the game may flag the lull and still be
+    // taken for that one. The flag trips on the push, not on the boss leaving:
+    // a party that ends the phase hard leaves it standing at zero health for a
+    // few seconds first, and how many depends on the party.
+    public const float MatchRadius = 10f;
+
+    // When the boss is targetable again for the lull flagged at `start`, or -1
+    // when none is close enough. The nearest window wins, so a fight whose lulls
+    // sit close together can't answer for its neighbor.
+    public static float TargetableAt(IReadOnlyList<DowntimeWindow> windows, float start)
+    {
+        var best = -1f;
+        var bestGap = MatchRadius;
+        foreach (var w in windows)
+        {
+            var gap = MathF.Abs(w.Start - start);
+            if (gap >= bestGap) continue;
+            bestGap = gap;
+            best = w.Start + w.Duration;
+        }
+        return best;
+    }
+
     // Two windows this close apart are the same lull described twice.
     private const float SameLull = 5f;
 
