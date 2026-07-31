@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
@@ -11,7 +11,7 @@ namespace FrenMits;
 // mid-boss in every downtime phase. Fights are stitched back together here:
 // while the game still says the party is in combat with a boss, a "new"
 // parser encounter is a continuation, its segments summed. Dungeon trash
-// resets per pack as normal, and only boss fights are kept as history.
+// resets per pack as normal, and anything worth looking back at is kept.
 public class Meter : IDisposable
 {
     private readonly Plugin _plugin;
@@ -22,7 +22,8 @@ public class Meter : IDisposable
 
     public MeterEncounter? Current { get; private set; }
     public List<MeterEncounter> History { get; } = new();
-    private const int MaxHistory = 10;
+    // Enough for a whole duty's bosses, or an evening of prog pulls.
+    private const int MaxHistory = 30;
 
     // Freezes the display (log lines keep flowing so rDPS stays honest).
     public bool Paused { get; set; }
@@ -91,7 +92,7 @@ public class Meter : IDisposable
             {
                 Current.Active = false;
                 Materialize(Current);
-                if (_sawBoss) PushHistory(Current);
+                if (WorthKeeping(Current)) PushHistory(Current);
             }
             EndFight();
         }
@@ -227,7 +228,7 @@ public class Meter : IDisposable
         display.Active = false;
         Materialize(display);
         Publish(display);
-        if (_sawBoss) PushHistory(display);
+        if (WorthKeeping(display)) PushHistory(display);
         EndFight();
     }
 
@@ -278,8 +279,20 @@ public class Meter : IDisposable
         Engine.ClearBreakdown();
     }
 
+    // Worth looking back at: a boss, or anything that ran long enough that it
+    // cannot have been a trash pack. The boss test reads a raid-sized health
+    // bar, which a duty boss below the level cap never has, so duration is what
+    // keeps those in the list.
+    public const float HistoryMinSeconds = 25f;
+
+    public static bool WorthKeeping(bool sawBoss, float seconds)
+        => sawBoss || seconds >= HistoryMinSeconds;
+
+    private bool WorthKeeping(MeterEncounter enc) => WorthKeeping(_sawBoss, enc.Seconds);
+
     private void PushHistory(MeterEncounter enc)
     {
+        if (enc.Rows.Count == 0) return;
         History.Insert(0, enc);
         while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
     }
@@ -404,7 +417,7 @@ public class Meter : IDisposable
             display.Active = false;
             Materialize(display);
             Publish(display);
-            if (_sawBoss) PushHistory(display);
+            if (WorthKeeping(display)) PushHistory(display);
             EndFight();
         }
         if (_rawIn != null) _cut = Snapshot(_rawIn);
@@ -512,18 +525,26 @@ public class Meter : IDisposable
         return name.Length > 0 ? name : Engine.LocalPlayerName;
     }
 
-    public void Clear()
+    public void Clear(bool keepHistory = false)
     {
         Current = null;
         Previous = null;
-        History.Clear();
+        if (!keepHistory) History.Clear();
         _rawSeg = null;
         EndFight();
     }
 
     // A mid-combat reset draws a line under the parser's running totals, or
-    // they would just repopulate the meter one second later.
+    // they would just repopulate the meter one second later. Past pulls stay:
+    // starting the board over is not a reason to lose the bosses behind it.
     public void ResetEncounter()
+    {
+        Clear(keepHistory: true);
+        if (_rawIn != null) _cut = Snapshot(_rawIn);
+    }
+
+    // The board and everything behind it.
+    public void ClearAll()
     {
         Clear();
         if (_rawIn != null) _cut = Snapshot(_rawIn);

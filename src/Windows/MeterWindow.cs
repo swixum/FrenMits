@@ -330,12 +330,27 @@ public class MeterWindow : Window
     {
         var m = _plugin.Meter;
         if (ImGui.MenuItem("Current", "", _histIdx < 0)) _histIdx = -1;
+        if (m.History.Count == 0)
+        {
+            ImGui.TextDisabled("no past pulls yet");
+            return;
+        }
+        ImGui.Separator();
         for (var i = 0; i < m.History.Count; i++)
         {
             var h = m.History[i];
-            if (ImGui.MenuItem($"{h.Duration}  {Clip(h.Title, 220f)}##hist{i}", "", _histIdx == i))
+            // The time is what tells two pulls of the same boss apart.
+            if (ImGui.MenuItem($"{h.Duration}  {Clip(h.Title, 220f)}##hist{i}", Ago(h.When), _histIdx == i))
                 _histIdx = i;
         }
+    }
+
+    private static string Ago(DateTime when)
+    {
+        var mins = (DateTime.Now - when).TotalMinutes;
+        if (mins < 1) return "just now";
+        if (mins < 60) return $"{(int)mins}m ago";
+        return $"{(int)(mins / 60)}h ago";
     }
 
     // Live values glide from the previous parser tick to the newest one, so
@@ -1171,7 +1186,7 @@ public class MeterWindow : Window
             C.SaveSettings();
         }
         ImGui.Separator();
-        if (ImGui.MenuItem("Clear data")) { m.ResetEncounter(); _histIdx = -1; }
+        if (ImGui.MenuItem("Clear data")) { m.ClearAll(); _histIdx = -1; }
         if (ImGui.MenuItem("Settings...")) _plugin.ConfigWindow.OpenMeterPage();
 
         ImGui.EndPopup();
