@@ -111,7 +111,7 @@ public sealed class MeterEncounter
                     Deaths = (int)Num(c["deaths"]),
                     MaxHit = c["maxhit"]?.ToString() ?? "",
                 };
-                row.Display = row.Name;
+                row.Display = StripOwner(row.Name);
                 row.RDps = row.Dps;
                 // Real jobs and the Limit Break row; the parser's oddments
                 // (unmerged pets, the blank server row) stay off the meter.
@@ -121,6 +121,17 @@ public sealed class MeterEncounter
             }
 
         return e;
+    }
+
+    // The parser tags anything the game marks as owned with its owner, so a
+    // duty support ally arrives as "G'raha Tia (YOU)". Character names never
+    // carry brackets, and the bare name is what the log lines use, so the tail
+    // comes off for both matching and display.
+    public static string StripOwner(string name)
+    {
+        if (!name.EndsWith(")", StringComparison.Ordinal)) return name;
+        var open = name.LastIndexOf(" (", StringComparison.Ordinal);
+        return open > 0 ? name[..open] : name;
     }
 
     // Parser numbers arrive as strings and can be "---", "∞" or carry a "%".

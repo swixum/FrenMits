@@ -226,11 +226,19 @@ public class RdpsEngine
 
     private static bool IsPlayer(uint id) => id is >= 0x10000000 and < 0x20000000;
 
-    // The player a damage source resolves to: the player itself, or a pet's owner.
+    // Allies that fight for themselves while the game still marks them as
+    // owned: the duty support and trust characters. A pet has no job of its
+    // own, so a job is what tells the two apart.
+    private readonly HashSet<uint> _allies = new();
+
+    private bool IsCombatant(uint id) => IsPlayer(id) || _allies.Contains(id);
+
+    // Who a damage source belongs to: itself if it fights for itself, else the
+    // owner it is a pet of.
     private uint OwnerOf(uint id)
     {
-        if (IsPlayer(id)) return id;
-        return _owner.TryGetValue(id, out var o) && IsPlayer(o) ? o : 0;
+        if (IsCombatant(id)) return id;
+        return _owner.TryGetValue(id, out var o) && IsCombatant(o) ? o : 0;
     }
 
     // ---- line dispatch -----------------------------------------------------
@@ -263,6 +271,9 @@ public class RdpsEngine
                 _guards.Clear();
                 _songs.Clear();
                 _finale.Clear();
+                // Ids belong to whoever holds them in the zone being entered.
+                _allies.Clear();
+                _owner.Clear();
                 ClearBreakdown();
                 break;
         }
@@ -276,7 +287,18 @@ public class RdpsEngine
         _names[id] = f[3];
         var owner = Hex(f[6]);
         if (owner != 0) _owner[id] = owner;
-        if (IsPlayer(id) && Jobs.ByRowId(Hex(f[4])) is { } job) _roles[id] = job.Role;
+        if (Jobs.ByRowId(Hex(f[4])) is not { } job)
+        {
+            // The game reuses object ids, so whatever this one used to be, it
+            // has no job now: it must not stay an ally, or a later pet's damage
+            // would stop reaching its owner.
+            _allies.Remove(id);
+            _roles.Remove(id);
+            return;
+        }
+        _roles[id] = job.Role;
+        // Carrying a job means it acts on its own, whoever the game says owns it.
+        if (!IsPlayer(id)) _allies.Add(id);
     }
 
     private void OnGain(string[] f)
@@ -297,7 +319,7 @@ public class RdpsEngine
         }
 
         // Statuses that turn later hits into guaranteed crits or direct hits.
-        if (IsPlayer(tgt))
+        if (IsCombatant(tgt))
         {
             var add = status.ToLowerInvariant() switch
             {
@@ -311,7 +333,7 @@ public class RdpsEngine
         }
 
         // A song starting is a coda banked for that bard's next finale.
-        if (IsSong(status) && IsPlayer(src))
+        if (IsSong(status) && IsCombatant(src))
             (_songs.TryGetValue(src, out var set) ? set : _songs[src] = new HashSet<string>())
                 .Add(status.ToLowerInvariant());
 
@@ -357,7 +379,7 @@ public class RdpsEngine
         var src = Hex(f[5]);
         _dotSnaps.Remove((tgt, Hex(f[2]), src));
 
-        if (IsPlayer(tgt))
+        if (IsCombatant(tgt))
         {
             var drop = f[3].ToLowerInvariant() switch
             {
@@ -389,7 +411,7 @@ public class RdpsEngine
         if (owner == 0)
         {
             // An enemy swinging at the party: only the taken breakdown wants it.
-            if (IsPlayer(target)) OnTaken(f, target);
+            if (IsCombatant(target)) OnTaken(f, target);
             return;
         }
         var action = f[5];
