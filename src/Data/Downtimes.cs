@@ -178,7 +178,10 @@ public static class Downtimes
     {
         new() { Start = 199, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 (targetable 209)
         new() { Start = 383, Duration = 46, TargetHp = 0.00f, Cutscene = true }, // P2 -> P3 cutscene (targetable 429)
-        new() { Start = 857, Duration = 31, TargetHp = 0.25f }, // P4 -> P5 (targetable 888)
+        // The lull opens on the second Ultima Upsurge, which the sheet clock reads
+        // as 872 (the P4 Upsurge at 833 is the last anchor before it), not the 857
+        // of a log's own clock.
+        new() { Start = 871.7f, Duration = 31.2f, TargetHp = 0.25f }, // P4 -> P5 (targetable 903)
     };
 
     // Futures Rewritten (FRU): these times are on the sheet clock, not real time.
