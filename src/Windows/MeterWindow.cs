@@ -83,7 +83,9 @@ public class MeterWindow : Window
             && _plugin.Meter.Current is not { Active: true }
             && (DateTime.UtcNow - _plugin.Meter.CurrentAt).TotalSeconds > LingerSeconds)
             return false;
-        return C.TestMode || View() != null || !C.MeterLocked;
+        // Without this a reset, which empties the board, takes the whole window
+        // with it until the next pull starts.
+        return C.TestMode || C.MeterAlwaysShow || View() != null || !C.MeterLocked;
     }
 
     // The encounter on screen: a history pick, else live data, else the sample.
@@ -138,7 +140,9 @@ public class MeterWindow : Window
         if (enc == null)
         {
             var titleW = ImGui.CalcTextSize("Fren Meter").X;
-            var status = _plugin.Meter.StatusText;
+            // Connected with an empty board just means nothing has been fought
+            // yet; the link status only helps when there is no link.
+            var status = _plugin.Meter.Connected ? "waiting for the next pull" : _plugin.Meter.StatusText;
             var statusW = ImGui.CalcTextSize(status).X;
             var midY = ws.Y * 0.5f - ImGui.GetTextLineHeight();
             BText(dl, wp + new Vector2((ws.X - titleW) * 0.5f, midY),
@@ -1098,6 +1102,8 @@ public class MeterWindow : Window
                 { C.MeterBreakdownIcons = !C.MeterBreakdownIcons; C.SaveSettings(); }
                 if (ImGui.MenuItem("Color each ability", "", C.MeterBreakdownColors))
                 { C.MeterBreakdownColors = !C.MeterBreakdownColors; C.SaveSettings(); }
+                if (ImGui.MenuItem("Always on screen", "", C.MeterAlwaysShow))
+                { C.MeterAlwaysShow = !C.MeterAlwaysShow; C.SaveSettings(); }
                 if (ImGui.MenuItem("Hide out of combat", "", C.MeterHideOutOfCombat))
                 { C.MeterHideOutOfCombat = !C.MeterHideOutOfCombat; C.SaveSettings(); }
                 ImGui.EndMenu();
