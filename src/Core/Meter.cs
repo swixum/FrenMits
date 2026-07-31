@@ -444,7 +444,11 @@ public class Meter : IDisposable
     private void EndSegment(MeterEncounter final)
     {
         var display = Merge(_carry, final);
-        if (_inCombat && _sawBoss)
+        // Stitching is the only place the meter does arithmetic of its own on
+        // the parser's numbers, and every miscount it has ever shown came from
+        // there. Off by default: the parser's encounter is the fight, drawn as
+        // it arrives.
+        if (C.MeterStitchSegments && _inCombat && _sawBoss)
         {
             // Mid-boss split (downtime): stitch, and keep reading as a live fight.
             _carry ??= new FightCarry { StartSec = _fightStartSec, Title = _fightTitle };

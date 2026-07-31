@@ -266,6 +266,13 @@ public partial class ConfigWindow
         }
 
         ImGui.Spacing();
+        var stitch = C.MeterStitchSegments;
+        if (ImGui.Checkbox("Stitch a fight's segments together", ref stitch))
+        { C.MeterStitchSegments = stitch; C.SaveSettings(); }
+        Tip("Off: the parser decides what a fight is and the meter draws it, like any other overlay.\n"
+          + "On: a fight the parser splits across its downtime is shown as one pull.");
+
+        ImGui.Spacing();
         if (ImGui.Button("Reconnect")) ReconnectMeter();
     }
 
