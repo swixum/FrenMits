@@ -219,7 +219,12 @@ public class Meter : IDisposable
         if (_cut != null)
         {
             // The parser starting its own new encounter retires the cut.
-            if (!CutStillHolds(raw.Seconds, _cut.Seconds)) _cut = null;
+            if (!CutStillHolds(raw.TotalDamage, _cut.Damage))
+            {
+                _plugin.Diag.Note($"meter: parser restarted (damage {raw.TotalDamage / 1e6:0.0}M "
+                                + $"under the cut's {_cut.Damage / 1e6:0.0}M); baseline dropped");
+                _cut = null;
+            }
             else
             {
                 raw = Subtract(incoming, _cut);
@@ -279,6 +284,12 @@ public class Meter : IDisposable
             // instead of starting a new one hands back totals this fight has
             // already counted, and every split doubles the clock.
             if (_rawIn != null) _cut = Snapshot(_rawIn);
+            // The engine's own figure is counted straight off the log lines, one
+            // event at a time, so it cannot double count. Printed beside the
+            // parser's running total, a stitch that has gone wrong shows itself.
+            _plugin.Diag.Note($"meter: banked segment {final.Seconds:0}s {final.TotalDamage / 1e6:0.0}M; "
+                            + $"fight now {_carry.Seconds:0}s {Total(_carry) / 1e6:0.0}M "
+                            + $"(log lines say {EngineTotal() / 1e6:0.0}M)");
             display.Active = true;
             Publish(display);
             return;
@@ -498,6 +509,24 @@ public class Meter : IDisposable
         if (final.Title.Length > 0) carry.Title = final.Title;
     }
 
+    // Everything the engine has counted from the log lines this fight.
+    private double EngineTotal()
+    {
+        var sum = 0.0;
+        foreach (var name in Engine.Dealers())
+            foreach (var a in Engine.Dealt(name))
+                sum += a.Damage;
+        return sum;
+    }
+
+    // What a stitched fight has banked so far, for the pull record.
+    public static double Total(FightCarry carry)
+    {
+        var sum = 0.0;
+        foreach (var r in carry.Rows) sum += r.Value.Damage;
+        return sum;
+    }
+
     // The banked segments plus the live one, presented as a single fight.
     public static MeterEncounter Merge(FightCarry? carry, MeterEncounter seg)
     {
@@ -549,6 +578,7 @@ public class Meter : IDisposable
     public sealed class Baseline
     {
         public float Seconds;
+        public double Damage;
         public Dictionary<string, MeterCombatant> Rows { get; } = new(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -556,14 +586,20 @@ public class Meter : IDisposable
     private MeterEncounter? _rawIn;
 
     // A cut only means anything while the parser is still on the encounter it
-    // was taken from. A clock that has run backwards is a new encounter, and
-    // there is nothing left to subtract.
-    public static bool CutStillHolds(float parserSeconds, float cutSeconds)
-        => parserSeconds + 0.5f >= cutSeconds;
+    // was taken from, and its totals are what say so: damage only ever climbs
+    // inside one encounter, so a drop is the parser starting over.
+    //
+    // The encounter clock cannot answer this. The parser trims idle time off an
+    // encounter, so the duration steps BACKWARDS while the same fight carries
+    // on - which read as a new encounter, dropped the baseline, and handed back
+    // totals already banked. Every lull then re-counted the fight from the top:
+    // a Dancing Mad pull came out at five times the damage it really did.
+    public static bool CutStillHolds(double parserDamage, double cutDamage)
+        => parserDamage + 1.0 >= cutDamage;
 
     public static Baseline Snapshot(MeterEncounter raw)
     {
-        var b = new Baseline { Seconds = raw.Seconds };
+        var b = new Baseline { Seconds = raw.Seconds, Damage = raw.TotalDamage };
         foreach (var r in raw.Rows) b.Rows[r.Name] = r;
         return b;
     }

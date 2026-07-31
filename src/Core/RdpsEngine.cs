@@ -209,6 +209,9 @@ public class RdpsEngine
         return list;
     }
 
+    // Everyone the engine has seen deal damage this fight.
+    public IEnumerable<string> Dealers() => _dealt.Keys;
+
     public List<AbilityStat> Dealt(string player) => Ranked(_dealt, player);
     public List<AbilityStat> Targets(string player) => Ranked(_targets, player);
     public List<AbilityStat> Taken(string player) => Ranked(_taken, player);
