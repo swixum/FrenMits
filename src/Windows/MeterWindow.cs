@@ -45,7 +45,31 @@ public class MeterWindow : Window
         if (C.MeterLocked) Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
         if (C.MeterClickThrough) Flags |= ImGuiWindowFlags.NoMouseInputs;
 
-        ImGui.SetNextWindowSize(C.MeterSize, C.MeterLocked || _applySize ? ImGuiCond.Always : ImGuiCond.Appearing);
+        // Collapsed: hold the window at header height, and let go of the grip
+        // so dragging the edge can't fight it. The stored size is untouched,
+        // so expanding puts everything back exactly as it was.
+        if (C.MeterCollapsed)
+        {
+            Flags |= ImGuiWindowFlags.NoResize;
+            // The normal floor is taller than a collapsed meter, and would
+            // quietly clamp it back open.
+            SizeConstraints = new WindowSizeConstraints
+            {
+                MinimumSize = new Vector2(230, 20),
+                MaximumSize = new Vector2(2000, 1600),
+            };
+            ImGui.SetNextWindowSize(new Vector2(C.MeterSize.X, _collapsedH), ImGuiCond.Always);
+        }
+        else
+        {
+            SizeConstraints = new WindowSizeConstraints
+            {
+                MinimumSize = new Vector2(230, 84),
+                MaximumSize = new Vector2(2000, 1600),
+            };
+            ImGui.SetNextWindowSize(C.MeterSize,
+                C.MeterLocked || _applySize ? ImGuiCond.Always : ImGuiCond.Appearing);
+        }
         _applySize = false;
         OverlayChrome.ApplyPosition(C.MeterPosition, C.MeterLocked, ref _applyPos);
     }
@@ -102,6 +126,14 @@ public class MeterWindow : Window
 
         using var font = OverlayChrome.PushFont(
             _plugin.Fonts, C.MeterFontSizePx, C.MeterFontFamily, C.MeterFontBold, C.MeterFontItalic);
+
+        // Rolled up: the header is the whole window, and it carries the way back.
+        if (C.MeterCollapsed)
+        {
+            DrawCollapsed(enc, dl, wp, ws);
+            ContextMenu();
+            return;
+        }
 
         if (enc == null)
         {
@@ -344,9 +376,13 @@ public class MeterWindow : Window
 
     private void DrawHeader(MeterEncounter enc, ImDrawListPtr dl, Vector2 wp, Vector2 ws, float pad, ref float y)
     {
-        if (C.MeterHeaderStyle == 2) { y += 2f; return; }
+        // A hidden header still appears while collapsed, or there would be
+        // nothing left on screen to click to get the meter back.
+        var slim = C.MeterHeaderStyle == 1 || C.MeterCollapsed;
+        if (C.MeterHeaderStyle == 2 && !C.MeterCollapsed) { y += 2f; return; }
         var lineH = ImGui.GetTextLineHeight();
         var top = y;
+        var chevW = CollapseButton(dl, wp, ws, pad, y, lineH);
 
         var title = enc.Title.Length > 0 ? enc.Title : "Fren Meter";
         if (_histIdx >= 0) title = $"{title} (history)";
@@ -363,22 +399,22 @@ public class MeterWindow : Window
         };
 
         var timeText = enc.Duration.Length > 0 ? enc.Duration : "0:00";
-        if (C.MeterHeaderStyle == 1)
+        if (slim)
         {
             // Slim: one line, clock + title left, headline right.
             var mainW = ImGui.CalcTextSize(main).X;
             var timeW = ImGui.CalcTextSize(timeText).X;
             BText(dl, wp + new Vector2(pad, y), C.MeterTimerColor, timeText);
             TitleWithPicker(dl, wp, pad + timeW + 8f, y,
-                Clip(title, ws.X - pad * 2 - mainW - timeW - 34f));
-            BText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main);
+                Clip(title, ws.X - pad * 2 - mainW - timeW - 34f - chevW));
+            BText(dl, wp + new Vector2(ws.X - pad - chevW - mainW, y), C.MeterAccentColor, main);
             y += lineH + 5f;
         }
         else
         {
             var mainW = ImGui.CalcTextSize(main).X;
-            TitleWithPicker(dl, wp, pad, y, Clip(title, ws.X - pad * 2 - mainW - 26f));
-            BText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main);
+            TitleWithPicker(dl, wp, pad, y, Clip(title, ws.X - pad * 2 - mainW - 26f - chevW));
+            BText(dl, wp + new Vector2(ws.X - pad - chevW - mainW, y), C.MeterAccentColor, main);
             y += lineH + 2f;
 
             var players = 0;
@@ -397,16 +433,80 @@ public class MeterWindow : Window
             y += lineH + 5f;
         }
 
-        dl.AddLine(wp + new Vector2(pad, y - 2f), wp + new Vector2(ws.X - pad, y - 2f), 0x22FFFFFF);
+        if (!C.MeterCollapsed)
+            dl.AddLine(wp + new Vector2(pad, y - 2f), wp + new Vector2(ws.X - pad, y - 2f), 0x22FFFFFF);
 
-        // Double-click the header band to cycle full / slim / hidden.
-        if (!C.MeterClickThrough
+        // Double-click the header band to cycle full / slim / hidden, but not
+        // over the chevron: that would toggle twice and change the style too.
+        if (!C.MeterClickThrough && !C.MeterCollapsed
             && ImGui.IsMouseHoveringRect(wp + new Vector2(0, top), wp + new Vector2(ws.X, y))
+            && !ImGui.IsMouseHoveringRect(_chevronMin, _chevronMax)
             && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
         {
             C.MeterHeaderStyle = (C.MeterHeaderStyle + 1) % 3;
             C.SaveSettings();
         }
+    }
+
+    // The whole meter while it is rolled up: one line, and the chevron back out.
+    private void DrawCollapsed(MeterEncounter? enc, ImDrawListPtr dl, Vector2 wp, Vector2 ws)
+    {
+        const float pad = 9f;
+        var y = 6f;
+        if (enc != null)
+        {
+            DrawHeader(enc, dl, wp, ws, pad, ref y);
+        }
+        else
+        {
+            var lineH = ImGui.GetTextLineHeight();
+            var chevW = CollapseButton(dl, wp, ws, pad, y, lineH);
+            BText(dl, wp + new Vector2(pad, y), C.MeterTextColor,
+                Clip("Fren Meter", ws.X - pad * 2 - chevW));
+            y += lineH + 5f;
+        }
+        _collapsedH = y + 3f;
+    }
+
+    // The roll-up chevron at the header's right edge. Returns the width it
+    // took, so the rest of the header can keep out of its way.
+    private float CollapseButton(ImDrawListPtr dl, Vector2 wp, Vector2 ws, float pad, float y, float lineH)
+    {
+        _chevronMin = _chevronMax = Vector2.Zero;
+        if (C.MeterClickThrough) return 0f;
+
+        float gw;
+        var icon = C.MeterCollapsed ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronUp;
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            var g = icon.ToIconString();
+            gw = ImGui.CalcTextSize(g).X;
+            var hot = ImGui.IsMouseHoveringRect(
+                wp + new Vector2(ws.X - pad - gw - 4f, y - 2f),
+                wp + new Vector2(ws.X - pad + 2f, y + lineH + 2f));
+            dl.AddText(wp + new Vector2(ws.X - pad - gw, y + 1f),
+                hot ? C.MeterTextColor : C.MeterSubColor, g);
+        }
+
+        _chevronMin = wp + new Vector2(ws.X - pad - gw - 4f, y - 2f);
+        _chevronMax = wp + new Vector2(ws.X - pad + 2f, y + lineH + 2f);
+        ImGui.SetCursorPos(new Vector2(ws.X - pad - gw - 4f, y - 2f));
+        if (ImGui.InvisibleButton("##metercollapse", new Vector2(gw + 6f, lineH + 4f)))
+            ToggleCollapsed();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(C.MeterCollapsed ? "Expand" : "Collapse");
+        return gw + 8f;
+    }
+
+    private Vector2 _chevronMin;
+    private Vector2 _chevronMax;
+    private float _collapsedH = 34f;
+
+    private void ToggleCollapsed()
+    {
+        C.MeterCollapsed = !C.MeterCollapsed;
+        // Coming back out, put the stored size back on the window.
+        if (!C.MeterCollapsed) _applySize = true;
+        C.SaveSettings();
     }
 
     // The encounter name with a small caret: click to look back at past pulls.
@@ -963,6 +1063,7 @@ public class MeterWindow : Window
             ImGui.EndMenu();
         }
         if (ImGui.MenuItem(m.Paused ? "Resume" : "Pause")) m.Paused = !m.Paused;
+        if (ImGui.MenuItem(C.MeterCollapsed ? "Expand" : "Collapse")) ToggleCollapsed();
 
         ImGui.Separator();
         if (ImGui.BeginMenu("Appearance"))
@@ -1106,11 +1207,21 @@ public class MeterWindow : Window
     {
         if (C.MeterLocked) return;
         if (OverlayChrome.MovedCenterFrac(C.MeterPosition) is { } frac) { C.MeterPosition = frac; _posDirty = true; }
+        // While collapsed the height is ours, not the user's: remember only the
+        // width, so expanding restores the height they last chose.
         var size = ImGui.GetWindowSize();
-        if ((size - C.MeterSize).LengthSquared() > 1f) { C.MeterSize = size; _sizeDirty = true; }
+        if (C.MeterCollapsed)
+        {
+            if (MathF.Abs(size.X - C.MeterSize.X) > 1f)
+            {
+                C.MeterSize = new Vector2(size.X, C.MeterSize.Y);
+                _sizeDirty = true;
+            }
+        }
+        else if ((size - C.MeterSize).LengthSquared() > 1f) { C.MeterSize = size; _sizeDirty = true; }
         if ((_posDirty || _sizeDirty) && !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
-            if (_sizeDirty && _rowStride > 4f)
+            if (_sizeDirty && !C.MeterCollapsed && _rowStride > 4f)
             {
                 var rows = MathF.Max(2f, MathF.Round((C.MeterSize.Y - _overheadY) / _rowStride));
                 C.MeterSize = new Vector2(C.MeterSize.X, _overheadY + rows * _rowStride);

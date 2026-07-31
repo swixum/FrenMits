@@ -50,6 +50,9 @@ public partial class ConfigWindow
         ImGui.SameLine(0, 18);
         C.MeterClickThrough = CfgCheck("Click-through", C.MeterClickThrough);
         Tip("Mouse ignores the meter, menu included; turn it back off here.");
+        ImGui.SameLine(0, 18);
+        C.MeterCollapsed = CfgCheck("Collapsed", C.MeterCollapsed);
+        Tip("Rolled up to its header; the chevron on the meter does this too.");
 
         var pos = C.MeterPosition;
         if (Widgets.SliderInput("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
