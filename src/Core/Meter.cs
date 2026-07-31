@@ -41,6 +41,19 @@ public class Meter : IDisposable
     private string _fightTitle = "";
     private bool _sawBoss;
     private float _bossLeft = -1f;
+    private int _standing = -1;
+
+    // How a pull finished. A wipe is the party going down, which is the only
+    // thing that says so for certain: enemy health cannot, because a dungeon
+    // pack is several enemies and killing one leaves the next at full. A kill
+    // is the other way round, the enemy at zero with the party still up.
+    // Anything else stays unknown, and the list says nothing at all.
+    public static PullEnd EndOf(int standing, float bossLeft)
+    {
+        if (standing == 0) return PullEnd.Wipe;
+        if (bossLeft == 0f) return PullEnd.Kill;
+        return PullEnd.Unknown;
+    }
 
     // The boss reading a pull should keep. While the party is in combat the
     // newest one always wins, so a fight that changes boss between phases
@@ -97,6 +110,11 @@ public class Meter : IDisposable
         // A boss on the field marks this fight as one worth stitching and keeping.
         if (Plugin.InCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
         _bossLeft = TrackBoss(_bossLeft, _plugin.BossHpFraction, Plugin.InCombat);
+        // The last word on who was still up, taken while the fight was still on.
+        // A cutscene can empty the object table with the party perfectly alive,
+        // so nothing is counted through one.
+        if (Plugin.InCombat && !Plugin.CutsceneActive && _plugin.PlayersStanding >= 0)
+            _standing = _plugin.PlayersStanding;
 
         // A stitched fight that ended inside the quiet gap (a wipe during
         // downtime): no further segment is coming, settle it when combat drops.
@@ -251,6 +269,7 @@ public class Meter : IDisposable
     private void Materialize(MeterEncounter enc)
     {
         enc.BossLeft = _bossLeft;
+        enc.Ended = EndOf(_standing, _bossLeft);
 
         // The parser calls the local player "YOU", and only publishing the pull
         // turns that into their name. Resolve it here as well, or their own
@@ -370,6 +389,7 @@ public class Meter : IDisposable
         _fightTitle = "";
         _sawBoss = false;
         _bossLeft = -1f;
+        _standing = -1;
         // Clear when a fight ENDS, not when the next one starts: the summary
         // feed lags the log, so clearing on arrival would eat the opener.
         Engine.ClearBreakdown();

@@ -557,6 +557,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // The current boss's HP as a 0..1 fraction (-1 when there's no boss).
     public float BossHpFraction { get; private set; } = -1f;
 
+    // Players still on their feet, or -1 when nothing was counted this frame.
+    // Zero while the party is still in combat is what a wipe looks like.
+    public int PlayersStanding { get; private set; } = -1;
+
     // Whoever this pull is about, by NameId: the key a learned timeline is filed
     // under, and how a 3-boss dungeon keeps three separate timelines.
     public uint CurrentBossNameId { get; private set; }
@@ -586,9 +590,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         IBattleNpc? boss = null;
         IBattleNpc? targetable = null;
         IBattleNpc? biggest = null;
+        var standing = Timer.Running ? 0 : -1;
         if (Timer.Running)
             foreach (var o in Service.ObjectTable)
             {
+                // In a duty the players in the object table are the party, and
+                // a wipe is what empties this count.
+                if (o is Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter
+                    { MaxHp: > 0, CurrentHp: > 0 }) standing++;
                 if (o is not IBattleNpc n || (byte)n.BattleNpcKind != 5) continue;
                 if (n.MaxHp > 1_000_000)
                 {
@@ -605,6 +614,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             }
         var hpOf = targetable ?? boss;
         BossHpFraction = hpOf is { MaxHp: > 0 } ? (float)hpOf.CurrentHp / hpOf.MaxHp : -1f;
+        PlayersStanding = standing;
         if (biggest != null)
         {
             CurrentBossNameId = biggest.NameId;

@@ -415,7 +415,7 @@ public class MeterWindow : Window
             var ow = outcome.Length > 0 ? ImGui.CalcTextSize(Dot + outcome).X : 0f;
             // The time is what tells two pulls of the same boss apart.
             if (PullRow($"h{i}", _histIdx == i, total, durW, h.Duration,
-                    Clip(h.Title, bodyW - ow), outcome, OutcomeTint(h.BossLeft), Ago(h.When)))
+                    Clip(h.Title, bodyW - ow), outcome, OutcomeTint(h), Ago(h.When)))
                 _histIdx = i;
         }
     }
@@ -447,19 +447,19 @@ public class MeterWindow : Window
     private const string Dot = " · ";
     private const string Now = "now";
 
-    // How a finished pull reads: nothing at all when there was no raid-sized
-    // boss on the field to measure against.
-    public static string Outcome(MeterEncounter enc) => OutcomeText(enc.BossLeft);
+    // How a finished pull reads. A pull the plugin cannot vouch for says
+    // nothing at all, which is most of a dungeon.
+    public static string Outcome(MeterEncounter enc) => OutcomeText(enc.Ended, enc.BossLeft);
 
-    public static string OutcomeText(float bossLeft)
+    public static string OutcomeText(PullEnd ended, float bossLeft)
     {
-        if (bossLeft < 0f) return "";
-        // Only a dead boss reads zero: a living one always has at least a point
-        // of health, so nothing has to be rounded off to call this.
-        if (bossLeft <= 0f) return "kill";
+        if (ended == PullEnd.Kill) return "kill";
+        if (ended != PullEnd.Wipe) return "";
+        // How far the pull got, when there was a raid-sized enemy to measure.
+        if (bossLeft <= 0f) return "wiped";
         var pct = bossLeft * 100f;
-        // A sliver on a boss with tens of millions of health would otherwise
-        // round to nothing and read as a kill that never happened.
+        // A sliver on an enemy with tens of millions of health would otherwise
+        // round away to nothing.
         return pct < 0.1f ? "wiped at <0.1%" : $"wiped at {pct:0.#}%";
     }
 
@@ -467,8 +467,10 @@ public class MeterWindow : Window
     // a reset at seventy percent.
     public const float NearMiss = 0.05f;
 
-    private uint OutcomeTint(float bossLeft)
-        => bossLeft <= 0f ? GoodTint : bossLeft <= NearMiss ? WarnTint : BadTint;
+    private uint OutcomeTint(MeterEncounter enc)
+        => enc.Ended == PullEnd.Kill ? GoodTint
+            : enc.BossLeft > 0f && enc.BossLeft <= NearMiss ? WarnTint
+            : BadTint;
 
     private static string Ago(DateTime when)
     {

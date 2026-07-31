@@ -32,6 +32,10 @@ public sealed class AbilityStat
     public double OverPct => Raw > 0 ? Over * 100.0 / Raw : 0;
 }
 
+// How a pull finished. Unknown covers walking away, a reset, and anything the
+// plugin cannot vouch for: better to say nothing than to guess.
+public enum PullEnd { Unknown, Kill, Wipe }
+
 // One thing that landed on a player shortly before they died.
 public sealed class DeathHit
 {
@@ -87,9 +91,10 @@ public sealed class MeterEncounter
     public double TotalTaken;
     public int TotalDeaths;
     public double RaidRDps;
-    // How much of the boss was still standing when the pull closed, 0 for a
-    // kill. Below zero when no raid-sized boss was ever on the field to read.
+    // How much of the boss was still up when the pull closed. Below zero when
+    // no raid-sized enemy was ever on the field to read.
     public float BossLeft = -1f;
+    public PullEnd Ended = PullEnd.Unknown;
     public DateTime When = DateTime.Now;
     public List<MeterCombatant> Rows = new();
 
