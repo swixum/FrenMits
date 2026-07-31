@@ -40,6 +40,19 @@ public class Meter : IDisposable
     private long _fightStartSec;
     private string _fightTitle = "";
     private bool _sawBoss;
+    private float _bossLeft = -1f;
+
+    // The boss reading a pull should keep. While the party is in combat the
+    // newest one always wins, so a fight that changes boss between phases
+    // follows it. Once combat drops only a lower reading counts: that is the
+    // killing blow landing, where a higher one is the boss walking back to full
+    // after a wipe.
+    public static float TrackBoss(float current, float reading, bool inCombat)
+    {
+        if (reading < 0f) return current;
+        if (inCombat) return reading;
+        return current < 0f || reading < current ? reading : current;
+    }
 
     private DateTime _nextTrim = DateTime.MinValue;
 
@@ -83,6 +96,7 @@ public class Meter : IDisposable
 
         // A boss on the field marks this fight as one worth stitching and keeping.
         if (Plugin.InCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
+        _bossLeft = TrackBoss(_bossLeft, _plugin.BossHpFraction, Plugin.InCombat);
 
         // A stitched fight that ended inside the quiet gap (a wipe during
         // downtime): no further segment is coming, settle it when combat drops.
@@ -236,6 +250,8 @@ public class Meter : IDisposable
     // does not depend on the engine still holding that fight.
     private void Materialize(MeterEncounter enc)
     {
+        enc.BossLeft = _bossLeft;
+
         // The parser calls the local player "YOU", and only publishing the pull
         // turns that into their name. Resolve it here as well, or their own
         // breakdown ends up filed under a name nothing later looks it up by.
@@ -353,6 +369,7 @@ public class Meter : IDisposable
         _fightStartSec = 0;
         _fightTitle = "";
         _sawBoss = false;
+        _bossLeft = -1f;
         // Clear when a fight ENDS, not when the next one starts: the summary
         // feed lags the log, so clearing on arrival would eat the opener.
         Engine.ClearBreakdown();

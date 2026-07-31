@@ -261,7 +261,7 @@ public class MeterWindow : Window
         if (_shown is not { } enc) return;
         var deaths = enc.TotalDeaths;
 
-        var text = $"Total deaths: {deaths}";
+        var text = $"Total Deaths: {deaths}";
         var tw = ImGui.CalcTextSize(text).X;
         if (rx - tw < leftEdge)
         {
@@ -271,7 +271,7 @@ public class MeterWindow : Window
         }
 
         rx -= tw;
-        BText(dl, wp + new Vector2(rx, ty), deaths > 0 ? DeathTint : C.MeterSubColor, text);
+        BText(dl, wp + new Vector2(rx, ty), deaths > 0 ? BadTint : C.MeterSubColor, text);
         if (deaths == 0) return;
 
         // Hovering it names them, which is the part a bare count leaves out.
@@ -300,7 +300,6 @@ public class MeterWindow : Window
     }
 
     private const int TooltipDeaths = 8;
-    private static readonly uint DeathTint = Rgb(0xF87171);
 
     // A footer icon in a uniform chip: hover wash, centered glyph.
     private bool IconChip(ImDrawListPtr dl, ref float x, float cy, float h, FontAwesomeIcon icon, string tip,
@@ -385,21 +384,91 @@ public class MeterWindow : Window
     private void DrawPullList()
     {
         var m = _plugin.Meter;
-        if (ImGui.MenuItem("Current", "", _histIdx < 0)) _histIdx = -1;
+
+        // Sized to the widest entry, so clock, pull and time line up as columns.
+        var durW = ImGui.CalcTextSize(Now).X;
+        var bodyW = ImGui.CalcTextSize("Current").X;
+        var whenW = 0f;
+        foreach (var h in m.History)
+        {
+            durW = MathF.Max(durW, ImGui.CalcTextSize(h.Duration).X);
+            whenW = MathF.Max(whenW, ImGui.CalcTextSize(Ago(h.When)).X);
+            bodyW = MathF.Max(bodyW, ImGui.CalcTextSize(h.Title + Dot + Outcome(h)).X);
+        }
+        bodyW = MathF.Min(bodyW, 250f);
+        var total = durW + 10f + bodyW + 18f + whenW;
+
+        if (PullRow("cur", _histIdx < 0, total, durW, Now, "Current", "", 0u, "")) _histIdx = -1;
         if (m.History.Count == 0)
         {
             ImGui.TextDisabled("no past pulls yet");
             return;
         }
         ImGui.Separator();
+
         for (var i = 0; i < m.History.Count; i++)
         {
             var h = m.History[i];
+            // The boss name gives way first: how far the pull got is the part
+            // worth keeping when the row runs out of room.
+            var outcome = Outcome(h);
+            var ow = outcome.Length > 0 ? ImGui.CalcTextSize(Dot + outcome).X : 0f;
             // The time is what tells two pulls of the same boss apart.
-            if (ImGui.MenuItem($"{h.Duration}  {Clip(h.Title, 220f)}##hist{i}", Ago(h.When), _histIdx == i))
+            if (PullRow($"h{i}", _histIdx == i, total, durW, h.Duration,
+                    Clip(h.Title, bodyW - ow), outcome, OutcomeTint(h.BossLeft), Ago(h.When)))
                 _histIdx = i;
         }
     }
+
+    // One line of the pull list. Drawn by hand because only part of it takes
+    // the outcome's color.
+    private bool PullRow(string id, bool selected, float total, float durW,
+        string clock, string title, string outcome, uint tint, string when)
+    {
+        var picked = ImGui.Selectable($"##pull{id}", selected, ImGuiSelectableFlags.None,
+            new Vector2(total, ImGui.GetTextLineHeight()));
+        var p = ImGui.GetItemRectMin();
+        var dl = ImGui.GetWindowDrawList();
+
+        dl.AddText(p, C.MeterSubColor, clock);
+        var x = p.X + durW + 10f;
+        dl.AddText(new Vector2(x, p.Y), C.MeterTextColor, title);
+        if (outcome.Length > 0)
+        {
+            x += ImGui.CalcTextSize(title).X;
+            dl.AddText(new Vector2(x, p.Y), C.MeterSubColor, Dot);
+            dl.AddText(new Vector2(x + ImGui.CalcTextSize(Dot).X, p.Y), tint, outcome);
+        }
+        if (when.Length > 0)
+            dl.AddText(new Vector2(p.X + total - ImGui.CalcTextSize(when).X, p.Y), C.MeterSubColor, when);
+        return picked;
+    }
+
+    private const string Dot = " · ";
+    private const string Now = "now";
+
+    // How a finished pull reads: nothing at all when there was no raid-sized
+    // boss on the field to measure against.
+    public static string Outcome(MeterEncounter enc) => OutcomeText(enc.BossLeft);
+
+    public static string OutcomeText(float bossLeft)
+    {
+        if (bossLeft < 0f) return "";
+        // Only a dead boss reads zero: a living one always has at least a point
+        // of health, so nothing has to be rounded off to call this.
+        if (bossLeft <= 0f) return "kill";
+        var pct = bossLeft * 100f;
+        // A sliver on a boss with tens of millions of health would otherwise
+        // round to nothing and read as a kill that never happened.
+        return pct < 0.1f ? "wiped at <0.1%" : $"wiped at {pct:0.#}%";
+    }
+
+    // Anything this close to the end was nearly a kill and should not read like
+    // a reset at seventy percent.
+    public const float NearMiss = 0.05f;
+
+    private uint OutcomeTint(float bossLeft)
+        => bossLeft <= 0f ? GoodTint : bossLeft <= NearMiss ? WarnTint : BadTint;
 
     private static string Ago(DateTime when)
     {
@@ -1291,7 +1360,7 @@ public class MeterWindow : Window
                 var ago = $"-{Math.Max(0, d.Sec - h.Sec)}s";
                 var val = (h.Heal ? "+" : "") + Num(h.Amount);
                 var vw = ImGui.CalcTextSize(val).X;
-                var color = h.Heal ? HealTint : C.MeterSubColor;
+                var color = h.Heal ? GoodTint : C.MeterSubColor;
                 BText(dl, new Vector2(p.X + pad + 14f, y), C.MeterSubColor, ago);
                 BText(dl, new Vector2(p.X + w - pad - vw, y), color, val);
                 var nx = p.X + pad + 14f + ImGui.CalcTextSize(ago).X + 8f;
@@ -1303,7 +1372,9 @@ public class MeterWindow : Window
         }
     }
 
-    private static readonly uint HealTint = Rgb(0x6EE7B7);
+    private static readonly uint GoodTint = Rgb(0x6EE7B7);
+    private static readonly uint WarnTint = Rgb(0xFBBF24);
+    private static readonly uint BadTint = Rgb(0xF87171);
 
     private void Empty(ImDrawListPtr dl, float w, string msg)
         => BText(dl, new Vector2(ImGui.GetWindowPos().X + (w - ImGui.CalcTextSize(msg).X) * 0.5f,

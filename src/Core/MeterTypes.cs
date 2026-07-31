@@ -87,6 +87,9 @@ public sealed class MeterEncounter
     public double TotalTaken;
     public int TotalDeaths;
     public double RaidRDps;
+    // How much of the boss was still standing when the pull closed, 0 for a
+    // kill. Below zero when no raid-sized boss was ever on the field to read.
+    public float BossLeft = -1f;
     public DateTime When = DateTime.Now;
     public List<MeterCombatant> Rows = new();
 
