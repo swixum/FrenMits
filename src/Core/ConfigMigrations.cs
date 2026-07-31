@@ -382,6 +382,17 @@ public static class ConfigMigrations
             config.Version = 36;
             config.Save();
         }
+
+        // v37: the meter's highlight, title and border became their own colors;
+        // seed them from whatever the look already used.
+        if (config.Version < 37)
+        {
+            config.MeterHighlightColor = config.MeterYouColor;
+            config.MeterTitleColor = config.MeterTextColor;
+            config.MeterBorderColor = (config.MeterAccentColor & 0x00FFFFFF) | 0x2E000000;
+            config.Version = 37;
+            config.Save();
+        }
     }
 
     // Hand every built-in fight the current anchor table and grades, and

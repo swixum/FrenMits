@@ -101,18 +101,18 @@ public class Meter : IDisposable
             Engine.Trim();
         }
 
-        // Combat over: close the parser's encounter right away, instead of
-        // waiting out its idle timeout. That is what makes each trash pack in
-        // a dungeon start from zero, and freezes a kill at the killing blow.
+        // Combat over: close this fight right away instead of waiting out the
+        // parser's idle timeout. That is what makes each trash pack in a
+        // dungeon start from zero, and freezes a kill at the killing blow.
         var inCombat = Plugin.InCombat;
         if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
-        if (inCombat) _endSent = false;
-        else if (!_endSent && !Paused && Connected && _rawSeg is { Active: true }
+        if (inCombat) _cutDone = false;
+        else if (!_cutDone && !Paused && _rawSeg is { Active: true }
                  && _combatDropAt != DateTime.MinValue
                  && (DateTime.UtcNow - _combatDropAt).TotalSeconds > 1.5)
         {
-            _endSent = true;
-            SendEnd();
+            _cutDone = true;
+            CutHere();
         }
         _wasInCombat = inCombat;
 
@@ -136,7 +136,7 @@ public class Meter : IDisposable
     private DateTime _nextProfileSync = DateTime.MinValue;
     private DateTime _combatDropAt = DateTime.MinValue;
     private bool _wasInCombat;
-    private bool _endSent;
+    private bool _cutDone;
 
     private void Handle(JObject msg)
     {
@@ -156,8 +156,23 @@ public class Meter : IDisposable
         OnSummary(raw);
     }
 
-    private void OnSummary(MeterEncounter raw)
+    private void OnSummary(MeterEncounter incoming)
     {
+        _rawIn = incoming;
+        var raw = incoming;
+        if (_cut != null)
+        {
+            // The parser starting its own new encounter retires the cut.
+            if (raw.Seconds + 0.5f < _cut.Seconds) _cut = null;
+            else
+            {
+                raw = Subtract(incoming, _cut);
+                // Nothing has happened since the cut: stay idle rather than
+                // publishing an empty fight.
+                if (raw.Rows.Count == 0) return;
+            }
+        }
+
         if (raw.Active)
         {
             var continuing = _rawSeg is { Active: true } && raw.Seconds + 0.5f >= _rawSeg.Seconds;
@@ -313,6 +328,84 @@ public class Meter : IDisposable
         return e;
     }
 
+    // ---- cutting the parser's running encounter ----------------------------
+
+    // Where the meter last drew a line under the parser's totals. Everything
+    // before it is subtracted out, so a new pull starts from zero without
+    // asking the parser to end anything.
+    public sealed class Baseline
+    {
+        public float Seconds;
+        public Dictionary<string, MeterCombatant> Rows { get; } = new(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private Baseline? _cut;
+    private MeterEncounter? _rawIn;
+
+    public static Baseline Snapshot(MeterEncounter raw)
+    {
+        var b = new Baseline { Seconds = raw.Seconds };
+        foreach (var r in raw.Rows) b.Rows[r.Name] = r;
+        return b;
+    }
+
+    // Close the running fight here and start the next one from zero.
+    private void CutHere()
+    {
+        if (_rawSeg is { Active: true } seg)
+        {
+            var display = Merge(_carry, seg);
+            display.Active = false;
+            Publish(display);
+            if (_sawBoss) PushHistory(display);
+            EndFight();
+        }
+        if (_rawIn != null) _cut = Snapshot(_rawIn);
+        _rawSeg = null;
+    }
+
+    // The parser's totals with everything before the cut taken back out.
+    public static MeterEncounter Subtract(MeterEncounter raw, Baseline cut)
+    {
+        var secs = Math.Max(0f, raw.Seconds - cut.Seconds);
+        var div = Math.Max(1f, secs);
+        var e = new MeterEncounter
+        {
+            Title = raw.Title, Active = raw.Active, Seconds = secs, When = raw.When,
+            Duration = $"{(int)secs / 60:00}:{(int)secs % 60:00}",
+        };
+
+        foreach (var r in raw.Rows)
+        {
+            var b = cut.Rows.GetValueOrDefault(r.Name);
+            var row = new MeterCombatant
+            {
+                Name = r.Name, Display = r.Display, Job = r.Job,
+                Damage = Math.Max(0, r.Damage - (b?.Damage ?? 0)),
+                Healed = Math.Max(0, r.Healed - (b?.Healed ?? 0)),
+                Taken = Math.Max(0, r.Taken - (b?.Taken ?? 0)),
+                Deaths = Math.Max(0, r.Deaths - (b?.Deaths ?? 0)),
+                // Rates are running averages the parser never breaks down, so
+                // they carry over as they stand.
+                CritPct = r.CritPct, DirectHitPct = r.DirectHitPct, OverhealPct = r.OverhealPct,
+                MaxHit = r.MaxHit,
+            };
+            if (row.Damage <= 0 && row.Healed <= 0 && row.Taken <= 0 && row.Deaths <= 0) continue;
+            row.Dps = row.Damage / div;
+            row.RDps = row.Dps;
+            row.Hps = row.Healed / div;
+            e.Rows.Add(row);
+            e.TotalDamage += row.Damage;
+            e.TotalTaken += row.Taken;
+            e.TotalDeaths += row.Deaths;
+            e.TotalHps += row.Hps;
+        }
+        e.TotalDps = e.TotalDamage / div;
+        foreach (var r in e.Rows)
+            r.DamagePct = e.TotalDamage > 0 ? $"{r.Damage / e.TotalDamage * 100:0}%" : "";
+        return e;
+    }
+
     // Two chunks of the same player's fight, damage-weighted where it matters.
     public static MeterCombatant Combine(MeterCombatant? a, MeterCombatant b)
     {
@@ -381,26 +474,12 @@ public class Meter : IDisposable
         EndFight();
     }
 
-    // A mid-combat reset must also close the parser's own encounter, or its
-    // running totals just repopulate the meter one second later. The parser
-    // watches for an echoed "end".
+    // A mid-combat reset draws a line under the parser's running totals, or
+    // they would just repopulate the meter one second later.
     public void ResetEncounter()
     {
         Clear();
-        if (Connected) SendEnd();
-    }
-
-    private static void SendEnd()
-    {
-        try
-        {
-            Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry
-            {
-                Message = "end",
-                Type = Dalamud.Game.Text.XivChatType.Echo,
-            });
-        }
-        catch { /* chat can refuse during load screens */ }
+        if (_rawIn != null) _cut = Snapshot(_rawIn);
     }
 
     public string StatusText => !C.MeterEnabled ? "off" : Link.Status switch

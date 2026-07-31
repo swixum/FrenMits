@@ -49,6 +49,15 @@ public static class MeterProfile
             ["rows"] = c.MeterRowColor,
             ["youcol"] = c.MeterYouColor,
             ["timercol"] = c.MeterTimerColor,
+            ["hlcol"] = c.MeterHighlightColor,
+            ["titlecol"] = c.MeterTitleColor,
+            ["bordercol"] = c.MeterBorderColor,
+            ["hlstyle"] = c.MeterHighlightStyle,
+            ["hlstr"] = c.MeterHighlightStrength,
+            ["barop"] = c.MeterBarOpacity,
+            ["maxrows"] = c.MeterMaxRows,
+            ["shadow"] = c.MeterTextShadow,
+            ["hideooc"] = c.MeterHideOutOfCombat,
         };
         var raw = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o));
         using var ms = new MemoryStream();
@@ -89,7 +98,7 @@ public static class MeterProfile
             if (o["barh"] is { } bh) c.MeterBarHeight = Math.Clamp((float)bh, 16f, 44f);
             if (o["gap"] is { } g) c.MeterBarGap = Math.Clamp((float)g, 0f, 10f);
             if (o["round"] is { } ro) c.MeterRounding = Math.Clamp((float)ro, 0f, 14f);
-            if (o["bars"] is { } br) c.MeterBarStyle = Math.Clamp((int)br, 0, 2);
+            if (o["bars"] is { } br) c.MeterBarStyle = Math.Clamp((int)br, 0, 4);
             if (o["btns"] is { } bt) c.MeterButtons = (bool)bt;
             if (o["healtab"] is { } ht) c.MeterHealingTab = (bool)ht;
             if (o["tabdmg"] is { } td && td.ToString() is { Length: > 0 and <= 24 } tdn) c.MeterTabNameDamage = tdn;
@@ -103,6 +112,15 @@ public static class MeterProfile
             if (o["rows"] is { } rw) c.MeterRowColor = (uint)rw;
             if (o["youcol"] is { } yc) c.MeterYouColor = (uint)yc;
             if (o["timercol"] is { } tc) c.MeterTimerColor = (uint)tc;
+            if (o["hlcol"] is { } hc) c.MeterHighlightColor = (uint)hc;
+            if (o["titlecol"] is { } ttc) c.MeterTitleColor = (uint)ttc;
+            if (o["bordercol"] is { } bc) c.MeterBorderColor = (uint)bc;
+            if (o["hlstyle"] is { } hs) c.MeterHighlightStyle = Math.Clamp((int)hs, 0, 3);
+            if (o["hlstr"] is { } hst) c.MeterHighlightStrength = Math.Clamp((float)hst, 0.2f, 2.5f);
+            if (o["barop"] is { } bo) c.MeterBarOpacity = Math.Clamp((float)bo, 0.2f, 1.6f);
+            if (o["maxrows"] is { } mr) c.MeterMaxRows = Math.Clamp((int)mr, 0, 24);
+            if (o["shadow"] is { } sh) c.MeterTextShadow = (bool)sh;
+            if (o["hideooc"] is { } ho) c.MeterHideOutOfCombat = (bool)ho;
             return true;
         }
         catch

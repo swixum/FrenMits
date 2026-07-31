@@ -295,8 +295,17 @@ public class Configuration : IPluginConfiguration
     public uint MeterSubColor { get; set; } = 0xFFFFFFFF;     // ranks, labels, other columns
     public uint MeterBgColor { get; set; } = 0xB80D0A09;      // window, alpha included
     public uint MeterRowColor { get; set; } = 0x17FFFFFF;     // bar background
-    public uint MeterYouColor { get; set; } = 0xFFF6823B;     // your name and row highlight
+    public uint MeterYouColor { get; set; } = 0xFFF6823B;     // your name in the list
     public uint MeterTimerColor { get; set; } = 0xFFFFFFFF;   // the encounter clock
+    public uint MeterHighlightColor { get; set; } = 0xFFF6823B; // the wash over your row
+    public uint MeterTitleColor { get; set; } = 0xFFFFFFFF;   // the encounter name
+    public uint MeterBorderColor { get; set; } = 0x2EF6823B;  // the window edge
+    public int MeterHighlightStyle { get; set; }              // 0 wash + outline, 1 wash, 2 outline, 3 stripe
+    public float MeterHighlightStrength { get; set; } = 1f;
+    public float MeterBarOpacity { get; set; } = 1f;
+    public int MeterMaxRows { get; set; }                     // 0 shows everyone
+    public bool MeterTextShadow { get; set; } = true;
+    public bool MeterHideOutOfCombat { get; set; }
 
     // Saved meter profiles (name -> share code) and which one is active.
     public Dictionary<string, string> MeterProfiles { get; set; } = new();

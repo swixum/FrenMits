@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
@@ -18,6 +18,9 @@ public class MeterWindow : Window
     private bool _posDirty;
     private bool _sizeDirty;
     private int _histIdx = -1; // -1 = live encounter
+
+    // How long a finished pull stays on screen when hiding out of combat.
+    private const double LingerSeconds = 12;
 
     public MeterWindow(Plugin plugin) : base("FrenMits Meter##frenmeter")
     {
@@ -51,6 +54,11 @@ public class MeterWindow : Window
     {
         if (!C.MeterEnabled) return false;
         if (Plugin.CutsceneActive && !C.TestMode) return false;
+        // Out of combat: stay up long enough to read the pull, then get out.
+        if (C.MeterHideOutOfCombat && !C.TestMode && !Plugin.InCombat && _histIdx < 0
+            && _plugin.Meter.Current is not { Active: true }
+            && (DateTime.UtcNow - _plugin.Meter.CurrentAt).TotalSeconds > LingerSeconds)
+            return false;
         return C.TestMode || View() != null || !C.MeterLocked;
     }
 
@@ -75,7 +83,8 @@ public class MeterWindow : Window
         var ws = ImGui.GetWindowSize();
         var dl = ImGui.GetWindowDrawList();
         dl.AddRectFilled(wp, wp + ws, C.MeterBgColor, C.MeterRounding);
-        dl.AddRect(wp, wp + ws, (C.MeterAccentColor & 0x00FFFFFF) | 0x2E000000, C.MeterRounding);
+        if (C.MeterBorderColor >> 24 != 0)
+            dl.AddRect(wp, wp + ws, C.MeterBorderColor, C.MeterRounding);
 
         if (C.MeterBarStyle == 1)
         {
@@ -94,10 +103,10 @@ public class MeterWindow : Window
             var status = _plugin.Meter.StatusText;
             var statusW = ImGui.CalcTextSize(status).X;
             var midY = ws.Y * 0.5f - ImGui.GetTextLineHeight();
-            OverlayChrome.BoardText(dl, wp + new Vector2((ws.X - titleW) * 0.5f, midY),
-                C.MeterTextColor, "Fren Meter", true);
-            OverlayChrome.BoardText(dl, wp + new Vector2((ws.X - statusW) * 0.5f, midY + ImGui.GetTextLineHeight() + 3f),
-                C.MeterSubColor, status, true);
+            BText(dl, wp + new Vector2((ws.X - titleW) * 0.5f, midY),
+                C.MeterTextColor, "Fren Meter");
+            BText(dl, wp + new Vector2((ws.X - statusW) * 0.5f, midY + ImGui.GetTextLineHeight() + 3f),
+                C.MeterSubColor, status);
             ContextMenu();
             return;
         }
@@ -181,9 +190,9 @@ public class MeterWindow : Window
         if (label.Length > 0)
         {
             var lw = ImGui.CalcTextSize(label).X;
-            OverlayChrome.BoardText(dl,
+            BText(dl,
                 wp + new Vector2(ws.X - pad - lw, cy + (chipH - ImGui.GetTextLineHeight()) * 0.5f),
-                m.Paused ? C.MeterAccentColor : C.MeterSubColor, label, true);
+                m.Paused ? C.MeterAccentColor : C.MeterSubColor, label);
         }
 
         TabRenamePopup();
@@ -233,8 +242,8 @@ public class MeterWindow : Window
         }
         else if (hovered)
             dl.AddRectFilled(min, max, 0x1CFFFFFF, 4f);
-        OverlayChrome.BoardText(dl, new Vector2(min.X + 8f, min.Y + (h - ImGui.GetTextLineHeight()) * 0.5f),
-            active ? C.MeterTextColor : C.MeterSubColor, label, true);
+        BText(dl, new Vector2(min.X + 8f, min.Y + (h - ImGui.GetTextLineHeight()) * 0.5f),
+            active ? C.MeterTextColor : C.MeterSubColor, label);
         if (clicked && !active) { C.MeterMode = mode; C.SaveSettings(); }
         if (hovered && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
         {
@@ -347,31 +356,31 @@ public class MeterWindow : Window
             // Slim: one line, clock + title left, headline right.
             var mainW = ImGui.CalcTextSize(main).X;
             var timeW = ImGui.CalcTextSize(timeText).X;
-            OverlayChrome.BoardText(dl, wp + new Vector2(pad, y), C.MeterTimerColor, timeText, true);
+            BText(dl, wp + new Vector2(pad, y), C.MeterTimerColor, timeText);
             TitleWithPicker(dl, wp, pad + timeW + 8f, y,
                 Clip(title, ws.X - pad * 2 - mainW - timeW - 34f));
-            OverlayChrome.BoardText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main, true);
+            BText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main);
             y += lineH + 5f;
         }
         else
         {
             var mainW = ImGui.CalcTextSize(main).X;
             TitleWithPicker(dl, wp, pad, y, Clip(title, ws.X - pad * 2 - mainW - 26f));
-            OverlayChrome.BoardText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main, true);
+            BText(dl, wp + new Vector2(ws.X - pad - mainW, y), C.MeterAccentColor, main);
             y += lineH + 2f;
 
             var players = 0;
             foreach (var r in enc.Rows)
                 if (r.Job.Length > 0)
                     players++;
-            OverlayChrome.BoardText(dl, wp + new Vector2(pad, y), C.MeterTimerColor, timeText, true);
-            OverlayChrome.BoardText(dl, wp + new Vector2(pad + ImGui.CalcTextSize(timeText).X, y),
-                C.MeterSubColor, $"  ·  {players} in party", true);
+            BText(dl, wp + new Vector2(pad, y), C.MeterTimerColor, timeText);
+            BText(dl, wp + new Vector2(pad + ImGui.CalcTextSize(timeText).X, y),
+                C.MeterSubColor, $"  ·  {players} in party");
             if (C.MeterShowRaidTotal && mode != 0)
             {
                 var chip = $"Raid {Num(enc.RaidRDps)} rDPS";
                 var w = ImGui.CalcTextSize(chip).X;
-                OverlayChrome.BoardText(dl, wp + new Vector2(ws.X - pad - w, y), C.MeterSubColor, chip, true);
+                BText(dl, wp + new Vector2(ws.X - pad - w, y), C.MeterSubColor, chip);
             }
             y += lineH + 5f;
         }
@@ -391,7 +400,7 @@ public class MeterWindow : Window
     // The encounter name with a small caret: click to look back at past pulls.
     private void TitleWithPicker(ImDrawListPtr dl, Vector2 wp, float x, float y, string shown)
     {
-        OverlayChrome.BoardText(dl, wp + new Vector2(x, y), C.MeterTextColor, shown, true);
+        BText(dl, wp + new Vector2(x, y), C.MeterTitleColor, shown);
         var tw = ImGui.CalcTextSize(shown).X;
         float cw;
         using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
@@ -465,8 +474,8 @@ public class MeterWindow : Window
             x -= slot.Width;
             var w = ImGui.CalcTextSize(slot.Col.Label).X;
             var dragging = _dragCol == slot.Col.Key;
-            OverlayChrome.BoardText(dl, wp + new Vector2(x + slot.Width - w, y),
-                dragging ? 0x55FFFFFFu : C.MeterSubColor, slot.Col.Label, true);
+            BText(dl, wp + new Vector2(x + slot.Width - w, y),
+                dragging ? 0x55FFFFFFu : C.MeterSubColor, slot.Col.Label);
             rects.Add((slot.Col.Key, x, x + slot.Width));
 
             // Each label is a grab handle: drag it left or right to reorder.
@@ -558,19 +567,28 @@ public class MeterWindow : Window
         rows.Sort((a, b) => Metric(b).CompareTo(Metric(a)));
         var max = 1.0;
         foreach (var r in rows) max = Math.Max(max, Metric(r));
+        // Ranks are fixed before any trimming, so a shown row keeps its real place.
+        var ranked = new List<(MeterCombatant Row, int Rank)>(rows.Count);
+        for (var i = 0; i < rows.Count; i++) ranked.Add((rows[i], i + 1));
+        // A row cap keeps the top of the list, plus your own row wherever it sits.
+        if (C.MeterMaxRows > 0 && ranked.Count > C.MeterMaxRows)
+        {
+            var me = rows.FindIndex(r => IsYou(r, Plugin.LocalPlayer?.Name.ToString() ?? ""));
+            var keep = ranked.GetRange(0, C.MeterMaxRows);
+            if (me >= C.MeterMaxRows) keep[^1] = ranked[me];
+            ranked = keep;
+        }
 
         var slots = Slots(cols);
         var lineH = ImGui.GetTextLineHeight();
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
         _rowStride = rowH + C.MeterBarGap;
         var you = Plugin.LocalPlayer?.Name.ToString() ?? "";
-        var rank = 0;
 
         // Content width, not window width, so a scrollbar never overlaps the bars.
         var w = MathF.Max(60f, ImGui.GetContentRegionAvail().X);
-        foreach (var r in rows)
+        foreach (var (r, rank) in ranked)
         {
-            rank++;
             var p = ImGui.GetCursorScreenPos();
             ImGui.InvisibleButton($"##bar{rank}", new Vector2(w, rowH));
             var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
@@ -586,28 +604,46 @@ public class MeterWindow : Window
             {
                 var a = p + new Vector2(pad - 3f, 0);
                 var b = p + new Vector2(pad - 3f + fill, rowH);
+                var op = C.MeterBarOpacity;
                 switch (C.MeterBarStyle)
                 {
                     case 1: // glass: solid fill with a shine across the top half
-                        dl.AddRectFilled(a, b, rgb | 0x5C000000, 4f);
+                        dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
                         dl.AddRectFilledMultiColor(a + new Vector2(1f, 1f), new Vector2(b.X, p.Y + rowH * 0.55f),
                             0x24FFFFFF, 0x24FFFFFF, 0x00FFFFFF, 0x00FFFFFF);
                         break;
                     case 2: // gradient: strong at the left, fading right
                         dl.AddRectFilledMultiColor(a + new Vector2(0f, 1f), b - new Vector2(0f, 1f),
-                            rgb | 0x8C000000, rgb | 0x26000000, rgb | 0x26000000, rgb | 0x8C000000);
+                            Fade(rgb | 0x8C000000, op), Fade(rgb | 0x26000000, op),
+                            Fade(rgb | 0x26000000, op), Fade(rgb | 0x8C000000, op));
+                        break;
+                    case 3: // outline: a hollow bar with a bright edge
+                        dl.AddRectFilled(a, b, Fade(rgb | 0x1A000000, op), 4f);
+                        dl.AddRect(a, b, Fade(rgb | 0xCC000000, op), 4f);
+                        break;
+                    case 4: // minimal: a rule under the row, no fill
+                        dl.AddRectFilled(new Vector2(a.X, b.Y - 2f), b, Fade(rgb | 0xD9000000, op));
                         break;
                     default: // flat
-                        dl.AddRectFilled(a, b, rgb | 0x5C000000, 4f);
+                        dl.AddRectFilled(a, b, Fade(rgb | 0x5C000000, op), 4f);
                         break;
                 }
-                dl.AddRectFilled(a, p + new Vector2(pad, rowH), rgb | 0xE6000000, 2f);
+                if (C.MeterBarStyle != 4)
+                    dl.AddRectFilled(a, p + new Vector2(pad, rowH), Fade(rgb | 0xE6000000, op), 2f);
             }
             if (C.MeterHighlightYou && IsYou(r, you))
             {
-                var yrgb = C.MeterYouColor & 0x00FFFFFF;
-                dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH), yrgb | 0x12000000, 4f);
-                dl.AddRect(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH), yrgb | 0x8C000000, 4f);
+                var hrgb = C.MeterHighlightColor & 0x00FFFFFF;
+                var s = C.MeterHighlightStrength;
+                var a = p + new Vector2(pad - 3f, 0);
+                var b = p + new Vector2(w - pad + 3f, rowH);
+                var style = C.MeterHighlightStyle;
+                if (style is 0 or 1)
+                    dl.AddRectFilled(a, b, Fade(hrgb | 0x12000000, s), 4f);
+                if (style is 0 or 2)
+                    dl.AddRect(a, b, Fade(hrgb | 0x8C000000, s), 4f);
+                if (style == 3)
+                    dl.AddRectFilled(a - new Vector2(3f, 0), new Vector2(a.X, b.Y), Fade(hrgb | 0xF2000000, s));
             }
 
             var ty = p.Y + (rowH - lineH) * 0.5f;
@@ -616,9 +652,9 @@ public class MeterWindow : Window
             {
                 var rankText = $"{rank}.";
                 var rankW = ImGui.CalcTextSize(rows.Count >= 10 ? "88." : "8.").X;
-                OverlayChrome.BoardText(dl,
+                BText(dl,
                     new Vector2(x + rankW - ImGui.CalcTextSize(rankText).X, ty),
-                    C.MeterSubColor, rankText, true);
+                    C.MeterSubColor, rankText);
                 x += rankW + 5f;
             }
             if (C.MeterShowJobIcons && Jobs.ByAbbreviation(r.Job) is { } job)
@@ -638,16 +674,16 @@ public class MeterWindow : Window
                 var tw = ImGui.CalcTextSize(text).X;
                 // The leading (leftmost-configured) column reads bright.
                 var bright = slot.Col.Key == cols[0].Key;
-                OverlayChrome.BoardText(dl, new Vector2(rx + slot.Width - tw, ty),
-                    bright ? C.MeterTextColor : C.MeterSubColor, text, true);
+                BText(dl, new Vector2(rx + slot.Width - tw, ty),
+                    bright ? C.MeterTextColor : C.MeterSubColor, text);
                 rx -= ColGap;
             }
 
             var name = DisplayName(r, you);
             var nameMax = rx - x - 4f;
             if (nameMax > 12f)
-                OverlayChrome.BoardText(dl, new Vector2(x, ty),
-                    IsYou(r, you) ? C.MeterYouColor : C.MeterTextColor, Clip(name, nameMax), true);
+                BText(dl, new Vector2(x, ty),
+                    IsYou(r, you) ? C.MeterYouColor : C.MeterTextColor, Clip(name, nameMax));
 
             if (hovered)
             {
@@ -709,12 +745,15 @@ public class MeterWindow : Window
         if (!ImGui.BeginPopup("##metermenu")) { PopMenuTheme(); return; }
 
         var m = _plugin.Meter;
-        MenuHeader("VIEW");
-        var mode = C.MeterMode;
-        if (ImGui.MenuItem("Damage", "", mode == 0)) { C.MeterMode = 0; C.SaveSettings(); }
-        if (ImGui.MenuItem("Healing", "", mode == 1)) { C.MeterMode = 1; C.SaveSettings(); }
-        if (ImGui.MenuItem("Damage taken", "", mode == 2)) { C.MeterMode = 2; C.SaveSettings(); }
-        if (ImGui.MenuItem("Deaths", "", mode == 3)) { C.MeterMode = 3; C.SaveSettings(); }
+        if (ImGui.BeginMenu("View"))
+        {
+            var mode = C.MeterMode;
+            if (ImGui.MenuItem("Damage", "", mode == 0)) { C.MeterMode = 0; C.SaveSettings(); }
+            if (ImGui.MenuItem("Healing", "", mode == 1)) { C.MeterMode = 1; C.SaveSettings(); }
+            if (ImGui.MenuItem("Damage taken", "", mode == 2)) { C.MeterMode = 2; C.SaveSettings(); }
+            if (ImGui.MenuItem("Deaths", "", mode == 3)) { C.MeterMode = 3; C.SaveSettings(); }
+            ImGui.EndMenu();
+        }
         if (ImGui.BeginMenu("Past pulls"))
         {
             DrawPullList();
@@ -722,68 +761,93 @@ public class MeterWindow : Window
         }
         if (ImGui.MenuItem(m.Paused ? "Resume" : "Pause")) m.Paused = !m.Paused;
 
-        MenuHeader("LOOKS");
-        if (ImGui.BeginMenu("Columns"))
+        ImGui.Separator();
+        if (ImGui.BeginMenu("Appearance"))
         {
-            var list = ActiveColumnList();
-            foreach (var col in AllCols)
+            if (ImGui.BeginMenu("Columns"))
             {
-                var on = list.Contains(col.Key);
-                if (ImGui.MenuItem(ColumnLabel(col.Key), "", on))
+                var list = ActiveColumnList();
+                foreach (var col in AllCols)
                 {
-                    if (on) list.Remove(col.Key);
-                    else list.Add(col.Key);
-                    C.SaveSettings();
+                    var on = list.Contains(col.Key);
+                    if (ImGui.MenuItem(ColumnLabel(col.Key), "", on))
+                    {
+                        if (on) list.Remove(col.Key);
+                        else list.Add(col.Key);
+                        C.SaveSettings();
+                    }
                 }
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Display"))
+            {
+                if (ImGui.MenuItem("Rank numbers", "", C.MeterShowRank)) { C.MeterShowRank = !C.MeterShowRank; C.SaveSettings(); }
+                if (ImGui.MenuItem("Job icons", "", C.MeterShowJobIcons)) { C.MeterShowJobIcons = !C.MeterShowJobIcons; C.SaveSettings(); }
+                if (ImGui.MenuItem("Column labels", "", C.MeterColumnHeader)) { C.MeterColumnHeader = !C.MeterColumnHeader; C.SaveSettings(); }
+                if (ImGui.MenuItem("Raid total", "", C.MeterShowRaidTotal)) { C.MeterShowRaidTotal = !C.MeterShowRaidTotal; C.SaveSettings(); }
+                if (ImGui.MenuItem("\"You\" instead of your name", "", C.MeterYou)) { C.MeterYou = !C.MeterYou; C.SaveSettings(); }
+                if (ImGui.MenuItem("Highlight your row", "", C.MeterHighlightYou)) { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
+                if (ImGui.MenuItem("Buttons bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
+                if (ImGui.MenuItem("Healing tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
+                if (ImGui.MenuItem("Drop shadow", "", C.MeterTextShadow)) { C.MeterTextShadow = !C.MeterTextShadow; C.SaveSettings(); }
+                if (ImGui.MenuItem("Hide out of combat", "", C.MeterHideOutOfCombat))
+                { C.MeterHideOutOfCombat = !C.MeterHideOutOfCombat; C.SaveSettings(); }
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Bars"))
+            {
+                var bars = C.MeterBarStyle;
+                if (ImGui.MenuItem("Flat", "", bars == 0)) { C.MeterBarStyle = 0; C.SaveSettings(); }
+                if (ImGui.MenuItem("Glass", "", bars == 1)) { C.MeterBarStyle = 1; C.SaveSettings(); }
+                if (ImGui.MenuItem("Gradient", "", bars == 2)) { C.MeterBarStyle = 2; C.SaveSettings(); }
+                if (ImGui.MenuItem("Outline", "", bars == 3)) { C.MeterBarStyle = 3; C.SaveSettings(); }
+                if (ImGui.MenuItem("Minimal", "", bars == 4)) { C.MeterBarStyle = 4; C.SaveSettings(); }
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Your row"))
+            {
+                if (ImGui.MenuItem("Highlight", "", C.MeterHighlightYou))
+                { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
+                ImGui.Separator();
+                var hl = C.MeterHighlightStyle;
+                if (ImGui.MenuItem("Wash + outline", "", hl == 0)) { C.MeterHighlightStyle = 0; C.SaveSettings(); }
+                if (ImGui.MenuItem("Wash", "", hl == 1)) { C.MeterHighlightStyle = 1; C.SaveSettings(); }
+                if (ImGui.MenuItem("Outline", "", hl == 2)) { C.MeterHighlightStyle = 2; C.SaveSettings(); }
+                if (ImGui.MenuItem("Side stripe", "", hl == 3)) { C.MeterHighlightStyle = 3; C.SaveSettings(); }
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Header"))
+            {
+                var style = C.MeterHeaderStyle;
+                if (ImGui.MenuItem("Full", "", style == 0)) { C.MeterHeaderStyle = 0; C.SaveSettings(); }
+                if (ImGui.MenuItem("Slim", "", style == 1)) { C.MeterHeaderStyle = 1; C.SaveSettings(); }
+                if (ImGui.MenuItem("Hidden", "", style == 2)) { C.MeterHeaderStyle = 2; C.SaveSettings(); }
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Theme"))
+            {
+                foreach (var t in Themes)
+                    if (ImGui.MenuItem(t.Name))
+                        ApplyTheme(C, t);
+                ImGui.EndMenu();
+            }
+            if (C.MeterProfiles.Count > 0 && ImGui.BeginMenu("Profile"))
+            {
+                foreach (var kv in C.MeterProfiles)
+                    if (ImGui.MenuItem(kv.Key, "", C.MeterProfileName == kv.Key))
+                    {
+                        if (MeterProfile.Import(C, kv.Value))
+                        {
+                            C.MeterProfileName = kv.Key;
+                            C.SaveSettings();
+                            RequestReposition();
+                        }
+                        break;
+                    }
+                ImGui.EndMenu();
             }
             ImGui.EndMenu();
         }
-        if (ImGui.BeginMenu("Display"))
-        {
-            if (ImGui.MenuItem("Rank numbers", "", C.MeterShowRank)) { C.MeterShowRank = !C.MeterShowRank; C.SaveSettings(); }
-            if (ImGui.MenuItem("Job icons", "", C.MeterShowJobIcons)) { C.MeterShowJobIcons = !C.MeterShowJobIcons; C.SaveSettings(); }
-            if (ImGui.MenuItem("Column labels", "", C.MeterColumnHeader)) { C.MeterColumnHeader = !C.MeterColumnHeader; C.SaveSettings(); }
-            if (ImGui.MenuItem("Raid total", "", C.MeterShowRaidTotal)) { C.MeterShowRaidTotal = !C.MeterShowRaidTotal; C.SaveSettings(); }
-            if (ImGui.MenuItem("\"You\" instead of your name", "", C.MeterYou)) { C.MeterYou = !C.MeterYou; C.SaveSettings(); }
-            if (ImGui.MenuItem("Highlight your row", "", C.MeterHighlightYou)) { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
-            if (ImGui.MenuItem("Buttons bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
-            if (ImGui.MenuItem("Healing tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
-            ImGui.Separator();
-            var bars = C.MeterBarStyle;
-            if (ImGui.MenuItem("Bars: flat", "", bars == 0)) { C.MeterBarStyle = 0; C.SaveSettings(); }
-            if (ImGui.MenuItem("Bars: glass", "", bars == 1)) { C.MeterBarStyle = 1; C.SaveSettings(); }
-            if (ImGui.MenuItem("Bars: gradient", "", bars == 2)) { C.MeterBarStyle = 2; C.SaveSettings(); }
-            ImGui.Separator();
-            var style = C.MeterHeaderStyle;
-            if (ImGui.MenuItem("Header: full", "", style == 0)) { C.MeterHeaderStyle = 0; C.SaveSettings(); }
-            if (ImGui.MenuItem("Header: slim", "", style == 1)) { C.MeterHeaderStyle = 1; C.SaveSettings(); }
-            if (ImGui.MenuItem("Header: hidden", "", style == 2)) { C.MeterHeaderStyle = 2; C.SaveSettings(); }
-            ImGui.EndMenu();
-        }
-        if (ImGui.BeginMenu("Theme"))
-        {
-            foreach (var t in Themes)
-                if (ImGui.MenuItem(t.Name))
-                    ApplyTheme(C, t);
-            ImGui.EndMenu();
-        }
-        if (C.MeterProfiles.Count > 0 && ImGui.BeginMenu("Profile"))
-        {
-            foreach (var kv in C.MeterProfiles)
-                if (ImGui.MenuItem(kv.Key, "", C.MeterProfileName == kv.Key))
-                {
-                    if (MeterProfile.Import(C, kv.Value))
-                    {
-                        C.MeterProfileName = kv.Key;
-                        C.SaveSettings();
-                        RequestReposition();
-                    }
-                    break;
-                }
-            ImGui.EndMenu();
-        }
-
-        MenuHeader("WINDOW");
         if (ImGui.MenuItem("Lock position", "", C.MeterLocked)) { C.MeterLocked = !C.MeterLocked; C.SaveSettings(); }
         if (ImGui.MenuItem("Click-through", "", C.MeterClickThrough))
         {
@@ -829,13 +893,6 @@ public class MeterWindow : Window
         ImGui.PopStyleColor(10);
     }
 
-    // A quiet section label inside the menu.
-    private void MenuHeader(string text)
-    {
-        ImGui.Spacing();
-        ImGui.TextColored(Theme.V((C.MeterSubColor & 0x00FFFFFF) | 0xA6000000), text);
-    }
-
     // ---- persistence -------------------------------------------------------
 
     private void SaveIfMoved()
@@ -858,6 +915,17 @@ public class MeterWindow : Window
     }
 
     // ---- helpers -----------------------------------------------------------
+
+    // Every piece of text on the meter, honoring the shadow toggle.
+    private void BText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
+        => OverlayChrome.BoardText(dl, pos, color, text, C.MeterTextShadow);
+
+    // A color's alpha scaled by a factor, clamped to a byte.
+    private static uint Fade(uint abgr, float scale)
+    {
+        var a = (uint)Math.Clamp((abgr >> 24) * scale, 0f, 255f);
+        return (a << 24) | (abgr & 0x00FFFFFF);
+    }
 
     // The row color with a touch more alpha for hover.
     private static uint Brighten(uint abgr)
@@ -882,18 +950,33 @@ public class MeterWindow : Window
 
     // ---- themes ------------------------------------------------------------
 
+    // Accent, Text and Sub are plain RGB; Bg and Rows carry their own alpha.
     public readonly record struct MeterTheme(
         string Name, uint Accent, uint Text, uint Sub, uint Bg, uint Rows, float Rounding, bool JobColors,
         int BarStyle);
 
+    // 0xAARRGGBB, the way a color picker spells it, into the packed order.
+    private static uint Argb(uint argb)
+        => (argb & 0xFF000000u) | ((argb & 0xFF) << 16) | (argb & 0xFF00) | ((argb >> 16) & 0xFF);
+
     public static readonly MeterTheme[] Themes =
     {
-        new("Fren Mits", 0xFFF6823B, 0xFFFFFFFF, 0xFFFFFFFF, 0xB80D0A09, 0x17FFFFFF, 5f, true, 0),
-        new("Dark Mode", 0xFFFFB48A, 0xFFFFFFFF, 0xFFD8CDC8, 0xE6000000, 0x12FFFFFF, 6f, true, 0),
-        new("Glass", 0xFFC5D14F, 0xFFFFFFFF, 0xFFF2F0E6, 0x5916120E, 0x22FFFFFF, 10f, true, 1),
-        new("Ember", 0xFF3C8AFF, 0xFFFFFFFF, 0xFFC0D9FF, 0xCC060B14, 0x145C9AFF, 5f, true, 2),
-        new("Jade", 0xFF99D334, 0xFFFFFFFF, 0xFFDCE8D2, 0xCC101307, 0x16FFFFFF, 5f, true, 2),
-        new("Mono", 0xFFB8A99D, 0xFFFFFFFF, 0xFFC4C4C4, 0xD8101010, 0x1AFFFFFF, 2f, false, 0),
+        new("Fren Mits", Rgb(0x3B82F6), Rgb(0xFFFFFF), Rgb(0xFFFFFF), Argb(0xB8090A0D), Argb(0x17FFFFFF), 5f, true, 0),
+        new("Dark Mode", Rgb(0x8AB4FF), Rgb(0xFFFFFF), Rgb(0xC8CDD8), Argb(0xE6000000), Argb(0x12FFFFFF), 6f, true, 0),
+        new("Glass", Rgb(0x4FD1C5), Rgb(0xFFFFFF), Rgb(0xE6F0F2), Argb(0x590E1216), Argb(0x22FFFFFF), 10f, true, 1),
+        new("Ember", Rgb(0xFF8A3C), Rgb(0xFFFFFF), Rgb(0xFFD9C0), Argb(0xCC140B06), Argb(0x14FF9A5C), 5f, true, 2),
+        new("Jade", Rgb(0x34D399), Rgb(0xFFFFFF), Rgb(0xD2E8DC), Argb(0xCC071310), Argb(0x16FFFFFF), 5f, true, 2),
+        new("Mono", Rgb(0x9DA9B8), Rgb(0xFFFFFF), Rgb(0xC4C4C4), Argb(0xD8101010), Argb(0x1AFFFFFF), 2f, false, 0),
+        new("Midnight", Rgb(0x818CF8), Rgb(0xF2F3FF), Rgb(0xB9BEDC), Argb(0xE00B0D1A), Argb(0x18A5B4FC), 7f, true, 0),
+        new("Crimson", Rgb(0xF04658), Rgb(0xFFFFFF), Rgb(0xE8C4C8), Argb(0xDB120608), Argb(0x18F04658), 4f, true, 2),
+        new("Sakura", Rgb(0xF9A8D4), Rgb(0xFFF5FA), Rgb(0xE3C2D5), Argb(0xD41A0E17), Argb(0x1AF9A8D4), 9f, true, 1),
+        new("Frost", Rgb(0x67E8F9), Rgb(0xF4FEFF), Rgb(0xC3DDE3), Argb(0xDB08161A), Argb(0x1667E8F9), 6f, true, 1),
+        new("Sunset", Rgb(0xFBBF24), Rgb(0xFFFBF0), Rgb(0xE8D5AE), Argb(0xD41A1004), Argb(0x1AFBBF24), 8f, true, 2),
+        new("Forest", Rgb(0x84CC16), Rgb(0xF7FFEE), Rgb(0xCBD8B8), Argb(0xD40C1206), Argb(0x1684CC16), 3f, true, 0),
+        new("Vapor", Rgb(0xE879F9), Rgb(0xFDF2FF), Rgb(0xCDB8E0), Argb(0xE0140A1F), Argb(0x1CE879F9), 10f, true, 2),
+        new("Neon", Rgb(0xCCFF00), Rgb(0xFFFFFF), Rgb(0xB6C48C), Argb(0xF0000000), Argb(0x14CCFF00), 0f, true, 3),
+        new("Slate", Rgb(0x94A3B8), Rgb(0xF1F5F9), Rgb(0xB4C0CE), Argb(0xE00F141B), Argb(0x14FFFFFF), 3f, false, 4),
+        new("Parchment", Rgb(0xB45309), Rgb(0x231A10), Rgb(0x5C4A36), Argb(0xEFF2EADA), Argb(0x1A6B5334), 6f, true, 0),
     };
 
     public static void ApplyTheme(Configuration c, MeterTheme t)
@@ -901,6 +984,11 @@ public class MeterWindow : Window
         c.MeterAccentColor = t.Accent;
         c.MeterTextColor = t.Text;
         c.MeterSubColor = t.Sub;
+        c.MeterTitleColor = t.Text;
+        c.MeterTimerColor = t.Text;
+        c.MeterYouColor = t.Accent;
+        c.MeterHighlightColor = t.Accent;
+        c.MeterBorderColor = (t.Accent & 0x00FFFFFF) | 0x2E000000;
         c.MeterBgColor = t.Bg;
         c.MeterRowColor = t.Rows;
         c.MeterRounding = t.Rounding;

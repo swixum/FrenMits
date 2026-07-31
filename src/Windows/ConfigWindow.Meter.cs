@@ -69,6 +69,7 @@ public partial class ConfigWindow
             C.MeterHighlightYou = GridCheck("Highlight your row", C.MeterHighlightYou);
             C.MeterButtons = GridCheck("Buttons bar", C.MeterButtons, "Pulls, pause and reset at the bottom.");
             C.MeterHealingTab = GridCheck("DPS / HPS tabs", C.MeterHealingTab, "Right-click a tab to rename it.");
+            C.MeterHideOutOfCombat = GridCheck("Hide out of combat", C.MeterHideOutOfCombat);
             ImGui.EndTable();
         }
 
@@ -84,6 +85,12 @@ public partial class ConfigWindow
         if (ImGui.Combo("Names", ref names, "Full name\0First name\0First name + initial\0"))
         { C.MeterNameStyle = names; C.SaveSettings(); }
 
+        ImGui.SetNextItemWidth(200f);
+        var maxRows = C.MeterMaxRows;
+        if (ImGui.SliderInt("Rows shown", ref maxRows, 0, 24, maxRows == 0 ? "everyone" : "%d"))
+        { C.MeterMaxRows = maxRows; C.SaveSettings(); }
+        Tip("Your own row always shows.");
+
         ImGui.Spacing();
         ImGui.TextDisabled("Turn on Test mode in the header to place it with a sample pull.");
     }
@@ -95,7 +102,7 @@ public partial class ConfigWindow
         SeparatorText("Bars");
         ImGui.SetNextItemWidth(200f);
         var barStyle = C.MeterBarStyle;
-        if (ImGui.Combo("Fill", ref barStyle, "Flat\0Glass\0Gradient\0"))
+        if (ImGui.Combo("Fill", ref barStyle, "Flat\0Glass\0Gradient\0Outline\0Minimal\0"))
         { C.MeterBarStyle = barStyle; C.SaveSettings(); }
         ImGui.SameLine(0, 18);
         C.MeterJobColors = CfgCheck("Color by job", C.MeterJobColors);
@@ -108,6 +115,21 @@ public partial class ConfigWindow
         if (Widgets.SliderInput("Spacing", ref gap, 0f, 10f, "%.0f px")) { C.MeterBarGap = gap; C.SaveSettings(); }
         var round = C.MeterRounding;
         if (Widgets.SliderInput("Rounding", ref round, 0f, 14f, "%.0f px")) { C.MeterRounding = round; C.SaveSettings(); }
+        ImGui.SameLine(0, 18);
+        var barOp = C.MeterBarOpacity;
+        if (Widgets.SliderInput("Bar opacity", ref barOp, 0.2f, 1.6f, "%.2f"))
+        { C.MeterBarOpacity = barOp; C.SaveSettings(); }
+
+        SeparatorText("Your row");
+        ImGui.SetNextItemWidth(200f);
+        var hl = C.MeterHighlightStyle;
+        if (ImGui.Combo("Highlight", ref hl, "Wash + outline\0Wash\0Outline\0Side stripe\0"))
+        { C.MeterHighlightStyle = hl; C.SaveSettings(); }
+        ImGui.SameLine(0, 18);
+        C.MeterHighlightYou = CfgCheck("Highlight your row", C.MeterHighlightYou);
+        var hlStr = C.MeterHighlightStrength;
+        if (Widgets.SliderInput("Strength", ref hlStr, 0.2f, 2.5f, "%.2f"))
+        { C.MeterHighlightStrength = hlStr; C.SaveSettings(); }
 
         SeparatorText("Text");
         var fonts = FontManager.FamilyNames;
@@ -127,6 +149,8 @@ public partial class ConfigWindow
         }
         var px = C.MeterFontSizePx;
         if (Widgets.SliderInput("Size", ref px, 11f, 26f, "%.0f px")) { C.MeterFontSizePx = px; C.SaveSettings(); }
+        ImGui.SameLine(0, 18);
+        C.MeterTextShadow = CfgCheck("Drop shadow", C.MeterTextShadow);
 
         SeparatorText("Colors");
         if (ImGui.BeginTable("##metercolorgrid", 4))
@@ -140,10 +164,19 @@ public partial class ConfigWindow
             MeterColor("Accent", () => C.MeterAccentColor, v => C.MeterAccentColor = v);
             Tip("Totals, and bars when job colors are off.");
             ImGui.TableNextColumn();
+            MeterColor("Title", () => C.MeterTitleColor, v => C.MeterTitleColor = v);
+            Tip("The encounter name.");
+            ImGui.TableNextColumn();
             MeterColor("You", () => C.MeterYouColor, v => C.MeterYouColor = v);
-            Tip("Your name and row highlight.");
+            Tip("Your name in the list.");
+            ImGui.TableNextColumn();
+            MeterColor("Highlight", () => C.MeterHighlightColor, v => C.MeterHighlightColor = v);
+            Tip("The wash over your row.");
             ImGui.TableNextColumn();
             MeterColor("Timer", () => C.MeterTimerColor, v => C.MeterTimerColor = v);
+            ImGui.TableNextColumn();
+            MeterColor("Border", () => C.MeterBorderColor, v => C.MeterBorderColor = v);
+            Tip("Alpha to zero hides it.");
             ImGui.TableNextColumn();
             MeterColor("Background", () => C.MeterBgColor, v => C.MeterBgColor = v);
             ImGui.TableNextColumn();
@@ -151,13 +184,8 @@ public partial class ConfigWindow
             ImGui.TableNextColumn();
             if (ImGui.SmallButton("Reset colors"))
             {
-                C.MeterTextColor = 0xFFFFFFFF;
-                C.MeterSubColor = 0xFFFFFFFF;
-                C.MeterAccentColor = 0xFFF6823B;
-                C.MeterYouColor = 0xFFF6823B;
-                C.MeterTimerColor = 0xFFFFFFFF;
-                C.MeterBgColor = 0xB80D0A09;
-                C.MeterRowColor = 0x17FFFFFF;
+                MeterWindow.ApplyTheme(C, MeterWindow.Themes[0]);
+                C.MeterBarStyle = 0;
                 C.SaveSettings();
             }
             ImGui.EndTable();
@@ -172,11 +200,14 @@ public partial class ConfigWindow
         var i = 0;
         foreach (var t in MeterWindow.Themes)
         {
-            if (i++ % 3 != 0) ImGui.SameLine(0, 10);
+            if (i++ % 4 != 0) ImGui.SameLine(0, 10);
+            ImGui.BeginGroup();
             ImGui.ColorButton($"##sw_{t.Name}", ColorToVec4(t.Accent),
                 ImGuiColorEditFlags.NoTooltip | ImGuiColorEditFlags.NoDragDrop);
             ImGui.SameLine(0, 5);
-            if (ImGui.Button(t.Name)) MeterWindow.ApplyTheme(C, t);
+            if (ImGui.Button($"{t.Name}##theme", new System.Numerics.Vector2(112f, 0f)))
+                MeterWindow.ApplyTheme(C, t);
+            ImGui.EndGroup();
         }
         ImGui.Spacing();
         ImGui.TextDisabled("A theme sets the colors and bar look; tweak anything after in Style.");
