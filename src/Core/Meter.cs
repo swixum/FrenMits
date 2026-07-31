@@ -236,13 +236,28 @@ public class Meter : IDisposable
     // does not depend on the engine still holding that fight.
     private void Materialize(MeterEncounter enc)
     {
+        // The parser calls the local player "YOU", and only publishing the pull
+        // turns that into their name. Resolve it here as well, or their own
+        // breakdown ends up filed under a name nothing later looks it up by.
+        var you = LocalName();
         foreach (var r in enc.Rows)
         {
-            var who = r.Display.Length > 0 ? r.Display : r.Name;
+            var who = you.Length > 0 && string.Equals(r.Name, "YOU", StringComparison.OrdinalIgnoreCase)
+                ? you
+                : r.Display.Length > 0 ? r.Display : r.Name;
             if (Engine.Dealt(who) is { Count: > 0 } d) enc.Dealt[who] = Freeze(d);
             if (Engine.Targets(who) is { Count: > 0 } t) enc.Targets[who] = Freeze(t);
             if (Engine.Taken(who) is { Count: > 0 } k) enc.Taken[who] = Freeze(k);
+            if (Engine.Heals(who) is { Count: > 0 } h) enc.Heals[who] = Freeze(h);
+            if (Engine.HealTargets(who) is { Count: > 0 } ht) enc.HealTargets[who] = Freeze(ht);
+            if (Engine.HealFrom(who) is { Count: > 0 } hf) enc.HealFrom[who] = Freeze(hf);
+            if (Engine.Given(who) is { Count: > 0 } g) enc.Given[who] = Freeze(g);
+            if (Engine.Received(who) is { Count: > 0 } rc) enc.Received[who] = Freeze(rc);
         }
+
+        enc.Deaths.Clear();
+        var start = FightStart(enc);
+        foreach (var d in Engine.Deaths()) enc.Deaths.Add(Freeze(d, start));
     }
 
     // Copies, not the engine's own rows: it keeps tallying into those, and a
@@ -254,18 +269,78 @@ public class Meter : IDisposable
             copy.Add(new AbilityStat
             {
                 Name = a.Name, Hits = a.Hits, Crits = a.Crits,
-                Dhs = a.Dhs, Damage = a.Damage, Max = a.Max,
+                Dhs = a.Dhs, Damage = a.Damage, Max = a.Max, Over = a.Over,
+                Id = a.Id, IsStatus = a.IsStatus,
             });
         return copy;
     }
 
+    // The same for a death, with the log's clock turned into fight time.
+    public static DeathRecord Freeze(DeathRecord live, long start)
+    {
+        var copy = new DeathRecord
+        {
+            Name = live.Name, Sec = live.Sec, Killer = live.Killer, KillingBlow = live.KillingBlow,
+            At = Math.Max(0f, live.Sec - start),
+        };
+        foreach (var h in live.Lead)
+            copy.Lead.Add(new DeathHit { Name = h.Name, Amount = h.Amount, Sec = h.Sec, Heal = h.Heal });
+        return copy;
+    }
+
+    // Where the pull on screen started, in log seconds.
+    private long FightStart(MeterEncounter enc)
+        => _carry?.StartSec ?? (_fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)enc.Seconds);
+
+    // A pull that carries its own breakdowns is finished, and the engine has
+    // long since moved on: never fall back to live data for it.
+    private static bool Banked(MeterEncounter enc)
+        => enc.Dealt.Count > 0 || enc.Taken.Count > 0 || enc.Heals.Count > 0 || enc.Deaths.Count > 0;
+
     // What a player did, or had done to them, in the pull on screen.
     public List<AbilityStat> Breakdown(MeterEncounter enc, string player, int kind)
     {
-        var stored = kind switch { 1 => enc.Targets, 2 => enc.Taken, _ => enc.Dealt };
+        var stored = kind switch
+        {
+            1 => enc.Targets,
+            2 => enc.Taken,
+            3 => enc.Heals,
+            4 => enc.HealTargets,
+            5 => enc.HealFrom,
+            6 => enc.Given,
+            7 => enc.Received,
+            _ => enc.Dealt,
+        };
         if (stored.TryGetValue(player, out var saved)) return saved;
-        if (enc.Dealt.Count > 0 || enc.Taken.Count > 0) return new List<AbilityStat>();
-        return kind switch { 1 => Engine.Targets(player), 2 => Engine.Taken(player), _ => Engine.Dealt(player) };
+        if (Banked(enc)) return new List<AbilityStat>();
+        return kind switch
+        {
+            1 => Engine.Targets(player),
+            2 => Engine.Taken(player),
+            3 => Engine.Heals(player),
+            4 => Engine.HealTargets(player),
+            5 => Engine.HealFrom(player),
+            6 => Engine.Given(player),
+            7 => Engine.Received(player),
+            _ => Engine.Dealt(player),
+        };
+    }
+
+    // A player's deaths in the pull on screen, newest last.
+    public List<DeathRecord> Deaths(MeterEncounter enc, string player)
+    {
+        var source = enc.Deaths;
+        if (source.Count == 0 && !Banked(enc))
+        {
+            var start = FightStart(enc);
+            source = new List<DeathRecord>();
+            foreach (var d in Engine.Deaths()) source.Add(Freeze(d, start));
+        }
+        var list = new List<DeathRecord>();
+        foreach (var d in source)
+            if (string.Equals(d.Name, player, StringComparison.OrdinalIgnoreCase))
+                list.Add(d);
+        return list;
     }
 
     private void EndFight()
@@ -440,7 +515,7 @@ public class Meter : IDisposable
             var b = cut.Rows.GetValueOrDefault(r.Name);
             var row = new MeterCombatant
             {
-                Name = r.Name, Display = r.Display, Job = r.Job,
+                Name = r.Name, Display = r.Display, Job = r.Job, ADps = r.ADps,
                 Damage = Math.Max(0, r.Damage - (b?.Damage ?? 0)),
                 Healed = Math.Max(0, r.Healed - (b?.Healed ?? 0)),
                 Taken = Math.Max(0, r.Taken - (b?.Taken ?? 0)),
@@ -481,6 +556,7 @@ public class Meter : IDisposable
             Healed = healed,
             Taken = a.Taken + b.Taken,
             Deaths = a.Deaths + b.Deaths,
+            ADps = dmg > 0 ? (a.ADps * a.Damage + b.ADps * b.Damage) / dmg : b.ADps,
             CritPct = dmg > 0 ? (a.CritPct * a.Damage + b.CritPct * b.Damage) / dmg : b.CritPct,
             DirectHitPct = dmg > 0 ? (a.DirectHitPct * a.Damage + b.DirectHitPct * b.Damage) / dmg : b.DirectHitPct,
             OverhealPct = healed > 0 ? (a.OverhealPct * a.Healed + b.OverhealPct * b.Healed) / healed : b.OverhealPct,
@@ -488,7 +564,7 @@ public class Meter : IDisposable
         };
     }
 
-    private static double MaxHitValue(string maxHit)
+    public static double MaxHitValue(string maxHit)
     {
         var dash = maxHit.LastIndexOf('-');
         return dash >= 0 && double.TryParse(maxHit[(dash + 1)..], out var v) ? v : 0;
@@ -586,11 +662,12 @@ public class Meter : IDisposable
             var c = new MeterCombatant
             {
                 Name = r.Name, Display = r.Name, Job = r.Job,
-                Dps = r.Dps, RDps = r.Dps * r.Edge, Damage = r.Dps * e.Seconds,
+                Dps = r.Dps, ADps = r.Dps * 1.08, RDps = r.Dps * r.Edge, Damage = r.Dps * e.Seconds,
                 CritPct = 18 + r.Dps % 13, DirectHitPct = 22 + r.Dps % 21,
                 Hps = r.Job is "SGE" ? 9840 : r.Dps % 900,
                 Healed = 0, OverhealPct = r.Job is "SGE" ? 21 : 4,
                 Taken = 42000 + r.Dps % 9000, Deaths = r.Job is "VPR" ? 1 : 0,
+                MaxHit = $"Big One-{(int)(r.Dps * 6)}",
             };
             c.Healed = c.Hps * e.Seconds;
             e.TotalDps += c.Dps;
@@ -639,6 +716,7 @@ public class Meter : IDisposable
             "Damage over time", "Off-global", "Ranged shot",
         };
         var hurt = new[] { "Cleave", "Raidwide", "Tank buster", "attack" };
+        var cures = new[] { "Pneuma", "Eukrasian Prognosis", "Kerachole", "Physis II" };
 
         foreach (var r in e.Rows)
         {
@@ -668,6 +746,57 @@ public class Meter : IDisposable
                     Hits = 2 + i * 6, Max = r.Taken * 0.3,
                 });
             e.Taken[who] = taken;
+
+            var heals = new List<AbilityStat>();
+            for (var i = 0; i < cures.Length; i++)
+                heals.Add(new AbilityStat
+                {
+                    Name = cures[i], Damage = r.Healed * (0.38 - i * 0.11),
+                    Over = r.Healed * (0.05 + i * 0.04), Hits = 4 + i * 9,
+                    Max = r.Healed * 0.06,
+                });
+            if (r.Healed > 0) e.Heals[who] = heals;
+        }
+
+        // Healing and buff credit only make sense across the party, so both are
+        // shared out from everyone else's rows.
+        foreach (var r in e.Rows)
+        {
+            var who = r.Display.Length > 0 ? r.Display : r.Name;
+            var healed = new List<AbilityStat>();
+            var from = new List<AbilityStat>();
+            var given = new List<AbilityStat>();
+            var got = new List<AbilityStat>();
+            var i = 0;
+            foreach (var other in e.Rows)
+            {
+                var name = other.Display.Length > 0 ? other.Display : other.Name;
+                if (string.Equals(name, who, StringComparison.OrdinalIgnoreCase)) continue;
+                var share = 0.34 - i * 0.04;
+                if (r.Healed > 0)
+                    healed.Add(new AbilityStat { Name = name, Damage = r.Healed * share, Over = r.Healed * share * 0.14, Hits = 9 + i * 3 });
+                if (other.Healed > 0)
+                    from.Add(new AbilityStat { Name = name, Damage = other.Healed * share * 0.4, Hits = 7 + i });
+                given.Add(new AbilityStat { Name = name, Damage = r.Damage * 0.012 * (1.4 - i * 0.12) });
+                got.Add(new AbilityStat { Name = name, Damage = other.Damage * 0.011 * (1.3 - i * 0.1) });
+                i++;
+            }
+            if (healed.Count > 0) e.HealTargets[who] = healed;
+            if (from.Count > 0) e.HealFrom[who] = from;
+            e.Given[who] = given;
+            e.Received[who] = got;
+
+            if (r.Deaths > 0)
+                e.Deaths.Add(new DeathRecord
+                {
+                    Name = who, At = 168f, Killer = "Tank buster", KillingBlow = r.Taken * 0.42,
+                    Lead =
+                    {
+                        new DeathHit { Name = "Raidwide", Amount = r.Taken * 0.21, Sec = -6 },
+                        new DeathHit { Name = "Cure III", Amount = r.Taken * 0.3, Sec = -4, Heal = true },
+                        new DeathHit { Name = "Cleave", Amount = r.Taken * 0.18, Sec = -2 },
+                    },
+                });
         }
     }
 

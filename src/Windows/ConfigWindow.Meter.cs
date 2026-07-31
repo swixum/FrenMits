@@ -230,11 +230,11 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Drag the labels on the meter to reorder, or use the arrows.");
         ImGui.Spacing();
         ImGui.TextColored(new System.Numerics.Vector4(0.55f, 0.75f, 0.98f, 1f), "DAMAGE VIEW");
-        foreach (var key in AllMeterColumnKeys)
+        foreach (var key in MeterWindow.ColumnKeys)
             DrawColumnRow(key, C.MeterColumns, "d");
         ImGui.Spacing();
         ImGui.TextColored(new System.Numerics.Vector4(0.55f, 0.75f, 0.98f, 1f), "HEALING VIEW");
-        foreach (var key in AllMeterColumnKeys)
+        foreach (var key in MeterWindow.ColumnKeys)
             DrawColumnRow(key, C.MeterHealColumns, "h");
     }
 
@@ -400,9 +400,6 @@ public partial class ConfigWindow
         else
             MeterFlash("That code didn't read as a meter profile.", ok: false);
     }
-
-    private static readonly string[] AllMeterColumnKeys =
-        { "rdps", "dps", "dmgpct", "crit", "dh", "hps", "healed", "overheal", "taken", "deaths" };
 
     private void DrawColumnRow(string key, List<string> list, string view)
     {

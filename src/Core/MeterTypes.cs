@@ -19,10 +19,34 @@ public sealed class AbilityStat
     // the damage came from an effect ticking. Zero for anything unresolved.
     public uint Id;
     public bool IsStatus;
+    // Healing that landed on a full bar. Zero on every damage row.
+    public double Over;
 
     public double Average => Hits > 0 ? Damage / Hits : 0;
     public double CritPct => Hits > 0 ? Crits * 100.0 / Hits : 0;
     public double DhPct => Hits > 0 ? Dhs * 100.0 / Hits : 0;
+    public double Raw => Damage + Over;
+    public double OverPct => Raw > 0 ? Over * 100.0 / Raw : 0;
+}
+
+// One thing that landed on a player shortly before they died.
+public sealed class DeathHit
+{
+    public string Name = "";
+    public double Amount;
+    public long Sec;
+    public bool Heal;
+}
+
+// One death: when it happened, what finished them, and the run-up to it.
+public sealed class DeathRecord
+{
+    public string Name = "";
+    public long Sec;           // log time, absolute
+    public float At;           // seconds into the fight, set when the pull is banked
+    public string Killer = "";
+    public double KillingBlow;
+    public List<DeathHit> Lead = new();
 }
 
 // One combatant row of a parsed encounter update.
@@ -32,6 +56,7 @@ public sealed class MeterCombatant
     public string Display = "";    // resolved name shown on the bar
     public string Job = "";        // abbreviation, empty for Limit Break
     public double Dps;
+    public double ADps;            // the parser's own active-time DPS, idle taken out
     public double RDps;            // Dps adjusted by buff credits given and received
     public double Damage;
     public string DamagePct = "";
@@ -73,6 +98,24 @@ public sealed class MeterEncounter
     public Dictionary<string, List<AbilityStat>> Taken { get; }
         = new(StringComparer.OrdinalIgnoreCase);
 
+    public Dictionary<string, List<AbilityStat>> Heals { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    public Dictionary<string, List<AbilityStat>> HealTargets { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    public Dictionary<string, List<AbilityStat>> HealFrom { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    // Buff credit traded with the rest of the party, the two halves of rDPS.
+    public Dictionary<string, List<AbilityStat>> Given { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    public Dictionary<string, List<AbilityStat>> Received { get; }
+        = new(StringComparer.OrdinalIgnoreCase);
+
+    public List<DeathRecord> Deaths { get; } = new();
+
     public static MeterEncounter? Parse(JObject msg)
     {
         if (msg["Encounter"] is not JObject enc) return null;
@@ -100,6 +143,7 @@ public sealed class MeterEncounter
                     Name = c["name"]?.ToString() ?? kv.Key,
                     Job = (c["Job"]?.ToString() ?? "").ToUpperInvariant(),
                     Dps = Num(c["encdps"]),
+                    ADps = Num(c["dps"]),
                     Damage = Num(c["damage"]),
                     DamagePct = c["damage%"]?.ToString() ?? "",
                     CritPct = Num(c["crithit%"]),

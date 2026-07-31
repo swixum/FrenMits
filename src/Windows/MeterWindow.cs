@@ -110,6 +110,7 @@ public class MeterWindow : Window
         SaveIfMoved();
         var enc = View();
         if (enc != null) enc = Smoothed(enc);
+        _shown = enc;
 
         var wp = ImGui.GetWindowPos();
         var ws = ImGui.GetWindowSize();
@@ -201,6 +202,7 @@ public class MeterWindow : Window
     private string _renameTabBuf = "";
     private bool _tabMenuOpen;
     private string _menuPlayer = "";
+    private MeterEncounter? _shown;
 
     private void DrawFooter(ImDrawListPtr dl, Vector2 wp, Vector2 ws, float h, float pad)
     {
@@ -383,6 +385,7 @@ public class MeterWindow : Window
                 Dps = L(p.Dps, r.Dps), RDps = L(p.RDps, r.RDps), Damage = L(p.Damage, r.Damage),
                 DamagePct = r.DamagePct, CritPct = L(p.CritPct, r.CritPct),
                 DirectHitPct = L(p.DirectHitPct, r.DirectHitPct),
+                ADps = L(p.ADps, r.ADps),
                 Hps = L(p.Hps, r.Hps), Healed = L(p.Healed, r.Healed),
                 OverhealPct = L(p.OverhealPct, r.OverhealPct),
                 Taken = L(p.Taken, r.Taken), Deaths = r.Deaths, MaxHit = r.MaxHit,
@@ -576,15 +579,28 @@ public class MeterWindow : Window
     {
         new("rdps", "rDPS", "999.9k", c => Num(c.RDps)),
         new("dps", "DPS", "999.9k", c => Num(c.Dps)),
+        new("adps", "aDPS", "999.9k", c => Num(c.ADps)),
         new("dmgpct", "D%", "99.9%", c => c.DamagePct.Length > 0 ? c.DamagePct : "-"),
         new("crit", "CRIT", "99.9%", c => $"{c.CritPct:0.#}%"),
         new("dh", "DH", "99.9%", c => $"{c.DirectHitPct:0.#}%"),
+        new("maxhit", "MAX", "9.99M", c => Num(Meter.MaxHitValue(c.MaxHit))),
         new("hps", "HPS", "999.9k", c => Num(c.Hps)),
         new("healed", "HEALED", "9.99M", c => Num(c.Healed)),
         new("overheal", "OH%", "99.9%", c => $"{c.OverhealPct:0.#}%"),
         new("taken", "TAKEN", "999.9k", c => Num(c.Taken)),
         new("deaths", "D", "9", c => c.Deaths.ToString()),
     };
+
+    // Every column there is, in menu order. The settings page lists this set,
+    // so a new column only ever has to be added above.
+    public static readonly string[] ColumnKeys = Keys();
+
+    private static string[] Keys()
+    {
+        var keys = new string[AllCols.Length];
+        for (var i = 0; i < AllCols.Length; i++) keys[i] = AllCols[i].Key;
+        return keys;
+    }
 
     private static Col? ColOf(string key)
     {
@@ -824,11 +840,12 @@ public class MeterWindow : Window
 
     // One bar in whichever fill style is set, plus the bright cap at its start.
     // Shared by the player list and the breakdown so both always look alike.
-    private void DrawBar(ImDrawListPtr dl, Vector2 a, float fill, float rowH, uint rgb, float capEndX)
+    private void DrawBar(ImDrawListPtr dl, Vector2 a, float fill, float rowH, uint rgb, float capEndX,
+        float scale = 1f)
     {
         if (fill <= 2f) return;
         var b = new Vector2(a.X + fill, a.Y + rowH);
-        var op = C.MeterBarOpacity;
+        var op = C.MeterBarOpacity * scale;
         switch (C.MeterBarStyle)
         {
             case 1: // glass: solid fill with a shine across the top half
@@ -862,62 +879,108 @@ public class MeterWindow : Window
     private string _rowUnderMouse = "";
     private float _detailSeconds;     // the clock when the open breakdown was drawn
 
+    private readonly record struct DetailTab(int Kind, string Label);
+
+    // Kinds: 0 abilities, 1 targets, 2 taken, 3 heals, 4 healed, 5 healing
+    // received, 6 what their buffs contributed (which reads 7 as its other
+    // half), 8 deaths.
+    private static readonly DetailTab[] DamageTabs =
+    {
+        new(0, "Abilities"), new(1, "Targets"), new(2, "Taken"), new(6, "Contributed"), new(8, "Deaths"),
+    };
+
+    private static readonly DetailTab[] HealTabs =
+    {
+        new(3, "Heals"), new(4, "Healed"), new(5, "Received"), new(8, "Deaths"),
+    };
+
+    private DetailTab[] Tabs() => C.MeterMode == 1 ? HealTabs : DamageTabs;
+
+    // Where a click on a row lands: whatever the list itself is about.
+    private int DefaultKind() => C.MeterMode switch { 1 => 3, 3 => 8, _ => 0 };
+
     private void OpenDetail(string player)
     {
         _detailFor = player;
-        _detailKind = 0;
+        _detailKind = DefaultKind();
     }
 
-    private static readonly string[] DetailTabs = { "Abilities", "Targets", "Taken" };
+    // Switching views changes which tabs exist, so land on one that does.
+    private void ClampDetailKind()
+    {
+        foreach (var t in Tabs())
+            if (t.Kind == _detailKind)
+                return;
+        _detailKind = DefaultKind();
+    }
 
     private void DrawDetail(MeterEncounter enc, float pad)
     {
+        ClampDetailKind();
         var w = MathF.Max(60f, ImGui.GetContentRegionAvail().X);
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
 
-        // The three lists sit on one row of chips; keep every chip on that line.
-        var tabsY = ImGui.GetCursorPosY();
+        // Chips wrap onto another line rather than run off a narrow meter.
+        var tabs = Tabs();
         var x = pad - 3f;
-        for (var i = 0; i < DetailTabs.Length; i++)
+        var rowY = ImGui.GetCursorPosY();
+        for (var i = 0; i < tabs.Length; i++)
         {
-            var label = DetailTabs[i];
-            var tw = ImGui.CalcTextSize(label).X + 14f;
-            ImGui.SetCursorPos(new Vector2(x, tabsY));
+            var tw = ImGui.CalcTextSize(tabs[i].Label).X + 14f;
+            if (x > pad - 3f && x + tw > w - pad) { x = pad - 3f; rowY += lineH + 9f; }
+            ImGui.SetCursorPos(new Vector2(x, rowY));
             var clicked = ImGui.InvisibleButton($"##dt{i}", new Vector2(tw, lineH + 6f));
             var min = ImGui.GetItemRectMin();
-            var on = _detailKind == i;
+            var on = _detailKind == tabs[i].Kind;
             if (on) dl.AddRectFilled(min, min + new Vector2(tw, lineH + 6f),
                 (C.MeterAccentColor & 0x00FFFFFF) | 0x33000000, 4f);
-            BText(dl, min + new Vector2(7f, 3f), on ? C.MeterTextColor : C.MeterSubColor, label);
-            if (clicked) _detailKind = i;
+            BText(dl, min + new Vector2(7f, 3f), on ? C.MeterTextColor : C.MeterSubColor, tabs[i].Label);
+            if (clicked) _detailKind = tabs[i].Kind;
             x += tw + 4f;
         }
-        ImGui.SetCursorPos(new Vector2(0, tabsY + lineH + 12f));
+        ImGui.SetCursorPos(new Vector2(0, rowY + lineH + 12f));
 
+        switch (_detailKind)
+        {
+            case 6: DrawCredit(enc, pad, w); break;
+            case 8: DrawDeaths(enc, pad, w); break;
+            default: DrawStatList(enc, pad, w); break;
+        }
+    }
+
+    // Whatever the open tab lists, one bar a row.
+    private void DrawStatList(MeterEncounter enc, float pad, float w)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        var healing = _detailKind is 3 or 4 or 5;
         var list = _plugin.Meter.Breakdown(enc, _detailFor, _detailKind);
         if (list.Count == 0)
         {
-            var msg = _detailKind == 2 ? "nothing hit them" : "nothing recorded yet";
-            BText(dl, new Vector2(ImGui.GetWindowPos().X + (w - ImGui.CalcTextSize(msg).X) * 0.5f,
-                ImGui.GetCursorScreenPos().Y + 8f), C.MeterSubColor, msg);
+            Empty(dl, w, _detailKind switch
+            {
+                2 => "nothing hit them",
+                3 or 4 => "they healed nobody",
+                5 => "nothing healed them",
+                _ => "nothing recorded yet",
+            });
             return;
         }
 
         var total = 0.0;
         var max = 1.0;
-        foreach (var a in list) { total += a.Damage; max = Math.Max(max, a.Damage); }
+        foreach (var a in list)
+        {
+            total += a.Damage;
+            max = Math.Max(max, healing ? a.Raw : a.Damage);
+        }
 
         // Their own job color, so a breakdown still reads as that player's.
-        var job = "";
-        foreach (var r in enc.Rows)
-            if (string.Equals(r.Display.Length > 0 ? r.Display : r.Name, _detailFor,
-                    StringComparison.OrdinalIgnoreCase))
-            { job = r.Job; break; }
-        var jobRgb = (C.MeterJobColors && JobColors.TryGetValue(job, out var jc) ? jc : C.MeterAccentColor)
-                     & 0x00FFFFFF;
+        var jobRgb = JobRgbFor(enc, _detailFor);
 
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
+        var span = w - pad * 2 + 6f;
         var i2 = 0;
         foreach (var a in list)
         {
@@ -930,12 +993,18 @@ public class MeterWindow : Window
 
             dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
                 hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
-            DrawBar(dl, p + new Vector2(pad - 3f, 0),
-                (float)(a.Damage / max) * (w - pad * 2 + 6f), rowH, rgb, p.X + pad);
+            // Healing draws the whole cast faintly and what landed on top, so
+            // the overhealed part of it reads at a glance.
+            if (healing && a.Over > 0)
+                DrawBar(dl, p + new Vector2(pad - 3f, 0), (float)(a.Raw / max) * span, rowH, rgb,
+                    p.X + pad, 0.34f);
+            DrawBar(dl, p + new Vector2(pad - 3f, 0), (float)(a.Damage / max) * span, rowH, rgb, p.X + pad);
 
             var ty = p.Y + (rowH - lineH) * 0.5f;
             var x2 = p.X + pad + 4f;
-            if (C.MeterBreakdownIcons)
+            // Rows that name a person or an enemy have no icon to look up, and
+            // guessing one off the name lands on whatever action reads alike.
+            if (C.MeterBreakdownIcons && _detailKind is not (1 or 4 or 5))
             {
                 var icon = a.IsStatus ? Icons.ByStatusId(a.Id) : Icons.ByActionId(a.Id);
                 if (icon == 0) icon = Icons.ResolveFromText(a.Name);
@@ -949,7 +1018,9 @@ public class MeterWindow : Window
             }
 
             var pct = total > 0 ? a.Damage / total * 100 : 0;
-            var right = $"{Num(a.Damage)}  ({pct:0.#}%)";
+            var right = healing && a.Over > 0
+                ? $"{Num(a.Damage)}  ({a.OverPct:0.#}% OH)"
+                : $"{Num(a.Damage)}  ({pct:0.#}%)";
             var rw = ImGui.CalcTextSize(right).X;
             BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterTextColor, right);
             var nameMax = p.X + w - pad - rw - x2 - 6f;
@@ -962,17 +1033,171 @@ public class MeterWindow : Window
                 ImGui.BeginTooltip();
                 ImGui.TextUnformatted(a.Name);
                 ImGui.Separator();
-                ImGui.TextUnformatted($"{Num(a.Damage)} damage over {a.Hits} hit{(a.Hits == 1 ? "" : "s")}");
-                ImGui.TextColored(Theme.V(Theme.Muted),
-                    $"average {Num(a.Average)}   biggest {Num(a.Max)}");
-                if (_detailKind != 1)
+                if (healing)
+                {
+                    ImGui.TextUnformatted(
+                        $"{Num(a.Damage)} healing over {a.Hits} cast{(a.Hits == 1 ? "" : "s")}");
                     ImGui.TextColored(Theme.V(Theme.Muted),
-                        $"crit {a.CritPct:0.#}%   direct {a.DhPct:0.#}%");
+                        $"average {Num(a.Average)}   biggest {Num(a.Max)}");
+                    if (a.Over > 0)
+                        ImGui.TextColored(Theme.V(Theme.Muted),
+                            $"overheal {Num(a.Over)}  ({a.OverPct:0.#}%)");
+                }
+                else
+                {
+                    ImGui.TextUnformatted($"{Num(a.Damage)} damage over {a.Hits} hit{(a.Hits == 1 ? "" : "s")}");
+                    ImGui.TextColored(Theme.V(Theme.Muted),
+                        $"average {Num(a.Average)}   biggest {Num(a.Max)}");
+                    if (_detailKind != 1)
+                        ImGui.TextColored(Theme.V(Theme.Muted),
+                            $"crit {a.CritPct:0.#}%   direct {a.DhPct:0.#}%");
+                }
                 ImGui.EndTooltip();
                 PopMenuTheme();
             }
             ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
         }
+    }
+
+    // The two halves of this player's rDPS: what their buffs did for everyone
+    // else, and what everyone else's did for them.
+    private void DrawCredit(MeterEncounter enc, float pad, float w)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        var given = _plugin.Meter.Breakdown(enc, _detailFor, 6);
+        var got = _plugin.Meter.Breakdown(enc, _detailFor, 7);
+        if (given.Count == 0 && got.Count == 0)
+        {
+            Empty(dl, w, "no buffs traded");
+            return;
+        }
+
+        double gave = 0, took = 0, max = 1;
+        foreach (var a in given) { gave += a.Damage; max = Math.Max(max, a.Damage); }
+        foreach (var a in got) { took += a.Damage; max = Math.Max(max, a.Damage); }
+
+        var net = gave - took;
+        var head = $"gave {Num(gave)}   got {Num(took)}   net {(net < 0 ? "-" : "+")}{Num(Math.Abs(net))}";
+        BText(dl, ImGui.GetCursorScreenPos() + new Vector2(pad, 0), C.MeterSubColor, Clip(head, w - pad * 2));
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + lineH + 7f);
+
+        CreditRows(enc, "Given to", given, pad, w, max);
+        CreditRows(enc, "Received from", got, pad, w, max);
+    }
+
+    private void CreditRows(MeterEncounter enc, string label, List<AbilityStat> rows,
+        float pad, float w, double max)
+    {
+        if (rows.Count == 0) return;
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        BText(dl, ImGui.GetCursorScreenPos() + new Vector2(pad, 0), C.MeterSubColor, label);
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + lineH + 4f);
+
+        var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
+        var seconds = MathF.Max(1f, enc.Seconds);
+        var i = 0;
+        foreach (var a in rows)
+        {
+            var p = ImGui.GetCursorScreenPos();
+            ImGui.InvisibleButton($"##cr{label}{i++}", new Vector2(w, rowH));
+            var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
+            var rgb = JobRgbFor(enc, a.Name);
+
+            dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
+                hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
+            DrawBar(dl, p + new Vector2(pad - 3f, 0),
+                (float)(a.Damage / max) * (w - pad * 2 + 6f), rowH, rgb, p.X + pad);
+
+            var ty = p.Y + (rowH - lineH) * 0.5f;
+            var right = Num(a.Damage);
+            var rw = ImGui.CalcTextSize(right).X;
+            BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterTextColor, right);
+            var nx = p.X + pad + 4f;
+            var nameMax = p.X + w - pad - rw - nx - 6f;
+            if (nameMax > 12f) BText(dl, new Vector2(nx, ty), C.MeterSubColor, Clip(a.Name, nameMax));
+
+            if (hovered)
+            {
+                PushMenuTheme();
+                ImGui.SetTooltip($"{Num(a.Damage / seconds)} rDPS over the pull");
+                PopMenuTheme();
+            }
+            ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
+        }
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5f);
+    }
+
+    // Every death this player had, with the killing blow and the run-up to it.
+    private void DrawDeaths(MeterEncounter enc, float pad, float w)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeight();
+        var list = _plugin.Meter.Deaths(enc, _detailFor);
+        if (list.Count == 0)
+        {
+            Empty(dl, w, "they made it through");
+            return;
+        }
+
+        var n = 0;
+        foreach (var d in list)
+        {
+            var p = ImGui.GetCursorScreenPos();
+            var blockH = (1 + d.Lead.Count) * (lineH + 3f) + 8f;
+            ImGui.InvisibleButton($"##dth{n++}", new Vector2(w, blockH));
+            dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, blockH),
+                C.MeterRowColor, 4f);
+            dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(pad, blockH),
+                (C.MeterHighlightColor & 0x00FFFFFF) | 0xCC000000);
+
+            var y = p.Y + 4f;
+            var clock = $"{(int)d.At / 60}:{(int)d.At % 60:00}";
+            BText(dl, new Vector2(p.X + pad + 5f, y), C.MeterTimerColor, clock);
+            var blow = d.KillingBlow > 0 ? Num(d.KillingBlow) : "";
+            var bw = blow.Length > 0 ? ImGui.CalcTextSize(blow).X : 0f;
+            if (blow.Length > 0) BText(dl, new Vector2(p.X + w - pad - bw, y), C.MeterTextColor, blow);
+            var kx = p.X + pad + 5f + ImGui.CalcTextSize(clock).X + 8f;
+            var kMax = p.X + w - pad - bw - kx - 6f;
+            if (kMax > 12f)
+                BText(dl, new Vector2(kx, y), C.MeterTextColor,
+                    Clip(d.Killer.Length > 0 ? d.Killer : "unknown", kMax));
+            y += lineH + 3f;
+
+            foreach (var h in d.Lead)
+            {
+                var ago = $"-{Math.Max(0, d.Sec - h.Sec)}s";
+                var val = (h.Heal ? "+" : "") + Num(h.Amount);
+                var vw = ImGui.CalcTextSize(val).X;
+                var color = h.Heal ? HealTint : C.MeterSubColor;
+                BText(dl, new Vector2(p.X + pad + 14f, y), C.MeterSubColor, ago);
+                BText(dl, new Vector2(p.X + w - pad - vw, y), color, val);
+                var nx = p.X + pad + 14f + ImGui.CalcTextSize(ago).X + 8f;
+                var nMax = p.X + w - pad - vw - nx - 6f;
+                if (nMax > 12f) BText(dl, new Vector2(nx, y), color, Clip(h.Name, nMax));
+                y += lineH + 3f;
+            }
+            ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + blockH + C.MeterBarGap + 2f));
+        }
+    }
+
+    private static readonly uint HealTint = Rgb(0x6EE7B7);
+
+    private void Empty(ImDrawListPtr dl, float w, string msg)
+        => BText(dl, new Vector2(ImGui.GetWindowPos().X + (w - ImGui.CalcTextSize(msg).X) * 0.5f,
+            ImGui.GetCursorScreenPos().Y + 8f), C.MeterSubColor, msg);
+
+    // A named player's job color, for rows that are about somebody else.
+    private uint JobRgbFor(MeterEncounter enc, string name)
+    {
+        foreach (var r in enc.Rows)
+            if (string.Equals(r.Display.Length > 0 ? r.Display : r.Name, name,
+                    StringComparison.OrdinalIgnoreCase))
+                return (C.MeterJobColors && JobColors.TryGetValue(r.Job, out var jc)
+                    ? jc
+                    : C.MeterAccentColor) & 0x00FFFFFF;
+        return C.MeterAccentColor & 0x00FFFFFF;
     }
 
     private double Metric(MeterCombatant c) => C.MeterMode switch
@@ -1010,7 +1235,7 @@ public class MeterWindow : Window
             ImGui.TextColored(Theme.V(Theme.Muted), $"biggest hit: {r.MaxHit.Replace('-', ' ')}");
 
         // The top of what they have been casting, straight off the log.
-        var top = _plugin.Meter.Breakdown(enc, who, 0);
+        var top = _plugin.Meter.Breakdown(enc, who, C.MeterMode == 1 ? 3 : 0);
         if (top.Count > 0)
         {
             var total = 0.0;
@@ -1055,9 +1280,12 @@ public class MeterWindow : Window
         {
             if (ImGui.BeginMenu(_menuPlayer))
             {
-                if (ImGui.MenuItem("Abilities")) { OpenDetail(_menuPlayer); _detailKind = 0; }
-                if (ImGui.MenuItem("Targets")) { OpenDetail(_menuPlayer); _detailKind = 1; }
-                if (ImGui.MenuItem("Damage taken")) { OpenDetail(_menuPlayer); _detailKind = 2; }
+                foreach (var t in Tabs())
+                    if (ImGui.MenuItem(t.Label))
+                    {
+                        _detailFor = _menuPlayer;
+                        _detailKind = t.Kind;
+                    }
                 ImGui.EndMenu();
             }
             ImGui.Separator();
@@ -1186,11 +1414,37 @@ public class MeterWindow : Window
             C.SaveSettings();
         }
         ImGui.Separator();
+        if (ImGui.MenuItem("Copy summary")) CopySummary();
         if (ImGui.MenuItem("Clear data")) { m.ClearAll(); _histIdx = -1; }
         if (ImGui.MenuItem("Settings...")) _plugin.ConfigWindow.OpenMeterPage();
 
         ImGui.EndPopup();
         PopMenuTheme();
+    }
+
+    // The pull on screen as plain text, ready to paste anywhere.
+    private void CopySummary()
+    {
+        if (_shown is not { Rows.Count: > 0 } enc) return;
+        var heal = C.MeterMode == 1;
+        var sb = new System.Text.StringBuilder();
+        sb.Append(enc.Title.Length > 0 ? enc.Title : "Encounter")
+            .Append("  ").Append(enc.Duration.Length > 0 ? enc.Duration : "0:00")
+            .Append("  ·  ")
+            .Append(heal ? $"raid {Num(enc.TotalHps)} HPS" : $"raid {Num(enc.RaidRDps)} rDPS");
+
+        var rows = new List<MeterCombatant>(enc.Rows);
+        rows.Sort((a, b) => Metric(b).CompareTo(Metric(a)));
+        var rank = 1;
+        foreach (var r in rows)
+        {
+            sb.Append('\n').Append(rank++).Append(". ")
+                .Append(r.Display.Length > 0 ? r.Display : r.Name);
+            if (r.Job.Length > 0) sb.Append(" (").Append(r.Job).Append(')');
+            sb.Append("  ").Append(heal ? $"{Num(r.Hps)} HPS" : $"{Num(r.RDps)} rDPS");
+            if (!heal && r.DamagePct.Length > 0) sb.Append("  ").Append(r.DamagePct);
+        }
+        ImGui.SetClipboardText(sb.ToString());
     }
 
     // ---- menu theme --------------------------------------------------------
@@ -1375,14 +1629,17 @@ public class MeterWindow : Window
     {
         "rdps" => "rDPS",
         "dps" => "DPS",
+        "adps" => "Active DPS",
         "dmgpct" => "Damage %",
         "crit" => "Crit %",
         "dh" => "Direct hit %",
+        "maxhit" => "Biggest hit",
         "hps" => "HPS",
         "healed" => "Healed total",
         "overheal" => "Overheal %",
         "taken" => "Damage taken",
-        _ => "Deaths",
+        "deaths" => "Deaths",
+        _ => key,
     };
 
     // The community job palette (ABGR).

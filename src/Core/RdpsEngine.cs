@@ -171,13 +171,22 @@ public class RdpsEngine
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _targets = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _taken = new(StringComparer.OrdinalIgnoreCase);
 
+    // The same three, for healing: what each healer cast, who they healed, and
+    // who healed each player.
+    private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healDealt = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healTargets = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healFrom = new(StringComparer.OrdinalIgnoreCase);
+
     // Status names by id, so a damage-over-time tick can be named.
     private readonly Dictionary<uint, string> _effectNames = new();
 
     private static void Tally(Dictionary<string, Dictionary<string, AbilityStat>> table,
-        string who, string what, double dmg, bool crit, bool dh, uint id = 0, bool status = false)
+        string who, string what, double dmg, bool crit, bool dh, uint id = 0, bool status = false,
+        double over = 0)
     {
-        if (who.Length == 0 || what.Length == 0 || dmg <= 0) return;
+        if (who.Length == 0 || what.Length == 0) return;
+        // A heal swallowed entirely by a full health bar still happened.
+        if (dmg <= 0 && over <= 0) return;
         if (!table.TryGetValue(who, out var by))
             table[who] = by = new Dictionary<string, AbilityStat>(StringComparer.OrdinalIgnoreCase);
         if (!by.TryGetValue(what, out var s))
@@ -186,6 +195,7 @@ public class RdpsEngine
         if (crit) s.Crits++;
         if (dh) s.Dhs++;
         s.Damage += dmg;
+        s.Over += over;
         if (dmg > s.Max) s.Max = dmg;
     }
 
@@ -193,19 +203,144 @@ public class RdpsEngine
     {
         var list = new List<AbilityStat>();
         if (who.Length > 0 && table.TryGetValue(who, out var by)) list.AddRange(by.Values);
-        list.Sort((a, b) => b.Damage.CompareTo(a.Damage));
+        // Overhealing only breaks ties, so a spell that did nothing but overheal
+        // still sits below one that landed.
+        list.Sort((a, b) => a.Damage != b.Damage ? b.Damage.CompareTo(a.Damage) : b.Over.CompareTo(a.Over));
         return list;
     }
 
     public List<AbilityStat> Dealt(string player) => Ranked(_dealt, player);
     public List<AbilityStat> Targets(string player) => Ranked(_targets, player);
     public List<AbilityStat> Taken(string player) => Ranked(_taken, player);
+    public List<AbilityStat> Heals(string player) => Ranked(_healDealt, player);
+    public List<AbilityStat> HealTargets(string player) => Ranked(_healTargets, player);
+    public List<AbilityStat> HealFrom(string player) => Ranked(_healFrom, player);
+
+    // ---- buff credit, player to player -------------------------------------
+
+    // Who fed whose rDPS, over the same fight the breakdowns cover. The
+    // per-second buckets answer "how much" for a window; this answers "from
+    // whom".
+    private readonly Dictionary<string, Dictionary<string, double>> _pairs = new(StringComparer.OrdinalIgnoreCase);
+
+    public List<AbilityStat> Given(string player)
+    {
+        var list = new List<AbilityStat>();
+        if (player.Length > 0 && _pairs.TryGetValue(player, out var by))
+            foreach (var (to, amount) in by)
+                if (amount > 0)
+                    list.Add(new AbilityStat { Name = to, Damage = amount });
+        list.Sort((a, b) => b.Damage.CompareTo(a.Damage));
+        return list;
+    }
+
+    public List<AbilityStat> Received(string player)
+    {
+        var list = new List<AbilityStat>();
+        if (player.Length > 0)
+            foreach (var (from, by) in _pairs)
+                if (by.TryGetValue(player, out var amount) && amount > 0)
+                    list.Add(new AbilityStat { Name = from, Damage = amount });
+        list.Sort((a, b) => b.Damage.CompareTo(a.Damage));
+        return list;
+    }
+
+    // ---- deaths ------------------------------------------------------------
+
+    // The last few things that landed on each player, kept only long enough to
+    // become the run-up to a death.
+    private readonly Dictionary<string, List<DeathHit>> _recent = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<DeathRecord> _deaths = new();
+    private const int LeadIn = 6;
+
+    private void Recent(string who, string what, double amount, long sec, bool heal)
+    {
+        if (who.Length == 0 || what.Length == 0 || amount <= 0) return;
+        if (!_recent.TryGetValue(who, out var list)) _recent[who] = list = new List<DeathHit>();
+        list.Add(new DeathHit { Name = what, Amount = amount, Sec = sec, Heal = heal });
+        while (list.Count > LeadIn + 1) list.RemoveAt(0);
+    }
+
+    private void RecordDeath(string who, long sec)
+    {
+        var rec = new DeathRecord { Name = who, Sec = sec };
+        if (_recent.TryGetValue(who, out var list))
+        {
+            // The last thing that hurt them is the killing blow; everything
+            // else is what led there.
+            var blow = -1;
+            for (var i = list.Count - 1; i >= 0; i--)
+                if (!list[i].Heal) { blow = i; break; }
+            if (blow >= 0)
+            {
+                rec.Killer = list[blow].Name;
+                rec.KillingBlow = list[blow].Amount;
+            }
+            for (var i = 0; i < list.Count; i++)
+                if (i != blow)
+                    rec.Lead.Add(list[i]);
+            list.Clear();
+        }
+        _deaths.Add(rec);
+        while (_deaths.Count > 64) _deaths.RemoveAt(0);
+    }
+
+    public List<DeathRecord> Deaths() => new(_deaths);
+
+    // ---- overhealing -------------------------------------------------------
+
+    // A heal line carries the target's health as it stood BEFORE the heal, so
+    // the room left in the bar is right there on the line and nothing has to be
+    // tracked between events. Below zero means the line did not say, and then
+    // none of the heal gets called overhealing.
+    private static int Room(string cur, string max)
+    {
+        var c = Dec(cur);
+        var m = Dec(max);
+        return c < 0 || m <= 0 ? -1 : Math.Max(0, m - c);
+    }
+
+    private static int Dec(string s)
+        => int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v) ? v : -1;
+
+    // What a heal does to the room it had, as (landed, overhealed).
+    private static (double Landed, double Over) Landing(uint amount, ref int room)
+    {
+        if (room < 0) return (amount, 0);
+        double landed = Math.Min(amount, room);
+        room -= (int)landed;
+        return (landed, amount - landed);
+    }
+
+    // Healing rolls a crit in its own flag bit, not the one damage uses.
+    private const uint HealCrit = 0x200000;
+
+    // One heal, onto every table that wants it.
+    private void Heal(string healer, string who, string what, uint id, bool status,
+        uint amount, bool crit, ref int room, long sec)
+    {
+        if (amount == 0 || who.Length == 0) return;
+        var (landed, over) = Landing(amount, ref room);
+        if (healer.Length > 0)
+        {
+            Tally(_healDealt, healer, what, landed, crit, dh: false, id, status, over);
+            Tally(_healTargets, healer, who, landed, crit, dh: false, over: over);
+            Tally(_healFrom, who, healer, landed, crit, dh: false, over: over);
+        }
+        Recent(who, what, landed, sec, heal: true);
+    }
 
     public void ClearBreakdown()
     {
         _dealt.Clear();
         _targets.Clear();
         _taken.Clear();
+        _healDealt.Clear();
+        _healTargets.Clear();
+        _healFrom.Clear();
+        _pairs.Clear();
+        _recent.Clear();
+        _deaths.Clear();
     }
 
     // ---- damage over time snapshots ---------------------------------------
@@ -260,6 +395,13 @@ public class RdpsEngine
                     _buffs.Remove(dead);
                     _guards.Remove(dead);
                     DropSnaps(dead);
+                    if (IsCombatant(dead))
+                    {
+                        var who = f.Length > 3 && f[3].Length > 0
+                            ? f[3]
+                            : _names.TryGetValue(dead, out var n) ? n : "";
+                        if (who.Length > 0) RecordDeath(who, Sec(f[1]));
+                    }
                 }
                 break;
             case "02":
@@ -416,6 +558,8 @@ public class RdpsEngine
         }
         var action = f[5];
         if (action.Length > 0) Sniff(owner, action);
+        // Anything aimed at the party is healing, not damage.
+        if (IsCombatant(target)) { OnHeal(f, owner, target); return; }
         if (target < 0x40000000) return;     // only damage into enemies counts
         if (f[7].Length > 0) CurrentEnemy = f[7];
         if (IsLimitBreak?.Invoke(Hex(f[4])) == true) return;
@@ -427,12 +571,24 @@ public class RdpsEngine
 
         var (gc, gd) = Guarantee(owner, action);
 
+        // A hit into an enemy can heal the one who landed it: a combo finisher
+        // that leeches, or anything under a buff that heals on damage. The
+        // caster's own health rides further along the same line, at 34 and 35.
+        var mine = src == owner;
+        var selfRoom = mine && f.Length > 35 ? Room(f[34], f[35]) : -1;
+
         // Every connected damage pair (fields 8..23 are eight flag|value
         // pairs): low byte 03/05/06 is damage, 0x100 crit, 0x200 direct hit.
-        // Heals, bookkeeping entries and the odd shifted pair fall through.
+        // Bookkeeping entries and the odd shifted pair fall through.
         for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
         {
             var flags = Hex(f[i]);
+            if (mine && (flags & 0xFF) == 0x04)
+            {
+                Heal(ownerName, ownerName, action, Hex(f[4]), status: false,
+                    Unscramble(HexLong(f[i + 1])), (flags & HealCrit) != 0, ref selfRoom, sec);
+                continue;
+            }
             if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
             var dmg = Unscramble(HexLong(f[i + 1]));
             if (dmg == 0) continue;
@@ -455,22 +611,49 @@ public class RdpsEngine
         if (who.Length == 0 && !_names.TryGetValue(target, out who!)) return;
         var action = f[5].Length > 0 ? f[5] : "Attack";
         var id = Hex(f[4]);
+        var sec = Sec(f[1]);
         for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
         {
             var flags = Hex(f[i]);
             if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
             var dmg = Unscramble(HexLong(f[i + 1]));
-            if (dmg > 0) Tally(_taken, who, action, dmg, (flags & 0x100) != 0, (flags & 0x200) != 0, id);
+            if (dmg == 0) continue;
+            Tally(_taken, who, action, dmg, (flags & 0x100) != 0, (flags & 0x200) != 0, id);
+            Recent(who, action, dmg, sec, heal: false);
+        }
+    }
+
+    // A party-facing ability: healing, and the part of it the health bar had no
+    // room left for.
+    private void OnHeal(string[] f, uint owner, uint target)
+    {
+        var who = f[7].Length > 0 ? f[7] : _names.TryGetValue(target, out var tn) ? tn : "";
+        if (!_names.TryGetValue(owner, out var healer)) healer = "";
+        if (who.Length == 0 || healer.Length == 0) return;
+
+        var room = f.Length > 25 ? Room(f[24], f[25]) : -1;
+        var action = f[5].Length > 0 ? f[5] : "Heal";
+        var id = Hex(f[4]);
+        var sec = Sec(f[1]);
+        for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
+        {
+            var flags = Hex(f[i]);
+            if ((flags & 0xFF) != 0x04) continue;
+            Heal(healer, who, action, id, status: false,
+                Unscramble(HexLong(f[i + 1])), (flags & HealCrit) != 0, ref room, sec);
         }
     }
 
     private void OnTick(string[] f)
     {
-        if (f.Length < 19 || f[4] != "DoT") return;
+        if (f.Length < 19) return;
+        var hot = f[4] == "HoT";
+        if (!hot && f[4] != "DoT") return;
         var src = Hex(f[17]);
         var owner = OwnerOf(src);
-        if (owner == 0) return;
         var target = Hex(f[2]);
+        if (IsCombatant(target)) { OnPartyTick(f, owner, target, hot); return; }
+        if (owner == 0 || hot) return;
         if (target < 0x40000000) return;
         var dmg = (uint)HexLong(f[6]);
         if (dmg == 0) return;
@@ -491,6 +674,34 @@ public class RdpsEngine
         else
             Gather(owner, target, sec);
         AllocateTick(owner, ownerName, dmg, sec);
+    }
+
+    // A regeneration or a lingering effect ticking on a party member: no buff
+    // credit is involved, but the healing and taken breakdowns both want it.
+    private void OnPartyTick(string[] f, uint owner, uint target, bool hot)
+    {
+        var amount = (uint)HexLong(f[6]);
+        var who = f[3].Length > 0 ? f[3] : _names.TryGetValue(target, out var tn) ? tn : "";
+        if (amount == 0 || who.Length == 0) return;
+
+        var effect = Hex(f[5]);
+        var name = _effectNames.TryGetValue(effect, out var en) && en.Length > 0
+            ? en
+            : hot ? "Regeneration" : "Damage over time";
+        var sec = Sec(f[1]);
+
+        if (!hot)
+        {
+            Tally(_taken, who, name, amount, crit: false, dh: false, effect, status: true);
+            Recent(who, name, amount, sec, heal: false);
+            return;
+        }
+
+        // A tick whose source the log never named still counts as healing the
+        // player received, it just has nobody to credit it to.
+        var room = Room(f[7], f[8]);
+        var healer = owner != 0 && _names.TryGetValue(owner, out var hn) ? hn : "";
+        Heal(healer, who, name, effect, status: true, amount, crit: false, ref room, sec);
     }
 
     // ---- buff state for one event ------------------------------------------
@@ -684,6 +895,9 @@ public class RdpsEngine
         if (amount <= 0 || from.Length == 0) return;
         Bucket(sec, from).Given += amount;
         Bucket(sec, to).Received += amount;
+        if (!_pairs.TryGetValue(from, out var by))
+            _pairs[from] = by = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+        by[to] = by.TryGetValue(to, out var running) ? running + amount : amount;
     }
 
     private void SnapshotDot(uint target, uint effectId, uint source, long sec, float dur)
