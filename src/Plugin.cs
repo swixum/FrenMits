@@ -36,6 +36,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public MitBarWindow MitBarWindow { get; }
     public CombatTimerWindow CombatTimerWindow { get; }
     public MeterWindow MeterWindow { get; }
+    public MeterHistoryWindow MeterHistoryWindow { get; }
     public PrepWindow PrepWindow { get; }
     public WhatsNewWindow WhatsNewWindow { get; }
     public RecapButtonWindow RecapButtonWindow { get; }
@@ -119,6 +120,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         MitBarWindow = new MitBarWindow(this);
         CombatTimerWindow = new CombatTimerWindow(this);
         MeterWindow = new MeterWindow(this);
+        MeterHistoryWindow = new MeterHistoryWindow(this);
         PrepWindow = new PrepWindow(this);
         RecapButtonWindow = new RecapButtonWindow(this);
         RecapWindow = new RecapWindow(this);
@@ -132,6 +134,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Windows.AddWindow(MitBarWindow);
         Windows.AddWindow(CombatTimerWindow);
         Windows.AddWindow(MeterWindow);
+        Windows.AddWindow(MeterHistoryWindow);
         Windows.AddWindow(PrepWindow);
         Windows.AddWindow(RecapButtonWindow);
         Windows.AddWindow(RecapWindow);

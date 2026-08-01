@@ -36,6 +36,13 @@ public class MeterWindow : Window
 
     public void RequestReposition() => _applyPos = true;
 
+    // Which pull is on screen: an index into history, -1 while live.
+    public int HistoryIndex
+    {
+        get => _histIdx;
+        set => _histIdx = value;
+    }
+
     public override void PreDraw()
     {
         Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
@@ -217,8 +224,9 @@ public class MeterWindow : Window
 
         if (C.MeterButtons)
         {
-            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.List, "Pulls"))
-                ImGui.OpenPopup("##meterpulls");
+            if (IconChip(dl, ref x, cy, chipH, FontAwesomeIcon.List, "History",
+                    accent: _plugin.MeterHistoryWindow.IsOpen))
+                _plugin.MeterHistoryWindow.Toggle();
             if (IconChip(dl, ref x, cy, chipH, m.Paused ? FontAwesomeIcon.Play : FontAwesomeIcon.Pause,
                     m.Paused ? "Resume" : "Pause", accent: m.Paused))
                 m.Paused = !m.Paused;
@@ -1904,6 +1912,8 @@ public class MeterWindow : Window
             DrawPullList();
             ImGui.EndMenu();
         }
+        if (ImGui.MenuItem("Pull history...", "", _plugin.MeterHistoryWindow.IsOpen))
+            _plugin.MeterHistoryWindow.Toggle();
         if (ImGui.MenuItem(m.Paused ? "Resume" : "Pause")) m.Paused = !m.Paused;
         if (ImGui.MenuItem(C.MeterCollapsed ? "Expand" : "Collapse")) ToggleCollapsed();
 

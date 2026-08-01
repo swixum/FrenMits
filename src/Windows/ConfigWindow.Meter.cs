@@ -70,7 +70,7 @@ public partial class ConfigWindow
             C.MeterShowRaidTotal = GridCheck("Raid rDPS total", C.MeterShowRaidTotal);
             C.MeterYou = GridCheck("Call your row \"You\"", C.MeterYou);
             C.MeterHighlightYou = GridCheck("Highlight your row", C.MeterHighlightYou);
-            C.MeterButtons = GridCheck("Buttons bar", C.MeterButtons, "Pulls, pause and reset at the bottom.");
+            C.MeterButtons = GridCheck("Buttons bar", C.MeterButtons, "History, pause and reset at the bottom.");
             C.MeterHealingTab = GridCheck("DPS / HPS tabs", C.MeterHealingTab, "Right-click a tab to rename it.");
             C.MeterFooterDeaths = GridCheck("Death count", C.MeterFooterDeaths,
                 "The pull's deaths in the footer; hover it for who.");
