@@ -7,8 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Baked boss timelines for nearly every instanced duty, for a board with no mits or
-// audio.
+// Baked boss timelines for nearly every instanced duty.
 public static class UniversalTimelines
 {
     private sealed class Zone
@@ -19,7 +18,7 @@ public static class UniversalTimelines
 
     private static Dictionary<uint, Zone>? _zones;
 
-    // Built into a LOCAL dictionary and published in one go at the end.
+    // Built locally and published in one go at the end.
     private static void Load()
     {
         if (_zones != null) return;
@@ -42,8 +41,7 @@ public static class UniversalTimelines
                 if (z["s"] is JArray ss)
                     foreach (var a in ss)
                         zone.Syncs.Add(((float)a[0]!, (uint)a[1]!, (int)a[2]! != 0));
-                // The board walks entries in list order; don't trust the file
-                // to be time-sorted (older bakes weren't for branching fights).
+                // The board walks in list order, so sort rather than trust.
                 zone.Entries.Sort((a, b) => a.Time.CompareTo(b.Time));
                 zone.Syncs.Sort((a, b) => a.Time.CompareTo(b.Time));
                 zones[terr] = zone;
@@ -63,15 +61,14 @@ public static class UniversalTimelines
         return _zones!.ContainsKey(territory);
     }
 
-    // Every duty that ships a timeline, so the whole set can be checked at once
-    // rather than one territory at a time.
+    // Every duty that ships a timeline, for checking the set.
     public static IEnumerable<uint> Territories()
     {
         Load();
         return _zones!.Keys;
     }
 
-    // A fresh in-memory timeline-only fight for this duty, never saved.
+    // A fresh timeline-only fight for this duty, never saved.
     public static FightProfile? Build(uint territory)
     {
         Load();

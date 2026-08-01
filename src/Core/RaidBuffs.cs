@@ -3,8 +3,7 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Every party-wide damage buff the rDPS split recognizes, at current live
-// values a balance patch only needs to edit here.
+// Every party damage buff rDPS knows, at live values.
 public static class RaidBuffs
 {
     public enum Kind { Damage, CritRate, DirectHitRate }
@@ -15,9 +14,9 @@ public static class RaidBuffs
     {
         public string Name = "";
         public Effect[] Effects = Array.Empty<Effect>();
-        // Sits on the enemy (Chain Stratagem, Dokumori) instead of on party members.
+        // Sits on the enemy instead of on party members.
         public bool OnEnemy;
-        // Cards swing 6%/3% by the receiver's role; Radiant Finale by codas banked.
+        // Cards swing by role, Radiant Finale by codas banked.
         public Func<int, JobRole?, Effect[]>? Dynamic;
 
         public Effect[] For(int stacks, JobRole? role) => Dynamic?.Invoke(stacks, role) ?? Effects;
@@ -42,7 +41,7 @@ public static class RaidBuffs
         Dmg("Arcane Circle", 1.03f),     // RPR
         Dmg("Starry Muse", 1.05f),       // PCT
 
-        // Crit / direct-hit rate buffs, paid on the rolls they cause.
+        // Crit and direct-hit buffs, paid on the rolls they cause.
         Crit("Battle Litany", 0.10f),    // DRG
         Dh("Battle Voice", 0.20f),       // BRD
         new()                            // DNC, self + dance partner
@@ -51,28 +50,25 @@ public static class RaidBuffs
             Effects = new[] { new Effect(Kind.CritRate, 0.20f), new Effect(Kind.DirectHitRate, 0.20f) },
         },
 
-        // Songs sit on the whole party for most of a fight.
+        // Songs sit on the party for most of a fight.
         Dmg("Mage's Ballad", 1.01f),           // BRD
         Dh("Army's Paeon", 0.03f),             // BRD
         Crit("The Wanderer's Minuet", 0.02f),  // BRD
 
-        // Enemy-side debuffs: everyone's damage into that target is louder.
+        // Enemy-side debuffs: all damage into that target is louder.
         Crit("Chain Stratagem", 0.10f, onEnemy: true), // SCH
         Dmg("Dokumori", 1.05f, onEnemy: true),         // NIN
         Dmg("Mug", 1.05f, onEnemy: true),              // NIN, low level / synced
-        // Kunai's Bane stays absent because ranked kills show Dokumori alone
-        // already accounts for a ninja's measured contribution.
+        // Kunai's Bane is absent because Dokumori already covers it.
 
-        // Dance finishes: one status name for every step count; the engine
-        // reads the finishing move to price partial dances, full is the default.
+        // Dance finishes: one status name per step count.
         Dmg("Technical Finish", 1.05f),
         Dmg("Standard Finish", 1.05f),
 
-        // Radiant Finale scales with the codas banked; the engine counts the
-        // bard's songs to price each press, full codas being the default.
+        // Radiant Finale scales with the codas banked.
         Dmg("Radiant Finale", 1.06f),
 
-        // Cards: 6% on the matching role, 3% otherwise (unknown job reads as matching).
+        // Cards: 6% on the matching role, 3% otherwise.
         new()
         {
             Name = "The Balance",
@@ -92,7 +88,7 @@ public static class RaidBuffs
         },
     };
 
-    // The whole table, for building id lookups against the game sheets.
+    // The whole table, for building id lookups.
     public static IReadOnlyList<Buff> All => Table;
 
     private static readonly Dictionary<string, Buff> ByName = Build();

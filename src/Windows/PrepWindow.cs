@@ -5,22 +5,20 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The food check before the pull and the potion note during it, on one line.
+// The food check and the potion note, on one line.
 public class PrepWindow : Window
 {
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
     private bool _applyPos = true;
 
-    // Resolved once per frame in DrawConditions, which runs whether or not the
-    // window draws.
+    // Resolved once a frame, whether or not the window draws.
     private bool _prePull;     // food rows are worth showing
-    private bool _readyCheck;  // a ready check is up: answer it, one way or the other
+    private bool _readyCheck;  // a ready check is up, so answer it
     private bool _potNote;     // the potion note is inside its few seconds
     private float _potLeft;    // seconds until the pot is back (0 = don't show)
 
-    // The last food we saw you eating, so "No food" can still say how many are
-    // in your bag - with none up there's no status to read the item from.
+    // The last food seen, so "No food" can still count your bag.
     private uint _lastFoodItem;
     private bool _lastFoodHq;
     private uint _lastPotItem;
@@ -59,15 +57,12 @@ public class PrepWindow : Window
 
     public override bool DrawConditions()
     {
-        // This runs every frame whether or not the window draws, which the potion clock
-        // needs.
+        // Runs every frame, which the potion clock needs.
         var on = C.PrepCheckEnabled
                  && !Plugin.CutsceneActive
-                 // No player yet (zoning in) reads exactly like "no food is up",
-                 // so stay quiet until there's someone to read.
+                 // No player yet reads like no food, so stay quiet.
                  && Plugin.LocalPlayer != null
-                 // Optional: only where you have a real sheet, so a leveling
-                 // roulette (where nobody brings food) stays quiet.
+                 // Optional: only where you have a real sheet.
                  && (!C.PrepCheckSheetsOnly || _plugin.ActiveFight() is { TimelineOnly: false });
 
         // Leaving the duty forgets the potion clock.
@@ -79,23 +74,19 @@ public class PrepWindow : Window
             _potSay.Reset();
         }
 
-        // The potion clock runs for as long as you're in the duty, combat
-        // included.
+        // The potion clock runs as long as you're in the duty.
         var potLive = on && Plugin.InDuty && C.PrepCheckPotion;
         _potNote = potLive && PotionTick();
-        // Once the note's few seconds are up, re-arm the speech so a SECOND pot
-        // later in the same fight is announced too.
+        // Re-arm the speech, so a second pot is announced too.
         if (!_potNote) _potSay.Reset();
 
-        // Optional running countdown to the pot coming back, which is a readout
-        // rather than an alert and so never speaks.
+        // An optional countdown, which is a readout and never speaks.
         _potLeft = potLive && C.PrepCheckPotCountdown && !_potNote
             ? _potTimer.Remaining(ImGui.GetTime()) : 0f;
 
-        // Food is a pre-pull matter only - unless a ready check is up, which is
-        // pre-pull by definition wherever it happens.
+        // Food is pre-pull only, unless a ready check is up.
         var readyCheck = on && C.PrepCheckOnReadyCheck && PrepCheck.ReadyCheckActive();
-        // A ready check re-arms the speech, so "no food" is said again when it's asked.
+        // A ready check re-arms the speech.
         if (readyCheck && !_readyCheck) _foodSay.Reset();
         _readyCheck = readyCheck;
 
@@ -120,15 +111,13 @@ public class PrepWindow : Window
             var food = PrepCheck.Read(PrepCheck.WellFedStatus);
             if (food.Present) { _lastFoodItem = PrepCheck.ItemOf(food); _lastFoodHq = PrepCheck.IsHq(food); }
 
-            // Each optional check is only RESOLVED when it's switched on, so an
-            // extra nobody uses costs nothing per frame.
+            // Each check resolves only when on, so extras cost nothing.
             var warn = PrepCheck.WarnSecondsFor(C.PrepCheckUseFightLength, C.PrepCheckWarnMinutes,
                 C.PrepCheckUseFightLength ? PrepCheck.FightSeconds(_plugin.ActiveFight()) : 0f);
             var verdict = PrepCheck.FoodVerdict(food,
                 !C.PrepCheckWarnWrongFood || PrepCheck.IsBattleFood(food),
                 !C.PrepCheckWarnNq || PrepCheck.IsHq(food),
-                // A ready check gets an answer either way, so healthy food shows a
-                // muted timer.
+                // A ready check gets an answer, so healthy food shows muted.
                 new PrepCheck.FoodOpts(warn, C.PrepCheckWarnWrongFood, C.PrepCheckWarnNq,
                     C.PrepCheckAlwaysShowFood || _readyCheck));
 
@@ -137,8 +126,7 @@ public class PrepWindow : Window
                 Row(PrepCheck.FoodIcon(food), verdict.Text + FoodCount(food), LevelColor(verdict.Level));
                 drew = true;
             }
-            // Speech follows the ORIGINAL grade, so the optional extras stay
-            // visual and nothing new starts talking without being asked.
+            // Speech follows the original grade, so extras stay visual.
             Announce(_foodSay, PrepCheck.SpeechFor(PrepCheck.GradeOf(food, warn)));
         }
 
@@ -166,8 +154,7 @@ public class PrepWindow : Window
             drew = true;
         }
 
-        // Keep the window alive between warnings so it doesn't collapse to a dot
-        // and jump around when one appears.
+        // Keep the window alive, so it doesn't collapse and jump.
         if (!drew) ImGui.Dummy(new Vector2(1f, 1f));
     }
 
@@ -178,8 +165,7 @@ public class PrepWindow : Window
         _ => Theme.Muted,
     };
 
-    // "(12 left)" for the dish in question: the one you're eating, or - when
-    // there's none up to read - the last one we saw you eat.
+    // "(12 left)" for the dish you're eating, or the last one seen.
     private string FoodCount(PrepCheck.Buff food)
     {
         if (!C.PrepCheckShowCounts) return "";
@@ -197,8 +183,7 @@ public class PrepWindow : Window
     private bool PotionTick()
     {
         var medicated = PrepCheck.Read(PrepCheck.MedicatedStatus);
-        // Remember the tincture while it's up: it is long gone by the time the note
-        // fires.
+        // Remember the tincture, since it's gone when the note fires.
         if (medicated.Present)
         {
             _lastPotItem = PrepCheck.ItemOf(medicated);
@@ -236,7 +221,7 @@ public class PrepWindow : Window
     {
         if (EffectiveLocked) return;
         if (OverlayChrome.MovedCenterFrac(C.PrepCheckPosition) is { } frac) { C.PrepCheckPosition = frac; _posDirty = true; }
-        // ONE disk write when the drag ends, not a full config save per frame.
+        // One disk write when the drag ends, not one per frame.
         if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.SaveSettings(); _posDirty = false; }
     }
 

@@ -5,8 +5,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// A tiny once-per-entry check-in: entering a duty that has a sheet (official
-// or one you built) shows which column is yours, with a picker to change it.
+// A once-per-entry check-in on which column is yours.
 public class SlotPopupWindow : Window
 {
     private readonly Plugin _plugin;
@@ -21,8 +20,7 @@ public class SlotPopupWindow : Window
         Flags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse;
     }
 
-    // Called from the territory-change handler: once per entry, never re-shown
-    // mid-instance.
+    // Once per entry, never re-shown mid-instance.
     public void OpenFor(FightProfile fight)
     {
         _fight = fight;
@@ -78,8 +76,7 @@ public class SlotPopupWindow : Window
             ImGui.SameLine();
             if (ImGui.Button("OK", new Vector2(50, 0))) IsOpen = false;
 
-            // Job pick, same one the sidebar owns: which job the mits and calls
-            // are read for.
+            // Job pick, the same one the sidebar owns.
             ImGui.AlignTextToFramePadding();
             ImGui.TextDisabled("Job:");
             ImGui.SameLine(58f);
@@ -96,8 +93,7 @@ public class SlotPopupWindow : Window
                 ImGui.EndCombo();
             }
 
-            // Role pick, popup-sized: one pick maps every fight with a sheet to
-            // that role's slot - custom sheets speak the standard codes too.
+            // Role pick: one pick maps every sheet to that role's slot.
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.TextDisabled("Role:");

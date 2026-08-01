@@ -3,11 +3,10 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Action id -> its display name, memoized.
+// Action id to display name, memoized.
 public static class ActionNames
 {
-    // Concurrent for the same reason as BossNames: cheap insurance against a
-    // torn write poisoning the table for a whole session.
+    // Concurrent so a torn write can't poison the table.
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<uint, string> _cache = new();
 
     public static string Of(uint id)
@@ -17,13 +16,12 @@ public static class ActionNames
         var name = "";
         try
         {
-            // The client's own language here: these names are shown to the user as
-            // mechanic labels, not matched against our English tables.
+            // Client language here, since these are shown as labels.
             var row = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>()?.GetRowOrDefault(id);
             name = row?.Name.ExtractText() ?? "";
         }
         catch (Exception ex) { Swallowed.Report("action name lookup", ex); }
-        // Never memoize a miss caused by the sheet not being ready yet.
+        // Never memoize a miss from an unready sheet.
         if (name.Length > 0) _cache[id] = name;
         return name;
     }

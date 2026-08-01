@@ -12,7 +12,7 @@ namespace FrenMits.Windows;
 // The individual config pages plus their small helpers.
 public partial class ConfigWindow
 {
-    // ---- Party Mit Recap --------------------------------------------------
+    // ---- Party Mit Recap ----
 
     private void DrawPartyRecapPage()
     {
@@ -40,8 +40,7 @@ public partial class ConfigWindow
         ImGui.SameLine();
         if (ImGui.Button("Preview"))
         {
-            // A real pull previews better than the fake one, and must not be
-            // clobbered just to drag windows around.
+            // A real pull previews better, so never clobber one.
             if (!_plugin.Recap.HasData) _plugin.Recap.LoadSample();
             _plugin.Recap.ShowTestPopup();          // popup appears so it can be dragged
             _plugin.RecapWindow.IsOpen = true;      // window opens for placement too
@@ -49,7 +48,7 @@ public partial class ConfigWindow
         Tip("Fills the recap with a sample pull.");
     }
 
-    // ---- Food & Pot -------------------------------------------------------
+    // ---- Food and Pot ----
 
     private void DrawPrepCheckPage()
     {
@@ -256,12 +255,11 @@ public partial class ConfigWindow
 
     private void DrawDisplayTab()
     {
-        // One-click reset of everything on this page; to preview while you adjust,
-        // use the "Test" toggle in the header (always visible).
+        // One-click reset of everything on this page.
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this page to defaults.");
 
-        // Tabs by concern, each center-call tab scoped to the center call only.
+        // Tabs by concern, each scoped to the center call.
         if (!ImGui.BeginTabBar("##displaytabs", ImGuiTabBarFlags.None)) return;
 
         if (ImGui.BeginTabItem("Placement"))
@@ -436,8 +434,7 @@ public partial class ConfigWindow
             C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
             if (autoWas != C.AutoCooldownTiming)
             {
-                // Turning it OFF wipes every offset the solver wrote (leaving your
-                // hand-set ones); turning it ON re-times the active plan right away.
+                // Off wipes the solver's offsets; on re-times the plan.
                 if (!C.AutoCooldownTiming) _plugin.ClearSolvedOffsets();
                 else _plugin.AutoTime(_plugin.ActiveFight());
                 C.Save();
@@ -489,7 +486,7 @@ public partial class ConfigWindow
         ImGui.EndTabBar();
     }
 
-    // ---- Next Mits board ---------------------------------------------------
+    // ---- Next Mits board ----
 
     private void DrawNextMitsPage()
     {
@@ -498,7 +495,7 @@ public partial class ConfigWindow
                           + "Gold is your next press; green means press it now, in step with the main call.");
         ImGui.Spacing();
 
-        // One control strip: the things you touch most, on two tight rows.
+        // One control strip for the things you touch most.
         C.ShowUpcoming = CfgCheck("Show the window", C.ShowUpcoming);
         ImGui.SameLine(0, 16);
         if (ImGuiComponents.IconButtonWithText(_nextMitsPreview ? FontAwesomeIcon.Stop : FontAwesomeIcon.Play,
@@ -652,8 +649,7 @@ public partial class ConfigWindow
         if (boardStyle && ImGui.BeginTabItem("On the rows"))
         {
             ImGui.Spacing();
-            // Two tidy columns, each row on its own line with a little breathing
-            // room (the left column splits at 300px; keep two per row, no more).
+            // Two tidy columns, two controls per row at most.
             C.UpcomingBoardTimeText = CfgCheck("Countdown seconds", C.UpcomingBoardTimeText);
             ImGui.SameLine(300f);
             C.UpcomingBoardShowActions = CfgCheck("Planned mits", C.UpcomingBoardShowActions);
@@ -728,11 +724,10 @@ public partial class ConfigWindow
         ImGui.EndTabBar();
     }
 
-    // On-screen preview toggle for the Next Mits page, starting OFF (the Play
-    // button starts it) and not saved, so each settings visit starts quiet.
+    // Preview toggle, unsaved so each visit starts quiet.
     private bool _nextMitsPreview;
 
-    // A compact color row: swatch-style picker plus a label and hover help.
+    // A compact color row: a swatch, a label and hover help.
     private void BoardColor(string label, string help, Func<uint> get, Action<uint> set)
     {
         var v = ColorToVec4(get());
@@ -740,7 +735,7 @@ public partial class ConfigWindow
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(help);
     }
 
-    // Everything on the Next Mits page back to the FrenMits defaults.
+    // Everything on this page back to the defaults.
     private void ResetNextMitsDefaults()
     {
         C.ShowUpcoming = true;
@@ -775,7 +770,7 @@ public partial class ConfigWindow
             ImGui.Spacing();
             C.TtsEnabled = CfgCheck("Speak the action", C.TtsEnabled);
 
-            // Engine: online neural (Edge) for the nice custom voices, or offline Windows.
+            // Engine: online neural voices, or offline Windows.
             var online = C.TtsUseEdge;
             if (ImGui.RadioButton("Online neural voices", online)) { C.TtsUseEdge = true; C.SaveSettings(); }
             ImGui.SameLine();
@@ -786,7 +781,7 @@ public partial class ConfigWindow
 
             if (C.TtsUseEdge)
             {
-                // Snap any unknown/old saved voice (e.g. the removed child voice) to a valid one.
+                // Snap an old saved voice onto a valid one.
                 var cur = Array.Find(Audio.EdgeVoices, v => v.Id == C.TtsEdgeVoice);
                 if (cur.Id == null) { cur = Audio.EdgeVoices[0]; C.TtsEdgeVoice = cur.Id; C.SaveSettings(); }
                 var female = cur.Female;
@@ -809,7 +804,7 @@ public partial class ConfigWindow
             }
             else
             {
-                // Every installed SAPI voice; female voices (Zira, Hazel) appear if installed.
+                // Every installed SAPI voice.
                 var voices = new List<string> { "System default" };
                 voices.AddRange(_plugin.Audio.VoiceNames());
                 var voiceIndex = string.IsNullOrEmpty(C.TtsVoice) ? 0 : Math.Max(0, voices.IndexOf(C.TtsVoice));
@@ -894,7 +889,7 @@ public partial class ConfigWindow
 
     private string _ttsTestText = "";
 
-    // ---- per-line overrides popup ---------------------------------------
+    // ---- per-line overrides popup ----
 
     private string _iconSearch = "";
     private int _iconBrowseStart = 405; // action icons start around here
@@ -958,8 +953,7 @@ public partial class ConfigWindow
             ImGui.NewLine();
         }
 
-        // Quick palette: the keyword "bucket" (Bait, Stun, Bind, Heal, Knockback …),
-        // click one to pin it (typing the same word on a line auto-fills it too).
+        // Quick palette of keyword icons, click one to pin it.
         if (ImGui.TreeNode("Common mechanic icons"))
         {
             var n = 0;
@@ -1044,7 +1038,7 @@ public partial class ConfigWindow
         ImGui.EndPopup();
     }
 
-    // ---- share via clipboard --------------------------------------------
+    // ---- share via clipboard ----
 
     private void ExportFight(FightProfile fight)
     {
@@ -1059,14 +1053,13 @@ public partial class ConfigWindow
         }
     }
 
-    // Decode + merge live in PlanCodes.Import (shared with the Sheet View's
-    // Import button); this wrapper adds the fight-page niceties on top.
+    // Decode and merge live in PlanCodes.Import.
     private void ImportFightFromClipboard()
     {
         var (fight, isNew, message) = PlanCodes.Import(_plugin, ImGui.GetClipboardText());
         if (fight != null && isNew)
         {
-            // Drop it into the category you're currently viewing and expand it.
+            // Drop it into the category you're viewing, and expand it.
             if (_nav == NavKind.Fights) { fight.Category = _navCategory; C.Save(); }
             _selectedFight = C.Fights.IndexOf(fight);
             _expandFightId = fight.Id;
@@ -1074,9 +1067,9 @@ public partial class ConfigWindow
         FlashBuiltin(message);
     }
 
-    // ---- helpers ---------------------------------------------------------
+    // ---- helpers ----
 
-    // The best-matching baked line for the right-click reset options.
+    // The best-matching baked line for the reset options.
     private MitLine? DefaultLineFor(FightProfile fight, MitLine line)
     {
         if (!Builtin.Has(fight.TerritoryId)) return null;
@@ -1095,14 +1088,13 @@ public partial class ConfigWindow
             var aMatch = act.Length > 0 && string.Equals(b.Action.Trim(), act, StringComparison.OrdinalIgnoreCase);
             var hasMatch = mMatch || aMatch;
             var score = MathF.Abs(b.Time - line.Time) - (mMatch ? 1000f : 0f) - (aMatch ? 1000f : 0f);
-            // Prefer any line that shares a field; among those, the lowest score.
+            // Prefer a line sharing a field, then the lowest score.
             if (best == null || (hasMatch && !bestHasMatch) || (hasMatch == bestHasMatch && score < bestScore))
             {
                 best = b; bestScore = score; bestHasMatch = hasMatch;
             }
         }
-        // Only offer a default when a baked line actually corresponds to this one
-        // (shares its mechanic or action) - not just the nearest in time.
+        // Only offer a default when a baked line really matches.
         return bestHasMatch ? best : null;
     }
 

@@ -5,12 +5,10 @@ using Lumina.Excel.Sheets;
 
 namespace FrenMits;
 
-// Looks up how long until one of your mits is off cooldown, so a call can warn
-// when the mit won't be ready in time.
+// Time until a tracked mit is off cooldown.
 public static class Cooldowns
 {
-    // Canonical mit action names (must match the Action sheet), matched as
-    // substrings against a line's action text so "Rampart + 90s" finds "Rampart".
+    // Mit names, matched as substrings against a cell.
     private static readonly string[] Names =
     {
         "Reprisal", "Rampart", "Feint", "Addle", "Bloodbath", "Second Wind", "Arm's Length",
@@ -38,20 +36,17 @@ public static class Cooldowns
         try
         {
             var want = new HashSet<string>(Names, StringComparer.OrdinalIgnoreCase);
-            // English sheet: `Names` above is an English list, so matching against
-            // a localized client's rows would build an empty map (see GameSheets).
+            // Names are English, so read the English sheet.
             var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
             var recastOf = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             if (sheet != null)
                 foreach (var row in sheet)
                 {
                     var n = row.Name.ExtractText();
-                    // Legacy and PvP duplicate rows share names with the real
-                    // action; the real one has a job level and is not PvP.
+                    // Legacy and PvP rows share names with the real action.
                     if (row.ClassJobLevel == 0 || row.IsPvP) continue;
                     if (string.IsNullOrEmpty(n) || !want.Contains(n)) continue;
-                    // The fairy carries her own Whispering Dawn and Fey Illumination:
-                    // same name, no recast.
+                    // The fairy's copies share the name but have no recast.
                     if (map.ContainsKey(n) && recastOf[n] >= row.Recast100ms) continue;
                     map[n] = row.RowId;
                     recastOf[n] = row.Recast100ms;
@@ -61,12 +56,10 @@ public static class Cooldowns
         _byName = map;
     }
 
-    // actionText -> resolved action id (0 = not a tracked mit), memoized because
-    // the cooldown-aware call check asks per frame and the map is static.
+    // Action text to id, memoized for per-frame callers.
     private static readonly Dictionary<string, uint> _idByText = new(StringComparer.Ordinal);
 
-    // Seconds until the mit referenced by `actionText` is ready, or null if it
-    // isn't a tracked mit / can't be read.
+    // Seconds until that mit is ready, or null.
     public static float? Remaining(string? actionText)
     {
         try
@@ -77,8 +70,7 @@ public static class Cooldowns
 
             if (!_idByText.TryGetValue(actionText!, out var id))
             {
-                // Same matching the planner uses, so "Rep" reads the Reprisal
-                // timer instead of nothing at all.
+                // Same matching the planner uses.
                 var first = int.MaxValue;
                 foreach (var kv in _byName)
                 {
@@ -94,9 +86,9 @@ public static class Cooldowns
         catch (Exception ex) { Swallowed.Report("cooldown recast read", ex); return null; }
     }
 
-    // ---- static planning data (from the game sheets, no combat needed) ----
+    // ---- static planning data ----
 
-    // A hand-curated shared-cooldown key, not the Action sheet's CooldownGroup.
+    // Family is a hand-curated shared-cooldown key.
     public readonly record struct PlanMit(string Name, float Recast, int Charges, string Family, int Level, float Duration);
 
     private static readonly Dictionary<string, string> SharedFamily = new(StringComparer.OrdinalIgnoreCase)
@@ -110,8 +102,7 @@ public static class Cooldowns
         ["Nebula"] = "gnb-nebula", ["Great Nebula"] = "gnb-nebula",
     };
 
-    // How long each buff lasts, hand-curated (7.x values) because the game
-    // sheets don't expose status uptime cleanly.
+    // Buff durations, hand-curated from 7.x.
     private static readonly Dictionary<string, float> Durations = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Reprisal"] = 15, ["Feint"] = 15, ["Addle"] = 15, ["Dismantle"] = 10,
@@ -140,24 +131,22 @@ public static class Cooldowns
         ["Earthly Star"] = 20, ["Celestial Opposition"] = 15,
     };
 
-    // Tracked for their recast, but they shield nobody on their own.
+    // Tracked for recast, but they shield nobody.
     public static readonly string[] Windowless = { "Zoe", "Recitation", "Seraph", "Second Wind" };
 
-    // Every mit the plugin tracks, once each (Names lists Rampart and Addle twice,
-    // once per role's kit).
+    // Every tracked mit, once each.
     public static readonly string[] Tracked = Names.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
-    // How long this mit's buff runs, or 0 if it doesn't have one.
+    // How long this mit's buff runs, 0 if none.
     public static float WindowOf(string name) => Durations.GetValueOrDefault(name);
 
-    // The tracked mits the game gives more than one charge (MaxCharges on the
-    // Action sheet).
+    // Tracked mits with more than one charge.
     private static readonly string[] Charged = { "Consolation", "Oblation" };
 
     public static bool HasCharges(string name)
         => Charged.Contains(name, StringComparer.OrdinalIgnoreCase);
 
-    // The longest any tracked buff runs (Excogitation's 45s today).
+    // The longest buff any tracked mit gives.
     public static readonly float LongestWindow = Durations.Count == 0 ? 0f : Durations.Values.Max();
 
     private static Dictionary<string, PlanMit>? _planByName;
@@ -188,8 +177,7 @@ public static class Cooldowns
         _planByName = map;
     }
 
-    // Each job's mitigation kit (tracked names only), for the custom-sheet
-    // "Suggest a mit" menu.
+    // Each job's kit, for the Suggest a mit menu.
     public static readonly System.Collections.Generic.Dictionary<string, string[]> JobKits = new(StringComparer.OrdinalIgnoreCase)
     {
         ["WAR"] = new[] { "Reprisal", "Rampart", "Shake It Off", "Damnation", "Vengeance", "Bloodwhetting", "Raw Intuition", "Thrill of Battle" },
@@ -210,14 +198,14 @@ public static class Cooldowns
         ["RDM"] = new[] { "Addle", "Magick Barrier" },
     };
 
-    // Static plan data for one tracked mit by exact name, or null.
+    // Plan data for one mit by exact name.
     public static PlanMit? PlanInfo(string name)
     {
         EnsurePlanMap();
         return _planByName != null && _planByName.TryGetValue(name, out var pm) ? pm : null;
     }
 
-    // The level a duty syncs players to, or 0 when unknown (no warnings then).
+    // The level a duty syncs to, 0 when unknown.
     public static int DutySyncLevel(uint territory)
     {
         try
@@ -229,24 +217,22 @@ public static class Cooldowns
         catch (Exception ex) { Swallowed.Report("duty sync level", ex); return 0; }
     }
 
-    // PlanMits results per action text, memoized because the overlays ask per
-    // frame and the plan map is static game data (entries never go stale).
+    // PlanMits results per action text, memoized.
     private static readonly Dictionary<string, List<PlanMit>> _planMitsByText = new(StringComparer.Ordinal);
     private static readonly PlanMit[] _noPlanMits = Array.Empty<PlanMit>();
 
-    // Cached PlanMits for per-frame callers: the same results with no dictionary
-    // re-scan and no allocation after the first ask for a given action text.
+    // Cached PlanMits for per-frame callers.
     public static IReadOnlyList<PlanMit> PlanMitsCached(string? actionText)
     {
         if (string.IsNullOrWhiteSpace(actionText)) return _noPlanMits;
         if (_planMitsByText.TryGetValue(actionText!, out var hit)) return hit;
         var list = new List<PlanMit>(PlanMits(actionText));
-        // Never memoize a miss caused by the plan map failing to build.
+        // Never memoize a miss from an unbuilt map.
         if (_planByName is { Count: > 0 }) _planMitsByText[actionText!] = list;
         return list;
     }
 
-    // Every tracked mit named in an action text, with its recast and charges.
+    // Every tracked mit named in an action text.
     public static IEnumerable<PlanMit> PlanMits(string? actionText)
     {
         if (string.IsNullOrWhiteSpace(actionText)) yield break;
@@ -256,7 +242,7 @@ public static class Cooldowns
             if (Mentions(actionText!, pm.Name)) yield return pm;
     }
 
-    // Where this text names that mit as a word of its own, or -1.
+    // Where the text names that mit, or -1.
     private static int IndexIn(string text, string name)
     {
         var idx = text.IndexOf(name, StringComparison.OrdinalIgnoreCase);
@@ -271,7 +257,7 @@ public static class Cooldowns
         return -1;
     }
 
-    // The shorthand the sheets are actually written in.
+    // The shorthand the sheets are written in.
     private static readonly Dictionary<string, string[]> Shorthand = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Reprisal"] = new[] { "Rep" },
@@ -287,16 +273,15 @@ public static class Cooldowns
         ["Neutral Sect"] = new[] { "Neutral" },
         ["Sun Sign"] = new[] { "Sun" },
         ["Philosophia"] = new[] { "Sophia" },
-        // "Concit" claims only Consolation; Recitation shields nobody anyway.
+        // "Concit" claims only Consolation.
         ["Consolation"] = new[] { "Concit" },
     };
 
-    // A cell can say outright that it is not a press, e.g. "Carry Over".
+    // A cell can say outright it is not a press.
     private static bool CarriedOver(string part)
         => part.Contains("carry over", StringComparison.OrdinalIgnoreCase);
 
-    // Top-level "/" and "+" pieces of a cell; the "/" inside a job gate such as
-    // "Party Mit (WAR/PLD)" is not a separator.
+    // Top-level / and + pieces of a cell.
     private static IEnumerable<string> Parts(string action)
     {
         var depth = 0;
@@ -314,8 +299,7 @@ public static class Cooldowns
         yield return action[start..];
     }
 
-    // Does this action text call for that mit, by its real name or by any of the
-    // shorthand the sheets use for it?
+    // Does this text call for that mit?
     private static bool Mentions(string text, string name) => MentionAt(text, name) >= 0;
 
     // Where it first calls for it, or -1.
@@ -341,8 +325,7 @@ public static class Cooldowns
         return -1;
     }
 
-    // The real name for a cell that is nothing but one mit, written either way
-    // ("Soil" -> Sacred Soil), or null when it says anything more than that.
+    // The real name for a cell that is one mit only.
     public static string? Canonical(string text)
     {
         var t = (text ?? "").Trim();
@@ -357,13 +340,13 @@ public static class Cooldowns
         return null;
     }
 
-    // Distinct tracked names that have a curated buff duration.
+    // Distinct tracked names with a curated duration.
     private static readonly string[] BuffNames = Names
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .Where(n => Durations.ContainsKey(n))
         .ToArray();
 
-    // The mits an action text names, with how long each one's buff lasts.
+    // The mits a text names, with buff durations.
     public static IEnumerable<(string Name, float Duration)> BuffsIn(string? actionText)
     {
         if (string.IsNullOrWhiteSpace(actionText)) yield break;
@@ -380,8 +363,7 @@ public static class Cooldowns
         if (total <= 0f) return 0f; // no recast group / not on your current job
         var elapsed = am->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
 
-        // Charge actions (Aurora, Oblation): the recast timer spans ALL charges,
-        // so total - elapsed reads "on cooldown" even while a charge sits ready.
+        // Charge actions: the recast spans all charges.
         var maxCharges = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(adjusted, 0);
         if (maxCharges > 1)
         {

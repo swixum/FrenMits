@@ -6,8 +6,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The small post-wipe popup: when the recap is enabled it appears after every
-// pull ends, offering to open the recap window.
+// The small post-wipe popup offering to open the recap.
 public class RecapButtonWindow : Window
 {
     private readonly Plugin _plugin;
@@ -50,8 +49,7 @@ public class RecapButtonWindow : Window
 
     public override bool DrawConditions()
     {
-        // Previewing from the config page shows the popup for placement even
-        // while the recap itself is switched off.
+        // Previewing shows it for placement even while switched off.
         if ((!C.RecapEnabled && !_plugin.Recap.Previewing) || Plugin.CutsceneActive) return false;
         if (Service.Condition[ConditionFlag.InCombat]) return false; // only after the pull ends
         if (_plugin.Recap.PopupDismissed || _plugin.Recap.CapturedAt == default) return false;
@@ -95,8 +93,7 @@ public class RecapButtonWindow : Window
     {
         if (C.RecapPopupLocked) return;
         if (OverlayChrome.MovedCenterFrac(C.RecapPopupPosition) is { } frac) { C.RecapPopupPosition = frac; _posDirty = true; }
-        // ONE disk write when the drag ends - not sixty full-config saves a
-        // second while the window is being moved.
+        // One disk write when the drag ends, not one per frame.
         if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.SaveSettings(); _posDirty = false; }
     }
 

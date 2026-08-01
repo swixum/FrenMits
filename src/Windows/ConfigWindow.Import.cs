@@ -13,7 +13,7 @@ namespace FrenMits.Windows;
 // Settings: importing a plan from a share code.
 public partial class ConfigWindow
 {
-    // ---- Import ----------------------------------------------------------
+    // ---- Import ----
 
     private void DrawImportSection(FightProfile fight)
     {
@@ -24,8 +24,7 @@ public partial class ConfigWindow
                           + "Pick which columns hold the time, mechanic, and the action you press. "
                           + "Rows without a readable time (headers, blanks) are skipped.");
 
-        // Load this fight's own scratch so pasting into one open header can't be
-        // applied to another (they'd share the fields otherwise).
+        // Per-fight scratch, so one paste can't land in another.
         _importBuffer = _importBufs.GetValueOrDefault(fight.Id, "");
         _importGrid = _importGrids.GetValueOrDefault(fight.Id);
 
@@ -107,14 +106,12 @@ public partial class ConfigWindow
         {
             if (_importJobMode == 1 && pickedJobs.Count == 0)
             {
-                // "My selected job" resolved to nothing (Job selection on Auto
-                // with no player loaded).
+                // The selected job resolved to nothing.
                 FlashBuiltin("Couldn't resolve your job - pick jobs manually or set Job selection first.");
             }
             else
             {
-                // Always additive: imported lines are appended onto whatever
-                // this slot already has, then sorted.
+                // Always additive: imports append, then sort.
                 var imported = SheetImport.BuildLines(_importGrid, opt);
                 var merged = new List<MitLine>(fight.Lines);
                 merged.AddRange(imported);

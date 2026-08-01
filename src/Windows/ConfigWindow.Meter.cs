@@ -40,7 +40,7 @@ public partial class ConfigWindow
         ImGui.EndTabBar();
     }
 
-    // ---- Display: placement and what shows --------------------------------
+    // ---- Display ----
 
     private void DrawMeterDisplayTab()
     {
@@ -116,7 +116,7 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Turn on Test mode in the header to place it with a sample pull.");
     }
 
-    // ---- Style: bars, text, colors ----------------------------------------
+    // ---- Style ----
 
     private void DrawMeterStyleTab()
     {
@@ -216,7 +216,7 @@ public partial class ConfigWindow
         }
     }
 
-    // ---- Themes ------------------------------------------------------------
+    // ---- Themes ----
 
     private void DrawMeterThemesTab()
     {
@@ -237,7 +237,7 @@ public partial class ConfigWindow
         ImGui.TextDisabled("A theme sets the colors and bar look; tweak anything after in Style.");
     }
 
-    // ---- Columns -----------------------------------------------------------
+    // ---- Columns ----
 
     private void DrawMeterColumnsTab()
     {
@@ -253,7 +253,7 @@ public partial class ConfigWindow
             DrawColumnRow(key, C.MeterHealColumns, "h");
     }
 
-    // ---- Connection --------------------------------------------------------
+    // ---- Connection ----
 
     private void DrawMeterConnectionTab()
     {
@@ -282,7 +282,7 @@ public partial class ConfigWindow
         if (ImGui.Button("Reconnect")) ReconnectMeter();
     }
 
-    // ---- Profiles ----------------------------------------------------------
+    // ---- Profiles ----
 
     private void DrawMeterProfiles()
     {
@@ -462,6 +462,6 @@ public partial class ConfigWindow
         { set(Vec4ToColor(col)); C.SaveSettings(); }
     }
 
-    // Drop the link; the next framework tick reconnects with the fresh settings.
+    // Drop the link; the next tick reconnects with new settings.
     private void ReconnectMeter() => _plugin.Meter.Link.RetryNow();
 }

@@ -10,8 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// The pipe to the parser, in-process gate first and WebSocket second, queued
-// for the framework thread to drain.
+// The pipe to the parser, in-process gate first, socket second.
 public class MeterLink : IDisposable
 {
     public enum LinkStatus { Off, Searching, Ipc, Socket }
@@ -52,7 +51,7 @@ public class MeterLink : IDisposable
 
     public bool TryDequeue(out JObject msg) => _queue.TryDequeue(out msg!);
 
-    // Connects when down and watches a link that can die without saying so.
+    // Connects when down and watches for a silent death.
     public void EnsureStarted()
     {
         var now = DateTime.UtcNow;
@@ -66,7 +65,7 @@ public class MeterLink : IDisposable
             return;
         }
 
-        // The message gate has no disconnect signal, so ask whether it is still there.
+        // The gate has no disconnect signal, so ask if it's alive.
         if (Status == LinkStatus.Ipc && now >= _nextHealthCheck)
         {
             _nextHealthCheck = now + TimeSpan.FromSeconds(30);
@@ -78,7 +77,7 @@ public class MeterLink : IDisposable
         }
     }
 
-    // Drop the link and search again on the next tick (settings changed).
+    // Drop the link and search again next tick.
     public void RetryNow()
     {
         EnsureStopped();

@@ -4,12 +4,12 @@ using System.Text;
 
 namespace FrenMits;
 
-// A mit a sheet asks for while it is already running from an earlier press.
+// A mit a sheet asks for while it is already running.
 public static class CoveredRepeats
 {
     private const float Slop = 0.01f;
 
-    // Strip every already-covered repeat from one slot's lines, in place.
+    // Strip covered repeats from one slot's lines, in place.
     public static int Strip(List<MitLine>? lines,
         Func<string, IEnumerable<(string Name, float Duration)>>? buffsIn = null)
     {
@@ -25,8 +25,7 @@ public static class CoveredRepeats
 
         foreach (var line in order)
         {
-            // A disabled line is never pressed, so it neither covers anything
-            // nor needs cleaning up.
+            // A disabled line neither covers nor needs cleaning.
             if (!line.Enabled || string.IsNullOrWhiteSpace(line.Action)) continue;
             var ours = !line.Custom && line.Jobs.Count == 0;
 
@@ -35,7 +34,7 @@ public static class CoveredRepeats
             foreach (var p in parts)
             {
                 var mit = ours ? BareMit(p.Text, buffsIn) : null;
-                // A second charge is a second press, not a repeat.
+                // A second charge is a second press.
                 if (mit != null && !Cooldowns.HasCharges(mit)
                     && upUntil.TryGetValue(mit, out var end) && end > line.Time + Slop)
                     continue;
@@ -50,8 +49,7 @@ public static class CoveredRepeats
                 changed++;
             }
 
-            // Only what survives is actually pressed, and only a press the sheet
-            // states outright can be what covers the next hit.
+            // Only a press the sheet states outright can cover.
             foreach (var p in kept)
             {
                 if (Conditional(p.Text)) continue;
@@ -64,12 +62,10 @@ public static class CoveredRepeats
         return changed;
     }
 
-    // One "/"- or "+"-separated piece of an action text, with the separator that
-    // preceded it ("" for the first).
+    // One piece of an action text, with its separator.
     private readonly record struct Part(char Sep, string Text);
 
-    // Split on separators at the top level only, so the "/" inside a job gate like
-    // "Party Mit (WAR/PLD)" stays where it belongs.
+    // Split at the top level, so a job gate stays whole.
     private static List<Part> Split(string action)
     {
         var parts = new List<Part>();
@@ -92,7 +88,7 @@ public static class CoveredRepeats
         return parts;
     }
 
-    // Put the survivors back, each behind the separator it arrived with.
+    // Put survivors back behind the separator they arrived with.
     private static string Join(List<Part> parts)
     {
         var sb = new StringBuilder();
@@ -106,7 +102,7 @@ public static class CoveredRepeats
         return sb.ToString();
     }
 
-    // A part the sheet hedges on, e.g. "Kerachole (If Available)".
+    // A part the sheet hedges on, like "If Available".
     private static bool Conditional(string text)
     {
         var i = text.IndexOf("if", StringComparison.OrdinalIgnoreCase);
@@ -120,11 +116,11 @@ public static class CoveredRepeats
         return false;
     }
 
-    // The mit this part names, when the part is nothing BUT that name.
+    // The mit this part names, when it names nothing else.
     private static string? BareMit(string text,
         Func<string, IEnumerable<(string Name, float Duration)>> buffsIn)
     {
-        // The stars are a footnote marker in the source sheets, not part of a name.
+        // Stars are a footnote marker, not part of a name.
         var clean = text.Replace("*", "").Trim();
         if (clean.Length == 0) return null;
         string? only = null;
@@ -134,7 +130,7 @@ public static class CoveredRepeats
             only = name;
         }
         if (only == null) return null;
-        // Either spelling counts: the sheets write "Soil" as often as "Sacred Soil".
+        // Either spelling counts, "Soil" or "Sacred Soil".
         return string.Equals(only, clean, StringComparison.OrdinalIgnoreCase)
                || string.Equals(only, Cooldowns.Canonical(clean), StringComparison.OrdinalIgnoreCase)
             ? only : null;

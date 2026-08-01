@@ -14,7 +14,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     private const string Command = "/frenmits";
     private const string CommandAlias = "/fm";
 
-    // Dancing Mad (Ultimate) instance territory (kept for the preset button).
+    // Dancing Mad's territory, kept for the preset button.
     public const ushort DancingMadUltimateTerritory = Builtin.DmuTerritory;
 
     public Configuration Config { get; }
@@ -61,12 +61,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // Versioned migrations (v2..v23) live in ConfigMigrations.
         ConfigMigrations.Run(this);
 
-        // Slot names run through the standard on every load: cheap and idempotent.
+        // Slot names run through the standard on every load.
         var slotsRenamed = false;
         foreach (var f in Config.Fights)
             slotsRenamed |= SlotNames.NormalizeFight(f);
-        // Pinned Sheet View columns are plain strings in the config; rename
-        // them too or pre-standard pins ("MT", "D3") silently stop matching.
+        // Rename pinned columns too, or old pins stop matching.
         for (var i = 0; i < Config.SheetPinnedSlots.Count; i++)
         {
             var canon = SlotNames.Canon(Config.SheetPinnedSlots[i]);
@@ -78,7 +77,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             { Config.SheetPinnedSlots.RemoveAt(i); slotsRenamed = true; }
         if (slotsRenamed) Config.Save();
 
-        // Meter columns saved by a pre-Replace build carry doubled entries.
+        // Meter columns from a pre-Replace build carry doubles.
         var colsFixed = Configuration.DedupeMeterColumns(Config.MeterColumns);
         colsFixed |= Configuration.DedupeMeterColumns(Config.MeterHealColumns);
         if (colsFixed) Config.SaveSettings();
@@ -95,8 +94,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             seeded = true;
         }
 
-        // Migrate the two built-ins that were renamed (dropped the redundant
-        // "(Ultimate)" suffix for the short code, matching the others).
+        // Migrate the two built-ins that were renamed.
         foreach (var f in Config.Fights)
         {
             if (f.Name == "Dancing Mad (Ultimate)") { f.Name = Builtin.Name(Builtin.DmuTerritory); seeded = true; }
@@ -107,8 +105,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         AdoptSupersededSheets();
 
-        // Deferred to the first Framework.Update tick: both need main-thread game
-        // state.
+        // Deferred to the first tick, since both need game state.
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
@@ -161,7 +158,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         try
         {
             _dtr = Service.DtrBar.Get("Fren Mits");
-            // The server-bar countdown doubles as a button: click = Sheet View.
+            // The server-bar countdown doubles as a button.
             _dtr.Tooltip = "Fren Mits: the next call. Click to open Sheet View.";
             _dtr.OnClick = _ =>
             {
@@ -178,15 +175,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.Framework.Update += OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged += OnTerritoryChanged;
 
-        // Diagnostic: if this ever logs "#2" (or higher) while only one copy should be
-        // running, the plugin is double-loaded, which would double every audio cue.
+        // If this ever logs a second instance, cues would double.
         var n = System.Threading.Interlocked.Increment(ref _liveInstances);
         Service.Log.Information($"[FrenMits] init - live instance #{n}");
     }
 
     private static int _liveInstances;
 
-    // Load defensively: a file that won't deserialize is kept and saves are suppressed.
+    // Load defensively: a bad file is kept and saves suppressed.
     private static Configuration LoadConfig()
     {
         try
@@ -202,7 +198,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var file = Service.PluginInterface.ConfigFile;
         if (file is { Exists: true } && file.Length > 2)
         {
-            // The file is there but unreadable, do NOT treat this as a first run.
+            // The file is there but unreadable, so not a first run.
             try
             {
                 var bak = file.FullName + ".corrupt.bak";
@@ -222,8 +218,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return new Configuration();
     }
 
-    // Point Config.Fights at the plan file, moving them out of the config the
-    // first time a profile that predates the split is loaded.
+    // Point Fights at the plan file, moving them out once.
     private static void LoadPlans(Configuration config)
     {
         var plans = PlanStore.Load();
@@ -239,14 +234,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             return;
         }
 
-        // Never written back whatever happens next, so drop it either way.
+        // Never written back, so drop it either way.
         var legacy = config.LegacyFights;
         config.LegacyFights = null;
 
         if (PlanStore.PreferConfigCopy(plans != null, legacy?.Count ?? 0, PlanStore.ConfigIsNewerThanPlans()))
         {
-            // Either the normal first load after the split, or a rollback that
-            // edited plans in the old build and came forward again.
+            // The first load after the split, or a rollback coming forward.
             config.Fights = legacy!;
             PlanStore.BackupConfigBeforeSplit();
             PlanStore.Save(config.Fights);
@@ -258,14 +252,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         if (plans != null) config.Fights = plans;
     }
 
-    // On entering a boss room, top up the fight's lines and refresh the anchors.
+    // On entering a boss room, top up lines and refresh anchors.
     private void OnTerritoryChanged(uint territory)
     {
-        // A replay-started clock has no combat flag to stop it; leaving the
-        // playback (or any zone) out of combat shuts it down.
+        // A replay clock has no combat flag, so leaving stops it.
         if (Timer.Live && !InCombat) Timer.Reset();
 
-        // Leaving / re-entering the instance resets the door-boss phase to 1.
+        // Re-entering the instance resets the door-boss phase.
         _phaseTwo = false;
         _trackedBossEntity = 0;
         _trackedBossLastHp = 0;
@@ -274,8 +267,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         try { AutoLoadForTerritory(territory); }
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
 
-        // Opt-in slot check-in: once per entry, only for fights that have a
-        // sheet (official, or a custom one the user built).
+        // Opt-in check-in, once per entry, for fights with a sheet.
         if (Config.ShowSlotPopupOnEntry)
         {
             var sheetFight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory
@@ -284,7 +276,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
     }
 
-    // Full refresh: rebake every built-in fresh, discarding saved per-slot edits.
+    // Full refresh: rebake every built-in, discarding edits.
     public int ResetAllBuiltins()
     {
         var n = 0;
@@ -308,7 +300,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return n;
     }
 
-    // IMigrationHost: the migrations only ever snapshot through here.
+    // The migrations only ever snapshot through here.
     public void SnapshotFight(FightProfile fight, string reason) => Snapshots.Save(fight, reason);
 
     private void AdoptSupersededSheets()
@@ -326,8 +318,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
     }
 
-    // Apply a canonical role to every fight that has a sheet (the sidebar's
-    // YOUR ROLE and the entry popup both route here).
+    // Apply a canonical role to every fight that has a sheet.
     public void SetRoleForAll(string role)
     {
         Config.RoleSelection = role;
@@ -362,8 +353,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Config.Save();
     }
 
-    // The custom-sheet half of SetSlot: stash the current column, make the
-    // target's saved list live (Lines IS SavedSlots[Slot], the alias invariant).
+    // Stash the current column and make the target's list live.
     private void SwapCustomSlot(FightProfile fight, string slot)
     {
         if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;
@@ -377,8 +367,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     {
         if (!Builtin.Has(territory)) { AutoSlotCustomSheet(territory); return; }
 
-        // Prefer the enabled profile so this matches what ActiveFight will
-        // actually drive when duplicates exist (first enabled wins there too).
+        // Prefer the enabled profile, which is what drives the fight.
         var fight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory)
                     ?? Config.Fights.FirstOrDefault(f => f.TerritoryId == territory);
         if (fight == null)
@@ -388,14 +377,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
         if (!fight.Enabled) return;
 
-        // Fall back to a default if the saved slot is no longer valid (e.g. the
-        // removed "Extras" slot), so the fight never ends up baked from a dead slot.
+        // Fall back to a default, so a dead slot can't bake the fight.
         var slot = !string.IsNullOrEmpty(fight.Slot)
                    && Builtin.Slots(territory).Contains(fight.Slot, StringComparer.OrdinalIgnoreCase)
             ? fight.Slot
             : PreferredDefaultSlot(territory);
 
-        // No safe guess, so don't bake someone else's seat; the popup asks instead.
+        // No safe guess, so the popup asks instead.
         if (slot.Length == 0)
         {
             Service.Log.Information($"FrenMits auto-load: territory {territory}, unknown job - waiting for a slot pick.");
@@ -410,7 +398,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {fight.Slot}, +{added} lines.");
     }
 
-    // Run the cooldown-aware offset solver over a fight's active slot.
+    // Run the offset solver over a fight's active slot.
     public void AutoTime(FightProfile? fight)
     {
         if (!Config.AutoCooldownTiming || fight == null || fight.Lines.Count == 0) return;
@@ -428,8 +416,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         catch (Exception ex) { Service.Log.Warning($"FrenMits auto-time failed: {ex.Message}"); }
     }
 
-    // Erase every offset/coverage the auto-timer wrote - across every fight and
-    // saved slot - so turning the feature off returns each plan to its own timing.
+    // Erase every offset the auto-timer wrote, everywhere.
     public void ClearSolvedOffsets()
     {
         var changed = false;
@@ -457,7 +444,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
     }
 
-    // Custom sheets follow the sidebar Role/Job on zone-in, unless you picked a column.
+    // Custom sheets follow the sidebar pick unless you chose one.
     private void AutoSlotCustomSheet(uint territory)
     {
         var fight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory && f.CustomSlots.Count > 0);
@@ -482,7 +469,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return Builtin.DefaultSlotForJobIn(slots, ActiveJobAbbreviation());
     }
 
-    // Default slot for a fight with none picked: the global role pick, else by job.
+    // Default slot for a fight with none: the role, else the job.
     private string PreferredDefaultSlot(uint territory)
     {
         var roleSlot = Builtin.RoleSlot(territory, Config.RoleSelection);
@@ -492,18 +479,17 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
     }
 
-    // Local player via the object table (index 0); IClientState.LocalPlayer was
-    // removed in this Dalamud build.
+    // Local player via the object table, since the property is gone.
     public static Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter? LocalPlayer
         => Service.ObjectTable[0] as Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter;
 
-    // True while a cutscene is playing, so calls and cues are suppressed.
+    // True while a cutscene plays, so calls are suppressed.
     public static bool InCutscene =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
 
-    // The cutscene state everything gameplay-facing should use; the raw flags stick.
+    // The cutscene state to use, since the raw flags stick.
     public static bool CutsceneActive => InCutscene && !CutsceneStuck;
     public static bool CutsceneStuck { get; private set; }
     private DateTime? _csSince;
@@ -528,46 +514,40 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public static string PluginVersion =>
         typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
-    // Inside an instanced duty (any of the three bound-by-duty flags the game
-    // uses), as opposed to the open world.
+    // Inside an instanced duty, as opposed to the open world.
     public static bool InDuty =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty56]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BoundByDuty95];
 
-    // True while actually in a pull, when the HUD displays force-lock (see each
-    // window's EffectiveLocked) so a stray drag can't grab them mid-fight.
+    // True while in a pull, when the displays force-lock.
     public static bool InCombat =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat];
 
-    // Downtime: mid-pull, the boss is present but not targetable (a phase
-    // transition, it jumped away, or a cutscene).
+    // Downtime: the boss is present but not targetable.
     public bool DowntimeActive { get; private set; }
-    // Measured in game time, so a lull learned from a 2x replay records its real
-    // length.
+    // Measured in game time, so a 2x replay still reads right.
     public float DowntimeElapsed => _downtimeElapsed;
-    // Seconds left until targetable for a learned lull, -1 while still measuring.
+    // Seconds until targetable, -1 while still measuring.
     public float DowntimeRemaining => _downtimeRemaining;
     private float _downtimeElapsed;
     private float _downtimeRemaining = -1f;
     private float _downtimeStartElapsed;
     private float _downtimeKnownEnd = -1f;
 
-    // The current boss's HP as a 0..1 fraction (-1 when there's no boss).
+    // The boss's health as a fraction, -1 with no boss.
     public float BossHpFraction { get; private set; } = -1f;
 
-    // Players still up, -1 when uncounted, and zero mid-combat is a wipe.
+    // Players still up, -1 when uncounted.
     public int PlayersStanding { get; private set; } = -1;
 
-    // Whoever this pull is about, by NameId: the key a learned timeline is filed
-    // under, and how a 3-boss dungeon keeps three separate timelines.
+    // Whoever this pull is about, which files its timeline.
     public uint CurrentBossNameId { get; private set; }
     public string CurrentBossName => _currentBossName;
     private string _currentBossName = "";
     private uint _currentBossMaxHp;
 
-    // True where a timeline has to be learned rather than looked up: in a duty,
-    // with no sheet of its own and nothing baked for it.
+    // True where a timeline has to be learned, not looked up.
     public bool LearningHere { get; private set; }
 
     private bool ComputeLearningHere()
@@ -581,19 +561,18 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return true;
     }
 
-    // A raid boss's health bar, told from trash by whichever floor test is lower.
+    // A raid boss's health bar, told from trash by the lower floor.
     public const uint BossHpFloor = 1_000_000;
     private const uint BossHpPlayerMultiple = 15;
 
     public static bool BossSized(uint maxHp, uint playerMaxHp)
         => maxHp > (playerMaxHp > 0 ? Math.Min(BossHpFloor, playerMaxHp * BossHpPlayerMultiple) : BossHpFloor);
 
-    // Who in your OWN party is up, not the whole zone the object table counts.
+    // Who in your own party is up, not the whole zone.
     private static int StandingInParty()
     {
         var party = Service.PartyList;
-        // Solo, or between zones with nobody to read: unknown beats calling it a
-        // wipe, which is what a zero here would mean.
+        // Nobody to read: unknown beats calling it a wipe.
         if (party.Length == 0)
             return LocalPlayer is { } me ? (me.CurrentHp > 0 ? 1 : 0) : -1;
         var up = 0;
@@ -604,8 +583,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private void UpdateDowntime(float gameDt)
     {
-        // The boss sweep walks the whole object table, so it's gated on a running
-        // clock.
+        // The boss sweep walks the object table, so gate it.
         IBattleNpc? boss = null;
         IBattleNpc? targetable = null;
         IBattleNpc? biggest = null;
@@ -639,21 +617,19 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var down = false;
         if (Timer.Running)
         {
-            // Downtime means there's nothing boss-sized to hit, not that the
-            // biggest actor happens to be untargetable.
+            // Downtime means nothing boss-sized to hit.
             if (CutsceneActive) down = true;
             else if (boss != null && targetable == null) down = true;
         }
 
-        // Tick the lull's length in game-time so replay speed / pauses can't skew it.
+        // Tick the lull in game time, so replay speed can't skew it.
         if (down && DowntimeActive) _downtimeElapsed += gameDt;
 
         var fight = ActiveFight();
         var clock = fight != null ? ElapsedFor(fight) : Timer.Elapsed;
         if (down && !DowntimeActive)
         {
-            // Just started: stamp it and recall when the sheet says the boss is
-            // back, for the banner.
+            // Just started: stamp it and recall when the boss is back.
             _downtimeElapsed = 0f;
             _downtimeStartElapsed = clock;
             _downtimeKnownEnd = LookupTargetable(fight?.TerritoryId, clock);
@@ -663,8 +639,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
         else if (!down && DowntimeActive)
         {
-            // Just ended: refine the TIME of any learnable window (one cactbot
-            // couldn't pin) from what we just measured.
+            // Just ended: refine any learnable window from the measurement.
             if (fight != null) MaybeLearnDowntime(fight.TerritoryId, _downtimeStartElapsed, DowntimeElapsed);
             Diag.Note($"downtime END   clock={clock:0.0}  lasted={DowntimeElapsed:0.0}s");
             _downtimeKnownEnd = -1f;
@@ -674,14 +649,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             ? MathF.Max(0f, _downtimeKnownEnd - clock) : -1f;
     }
 
-    // When the boss is targetable again for the lull near start, -1 if none.
+    // When the boss is targetable again near start, else -1.
     private float LookupTargetable(uint? territory, float start)
         => territory is { } t
             ? Downtimes.TargetableAt(Downtimes.Effective(t, Config.LearnedDowntimes), start)
             : -1f;
 
-    // Record a measured Start/Duration ONLY when it matches a learnable hardcoded
-    // window (Learn=true) - the few transitions cactbot leaves uncertain.
+    // Record a measurement only for a window marked learnable.
     private void MaybeLearnDowntime(uint territory, float start, float dur)
     {
         if (dur < 1.5f) return; // ignore blips
@@ -696,11 +670,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Config.Save();
     }
 
-    // Watching a Duty Recorder replay, where the spectator never gets a combat flag.
+    // Watching a replay, where nobody gets a combat flag.
     public static bool InDutyPlayback =>
         Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback];
 
-    // The game's simulation-speed multiplier: 1 normal, 0 paused, 2 for 2x.
+    // The simulation speed: 1 normal, 0 paused, 2 for double.
     private static unsafe float ReplayGameSpeed()
     {
         try
@@ -723,7 +697,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public DateTime LastFrameErrorAt { get; private set; } = DateTime.MinValue;
     private bool _wasInCombatForTest; // edge detector for the Test-mode auto-off
 
-    // Startup that can't run in the constructor, so it runs on the first tick.
+    // Startup that can't run in the constructor.
     private void RunFirstTickInit()
     {
         // Bake a default slot for any built-in that's still empty.
@@ -740,22 +714,21 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
         if (prebaked) Config.Save();
 
-        // Cover the case where the plugin loads while already inside a boss room.
+        // Covers loading while already inside a boss room.
         if (Builtin.Has(Service.ClientState.TerritoryType))
             AutoLoadForTerritory(Service.ClientState.TerritoryType);
     }
 
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework _)
     {
-        // Never let a per-frame hiccup (e.g. a stale game object) escape into
-        // Dalamud's tick loop.
+        // Never let a per-frame hiccup escape into the tick loop.
         try
         {
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
 
             UpdateCutsceneStuck();
 
-            // A real pull always outranks Test mode, so combat switches it off.
+            // A real pull outranks Test mode.
             var inCombatNow = InCombat;
             if (inCombatNow && !_wasInCombatForTest)
             {
@@ -770,8 +743,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                     }
                 }
 
-                // A pull can never begin inside a cutscene, so this proves the flag is
-                // stuck.
+                // A pull can't begin in a cutscene, so the flag is stuck.
                 if (InCutscene && !CutsceneStuck)
                 {
                     CutsceneStuck = true;
@@ -780,8 +752,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             }
             _wasInCombatForTest = inCombatNow;
 
-            // Leaving a Duty Recorder playback, where no combat flag would ever stop
-            // the timer.
+            // Leaving a replay, where no combat flag would stop the timer.
             if (_wasInDutyPlayback && !InDutyPlayback && Timer.Running)
             {
                 Timer.Reset();
@@ -789,15 +760,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             }
             _wasInDutyPlayback = InDutyPlayback;
 
-            // Keep the timeline in step with a replay that is paused or sped up.
+            // Keep the timeline in step with a paused or sped-up replay.
             var nowUtc = DateTime.UtcNow;
             var realDt = (float)(nowUtc - _lastPlaybackTick).TotalSeconds;
             _lastPlaybackTick = nowUtc;
             if (InDutyPlayback && Timer.Running && realDt > 0f && realDt < 1f)
                 Timer.ShiftStart(realDt * (1f - ReplayGameSpeed()));
 
-            // This frame's GAME-time delta: real seconds scaled by the sim speed
-            // (1 in live play, 0 while a replay is paused, 2 at 2x).
+            // This frame's game-time delta, scaled by the sim speed.
             var gameDt = realDt > 0f && realDt < 1f ? realDt * ReplayGameSpeed() : 0f;
 
             RefreshAutoFight();
@@ -816,8 +786,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
         catch (Exception ex)
         {
-            // Rate-limited, not once-ever: a RECURRING throw here silently kills
-            // every engine after the throw point, and we need the log to show it.
+            // Rate-limited, since a recurring throw would kill the engines.
             FrameErrorCount++;
             LastFrameErrorAt = DateTime.UtcNow;
             if ((DateTime.UtcNow - _lastFrameErrLog).TotalSeconds >= 60)
@@ -828,12 +797,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
     }
 
-    // ---- Cutscene boundary ------------------------------------------------
-    // Phase cutscenes pause the action but not our clock, and combat never drops.
+    // ---- cutscene boundary ----
     private bool _wasInCutscene;
 
-    // The party's pull countdown, fed to the clock so the board and the calls
-    // are already live and already right as the numbers run down.
+    // The party's countdown, fed to the clock so calls go live.
     private const uint NoCountdown = uint.MaxValue;   // 0 is a real initiator id (unresolved)
     private uint _countdownFrom = NoCountdown;
 
@@ -845,8 +812,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var cd = Countdown.Read();
         if (!cd.Active)
         {
-            // Called off, rather than run out: CancelCountdown tells the two apart
-            // by whether the zero it is holding has passed.
+            // Called off rather than run out, which Cancel tells apart.
             Timer.CancelCountdown();
             _countdownFrom = NoCountdown;
             return;
@@ -874,14 +840,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         _wasInCutscene = inCs;
     }
 
-    // ---- door-boss phases: one instance, two combats from zero ----------
+    // ---- door-boss phases ----
     private bool _phaseTwo;
     private uint _trackedBossEntity;
     private uint _trackedBossLastHp;
 
     private void UpdatePhase()
     {
-        // Only relevant for the door-boss territory; cheap no-op elsewhere.
+        // Only relevant for the door-boss territory.
         if (Service.ClientState.TerritoryType != Builtin.M12sTerritory)
             return;
 
@@ -900,13 +866,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             return;
         }
 
-        // Boss HP fell to zero => Phase 1 cleared, latched until the zone changes.
+        // Boss health hit zero, so Phase 1 is cleared.
         if (_trackedBossLastHp > 0 && boss.CurrentHp == 0)
             _phaseTwo = true;
         _trackedBossLastHp = boss.CurrentHp;
     }
 
-    // A phase anchor inside Phase 2's segment proves the door is down.
+    // A phase anchor in Phase 2's segment proves the door is down.
     public void OnPhaseAnchor(FightProfile fight, SyncPoint sp)
     {
         if (_phaseTwo || fight.TerritoryId != Builtin.M12sTerritory) return;
@@ -916,7 +882,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.Log.Information($"[FrenMits] Phase 2 latched from anchor '{sp.Label}'.");
     }
 
-    // Extra seconds added to a fight's clock for the current phase (door bosses).
+    // Extra seconds on a fight's clock for the current phase.
     public float PhaseOffsetFor(FightProfile fight)
         => _phaseTwo && fight.TerritoryId == Builtin.M12sTerritory ? M12sData.Phase2Offset : 0f;
 
@@ -924,8 +890,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public float ElapsedFor(FightProfile fight)
         => Timer.Elapsed + PhaseOffsetFor(fight);
 
-    // The call schedule the overlay/cues/DTR/upcoming list read: sheet clock plus
-    // the fight's timer offset.
+    // The call schedule: sheet clock plus the fight's offset.
     public float CueClockFor(FightProfile fight)
         => ElapsedFor(fight) + fight.TimerOffset;
 
@@ -934,7 +899,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     {
         if (_dtr == null) return;
         if (!Config.ShowDtrBar || !Timer.Live || ActiveFight() is not { } fight || fight.TimelineOnly
-            // Same silence rules as the overlay and cues: the clock is known-drifted.
+            // Same silence rules as the overlay and cues.
             || CutsceneActive || Cues.Holding)
         {
             _dtr.Shown = false;
@@ -943,12 +908,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         var job = ActiveJobAbbreviation();
         var elapsed = CueClockFor(fight);
-        // Single pass for the soonest call: this runs every tick, and the LINQ
-        // chain it replaces sorted the entire plan just to read the front of it.
+        // A single pass for the soonest call, since this runs per tick.
         MitLine? next = null;
         var nextRemaining = 0f;
-        // Time order (now a cached sort), so two calls tied on the clock pick the
-        // same one the old OrderBy did.
+        // Time order, so tied calls pick the same one as before.
         foreach (var l in fight.OrderedLines)
         {
             var remaining = l.CueTime - elapsed;
@@ -973,8 +936,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     {
         try
         {
-            // Before any window draws: age out retired font handles, and make
-            // sure the sizes actually configured are already building.
+            // Before any window draws: age handles and warm the sizes.
             Fonts.Tick();
             Fonts.WarmIfNeeded(Config);
         }
@@ -989,7 +951,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private void OpenConfig() => ConfigWindow.IsOpen = true;
 
-    // A command's answer, in the log and in front of the player who typed it.
+    // A command's answer, in the log and in front of the player.
     private static void Chat(string message)
     {
         Service.Log.Information($"[FrenMits] {message}");
@@ -1019,8 +981,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             case "tuner":
                 MiniSheetWindow.IsOpen = !MiniSheetWindow.IsOpen;
                 break;
-            // Record what the parser feeds the meter, so a pull that reads wrong
-            // can be run again and again without going back into the fight.
+            // Record what the parser feeds, so a bad pull can be replayed.
             case "meterrec":
                 if (MeterFeed.Recording)
                 {
@@ -1063,7 +1024,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
     }
 
-    // Resolves the job the overlay should follow: explicit override or live job.
+    // The job the overlay follows: an override, or the live job.
     public string? ActiveJobAbbreviation()
     {
         if (!string.Equals(Config.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase))
@@ -1073,8 +1034,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return job is { } rowId ? Jobs.ByRowId(rowId)?.Abbreviation : null;
     }
 
-    // Practice: a fight to preview out of its zone (set by the phase-jump), used
-    // only in Test Mode when the current zone isn't a real fight.
+    // Practice: a fight to preview out of its zone.
     public static FightProfile? PreviewFight;
 
     public FightProfile? ActiveFight()
@@ -1085,29 +1045,24 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                 return fight;
         // A practice phase-jump beats the universal timeline.
         if (Config.TestMode && PreviewFight != null) return PreviewFight;
-        // No sheet for this duty: the baked universal timeline (board + combat
-        // timer only) steps in, so a timeline runs in every instanced duty.
+        // No sheet here, so the baked universal timeline steps in.
         if (Config.UniversalTimelines && _autoFight != null && _autoFight.TerritoryId == territory)
             return _autoFight;
-        // Nothing baked for this duty: fall back to what we've learned about the
-        // boss actually in front of us.
+        // Nothing baked either, so fall back on what we've learned.
         if (Config.LearnTimelines && _learnedFight != null && _learnedFight.TerritoryId == territory)
             return _learnedFight;
         return null;
     }
 
-    // The learned timeline for the boss currently being fought, rebuilt only when
-    // the boss changes (so a 3-boss dungeon swaps timelines as you go).
+    // The learned timeline, rebuilt only when the boss changes.
     private FightProfile? _learnedFight;
     private uint _learnedFor;
 
-    // True while _learnedFight is a projection off the pull IN PROGRESS rather
-    // than something read back from disk.
+    // True while this is a projection off the pull in progress.
     private bool _learnedIsLive;
     private int _livePullCasts = -1;
 
-    // Latched during the pull, because by the time combat drops the boss has
-    // already despawned and CurrentBossNameId has gone back to zero.
+    // Latched during the pull, since the boss despawns first.
     private uint _learnBossNameId;
     private string _learnBossName = "";
     private uint _learnBossMaxHp;
@@ -1150,11 +1105,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                     + $"({_learnedFight.Lines.Count} casts).");
         }
 
-        // A timeline already learned for this boss always wins; only fall back to
-        // reading the live pull when there's nothing stored.
+        // A stored timeline wins over reading the live pull.
         if (_learnedFight != null && !_learnedIsLive) return;
         if (boss == 0 || !LearningHere || !Timer.Running) return;
-        // Re-read as the boss reveals more of its loop, not once and then frozen.
+        // Re-read as the boss reveals more of its loop.
         if (Sync.LastPull.Count == _livePullCasts) return;
         _livePullCasts = Sync.LastPull.Count;
 
@@ -1163,8 +1117,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         if (built != null) { _learnedFight = built; _learnedIsLive = true; }
     }
 
-    // A pull just ended: fold what the boss did into what we already knew, and
-    // drop any live projection, whose times only meant anything for that pull.
+    // A pull ended: fold it in and drop the live projection.
     private void CommitFinishedPull()
     {
         var running = Timer.Running;
@@ -1176,8 +1129,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         {
             if (!Config.LearnTimelines || _learnBossNameId == 0 || Sync.LastPull.Count == 0) return;
 
-            // LearnPull, not Learn: the capture spans the whole instance, so the
-            // boss's own engagement has to be cut out and rebased first.
+            // LearnPull, since the capture spans the whole instance.
             if (TimelineLearner.LearnPull(Config, _learnBossNameId, _learnBossName,
                     Sync.LastPullTerritory, CapturedCasts()))
             {
@@ -1189,8 +1141,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         catch (Exception ex) { Swallowed.Report("timeline learning", ex); }
         finally
         {
-            // Always, even on the early returns above, or learning quietly ends for the
-            // session.
+            // Always, or learning quietly ends for the session.
             _learnBossNameId = 0;
             _learnBossName = "";
             _learnBossMaxHp = 0;
@@ -1207,8 +1158,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         _livePullCasts = -1;
     }
 
-    // This pull's enemy casts, with who cast them (boss-appearance markers are
-    // bookkeeping, not mechanics).
+    // This pull's enemy casts, with who cast them.
     private List<TimelineLearner.PullCast> CapturedCasts()
     {
         var casts = new List<TimelineLearner.PullCast>(Sync.LastPull.Count);
@@ -1218,11 +1168,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return casts;
     }
 
-    // The in-memory timeline-only fight for the current territory (never saved).
+    // The timeline-only fight for this territory, never saved.
     private FightProfile? _autoFight;
     private uint _autoFightTerritory = uint.MaxValue;
 
-    // Cheap per-frame check: (re)build the auto fight when the territory changes.
+    // Rebuild the auto fight when the territory changes.
     private int _autoFightsStamp = -1;
 
     private void RefreshAutoFight()
@@ -1235,8 +1185,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         if (territory == _autoFightTerritory && stamp == _autoFightsStamp) return;
         _autoFightTerritory = territory;
         _autoFightsStamp = stamp;
-        // Enabled is deliberately ignored here: a profile you disabled means
-        // "keep this duty silent", not "show me the generic board instead".
+        // Enabled is ignored: a disabled profile means stay silent.
         _autoFight = Config.Fights.Any(f => f.TerritoryId == territory)
             ? null
             : UniversalTimelines.Build(territory);
@@ -1244,15 +1193,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             Service.Log.Information($"[FrenMits] universal timeline armed for \"{_autoFight.Name}\" ({territory}).");
     }
 
-    // Practice phase-jump: preview a fight's phase by parking the clock ~6s before
-    // its first call (Test Mode on so the overlay shows it anywhere).
+    // Practice jump: park the clock just before a phase's calls.
     public void PracticeJump(FightProfile fight, float time)
     {
         PreviewFight = fight;
         if (!Config.TestMode) { Config.TestMode = true; Config.Save(); }
         var raw = time - 6f - fight.TimerOffset - PhaseOffsetFor(fight);
         Timer.SetElapsed(MathF.Max(0f, raw));
-        // SetElapsed doesn't bump Generation, so the fresh-pull check never re-arms.
+        // SetElapsed doesn't bump Generation, so re-arm by hand.
         Cues.Rearm();
     }
 

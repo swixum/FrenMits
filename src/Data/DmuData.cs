@@ -47,7 +47,7 @@ public static class DmuData
         new(323, "P2", "Towers VIII (Past/Future's End)", 0, new[]{"", "", "", "", "", "", "", "", "", ""}, 1, true),
         new(343, "P2", "Light of Judgement", 0xBABD, new[]{"", "Reprisal + Party Mit", "Asylum", "", "Spreadlo + Sacred Soil", "Kerachole + Holos + Zoe Shields", "Feint", "", "Party Mit", "Addle"}, 3),
         new(364, "P2", "Wings of Destruction", 0, new[]{"","","","","","","","","",""}, 2, true),
-        // Was anchored to Ultimate Embrace, which is the row seven seconds later.
+        // Was anchored to Ultimate Embrace, the row seven seconds later.
         new(371, "P2", "Wings of Destruction", 0xBACF, new[]{"Reprisal + Party Mit", "", "Plenary Indulgence", "Collective Unconscious", "Sacred Soil + Fey Illumination + Seraph", "Kerachole + Panhaima", "", "Feint", "", ""}, 3, true),
         new(378, "P2", "Ultimate Embrace", 0xC24C, new[]{"", "", "", "", "", "", "", "", "", ""}),
         new(450, "P3", "Bowels of Agony (Chaos)", 0xBAF2, new[]{"Reprisal", "", "Plenary Indulgence + Asylum", "Collective Unconscious", "Sacred Soil", "Kerachole", "Feint (Chaos)", "", "", ""}, 1),
@@ -150,7 +150,7 @@ public static class DmuData
         _ => phase,
     };
 
-    // The sheet's per-phase notes footer plus short per-mechanic guidance.
+    // The per-phase notes footer plus short per-mechanic guidance.
     public static string PressNote(string mechanic)
     {
         var m = (mechanic ?? "").Trim();
@@ -223,7 +223,7 @@ public static class DmuData
         _ => "",
     };
 
-    // Build mit lines for a sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras).
+    // Severity marks and buster flags for the board.
     public static List<CustomRow> CustomRows()
     {
         var rows = new List<CustomRow>();
@@ -250,13 +250,13 @@ public static class DmuData
         return list;
     }
 
-    // Resync anchors; the earliest synced cast in each phase re-bases the whole clock.
+    // Resync anchors; each phase's first synced cast re-bases.
     public static List<SyncPoint> SyncPoints()
     {
         return SyncAnchors.Build(
             Timeline.Select(e => (e.Sync, (float)e.Time, e.Phase, e.Mechanic)));
     }
 
-    // No boss-appearance anchors: Chaos@451 fired the call before the real cast.
+    // No boss anchors: Chaos fired the call before the real cast.
     public static List<BossAnchor> BossAnchors() => new();
 }

@@ -32,7 +32,7 @@ public static class IkuyaTimelines
                               .OrderBy(p => p.Item2)
                               .ToList();
 
-    // Severity and buster flags measured from six kills, checked against six more.
+    // Severity and buster flags, measured from six kills.
     public static List<CustomRow> CustomRows(uint territory)
     {
         var rows = new List<CustomRow>();
@@ -52,8 +52,7 @@ public static class IkuyaTimelines
         {
             var action = e.Actions[idx];
             if (string.IsNullOrWhiteSpace(action)) continue;
-            // Alt-strat rows can repeat one call at the same instant (e.g. UWU's
-            // Primal I and III both list Sacred Soil for SCH); fire it once.
+            // Alt-strat rows can repeat one call in an instant, so fire once.
             if (!seen.Add((e.Time, action))) continue;
             list.Add(new MitLine { Time = e.Time, Mechanic = e.Mechanic, Action = action, Enabled = true });
         }
@@ -132,8 +131,7 @@ public static class IkuyaTimelines
         new() { Ability = 0x26E5, Time = 455.5f, IsPhase = false, Label = "P3 Heavensfall Trio" },
         new() { Ability = 0x26E6, Time = 516.7f, IsPhase = false, Label = "P3 Tenstrike Trio" },
         new() { Ability = 0x26E7, Time = 573.7f, IsPhase = false, Label = "P3 Grand Octet" },
-        // Both Thermionic Beams are fine-drift anchors, NOT phase anchors: Bahamut
-        // recasts this at ~5:54.
+        // Both Thermionic Beams are drift anchors, not phase anchors.
         new() { Ability = 0x26BD, Time = 692.8f, IsPhase = false, Label = "P4 Thermionic Beam (1st Quote)" },
         new() { Ability = 0x26BA, Time = 682.2f, IsPhase = true , Label = "P4 Megaflare I" },
         new() { Ability = 0x26BD, Time = 730.3f, IsPhase = false, Label = "P4 Thermionic Beam (2nd Quote)" },
@@ -186,8 +184,7 @@ public static class IkuyaTimelines
         new(678, "P4", "Ultima", new[]{"Reprisal + LB3","","","","Fey Illumination","","","Feint","","Addle"}, 3),
         new(688, "P4", "Aetheric Boom", new[]{"LB1","Reprisal","","","Sacred Soil","Kerachole","","","",""}),
         new(692, "P4", "Aetheroplasm", new[]{"","","","","","","","","",""}, 1),
-        // Ultima's three closing primals are random per slot, which is why the sheet
-        // numbers them.
+        // Ultima's closing primals are random, hence the numbering.
         new(730, "P4", "Primal I", new[]{"","Party Mit","","","Sacred Soil","Kerachole","","","",""}, 1),
         new(751, "P4", "Primal II", new[]{"","","Plenary Indulgence","Collective Unconscious","Spreadlo","Zoe Shields","","","Party Mit",""}, 1),
         new(769, "P4", "Primal III", new[]{"Party Mit","","","","Sacred Soil","Kerachole","","","",""}, 1),
@@ -211,7 +208,7 @@ public static class IkuyaTimelines
         new() { Ability = 0x2B8B, Time = 428.7f, IsPhase = true , Label = "P4 Ultima" },
         new() { Ability = 0x2B87, Time = 472.5f, IsPhase = true , Label = "P4 Tank Purge" },
         new() { Ability = 0x2B7A, Time = 485.9f, IsPhase = false, Label = "P4 Viscous Aetheroplasm" },
-        // Fine drift only: Garuda casts Mesohigh again at about 2:09 with no anchor.
+        // Fine drift only: Garuda recasts Mesohigh with no anchor.
         new() { Ability = 0x2B49, Time = 587.4f, IsPhase = false, Label = "P4 Mesohigh" },
         new() { Ability = 0x2B49, Time = 604.8f, IsPhase = false, Label = "P4 Mesohigh" },
         new() { Ability = 0x2B87, Time = 607.6f, IsPhase = false, Label = "P4 Tank Purge" },
@@ -219,8 +216,7 @@ public static class IkuyaTimelines
         new() { Ability = 0x2B87, Time = 666.6f, IsPhase = false, Label = "P4 Tank Purge" },
         new() { Ability = 0x2B8B, Time = 678.0f, IsPhase = false, Label = "P4 Ultima" },
         new() { Ability = 0x2B88, Time = 688.2f, IsPhase = false, Label = "P4 Aetheric Boom" },
-        // Same again: this one is also cast around 8:36, and as a phase anchor it
-        // pulled the clock three and a half minutes forward from there.
+        // Same again, and as a phase anchor it dragged the clock.
         new() { Ability = 0x2CD4, Time = 729.6f, IsPhase = false, Label = "P4 Primal I" },
     };
 

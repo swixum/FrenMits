@@ -10,14 +10,12 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Settings: one fight's editor - its cards for tank busters, sheet columns,
-// practice, potions, job extras and the advanced options.
+// Settings: one fight's editor and its cards.
 public partial class ConfigWindow
 {
     private bool DrawFightEditor(FightProfile fight)
     {
-        // Built-in fights (the ones shipped with the plugin) are locked, so only
-        // user-added fights can be renamed or deleted.
+        // Built-in fights are locked, so only user ones can change.
         if (IsOfficial(fight))
         {
             ImGui.AlignTextToFramePadding();
@@ -57,8 +55,7 @@ public partial class ConfigWindow
         return !DrawDeleteFightConfirm(fight);
     }
 
-    // Deleting a fight is the most destructive click in the plugin (a custom
-    // sheet can be hours of work), so it confirms and snapshots first.
+    // The most destructive click here, so it confirms first.
     private bool DrawDeleteFightConfirm(FightProfile fight)
     {
         var open = true;
@@ -89,27 +86,25 @@ public partial class ConfigWindow
         return confirmed;
     }
 
-    // Tank slots across every fight's slot list (MT/OT, or FRU's T1/T2).
+    // Tank slots across every fight's slot list.
     private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2" };
     private static bool IsTankSlot(string? slot)
         => slot != null && TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase);
 
-    // Tank-buster mit plan from the fight's sheet, shown only on a tank slot.
+    // The sheet's tank-buster plan, shown only on a tank slot.
     private void DrawTankSection(FightProfile fight)
     {
         if (!TankMits.Has(fight.TerritoryId)) return;
         if (!IsTankSlot(fight.Slot)) return;
-        // Check BEFORE BeginCard: returning between Begin/EndCard would leak the
-        // draw-list channel split + indent and corrupt the next card this frame.
+        // Check before BeginCard, or an early return corrupts the card.
         var comps = TankMits.Comps(fight.TerritoryId);
         if (comps.Length == 0) return;
 
-        // FRU's tank tabs come from its own sheet, not the Ikuya set the rest do.
+        // FRU's tank tabs come from its own sheet.
         var source = fight.TerritoryId == Builtin.FruTerritory ? "from the FRU sheet" : "from Ikuya";
         BeginCard(FontAwesomeIcon.ShieldAlt, ImGuiColors.TankBlue, "Tank busters", source);
         ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
-        // The pick is stored on the fight profile so it's remembered per fight
-        // across sessions (and per character config).
+        // Stored on the profile, so the pick is remembered per fight.
         var tankComp = Array.IndexOf(comps, fight.TankPairing);
         if (tankComp < 0) tankComp = 0;
         ImGui.SetNextItemWidth(140f);
@@ -153,7 +148,7 @@ public partial class ConfigWindow
     private Vector2 _cardTopLeft;
     private float _cardWidth;
 
-    // Begin an auto-height styled card; every BeginCard must be paired with EndCard.
+    // Begin a styled card; every BeginCard needs an EndCard.
     private void BeginCard(FontAwesomeIcon icon, Vector4 iconColor, string title, string subtitle = "")
     {
         ImGui.Spacing();
@@ -210,8 +205,7 @@ public partial class ConfigWindow
 
     private static string Mmss(float t) => Fmt.MmssFloor(t);
 
-    // Custom sheets: the same "Your slot" row the built-in fights get, so a
-    // custom fight reads exactly like an official one on its page.
+    // Custom sheets get the same Your slot row as built-ins.
     private void DrawCustomColumnRow(FightProfile fight)
     {
         var slots = fight.CustomSlots.ToArray();
@@ -219,12 +213,11 @@ public partial class ConfigWindow
         var idx = Array.FindIndex(slots, s => string.Equals(s, fight.Slot, StringComparison.OrdinalIgnoreCase));
 
         ImGui.SetNextItemWidth(170f);
-        // idx -1 (no column picked yet) shows an empty preview until they pick.
+        // No column picked yet shows an empty preview.
         if (ImGui.Combo("Your slot##customslot", ref idx, slots, slots.Length)
             && idx >= 0 && !string.Equals(slots[idx], fight.Slot, StringComparison.OrdinalIgnoreCase))
         {
-            // SetSlot parks the old column's lines; assigning here would alias two
-            // columns.
+            // SetSlot parks the old lines; assigning here would alias them.
             _plugin.SetSlot(fight, slots[idx]);
             _plugin.SheetViewWindow.MarkPlanDirty();
         }
@@ -251,7 +244,7 @@ public partial class ConfigWindow
 
     private void ClearCustomColumn(FightProfile fight, string slot)
     {
-        // Clear IN PLACE: Sheet View and SavedSlots share these list objects.
+        // Clear in place, since Sheet View shares these list objects.
         if (string.Equals(slot, fight.Slot, StringComparison.OrdinalIgnoreCase)) fight.Lines.Clear();
         if (fight.SavedSlots.TryGetValue(slot, out var saved)) saved.Clear();
     }
@@ -320,7 +313,7 @@ public partial class ConfigWindow
     private int _pracRowIdx;
     private readonly Dictionary<string, int> _pracRowIdxs = new(); // per fight; headers can co-exist
 
-    // Practice: one row of phase-jump buttons inside the fight it belongs to.
+    // Practice: a row of phase-jump buttons for this fight.
     private void DrawPracticeRow(FightProfile fight)
     {
         var phases = Builtin.PhaseStarts(fight.TerritoryId);
@@ -366,8 +359,7 @@ public partial class ConfigWindow
         }
     }
 
-    // Potions card: baked top-log windows, or the 2-minute burst meta for custom
-    // sheets.
+    // Potions: baked windows, or the 2-minute meta for customs.
     private void DrawPotionsSection(FightProfile fight)
     {
         var customPots = PotionTimings.BossSlug(fight.TerritoryId) == null
@@ -435,12 +427,12 @@ public partial class ConfigWindow
         EndCard();
     }
 
-    // Job-mitigation card: optional job-specific mit timers from logs.
+    // Job mitigation: optional job timers from logs.
     private void DrawJobExtrasSection(FightProfile fight)
     {
         var job = _plugin.ActiveJobAbbreviation();
         if (string.IsNullOrEmpty(job)) return; // also lets the compiler see job is non-null below
-        // Baked schedules for built-ins, or computed from a custom sheet's own rows.
+        // Baked for built-ins, computed from a custom sheet's rows.
         var extras = JobExtras.AllFor(fight, job);
         if (extras.Count == 0) return;
         var custom = JobExtras.For(fight.TerritoryId, job) == null; // no baked zone schedule -> from the sheet
@@ -459,8 +451,7 @@ public partial class ConfigWindow
 
             if (extra.Steps is { Length: > 0 } steps)
             {
-                // Sequence extra (SMN summons): each step is its own action, grouped
-                // into bursts.
+                // A sequence extra, where each step is its own action.
                 var names = steps.Select(s => s.Summon).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
                 var bursts = new List<List<(int Time, string Summon)>>();
                 foreach (var s in steps)
@@ -481,8 +472,7 @@ public partial class ConfigWindow
                             {
                                 Time = b[0].Time,
                                 Action = string.Join(" / ", b.Select(x => x.Summon)),
-                                // Spoken with commas so the burst reads cleanly ("Garuda,
-                                // Titan, Ifrit") instead of the slashes in the label.
+                                // Spoken with commas, so the burst reads cleanly.
                                 Tts = string.Join(", ", b.Select(x => x.Summon)),
                                 Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = true,
                             });
@@ -543,15 +533,14 @@ public partial class ConfigWindow
         EndCard();
     }
 
-    // Rarely-touched share / duplicate actions + zone & timing knobs, behind a
-    // collapsing header so the editor opens lean.
+    // Rarely-touched actions, folded so the editor opens lean.
     private void DrawAdvancedFightSettings(FightProfile fight)
     {
         if (!Section("Manage & advanced")) return;
         ImGui.Indent(10f);
 
         var locked = IsOfficial(fight);
-        if (!locked)  // duplicating a built-in would make a same-zone copy that's then locked
+        if (!locked)  // a duplicate built-in would be a locked same-zone copy
         {
             if (ImGui.Button("Duplicate"))
             {
@@ -561,13 +550,11 @@ public partial class ConfigWindow
                     TerritoryId = fight.TerritoryId,
                     Category = fight.Category,
                     TimerOffset = fight.TimerOffset,
-                    // The copy starts disabled: with both live the original would keep
-                    // winning the zone.
+                    // The copy starts disabled, or the original keeps the zone.
                     Enabled = false,
                     Slot = fight.Slot,
                     Lines = fight.Lines.Select(CloneLine).ToList(),
-                    // Deep-copy the rest too, or edits would bleed between the two
-                    // profiles.
+                    // Deep-copy the rest, or edits bleed between profiles.
                     SyncPoints = fight.SyncPoints.Select(s => new SyncPoint
                     { Ability = s.Ability, Time = s.Time, IsPhase = s.IsPhase, Label = s.Label }).ToList(),
                     BossAnchors = fight.BossAnchors.Select(b => new BossAnchor
@@ -596,8 +583,7 @@ public partial class ConfigWindow
         ImGui.BeginDisabled(locked); // a built-in's zone is fixed
         var territory = (int)fight.TerritoryId;
         ImGui.SetNextItemWidth(120f);
-        // Official-sheet zones are refused here: pointing a custom fight at one
-        // creates a duplicate that never fires (the built-in wins the zone).
+        // Official zones are refused, since the built-in wins them.
         if (ImGui.InputInt("Territory id", ref territory))
         {
             var target = (uint)Math.Max(0, territory);
@@ -622,8 +608,7 @@ public partial class ConfigWindow
         ImGui.Unindent(10f);
     }
 
-    // Reassign a fight's lines while keeping the active slot's saved copy in sync,
-    // so per-slot storage never goes stale after a sort / import.
+    // Reassign lines while keeping the saved slot copy in sync.
     private void SetFightLines(FightProfile fight, List<MitLine> lines)
     {
         fight.Lines = lines;

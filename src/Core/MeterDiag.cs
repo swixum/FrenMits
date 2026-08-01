@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// The meter's own rolling diag file, alive in any content with no pull needed.
+// The meter's rolling diag file, alive without a pull.
 public sealed class MeterDiag
 {
     private readonly List<string> _buf = new();
@@ -18,7 +18,7 @@ public sealed class MeterDiag
         if (_buf.Count > 2000) _buf.RemoveAt(0);
     }
 
-    // Called once a frame; writing waits so a busy fight batches its lines.
+    // Called once a frame; writes batch so a busy fight is cheap.
     public void Update()
     {
         if (_buf.Count == 0 || DateTime.UtcNow < _nextFlush) return;

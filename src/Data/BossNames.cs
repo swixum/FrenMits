@@ -6,7 +6,7 @@ namespace FrenMits;
 // Resolves boss display names to their BNpcName row id.
 public static class BossNames
 {
-    // Concurrent: a torn write would corrupt the table for the rest of the session.
+    // Concurrent, so a torn write can't corrupt the table.
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, uint> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
@@ -18,7 +18,7 @@ public static class BossNames
         uint id = 0;
         try
         {
-            // English: the anchors name their bosses in English (see GameSheets).
+            // English, since the anchors name their bosses in English.
             var sheet = GameSheets.English<Lumina.Excel.Sheets.BNpcName>();
             if (sheet != null)
                 foreach (var row in sheet)
@@ -30,8 +30,7 @@ public static class BossNames
         }
         catch (Exception ex)
         {
-            // Data not ready yet: return without caching so a later call
-            // retries, instead of pinning this name to 0 for the session.
+            // Don't cache a miss, so a later call can still retry.
             Service.Log?.Warning(ex, "FrenMits: BNpcName resolve failed");
             return 0;
         }

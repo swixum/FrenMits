@@ -4,8 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// One encounter's mitigation timeline, firing only when the player is in the
-// matching territory.
+// One encounter's mit timeline, fired inside its territory.
 [Serializable]
 public class FightProfile
 {
@@ -17,26 +16,22 @@ public class FightProfile
     // Sidebar group: "Ultimate", "Savage", "Extreme", "Raids", "Other".
     public string Category { get; set; } = "";
 
-    // Added on the cue clock (Plugin.CueClockFor), NOT the sheet clock, so it
-    // survives resync: + fires every call earlier, - later.
+    // Added on the cue clock, so it survives resync.
     public float TimerOffset { get; set; }
 
-    // The tank pairing picked in the Tank busters extras card (e.g. "WAR/DRK"),
-    // remembered per fight so the dropdown stays where you set it.
+    // The tank pairing picked for this fight, remembered.
     public string TankPairing { get; set; } = "";
 
     // The active slot's lines (what the overlay reads + the line table edits).
     public List<MitLine> Lines { get; set; } = new();
 
-    // Tombstones for sheet-baked lines the user deleted, so ApplySlot's top-up
-    // and the sheet re-bakes don't resurrect them.
+    // Tombstones for deleted lines, so a re-bake can't revive them.
     public List<DeletedCall> DeletedCalls { get; set; } = new();
 
-    // Per-mechanic notes shown in the Sheet View's footer strip (the in-game
-    // version of the Ikuya sheet's notes).
+    // Per-mechanic notes shown in the Sheet View footer.
     public List<SheetNote> Notes { get; set; } = new();
 
-    // The built-in sheet slot currently selected for this fight (e.g. "D1", "WHM").
+    // The built-in sheet slot selected for this fight.
     public string Slot { get; set; } = "";
 
     // Per-slot saved line sets, so each slot keeps its own edits.
@@ -45,32 +40,25 @@ public class FightProfile
     // Set once the built-in timeline has been auto-loaded for this profile.
     public bool AutoLoaded { get; set; }
 
-    // Resync anchors: when one of these abilities is cast, the timer snaps so
-    // the ability resolves at Time, correcting phase drift.
+    // Resync anchors: a cast of one snaps the timer onto Time.
     public List<SyncPoint> SyncPoints { get; set; } = new();
 
-    // Cast-free safety net: when a boss with this NameId first appears, the
-    // clock snaps to Time.
+    // Cast-free safety net: this boss appearing snaps the clock.
     public List<BossAnchor> BossAnchors { get; set; } = new();
 
-    // Timeline-only: an auto-generated boss timeline for a duty with no sheet
-    // (never saved to the config).
+    // An auto-generated timeline for a duty with no sheet.
     public bool TimelineOnly { get; set; }
 
-    // Custom sheets (non-builtin fights): the column layout of a user-made
-    // sheet.
+    // The column layout of a user-made sheet.
     public List<string> CustomSlots { get; set; } = new();
 
-    // Scaffold rows for custom sheets: mechanics that exist before anyone has
-    // written a mit into them (a row needs no lines to be plannable).
+    // Scaffold rows: mechanics that exist before any mit does.
     public List<CustomRow> CustomRows { get; set; } = new();
 
-    // Untargetable/downtime windows this fight owns (custom sheets): derived from
-    // an imported log's cast gaps, on the same pull clock as the rows/anchors.
+    // Downtime windows this fight owns, from an imported log.
     public List<DowntimeWindow> CustomDowntimes { get; set; } = new();
 
-    // Derived; ignored by the serializer so share codes and plan snapshots
-    // don't carry every line twice.
+    // Derived, and not serialized so codes don't carry lines twice.
     [Newtonsoft.Json.JsonIgnore]
     public IReadOnlyList<MitLine> OrderedLines
     {
@@ -85,8 +73,7 @@ public class FightProfile
             }
             if (_orderedSrc != lines || _orderedStamp != stamp)
             {
-                // OrderBy, not List.Sort: it's a STABLE sort, so lines sharing a
-                // time keep the order they were baked in, exactly as before.
+                // A stable sort, so lines sharing a time keep their order.
                 _ordered = lines.OrderBy(l => l.Time).ToList();
                 _orderedSrc = lines;
                 _orderedStamp = stamp;
@@ -117,7 +104,7 @@ public class CustomRow
     public float Time { get; set; }
     public string Mechanic { get; set; } = "";
 
-    // How hard the hit is unmitigated: 0 unknown, 1 light, 2 hurts, 3 deadly.
+    // How hard the hit is: 0 unknown, 1 light, 2 hurts, 3 deadly.
     public int Hurt { get; set; }
 
     // Tank buster: the hit lands on one tank or two, not the party.
@@ -129,8 +116,7 @@ public class CustomRow
     public bool ShouldSerializeEnrage() => Enrage;
 }
 
-// A note attached to one mechanic row on the sheet, matched by mechanic label +
-// nearby time (a bulk re-time moves it along with the row).
+// A note on one row, matched by mechanic and nearby time.
 [Serializable]
 public class SheetNote
 {
@@ -147,22 +133,20 @@ public class BossAnchor
     public string Label { get; set; } = "";
 }
 
-// A lull learned from a pull: at Start seconds into the fight the boss went
-// untargetable and stayed that way for Duration seconds.
+// A lull learned from a pull, with when it began and how long.
 [Serializable]
 public class DowntimeWindow
 {
     public float Start { get; set; }
     public float Duration { get; set; }
-    // The boss HP fraction the phase must be pushed below by Start (its DPS check).
+    // The boss health this phase must be pushed below by Start.
     public float TargetHp { get; set; } = -1f;
 
-    // Hardcoded-table only: this window's TIME is uncertain (cactbot couldn't pin
-    // it), so refine Start/Duration from live pulls.
+    // This window's time is uncertain, so refine it from pulls.
     [Newtonsoft.Json.JsonIgnore]
     public bool Learn { get; set; }
 
-    // This lull is an actual cutscene (not just a plain untargetable transition).
+    // This lull is an actual cutscene.
     public bool Cutscene { get; set; }
 }
 
@@ -175,8 +159,7 @@ public class SyncPoint
     public string Label { get; set; } = "";
 }
 
-// A single timeline call-out: at Time seconds into the fight, the listed Jobs
-// should use Action (for the Mechanic).
+// One call: at Time, these jobs should use this action.
 [Serializable]
 public class MitLine
 {
@@ -188,18 +171,16 @@ public class MitLine
     public List<string> Jobs { get; set; } = new();
     public bool Enabled { get; set; } = true;
 
-    // True for a line a user added themselves (not from a built-in sheet bake).
+    // True for a line the user added themselves.
     public bool Custom { get; set; }
 
     // Per-line offset on the CUE clock: + fires this one call earlier, - later.
     public float OffsetSeconds { get; set; }
 
-    // True when the offset was set BY HAND (the per-line offset slider), so the
-    // timing solver leaves it alone.
+    // True when set by hand, so the solver leaves it alone.
     public bool OffsetManual { get; set; }
 
-    // Multi-hit coverage: this call must still be ACTIVE at this plan time (the
-    // last hit it covers).
+    // Multi-hit coverage: still active at this plan time.
     public float CoverUntil { get; set; }
 
     // Where this call actually fires on the cue clock.
@@ -230,11 +211,10 @@ public class MitLine
 
     public bool AppliesTo(string? jobAbbr)
         => (Jobs.Count == 0 || (jobAbbr != null && JobListHas(jobAbbr)))
-           // Job gates written INSIDE the action text ("Party Mit (WAR/PLD)")
-           // also count: on a DRK that call is someone else's press.
+           // Job gates written inside the action text count too.
            && (string.IsNullOrEmpty(jobAbbr) || string.IsNullOrWhiteSpace(Action) || ActionFor(jobAbbr).Length > 0);
 
-    // Plain loop instead of LINQ Contains: this runs for every line, every frame.
+    // A plain loop, since this runs per line per frame.
     private bool JobListHas(string jobAbbr)
     {
         for (var i = 0; i < Jobs.Count; i++)
@@ -246,7 +226,7 @@ public class MitLine
     public string ActionFor(string? jobAbbr)
     {
         if (string.IsNullOrWhiteSpace(Action) || string.IsNullOrEmpty(jobAbbr)) return Action;
-        // Fast path: a gate is always a parenthetical, so no '(' means nothing to drop.
+        // Fast path: no parenthesis means no gate to drop.
         if (Action.IndexOf('(') < 0) return Action;
         List<string>? kept = null;
         var dropped = false;
@@ -261,8 +241,7 @@ public class MitLine
         return kept == null ? "" : string.Join(" + ", kept);
     }
 
-    // Derived from the master job table so a new job added there is recognized
-    // as a gate token here automatically - a second hand-kept list drifted.
+    // Derived from the job table, since a second list drifted.
     private static readonly HashSet<string> JobAbbrs = new(FrenMits.Jobs.Abbreviations, StringComparer.OrdinalIgnoreCase);
 
     private static bool SegmentAppliesTo(string segment, string job)
@@ -287,8 +266,7 @@ public class MitLine
         return true;
     }
 
-    // True when any segment of the action carries a job gate like "(WAR/PLD)",
-    // meaning the call belongs to specific jobs we may not be able to identify.
+    // True when any segment carries a job gate.
     public bool HasJobGate()
     {
         if (string.IsNullOrWhiteSpace(Action) || Action.IndexOf('(') < 0) return false;
@@ -300,8 +278,7 @@ public class MitLine
         return false;
     }
 
-    // The normalized job gate ("PLD/WAR") on the segment of `action` naming
-    // `mit`, or "" when that segment is ungated.
+    // The normalized gate on the segment naming that mit.
     public static string JobTagFor(string action, string mit)
     {
         foreach (var raw in action.Split('+'))
@@ -313,8 +290,7 @@ public class MitLine
         return "";
     }
 
-    // The segment's job gate, normalized (upper-cased, sorted, '/'-joined), or
-    // "" when its parentheticals aren't job lists.
+    // The segment's job gate, normalized, or "" when it has none.
     private static string JobGateOf(string segment)
     {
         var i = segment.IndexOf('(');
@@ -337,7 +313,7 @@ public class MitLine
         return "";
     }
 
-    // Derived from Time, so never written - same reason as CueTime.
+    // Derived from Time, so never written.
     [Newtonsoft.Json.JsonIgnore]
     public string TimeText
     {

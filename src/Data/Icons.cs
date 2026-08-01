@@ -17,8 +17,7 @@ public static class Icons
     private static List<(string Kw, uint Icon)>? _keywords;
     private static readonly Dictionary<string, uint> _textCache = new(StringComparer.OrdinalIgnoreCase);
 
-    // A "bucket" of friendly mechanic shorthand -> a game action/status name we
-    // resolve to an icon at runtime (no hard-coded ids, so it survives patches).
+    // Friendly shorthand to a game name we resolve at runtime.
     private static readonly Dictionary<string, string> KeywordNames = new(StringComparer.OrdinalIgnoreCase)
     {
         // Debuffs (Status sheet)
@@ -45,8 +44,7 @@ public static class Icons
         var list = new List<(string, uint)>();
         try
         {
-            // English, because the names indexed here are matched against the
-            // action text baked into our own sheets (see GameSheets).
+            // English, since these are matched against our own sheets.
             var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
             if (sheet != null)
             {
@@ -70,8 +68,7 @@ public static class Icons
         list.Sort((a, b) => b.Item1.Length - a.Item1.Length);
         _byLength = list;
 
-        // Status effects too: their names (Bind, Stun, Doom, Vulnerability Up, …)
-        // and icons make great auto-matches and picker results for mechanic text.
+        // Status effects too, whose names make good auto-matches.
         var sExact = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
         var sList = new List<(string, uint)>();
         try
@@ -97,8 +94,7 @@ public static class Icons
         _statusByLength = sList;
     }
 
-    // Resolve the keyword bucket once: map each shorthand to an icon via the
-    // action/status indices, dropping any that don't resolve on this client.
+    // Resolve the keyword bucket once, dropping what won't.
     private static void EnsureKeywords()
     {
         if (_keywords != null) return;
@@ -113,7 +109,7 @@ public static class Icons
         _keywords = list;
     }
 
-    // Icon for a known game name: exact action, exact status, then substring of each.
+    // Icon for a game name, exact first, then substring.
     private static uint NameIcon(string name)
     {
         if (_exact!.TryGetValue(name, out var a)) return a;
@@ -122,7 +118,7 @@ public static class Icons
         return sub != 0 ? sub : Substr(_statusByLength!, name);
     }
 
-    // Longest-first substring match over a name->icon index (names >= 4 chars).
+    // Longest-first substring match over a name index.
     private static uint Substr(List<(string Name, uint Icon)> index, string text)
     {
         foreach (var (name, ic) in index)
@@ -131,7 +127,7 @@ public static class Icons
         return 0;
     }
 
-    // A keyword-bucket match, at word level so short keys can't match inside a word.
+    // A keyword match, at word level so short keys behave.
     private static uint KeywordIcon(string text)
     {
         EnsureKeywords();
@@ -159,7 +155,7 @@ public static class Icons
         return set;
     }
 
-    // The resolved keyword bucket as (label, icon) for a quick palette in the picker.
+    // The keyword bucket as a quick palette for the picker.
     public static IEnumerable<(string Label, uint Icon)> Common()
     {
         EnsureKeywords();
@@ -169,19 +165,18 @@ public static class Icons
                 yield return (char.ToUpper(kw[0]).ToString() + kw.Substring(1), ic);
     }
 
-    // The icon a line should display: pinned, potion, job ability, else inferred.
+    // The icon a line shows: pinned, potion, job, else inferred.
     public static uint For(MitLine line, string? job = null)
     {
         if (line.IconId != 0) return line.IconId;
-        // Memoized per (action, mechanic, job): the overlays ask every frame.
+        // Memoized, since the overlays ask every frame.
         var key = (line.Action, line.Mechanic, job ?? "");
         if (_forCache.TryGetValue(key, out var cached)) return cached;
         uint icon;
         if (IsPotion(line)) icon = PotionIcon(PotionStat(line));
         else
         {
-            // Only your segments of a combined call: on a WAR, "Reprisal + Party Mit
-            // (GNB/DRK)" should icon as Reprisal, matching the filtered call text.
+            // Only your segments of a combined call.
             var action = line.ActionFor(job);
             var jm = JobMitIcon(action, job);
             icon = jm != 0 ? jm : ResolveFromText(action);
@@ -192,8 +187,7 @@ public static class Icons
 
     private static readonly Dictionary<(string Action, string Mech, string Job), uint> _forCache = new();
 
-    // Generic mit terms -> the per-job ability whose icon to show, so a single
-    // "Party Mit" line renders the right party-mitigation icon for whoever's looking.
+    // Generic mit terms to the per-job ability to show.
     private static readonly Dictionary<string, Dictionary<string, string>> JobMits =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -212,7 +206,7 @@ public static class Icons
                 ["WAR"] = "Nascent Flash", ["PLD"] = "Intervention",
                 ["DRK"] = "The Blackest Night", ["GNB"] = "Heart of Corundum",
             },
-            // Tank-buster generics (Auto-plan and the tank tabs speak these).
+            // Tank-buster generics the planner speaks.
             ["Short Mit"] = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["WAR"] = "Bloodwhetting", ["PLD"] = "Holy Sheltron",
@@ -225,7 +219,7 @@ public static class Icons
             },
         };
 
-    // The active job's ability for a generic mit term, honoring a job qualifier.
+    // The active job's ability for a generic mit term.
     private static string? ResolveMitAbility(string? action, string? job)
     {
         if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return null;
@@ -241,17 +235,15 @@ public static class Icons
         return null;
     }
 
-    // Icon for the active job's version of a generic mit term, or 0 if not applicable.
+    // Icon for the job's version of a generic term, or 0.
     public static uint JobMitIcon(string? action, string? job)
         => ResolveMitAbility(action, job) is { } a ? ResolveFromText(a) : 0u;
 
-    // Replace a generic mit term (and its job qualifier) in the action text with the
-    // active job's real ability name, so a call reads "Troubadour" not "Party Mit".
+    // Swap a generic term for the job's real ability name.
     public static string DisplayAction(string action, string? job)
     {
         if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return action;
-        // Memoized: the board calls this per row per frame, and the regex pass
-        // below is pure text work over (action, job).
+        // Memoized, since the board calls this per row per frame.
         var key = (action, job!);
         if (_displayCache.TryGetValue(key, out var cached)) return cached;
         var resolved = DisplayActionUncached(action, job);
@@ -276,13 +268,12 @@ public static class Icons
         return action;
     }
 
-    // A potion line (from the Potions section): action "Potion", or a "Potion (…)"
-    // mechanic, which has no player-action icon so it gets the item icon instead.
+    // A potion line, which gets the item icon instead.
     public static bool IsPotion(MitLine line)
         => line.Action.Trim().Equals("Potion", StringComparison.OrdinalIgnoreCase)
            || line.Mechanic.StartsWith("Potion", StringComparison.OrdinalIgnoreCase);
 
-    // The stat baked into a potion line's mechanic, e.g. "Potion (Strength)" -> Strength.
+    // The stat baked into a potion line's mechanic.
     private static string PotionStat(MitLine line)
     {
         var m = line.Mechanic;
@@ -290,12 +281,10 @@ public static class Icons
         return i >= 0 && j > i ? m.Substring(i + 1, j - i - 1).Trim() : "";
     }
 
-    // The stat-coloured Gemdraught icon for a line (Strength/Dexterity/Intelligence/
-    // Mind), public so the icon picker can pin the right one.
+    // The stat-colored Gemdraught icon for a line.
     public static uint PotionIconFor(MitLine line) => PotionIcon(PotionStat(line));
 
-    // Icon for a stat's Gemdraught, resolved from the Item sheet and cached per stat,
-    // falling back to any Gemdraught then 0 (e.g. a non-English client) so the caller draws none.
+    // A stat's Gemdraught icon, cached, falling back to 0.
     private static readonly Dictionary<string, uint> _potionIconByStat = new(StringComparer.OrdinalIgnoreCase);
     public static uint PotionIcon(string? stat = null)
     {
@@ -330,8 +319,7 @@ public static class Icons
         return icon;
     }
 
-    // Icons straight off the row id the combat log gave us, which beats
-    // matching on a name and survives anything a patch renames.
+    // Icons straight off the row id the combat log gave us.
     private static readonly Dictionary<uint, uint> _actionIcons = new();
     private static readonly Dictionary<uint, uint> _statusIcons = new();
 
@@ -369,7 +357,7 @@ public static class Icons
         if (_textCache.TryGetValue(text, out var cached)) return cached;
         EnsureBuilt();
 
-        // Priority: exact action, exact status, keyword bucket, then substrings.
+        // Priority: exact action, exact status, keyword, substring.
         var t = text.Trim();
         uint icon = 0;
         if (_exact!.TryGetValue(t, out var ax)) icon = ax;
@@ -419,8 +407,7 @@ public static class Icons
         if (string.IsNullOrWhiteSpace(query)) yield break;
         var n = 0;
         var seen = new HashSet<uint>();
-        // The client's own language first, so a non-English player can type what
-        // they actually see in game.
+        // Client language first, so you can type what you see.
         foreach (var (name, ic) in SearchIndex())
             if (name.Contains(query, StringComparison.OrdinalIgnoreCase) && seen.Add(ic))
             {
@@ -456,8 +443,7 @@ public static class Icons
         }
     }
 
-    // A clickable icon (image button) that returns true when clicked, falling back
-    // to an empty same-size button for ids with no icon.
+    // A clickable icon, falling back to an empty button.
     public static bool Button(uint iconId, Vector2 size, string id)
     {
         ImGui.PushID(id);

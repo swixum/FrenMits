@@ -6,8 +6,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The mit sheet in pocket form: the calls just fired and the next few coming,
-// each with +/- nudges for its per-call offset.
+// The sheet in pocket form, with nudges for each call.
 public class MiniSheetWindow : Window
 {
     private readonly Plugin _plugin;
@@ -69,8 +68,7 @@ public class MiniSheetWindow : Window
             return;
         }
 
-        // Live: the last two calls (the ones you just judged) plus the next
-        // five; idle: the plan from the top, for pre-pull tweaking.
+        // Live shows the calls around now, idle the plan from the top.
         var show = running
             ? lines.Where(l => l.CueTime <= elapsed).TakeLast(2)
                    .Concat(lines.Where(l => l.CueTime > elapsed).Take(5))
@@ -126,8 +124,7 @@ public class MiniSheetWindow : Window
         ImGui.TextDisabled(running ? "+ = earlier. Changes apply instantly." : "+ = earlier. Pull to see live countdowns.");
     }
 
-    // A nudge is a HAND-SET offset, so flag it manual - the auto cooldown timer
-    // must leave it alone.
+    // A nudge is hand-set, so the solver must leave it alone.
     private void Nudge(MitLine line, float delta)
     {
         line.OffsetSeconds = Math.Clamp(line.OffsetSeconds + delta, -30f, 30f);

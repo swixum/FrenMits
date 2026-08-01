@@ -4,29 +4,19 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Cooldown-aware offset solver: one press blankets the hits its buff can reach.
-//
-// All timing is in SNAPSHOT terms, the same physics the recap grades by. The
-// game locks each hit's damage in about SnapshotLead before it lands, and a
-// press takes about ApplyDelay to become a status on its targets - so a press
-// covers the hits whose snapshots fall inside its buff window, which runs from
-// press + ApplyDelay for the buff's duration. Two consequences the old solver
-// missed: a buff genuinely covers a hit landing slightly AFTER its naive end
-// (the snapshot came earlier), and a press closer to a hit than MinLead misses
-// that hit entirely no matter how long the buff lasts.
+// Cooldown-aware offset solver, timed in snapshot terms like the recap.
 public static class TimingSolver
 {
-    // Keep equal to what the recap grades with, or the plan and its grade
-    // disagree about the same press.
+    // Keep equal to the recap, or plan and grade disagree.
     private const float SnapshotLead = MitRecap.SnapshotLead;
-    // A press becomes a status on its targets about this much later.
+    // A press lands as a status about this much later.
     private const float ApplyDelay = 0.6f;
-    // How much buff has to be LEFT at the last covered hit's snapshot.
+    // How much buff must be left at the last covered snapshot.
     private const float Grace = 0.8f;
-    // The least a press may precede a hit and still be applied by its snapshot.
+    // The least a press may precede a hit and still apply.
     private const float MinLead = SnapshotLead + ApplyDelay;
 
-    // Time the active-slot lines against the given hit times, in place.
+    // Time the active-slot lines against the hit times, in place.
     public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes, float lead = 5f,
         Func<string, IEnumerable<Cooldowns.PlanMit>>? mitsFor = null)
     {
@@ -60,7 +50,7 @@ public static class TimingSolver
             var mits = mitsFor(line.Action).ToList();
             if (mits.Count == 0) continue;
 
-            // Only something with a real buff behind it can be pressed early.
+            // Only something with a real buff can be pressed early.
             var covering = mits.Where(m => m.Duration > 0f).ToList();
             if (covering.Count == 0)
             {
@@ -69,16 +59,13 @@ public static class TimingSolver
             }
 
             var dur = covering.Min(m => m.Duration);        // shortest buff bounds the reach
-            // How far past the press the last covered HIT may land: the buff's
-            // window shifted by the apply delay, read at snapshots, minus Grace.
+            // How far past the press the last covered hit may land.
             var reach = dur + ApplyDelay + SnapshotLead - Grace;
-            // How far apart a run's first and last hits may be. Tighter than
-            // reach: the press must ALSO precede the first hit by MinLead.
+            // How far apart a run's first and last hits may be.
             var span = MathF.Max(reach - MinLead, dur * 0.5f);
             var ready = mits.Max(m => readyAt.GetValueOrDefault(m.Name, -9999f)); // all its abilities must be up
 
-            // A press the user timed by hand: leave it, but book the hits its buff
-            // already covers so other presses don't double up on them.
+            // Leave a hand-timed press, but book the hits it covers.
             if (line.OffsetManual)
             {
                 var press0 = line.Time - line.OffsetSeconds;
@@ -90,7 +77,7 @@ public static class TimingSolver
             var iT = Nearest(line.Time);
             var T = hits[iT];
 
-            // Grow the run back to the earliest hit the buff reaches, then forward.
+            // Grow the run back to the earliest hit, then forward.
             int lo = iT, hi = iT;
             while (lo - 1 >= 0 && !covered[lo - 1]
                    && hits[hi] - hits[lo - 1] <= span
@@ -101,17 +88,13 @@ public static class TimingSolver
             var last = hits[hi];
             var readyFloor = MathF.Max(ready, 0f);
 
-            // Press as early as the cooldown allows while the buff still holds
-            // `margin` at the last hit's snapshot.
+            // Press as early as the cooldown allows, keeping margin.
             var margin = MathF.Min(lead, dur * 0.5f);
             var press = MathF.Max(readyFloor, last - reach + margin - Grace);
-            // ...but never so late it can't be applied by the FRONT hit's
-            // snapshot (the run's own hits start at hits[lo]).
+            // But never so late it misses the front hit's snapshot.
             if (press > hits[lo] - MinLead) press = MathF.Max(readyFloor, hits[lo] - MinLead);
 
-            // Write the offset when the press can really cover its own hit; a
-            // cooldown-pinned press right at readyFloor is written too - there
-            // is no earlier moment, and a breath late beats absent.
+            // Write the offset when the press can cover its own hit.
             if (press <= T + 0.01f && press + reach >= T - 0.01f)
             {
                 var newOff = MathF.Round((T - press) * 10f) / 10f;

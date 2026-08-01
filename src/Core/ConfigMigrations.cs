@@ -4,15 +4,14 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Every versioned config migration, run once at load in order.
+// Every versioned config migration, run once at load.
 public static class ConfigMigrations
 {
     public static void Run(IMigrationHost host)
     {
         var config = host.Config;
 
-        // v2: split the upcoming list into its own timeline window and switch the
-        // main call to the clean "Raidwide (3.3)" countdown shown 3s ahead.
+        // v2: split the upcoming list into its own timeline window.
         if (config.Version < 2)
         {
             config.HeadlineFormat = "{action} ({remaining})";
@@ -22,8 +21,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v3: assign sidebar categories: built-ins are ultimates, everything else
-        // starts in "Other".
+        // v3: assign sidebar categories to existing fights.
         if (config.Version < 3)
         {
             foreach (var f in config.Fights)
@@ -33,8 +31,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v4: per-pull diagnostics on by default (local only), flipped on once for
-        // existing profiles.
+        // v4: per-pull diagnostics on by default, local only.
         if (config.Version < 4)
         {
             config.Diagnostics = true;
@@ -42,8 +39,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v5: the Ikuya sheet had a big v3.0 mit rework, so rebake all built-in
-        // fights once to clear stale lines and start fresh on the new plan.
+        // v5: rebake every built-in after the sheet v3.0 rework.
         if (config.Version < 5)
         {
             host.ResetAllBuiltins();
@@ -51,8 +47,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v6: the legacy ultimate timelines (UCOB/UWU/TEA/DSR/TOP) were re-timed
-        // from real logs clears (the old cactbot-derived times were inflated 2-4x).
+        // v6: the legacy ultimates re-timed from real clears.
         if (config.Version < 6)
         {
             ResetDutyFights(config, f => IkuyaTimelines.Has(f.TerritoryId));
@@ -60,8 +55,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v7: Dancing Mad mits resynced to the Ikuya sheet v4.0 (action + timing
-        // overwrites, line splits, new rows) and WHM Asylum added from logs.
+        // v7: Dancing Mad resynced to sheet v4.0, plus WHM Asylum.
         if (config.Version < 7)
         {
             ResetDutyFights(config, f => f.TerritoryId == Builtin.DmuTerritory);
@@ -85,8 +79,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v10: ship the full sheet refresh to everyone - re-bake DMU to the latest
-        // baked timings (the smart merge keeps every custom line people added).
+        // v10: ship the full sheet refresh, keeping custom lines.
         if (config.Version < 10)
         {
             DmuRebake.SmartRebake(config);
@@ -94,8 +87,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v11: a deliberate one-time CLEAN reset of Dancing Mad to the sheet, wiping
-        // any custom lines too (to clear overlapping/stale data from earlier merges).
+        // v11: one-time clean reset of Dancing Mad to the sheet.
         if (config.Version < 11)
         {
             ResetDutyFights(config, f => f.TerritoryId == Builtin.DmuTerritory);
@@ -103,8 +95,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v12: force another clean reset of Dancing Mad for everyone so the newly
-        // re-timed sheet lands cleanly.
+        // v12: another clean reset so the re-timed sheet lands.
         if (config.Version < 12)
         {
             ResetDutyFights(config, f => f.TerritoryId == Builtin.DmuTerritory);
@@ -112,8 +103,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v13: hard reset Dancing Mad again so everyone is freshly baked from the
-        // current sheet (now that generic mits resolve to each job's icon).
+        // v13: hard reset again, now that generic mits resolve icons.
         if (config.Version < 13)
         {
             ResetDutyFights(config, f => f.TerritoryId == Builtin.DmuTerritory);
@@ -121,8 +111,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v14: hard reset Dancing Mad once more so the latest baked timeline is in
-        // for everyone (pairs with calls now showing each job's real ability name).
+        // v14: hard reset once more, for real ability names.
         if (config.Version < 14)
         {
             ResetDutyFights(config, f => f.TerritoryId == Builtin.DmuTerritory);
@@ -130,8 +119,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v15: normalize any em dash in stored fight names to a plain hyphen, which
-        // the game font otherwise renders as an empty box.
+        // v15: stored fight names lose the dash the game can't draw.
         if (config.Version < 15)
         {
             foreach (var f in config.Fights)
@@ -141,8 +129,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v16: Dancing Mad re-baked to the Ikuya sheet v5.0 (P3 Reprisal/Addle
-        // moves, P4 healer reshuffle, P5 Forsaken hits renamed and reassigned).
+        // v16: Dancing Mad re-baked to the sheet v5.0.
         if (config.Version < 16)
         {
             SnapshotDmu(host, "before the sheet v5.0 update");
@@ -160,8 +147,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v18: upgrade tank-buster and BRD/MNK/PLD job-mitigation lines users
-        // already added to the sheet v5.0 data, keeping edited lines.
+        // v18: added tank and job-mit lines upgraded to sheet v5.0.
         if (config.Version < 18)
         {
             SnapshotDmu(host, "before the v5.0 tank and job-mitigation update");
@@ -170,8 +156,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v19: the sheet's "Ultimate Embrance" typo (P2, 3:41) is now baked
-        // corrected as "Ultimate Embrace".
+        // v19: the sheet's P2 "Ultimate Embrance" typo is baked fixed.
         if (config.Version < 19)
         {
             SnapshotDmu(host, "before the Ultimate Embrace typo fix");
@@ -180,7 +165,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v20: migrate the old M12S placeholder zone (1320) to the real one (1327).
+        // v20: migrate the old M12S placeholder zone to the real one.
         if (config.Version < 20)
         {
             foreach (var f in config.Fights)
@@ -193,8 +178,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v21: force auto cooldown timing off once for existing configs (it shipped
-        // default-on in early builds, then became a big opt-in feature).
+        // v21: force auto cooldown timing off once for old configs.
         if (config.Version < 21)
         {
             config.AutoCooldownTiming = false;
@@ -202,8 +186,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v22: switch audio on for SMN summon cues already imported into a config
-        // (they shipped silent but now speak each call).
+        // v22: switch audio on for already-imported SMN summon cues.
         if (config.Version < 22)
         {
             var primals = new HashSet<string>(new[] { "Garuda", "Titan", "Ifrit" }, StringComparer.OrdinalIgnoreCase);
@@ -231,8 +214,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v23: the logs client secret moved to DPAPI-encrypted storage; pull
-        // any old plaintext value into the encrypted field and wipe the old key.
+        // v23: the logs client secret moved to encrypted storage.
         if (config.Version < 23)
         {
             config.MigrateFflogsSecret();
@@ -260,7 +242,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v26: drop repeat presses of a button that still has most of its recast left.
+        // v26: drop repeat presses that still have most of a recast.
         if (config.Version < 26)
         {
             foreach (var f in config.Fights)
@@ -284,7 +266,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v28: FRU's timeline was only the mit sheet, so the board had 31 rows.
+        // v28: FRU's timeline was only the mit sheet, so 31 rows.
         if (config.Version < 28)
         {
             foreach (var f in config.Fights)
@@ -295,7 +277,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v29: severity and tank-buster flags for the fights that had none.
+        // v29: severity and buster flags for the fights that had none.
         if (config.Version < 29)
         {
             foreach (var f in config.Fights)
@@ -308,7 +290,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v30: FRU's calls re-read off the official sheet, row by row.
+        // v30: FRU's calls re-read off the official sheet.
         if (config.Version < 30)
         {
             foreach (var f in config.Fights)
@@ -319,8 +301,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v31: the five legacy ultimates rebuilt, and their resync anchors
-        // fixed.
+        // v31: the five legacy ultimates rebuilt, anchors fixed.
         if (config.Version < 31)
         {
             foreach (var f in config.Fights)
@@ -334,8 +315,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v32: an official fight is named by Builtin, not by whatever it was
-        // called on the day it was added.
+        // v32: an official fight is named by Builtin.
         if (config.Version < 32)
         {
             foreach (var f in config.Fights)
@@ -348,8 +328,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v33: the anchor repairs, and the five Dancing Mad calls that moved
-        // with them.
+        // v33: the anchor repairs, and the DMU calls that moved.
         if (config.Version < 33)
         {
             RefreshBuiltins(config, Builtin.DmuTerritory, DmuRetimed);
@@ -357,8 +336,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v34: the same again for the rest of the roster, once every fight had
-        // been replayed against real kills rather than only the ultimates.
+        // v34: the same again for the rest of the roster.
         if (config.Version < 34)
         {
             RefreshBuiltins(config, Builtin.M2sTerritory, M2sRetimed);
@@ -374,7 +352,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v36: the meter tabs default to DPS / HPS; hand-renamed tabs stay.
+        // v36: meter tabs default to DPS and HPS; renames stay.
         if (config.Version < 36)
         {
             if (config.MeterTabNameDamage == "Damage") config.MeterTabNameDamage = "DPS";
@@ -383,8 +361,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v37: the meter's highlight, title and border became their own colors;
-        // seed them from whatever the look already used.
+        // v37: meter highlight, title and border became own colors.
         if (config.Version < 37)
         {
             config.MeterHighlightColor = config.MeterYouColor;
@@ -394,8 +371,7 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v38: drop downtime windows a profile derived for itself that the fight
-        // now ships correct versions of.
+        // v38: drop derived downtimes a fight now ships correctly.
         if (config.Version < 38)
         {
             foreach (var f in config.Fights) DropStaleDowntimes(f);
@@ -418,7 +394,7 @@ public static class ConfigMigrations
         }
     }
 
-    // A fight shipping log-verified windows drops a profile's derived copies.
+    // A fight's verified windows drop a profile's derived ones.
     public static int DropStaleDowntimes(FightProfile fight)
     {
         if (fight.CustomDowntimes.Count == 0) return 0;
@@ -428,8 +404,7 @@ public static class ConfigMigrations
         return dropped;
     }
 
-    // Hand every built-in fight the current anchor table and grades, and
-    // re-time one fight's saved calls onto rows that moved.
+    // Hand built-ins the current anchors, and re-time moved rows.
     private static void RefreshBuiltins(Configuration config, ushort retimed,
                                         (float Old, string Mechanic, float New)[] moves)
     {
@@ -454,7 +429,7 @@ public static class ConfigMigrations
         }
     }
 
-    // M2S rows re-timed in 1.0.0.374 (old time, mechanic, new time).
+    // M2S rows re-timed in 1.0.0.374.
     private static readonly (float Old, string Mechanic, float New)[] M2sRetimed =
     {
         (136f, "Loveseeker", 144f),
@@ -463,7 +438,7 @@ public static class ConfigMigrations
         (201f, "Killer Sting", 209f),
     };
 
-    // Dancing Mad rows re-timed in 1.0.0.373 (old time, mechanic, new time).
+    // Dancing Mad rows re-timed in 1.0.0.373.
     private static readonly (float Old, string Mechanic, float New)[] DmuRetimed =
     {
         (507f, "Ultima Blaster", 511f),
@@ -481,7 +456,7 @@ public static class ConfigMigrations
             yield return fight.SavedSlots[key];
     }
 
-    // A custom sheet whose duty has since become an official fight.
+    // A custom sheet whose duty has become an official fight.
     public static int AdoptSupersededSheets(Configuration config, Action<FightProfile, string>? snapshot = null)
     {
         var adopted = 0;
@@ -502,8 +477,7 @@ public static class ConfigMigrations
         return adopted;
     }
 
-    // The clean-reset shape shared by v6/v7/v11-v14: wipe the duty's saved slots
-    // and freshly bake the active one (or leave it for auto-load).
+    // The clean-reset shape shared by v6, v7 and v11 to v14.
     private static void ResetDutyFights(Configuration config, Func<FightProfile, bool> match)
     {
         foreach (var f in config.Fights)

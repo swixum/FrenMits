@@ -10,7 +10,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Settings: the per-call line table, where a fight's plan is edited row by row.
+// Settings: the per-call table where a plan is edited.
 public partial class ConfigWindow
 {
     private void DrawLineTable(FightProfile fight)
@@ -24,8 +24,7 @@ public partial class ConfigWindow
         ImGui.TextDisabled("(?)");
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Right-click a cell for more tools.");
 
-        // Deleted sheet calls are remembered (so updates can't re-add them); show
-        // that hidden state and offer the way back.
+        // Deleted sheet calls are remembered, so offer the way back.
         var dead = fight.DeletedCalls.Count(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
         if (dead > 0)
         {
@@ -42,8 +41,7 @@ public partial class ConfigWindow
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Restore this slot's deleted calls.");
         }
 
-        // Grow the table to fill what's left, leaving room for the import header
-        // underneath, so a freshly loaded sheet isn't cut off.
+        // Grow to fill, leaving room for the import header.
         var avail = ImGui.GetContentRegionAvail().Y;
         var tableH = MathF.Max(200f, avail - ImGui.GetFrameHeightWithSpacing() - 8f);
 
@@ -63,8 +61,7 @@ public partial class ConfigWindow
         ImGui.TableHeadersRow();
 
         MitLine? toDelete = null;
-        // Right-click line ops (paste / duplicate / move) mutate the list, so we
-        // capture them here and run them after the table loop, never mid-iteration.
+        // Line ops mutate the list, so run them after the loop.
         Action? deferred = null;
         for (var i = 0; i < fight.Lines.Count; i++)
         {
@@ -73,7 +70,7 @@ public partial class ConfigWindow
             ImGui.PushID(i);
 
             ImGui.TableNextColumn();
-            // Mit-type colour chip: faint tint on the left cell (party / tank / personal).
+            // Mit-type chip: a faint tint on the left cell.
             var chip = MitTypes.Color(MitTypes.Classify(line.Action, line.Mechanic), C);
             if (chip != 0)
                 ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (chip & 0x00FFFFFFu) | 0x55000000u, 0);
@@ -81,7 +78,7 @@ public partial class ConfigWindow
             if (GreenCheckbox("##on", ref on)) { line.Enabled = on; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); }
 
             ImGui.TableNextColumn();
-            // Edit time as m:ss, using a per-edit buffer so partial typing isn't lost.
+            // Edit time as m:ss, buffered so partial typing survives.
             var timeBuf = _editTimeLine == line ? _editTimeBuf : line.TimeText;
             ImGui.SetNextItemWidth(-1);
             if (ImGui.InputText("##time", ref timeBuf, 12)) _editTimeBuf = timeBuf;
@@ -119,7 +116,7 @@ public partial class ConfigWindow
                 ImGui.EndPopup();
             }
 
-            // Per-line offset: + fires just this call earlier (blank = none).
+            // Per-line offset, blank when there is none.
             ImGui.TableNextColumn();
             if (_editOffLine == line)
             {
@@ -192,8 +189,7 @@ public partial class ConfigWindow
             ImGui.SetNextItemWidth(-1);
             if (ImGui.InputText("##action", ref action, 256))
             {
-                // Tombstone here too, or editing the action first would record the
-                // mutated one.
+                // Tombstone here too, or the mutated line gets recorded.
                 PreserveBakedEdit(fight, line);
                 line.Action = action;
                 C.Save();
@@ -230,7 +226,7 @@ public partial class ConfigWindow
         deferred?.Invoke();
         if (toDelete != null)
         {
-            // Sheet-baked lines get a tombstone so a re-bake can't resurrect them.
+            // Baked lines get a tombstone, so a re-bake can't revive them.
             if (!toDelete.Custom && Builtin.Has(fight.TerritoryId) && !string.IsNullOrEmpty(fight.Slot))
             {
                 fight.DeletedCalls.Add(new DeletedCall
@@ -243,15 +239,14 @@ public partial class ConfigWindow
                 FlashBuiltin("Line deleted. It stays deleted; Restore (above the table) brings it back.");
             }
             fight.Lines.Remove(toDelete);
-            // Keep the slot's saved copy in step even right after a config reload,
-            // when Lines and SavedSlots hold separate list objects.
+            // Keep the saved copy in step after a config reload.
             if (!string.IsNullOrEmpty(fight.Slot))
                 fight.SavedSlots[fight.Slot] = fight.Lines;
             C.Save();
         }
     }
 
-    // Right-click line menu shared by the time / mechanic / action cells.
+    // Right-click menu shared by the editable cells.
     private void LineContextItems(FightProfile fight, MitLine line, int index, ref Action? deferred, ref MitLine? toDelete)
     {
         if (ImGui.MenuItem("Copy line")) _copiedLine = CloneLine(line);
@@ -299,11 +294,11 @@ public partial class ConfigWindow
         if (ImGui.MenuItem("Delete line")) toDelete = line;
     }
 
-    // Editing time or mechanic breaks a baked line's identity, so tombstone it first.
+    // An edit breaks a baked line's identity, so tombstone first.
     private static void PreserveBakedEdit(FightProfile fight, MitLine line)
         => Builtin.PreserveEdit(fight, fight.Slot, line);
 
-    // Copy every field of src onto target in place (used by "Paste over").
+    // Copy every field of src onto target in place.
     private static void OverwriteLine(MitLine target, MitLine src)
     {
         target.Time = src.Time;

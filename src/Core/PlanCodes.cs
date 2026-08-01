@@ -3,15 +3,13 @@ using System.Linq;
 
 namespace FrenMits;
 
-// FRENMITS share codes: a FightProfile serialized to a clipboard-friendly
-// string.
+// Share codes: a fight serialized to a pasteable string.
 public static class PlanCodes
 {
     public static string Encode(FightProfile fight)
     {
         var json = Newtonsoft.Json.JsonConvert.SerializeObject(fight);
-        // FRENMITS2 = gzip-compressed, so a full raid plan is a much shorter,
-        // paste-friendly code to share.
+        // FRENMITS2 is gzipped, so a raid plan pastes much shorter.
         var raw = System.Text.Encoding.UTF8.GetBytes(json);
         using var ms = new System.IO.MemoryStream();
         using (var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionLevel.Optimal))
@@ -19,15 +17,14 @@ public static class PlanCodes
         return "FRENMITS2:" + Convert.ToBase64String(ms.ToArray());
     }
 
-    // True when the text even looks like a plan code (either generation).
+    // True when the text looks like a code of either generation.
     public static bool LooksLikeCode(string? text)
     {
         var t = (text ?? "").Trim();
         return t.StartsWith("FRENMITS2:") || t.StartsWith("FRENMITS1:");
     }
 
-    // The pure half of Import: a plan code back into the fight it carries, or
-    // null when the text isn't a code or won't decode.
+    // A plan code back into its fight, or null when it won't decode.
     public static FightProfile? Decode(string? codeText)
     {
         try
@@ -54,8 +51,7 @@ public static class PlanCodes
         catch { return null; }
     }
 
-    // Decode a plan code and apply it; a same-territory code updates the profile in
-    // place.
+    // Decode and apply; a same-duty code updates in place.
     public static (FightProfile? Fight, bool IsNew, string Message) Import(Plugin plugin, string? clipboardText)
     {
         var config = plugin.Config;
@@ -66,22 +62,20 @@ public static class PlanCodes
 
             var fight = Decode(clipboardText);
             if (fight == null) return (null, false, "That plan code couldn't be read.");
-            // Codes from older versions carry MT/OT/D1-style names; standardize
-            // before matching so slots line up with the receiver's (normalized) data.
+            // Old codes carry legacy slot names, so standardize first.
             SlotNames.NormalizeFight(fight);
 
-            // A same-territory import updates the existing profile instead of adding a
-            // duplicate.
+            // A same-duty import updates instead of duplicating.
             var existing = fight.TerritoryId != 0
                 ? config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId)
                 : null;
             if (existing != null)
             {
                 plugin.Snapshots.Save(existing, $"before importing \"{fight.Name}\"");
-                // Slot-scoped: the import replaces the sender's active slot only.
+                // Slot-scoped: only the sender's active slot is replaced.
                 existing.Lines = fight.Lines;
                 existing.TimerOffset = fight.TimerOffset;
-                // Sheet notes merge, so an old code's empty list can't wipe yours.
+                // Notes merge, so an old code can't wipe yours.
                 foreach (var n in fight.Notes)
                 {
                     existing.Notes.RemoveAll(o =>
@@ -100,8 +94,7 @@ public static class PlanCodes
                 }
                 if (!Builtin.Has(existing.TerritoryId))
                 {
-                    // Custom fights carry their own anchors and layout; built-ins keep
-                    // the baked ones.
+                    // Custom fights carry their own anchors and layout.
                     existing.Name = fight.Name;
                     existing.SyncPoints = fight.SyncPoints;
                     existing.BossAnchors = fight.BossAnchors;

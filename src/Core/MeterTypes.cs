@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// One line of a player's breakdown: an ability, an enemy, or an incoming hit.
+// One breakdown line: an ability, an enemy, or a hit taken.
 public sealed class AbilityStat
 {
     public string Name = "";
@@ -14,7 +14,7 @@ public sealed class AbilityStat
     public int Dhs;
     public double Damage;
     public double Max;
-    // The action or status id behind the row, for its icon.
+    // The action or status behind the row, for its icon.
     public uint Id;
     public bool IsStatus;
     // Healing that landed on a full bar.
@@ -29,10 +29,10 @@ public sealed class AbilityStat
     public double OverPct => Raw > 0 ? Over * 100.0 / Raw : 0;
 }
 
-// How a pull finished, with Unknown for anything the plugin cannot vouch for.
+// How a pull finished, Unknown when it can't be vouched for.
 public enum PullEnd { Unknown, Kill, Wipe }
 
-// One thing that landed on a player shortly before they died.
+// One thing that landed shortly before a player died.
 public sealed class DeathHit
 {
     public string Name = "";
@@ -41,7 +41,7 @@ public sealed class DeathHit
     public bool Heal;
 }
 
-// One death: when it happened, what finished them, and the run-up to it.
+// One death, with the run-up to it.
 public sealed class DeathRecord
 {
     public string Name = "";
@@ -69,7 +69,7 @@ public sealed class MeterCombatant
     public double Hps;
     public double Healed;
     public string HealedPct = "";
-    // Damage their shields absorbed, already inside Healed on the parser's count.
+    // Absorbed by shields, already inside Healed.
     public double Shielded;
     public double OverhealPct;
     public double Taken;
@@ -77,7 +77,7 @@ public sealed class MeterCombatant
     public string MaxHit = "";
 }
 
-// One encounter from the parser's summary feed, plus the rDPS worked out here.
+// One parsed encounter, plus the rDPS worked out here.
 public sealed class MeterEncounter
 {
     public string Title = "";
@@ -90,15 +90,15 @@ public sealed class MeterEncounter
     public double TotalTaken;
     public int TotalDeaths;
     public double RaidRDps;
-    // How much of the boss was left when the pull closed, below zero if unread.
+    // Boss health left at the close, below zero if unread.
     public float BossLeft = -1f;
-    // The limit break action this pull used, for the icon on its row.
+    // The limit break this pull used, for its row icon.
     public uint LimitBreakAction;
     public PullEnd Ended = PullEnd.Unknown;
     public DateTime When = DateTime.Now;
     public List<MeterCombatant> Rows = new();
 
-    // Per-player breakdowns, banked when the pull finishes so history keeps them.
+    // Per-player breakdowns, banked when the pull finishes.
     public Dictionary<string, List<AbilityStat>> Dealt { get; }
         = new(StringComparer.OrdinalIgnoreCase);
 
@@ -117,7 +117,7 @@ public sealed class MeterEncounter
     public Dictionary<string, List<AbilityStat>> HealFrom { get; }
         = new(StringComparer.OrdinalIgnoreCase);
 
-    // Buff credit traded with the rest of the party, the two halves of rDPS.
+    // Buff credit traded with the party, the halves of rDPS.
     public Dictionary<string, List<AbilityStat>> Given { get; }
         = new(StringComparer.OrdinalIgnoreCase);
 
@@ -140,7 +140,7 @@ public sealed class MeterEncounter
             TotalTaken = Num(enc["damagetaken"]),
             TotalDeaths = (int)Num(enc["deaths"]),
         };
-        // The raw-seconds field beats re-parsing the pretty m:ss string.
+        // The raw-seconds field beats re-parsing the m:ss string.
         e.Seconds = (float)Num(enc["DURATION"]);
         if (e.Seconds <= 0f) e.Seconds = ParseMmss(e.Duration);
 
@@ -169,7 +169,7 @@ public sealed class MeterEncounter
                 };
                 row.Display = StripOwner(row.Name);
                 row.RDps = row.Dps;
-                // Real jobs and the limit break; the parser's oddments stay off.
+                // Real jobs and the limit break only.
                 var job = Jobs.ByAbbreviation(row.Job);
                 if (job == null && !IsLimitBreakName(row.Name)) continue;
                 row.LimitBreak = job == null;
@@ -179,14 +179,14 @@ public sealed class MeterEncounter
         return e;
     }
 
-    // The limit break combatant in every log language the game writes.
+    // The limit break name in every log language.
     public static bool IsLimitBreakName(string name)
         => name.Equals("Limit Break", StringComparison.OrdinalIgnoreCase)
            || name.Equals("リミットブレイク", StringComparison.Ordinal)
            || name.Equals("Limitrausch", StringComparison.OrdinalIgnoreCase)
            || name.Equals("Transcendance", StringComparison.OrdinalIgnoreCase);
 
-    // Drops the owner tail the parser adds to an owned ally ("G'raha Tia (YOU)").
+    // Drops the owner tail the parser adds to an ally.
     public static string StripOwner(string name)
     {
         if (!name.EndsWith(")", StringComparison.Ordinal)) return name;
@@ -194,7 +194,7 @@ public sealed class MeterEncounter
         return open > 0 ? name[..open] : name;
     }
 
-    // Parser numbers arrive as strings and can be "---", "∞" or carry a "%".
+    // Parser numbers arrive as strings and can be junk.
     private static double Num(JToken? tok)
     {
         var s = tok?.ToString();

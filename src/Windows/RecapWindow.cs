@@ -8,21 +8,18 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The Party Mit Recap as its own movable window, themed to match the config UI.
+// The Party Mit Recap as its own themed window.
 public class RecapWindow : Window
 {
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
-    // Whether the deaths chip has expanded every death row (per-row carets can
-    // still open and close them one at a time).
+    // Whether the deaths chip expanded every death row.
     private bool _deathsOpen;
-    // Which death rows are expanded, by time order; reset when the shown pull
-    // changes so one pull's clicks never open another pull's rows.
+    // Which death rows are open, reset when the pull changes.
     private readonly HashSet<int> _openDeaths = new();
     private Guid _deathsPull;
-    // Set by a click on a scrubber death marker (or the chip): scroll the
-    // deaths section into view on the frame it draws.
+    // Set by a scrubber click: scroll the deaths into view.
     private bool _scrollToDeaths;
 
     private void EnsureDeathState(MitRecap r)
@@ -73,8 +70,7 @@ public class RecapWindow : Window
 
         if (!r.HasData)
         {
-            // Empty state: say what will appear here and how to get it, and
-            // offer the sample so the window can be judged without a wipe.
+            // Empty state: say what appears here, and offer the sample.
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Accent), "No pull recorded yet");
             ImGui.Spacing();
@@ -94,7 +90,7 @@ public class RecapWindow : Window
             return;
         }
 
-        // ---- header: boss + wipe time, Copy on the right -------------------
+        // ---- header ----
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.Accent), string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName);
         if (r.CaptureElapsed > 0)
@@ -107,8 +103,7 @@ public class RecapWindow : Window
         if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text.");
 
-        // Pull history: the last few wipes stay browsable, newest first, so a
-        // fix can be checked against the pull it was made for.
+        // Pull history: the last few wipes stay browsable.
         if (r.History.Count > 1)
         {
             ImGui.Spacing();
@@ -133,7 +128,7 @@ public class RecapWindow : Window
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Newer pull");
         }
 
-        // At a glance: one chip per question a raid lead asks after a wipe.
+        // One chip per question a raid lead asks after a wipe.
         ImGui.Dummy(new Vector2(0, 2));
         var missed = r.NotSeen();
         Widgets.Chip("raid mits", $"{MitRecap.StandardRaidMits.Length - missed.Count}/{MitRecap.StandardRaidMits.Length}",
@@ -141,7 +136,7 @@ public class RecapWindow : Window
         ImGui.SameLine(0, 6);
         if (r.LastDeaths.Count > 0)
         {
-            // Clickable: expands every death below into its hit-by-hit detail.
+            // Clickable: expands every death into its detail.
             if (Widgets.ChipButton("deaths", r.LastDeaths.Count.ToString(), Theme.Danger, _deathsOpen))
             {
                 EnsureDeathState(r);
@@ -202,9 +197,7 @@ public class RecapWindow : Window
                 ImGui.TextColored(h.Missed ? Theme.V(Theme.Danger) : Theme.V(Theme.Warn), h.Mit);
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted), $"· {(int)h.Time / 60}:{(int)h.Time % 60:00} ·");
-                // The verdict is the row's payload; the diagnosed ones read in
-                // full ink so "fell off before the hit" can't fade into the
-                // timestamps around it.
+                // The verdict is the payload, so it reads in full ink.
                 var verdict = h.Why.Length > 0 ? h.Why : h.Missed ? "never went out" : $"{h.Delta:0}s late";
                 ImGui.SameLine(0, 4);
                 ImGui.TextColored(h.Why.Length > 0 ? Theme.V(Theme.TextBright) : Theme.V(Theme.Muted), verdict);
@@ -220,8 +213,7 @@ public class RecapWindow : Window
 
         DrawDeaths(r);
 
-        // Cooldowns that sat unused all pull - the most actionable line a
-        // raid lead can read after a wipe.
+        // Cooldowns that sat unused, the most actionable line here.
         if (r.Shown.Unused.Count > 0)
         {
             Widgets.SectionHeader("Left on the table");
@@ -237,8 +229,7 @@ public class RecapWindow : Window
                 ImGui.TextColored(Theme.V(Theme.Muted), $"+{r.Shown.Unused.Count - 4} more in Copy");
         }
 
-        // What was still running when the pull ended (skipped when nothing was up,
-        // so the section doesn't take space just to say "nothing").
+        // What was still running at the end, skipped when nothing was.
         if (r.Snapshot.Count > 0)
         {
             Widgets.SectionHeader("Still up at the end");
@@ -271,8 +262,7 @@ public class RecapWindow : Window
         var events = r.LastEvents();
         var party = r.LastParty;
         var fight = _plugin.ActiveFight();
-        // The pull being shown may be from another zone (wipe, then teleport
-        // out): its rows must not be grouped under THIS zone's mechanic names.
+        // The shown pull may be from another zone, so don't group it.
         if (fight != null && fight.TerritoryId != r.Territory) fight = null;
         if (ImGui.BeginTable("##recapwin", 3,
                 ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX,
@@ -312,8 +302,7 @@ public class RecapWindow : Window
                 var n = 0;
                 foreach (var e in group)
                 {
-                    // Three mits per visual line, then wrap inside the cell, so
-                    // heavy mechanics don't clip off the right edge.
+                    // Three mits a line, so heavy mechanics don't clip.
                     if (n > 0 && n % 3 != 0) { ImGui.SameLine(0, 2); ImGui.TextColored(Theme.V(Theme.Muted), " · "); ImGui.SameLine(0, 2); }
                     n++;
                     if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ih, ih)); ImGui.SameLine(0, 4); }
@@ -327,8 +316,7 @@ public class RecapWindow : Window
                     }
                     else if (e.Kind == MitTypes.Kind.Party && party.Count is > 1 and <= 8)
                     {
-                        // Coverage only for party-wide buffs, and only with a sane
-                        // 8-man denominator (alliance zones would read "8/24").
+                        // Coverage only for party buffs, and only on an 8-man count.
                         ImGui.SameLine(0, 4);
                         var full = e.Covered.Count >= party.Count;
                         ImGui.TextColored(full ? Theme.V(Theme.Good) : Theme.V(Theme.Warn),
@@ -339,8 +327,7 @@ public class RecapWindow : Window
                             ImGui.TextColored(Theme.V(Theme.Muted), $"{e.Mit} coverage:");
                             foreach (var name in party)
                             {
-                                // Check/cross via the icon font: the text font
-                                // has no glyph for either symbol.
+                                // Icon font, since the text font has neither glyph.
                                 var hit = e.Covered.Contains(name);
                                 var rowCol = hit ? Theme.V(Theme.Good) : Theme.V(Theme.Danger);
                                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
@@ -359,13 +346,11 @@ public class RecapWindow : Window
                     }
                 }
 
-                // Deaths land on the mechanic they happened during: usually the
-                // whole wipe story in one line.
+                // Deaths land on the mechanic they happened during.
                 var groupEnd = idx < events.Count ? events[idx].Time : float.MaxValue;
                 while (dIdx < deaths.Count && deaths[dIdx].Time < groupEnd)
                 {
-                    // Each death carries its story: how fast they dropped and
-                    // what they still had running (or that nothing was up).
+                    // Each death carries how fast they dropped and what was up.
                     var d = deaths[dIdx++];
                     using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                         ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
@@ -379,8 +364,7 @@ public class RecapWindow : Window
                     ImGui.TextColored(Theme.V(Theme.Muted), "· " + string.Join(" · ", story));
                 }
 
-                // The plan-vs-reality delta: what the sheet expected around this
-                // moment that never appeared (or only partially landed).
+                // What the sheet expected here that never appeared.
                 if (fight != null && fight.TerritoryId == r.Territory)
                 {
                     var delta = PlanDelta(fight, group, events, party, reported);
@@ -396,15 +380,14 @@ public class RecapWindow : Window
         }
     }
 
-    // What the plan expected near this moment that the recap never saw.
+    // What the plan expected near this moment but never saw.
 
     private string PlanDelta(FightProfile fight, List<MitRecap.MitEvent> group,
         List<MitRecap.MitEvent> events, List<string> party, HashSet<string> reported)
     {
         var t0 = group[0].Time;
 
-        // "Applied" looks beyond this group: a mit pressed early lands in the
-        // previous group but still satisfies this moment's plan.
+        // An early press lands in the previous group but still counts.
         var applied = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var e in events)
         {
@@ -438,18 +421,15 @@ public class RecapWindow : Window
         return string.Join("   ", parts);
     }
 
-    // Every slot's planned lines near a moment - the shared iterator in
-    // MitRecap, narrowed to a 9s window around the group.
+    // Every slot's planned lines in a short window around a group.
     private static IEnumerable<(string Slot, MitLine Line)> PlannedLinesNear(FightProfile fight, float time, string? myJob)
         => MitRecap.PlannedLines(fight, myJob).Where(x => MathF.Abs(x.Line.Time - time) < 9f);
 
-    // Two categorical lane colors, kept distinct from the coverage status hues
-    // and from each other under color blindness.
+    // Two lane colors, distinct from the status hues.
     private const uint LaneBoss = 0xFF3EA9D6u;  // #D6A93E gold - boss debuffs
     private const uint LaneParty = 0xFFA8B63Fu; // #3FB6A8 teal - party mits
 
-    // How long a mit's buff lasts (game data; a safe 15s when unknown), used to
-    // draw each active window and to sample coverage.
+    // How long a mit's buff lasts, a safe 15s when unknown.
     private static float MitDur(MitRecap.MitEvent e)
     {
         var d = Cooldowns.PlanInfo(e.Mit)?.Duration ?? 0f;
@@ -465,8 +445,7 @@ public class RecapWindow : Window
         _ => 0.05f,
     };
 
-    // Deaths as clickable rows: the headline story, expanding into the last
-    // hits that led in, each with what the player had up as it was delivered.
+    // Deaths as clickable rows, expanding into the last hits.
     private void DrawDeaths(MitRecap r)
     {
         if (r.LastDeaths.Count == 0) return;
@@ -482,8 +461,7 @@ public class RecapWindow : Window
             var rowTop = ImGui.GetCursorScreenPos();
             var rowWidth = MathF.Max(60f, ImGui.GetContentRegionAvail().X);
 
-            // The caret only reads out state; the WHOLE row is the button, so
-            // nobody has to hunt a tiny target after a wipe.
+            // The whole row is the button, not just the caret.
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(Theme.V(Theme.Muted),
                     (open ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight).ToIconString());
@@ -551,7 +529,7 @@ public class RecapWindow : Window
         }
     }
 
-    // The at-a-glance coverage chart: height and color both show how much was up.
+    // The coverage chart, where height and color both read.
     private void DrawScrubber(MitRecap r)
     {
         var evs = r.LastEvents();
@@ -592,8 +570,7 @@ public class RecapWindow : Window
         float X(float t) => left + Math.Clamp(t, 0f, dur) / dur * plotW;
         float Y(float c) => bandBot - c * bandH;
 
-        // Sample coverage once per pixel and normalize to the pull's own peak, so
-        // the curve always uses the full height regardless of absolute values.
+        // Sample per pixel and normalize to the pull's own peak.
         var samples = Math.Max(2, (int)plotW);
         var cs = new float[samples + 1];
         var peak = 0.25f;
@@ -605,8 +582,7 @@ public class RecapWindow : Window
         for (var g = 1; g <= 3; g++)
             dl.AddLine(new Vector2(left, bandTop + bandH * g / 4f), new Vector2(right, bandTop + bandH * g / 4f), 0x0EFFFFFFu, 1f);
 
-        // coverage area: a vertical-gradient fill (bright at the curve, fading to
-        // the baseline) under a crisp, slightly-brightened top stroke.
+        // Coverage area: a gradient fill under a crisp top stroke.
         for (var i = 0; i < samples; i++)
         {
             var x0 = left + (float)i / samples * plotW;
@@ -632,8 +608,7 @@ public class RecapWindow : Window
                 }
         }
 
-        // deaths: cluster close ones so labels never stack; red line + dot +
-        // label, and each is a link to its detail rows below the plan check
+        // Deaths: cluster close ones, so labels never stack.
         var clusters = new List<(float T, List<int> Idx, List<string> Names)>();
         if (hasDeaths)
         {
@@ -648,9 +623,7 @@ public class RecapWindow : Window
                 }
                 else clusters.Add((d.Time, new List<int> { i }, new List<string> { d.Name }));
             }
-            // A skull above each line, names in the hover tooltip: painted-on
-            // labels clamped to the right edge and read as a jumble when two
-            // deaths landed near the end of a pull.
+            // A skull per line with names in the tooltip, since labels jumble.
             foreach (var (ct, _, _) in clusters)
             {
                 var dx = X(ct);
@@ -672,7 +645,7 @@ public class RecapWindow : Window
             dl.AddText(new Vector2(X(t) + 2, axisY), Theme.Muted, $"{(int)t / 60}:{(int)t % 60:00}");
         }
 
-        // hover: a playhead, a marker dot riding the curve, and the tooltip
+        // Hover: a playhead, a marker on the curve, and the tooltip.
         if (hovered)
         {
             var t = Math.Clamp((ImGui.GetMousePos().X - left) / plotW * dur, 0f, dur);
@@ -683,8 +656,7 @@ public class RecapWindow : Window
             dl.AddCircle(new Vector2(cx, Y(cN)), 3.4f, 0xFFFFFFFFu);
             ScrubTooltip(r, evs, fight, t, cN);
 
-            // A death line under the cursor is a link: clicking opens that
-            // death's hit-by-hit rows and brings them into view.
+            // A death line under the cursor opens its detail rows.
             var mx = ImGui.GetMousePos().X;
             var near = clusters.FindAll(c => MathF.Abs(X(c.T) - mx) <= 8f);
             if (near.Count > 0)
@@ -702,8 +674,7 @@ public class RecapWindow : Window
         }
     }
 
-    // The hover read-out for one instant of the pull: time, mechanic, coverage,
-    // and exactly which mits were up (with icons), plus any death right here.
+    // The hover read-out for one instant of the pull.
     private void ScrubTooltip(MitRecap r, List<MitRecap.MitEvent> evs, FightProfile? fight, float t, float cov)
     {
         ImGui.BeginTooltip();
@@ -714,7 +685,7 @@ public class RecapWindow : Window
         var up = evs.Where(e => t >= e.Time && t < e.Time + MitDur(e))
             .Where(e => e.OnBoss || e.Kind == MitTypes.Kind.Party)
             .OrderByDescending(e => e.OnBoss).ToList();
-        // Qualitative read of the coverage at this instant (relative to the pull).
+        // Qualitative read of the coverage at this instant.
         var (word, wc) = up.Count == 0 ? ("nothing up", Theme.Danger)
             : cov >= 0.66f ? ("well covered", Theme.Good)
             : cov >= 0.33f ? ("partial cover", Theme.Warn)
@@ -743,7 +714,7 @@ public class RecapWindow : Window
         ImGui.EndTooltip();
     }
 
-    // Coverage score -> heat color: red (dry) through amber to green (held).
+    // Coverage score to heat color, red through amber to green.
     private static uint CovColor(float c)
     {
         c = Math.Clamp(c, 0f, 1f);
@@ -763,8 +734,7 @@ public class RecapWindow : Window
         return (Ch(24) << 24) | (Ch(16) << 16) | (Ch(8) << 8) | Ch(0);
     }
 
-    // The plan mechanic nearest this moment (within a window), so recap rows can
-    // group under the same names the calls used.
+    // The plan mechanic nearest this moment, within a window.
     private static string MechanicFor(FightProfile? fight, float time)
     {
         if (fight == null) return "";

@@ -18,8 +18,7 @@ public static class Swallowed
     private static readonly Dictionary<string, Site> _sites = new(StringComparer.Ordinal);
     private static readonly object _gate = new();
 
-    // How long a site stays quiet after logging, so a per-frame failure can't
-    // flood the log.
+    // How long a site stays quiet, so it can't flood the log.
     private static readonly TimeSpan Quiet = TimeSpan.FromMinutes(1);
 
     public static void Report(string site, Exception ex)
@@ -42,7 +41,7 @@ public static class Swallowed
 
     public readonly record struct Entry(string Site, int Count, DateTime First, DateTime Last, string Message);
 
-    // Everything that has failed this session, worst first, for the settings page.
+    // Everything that failed this session, worst first.
     public static List<Entry> All()
     {
         lock (_gate)
@@ -55,13 +54,11 @@ public static class Swallowed
         }
     }
 
-    // Lock-free so the settings header can ask every frame without paying for a
-    // lock, an allocation and a sort just to decide whether to draw a dot.
+    // Lock-free, so the header can ask this every frame.
     private static volatile int _distinctSites;
     public static bool Any => _distinctSites > 0;
 
-    // The worst offender only, so the header's dot costs one short lock rather
-    // than a list and a sort.
+    // The worst offender only, so the dot stays cheap.
     public static Entry Worst()
     {
         lock (_gate)

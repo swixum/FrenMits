@@ -17,7 +17,7 @@ public static class GameSheets
         }
         catch (Exception ex)
         {
-            // A client with no English data falls back to the local sheet.
+            // A client with no English data falls back to local.
             if (!_warned)
             {
                 _warned = true;

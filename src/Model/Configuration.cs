@@ -32,8 +32,7 @@ public class Configuration : IPluginConfiguration
     // The fight Sheet View last showed, so it reopens where you left off.
     public string LastSheetFightId { get; set; } = "";
 
-    // Show a tiny once-per-entry popup naming your slot for the duty's sheet
-    // (official or custom), with a picker to change it.
+    // A small once-per-entry popup naming your slot for the duty.
     public bool ShowSlotPopupOnEntry { get; set; }
 
     // Color Sheet View mits by type (party / tank / personal).
@@ -42,8 +41,7 @@ public class Configuration : IPluginConfiguration
     // Colorblind-safe status colors: an Okabe-Ito set in place of green/amber/red.
     public bool ColorblindMode { get; set; }
 
-    // Learned downtime lengths per territory (key = territory id as string): filled
-    // the first time you see each lull, then the timeline counts down to targetable.
+    // Learned downtime lengths per territory, keyed by id.
     public Dictionary<string, List<DowntimeWindow>> LearnedDowntimes { get; set; } = new();
 
     // Slot codes the user pinned in Sheet View (right-click a column header).
@@ -53,8 +51,7 @@ public class Configuration : IPluginConfiguration
     public string FflogsClientId { get; set; } = "";
     public string FflogsClientSecretEnc { get; set; } = "";
 
-    // Plaintext view of the secret for call sites: decrypts lazily (cached, so
-    // per-frame UI checks stay cheap) and re-encrypts on set.
+    // Plaintext view of the secret, decrypted lazily and cached.
     [Newtonsoft.Json.JsonIgnore]
     public string FflogsClientSecret
     {
@@ -77,13 +74,11 @@ public class Configuration : IPluginConfiguration
     private string _secretCache = "";
     private string? _secretCacheFor;
 
-    // Catches the old plaintext "FflogsClientSecret" key from pre-v23 configs
-    // so MigrateFflogsSecret can move it into the encrypted field.
+    // Catches the old plaintext key from pre-v23 configs.
     [Newtonsoft.Json.JsonProperty("FflogsClientSecret")]
     private string LegacyFflogsSecret { get; set; } = "";
 
-    // Move a pre-v23 plaintext secret into the encrypted slot; clears the old
-    // key either way.
+    // Move a pre-v23 plaintext secret into the encrypted slot.
     public bool MigrateFflogsSecret()
     {
         if (LegacyFflogsSecret.Length == 0) return false;
@@ -92,8 +87,7 @@ public class Configuration : IPluginConfiguration
         return true;
     }
 
-    // Built-in fight territories already auto-added to the list, so a newly
-    // shipped built-in shows up directly (no button) while a deleted one stays gone.
+    // Built-ins already auto-added, so a deleted one stays gone.
     public List<uint> SeededTerritories { get; set; } = new();
 
     // "Auto" follows your current job; otherwise a job abbreviation override.
@@ -149,8 +143,7 @@ public class Configuration : IPluginConfiguration
     // Board style: the countdown seconds on the right of each bar.
     public bool UpcomingBoardTimeText { get; set; } = true;
 
-    // Run a boss timeline in EVERY instanced duty, even without a sheet: the
-    // board lists the bosses' casts (no mits, no audio).
+    // Run a boss timeline in every duty, with no mits or audio.
     public bool UniversalTimelines { get; set; } = true;
 
     // Learn a boss's timeline from your own pulls where there's no baked one.
@@ -192,19 +185,16 @@ public class Configuration : IPluginConfiguration
     public Vector2 MitBarPosition { get; set; } = new(0.5f, 0.88f);
     public float MitBarFontSizePx { get; set; } = 18f;
 
-    // Food check: inside a duty, out of combat, warn when your food is missing
-    // or about to expire mid-pull.
+    // Food check: warn when your food is missing or about to go.
     public bool PrepCheckEnabled { get; set; }
     // Minutes of food left at which the warning starts.
     public float PrepCheckWarnMinutes { get; set; } = 4f;
     // Mid-fight "Potion is Available!" note when a used pot comes off recast.
     public bool PrepCheckPotion { get; set; }
-    // Speak each of the above once as it appears, using the voice from the Audio
-    // page.
+    // Speak each of these once, in the Audio page's voice.
     public bool PrepCheckTts { get; set; }
 
-    // Optional extras, ALL off by default: with every one of these false the
-    // check behaves exactly as it did when it shipped.
+    // Optional extras, all off so the check behaves as it shipped.
     public bool PrepCheckUseFightLength { get; set; }
     // Flag food whose every stat is a crafting one (raiding on crafter food).
     public bool PrepCheckWarnWrongFood { get; set; }
@@ -212,8 +202,7 @@ public class Configuration : IPluginConfiguration
     public bool PrepCheckWarnNq { get; set; }
     // Keep the food timer on screen even when there's nothing wrong.
     public bool PrepCheckAlwaysShowFood { get; set; }
-    // Also answer the in-game ready check, in combat and outside a duty included
-    // - the one moment somebody is actually asking whether you're ready.
+    // Also answer the in-game ready check, wherever you are.
     public bool PrepCheckOnReadyCheck { get; set; }
     // Count down to the pot being ready, rather than only saying so when it is.
     public bool PrepCheckPotCountdown { get; set; }
@@ -240,8 +229,7 @@ public class Configuration : IPluginConfiguration
     // Fren Meter: the parser-fed damage meter overlay with rDPS.
     public bool MeterEnabled { get; set; }
     public int MeterConnection { get; set; }             // 0 auto, 1 in-process parser, 2 WebSocket
-    // Hidden: the parser decides what a fight is, and this stays only so a
-    // split fight can be restitched by hand from the config file.
+    // Hidden, so a split fight can be restitched by hand.
     public bool MeterStitchSegments { get; set; }
     public string MeterSocketAddress { get; set; } = "ws://127.0.0.1:10501/ws";
     public bool MeterLocked { get; set; }
@@ -249,8 +237,7 @@ public class Configuration : IPluginConfiguration
     public Vector2 MeterPosition { get; set; } = new(0.8f, 0.72f);
     public Vector2 MeterSize { get; set; } = new(360f, 300f);
     public int MeterMode { get; set; }                   // 0 damage, 1 healing, 2 taken, 3 deaths
-    // Replace, or the loader appends the saved list into these seeded defaults
-    // and every reload doubles the columns.
+    // Replace, or a reload appends into the seeded defaults.
     [Newtonsoft.Json.JsonProperty(ObjectCreationHandling = Newtonsoft.Json.ObjectCreationHandling.Replace)]
     public List<string> MeterColumns { get; set; } = new() { "rdps", "dps", "dmgpct" };
 
@@ -258,8 +245,7 @@ public class Configuration : IPluginConfiguration
     [Newtonsoft.Json.JsonProperty(ObjectCreationHandling = Newtonsoft.Json.ObjectCreationHandling.Replace)]
     public List<string> MeterHealColumns { get; set; } = new() { "hps", "healpct", "dshield", "overheal" };
 
-    // Repairs a column list a pre-fix load doubled up: the last copy of each
-    // key is the saved one, so keeping it preserves the user's order.
+    // Repairs a doubled column list, keeping the saved order.
     public static bool DedupeMeterColumns(List<string> cols)
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -353,15 +339,13 @@ public class Configuration : IPluginConfiguration
     // Radial countdown ring around the call icon.
     public bool ShowRadialRing { get; set; } = true;
 
-    // Cooldown-aware calls: read your real recast and warn on a call when the mit
-    // won't be ready in time.
+    // Cooldown-aware calls: warn when a mit won't be ready.
     public bool CooldownAwareCalls { get; set; }
 
     // Auto cooldown timing: run the offset solver on zone-in and slot change.
     public bool AutoCooldownTiming { get; set; }
 
-    // Prep press-window text: when a solved press fires early to stay up for a
-    // later mechanic, add a "(use between X and Y)" line under the main call.
+    // Press-window text under a call solved to fire early.
     public bool PrepAlerts { get; set; }
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;
@@ -369,23 +353,20 @@ public class Configuration : IPluginConfiguration
     // Server-info (DTR) bar entry showing the next mit.
     public bool ShowDtrBar { get; set; } = true;
 
-    // Write a per-pull diagnostics file (resync + cue events) to the plugin's
-    // diagnostics/ folder.
+    // Write a per-pull diagnostics file to the plugin folder.
     public bool Diagnostics { get; set; } = true;
 
     // Resync: snap the pull-clock when known boss casts happen.
     public bool EnableSync { get; set; } = true;
     public float SyncWindowSeconds { get; set; } = 8f;        // backward window, mechanic anchors (fine drift)
     public float SyncPhaseWindowSeconds { get; set; } = 60f;  // backward window, phase anchors (re-base)
-    // Forward window, like cactbot's wide sync windows: how far AHEAD of the clock
-    // an anchor may be and still snap onto it.
+    // Forward window: how far ahead an anchor may still snap.
     public float SyncForwardWindowSeconds { get; set; } = 2000f;
 
     // Start the clock on the party's countdown instead of the combat flag.
     public bool StartOnCountdown { get; set; } = true;
 
-    // Which sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4/Extras) the baked DMU
-    // timeline was last loaded for, for display.
+    // Which sheet slot the baked DMU timeline last loaded, for display.
     public string DmuSlot { get; set; } = "";
 
     // Audio cues (text-to-speech).
@@ -399,7 +380,7 @@ public class Configuration : IPluginConfiguration
     public string TtsEdgeVoice { get; set; } = "en-US-AriaNeural";
     // Any Edge voice id may override (e.g. "en-US-AvaMultilingualNeural").
     public string TtsCustomVoice { get; set; } = "";
-    // Speak the mechanic name instead of the action (unless a per-line override is set).
+    // Speak the mechanic instead of the action.
     public bool TtsSpeakMechanic { get; set; }
     // Minimum seconds between any two spoken cues (0 = no limit).
     public float TtsMinGapSeconds { get; set; }
@@ -408,12 +389,10 @@ public class Configuration : IPluginConfiguration
     public bool OverlayLocked { get; set; }
     public Vector2 OverlayPosition { get; set; } = new(0.5f, 0.35f); // fractions of the screen
 
-    // The config existed but wouldn't load: work from defaults but never write them
-    // back.
+    // The config wouldn't load, so use defaults and never write.
     public static bool SuppressSave;
 
-    // When the config last hit disk, so the UI can show a truthful live status
-    // ("All changes saved · 3s ago") instead of a ceremonial Save button.
+    // When the config last hit disk, for a truthful saved status.
     public static DateTime LastSavedAt { get; private set; } = DateTime.MinValue;
 
     // Settings AND plans.
@@ -426,8 +405,7 @@ public class Configuration : IPluginConfiguration
     // Bumped on every save, so watchers can skip work when nothing has changed.
     public static int SaveTick { get; private set; }
 
-    // Settings only, for paths that provably cannot have touched a plan - the
-    // config window's toggles and the overlays' drag-to-move.
+    // Settings only, for paths that cannot have touched a plan.
     public void SaveSettings()
     {
         if (SuppressSave) return;

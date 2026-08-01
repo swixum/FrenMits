@@ -6,8 +6,7 @@ using Dalamud.Interface.ManagedFontAtlas;
 
 namespace FrenMits;
 
-// Builds crisp font handles for the overlay, each (family, style, size) built
-// once and cached.
+// Overlay font handles, one per family, style and size.
 public class FontManager : IDisposable
 {
     private sealed class Entry
@@ -22,14 +21,13 @@ public class FontManager : IDisposable
     private readonly List<(IFontHandle Handle, long Frame)> _retired = new();
     private long _frame;
 
-    // Headroom, not a working set: steady state is about seven handles.
+    // Headroom, since steady state is about seven handles.
     private const int MaxHandles = 32;
 
-    // Frames a handle sits retired before it's really disposed.
+    // Frames a handle sits retired before disposal.
     private const int RetireFrames = 3;
 
-    // Selectable families -> (regular, bold, italic, bold-italic) filenames in the
-    // Windows Fonts folder.
+    // Family to its regular, bold and italic filenames.
     private static readonly Dictionary<string, (string Reg, string? Bold, string? Ital, string? BoldItal)> Families = new()
     {
         ["Segoe UI"]        = ("segoeui.ttf", "segoeuib.ttf", "segoeuii.ttf", "segoeuiz.ttf"),
@@ -44,11 +42,10 @@ public class FontManager : IDisposable
         ["Impact"]          = ("impact.ttf",  null,           null,           null),
     };
 
-    // For the Display-tab dropdown.
+    // For the Display tab's dropdown.
     public static readonly string[] FamilyNames = new[] { "Default" }.Concat(Families.Keys).ToArray();
 
-    // Sizes snap to a 2px grid so a slider nudge reuses a handle instead of
-    // building a new one on every notch.
+    // Sizes snap to 2px so a slider nudge reuses a handle.
     public static int SnapPx(float sizePx) => (int)MathF.Round(Math.Clamp(sizePx, 8f, 160f) / 2f) * 2;
 
     private static string? ResolveFile(string family, bool bold, bool italic)
@@ -75,8 +72,7 @@ public class FontManager : IDisposable
             ? null
             : ResolveFile(family, bold, italic)) ?? "";
 
-    // Once per frame: age the retirement list and actually dispose what's old
-    // enough.
+    // Once per frame: age the retirement list and dispose.
     public void Tick()
     {
         _frame++;
@@ -102,7 +98,7 @@ public class FontManager : IDisposable
             return hit.Handle;
         }
 
-        // Full: retire the least recently used ONE, not the whole cache.
+        // Full: retire the least recently used one.
         if (_entries.Count >= MaxHandles)
         {
             var oldest = "";
@@ -133,8 +129,7 @@ public class FontManager : IDisposable
         }
     }
 
-    // The closest handle that is ACTUALLY ready, for the frames before the
-    // exact one finishes building.
+    // The closest ready handle, while the exact one builds.
     public (IFontHandle Handle, int Px)? Nearest(float sizePx, string family, bool bold, bool italic)
     {
         var want = SnapPx(sizePx);
@@ -154,7 +149,7 @@ public class FontManager : IDisposable
         return best == null ? null : (best, bestPx);
     }
 
-    // Build the sizes that are actually configured, before anything draws them.
+    // Build the configured sizes before anything draws them.
     public void WarmIfNeeded(Configuration c)
     {
         var stamp = $"{c.OverlayFontFamily}|{c.OverlayFontBold}|{c.OverlayFontItalic}|"
@@ -165,19 +160,18 @@ public class FontManager : IDisposable
         if (string.Equals(stamp, _warmStamp, StringComparison.Ordinal)) return;
         _warmStamp = stamp;
 
-        // Every overlay that pushes a font, at the size it's set to right now.
+        // Every overlay that pushes a font, at its current size.
         Get(c.OverlayFontSizePx, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.UpcomingFontSizePx, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.MitBarFontSizePx, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.PrepCheckFontSizePx, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.CombatTimerFontSizePx, c.CombatTimerFontFamily, c.CombatTimerFontBold, c.CombatTimerFontItalic);
-        // The call overlay's secondary text is a fixed fraction of its own size.
+        // The secondary text is a fraction of the overlay size.
         Get(c.OverlayFontSizePx * 0.5f, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
         Get(c.OverlayFontSizePx * 0.55f, c.OverlayFontFamily, c.OverlayFontBold, c.OverlayFontItalic);
     }
 
-    // The scale to draw at when the handle we WANT isn't ready and we're
-    // borrowing one built at another size.
+    // The scale to draw at when borrowing another size.
     public static float Correction(int wantPx, int havePx)
     {
         if (havePx <= 0 || wantPx <= 0) return 1f;

@@ -15,11 +15,10 @@ public enum JobRole
 
 public readonly record struct JobInfo(uint RowId, string Abbreviation, string Name, JobRole Role);
 
-// Static job table keyed by ClassJob RowId so we never depend on Lumina row
-// shape changing between game patches.
+// Static job table keyed by row id, not by Lumina shape.
 public static class Jobs
 {
-    // Backed by an array so the lookups below don't box an enumerator.
+    // An array, so the lookups don't box an enumerator.
     private static readonly JobInfo[] Table =
     {
         new(19, "PLD", "Paladin", JobRole.Tank),

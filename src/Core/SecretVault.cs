@@ -4,8 +4,7 @@ using System.Text;
 
 namespace FrenMits;
 
-// Encrypts small secrets with Windows DPAPI (current-user scope) so they never
-// sit on disk in plaintext.
+// Encrypts small secrets so they never sit on disk in plaintext.
 internal static class SecretVault
 {
     [StructLayout(LayoutKind.Sequential)]
@@ -23,11 +22,10 @@ internal static class SecretVault
     // Never pop a system prompt from inside the game.
     private const int UiForbidden = 0x1;
 
-    // App-specific entropy: not a secret, just keeps generic DPAPI blobs from
-    // other apps (and ours from them) from cross-decrypting by accident.
+    // App entropy, so blobs can't cross-decrypt with other apps.
     private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("FrenMits.SecretVault.v1");
 
-    // Plaintext -> base64 ciphertext ("" stays "").
+    // Plaintext to base64 ciphertext.
     public static string Protect(string? plain)
     {
         if (string.IsNullOrEmpty(plain)) return "";
@@ -39,7 +37,7 @@ internal static class SecretVault
         catch { return ""; }
     }
 
-    // Base64 ciphertext -> plaintext.
+    // Base64 ciphertext back to plaintext.
     public static string Unprotect(string? cipher)
     {
         if (string.IsNullOrEmpty(cipher)) return "";
@@ -74,7 +72,7 @@ internal static class SecretVault
         {
             Marshal.FreeHGlobal(inPtr);
             Marshal.FreeHGlobal(entPtr);
-            // DPAPI allocates the output; the docs say free it with LocalFree.
+            // The docs say free the output with LocalFree.
             if (outBlob.Data != IntPtr.Zero) LocalFree(outBlob.Data);
         }
     }

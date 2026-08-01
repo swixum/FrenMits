@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Fren Meter share codes: the meter's whole look and layout in one string.
+// Fren Meter share codes: look and layout in one string.
 public static class MeterProfile
 {
     private const string Prefix = "FMMETER1.";

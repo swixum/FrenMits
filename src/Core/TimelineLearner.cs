@@ -12,8 +12,7 @@ public class LearnedFight
     public string BossName { get; set; } = "";
     public uint Territory { get; set; }
 
-    // How many pulls have fed this, so a fresh measurement is weighted against
-    // everything already learned instead of overwriting it.
+    // How many pulls fed this, so new data is weighted in.
     public int Pulls { get; set; }
     public DateTime LastSeen { get; set; }
 
@@ -30,21 +29,17 @@ public class LearnedCast
 
 public static class TimelineLearner
 {
-    // A boss can't be learned from a pull that barely started, and no fight needs
-    // more rows than this on a board.
+    // Floor and ceiling for what a pull can teach.
     private const int MinCasts = 4;
     private const int MaxCasts = 220;
 
-    // Two casts of one ability closer together than this are the same mechanic
-    // ticking, not two rows worth showing.
+    // Two casts closer than this are one mechanic ticking.
     private const float RepeatWindow = 3f;
 
-    // How far apart two pulls may place the same cast and still be considered
-    // the same moment.
+    // How far two pulls may differ and still mean one moment.
     private const float MatchWindow = 8f;
 
-    // Turn one pull's raw enemy casts into timeline rows: drop autos and
-    // unnamed abilities, collapse rapid repeats, keep them in time order.
+    // One pull's raw casts turned into timeline rows.
     public static List<LearnedCast> Distill(IEnumerable<(uint Ability, float Time, string Name)> casts)
     {
         var result = new List<LearnedCast>();
@@ -53,7 +48,7 @@ public static class TimelineLearner
             if (ability == 0 || time < 0f || !float.IsFinite(time)) continue;
             if (string.IsNullOrWhiteSpace(name)) continue;
             if (string.Equals(name, "attack", StringComparison.OrdinalIgnoreCase)) continue;
-            // Same ability again within a breath: one mechanic, one row.
+            // Same ability within a breath: one mechanic, one row.
             if (result.Count > 0)
             {
                 var last = result[^1];
@@ -71,7 +66,7 @@ public static class TimelineLearner
         if (fresh.Count == 0) return false;
 
         var changed = false;
-        // Capped, or a boss retuned in a patch would effectively never be re-learned.
+        // Capped, or a retuned boss would never be re-learned.
         var weight = MathF.Min(MathF.Max(1, into.Pulls), 8f);
         var searchFrom = 0;
 
@@ -92,18 +87,18 @@ public static class TimelineLearner
                 var s = into.Casts[matched];
                 var blended = MathF.Round((s.Time * weight + f.Time) / (weight + 1f), 1);
                 if (MathF.Abs(blended - s.Time) > 0.05f) { s.Time = blended; changed = true; }
-                // Names can arrive blank if the action sheet wasn't ready.
+                // Names arrive blank if the action sheet wasn't ready.
                 if (s.Name.Length == 0 && f.Name.Length > 0) { s.Name = f.Name; changed = true; }
                 searchFrom = matched + 1;
             }
             else if (into.Casts.Count == 0 || f.Time > into.Casts[^1].Time + MatchWindow)
             {
-                // Past everything known: this pull got further than any before it.
+                // This pull got further than any before it.
                 into.Casts.Add(new LearnedCast { Time = f.Time, Ability = f.Ability, Name = f.Name });
                 searchFrom = into.Casts.Count;
                 changed = true;
             }
-            // Anything else is a cast the boss only does sometimes, so leave it out.
+            // A cast the boss only sometimes does stays out.
         }
 
         if (changed || fresh.Count > 0)
@@ -116,17 +111,15 @@ public static class TimelineLearner
         return changed;
     }
 
-    // ---- segmenting a pull ------------------------------------------------
-    // One captured "pull" is not one fight.
+    // ---- segmenting a pull ----
 
-    // A boss fight that produced almost nothing isn't a fight worth learning -
-    // it's a trash pack, or someone pulling and immediately wiping.
+    // A pull that produced almost nothing isn't a fight.
     private const float MinEngagementSeconds = 40f;
     private const int MinDistinctAbilities = 3;
 
     public readonly record struct PullCast(uint Ability, float Time, string Name, uint CasterNameId);
 
-    // The boss's own slice of a captured pull, rebased to start at zero.
+    // The boss's own slice of a capture, rebased to zero.
     public static List<LearnedCast> Segment(IEnumerable<PullCast> casts, uint bossNameId,
         bool requireEngagement = true)
     {
@@ -143,7 +136,7 @@ public static class TimelineLearner
 
         if (requireEngagement)
         {
-            // Long enough, and varied enough, to be a boss rather than a trash pack.
+            // Long and varied enough to be a boss, not trash.
             if (engaged[^1].Time - start < MinEngagementSeconds) return new List<LearnedCast>();
             if (engaged.Select(c => c.Ability).Distinct().Count() < MinDistinctAbilities)
                 return new List<LearnedCast>();
@@ -152,8 +145,7 @@ public static class TimelineLearner
         return Distill(engaged.Select(c => (c.Ability, MathF.Max(0f, c.Time - start), c.Name)));
     }
 
-    // Record a finished pull against its boss, cutting the boss's engagement
-    // out of everything else the capture picked up.
+    // Record a finished pull against its boss.
     public static bool LearnPull(Configuration config, uint bossNameId, string bossName, uint territory,
         IEnumerable<PullCast> casts)
     {
@@ -162,7 +154,7 @@ public static class TimelineLearner
         return Store(config, bossNameId, bossName, territory, fresh);
     }
 
-    // Record a pull whose times are ALREADY relative to the fight's own start.
+    // Record a pull already relative to the fight's start.
     public static bool Learn(Configuration config, uint bossNameId, string bossName, uint territory,
         IEnumerable<(uint Ability, float Time, string Name)> casts)
     {
@@ -193,21 +185,18 @@ public static class TimelineLearner
         return changed;
     }
 
-    // ---- first-pull projection --------------------------------------------
-    // Learning only pays off from the second pull.
+    // ---- first-pull projection ----
 
-    // A cycle has to repeat at least twice to be believed, and be long enough not
-    // to be one mechanic double-tapping.
+    // A cycle must repeat twice and be longer than one mechanic.
     private const int MinCycleCasts = 3;
     private const float MinCycleSeconds = 12f;
     private const float MaxCycleSeconds = 600f;
     private const int ProjectCycles = 3;
 
-    // The repeating tail of a pull, or null when nothing convincing repeats.
+    // The repeating tail of a pull, or null when none repeats.
     public static (List<LearnedCast> Cycle, float Period)? FindLoop(List<LearnedCast> casts)
     {
-        // Longest cycle first: a boss looping A B C A B C should be read as a
-        // 3-cast cycle, not as the 1-cast "C C" that a shortest-first scan finds.
+        // Longest cycle first, so A B C doesn't read as C C.
         for (var k = casts.Count / 2; k >= MinCycleCasts; k--)
         {
             var tail = casts.Count - k;
@@ -219,8 +208,7 @@ public static class TimelineLearner
 
             var period = casts[tail].Time - casts[prev].Time;
             if (period < MinCycleSeconds || period > MaxCycleSeconds) continue;
-            // The whole cycle has to have shifted by the same period, or the two
-            // runs aren't really the same loop.
+            // The whole cycle has to have shifted by one period.
             var consistent = true;
             for (var i = 0; i < k && consistent; i++)
                 consistent = MathF.Abs((casts[tail + i].Time - casts[prev + i].Time) - period) <= MatchWindow;
@@ -231,8 +219,7 @@ public static class TimelineLearner
         return null;
     }
 
-    // What the boss is about to do, projected from the loop it has been
-    // running.
+    // What the boss is about to do, from the loop it runs.
     public static List<LearnedCast> ProjectLoop(List<LearnedCast> casts)
     {
         var result = new List<LearnedCast>();
@@ -248,13 +235,11 @@ public static class TimelineLearner
         return result;
     }
 
-    // The board for a boss nobody has fought yet: whatever its loop says is
-    // coming.
+    // The board for a boss nobody has fought yet.
     public static FightProfile? BuildFromLivePull(uint territory, string bossName, uint bossNameId,
         IEnumerable<PullCast> casts)
     {
-        // Segmented the same way a finished pull is, so a dungeon's trash can't
-        // put a phantom loop on the board before the boss is even engaged.
+        // Segmented like a finished pull, so trash can't fake a loop.
         var seen = Segment(casts, bossNameId, requireEngagement: false);
         var projected = ProjectLoop(seen);
         if (projected.Count == 0) return null;
@@ -271,8 +256,7 @@ public static class TimelineLearner
         return fight;
     }
 
-    // The in-memory timeline-only fight for a boss we've learned, or null when it
-    // isn't known yet (or hasn't been seen enough times to be worth showing).
+    // The learned timeline for a boss, or null when unknown.
     public static FightProfile? Build(Configuration config, uint bossNameId, uint territory)
     {
         if (bossNameId == 0) return null;
@@ -288,14 +272,13 @@ public static class TimelineLearner
         };
         foreach (var c in learned.Casts)
             fight.Lines.Add(new MitLine { Time = c.Time, Mechanic = c.Name, Action = "", Sound = false });
-        // Every cast doubles as its own resync anchor: the clock starts at zero
-        // with the pull, and each recognised cast nudges it back onto the schedule.
+        // Every cast doubles as its own resync anchor.
         foreach (var c in learned.Casts)
             fight.SyncPoints.Add(new SyncPoint { Ability = c.Ability, Time = c.Time, IsPhase = false, Label = "learned" });
         return fight;
     }
 
-    // Bounded, dropping whatever hasn't been seen for longest.
+    // Bounded, dropping whatever went unseen longest.
     private const int MaxLearnedFights = 400;
 
     private static void Prune(Configuration config)
@@ -309,7 +292,7 @@ public static class TimelineLearner
             config.LearnedFights.Remove(stale);
     }
 
-    // Drop everything learned for one boss (the settings page's per-entry clear).
+    // Drop everything learned for one boss.
     public static bool Forget(Configuration config, uint bossNameId)
         => config.LearnedFights.Remove(bossNameId.ToString());
 }

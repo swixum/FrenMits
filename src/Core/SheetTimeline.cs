@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// The complete mechanic timeline of a fight, across all columns.
+// The whole mechanic timeline of a fight, across columns.
 public static class SheetTimeline
 {
     public sealed class MechRow
@@ -13,11 +13,9 @@ public static class SheetTimeline
         public string Mechanic = "";
         public int Hurt;    // 0 unknown, 1 light, 2 hurts, 3 deadly (custom sheets)
         public bool Buster; // custom sheets: lands on a tank, not the party
-        // For rows with no mechanic label (bare user timers): the first line's
-        // action, so the board never shows a nameless bar.
+        // For rows with no label: the first line's action.
         public string Fallback = "";
-        // Set on a scheduled boss-reposition row (the spot, e.g. "Middle"); drives
-        // the cyan position row kind on the board.
+        // Set on a boss-reposition row, driving the cyan row kind.
         public string Position = "";
     }
 
@@ -48,8 +46,7 @@ public static class SheetTimeline
             foreach (var l in lines)
             {
                 var row = RowFor(l.Mechanic, l.Time, 1.6f);
-                // Job extras ride ~1s ahead of their mechanic; plain sheet lines
-                // own the row's time so the countdown lands on the hit itself.
+                // Extras ride ahead, so plain lines own the row's time.
                 if (l.Jobs.Count == 0) row.Time = MathF.Max(row.Time, l.Time);
                 if (row.Fallback.Length == 0 && !string.IsNullOrWhiteSpace(l.Action))
                     row.Fallback = l.Action;
@@ -69,11 +66,11 @@ public static class SheetTimeline
                 else if (fight.SavedSlots.TryGetValue(slot, out var saved) && saved.Count > 0)
                     AddLines(saved);
                 else
-                    AddLines(Builtin.BuildLines(fight.TerritoryId, slot)
+                    // The shared bake, since AddLines only ever reads its lines.
+                    AddLines(Builtin.BakedLines(fight.TerritoryId, slot)
                         .Where(b => !Builtin.IsDeleted(fight, slot, b)));
             }
-            // The live plan can carry rows no bake has (user-added timers), and
-            // an empty/unknown active slot still deserves its lines on the board.
+            // The live plan can carry rows no bake has.
             if (!slots.Any(IsActive)) AddLines(fight.Lines);
         }
         else if (fight.CustomSlots.Count > 0)
@@ -92,8 +89,7 @@ public static class SheetTimeline
             AddLines(fight.Lines);
         }
 
-        // Custom-sheet scaffold rows: mechanics exist (with their grades) even
-        // before anyone wrote a mit into them.
+        // Scaffold rows exist before anyone writes a mit into them.
         foreach (var cr in fight.CustomRows)
         {
             var row = RowFor(cr.Mechanic, cr.Time, 2f);
@@ -104,13 +100,13 @@ public static class SheetTimeline
         return rows.OrderBy(r => r.Time).ToList();
     }
 
-    // ---- phase dividers ----------------------------------------------------
+    // ---- phase dividers ----
 
     public readonly record struct PhaseMark(float Time, string Label);
 
     private static readonly List<PhaseMark> NoMarks = new();
 
-    // Every phase boundary a fight can put a name to.
+    // Every phase boundary a fight can name.
     public static List<PhaseMark> PhaseMarks(FightProfile fight)
     {
         if (fight.TimelineOnly) return NoMarks;
@@ -128,7 +124,7 @@ public static class SheetTimeline
         }
 
         var territory = fight.TerritoryId;
-        // Straight from Builtin, which is the one place that answers this.
+        // Straight from Builtin, the one place that answers this.
         Add(Builtin.PhaseStarts(territory),
             territory == Builtin.DmuTerritory ? DmuData.PhaseTitle : null);
 
@@ -140,13 +136,11 @@ public static class SheetTimeline
         return marks;
     }
 
-    // The phase that begins between two consecutive rows on the board, or ""
-    // when none does.
+    // The phase that begins between two rows, or "" if none.
     public static string PhaseBetween(IReadOnlyList<PhaseMark> marks, float afterTime, float untilTime)
     {
         var label = "";
-        // Two phases can begin inside one gap (a short phase nobody has a row
-        // for).
+        // Two phases can begin inside one gap.
         var best = float.NegativeInfinity;
         for (var i = 0; i < marks.Count; i++)
         {

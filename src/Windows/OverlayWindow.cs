@@ -12,17 +12,15 @@ public class OverlayWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
-    // The line currently being counted down / held, and the run it belongs to.
+    // The line being counted down, and the run it belongs to.
     private readonly List<MitLine> _activeLines = new();
     private int _lastGen = -1;
 
-    // Per-frame scratch: the candidate lines for this job and the call group
-    // being drawn.
+    // Per-frame scratch for this job's lines and the call group.
     private readonly List<MitLine> _lines = new();
     private readonly List<MitLine> _group = new();
 
-    // Stable, like the LINQ OrderBy it replaces, so calls tied on the cue clock
-    // keep the order they were baked in.
+    // Stable, so calls tied on the clock keep their baked order.
     private static void StableSortByCueTime(List<MitLine> lines)
     {
         for (var i = 1; i < lines.Count; i++)
@@ -45,7 +43,7 @@ public class OverlayWindow : Window
 
     public override void PreDraw()
     {
-        // NoTitleBar is always on, or the content would jump the moment you lock it.
+        // No title bar ever, or the content jumps when you lock it.
         Flags = ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings
@@ -69,8 +67,7 @@ public class OverlayWindow : Window
         var pos = viewport.WorkPos + C.OverlayPosition * viewport.WorkSize;
         pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y)); // whole pixels = sharp text
 
-        // Pin to the saved spot (center-anchored) every frame EXCEPT while the
-        // mouse is held, which is the only time a drag can be happening.
+        // Pin to the saved spot, except while the mouse is held.
         if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.0f));
@@ -88,7 +85,7 @@ public class OverlayWindow : Window
     // Locked if you ticked the lock or you're in a live pull.
     private bool EffectiveLocked => OverlayChrome.Locked(C.OverlayLocked, C);
 
-    // Snap the overlay back to the saved position next frame (used by Reset).
+    // Snap back to the saved position next frame.
     public void RequestReposition() => _applyPos = true;
 
     public override void PostDraw()
@@ -99,7 +96,7 @@ public class OverlayWindow : Window
 
     public override bool DrawConditions()
     {
-        // Test mode shows the sample anywhere, but never a universal timeline's lines.
+        // Test mode shows the sample, never a universal timeline.
         if (C.TestMode)
             return _plugin.ActiveFight() is not { TimelineOnly: true } || !_plugin.Timer.Live;
         if (Plugin.CutsceneActive) return false; // hide while a cutscene is playing
@@ -115,13 +112,12 @@ public class OverlayWindow : Window
     {
         if (line.LeadOverride > 0f) return line.LeadOverride;
         if (line.OffsetManual || line.OffsetSeconds <= 1f) return C.WarningSeconds;
-        // Cached lookup + plain loop (not LINQ): this runs for every line, every
-        // frame, so it must not scan the plan map or allocate.
+        // Cached and loop-free of LINQ, since this runs per line.
         var dur = MinDuration(Cooldowns.PlanMitsCached(line.Action));
         return MathF.Min(C.CooldownLeadSeconds, dur * 0.5f);
     }
 
-    // Shortest listed buff duration among a call's tracked mits (15s fallback).
+    // Shortest buff among a call's mits, 15s when unknown.
     private static float MinDuration(IReadOnlyList<Cooldowns.PlanMit> mits)
     {
         if (mits.Count == 0) return 15f;
@@ -135,7 +131,7 @@ public class OverlayWindow : Window
     {
         SavePositionIfDragged();
 
-        // Right-click quick menu, only reachable while the overlay accepts the mouse.
+        // Right-click menu, only while the overlay takes the mouse.
         if (ImGui.BeginPopupContextWindow("##fmoverlayctx"))
         {
             if (ImGui.MenuItem("Lock position", "", C.OverlayLocked))
@@ -188,19 +184,16 @@ public class OverlayWindow : Window
         var job = _plugin.ActiveJobAbbreviation();
         var elapsed = _plugin.CueClockFor(fight); // call schedule, not sheet position
 
-        // Reused buffer, not a fresh list per frame: this walks every line of the
-        // fight and the overlay redraws continuously through a pull.
+        // A reused buffer, since the overlay redraws continuously.
         var lines = _lines;
         lines.Clear();
         foreach (var l in fight.OrderedLines)
             if (l.Enabled && l.AppliesTo(job)) lines.Add(l);
 
-        // Reset the held call when the run restarts (pull / wipe / manual sync) so a
-        // stale line from the previous run can't carry over.
+        // Reset the held call on a new run, so nothing carries over.
         if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLines.Clear(); }
 
-        // The calls we count down to: the soonest in its lead window, plus any tied
-        // with it.
+        // The calls we count to: the soonest, plus anything tied.
         var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
@@ -221,8 +214,7 @@ public class OverlayWindow : Window
                 if (rem >= 0f && rem <= LeadFor(l) && rem <= bestRemaining + tieWindow) group.Add(l);
             }
             StableSortByCueTime(group);
-            // Keep a just-passed call's NOW up for its full hold, stacked with the next
-            // call.
+            // Keep a just-passed call up for its hold, stacked with the next.
             var heldCount = 0;
             foreach (var l in _activeLines)
             {
@@ -236,8 +228,7 @@ public class OverlayWindow : Window
         }
         else
         {
-            // Nothing upcoming: hold the calls we counted down, but never resurrect a
-            // skipped one.
+            // Nothing upcoming: hold what we counted, never a skipped call.
             foreach (var l in _activeLines)
             {
                 var rem = l.CueTime - elapsed;
@@ -296,10 +287,9 @@ public class OverlayWindow : Window
         }
     }
 
-    // ---- board style: the center call rendered like the timeline board ----
+    // ---- board style ----
 
-    // Board palette, matching TimelineWindow (the customizable ones read from the
-    // same config keys so re-theming the board re-themes this too).
+    // Board palette, on the same config keys as the board itself.
     private uint BoardAccent => C.UpcomingBoardAccentColor != 0 ? C.UpcomingBoardAccentColor : 0xFFF6823B;
     private uint BoardNow => C.UpcomingBoardNowColor != 0 ? C.UpcomingBoardNowColor : 0xFF64DC64;
     private const uint BoardBright = 0xFFECE8E6;
@@ -307,8 +297,7 @@ public class OverlayWindow : Window
     private const uint BoardBorder = 0x66594A3F;
     private const uint BoardPanelRgb = 0x0014110E;
 
-    // A uniform bar width for a group: the widest name + time, plus the icon slot
-    // and paddings, so stacked bars line up like the board's rows.
+    // A uniform bar width, so stacked bars line up.
     private float BoardWidth(IEnumerable<(string Action, float Remaining)> calls)
     {
         var lineH = ImGui.GetTextLineHeight();
@@ -338,7 +327,7 @@ public class OverlayWindow : Window
             : isPrep ? PrepCol
             : typeColor != 0 ? typeColor
             : BoardAccent;
-        // At go-time the whole bar goes green, matching the board's "now".
+        // At go-time the whole bar goes green, like the board.
         var barCol = imminent ? baseCol : BoardNow;
 
         // Panel.
@@ -394,7 +383,7 @@ public class OverlayWindow : Window
                 SubText(prep, PrepCol, subX);
     }
 
-    // Draw-list text with the readability shadow, at an absolute position.
+    // Draw-list text with a readability shadow.
     private void BoardText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
     {
         if (C.TextShadow) dl.AddText(pos + new Vector2(1.5f, 1.5f), 0xE0000000, text);
@@ -415,8 +404,7 @@ public class OverlayWindow : Window
         ImGui.PopStyleColor();
     }
 
-    // ---- icon + clock style: just the ability icon, a centered countdown, and a
-    // cooldown-style sweep that eats the icon away as the call approaches ----
+    // ---- icon and clock style ----
 
     private float IconClockDiameter()
         => MathF.Round(Math.Clamp(C.OverlayFontSizePx * 2.4f, 40f, 220f));
@@ -442,7 +430,7 @@ public class OverlayWindow : Window
             dl.AddRectFilled(p0, p1, (accent & 0x00FFFFFF) | 0xB4000000, rounding);
         }
 
-        // Cooldown sweep: a dark wedge over the elapsed portion, growing clockwise.
+        // Cooldown sweep: a dark wedge growing clockwise.
         if (imminent && lead > 0.01f)
         {
             var frac = Math.Clamp(remaining / lead, 0f, 1f);
@@ -481,13 +469,11 @@ public class OverlayWindow : Window
     // Green prep accent (matches the board's "now" green).
     private const uint PrepCol = 0xFF64DC64;
 
-    // The prep press-window for a call pulled early to stay up for a later hit:
-    // "(use between 0:10 and 0:21)", or "" for an ordinary on-time call.
+    // The press window for a call pulled early, else "".
     private string PrepText(MitLine call)
     {
         if (!C.PrepAlerts) return "";
-        // A prep window only exists when the press covers a later hit, so gate on
-        // coverage.
+        // A prep window only exists when the press covers a later hit.
         var windowEnd = call.Time - call.OffsetSeconds; // latest press: the front hit
         if (call.CoverUntil <= windowEnd + 2f) return ""; // covers only itself: nothing to prep
         var dur = MinDuration(Cooldowns.PlanMitsCached(call.Action));
@@ -502,7 +488,7 @@ public class OverlayWindow : Window
     private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
         uint colorOverride, float lead, uint iconId = 0, string prep = "")
     {
-        // Colour priority: per-line override > prep gold > mit-type colour > default.
+        // Color priority: override, prep, mit type, then default.
         var isPrep = prep.Length > 0 && imminent;
         var typeColor = C.ColorByMitType ? MitTypes.Color(MitTypes.Classify(action, mechanic), C) : 0u;
         var baseColor = colorOverride != 0 ? colorOverride
@@ -512,16 +498,14 @@ public class OverlayWindow : Window
         var color = imminent && C.PulseWhenImminent && remaining < 1.5f ? Pulse(baseColor) : baseColor;
         var headline = FormatHeadline(mechanic, action, remaining, imminent);
 
-        // Cooldown-aware: if your mit won't be off recast by the call, flag it (and
-        // tint the call to the warning colour).
+        // Flag a call whose mit won't be off recast in time.
         if (C.CooldownAwareCalls && imminent && Cooldowns.Remaining(action) is { } cd && cd > remaining + 0.5f)
         {
             headline += $"  [CD {MathF.Ceiling(cd):0}s]";
             color = 0xFF3C3CF0; // red-ish warning
         }
 
-        // Depleting ring around the icon while counting down (full at the lead, empty
-        // at the call); -1 = no ring.
+        // A depleting ring while counting down; -1 means none.
         var ringFrac = C.ShowRadialRing && imminent && lead > 0.01f
             ? Math.Clamp(remaining / lead, 0f, 1f) : -1f;
 
@@ -532,8 +516,7 @@ public class OverlayWindow : Window
             && !string.IsNullOrWhiteSpace(mechanic)
             && !string.Equals(mechanic, action, StringComparison.OrdinalIgnoreCase))
         {
-            // Its own countdown, mirroring the headline: the mechanic line ticks
-            // down too instead of sitting static (the headline already shows NOW).
+            // Its own countdown, so the mechanic line ticks down too.
             var mechText = imminent
                 ? $"{mechanic}   {MathF.Ceiling(remaining):0}"
                 : mechanic;
@@ -541,7 +524,7 @@ public class OverlayWindow : Window
                 CenteredText(mechText, C.OverlayColorMechanic);
         }
 
-        // Prep line: press this now, it stays up for the later mechanic it covers.
+        // Prep line: press now, it holds for the mechanic it covers.
         if (isPrep)
             using (PushFont(C.OverlayFontSizePx * 0.5f))
                 CenteredText(prep, PrepCol);
@@ -562,8 +545,7 @@ public class OverlayWindow : Window
         ImGui.Dummy(new Vector2(width, height));
     }
 
-    // Depleting countdown ring around the call icon: a faint full ring plus a
-    // coloured arc that shrinks from full (at the lead) to empty (at the call).
+    // A faint full ring plus a colored arc that shrinks to empty.
     private void DrawRing(Vector2 iconTopLeft, float iconH, float frac, uint color)
     {
         var dl = ImGui.GetWindowDrawList();
@@ -580,18 +562,18 @@ public class OverlayWindow : Window
         }
     }
 
-    // Brightness oscillation for the imminent pulse, preserving alpha.
+    // Brightness oscillation for the imminent pulse.
     private static uint Pulse(uint abgr) => OverlayChrome.Pulse(abgr);
 
     private string FormatHeadline(string mechanic, string action, float remaining, bool imminent)
     {
         var label = string.IsNullOrWhiteSpace(action) ? mechanic : action;
 
-        // Once we're at/after the call time, drop the countdown and show "NOW".
+        // At or after the call time, show NOW instead of a count.
         if (!imminent)
             return label + C.ActiveSuffix;
 
-        // Counting down: clean "Raidwide (3.3)" style from the format template.
+        // Counting down, in the format template's style.
         var count = MathF.Ceiling(remaining).ToString("0");
         var text = C.HeadlineFormat
             .Replace("{action}", label)
@@ -600,7 +582,7 @@ public class OverlayWindow : Window
             .Replace("{remaining}", remaining.ToString("0.0"))
             .Replace("{count}", count);
 
-        // Optional legacy append, only if the format itself has no number in it.
+        // Optional append, only when the format has no number.
         if (C.ShowCountdownNumber
             && !C.HeadlineFormat.Contains("{remaining}")
             && !C.HeadlineFormat.Contains("{count}"))
@@ -610,12 +592,11 @@ public class OverlayWindow : Window
 
     private static string TimeText(float seconds) => Fmt.MmssRound(seconds);
 
-    // Pushes a crisp Dalamud font handle at the given px size, falling back to
-    // SetWindowFontScale if the handle is not ready yet.
+    // Push a crisp font handle, falling back to a scale.
     private IDisposable PushFont(float sizePx)
         => OverlayChrome.PushFont(_plugin.Fonts, sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
 
-    // Centers an optional ability icon followed by the text as one group.
+    // Centers an optional icon and the text as one group.
     private void CenteredIconText(uint iconId, string text, uint color, float ringFrac = -1f, uint ringColor = 0)
     {
         if (iconId == 0)
@@ -632,8 +613,7 @@ public class OverlayWindow : Window
         var offset = AlignOffset(ImGui.GetContentRegionAvail().X, total);
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
-        // Vertically center the (smaller) icon against the text line, then restore
-        // the baseline so the text itself isn't nudged down.
+        // Center the icon against the text, then restore the baseline.
         var baseY = ImGui.GetCursorPosY();
         ImGui.SetCursorPosY(MathF.Round(baseY + (lineH - iconH) * 0.5f));
         var iconTopLeft = ImGui.GetCursorScreenPos();
@@ -652,7 +632,7 @@ public class OverlayWindow : Window
         ImGui.PopStyleColor();
     }
 
-    // Horizontal offset for the configured alignment (0 left, 1 center, 2 right).
+    // Horizontal offset for the configured alignment.
     private float AlignOffset(float avail, float contentWidth) => C.OverlayTextAlign switch
     {
         0 => 0f,
@@ -680,8 +660,7 @@ public class OverlayWindow : Window
     private void SavePositionIfDragged()
     {
         if (EffectiveLocked) return;
-        // Only capture during a real drag, or a stray left-button hold saves position
-        // drift.
+        // Only capture a real drag, or a stray hold saves drift.
         if (!ImGui.IsMouseDragging(ImGuiMouseButton.Left) || !ImGui.IsWindowFocused()) return;
         var viewport = ImGui.GetMainViewport();
         var current = ImGui.GetWindowPos();

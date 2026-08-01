@@ -10,14 +10,12 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Sheet View: exporting a plan, and drawing the grid itself - every cell, the
-// phase pill, the footer and the suggest menu.
+// Sheet View: exporting a plan, and drawing the grid.
 public partial class SheetViewWindow
 {
-    // ---- export -------------------------------------------------------------
+    // ---- export ----
 
-    // The whole grid as tab-separated text: pastes into Google Sheets / Excel
-    // as real columns, and reads fine in Discord.
+    // The whole grid as tab-separated text.
     private void ExportText()
     {
         if (_fight == null) return;
@@ -55,8 +53,7 @@ public partial class SheetViewWindow
         Flash("Plan copied as text. Paste into Google Sheets / Excel (lands in columns) or Discord.");
     }
 
-    // Imported plans can carry arbitrary text; tabs/newlines inside a cell
-    // would shift or split the TSV row.
+    // Tabs or newlines in a cell would split the row.
     private static string TsvCell(string s)
         => s.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
 
@@ -85,8 +82,7 @@ public partial class SheetViewWindow
     private const uint WarnCellBg = 0x483040E6;  // translucent red: cooldown conflict
     private const uint LevelCellBg = 0x4820A0E0; // translucent amber: above level sync
 
-    // The game font has no glyphs for symbols like a star, pen, or undo arrow
-    // (they render as an empty box), so every symbol is drawn with the icon font.
+    // The game font has no symbol glyphs, so use the icon font.
     private static void IconText(FontAwesomeIcon icon, Vector4 color)
     {
         using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
@@ -99,8 +95,7 @@ public partial class SheetViewWindow
             return ImGui.SmallButton(icon.ToIconString() + id);
     }
 
-    // Header row for the Sheet View popups: a dim title plus a right-aligned X,
-    // so every menu shows a visible way out (Esc and clicking outside still work).
+    // Popup header: a dim title plus a right-aligned X.
     private static void PopupHeader(string title, float width)
     {
         ImGui.TextDisabled(title);
@@ -118,33 +113,28 @@ public partial class SheetViewWindow
     {
         _editorDrawn = false;
         _gridJob = _plugin.ActiveJobAbbreviation();
-        // Hover highlight rides one frame behind: cells set _hoverLive while
-        // drawing, and the NEXT frame tints that whole row.
+        // Hover highlight rides one frame behind the cells.
         _hoverLivePrev = _hoverLive;
         _hoverLive = null;
-        // Below the grid: the sheet-notes panel plus one footer line (flash
-        // message, or the hovered row's note).
+        // Below the grid: the notes panel plus one footer line.
         var footerH = ImGui.GetTextLineHeightWithSpacing() + 10f + NotesReserve();
-        // Resizable: drag a column edge, or double-click it to auto-fit the
-        // column to its content.
+        // Resizable: drag a column edge, or double-click to fit.
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit
                   | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
-        // Settings are saved by column index, so the ID bakes in the fight and pin
-        // layout.
+        // Settings save by column index, so the id bakes in the layout.
         var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}";
         if (!ImGui.BeginTable(tableId, 2 + _slots.Length, flags, new Vector2(0, -footerH)))
             return;
 
-        // Pinned columns ride in the frozen area right after Mechanic (capped so
-        // the frozen block can't out-grow a narrow window).
+        // Pinned columns ride frozen, capped for narrow windows.
         ImGui.TableSetupScrollFreeze(2 + Math.Min(4, _pinnedCount), 1);
         ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 62);
         ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 240);
         foreach (var i in _order)
             ImGui.TableSetupColumn(_slots[i], ImGuiTableColumnFlags.WidthFixed, 130);
 
-        // Header row with role colors + a "(you)" tag on your active slot.
+        // Header row with role colors and a "(you)" tag.
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
         ImGui.TableNextColumn();
         _headerY = ImGui.GetCursorScreenPos().Y;
@@ -196,8 +186,7 @@ public partial class SheetViewWindow
             }
             if (pinned)
             {
-                // Thumbtack in the header's top-right corner, so pinned state is
-                // visible at a glance.
+                // Thumbtack in the corner, so pinned state reads at a glance.
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 {
                     var s = FontAwesomeIcon.Thumbtack.ToIconString();
@@ -226,8 +215,7 @@ public partial class SheetViewWindow
                 ImGui.TableNextColumn();
                 ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, 0xFF221B17);
                 ImGui.TableNextColumn();
-                // Accent blue, matching the phase titles in the notes panel,
-                // so the separators pop instead of reading as disabled text.
+                // Accent blue, so the separators pop instead of reading dim.
                 ImGui.TextColored(NoteBlue, Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
                 for (var i = 0; i < _slots.Length; i++) ImGui.TableNextColumn();
             }
@@ -250,12 +238,11 @@ public partial class SheetViewWindow
         ImGui.EndTable();
         DrawStickyPhasePill();
 
-        // An editor whose row was hidden this frame can never deactivate normally.
+        // An editor whose row was hidden can't deactivate normally.
         if (Editing && !_editorDrawn && !_focusPending) CommitPending();
     }
 
-    // A quiet pill in the grid's top-right corner naming the phase you're
-    // scrolled into, since the phase separator rows scroll away with the rows.
+    // A pill naming the phase you're scrolled into.
     private void DrawStickyPhasePill()
     {
         if (_phaseFilter.Length > 0 || _filter.Length > 0) return;
@@ -267,11 +254,10 @@ public partial class SheetViewWindow
         var pad = new Vector2(8f, 3f);
         var headerH = ImGui.GetTextLineHeight() + ImGui.GetStyle().CellPadding.Y * 2f + 4f;
         var p0 = new Vector2(rectMax.X - size.X - pad.X * 2f - 24f, rectMin.Y + headerH + 6f);
-        // Tiny window: don't cover the frozen columns (time+mechanic+your slot).
+        // Tiny window: don't cover the frozen columns.
         if (p0.X < rectMin.X + 460f) return;
 
-        // Foreground list: the rows live in an inner child that renders after this draw
-        // list.
+        // Foreground list, since the rows render after this one.
         var dl = ImGui.GetForegroundDrawList();
         dl.PushClipRect(rectMin, rectMax);
         dl.AddRectFilled(p0, p0 + size + pad * 2f, 0xE619130F, 5f);
@@ -283,8 +269,7 @@ public partial class SheetViewWindow
     private void DrawTimeCell(Row row)
     {
         ImGui.TableNextColumn();
-        // First row that renders below the frozen header = the top visible row;
-        // its phase feeds the sticky pill.
+        // The first row below the header is the top visible one.
         if (_stickyRowIdx < 0 && ImGui.GetCursorScreenPos().Y > _headerY + ImGui.GetTextLineHeight())
         {
             _stickyRowIdx = _rowIdxDrawing;
@@ -302,8 +287,7 @@ public partial class SheetViewWindow
             ImGui.SetNextItemWidth(-1);
             if (_focusPending) { ImGui.SetKeyboardFocusHere(); _focusPending = false; }
             ImGui.InputText("##t", ref _timeBuf, 16);
-            // Enter/click-away with an edit commits; Escape (ImGui reverts, not
-            // "after edit") or leaving untouched just closes.
+            // Enter or click-away commits; Escape just closes.
             if (ImGui.IsItemDeactivated())
             {
                 if (ImGui.IsItemDeactivatedAfterEdit()) CommitTime(row);
@@ -362,7 +346,7 @@ public partial class SheetViewWindow
             if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84)))
                 SaveNote(row, _noteBuf);
             ImGui.TextDisabled("Saved as you type. Clear the text to remove the note.");
-            // Custom rows also grade how hard the hit is here; Auto-plan reads it.
+            // Custom rows grade the hit here, and Auto-plan reads it.
             if (_isCustom && CustomRowFor(row) is { } cr)
             {
                 ImGui.Separator();
@@ -394,7 +378,7 @@ public partial class SheetViewWindow
         }
         if (_isCustom)
         {
-            // Buster tag: this row is planned by the tank lane, not party mits.
+            // Buster tag: this row is planned by the tank lane.
             if (CustomRowFor(row) is { Buster: true })
             {
                 ImGui.SameLine(0, 6);
@@ -402,7 +386,7 @@ public partial class SheetViewWindow
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Hits one or two tanks, not the party. Right-click to change.");
             }
-            // The severity grade, visible at a glance (right-click to change).
+            // The severity grade, right-click to change.
             if (CustomRowFor(row) is { Hurt: > 0 } gr)
             {
                 ImGui.SameLine(0, 6);
@@ -416,7 +400,7 @@ public partial class SheetViewWindow
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip($"Hits {HurtChoices[gr.Hurt]} unmitigated. Right-click to regrade.");
             }
-            // Custom-sheet rows are all yours; the only row action is delete.
+            // Custom rows are all yours, so delete is the only action.
             ImGui.SameLine(0, 6);
             if (IconSmallButton(FontAwesomeIcon.Times, "##delrow")) DeleteCustomRow(row);
             if (ImGui.IsItemHovered())
@@ -426,8 +410,7 @@ public partial class SheetViewWindow
 
         if (row.JobExtra && !row.Edited)
         {
-            // A quiet tag, not a warning: this row is a job-specific schedule
-            // (Nature's Minne and friends) sitting at its own time on purpose.
+            // A quiet tag: this row is a job schedule at its own time.
             ImGui.SameLine(0, 6);
             ImGui.TextDisabled("job extra");
             if (ImGui.IsItemHovered())
@@ -499,7 +482,7 @@ public partial class SheetViewWindow
 
         var cell = row.Cells[i];
         var first = cell.Count == 0 ? "" : cell[0].Action;
-        // Job extras render as normal text (no orange, no *): they're not edits.
+        // Job extras render as normal text, since they aren't edits.
         var jobOnly = cell.Count > 0 && cell.All(l => l.Custom && l.Jobs.Count > 0);
         var custom = !_isCustom && !jobOnly && cell.Any(l => l.Custom);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
@@ -507,8 +490,7 @@ public partial class SheetViewWindow
         var foreign = !string.IsNullOrEmpty(_gridJob) && cell.Count > 0
             && cell.All(l => !l.AppliesTo(_gridJob));
 
-        // Cooldown conflicts tint the cell red; level-sync problems amber
-        // (red wins when both apply).
+        // Cooldown conflicts tint red, level problems amber.
         string? warn = null;
         string? lvl = null;
         foreach (var l in cell)
@@ -519,14 +501,14 @@ public partial class SheetViewWindow
         if (warn != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, WarnCellBg);
         else if (lvl != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, LevelCellBg);
 
-        // Carry-over ghost: this hit is still inside an earlier press's buff.
+        // Carry-over ghost: an earlier press still covers this hit.
         var carry = cell.Count == 0 && row.Carry != null ? row.Carry[i] : null;
 
-        // Merged cells stack their lines instead of hiding behind a "+1".
+        // Merged cells stack their lines instead of hiding one.
         var body = cell.Count > 1 ? string.Join("\n", cell.Select(l => l.Action)) : first;
         var label = (custom ? "* " : "") + (body.Length == 0 ? carry ?? " " : body) + (off ? "  (off)" : "");
 
-        // Text color: edits orange, disabled dim, ghosts dimmer, the rest by mit type.
+        // Text color: edits orange, ghosts dim, the rest by mit type.
         var kindCol = C.SheetColorByType && !custom && !off && first.Length > 0
             ? MitTypes.Color(MitTypes.Classify(first), C) : 0u;
         var pushed = true;
@@ -583,8 +565,7 @@ public partial class SheetViewWindow
                 var line = cell[0];
                 var offset = line.OffsetSeconds;
                 ImGui.SetNextItemWidth(110f);
-                // Same semantics as the fight page's ±s column: clamped, and NOT
-                // flagged Custom (an offset is a nudge, not a rewrite).
+                // Clamped, and not flagged Custom, since a nudge isn't a rewrite.
                 if (ImGui.InputFloat("call offset (s)", ref offset, 0.5f, 1f, "%.1f") && !AbortIfStale())
                 {
                     if (_offsetUndoArmed) { PushUndo($"adjust \"{row.Mechanic}\" offset"); _offsetUndoArmed = false; }
@@ -596,8 +577,7 @@ public partial class SheetViewWindow
                 }
                 ImGui.TextDisabled("+ fires this one call earlier, - later.");
 
-                // Multi-hit coverage: stretch this mit over later hits; the
-                // tooltip then shows the valid press window.
+                // Multi-hit coverage: stretch this mit over later hits.
                 var coverBase = line.CoverUntil > row.Time ? line.CoverUntil : row.Time;
                 var nextRow = _rows.FirstOrDefault(r => !r.Ghost && r.Time > coverBase + 0.5f);
                 ImGui.BeginDisabled(nextRow == null);
@@ -665,16 +645,13 @@ public partial class SheetViewWindow
         }
     }
 
-    // Set by the Plan menu or a cell context menu; the confirm modal opens from
-    // the toolbar's ID scope on the next pass.
+    // Set by a menu; the modal opens from the toolbar's scope.
     private bool _openResetAll;
 
-    // The conflict + press-window math bakes cue times in at Rebuild, so edits
-    // from other windows must poke the grid or the red cooldown cells go stale.
+    // Cue times bake in at Rebuild, so outside edits must poke this.
     public void MarkPlanDirty() => _dirty = true;
 
-    // Full reset across every column (same as the fight page's Reset all columns):
-    // snapshot-first, confirmed, and undoable with Ctrl+Z here in the Sheet View.
+    // Full reset across every column, confirmed and undoable.
     private void DrawResetAllPopup()
     {
         var open = true;
@@ -708,8 +685,7 @@ public partial class SheetViewWindow
         ImGui.EndPopup();
     }
 
-    // ---- suggest a mit (custom sheets) --------------------------------------
-    // Which jobs fit a column, by its slot code's role bucket.
+    // ---- suggest a mit ----
     private static readonly string[] TankJobs = { "WAR", "PLD", "DRK", "GNB" };
     private static readonly string[] HealJobs = { "WHM", "SCH", "AST", "SGE" };
     private static readonly string[] DpsJobs = { "MNK", "DRG", "NIN", "SAM", "RPR", "VPR", "BRD", "MCH", "DNC", "BLM", "SMN", "RDM", "PCT" };
@@ -733,8 +709,7 @@ public partial class SheetViewWindow
             {
                 if (Cooldowns.PlanInfo(name) is not { } pm) continue;
                 if (syncLevel > 0 && pm.Level > syncLevel) continue; // above the duty's sync
-                // One entry per shared-cooldown family: the kit lists the
-                // upgrade first, so the highest legal form wins.
+                // One entry per family, upgrades first so the best form wins.
                 if (pm.Family.Length > 0 && !shownFamilies.Add(pm.Family)) continue;
                 var free = MitFreeAt(i, pm, row.Time);
                 ImGui.BeginDisabled(!free);
@@ -748,7 +723,7 @@ public partial class SheetViewWindow
         }
     }
 
-    // Is this mit's timer free at `t`, given the column's existing plan?
+    // Is this mit's timer free at t, given the column's plan?
     private bool MitFreeAt(int i, Cooldowns.PlanMit pm, float t)
     {
         var nearby = 0;
@@ -766,14 +741,13 @@ public partial class SheetViewWindow
         return nearby < pm.Charges;
     }
 
-    // Cell clipboard for right-click copy/paste (a mit's action text).
+    // Cell clipboard for right-click copy and paste.
     private string _cellClip = "";
     // Column clipboard: which fight + slot code was copied.
     private FightProfile? _copyColFight;
     private string _copyColSlot = "";
 
-    // Overwrite one column with another slot's plan, like pasting a column in a
-    // spreadsheet.
+    // Overwrite one column with another slot's plan.
     private void PasteColumn(int dst)
     {
         if (_fight == null || AbortIfStale()) return;
@@ -805,8 +779,7 @@ public partial class SheetViewWindow
         Flash($"{_slots[src]}'s plan pasted into {_slots[dst]} (that column only). Ctrl+Z undoes it.");
     }
 
-    // Delete one slot's line at this row: tombstoned exactly like clearing the
-    // cell's text, so sheet updates don't resurrect it.
+    // Delete this row's line, tombstoned like clearing the text.
     private void DeleteCellLine(Row row, int i)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
@@ -825,16 +798,14 @@ public partial class SheetViewWindow
         Flash($"{_slots[i]}'s mit for \"{row.Mechanic}\" removed. The undo button on the row brings the sheet's version back.");
     }
 
-    // Reset ONE slot's cell to the baked sheet (the row's undo button does every
-    // slot at once; this is the surgical version).
+    // Reset one slot's cell to the baked sheet.
     private void ResetCell(Row row, int i)
     {
         if (_fight == null || AbortIfStale()) return;
         var slot = _slots[i];
         if (row.Bake == null)
         {
-            // Same idea as ResetRow: no baked pair means the sheet has nothing
-            // here, so reset clears this cell's lines instead of dead-ending.
+            // No baked pair means the sheet has nothing here, so clear it.
             if (row.Cells[i].Count == 0) { Flash($"{slot} has nothing on this row."); return; }
             PushUndo($"remove {slot}'s \"{row.Mechanic}\"");
             EnsureBacked(i);
@@ -879,7 +850,7 @@ public partial class SheetViewWindow
          : HealSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? "Healer slot"
          : "DPS slot";
 
-    // One quiet line: a flash message, otherwise the hovered row's note.
+    // One quiet line: a flash, else the hovered row's note.
     private void DrawFooter()
     {
         ImGui.Spacing();

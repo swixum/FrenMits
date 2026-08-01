@@ -14,8 +14,7 @@ internal static class OverlayChrome
     // Pushes a crisp Dalamud font handle at the given px size.
     public static IDisposable PushFont(FontManager fonts, float sizePx, string family, bool bold, bool italic)
     {
-        // Asking for it is also what starts it building, so the exact handle is on
-        // its way even on the frames we end up drawing with something else.
+        // Asking for it is what starts it building.
         var handle = fonts.Get(sizePx, family, bold, italic);
         if (handle is { Available: true }) return handle.Push();
 
@@ -29,8 +28,7 @@ internal static class OverlayChrome
             return new PopScaledFont(push);
         }
 
-        // Nothing of this font is built yet at all - the first frame of the
-        // first overlay, before the warm-up has landed.
+        // Nothing is built yet, on the very first overlay frame.
         ImGui.SetWindowFontScale(MathF.Max(0.5f, sizePx / 18f));
         return ResetFontScale.Instance;
     }
@@ -54,8 +52,7 @@ internal static class OverlayChrome
         }
     }
 
-    // Pin the window's CENTER to the saved work-area fraction: every frame while
-    // locked, or for one frame after RequestReposition asked for a snap-back.
+    // Pin the window's center to the saved work-area fraction.
     public static void ApplyPosition(Vector2 savedFrac, bool locked, ref bool applyPos)
     {
         var vp = ImGui.GetMainViewport();
@@ -65,8 +62,7 @@ internal static class OverlayChrome
         else if (applyPos) { ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f)); applyPos = false; }
     }
 
-    // The window's current CENTER as a work-area fraction when it differs from
-    // the saved one (i.e. the user dragged it); null while unmoved.
+    // The current center when the user has dragged it, else null.
     public static Vector2? MovedCenterFrac(Vector2 saved)
     {
         var vp = ImGui.GetMainViewport();

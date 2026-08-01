@@ -4,13 +4,12 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Parses text pasted straight from a mit sheet, tab- or comma-separated.
+// Parses text pasted from a mit sheet, tabs or commas.
 public static class SheetImport
 {
     public static List<string[]> ParseGrid(string raw, out char delimiter)
     {
-        // Counted, not first-hit: one stray tab inside a comma CSV must not
-        // flip the whole paste to tab-separated.
+        // Counted, so one stray tab can't flip a comma paste.
         var tabs = 0; var commas = 0;
         foreach (var ch in raw) { if (ch == '\t') tabs++; else if (ch == ',') commas++; }
         delimiter = tabs >= commas && tabs > 0 ? '\t' : ',';
@@ -25,7 +24,7 @@ public static class SheetImport
 
     private static string[] SplitLine(string line, char delimiter)
     {
-        // Minimal quote-aware split so quoted cells containing the delimiter survive.
+        // Minimal quote-aware split, so quoted cells survive.
         var cells = new List<string>();
         var sb = new System.Text.StringBuilder();
         var inQuotes = false;
@@ -48,8 +47,7 @@ public static class SheetImport
         return cells.Select(s => s.Trim()).ToArray();
     }
 
-    // Accepts "m:ss", "mm:ss", "h:mm:ss", or plain seconds (false if the cell has
-    // no usable time).
+    // Accepts m:ss, h:mm:ss or plain seconds.
     public static bool TryParseTime(string text, out float seconds)
     {
         seconds = 0f;
@@ -94,8 +92,7 @@ public static class SheetImport
         public List<string> Jobs = new(); // applied to every imported line; empty = all
     }
 
-    // Builds lines from the grid, skipping rows without a parseable time (usually
-    // headers / section separators).
+    // Builds lines from the grid, skipping untimed rows.
     public static List<MitLine> BuildLines(List<string[]> grid, Options opt)
     {
         var lines = new List<MitLine>();

@@ -4,8 +4,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 
 namespace FrenMits;
 
-// Timeline resync: watch boss cast bars and snap the pull-clock onto their scripted
-// times.
+// Snaps the pull clock onto boss cast bars.
 public class SyncEngine
 {
     private readonly Plugin _plugin;
@@ -18,26 +17,25 @@ public class SyncEngine
 
     public string LastSync { get; private set; } = "";
 
-    // Short human-readable form of the last snap + when it landed, for the
-    // board's little trust line ("synced - P2 Ultimate Embrace").
+    // Short form of the last snap, for the board's trust line.
     public string LastSyncNice { get; private set; } = "";
     public DateTime LastSyncAt { get; private set; } = DateTime.MinValue;
 
     // Bumps whenever a phase anchor re-bases the clock.
     public int PhaseSyncGeneration { get; private set; }
 
-    // Running estimate of the drift before a mechanic anchor corrects it.
+    // Running estimate of the drift before a snap corrects it.
     public float AvgDrift { get; private set; }
     public int DriftSamples { get; private set; }
 
-    // CasterNameId is what lets a captured pull be split back up by who cast what.
+    // CasterNameId lets a capture be split by who cast what.
     public sealed record Capture(uint Id, float Time, string Caster, bool IsBoss, uint CasterNameId = 0);
 
-    // Automatic capture for custom sheets: every enemy cast of the current pull.
+    // Automatic capture for custom sheets, every enemy cast.
     public readonly List<Capture> LastPull = new();
     public uint LastPullTerritory { get; private set; }
 
-    // The capture fills from the front and stops, so a long fight can't eat the opener.
+    // Fills from the front, so a long fight can't eat the opener.
     private const int MaxCaptures = 2000;
 
     private void AutoCapture(uint id, float time, string caster, bool isBoss, uint casterNameId = 0)
@@ -58,8 +56,7 @@ public class SyncEngine
     {
         var c = _plugin.Config;
 
-        // Fresh pull (combat just started): re-arm boss-presence + cast detection so
-        // anchors fire again, NOT keyed off Generation which also bumps on /fm sync.
+        // Fresh pull: re-arm detection, not keyed off Generation.
         var running = _plugin.Timer.Running;
         if (running && !_wasRunning) { Forget(); _lastPullArmed = false; _playbackEnemyAt = DateTime.UtcNow; }
         _wasRunning = running;
@@ -72,14 +69,13 @@ public class SyncEngine
 
         // Custom sheets get a hands-free capture of every pull.
         var fight = _plugin.ActiveFight();
-        // Duties with no sheet and no baked timeline get their casts recorded to learn
-        // from.
+        // Duties with no timeline record their casts to learn from.
         var learning = _plugin.LearningHere;
         var autoCapture = (fight != null && fight.CustomSlots.Count > 0 && !Builtin.Has(fight.TerritoryId))
                           || learning;
         var scanning = (fight != null && (c.EnableSync || autoCapture)) || learning;
 
-        // Playback watchdog: a load screen or every enemy gone ends a viewing.
+        // Playback watchdog: a load screen or no enemies ends it.
         if (Plugin.InDutyPlayback)
         {
             if (Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
@@ -89,10 +85,9 @@ public class SyncEngine
                 Service.Log.Information("[FrenMits] Playback: load screen; timer stopped, waiting for the next pull.");
                 return;
             }
-            // Cutscene time is a phase transition, not a wipe; keep the watchdog
-            // fed so it can't fire the instant the cutscene ends.
+            // A cutscene is a transition, so keep the watchdog fed.
             if (Plugin.CutsceneActive) _playbackEnemyAt = DateTime.UtcNow;
-            // Judge "no enemies" only while the scan below is feeding the watchdog.
+            // Judge no enemies only while the scan is feeding it.
             else if (scanning && (DateTime.UtcNow - _playbackEnemyAt).TotalSeconds > 4)
             {
                 _plugin.Timer.Reset();
@@ -102,26 +97,22 @@ public class SyncEngine
         }
         if (!scanning) return;
 
-        // Work in the same clock the overlay reads (includes any door-boss
-        // phase offset), so anchors line up in both phases.
+        // Same clock the overlay reads, so anchors line up.
         var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
 
         foreach (var obj in Service.ObjectTable)
         {
-            // A game object can go stale mid-frame, so skip it rather than abort the
-            // tick.
+            // An object can go stale mid-frame, so skip it.
             try
             {
-                // Feed the playback watchdog: any live enemy means the recording
-                // is mid-pull, so the between-pulls stop must not fire.
+                // Any live enemy means the recording is mid-pull.
                 if (obj is IBattleNpc alive && (byte)alive.BattleNpcKind == 5 && alive.MaxHp > 0 && alive.CurrentHp > 0)
                     _playbackEnemyAt = DateTime.UtcNow;
 
-                // Boss-presence anchor + capture (cast-free safety net).
+                // Boss-presence anchor, the cast-free safety net.
                 if (obj is IBattleNpc npc && npc.NameId != 0 && npc.MaxHp > 0 && _seenBoss.Add(npc.NameId))
                 {
-                    // Subkind 5 = enemy (stable game data); pets (2), chocobos (3)
-                    // and trust NPCs (9) must not pollute the capture.
+                    // Enemies only, so pets and trust NPCs stay out.
                     if (autoCapture && (byte)npc.BattleNpcKind == 5)
                         AutoCapture(npc.NameId, elapsed, npc.Name.ToString(), true, npc.NameId);
                     if (c.EnableSync && fight != null)
@@ -140,8 +131,7 @@ public class SyncEngine
                 var timeToResolve = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);
                 var resolveTime = elapsed + timeToResolve;
 
-                // Auto capture takes enemy casts only; player and pet casts would
-                // poison anchors.
+                // Enemy casts only, since player casts poison anchors.
                 if (autoCapture && bc.MaxHp > 0
                     && bc is IBattleNpc enemyNpc && (byte)enemyNpc.BattleNpcKind == 5)
                     AutoCapture(castId, resolveTime, bc.Name.ToString(), false, enemyNpc.NameId);
@@ -153,7 +143,7 @@ public class SyncEngine
         }
     }
 
-    // In playback the first matching enemy cast both starts and places the clock.
+    // In playback the first matching cast starts the clock.
     private void TryPlaybackAutoStart(Configuration c)
     {
         if (!Plugin.InDutyPlayback || !c.EnableSync) return;
@@ -168,7 +158,7 @@ public class SyncEngine
                 var castId = bc.CastActionId;
                 if (castId == 0) continue;
 
-                // Only start from an ability that appears exactly once in the timeline.
+                // Only start from an ability that appears once.
                 SyncPoint? best = null;
                 var hits = 0;
                 foreach (var sp in fight.SyncPoints)
@@ -187,13 +177,12 @@ public class SyncEngine
 
     private void OnCastStarted(FightProfile fight, IBattleChara caster, uint actionId)
     {
-        // Time until this cast resolves, straight from the cast bar.
+        // Time until this cast resolves, from the cast bar.
         var timeToResolve = MathF.Max(0f, caster.TotalCastTime - caster.CurrentCastTime);
         SnapToCast(fight, actionId, timeToResolve);
     }
 
-    // Snap to the boss-appearance anchor for this NameId if the fight has one,
-    // returning true if it snapped.
+    // Snap to this NameId's appearance anchor, if there is one.
     private bool SnapToBoss(FightProfile fight, uint nameId, string casterName = "")
     {
         var elapsed = _plugin.ElapsedFor(fight);
@@ -211,12 +200,10 @@ public class SyncEngine
         return false;
     }
 
-    // Kept as the name the rest of the code already imports; the value and the
-    // reasoning live in SyncCore, next to the windows it feeds.
+    // Kept under the name the rest of the code imports.
     public const float TimelineBlockReach = SyncCore.TimelineBlockReach;
 
-    // Snap the clock so this cast lands on its scripted time; true if an anchor
-    // matched.
+    // Snap the clock so this cast lands on its scripted time.
     private bool SnapToCast(FightProfile fight, uint actionId, float timeToResolve)
     {
         if (fight.SyncPoints.Count == 0) return false;
@@ -229,7 +216,7 @@ public class SyncEngine
         if (best == null) return false;
         _fired.Add(SyncCore.Key(best));
 
-        // Telemetry: how far the clock was off when a mechanic anchor fired.
+        // Telemetry: how far off the clock was at the snap.
         if (!best.IsPhase)
         {
             AvgDrift = SyncCore.Ema(AvgDrift, DriftSamples, SyncCore.DriftAt(best, predictedElapsed));
@@ -238,8 +225,7 @@ public class SyncEngine
 
         var desiredElapsedNow = SyncCore.SnapElapsed(best, timeToResolve, _plugin.PhaseOffsetFor(fight));
         _plugin.Timer.SetElapsed(desiredElapsedNow);
-        // Door-boss follow-up: a phase anchor sitting in the second segment lets
-        // the plugin latch Phase 2 (offset-compensated, so this snap stands).
+        // A phase anchor in the second segment latches Phase 2.
         if (best.IsPhase) _plugin.OnPhaseAnchor(fight, best);
         LastSync = $"{(best.IsPhase ? "[phase] " : "")}0x{actionId:X} -> {best.Time:0.0}s (was {elapsed:0.0}) {best.Label}";
         LastSyncNice = best.Label;

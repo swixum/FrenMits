@@ -16,7 +16,7 @@ public static class Positions
         _ => None,
     };
 
-    // Dancing Mad: Kefka's five return-to-middle casts, median across six kills.
+    // Kefka's five return-to-middle casts, median of six kills.
     private static readonly Spot[] Dmu =
     {
         new(25,  "Middle"),

@@ -11,11 +11,10 @@ using System.Threading.Tasks;
 
 namespace FrenMits;
 
-// Text-to-speech via Windows SAPI voices or Edge online neural voices.
+// Text-to-speech through Windows SAPI or Edge voices.
 public class Audio : IDisposable
 {
-    // Curated English Edge neural voices, tagged by gender so the UI can show a
-    // short Female/Male list instead of one long mixed dropdown.
+    // Curated Edge voices, tagged by gender for the UI.
     public static readonly (string Id, string Name, bool Female)[] EdgeVoices =
     {
         ("en-US-AriaNeural",        "Aria (US)",        true),
@@ -41,16 +40,15 @@ public class Audio : IDisposable
     private string _currentVoice = "";
     private List<string>? _voiceNames;
 
-    // SAPI is COM touched from the framework thread (direct Speak / VoiceNames)
-    // AND thread-pool tasks (the Edge fallback); one lock serializes all of it.
+    // SAPI COM gets touched from several threads, so lock it.
     private readonly object _sapiLock = new();
 
-    // Cue ordering: playback only accepts a cue newer than the last one played.
+    // Cue ordering: only a newer cue plays.
     private long _speakSeq;
     private long _playedSeq;
     private volatile bool _disposed;
 
-    // Monotonic advance: true if seq is the newest cue either engine has played.
+    // True if seq is the newest cue played.
     private static bool TryAdvance(ref long played, long seq)
     {
         while (true)
@@ -61,17 +59,15 @@ public class Audio : IDisposable
         }
     }
 
-    // Last TTS result, shown in the Audio tab so you can see if the online voice
-    // worked or fell back to Windows (and why).
+    // Last TTS result, shown in the Audio tab.
     public string LastTtsStatus { get; private set; } = "";
 
-    // Small in-memory WAV cache so a repeated call-out (e.g. "Reprisal") is instant.
+    // Small WAV cache so a repeated call is instant.
     private readonly Dictionary<string, byte[]> _edgeCache = new();
     private readonly LinkedList<string> _edgeOrder = new();
     private const int EdgeCacheMax = 128;
 
-    // Speaks via the chosen engine: when useEdge is true, voice is an Edge voice id
-    // (e.g. "en-US-AriaNeural"), otherwise a SAPI voice description.
+    // Speaks through Edge when useEdge, else SAPI.
     public void Speak(string text, int rate, int volume, bool useEdge, string voice)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
@@ -82,8 +78,7 @@ public class Audio : IDisposable
         {
             var t = text;
             var v = voice;
-            // An outer catch-all keeps the task from faulting unobserved and crashing
-            // the game.
+            // Catch-all so a faulted task can't crash the game.
             _ = Task.Run(() =>
             {
                 try
@@ -118,7 +113,7 @@ public class Audio : IDisposable
         SpeakSapi(text, rate, volume, voice, seq);
     }
 
-    // ---- Windows SAPI -----------------------------------------------------
+    // ---- Windows SAPI ----
 
     private void SpeakSapi(string text, int rate, int volume, string voiceName, long seq)
     {
@@ -129,8 +124,7 @@ public class Audio : IDisposable
             lock (_sapiLock)
             {
                 if (_disposed) return;
-                // A newer cue has been requested since this one; speaking now
-                // would purge the newer one and say the stale call instead.
+                // A newer cue was asked for, so drop this one.
                 if (seq < Interlocked.Read(ref _speakSeq)) return;
                 if (!TryAdvance(ref _playedSeq, seq)) return; // newer cue already played
 
@@ -140,7 +134,7 @@ public class Audio : IDisposable
                 ApplyVoice(v, voiceName);
                 v.Rate = Math.Clamp(rate, -10, 10);
                 v.Volume = Math.Clamp(volume, 0, 100);
-                // SVSFlagsAsync (1) | SVSFPurgeBeforeSpeak (2): interrupt + speak async.
+                // Async plus purge: interrupt, then speak.
                 v.Speak(text, 3u);
             }
         }
@@ -150,12 +144,11 @@ public class Audio : IDisposable
         }
     }
 
-    // Names of every installed SAPI voice (e.g. "Microsoft Zira", "Microsoft David").
+    // Names of every installed SAPI voice.
     public IReadOnlyList<string> VoiceNames()
     {
         if (_voiceNames != null) return _voiceNames;
-        // Build a local list fully, then publish it once - assigning the field
-        // before it's filled would let a concurrent caller return an empty/partial list.
+        // Fill a local list, then publish it once.
         var names = new List<string>();
         try
         {
@@ -218,7 +211,7 @@ public class Audio : IDisposable
         }
     }
 
-    // ---- Microsoft Edge online neural voices ------------------------------
+    // ---- Edge online voices ----
 
     private byte[]? GetEdgeWav(string text, string voice, int rate, int volume)
     {
@@ -245,13 +238,11 @@ public class Audio : IDisposable
         return wav;
     }
 
-    // EdgeVersion tracks the current Chromium release; Microsoft 403s stale ones,
-    // so bump this (and the User-Agent below) to match edge-tts when it breaks.
+    // Bump this and the User-Agent when Edge starts 403ing.
     private const string EdgeToken = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
     private const string EdgeVersion = "1-143.0.3650.75";
 
-    // Diagnostic from the last fetch (server paths / close reason), shown when no
-    // audio comes back so we can see what the endpoint actually said.
+    // Last fetch diagnostic, shown when no audio comes back.
     private string _edgeDiag = "";
 
     private byte[]? FetchEdge(string text, string voice, int rate, int volume)
@@ -328,7 +319,7 @@ public class Audio : IDisposable
             }
             else if (msg.Length > 2)
             {
-                // Binary frame: 2-byte big-endian header length, then header, then audio.
+                // Binary frame: 2-byte header length, header, audio.
                 int headerLen = (msg[0] << 8) | msg[1];
                 int start = 2 + headerLen;
                 if (start < msg.Length) audio.Write(msg, start, msg.Length - start);
@@ -344,7 +335,7 @@ public class Audio : IDisposable
         return wav.Length > 44 ? wav : null;
     }
 
-    // Rolling security token Microsoft requires; doubles lose precision here and 403.
+    // Rolling token Edge wants; doubles lose precision here.
     private static string EdgeSecToken()
     {
         long seconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 11644473600L; // -> Windows epoch
@@ -357,14 +348,14 @@ public class Audio : IDisposable
         return sb.ToString();
     }
 
-    // Our TTS rate slider is -10..10; map to Edge's percent (-50%..+50%).
+    // Our -10..10 rate maps onto Edge percent.
     private static string EdgeRate(int rate)
     {
         var pct = Math.Clamp(rate, -10, 10) * 5;
         return (pct >= 0 ? "+" : "") + pct.ToString(CultureInfo.InvariantCulture) + "%";
     }
 
-    // Volume 0..100 -> Edge relative volume (100 = default/loud, 0 = silent).
+    // Volume 0..100 maps onto Edge relative volume.
     private static string EdgeVolume(int volume)
     {
         var pct = Math.Clamp(volume, 0, 100) - 100;
@@ -379,16 +370,15 @@ public class Audio : IDisposable
         .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
         .Replace("\"", "&quot;").Replace("'", "&apos;");
 
-    // ---- MP3 playback (NAudio) --------------------------------------------
+    // ---- MP3 playback ----
 
-    // One shared output, so a new clip stops the one playing instead of doubling.
+    // One shared output, so a new clip stops the old.
     private readonly object _playLock = new();
     private NAudio.Wave.WaveOutEvent? _output;
     private NAudio.Wave.Mp3FileReader? _reader;
     private MemoryStream? _readerMs;
 
-    // Decodes the MP3 (Windows ACM codec) and plays it through the shared WaveOut,
-    // non-blocking.
+    // Decodes the MP3 and plays it, non-blocking.
     private void PlayMp3(byte[] mp3, long seq)
     {
         Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");
@@ -396,13 +386,12 @@ public class Audio : IDisposable
         {
             lock (_playLock)
             {
-                // Unloaded mid-fetch: don't resurrect the player after Dispose.
+                // Don't resurrect the player after Dispose.
                 if (_disposed) return;
-                // A newer cue already played (or is playing) on EITHER engine:
-                // drop this stale one instead of cutting the newer call off.
+                // A newer cue already played, so drop this one.
                 if (!TryAdvance(ref _playedSeq, seq)) return;
 
-                // Disposing the previous output stops it immediately.
+                // Disposing the previous output stops it.
                 try { _output?.Dispose(); } catch { /* ignore */ }
                 try { _reader?.Dispose(); } catch { /* ignore */ }
                 try { _readerMs?.Dispose(); } catch { /* ignore */ }
@@ -423,8 +412,7 @@ public class Audio : IDisposable
 
     public void Dispose()
     {
-        // Flag first so any in-flight Speak task bails at its next gate instead
-        // of resurrecting the COM voice or the WaveOut chain after this runs.
+        // Flag first so in-flight tasks bail at their next gate.
         _disposed = true;
 
         lock (_sapiLock)

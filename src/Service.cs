@@ -4,7 +4,7 @@ using Dalamud.Plugin.Services;
 
 namespace FrenMits;
 
-// Dalamud services, injected once at startup via PluginInterface.Create<Service>().
+// Dalamud services, injected once at startup.
 public class Service
 {
     [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; } = null!;

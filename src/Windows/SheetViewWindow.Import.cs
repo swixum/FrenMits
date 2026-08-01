@@ -10,17 +10,14 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Sheet View: turning a real pull into a sheet - either captured live, or read
-// back from a logs report.
+// Sheet View: turning a real pull into a sheet.
 public partial class SheetViewWindow
 {
-    // ---- build from pull -----------------------------------------------------
-    // In a custom-sheet duty, SyncEngine records every NPC cast of the pull
-    // automatically; this turns that capture into mechanic rows + cast anchors.
+    // ---- build from pull ----
 
     private bool _bpRows = true;
     private bool _bpAnchors = true;
-    // logs import extras: keep only casts that mattered and turn gaps into windows.
+    // Log import extras: keep the casts that mattered.
     private bool _flMeaningful = true;
     private bool _flDowntime = true;
 
@@ -37,16 +34,14 @@ public partial class SheetViewWindow
 
     private void DrawBuildFromPullPopup()
     {
-        // Modal so a stray click outside cannot dismiss the form; the X,
-        // Escape, or its own buttons close it.
+        // Modal, so a stray click outside cannot dismiss the form.
         var stay = true;
         if (!ImGui.BeginPopupModal("##buildpull", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Build from last pull", 400f);
 
-        // Only offer a capture that came from THIS duty: building duty A's
-        // casts into duty B's sheet would replace B's anchors with nonsense.
+        // Only offer a capture from this duty, or the anchors go wrong.
         var casts = _fight != null && _plugin.Sync.LastPullTerritory == _fight.TerritoryId
             ? _plugin.Sync.LastPull.Where(cp => !cp.IsBoss).ToList()
             : new List<SyncEngine.Capture>();
@@ -76,8 +71,7 @@ public partial class SheetViewWindow
 
     private readonly record struct BuildEvent(uint Id, float Time, string Name, bool Anchorable);
 
-    // Two bars for an imported log's silences (a stretch with no enemy cast = the
-    // boss stepped away).
+    // Two bars for an imported log's silences.
     private const float ImportWindowGap = 20f; // seeds an untargetable window
     private const float ImportSeamGap = 35f;   // also re-bases the clock (phase seam)
 
@@ -92,7 +86,7 @@ public partial class SheetViewWindow
         "Thrill of Battle", "Dark Mind", "Bulwark",
     };
 
-    // Grade an ability's hardest unmitigated hit against the fight's hardest raidwide.
+    // Grade a hit against the fight's hardest raidwide.
     private static int HurtLevel(long dmg, long max)
         => dmg <= 0 || max <= 0 ? 0
          : dmg >= max * 0.75 ? 3
@@ -106,8 +100,7 @@ public partial class SheetViewWindow
         ApplyBuild(events, rows, anchors, "the last pull");
     }
 
-    // Resolve names, drop unnamed casts, auto-attacks, and back-to-back repeats
-    // of the same ability (double casts).
+    // Resolve names, then drop autos and back-to-back repeats.
     private static List<BuildEvent> SiftEvents(IEnumerable<(uint Id, float Time, bool Anchorable)> raw,
         IReadOnlyDictionary<uint, string>? names = null)
     {
@@ -117,8 +110,7 @@ public partial class SheetViewWindow
             var name = names != null && names.TryGetValue(id, out var n) && n.Length > 0 ? n : ActionName(id);
             if (name.Length == 0) continue;
             if (string.Equals(name, "attack", StringComparison.OrdinalIgnoreCase)) continue;
-            // A log labels an ability it doesn't know "unknown_<hex>", and for
-            // some of those the game's own Action sheet has no name either.
+            // An unknown ability may have no name in the game sheet either.
             if (IsUnnamedAbility(name) && ActionName(id).Length == 0) continue;
             if (events.Count > 0 && events[^1].Id == id && time - events[^1].Time < 3f) continue;
             events.Add(new BuildEvent(id, time, name, anchorable));
@@ -136,8 +128,7 @@ public partial class SheetViewWindow
         List<FFLogsClient.MitPress>? mitPresses = null,
         bool meaningfulOnly = false, bool deriveDowntime = false)
     {
-        // Custom sheets only: replacing a BUILTIN fight's anchors would destroy
-        // the official ones (unreachable via UI today; cheap insurance).
+        // Custom sheets only, or a built-in would lose its anchors.
         if (_fight == null || !_isCustom || AbortIfStale()) return;
         if (events.Count == 0)
         {
@@ -154,8 +145,7 @@ public partial class SheetViewWindow
                || (damage != null && damage.TryGetValue(e.Id, out var d)
                    && Enrages.LooksLikeOne(d.Worst, d.Targets));
 
-        // Raidwides and busters are graded on separate scales, each against its own
-        // kind.
+        // Raidwides and busters grade on separate scales.
         var maxDmg = 0L;   // hardest raidwide
         var maxTb = 0L;    // hardest buster
         if (damage is { Count: > 0 })
@@ -217,8 +207,7 @@ public partial class SheetViewWindow
                 {
                     var name = ActionName(press.AbilityId);
                     if (name.Length == 0) continue;
-                    // nearest row this press could be FOR: the first hit within
-                    // 20s after the button.
+                    // The nearest row this press could be for.
                     CustomRow? target = null;
                     foreach (var r in allRows)
                     {
@@ -255,21 +244,19 @@ public partial class SheetViewWindow
         var noAnchorable = anchors && !events.Any(e => e.Anchorable);
         if (anchors && noAnchorable)
         {
-            // Nothing in this source had a cast bar: leave the fight's existing
-            // anchors alone rather than wiping them to (nearly) nothing.
+            // Nothing here had a cast bar, so leave the anchors alone.
             anchors = false;
         }
         if (anchors)
         {
-            // A captured cast IS an anchor: ability id + the time it resolved.
+            // A captured cast is an anchor: its id and resolve time.
             var points = new List<SyncPoint>();
             var prev = 0f;
             var pendingPhase = false;
             var lastById = new Dictionary<uint, float>();
             foreach (var e in events)
             {
-                // The gap detector runs over every event; the phase flag lands on the
-                // next anchorable cast.
+                // The gap detector runs over every event.
                 if (e.Time - prev > (deriveDowntime ? ImportSeamGap : 90f)) pendingPhase = true;
                 prev = e.Time;
                 if (!e.Anchorable) continue;
@@ -279,8 +266,7 @@ public partial class SheetViewWindow
                 points.Add(new SyncPoint { Ability = e.Id, Time = e.Time, IsPhase = pendingPhase, Label = e.Name });
                 pendingPhase = false;
             }
-            // Keep any previously learned anchors BEYOND this pull's end, so a
-            // short wipe never truncates coverage a longer pull already earned.
+            // Keep learned anchors past this pull, so a wipe can't truncate.
             var end = events[^1].Time;
             points.AddRange(_fight.SyncPoints.Where(sp => sp.Time > end + 10f));
             _fight.SyncPoints = points;
@@ -296,12 +282,10 @@ public partial class SheetViewWindow
             {
                 var gap = events[i].Time - events[i - 1].Time;
                 if (gap < ImportWindowGap) continue; // shorter lulls are just mechanic spacing
-                // The boss leaves a beat after its last cast and returns a beat
-                // before its next; trim a little off each end of the raw silence.
+                // Trim a little off each end of the raw silence.
                 var start = MathF.Round(events[i - 1].Time + 3f);
                 var dur = MathF.Round(gap - 5f);
-                // A silence long enough to re-base the clock is also long enough to
-                // read as a cutscene (vs a brief untargetable transition).
+                // A silence long enough to re-base is long enough to be a cutscene.
                 windows.Add(new DowntimeWindow
                     { Start = start, Duration = dur, TargetHp = -1f, Cutscene = gap >= ImportSeamGap });
             }
@@ -332,9 +316,7 @@ public partial class SheetViewWindow
               + "Build again any time; anchors past this build's end are kept.");
     }
 
-    // ---- logs import ---------------------------------------------------
-    // Paste a report URL, pick the fight, and its enemy casts become rows +
-    // anchors via the same builder "Build from pull" uses.
+    // ---- log import ----
 
     private string _flUrl = "";
     private string _flStatus = "";
@@ -354,16 +336,14 @@ public partial class SheetViewWindow
 
     private void DrawFFLogsPopup()
     {
-        // Modal so a stray click outside cannot dismiss the form; the X,
-        // Escape, or its own buttons close it.
+        // Modal, so a stray click outside cannot dismiss the form.
         var stay = true;
         if (!ImGui.BeginPopupModal("##fflogs", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Build from FFLogs", 460f);
 
-        // Cached report state is per fight: duty A's casts must never sit one
-        // click away from being imported into duty B's sheet.
+        // Cached report state is per fight, so duties can't cross.
         if (ImGui.IsWindowAppearing() && _flForFight != _fight)
         {
             _flFights = null;
@@ -378,8 +358,7 @@ public partial class SheetViewWindow
             _flForFight = _fight;
         }
 
-        // One-time credentials: the user makes an API client on the logs
-        // site and pastes the two strings here.
+        // One-time credentials, made on the logs site.
         if (C.FflogsClientId.Length == 0 || C.FflogsClientSecret.Length == 0)
         {
             ImGui.TextDisabled("One-time setup (about two minutes)");
@@ -404,8 +383,7 @@ public partial class SheetViewWindow
             return;
         }
 
-        // Fastest path to an official-quality skeleton: type the fight name, no log
-        // link needed.
+        // Fastest path to a skeleton: type the fight name.
         ImGui.SetNextItemWidth(320f);
         ImGui.InputTextWithHint("##flfightname", "fight name (e.g. Futures Rewritten) - pulls the top kill", ref _flFightName, 128);
         ImGui.SameLine();
@@ -423,7 +401,7 @@ public partial class SheetViewWindow
         if (ImGui.SmallButton("Fetch")) FetchFights();
         ImGui.EndDisabled();
         ImGui.SameLine();
-        // Typo'd credentials must be fixable without config-file surgery.
+        // Typo'd credentials must be fixable without file surgery.
         if (ImGui.SmallButton("Credentials..."))
         {
             _flIdBuf = C.FflogsClientId;
@@ -455,8 +433,7 @@ public partial class SheetViewWindow
             var picked = fights[_flPick];
             if (_flCasts == null || _flCastsForFight != picked.Id)
             {
-                // Seamless: load the picked fight's casts automatically (once), so
-                // the flow is just paste -> pick the kill -> Import.
+                // Load the picked fight's casts once, so the flow stays short.
                 if (!_flBusy && _flAutoCastsFor != picked.Id)
                 {
                     _flAutoCastsFor = picked.Id;
@@ -477,8 +454,7 @@ public partial class SheetViewWindow
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Keep only casts that hit or had a cast bar.");
                 ImGui.EndDisabled();
-                // Untargetable windows come from the log's silences, not the rows, so
-                // they're available even when you only want anchors + downtime.
+                // Untargetable windows come from the silences, not the rows.
                 ImGui.Checkbox("Add untargetable windows", ref _flDowntime);
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Turn the log's downtime gaps into untargetable rows.");
@@ -497,15 +473,14 @@ public partial class SheetViewWindow
             }
         }
 
-        // Attribution (logs API terms): credit the data source, no endorsement implied.
+        // Attribution: credit the data source, no endorsement implied.
         ImGui.Separator();
         ImGui.TextDisabled("Data from the FFLogs API. FrenMits is not affiliated with or endorsed by FFLogs.");
 
         ImGui.EndPopup();
     }
 
-    // #8: resolve a fight NAME to its current top-speed kill, then drive the
-    // exact same pick -> load -> Import flow a pasted report uses.
+    // Resolve a fight name to its top kill, then run the same flow.
     private void SearchEncounter()
     {
         var name = _flFightName.Trim();
@@ -531,12 +506,10 @@ public partial class SheetViewWindow
                 var top = await _plugin.FFLogs.GetTopKillAsync(id, secret, enc.Id, "speed");
                 if (top == null) { _flStatus = $"Found {enc.Name}, but it has no ranked kills yet."; return; }
                 var fights = await _plugin.FFLogs.GetFightsAsync(id, secret, top.Value.Code);
-                // The user closed this and switched to another sheet mid-fetch:
-                // don't publish A's report into B's now-reset import state.
+                // They switched sheets mid-fetch, so drop this result.
                 if (_flForFight != forFight) return;
                 var idx = fights.FindIndex(f => f.Id == top.Value.FightId);
-                // Pre-select the ranked fight BEFORE publishing the list, so the
-                // draw thread auto-loads the right fight's casts on the next frame.
+                // Pre-select before publishing, so the right casts auto-load.
                 _flPick = idx >= 0 ? idx : 0;
                 _flUrl = top.Value.Code;
                 _flAutoCastsFor = -1;
@@ -600,16 +573,14 @@ public partial class SheetViewWindow
             try
             {
                 var casts = await _plugin.FFLogs.GetCastsAsync(id, secret, code, fight);
-                // Damage grades and the players' mit presses are bonuses: a
-                // fetch hiccup must not block the import.
+                // Grades and mit presses are bonuses, never blockers.
                 Dictionary<uint, FFLogsClient.AbilityDamage>? dmg = null;
                 try { dmg = await _plugin.FFLogs.GetDamageAsync(id, secret, code, fight); }
                 catch (Exception dex) { Service.Log.Warning(dex, "FrenMits: FFLogs damage fetch failed"); }
                 List<FFLogsClient.MitPress>? mits = null;
                 try { mits = await _plugin.FFLogs.GetMitCastsAsync(id, secret, code, fight); }
                 catch (Exception mex) { Service.Log.Warning(mex, "FrenMits: FFLogs mit-press fetch failed"); }
-                // The report's own ability names, so imported rows match logs and
-                // ids the local sheet can't resolve still get a real name (#2).
+                // The report's own ability names, so rows match the logs.
                 Dictionary<uint, string>? names = null;
                 try { names = await _plugin.FFLogs.GetAbilityNamesAsync(id, secret, code); }
                 catch (Exception nex) { Service.Log.Warning(nex, "FrenMits: FFLogs ability-name fetch failed"); }

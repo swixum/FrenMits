@@ -5,8 +5,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// A compact readout of YOUR currently-active mitigations: a row of status icons
-// with seconds remaining, tinted by mit type.
+// A compact readout of your active mits, tinted by type.
 public class MitBarWindow : Window
 {
     private readonly Plugin _plugin;
@@ -27,8 +26,7 @@ public class MitBarWindow : Window
 
     public override void PreDraw()
     {
-        // NoTitleBar always on so locking can't shift the bar vertically (a title
-        // bar present only when unlocked would).
+        // No title bar ever, so locking can't shift the bar.
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
                 | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing
                 | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.AlwaysAutoResize
@@ -86,8 +84,7 @@ public class MitBarWindow : Window
     {
         if (EffectiveLocked) return;
         if (OverlayChrome.MovedCenterFrac(C.MitBarPosition) is { } frac) { C.MitBarPosition = frac; _posDirty = true; }
-        // ONE disk write when the drag ends - not sixty full-config saves a
-        // second while the window is being moved.
+        // One disk write when the drag ends, not one per frame.
         if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.SaveSettings(); _posDirty = false; }
     }
 

@@ -9,8 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Minimal logs v2 (GraphQL) client for Sheet View's "Import log": list a
-// report's fights, then pull the enemies' cast events for one fight.
+// Minimal logs client for Sheet View's Import log.
 public sealed class FFLogsClient
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
@@ -21,16 +20,15 @@ public sealed class FFLogsClient
 
     public sealed record FightInfo(int Id, string Name, bool Kill, float DurationSec, double StartMs, double EndMs);
 
-    // One enemy cast: ability id, seconds from the fight start, and whether it had a
-    // cast bar.
+    // One enemy cast: ability, time, and whether it had a bar.
     public sealed record LogCast(uint AbilityId, float Time, bool HasCastBar);
 
-    // Pull the report code out of a pasted URL (or accept a bare code).
+    // Pull the report code out of a URL, or take a bare code.
     public static string? ParseReportCode(string input)
     {
         input = (input ?? "").Trim();
         if (input.Length == 0) return null;
-        // (?:a:)?
+        // Anonymous reports carry an a: prefix.
         var m = System.Text.RegularExpressions.Regex.Match(input, @"reports/((?:a:)?[A-Za-z0-9]{8,})");
         if (m.Success) return m.Groups[1].Value;
         return System.Text.RegularExpressions.Regex.IsMatch(input, @"^(?:a:)?[A-Za-z0-9]{8,}$") ? input : null;
@@ -78,7 +76,7 @@ public sealed class FFLogsClient
         return j;
     }
 
-    // The report's boss fights (trash pulls excluded), kills first.
+    // The report's boss fights, kills first.
     public async Task<List<FightInfo>> GetFightsAsync(string clientId, string secret, string code)
     {
         const string q = @"query($code:String!){reportData{report(code:$code){
@@ -100,11 +98,11 @@ public sealed class FFLogsClient
                 (float)((end - start) / 1000.0),
                 start, end));
         }
-        // Stable order: kills first, then pull order within each group.
+        // Stable order: kills first, then pull order.
         return list.OrderByDescending(f => f.Kill).ThenBy(f => f.Id).ToList();
     }
 
-    // Every enemy cast of one fight, fight-relative seconds.
+    // Every enemy cast of one fight, in fight-relative seconds.
     public async Task<List<LogCast>> GetCastsAsync(string clientId, string secret, string code, FightInfo fight)
     {
         const string q = @"query($code:String!,$fid:Int!,$start:Float!,$end:Float!){reportData{report(code:$code){
@@ -124,8 +122,7 @@ public sealed class FFLogsClient
 
             foreach (var e in data)
             {
-                // Read wide then range-check: logs can emit odd/negative ids
-                // for special rows, and one of those must not abort the import.
+                // Read wide then range-check, since odd ids show up.
                 var rawId = e["abilityGameID"]?.Value<long>() ?? 0;
                 if (rawId <= 0 || rawId > uint.MaxValue) continue;
                 var ability = (uint)rawId;
@@ -149,7 +146,7 @@ public sealed class FFLogsClient
         return casts;
     }
 
-    // The report's ability id to display name map, so imported casts match the logs.
+    // The report's ability id to name map.
     public async Task<Dictionary<uint, string>> GetAbilityNamesAsync(string clientId, string secret, string code)
     {
         const string q = @"query($code:String!){reportData{report(code:$code){
@@ -170,8 +167,7 @@ public sealed class FFLogsClient
 
     public sealed record EncounterRef(int Id, string Name);
 
-    // Resolve a (partial) fight name to an encounter, so "Build from FFLogs" can
-    // start from a name with no log link.
+    // Resolve a partial fight name to an encounter.
     public async Task<EncounterRef?> FindEncounterAsync(string clientId, string secret, string name)
     {
         var needle = (name ?? "").Trim();
@@ -195,21 +191,18 @@ public sealed class FFLogsClient
         return exact ?? contains;
     }
 
-    // The current top-ranked kill for an encounter: its report code + fight id, so
-    // the importer can pull it exactly like a pasted log.
+    // The top-ranked kill's report code and fight id.
     public async Task<(string Code, int FightId)?> GetTopKillAsync(string clientId, string secret, int encounterId, string metric)
     {
-        // Inlined from a fixed allow-list (never user text), so the fightRankings
-        // enum needn't be declared as a GraphQL variable.
+        // Inlined from an allow-list, never user text.
         var m = metric == "execution" ? "execution" : "speed";
         var q = @"query($e:Int!){worldData{encounter(id:$e){fightRankings(metric:" + m + @",page:1)}}}";
         var j = await QueryAsync(clientId, secret, q, new { e = encounterId }).ConfigureAwait(false);
         var fr = j["data"]?["worldData"]?["encounter"]?["fightRankings"];
         if (fr == null || fr.Type == JTokenType.Null) return null;
-        // fightRankings comes back as a JSON string on this field; parse if so.
+        // This field can come back as a JSON string.
         var parsed = fr.Type == JTokenType.String ? JToken.Parse(fr.ToString()) : fr;
-        // Index only an object: a bare scalar's string indexer throws instead of
-        // returning null, which would bypass the graceful no-kills path.
+        // Index only an object, since a scalar indexer throws.
         if (parsed is not JObject obj || obj["rankings"] is not JArray rankings) return null;
         foreach (var r in rankings)
         {
@@ -221,7 +214,7 @@ public sealed class FFLogsClient
         return null;
     }
 
-    // Per enemy ability: its hardest unmitigated hit and how many players it hit.
+    // Per ability: its hardest unmitigated hit and target count.
     public sealed record AbilityDamage(long Worst, int Targets);
 
     public async Task<Dictionary<uint, AbilityDamage>> GetDamageAsync(string clientId, string secret, string code, FightInfo fight)
@@ -263,8 +256,7 @@ public sealed class FFLogsClient
             kv => new AbilityDamage(kv.Value, targets.TryGetValue(kv.Key, out var t) ? t.Count : 0));
     }
 
-    // The PLAYERS' mitigation presses: when the log's party actually hit their
-    // defensive buttons.
+    // When the log's party hit their defensive buttons.
     public sealed record MitPress(uint AbilityId, float Time);
 
     private static readonly string[] MitNames =

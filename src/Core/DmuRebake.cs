@@ -4,11 +4,10 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Re-bakes the DMU built-in while keeping custom lines and per-line tweaks.
+// Re-bakes the DMU built-in, keeping custom lines and tweaks.
 public static class DmuRebake
 {
-    // Re-bake the Dancing Mad built-in from the (updated) sheet while KEEPING the
-    // custom lines people added.
+    // Re-bake from the updated sheet, keeping added lines.
     public static int SmartRebake(Configuration config)
     {
         var n = 0;
@@ -31,44 +30,41 @@ public static class DmuRebake
 
     private static List<MitLine> MergeSlot(FightProfile fight, string slot, List<MitLine> existing)
     {
-        // The DMU data files stay keyed by their native MT/OT/D1-style labels.
+        // The DMU data files stay keyed by their native labels.
         var native = SlotNames.ToLegacy(slot);
         var oldBaked = DmuLegacy.BuildLines(native);
-        // Deleted calls stay deleted through a sheet re-bake too.
+        // Deleted calls stay deleted through a re-bake.
         var newBaked = DmuData.BuildLines(native)
             .Where(b => !Builtin.IsDeleted(fight, slot, b)).ToList();
 
-        // Exact match against the previous bake (time + action + mechanic).
+        // Exact match against the previous bake.
         static bool SameBaked(MitLine a, MitLine b)
             => MathF.Abs(a.Time - b.Time) < 0.6f
                && string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
                && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
-        // Mit parts of a combined call ("Divine Caress + Asylum" -> two parts),
-        // for containment checks between bake versions.
+        // Mit parts of a combined call, for containment checks.
         static string[] Parts(string action)
             => action.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-        // Every mit named by `a` is also named by `b` (case-insensitive).
+        // Every mit a names is also named by b.
         static bool Covers(MitLine b, MitLine a)
             => Parts(a.Action).All(p => Parts(b.Action).Contains(p, StringComparer.OrdinalIgnoreCase));
 
-        // "Shadows a real call": the same spoken action within a few seconds of a
-        // current baked line.
+        // The same spoken action within a few seconds of a baked line.
         static bool Shadows(MitLine line, List<MitLine> baked)
             => baked.Any(b => MathF.Abs(b.Time - line.Time) < 6f
                               && (string.Equals(b.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase)
                                   || Covers(b, line)));
 
-        // Keep a line only if it does NOT shadow a baked call (no overlap) AND it is
-        // either a user-flagged custom or not a recognised old sheet-baked line.
+        // Keep a line only if it shadows nothing and isn't old bake.
         var customs = existing
             .Where(l => !Shadows(l, newBaked) && (l.Custom || !oldBaked.Any(b => SameBaked(l, b))))
             .ToList();
 
         foreach (var c in customs) c.Custom = true; // flag survivors so future updates keep them cleanly
 
-        // Carry a replaced line's per-line tweaks onto the new baked call.
+        // Carry a replaced line's tweaks onto the new call.
         var donors = existing.Except(customs).ToList();
         var matched = new HashSet<MitLine>();
 
@@ -119,8 +115,7 @@ public static class DmuRebake
         return result.OrderBy(l => l.Time).ToList();
     }
 
-    // The BRD/MNK/PLD job-mitigation anchors that moved when they were re-timed
-    // to sheet v5.0 rows (old time/mechanic -> new).
+    // The job-mitigation anchors that moved in sheet v5.0.
     private static readonly (string Job, string Action, float OldTime, string OldMech, float NewTime, string NewMech)[] ExtraMoves =
     {
         ("BRD", "Nature's Minne", 249, "Towers I", 250, "Towers I"),
@@ -139,8 +134,7 @@ public static class DmuRebake
         ("PLD", "Passage of Arms", 922, "Chaotic Flood", 928, "Chaotic Flood"),
     };
 
-    // One-time v18 upgrade: bring already-added DMU tank-buster plans and the
-    // BRD/MNK/PLD job-mitigation lines up to the sheet v5.0 data.
+    // One-time v18 upgrade onto the sheet v5.0 data.
     public static void UpgradeTankAndExtraLines(Configuration config)
     {
         foreach (var f in config.Fights)
@@ -155,7 +149,7 @@ public static class DmuRebake
 
     private static void UpgradeSet(FightProfile fight, List<MitLine> lines)
     {
-        // Job-mitigation extras: re-time in place, keeping every per-line tweak.
+        // Job-mitigation extras: re-time in place, keeping tweaks.
         foreach (var l in lines)
             foreach (var m in ExtraMoves)
                 if (MathF.Abs(l.Time - m.OldTime) < 0.5f
@@ -168,7 +162,7 @@ public static class DmuRebake
                     break;
                 }
 
-        // Tank-buster plans (the card adds them as "Tank:" lines tagged to one job).
+        // Tank-buster plans, added as job-tagged "Tank:" lines.
         foreach (var job in new[] { "WAR", "PLD", "DRK", "GNB" })
         {
             var mine = lines.Where(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
@@ -176,7 +170,7 @@ public static class DmuRebake
                                         && string.Equals(l.Jobs[0], job, StringComparison.OrdinalIgnoreCase)).ToList();
             if (mine.Count == 0) continue;
 
-            // Find which pairing's old plan these came from by counting exact matches.
+            // Find the source pairing by counting exact matches.
             string? comp = null;
             var matched = new List<MitLine>();
             foreach (var c in TankMits.Comps(Builtin.DmuTerritory))
@@ -196,8 +190,7 @@ public static class DmuRebake
             }
             if (comp == null || matched.Count == 0) continue; // fully hand-edited: hands off
 
-            // Swap the unedited old lines for the new plan; edited lines stay,
-            // and win over a new entry landing on the same moment.
+            // Swap the unedited old lines out; edited lines stay and win.
             foreach (var l in matched) lines.Remove(l);
             var kept = lines.Where(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
                                         && l.Jobs.Count == 1

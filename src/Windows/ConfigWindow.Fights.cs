@@ -10,14 +10,12 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Settings: the Fights list - each category's page, reordering, and loading or
-// resetting a built-in fight's baked plan.
+// Settings: the Fights list and its per-fight controls.
 public partial class ConfigWindow
 {
-    // ---- Fights page ------------------------------------------------------
+    // ---- Fights page ----
 
-    // Jump from Sheet View straight to a fight's page (per-line options and
-    // import tools live there).
+    // Jump from Sheet View straight to a fight's page.
     public void OpenFightPage(FightProfile fight)
     {
         IsOpen = true;
@@ -55,8 +53,7 @@ public partial class ConfigWindow
         return "Other";
     }
 
-    // Quick filter for the fights pages, shared across categories so a search
-    // follows you between tabs.
+    // Quick filter, shared so a search follows you between tabs.
     private string _fightFilter = "";
 
     private void DrawFightCategoryPage(string category)
@@ -65,8 +62,7 @@ public partial class ConfigWindow
 
         SeparatorText($"{category}: {fights.Count} fight{(fights.Count == 1 ? "" : "s")}");
         DrawCategoryToolbar(category);
-        // Type-to-narrow, matching Sheet View's duty search - with many custom
-        // sheets the list outgrows scrolling fast.
+        // Type-to-narrow, since the list outgrows scrolling fast.
         ImGui.SetNextItemWidth(240f);
         ImGui.InputTextWithHint("##fightfilter", "Search fights...", ref _fightFilter, 64);
         var filter = _fightFilter.Trim();
@@ -88,7 +84,7 @@ public partial class ConfigWindow
             return;
         }
 
-        // Group by expansion, newest first (unknown zones sink to the bottom).
+        // Group by expansion, newest first.
         fights = fights
             .OrderByDescending(f => ExpansionOf(f) == uint.MaxValue ? -1L : ExpansionOf(f))
             .ToList();
@@ -125,11 +121,9 @@ public partial class ConfigWindow
             var headerStartX = ImGui.GetCursorPosX();
             var headerLabel = fight.Name;
             var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
-            // Without allow-overlap the header claims the mouse and the star can't be
-            // hovered.
+            // Without allow-overlap the header would swallow the star.
             ImGui.SetItemAllowOverlap();
-            // A framed tree node indents its label one extra FramePadding.X
-            // beyond GetTreeNodeToLabelSpacing().
+            // A framed tree node indents its label one extra padding.
             ImGui.SameLine(headerStartX + ImGui.GetTreeNodeToLabelSpacing()
                 + ImGui.GetStyle().FramePadding.X + ImGui.CalcTextSize(headerLabel).X + 8f);
             ImGui.AlignTextToFramePadding();
@@ -140,8 +134,7 @@ public partial class ConfigWindow
                     (official ? FontAwesomeIcon.Star : FontAwesomeIcon.User).ToIconString());
                 if (!official) ImGui.SetWindowFontScale(1f);
             }
-            // The tooltip lives on the symbol, not the whole header: sweeping
-            // the fight list stays silent, hovering the symbol explains it.
+            // The tooltip lives on the symbol, so the list stays silent.
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(official ? "Official sheet." : "User created.");
             // Quick jump into Sheet View for any fight that has a sheet.
@@ -170,8 +163,7 @@ public partial class ConfigWindow
                     else if (fight.CustomSlots.Count > 0) DrawCustomColumnRow(fight);
                     DrawFightOffsetRow(fight);
                     DrawPracticeRow(fight);
-                    // Optional add-ons live behind one fold, so an expanded fight
-                    // reads as offset + line table by default.
+                    // Add-ons live behind one fold, so a fight reads simply.
                     var job = _plugin.ActiveJobAbbreviation();
                     var hasExtras = PotionTimings.BossSlug(fight.TerritoryId) != null
                         || (fight.CustomSlots.Count > 0 && fight.CustomRows.Count > 0)
@@ -198,7 +190,7 @@ public partial class ConfigWindow
         if (toDelete != null) { C.Fights.Remove(toDelete); C.Save(); }
     }
 
-    // A small grip you drag to reorder a fight within its expansion group.
+    // A grip you drag to reorder a fight in its group.
     private void DrawReorderGrip(List<FightProfile> shown, int i)
     {
         ImGui.PushStyleColor(ImGuiCol.Button, 0u);
@@ -216,8 +208,7 @@ public partial class ConfigWindow
 
         if (!held) return;
         var dy = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left).Y;
-        // Wait for a real drag past half a row before swapping, so a click or
-        // tiny wobble on the grip never nudges the order.
+        // Wait for a real drag, so a wobble never nudges the order.
         if (MathF.Abs(dy) < ImGui.GetFrameHeightWithSpacing() * 0.5f) return;
 
         var j = i + (dy < 0 ? -1 : 1);
@@ -233,15 +224,14 @@ public partial class ConfigWindow
         C.Save();
     }
 
-    // One menu instead of a button row that grows every tier: blank fight,
-    // paste a code, and any not-yet-added official sheets for this category.
+    // One menu, since a button row grows every tier.
     private void DrawCategoryToolbar(string category)
     {
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add fight"))
             ImGui.OpenPopup("##addfight");
         if (!ImGui.BeginPopup("##addfight")) return;
 
-        // A blank fight in an official-sheet zone would be a locked duplicate.
+        // A blank fight in an official zone would be a locked duplicate.
         var zone = Service.ClientState.TerritoryType;
         if (Builtin.Has(zone))
             ImGui.MenuItem("New blank fight (this zone has an official sheet)", false);
@@ -261,8 +251,7 @@ public partial class ConfigWindow
         {
             ImGui.Separator();
             ImGui.TextDisabled("Official sheets");
-            // Builtin.Fights is already newest-expansion-first, so heading each
-            // run keeps current content at the top without re-sorting anything.
+            // Builtin.Fights is already newest first, so just head each run.
             var shown = "";
             foreach (var (territory, name, cat, expansion) in presets)
             {
@@ -296,7 +285,7 @@ public partial class ConfigWindow
         _ => role.ToString(),
     };
 
-    // Friendly names for the raw sheet-slot codes shown in the slot picker.
+    // Friendly names for the raw slot codes in the picker.
     private static string SlotLabel(string code) => SlotNames.Canon(code) switch
     {
         "M1" => "Melee 1",
@@ -311,8 +300,7 @@ public partial class ConfigWindow
     private string _builtinMsg = "";
     private DateTime _builtinMsgAt = DateTime.MinValue;
 
-    // True if your current lines differ from a fresh bake of this slot (added,
-    // removed, or a changed action) - i.e. a Replace would throw away your work.
+    // True when your lines differ from a fresh bake of this slot.
     private bool HasBuiltinEdits(FightProfile fight, string slot)
     {
         if (fight.Lines.Count == 0) return false;
@@ -328,7 +316,7 @@ public partial class ConfigWindow
         return false;
     }
 
-    // Switch the active slot and load only that slot's mits (keeping its own edits).
+    // Switch the active slot and load only its mits.
     private void SelectBuiltinSlot(FightProfile fight, string slot)
     {
         Builtin.ApplySlot(fight, slot);
@@ -351,8 +339,7 @@ public partial class ConfigWindow
     {
         var slots = Builtin.Slots(fight.TerritoryId);
 
-        // Reflect the fight's active slot in the picker, falling back to the first
-        // slot.
+        // Show the fight's active slot, falling back to the first.
         var savedIdx = Array.IndexOf(slots, fight.Slot);
         _builtinSlot = savedIdx >= 0 ? savedIdx : 0;
         _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
@@ -445,8 +432,7 @@ public partial class ConfigWindow
         ImGui.EndPopup();
     }
 
-    // The fight-wide offset, up top where it's findable, shifts EVERY call; the
-    // per-line ±s column below handles individual calls.
+    // The fight-wide offset, which shifts every call.
     private void DrawFightOffsetRow(FightProfile fight)
     {
         var offset = fight.TimerOffset;
@@ -464,11 +450,10 @@ public partial class ConfigWindow
                    + "pull. The timer auto-starts on combat and resets on a wipe / duty end.");
     }
 
-    // Set when a zone edit is refused (official-sheet zone); shows a warning
-    // line under the territory controls for a few seconds.
+    // Set when a zone edit is refused, to warn for a few seconds.
     private double _zoneRejectUntil;
 
-    // The canonical profile for a built-in zone is the first in the list.
+    // The canonical profile for a built-in zone is the first.
     private bool IsOfficial(FightProfile f)
         => Builtin.Has(f.TerritoryId)
            && ReferenceEquals(C.Fights.FirstOrDefault(x => x.TerritoryId == f.TerritoryId), f);

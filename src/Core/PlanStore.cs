@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace FrenMits;
 
-// Fight plans live in their own file next to the config, rather than inside it.
+// Fight plans live in their own file next to the config.
 public static class PlanStore
 {
     public const string FileName = "plans.json";
@@ -13,14 +13,13 @@ public static class PlanStore
     private static string PlanPath => Path.Combine(
         Service.PluginInterface.GetPluginConfigDirectory(), FileName);
 
-    // Exactly what's on disk, so a save that changes nothing costs no disk at all
-    // (Save runs on every plan edit, and most of them touch one line).
+    // Exactly what's on disk, so an unchanged save costs nothing.
     private static string _onDisk = "";
 
-    // Set when the file EXISTS but wouldn't load.
+    // Set when the file exists but wouldn't load.
     public static bool Broken { get; private set; }
 
-    // The plans on disk, or null when there is no plan file yet.
+    // The plans on disk, or null when there is no file yet.
     public static List<FightProfile>? Load()
     {
         string json;
@@ -48,7 +47,7 @@ public static class PlanStore
         }
         catch (Exception ex)
         {
-            // Keep an unreadable file intact and stop writing for the session.
+            // Keep an unreadable file and stop writing this session.
             Backup(file, ".corrupt.bak");
             Service.Log?.Error(ex,
                 $"FrenMits: plans.json exists ({json.Length} bytes) but failed to parse. " +
@@ -58,12 +57,11 @@ public static class PlanStore
         }
     }
 
-    // Which copy to believe when the config STILL carries fights and a plan
-    // file exists as well.
+    // Which copy to believe when both carry fights.
     public static bool PreferConfigCopy(bool planFileExists, int legacyCount, bool configIsNewer)
         => legacyCount > 0 && (!planFileExists || configIsNewer);
 
-    // True when the config file was written more recently than the plan file.
+    // True when the config was written after the plan file.
     public static bool ConfigIsNewerThanPlans()
     {
         try
@@ -97,8 +95,7 @@ public static class PlanStore
             var dir = Service.PluginInterface.GetPluginConfigDirectory();
             Directory.CreateDirectory(dir);
             var file = PlanPath;
-            // Write beside it and swap, so power loss or a crash mid-write leaves
-            // the previous plans intact rather than a half-written file.
+            // Write beside it and swap, so a crash can't half-write.
             var tmp = file + ".tmp";
             File.WriteAllText(tmp, json);
             if (File.Exists(file)) File.Replace(tmp, file, null);
@@ -111,8 +108,7 @@ public static class PlanStore
         }
     }
 
-    // Taken once, immediately before the first save that leaves plans out of
-    // the config.
+    // Taken once, right before plans leave the config.
     public static void BackupConfigBeforeSplit()
     {
         try

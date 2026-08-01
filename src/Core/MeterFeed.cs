@@ -6,8 +6,7 @@ using System.Text;
 
 namespace FrenMits;
 
-// A recording of what the parser fed the meter and the world it read it in, so
-// a pull that came out wrong can be run again offline.
+// Records what the parser fed the meter, to replay offline.
 public static class MeterFeed
 {
     public sealed class Message
@@ -26,7 +25,7 @@ public static class MeterFeed
     public static string Folder
         => Path.Combine(Service.PluginInterface.GetPluginConfigDirectory(), "meterfeed");
 
-    // ---- writing ----------------------------------------------------------
+    // ---- writing ----
 
     private static readonly List<string> _lines = new();
     private static DateTime _start = DateTime.MinValue;
@@ -65,7 +64,7 @@ public static class MeterFeed
         _lines.Add(sb.ToString());
     }
 
-    // Close the recording out to its own file, and return where it landed.
+    // Close the recording out and return where it landed.
     public static string Stop()
     {
         Recording = false;
@@ -83,7 +82,7 @@ public static class MeterFeed
 
     private static string F(double v) => v.ToString("0.###", CultureInfo.InvariantCulture);
 
-    // ---- reading ----------------------------------------------------------
+    // ---- reading ----
 
     public static List<Message> Load(string path)
     {
@@ -101,7 +100,7 @@ public static class MeterFeed
             {
                 var r = f[i].Split('~');
                 if (r.Length < 6) continue;
-                // Older recordings stop at deaths, so the shield field is optional.
+                // Older recordings stop at deaths, so shields are optional.
                 m.Rows.Add((r[0], r[1], D(r[2]), D(r[3]), D(r[4]), (int)D(r[5]), r.Length > 6 ? D(r[6]) : 0));
             }
             list.Add(m);
@@ -109,7 +108,7 @@ public static class MeterFeed
         return list;
     }
 
-    // The newest recording, or "" when nothing has been recorded yet.
+    // The newest recording, or "" when there is none.
     public static string Newest()
     {
         try
@@ -132,7 +131,7 @@ public static class MeterFeed
     private static double D(string s)
         => double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : 0;
 
-    // A recorded message turned back into what the parser handed over.
+    // A recorded message turned back into parser output.
     public static MeterEncounter ToEncounter(Message m)
     {
         var e = new MeterEncounter

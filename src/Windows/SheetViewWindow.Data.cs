@@ -10,11 +10,10 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Sheet View: building the grid's rows from the fight, and applying edits back
-// onto the plan.
+// Sheet View: building the grid and applying edits back.
 public partial class SheetViewWindow
 {
-    // ---- data -------------------------------------------------------------
+    // ---- data ----
 
     private static bool MechEquals(string a, string b)
         => string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
@@ -33,8 +32,7 @@ public partial class SheetViewWindow
 
         _isCustom = IsCustomSheet(_fight);
         _slots = _isCustom ? _fight.CustomSlots.ToArray() : Builtin.Slots(_fight.TerritoryId);
-        // Pinned columns (right-click a header) ride first, inside the frozen
-        // area.
+        // Pinned columns ride first, inside the frozen area.
         _order = Enumerable.Range(0, _slots.Length).OrderBy(i => IsPinnedColumn(i) ? 0 : 1).ToArray();
         _pinnedCount = _order.Count(IsPinnedColumn);
         _phases = _isCustom ? new() : Builtin.PhaseStarts(_fight.TerritoryId);
@@ -67,16 +65,14 @@ public partial class SheetViewWindow
             }
             else
             {
-                // Kept as the SAME list object so a later edit can adopt it into
-                // SavedSlots without breaking the row -> line references.
+                // The same list object, so an edit keeps the row references.
                 _slotLines[i] = Builtin.BuildLines(_fight.TerritoryId, _slots[i])
                     .Where(b => !Builtin.IsDeleted(_fight, _slots[i], b)).ToList();
                 _slotBacked[i] = false;
             }
         }
 
-        // Merge the slot plans into sheet rows: same mechanic within ~a second is
-        // the same row.
+        // Merge slots into rows: the same mechanic within a second.
         for (var i = 0; i < _slots.Length; i++)
         {
             foreach (var line in _slotLines[i].OrderBy(l => l.Time))
@@ -91,14 +87,12 @@ public partial class SheetViewWindow
                 }
                 row.Cells[i].Add(line);
                 row.Time = MathF.Min(row.Time, line.Time);
-                // Job-restricted customs (the Job extras schedules) don't count
-                // as "edited": they get their own "job extra" tag instead.
+                // Job-restricted customs get their own tag, not "edited".
                 row.Edited |= line.Custom && line.Jobs.Count == 0;
             }
         }
 
-        // The same grid straight from the bake (unfiltered): reset anchors,
-        // deleted-detection, and ghost rows all come from here.
+        // The same grid straight from the bake, unfiltered.
         for (var i = 0; !_isCustom && i < _slots.Length; i++)
         {
             foreach (var line in Builtin.BuildLines(_fight.TerritoryId, _slots[i]).OrderBy(l => l.Time))
@@ -116,8 +110,7 @@ public partial class SheetViewWindow
             }
         }
 
-        // Anchor live rows to baked instances order-preservingly per mechanic, not by
-        // nearest time.
+        // Anchor live rows per mechanic in order, not by nearest time.
         var referenced = new HashSet<BakedRow>();
         AnchorRows(referenced);
         foreach (var row in _rows)
@@ -127,8 +120,7 @@ public partial class SheetViewWindow
                 row.Edited |= row.Bake.Cells[i].Any(b => Builtin.IsDeleted(_fight, _slots[i], b));
         }
 
-        // Ghost rows: instances the sheet bakes but no live row carries anymore
-        // (deleted everywhere) - shown dimmed so restore is always one click.
+        // Ghost rows: baked instances no live row carries anymore.
         foreach (var br in _bakedRows)
         {
             if (referenced.Contains(br)) continue;
@@ -155,8 +147,7 @@ public partial class SheetViewWindow
             });
         }
 
-        // Custom sheets: scaffold rows exist even before any lines are written
-        // into them, so Build > Add row gives you a plannable grid immediately.
+        // Scaffold rows exist before any lines are written in.
         if (_isCustom && _fight.CustomRows.Count > 0)
             foreach (var cr in _fight.CustomRows)
                 if (!_rows.Any(r => MechEquals(r.Mechanic, cr.Mechanic) && MathF.Abs(r.Time - cr.Time) < 2f))
@@ -170,11 +161,10 @@ public partial class SheetViewWindow
                 if (time <= r.Time + 0.5f) ph = name;
             r.Phase = ph.Length > 0 ? ph : (_phases.Count > 0 ? _phases[0].Name : "");
 
-            // On a custom sheet everything is yours: no "edited" state exists.
+            // On a custom sheet everything is yours.
             if (_isCustom) r.Edited = false;
 
-            // A row made ENTIRELY of job-restricted custom lines is a job extra
-            // (e.g. Nature's Minne riding 1s off its mechanic's row).
+            // A row made only of job-restricted lines is a job extra.
             if (r.Ghost || _isCustom) continue;
             var any = false;
             var all = true;
@@ -191,8 +181,7 @@ public partial class SheetViewWindow
         BuildCarryGhosts();
     }
 
-    // Carry-over ghosts: an empty cell shows a dim arrow when an earlier buff still
-    // covers it.
+    // Carry-over ghosts: a dim arrow where a buff still covers.
     private void BuildCarryGhosts()
     {
         foreach (var row in _rows) row.Carry = null;
@@ -228,8 +217,7 @@ public partial class SheetViewWindow
         }
     }
 
-    // Flag any line whose mit is used again before its cooldown (with charges
-    // honored) can possibly be back, per slot.
+    // Flag a mit used again before its cooldown can be back.
     private void FindCooldownConflicts()
     {
         _conflicts.Clear();
@@ -239,8 +227,7 @@ public partial class SheetViewWindow
 
         for (var i = 0; i < _slots.Length; i++)
         {
-            // Abilities in the same recast GROUP share one timer (Bloodwhetting /
-            // Nascent Flash / Raw Intuition), so group-mates pool their uses.
+            // Abilities in one recast group pool their uses.
             var uses = new Dictionary<string, (float Recast, int Charges, List<(float Time, MitLine Line, string Name, string Tag)> Uses)>(StringComparer.OrdinalIgnoreCase);
             foreach (var l in _slotLines[i])
             {
@@ -256,8 +243,7 @@ public partial class SheetViewWindow
                     var key = pm.Family.Length > 0 ? $"family:{pm.Family}" : pm.Name;
                     if (!uses.TryGetValue(key, out var entry))
                         uses[key] = entry = (pm.Recast, pm.Charges, new List<(float, MitLine, string, string)>());
-                    // CUE time, not plan time: a per-call offset genuinely moves
-                    // the press, so it must count in the timer math.
+                    // Cue time, since a per-call offset really moves the press.
                     var tag = MitLine.JobTagFor(l.Action, pm.Name);
                     if (tag.Length == 0 && l.Jobs.Count > 0)
                         tag = string.Join("/", l.Jobs
@@ -271,8 +257,7 @@ public partial class SheetViewWindow
             {
                 list.Sort((a, b) => a.Time.CompareTo(b.Time));
 
-                // Job-tagged variants are different players' presses: "Party Mit
-                // (GNB/DRK)" and "(WAR/PLD)" never share one timer.
+                // Job-tagged variants are different players, so separate timers.
                 var tags = list.Select(u => u.Tag).Where(t2 => t2.Length > 0)
                     .Distinct().ToList();
                 if (tags.Count == 0) { CheckMitTimer(list, recast, charges); continue; }
@@ -284,20 +269,17 @@ public partial class SheetViewWindow
         }
     }
 
-    // Never repeat one message on a line (untagged uses run through several
-    // tag groups, and each group would otherwise re-append the same text).
+    // Never repeat one message on a line.
     private static void AppendOnce(Dictionary<MitLine, string> map, MitLine line, string msg)
     {
         if (!map.TryGetValue(line, out var old)) map[line] = msg;
         else if (!old.Contains(msg, StringComparison.Ordinal)) map[line] = old + "\n" + msg;
     }
 
-    // One mit timer's worth of uses (same recast group + compatible job tags):
-    // press-window hints plus the top-down feasibility walk.
+    // One timer's uses: press-window hints plus the walk.
     private void CheckMitTimer(List<(float Time, MitLine Line, string Name, string Tag)> list, float recast, int charges)
     {
-                // Press-window hints: coverage pushes the press earlier, a reuse caps
-                // how late it can go.
+                // Coverage pushes a press earlier, a reuse caps how late.
                 for (var u = 0; u < list.Count; u++)
                 {
                     var (t, line, name, _) = list[u];
@@ -308,8 +290,7 @@ public partial class SheetViewWindow
                     if (line.CoverUntil > t + 0.5f && pm.Duration > 0f)
                         lo = line.CoverUntil - pm.Duration;
 
-                    // Coverage the buff can't physically reach even pressed AT
-                    // the hit: that one is wrong on its own, chain or no chain.
+                    // Coverage the buff can't reach even pressed at the hit.
                     if (lo > t + 0.5f)
                     {
                         AppendOnce(_conflicts, line,
@@ -326,8 +307,7 @@ public partial class SheetViewWindow
                         if (latest < hi) { hi = latest; squeezedBy = $"{next.Name} at {TimeText(next.Time)}"; }
                     }
 
-                    // Tension between coverage and the next press is left to
-                    // the walk (the next press may float earlier than its hit).
+                    // Tension with the next press is left to the walk.
                     if (lo > hi + 0.5f) continue;
                     if ((lo > float.NegativeInfinity || hi < t - 0.5f) && hi >= 0f)
                     {
@@ -345,8 +325,7 @@ public partial class SheetViewWindow
 
                 if (charges > 1)
                 {
-                    // Serial recharge, like the game: charges regenerate one at
-                    // a time, so Oblation @0 and @5 is back at 60 and 120.
+                    // Serial recharge, like the game: one charge at a time.
                     var max = charges;
                     var avail = max;
                     var nextAt = float.PositiveInfinity; // when a charge next finishes
@@ -383,8 +362,7 @@ public partial class SheetViewWindow
                     return;
                 }
 
-                // Top-down feasibility, first mechanic first - the way you'd
-                // build the plan by hand.
+                // Top-down feasibility, the way you'd plan by hand.
                 var ready = float.NegativeInfinity;
                 var walkPrev = "";
                 foreach (var (t, line, name, _) in list)
@@ -415,8 +393,7 @@ public partial class SheetViewWindow
                 }
     }
 
-    // Pair each mechanic's live rows with its baked instances, order-preserving
-    // and minimizing total time distance.
+    // Pair live rows with baked ones, order-preserving.
     private void AnchorRows(HashSet<BakedRow> referenced)
     {
         const float skipCost = 30f;
@@ -475,8 +452,7 @@ public partial class SheetViewWindow
         return cells;
     }
 
-    // Every commit verifies our cached references, so a replaced list can't take stale
-    // data.
+    // Every commit verifies our references against the plan.
     private bool PlanChangedElsewhere()
     {
         if (_fight == null) return true;
@@ -499,8 +475,7 @@ public partial class SheetViewWindow
         return true;
     }
 
-    // Adopt a bake-preview slot into the profile the first time it's edited, so
-    // the edit persists.
+    // Adopt a preview slot on first edit, so it persists.
     private void EnsureBacked(int i)
     {
         if (_fight == null || _slotBacked[i]) return;
@@ -524,10 +499,9 @@ public partial class SheetViewWindow
         }
     }
 
-    // ---- edits ------------------------------------------------------------
+    // ---- edits ----
 
-    // Land any edit still in progress, since draw order can skip the old editor's
-    // commit.
+    // Land any edit in progress, since draw order can skip it.
     private bool CommitPending()
     {
         var committed = false;
@@ -581,14 +555,12 @@ public partial class SheetViewWindow
 
     private void CommitCell(Row row, int i) => ApplyCellText(row, i, _cellBuf);
 
-    // Enter = the visible row below (same column); Tab = the next column (same
-    // row).
+    // Enter goes down a row, Tab across to the next column.
     private void QueueNeighborEdit(Row row, int i, bool right)
     {
         if (right)
         {
-            // Follows the pin/submission order; a hand-dragged display order
-            // isn't readable from ImGui, so Tab may jump non-adjacently there.
+            // Follows the pin order, so Tab can jump non-adjacently.
             var k = Array.IndexOf(_order, i);
             if (k < 0 || k + 1 >= _order.Length) return; // last column: stay put
             _pendingEdit = (row.Time, row.Mechanic, _order[k + 1]);
@@ -618,8 +590,7 @@ public partial class SheetViewWindow
 
         if (cell.Count > 0 && text == cell[0].Action.Trim()) return; // no-op
 
-        // Clearing the cell = delete this slot's line (tombstoned like a delete
-        // on the fight page, so it stays gone; the undo button restores).
+        // Clearing the cell deletes this slot's line, tombstoned.
         if (text.Length == 0)
         {
             DeleteCellLine(row, i);
@@ -686,8 +657,7 @@ public partial class SheetViewWindow
             var candidates = row.Bake!.Cells[i];
             if (row.Cells[i].Count == 0 && candidates.Count == 0) continue;
 
-            // Skip slots already exactly on the sheet, so resetting one row
-            // doesn't freeze untouched preview columns into SavedSlots.
+            // Skip slots already on the sheet, so previews stay unfrozen.
             var pristine = row.Cells[i].All(l => !l.Custom)
                 && row.Cells[i].Count == candidates.Count
                 && candidates.All(b => row.Cells[i].Any(l => Builtin.SameCall(l, b)))
@@ -699,8 +669,7 @@ public partial class SheetViewWindow
             foreach (var b in candidates)
             {
                 _fight.DeletedCalls.RemoveAll(d => Builtin.MatchesTombstone(d, slot, b));
-                // Never create a same-moment same-action duplicate (a renamed
-                // line at the baked time already covers this call).
+                // Never create a same-moment duplicate of one action.
                 if (!_slotLines[i].Any(l => Builtin.SameCall(l, b)
                         || (MathF.Abs(l.Time - b.Time) < 0.9f
                             && string.Equals(l.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))))

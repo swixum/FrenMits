@@ -7,7 +7,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The damage meter overlay, with everything mid-pull on its right-click menu.
+// The damage meter overlay and its right-click menu.
 public class MeterWindow : Window
 {
     private readonly Plugin _plugin;
@@ -18,7 +18,7 @@ public class MeterWindow : Window
     private bool _sizeDirty;
     private int _histIdx = -1; // -1 = live encounter
 
-    // How long a finished pull stays on screen when hiding out of combat.
+    // How long a finished pull lingers out of combat.
     private const double LingerSeconds = 12;
 
     public MeterWindow(Plugin plugin) : base("FrenMits Meter##frenmeter")
@@ -44,11 +44,11 @@ public class MeterWindow : Window
         if (C.MeterLocked) Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
         if (C.MeterClickThrough) Flags |= ImGuiWindowFlags.NoMouseInputs;
 
-        // Collapsed: hold the window at header height and let go of the grip.
+        // Collapsed: hold the window at header height.
         if (C.MeterCollapsed)
         {
             Flags |= ImGuiWindowFlags.NoResize;
-            // The normal floor would quietly clamp a collapsed meter back open.
+            // The normal floor would clamp a collapsed meter open.
             SizeConstraints = new WindowSizeConstraints
             {
                 MinimumSize = new Vector2(230, 20),
@@ -74,20 +74,20 @@ public class MeterWindow : Window
     {
         if (!C.MeterEnabled) return false;
         if (Plugin.CutsceneActive && !C.TestMode) return false;
-        // Out of combat: stay up long enough to read the pull, then get out.
+        // Stay up long enough to read the pull, then get out.
         if (C.MeterHideOutOfCombat && !C.TestMode && !Plugin.InCombat && _histIdx < 0
             && _plugin.Meter.Current is not { Active: true }
             && (DateTime.UtcNow - _plugin.Meter.CurrentAt).TotalSeconds > LingerSeconds)
             return false;
-        // Without this a reset would take the window until the next pull starts.
+        // Without this a reset would take the window with it.
         return C.TestMode || C.MeterAlwaysShow || View() != null || !C.MeterLocked;
     }
 
-    // The encounter on screen: a history pick, else live data, else the sample.
+    // What's on screen: history, live data, or the sample.
     private MeterEncounter? View()
     {
         var m = _plugin.Meter;
-        // A fresh pull pulls the meter back to live and out of an old breakdown.
+        // A fresh pull pulls the meter back to live.
         if (m.Current is { Active: true } live)
         {
             _histIdx = -1;
@@ -102,7 +102,7 @@ public class MeterWindow : Window
     public override void Draw()
     {
         SaveIfMoved();
-        // The held numbers come off the real encounter; only the bars glide.
+        // The held numbers are real; only the bars glide.
         var real = View();
         _live = real == null ? null : Smoothed(real);
         var enc = Held(real);
@@ -126,7 +126,7 @@ public class MeterWindow : Window
         using var font = OverlayChrome.PushFont(
             _plugin.Fonts, C.MeterFontSizePx, C.MeterFontFamily, C.MeterFontBold, C.MeterFontItalic);
 
-        // Rolled up: the header is the whole window, and it carries the way back.
+        // Rolled up: the header is the whole window.
         if (C.MeterCollapsed)
         {
             DrawCollapsed(enc, dl, wp, ws);
@@ -136,7 +136,7 @@ public class MeterWindow : Window
 
         if (enc == null)
         {
-            // An empty board needs no saying; only a missing link is worth a line.
+            // Only a missing link is worth a line.
             var lineH = ImGui.GetTextLineHeight();
             var status = _plugin.Meter.Connected ? "" : _plugin.Meter.StatusText;
             var midY = ws.Y * 0.5f - (status.Length > 0 ? lineH : lineH * 0.5f);
@@ -157,12 +157,12 @@ public class MeterWindow : Window
         if (C.MeterColumnHeader && C.MeterHeaderStyle != 2 && _detailFor.Length == 0)
             DrawColumnHeader(dl, wp, ws, pad, ref y);
 
-        // Bars scroll in their own region, which click-through has to reach into.
+        // Bars scroll in their own region.
         var footerH = (C.MeterButtons || C.MeterHealingTab || C.MeterFooterDeaths) && !C.MeterClickThrough
             ? MathF.Ceiling(ImGui.GetTextLineHeight()) + 10f
             : 0f;
         _overheadY = y + footerH + 4f;
-        // Re-established every frame by whichever row the mouse is actually over.
+        // Re-established each frame by the row under the mouse.
         _rowUnderMouse = "";
         ImGui.SetCursorPos(new Vector2(0, y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, 0u);
@@ -187,7 +187,7 @@ public class MeterWindow : Window
         ContextMenu();
     }
 
-    // ---- footer bar --------------------------------------------------------
+    // ---- footer bar ----
 
     private bool _applySize;
     private float _overheadY = 80f;
@@ -233,7 +233,7 @@ public class MeterWindow : Window
         var ty = cy + (chipH - ImGui.GetTextLineHeight()) * 0.5f;
         var rx = ws.X - pad;
 
-        // Quiet unless there is something to say: paused, or viewing a past pull.
+        // Quiet unless paused, or viewing a past pull.
         var label = m.Paused ? "paused" : _histIdx >= 0 ? $"pull -{_histIdx + 1}" : "";
         if (label.Length > 0)
         {
@@ -242,13 +242,13 @@ public class MeterWindow : Window
             rx -= 12f;
         }
 
-        // A gap the chips keep, so the two never read as one run of text.
+        // A gap, so the two chips don't read as one.
         if (C.MeterFooterDeaths) DrawDeathTotal(dl, wp, x + 10f, rx, ty, chipH);
 
         TabRenamePopup();
     }
 
-    // The pull's death count, shortened and then dropped as the room runs out.
+    // The death count, shortened as the room runs out.
     private void DrawDeathTotal(ImDrawListPtr dl, Vector2 wp, float leftEdge, float rx, float ty, float chipH)
     {
         if (_shown is not { } enc) return;
@@ -267,7 +267,7 @@ public class MeterWindow : Window
         BText(dl, wp + new Vector2(rx, ty), deaths > 0 ? BadTint : C.MeterSubColor, text);
         if (deaths == 0) return;
 
-        // Hovering it names them, which is the part a bare count leaves out.
+        // Hovering names them, which a bare count can't.
         ImGui.SetCursorPos(new Vector2(rx, ty - 2f));
         ImGui.InvisibleButton("##deathtotal", new Vector2(tw, chipH));
         if (!ImGui.IsItemHovered()) return;
@@ -378,7 +378,7 @@ public class MeterWindow : Window
     {
         var m = _plugin.Meter;
 
-        // Sized to the widest entry, so clock, pull and time line up as columns.
+        // Sized to the widest entry, so the columns line up.
         var durW = ImGui.CalcTextSize(Now).X;
         var bodyW = ImGui.CalcTextSize("Current").X;
         var whenW = 0f;
@@ -402,7 +402,7 @@ public class MeterWindow : Window
         for (var i = 0; i < m.History.Count; i++)
         {
             var h = m.History[i];
-            // The boss name gives way first; how far the pull got is worth more.
+            // The boss name gives way first.
             var outcome = Outcome(h);
             var ow = outcome.Length > 0 ? ImGui.CalcTextSize(Dot + outcome).X : 0f;
             // The time is what tells two pulls of the same boss apart.
@@ -412,7 +412,7 @@ public class MeterWindow : Window
         }
     }
 
-    // One line of the pull list, drawn by hand so only part of it takes a color.
+    // One line of the pull list, drawn by hand.
     private bool PullRow(string id, bool selected, float total, float durW,
         string clock, string title, string outcome, uint tint, string when)
     {
@@ -438,21 +438,21 @@ public class MeterWindow : Window
     private const string Dot = " · ";
     private const string Now = "now";
 
-    // How a finished pull reads, saying nothing where it cannot vouch for one.
+    // How a finished pull reads, silent when unsure.
     public static string Outcome(MeterEncounter enc) => OutcomeText(enc.Ended, enc.BossLeft);
 
     public static string OutcomeText(PullEnd ended, float bossLeft)
     {
         if (ended == PullEnd.Kill) return "kill";
         if (ended != PullEnd.Wipe) return "";
-        // How far the pull got, when there was a raid-sized enemy to measure.
+        // How far the pull got, with a boss to measure.
         if (bossLeft <= 0f) return "wiped";
         var pct = bossLeft * 100f;
-        // A sliver of a huge health bar would otherwise round away to nothing.
+        // A sliver of a huge bar would round away.
         return pct < 0.1f ? "wiped at <0.1%" : $"wiped at {pct:0.#}%";
     }
 
-    // This close to the end was nearly a kill, not a reset at seventy percent.
+    // This close to the end was nearly a kill.
     public const float NearMiss = 0.05f;
 
     private uint OutcomeTint(MeterEncounter enc)
@@ -468,12 +468,12 @@ public class MeterWindow : Window
         return $"{(int)(mins / 60)}h ago";
     }
 
-    // Refilled every frame rather than reallocated; nothing keeps a reference.
+    // Refilled every frame, since nothing keeps a reference.
     private readonly MeterEncounter _mix = new();
 
     private static double L(double a, double b, float t) => a + (b - a) * t;
 
-    // Live values glide from the previous parser tick to the newest one.
+    // Live values glide from the last parser tick.
     private MeterEncounter Smoothed(MeterEncounter enc)
     {
         var m = _plugin.Meter;
@@ -530,13 +530,12 @@ public class MeterWindow : Window
         return mix;
     }
 
-    // The newest values, kept beside the held ones so the bars can keep moving.
+    // The newest values, kept beside the held ones.
     private MeterEncounter? _live;
     private MeterEncounter? _held;
     private DateTime _heldAt;
 
-    // Digits that move every frame cannot be read, so a live pull holds a set,
-    // order included.
+    // Digits moving every frame can't be read, so hold a set.
     private MeterEncounter? Held(MeterEncounter? enc)
     {
         if (enc is not { Active: true } || _plugin.Meter.Paused)
@@ -555,9 +554,9 @@ public class MeterWindow : Window
         return _held;
     }
 
-    // ---- breakdown cache ---------------------------------------------------
+    // ---- breakdown cache ----
 
-    // A sorted breakdown is held per open list rather than rebuilt every frame.
+    // A sorted breakdown is held per open list.
     private sealed class BreakdownSlot
     {
         public object? Enc;
@@ -590,7 +589,7 @@ public class MeterWindow : Window
         return slot.List = _plugin.Meter.Breakdown(enc, player, kind);
     }
 
-    // The same, for the death list a player's tab and the footer total read.
+    // The same, for the death list.
     private object? _deathsEnc;
     private string _deathsPlayer = "";
     private DateTime _deathsAt;
@@ -609,7 +608,7 @@ public class MeterWindow : Window
             : _plugin.Meter.Deaths(enc);
     }
 
-    // The same row as it stands right now, for the length of its bar.
+    // The same row right now, for its bar length.
     private MeterCombatant LiveRow(MeterCombatant held)
     {
         if (_live is { } live && !ReferenceEquals(live, _held))
@@ -618,11 +617,11 @@ public class MeterWindow : Window
         return held;
     }
 
-    // ---- header ------------------------------------------------------------
+    // ---- header ----
 
     private void DrawHeader(MeterEncounter enc, ImDrawListPtr dl, Vector2 wp, Vector2 ws, float pad, ref float y)
     {
-        // A hidden header still shows while collapsed, or nothing is left to click.
+        // A hidden header still shows while collapsed.
         var slim = C.MeterHeaderStyle == 1 || C.MeterCollapsed;
         if (C.MeterHeaderStyle == 2 && !C.MeterCollapsed) { y += 2f; return; }
         var lineH = ImGui.GetTextLineHeight();
@@ -631,12 +630,12 @@ public class MeterWindow : Window
 
         var title = enc.Title.Length > 0 ? enc.Title : "Fren Meter";
         if (_histIdx >= 0) title = $"{title} (history)";
-        // Say a dead feed where the numbers are, not only in a log nobody reads.
+        // Say a dead feed where the numbers are.
         else if (_plugin.Meter.FeedStaleInReplay) title = $"{title} (replay: not parsed)";
         else if (_plugin.Meter.FeedStale) title = $"{title} (parser not sending)";
         var mode = C.MeterMode;
 
-        // Damage mode makes raid rDPS the headline; other modes show their own.
+        // Damage mode headlines raid rDPS.
         var main = mode switch
         {
             1 => $"{Num(enc.TotalHps)} HPS",
@@ -645,7 +644,7 @@ public class MeterWindow : Window
             _ => $"Raid {Num(enc.RaidRDps)} rDPS",
         };
 
-        // The clock ticks by itself, so holding it would make it skip one.
+        // The clock ticks by itself, so holding it skips one.
         var clock = _live?.Duration is { Length: > 0 } d ? d : enc.Duration;
         var timeText = clock.Length > 0 ? clock : "0:00";
         if (slim)
@@ -685,7 +684,7 @@ public class MeterWindow : Window
         if (!C.MeterCollapsed)
             dl.AddLine(wp + new Vector2(pad, y - 2f), wp + new Vector2(ws.X - pad, y - 2f), 0x22FFFFFF);
 
-        // Double-click the header to cycle its style, but not over the chevron.
+        // Double-click the header to cycle its style.
         if (!C.MeterClickThrough && !C.MeterCollapsed
             && ImGui.IsMouseHoveringRect(wp + new Vector2(0, top), wp + new Vector2(ws.X, y))
             && !ImGui.IsMouseHoveringRect(_chevronMin, _chevronMax)
@@ -696,7 +695,7 @@ public class MeterWindow : Window
         }
     }
 
-    // The whole meter while it is rolled up: one line, and the chevron back out.
+    // The whole meter rolled up, plus the way back out.
     private void DrawCollapsed(MeterEncounter? enc, ImDrawListPtr dl, Vector2 wp, Vector2 ws)
     {
         const float pad = 9f;
@@ -716,7 +715,7 @@ public class MeterWindow : Window
         _collapsedH = y + 3f;
     }
 
-    // The roll-up chevron, returning the width the rest of the header must avoid.
+    // The roll-up chevron, returning the width it takes.
     private float CollapseButton(ImDrawListPtr dl, Vector2 wp, Vector2 ws, float pad, float y, float lineH)
     {
         _chevronMin = _chevronMax = Vector2.Zero;
@@ -756,7 +755,7 @@ public class MeterWindow : Window
         C.SaveSettings();
     }
 
-    // The encounter name with a caret for past pulls, or the way out of a breakdown.
+    // The encounter name, or the way out of a breakdown.
     private void TitleWithPicker(ImDrawListPtr dl, Vector2 wp, float x, float y, string shown)
     {
         var lineH = ImGui.GetTextLineHeight();
@@ -795,7 +794,7 @@ public class MeterWindow : Window
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Pick a pull");
     }
 
-    // ---- columns -----------------------------------------------------------
+    // ---- columns ----
 
     private readonly record struct Col(string Key, string Label, string Sample, Func<MeterCombatant, string> Text);
 
@@ -817,7 +816,7 @@ public class MeterWindow : Window
         new("deaths", "D", "9", c => c.Deaths.ToString()),
     };
 
-    // Every column there is, in menu order, which the settings page lists too.
+    // Every column there is, in menu order.
     public static readonly string[] ColumnKeys = Keys();
 
     private static string[] Keys()
@@ -839,7 +838,7 @@ public class MeterWindow : Window
     private List<string> ActiveColumnList()
         => C.MeterMode == 1 ? C.MeterHealColumns : C.MeterColumns;
 
-    // The configured columns, with the active mode's own metric always present.
+    // The configured columns, plus the mode's own metric.
     private List<Col> DisplayColumns()
     {
         var keys = new List<string>(ActiveColumnList());
@@ -853,7 +852,7 @@ public class MeterWindow : Window
         return cols;
     }
 
-    // A column label mid-drag (its key), for reordering right on the meter.
+    // A column label mid-drag, for reordering here.
     private string? _dragCol;
 
     private readonly List<(string Key, float X0, float X1)> _headerRects = new();
@@ -896,7 +895,7 @@ public class MeterWindow : Window
         var keys = ActiveColumnList();
         if (_dragCol is not { } drag || !keys.Contains(drag)) { _dragCol = null; return; }
 
-        // Where the drop would land: the slot under the mouse, and which side.
+        // Where the drop lands: the slot under the mouse.
         var mouseX = ImGui.GetMousePos().X - wp.X;
         string? over = null;
         var after = false;
@@ -907,7 +906,7 @@ public class MeterWindow : Window
                 after = mouseX > (r.X0 + r.X1) * 0.5f;
             }
 
-        // Ghost label and insertion mark, drawn where the bars cannot paint over.
+        // Ghost label and insertion mark, above the bars.
         var fg = ImGui.GetForegroundDrawList();
         var mouse = ImGui.GetMousePos();
         fg.AddText(new Vector2(mouse.X + 10f, mouse.Y - lineH * 0.5f), 0xDDFFFFFF, ColumnLabel(drag));
@@ -922,7 +921,7 @@ public class MeterWindow : Window
 
         if (ImGui.IsMouseDown(ImGuiMouseButton.Left)) return;
 
-        // Dropped: reorder the saved list, unless it landed nowhere useful.
+        // Dropped: reorder the saved list.
         if (over != null && over != drag)
         {
             keys.Remove(drag);
@@ -938,7 +937,7 @@ public class MeterWindow : Window
 
     private readonly record struct Slot(Col Col, float Width);
 
-    // Right-to-left slots, each wide enough for its label and its biggest value.
+    // Right-to-left slots, each wide enough for its value.
     private List<Slot> Slots(List<Col> cols)
     {
         var slots = new List<Slot>(cols.Count);
@@ -950,9 +949,9 @@ public class MeterWindow : Window
         return slots;
     }
 
-    // ---- cached layout -----------------------------------------------------
+    // ---- cached layout ----
 
-    // Sorting, measuring and formatting only change when the numbers settle.
+    // Sorting and measuring change when the numbers settle.
     private readonly List<Col> _cols = new();
     private readonly List<Slot> _slots = new();
     private readonly List<float> _slotX = new();
@@ -980,13 +979,13 @@ public class MeterWindow : Window
     private float _healNameX;
     private float _healNameMax;
 
-    // The split only exists on the damage board; every other mode is whole-window.
+    // The split only exists on the damage board.
     private bool SplitOn => C.MeterSplitHealing && C.MeterMode == 0;
 
     public static bool IsHealer(MeterCombatant c)
         => Jobs.ByAbbreviation(c.Job) is { Role: JobRole.Healer };
 
-    // One row as it will be drawn, values and widths already worked out.
+    // One row as it will be drawn, widths worked out.
     private sealed class RowEntry
     {
         public MeterCombatant Row = null!;
@@ -1013,7 +1012,7 @@ public class MeterWindow : Window
         return _you = Plugin.LocalPlayer?.Name.ToString() ?? "";
     }
 
-    // Column widths move with the font, so the live size is part of the key.
+    // Widths move with the font, so size is part of the key.
     private int ColumnsKey()
     {
         var h = new HashCode();
@@ -1087,7 +1086,7 @@ public class MeterWindow : Window
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
         var you = You();
 
-        // Players only; the limit break belongs to the party, not to a person.
+        // Players only; the limit break is the party's.
         _sorted.Clear();
         MeterCombatant? lbRow = null;
         foreach (var r in enc.Rows)
@@ -1113,7 +1112,7 @@ public class MeterWindow : Window
         }
         _nameMax = rx - _nameX - 4f;
 
-        // A row cap keeps the top of the list, plus your own row wherever it sits.
+        // The row cap keeps the top, plus your own row.
         var count = _sorted.Count;
         var keep = C.MeterMaxRows > 0 && count > C.MeterMaxRows ? C.MeterMaxRows : count;
         var me = -1;
@@ -1134,12 +1133,12 @@ public class MeterWindow : Window
         {
             _lbEntry ??= new RowEntry();
             Fill(_lbEntry, lbRow, 0, you);
-            // The limit break the pull actually used, by id so it needs no name.
+            // The limit break the pull used, by id.
             _lbEntry.Icon = C.MeterShowJobIcons ? Icons.ByActionId(enc.LimitBreakAction) : 0u;
             _lb = _lbEntry;
         }
 
-        // The healers' half of a split board, laid out on its own columns.
+        // The healers' half of a split board.
         _healCount = 0;
         if (SplitOn && _healCols.Count > 0)
         {
@@ -1198,22 +1197,22 @@ public class MeterWindow : Window
         }
     }
 
-    // Columns that say anything about a limit break; the rest stay blank.
+    // Columns that say anything about a limit break.
     public static bool LimitBreakColumn(string key)
         => key is "rdps" or "dps" or "adps" or "dmgpct" or "maxhit";
 
-    // ---- bars --------------------------------------------------------------
+    // ---- bars ----
 
     private void DrawRows(MeterEncounter enc, float pad)
     {
-        // Content width, not window width, so a scrollbar never overlaps the bars.
+        // Content width, so a scrollbar can't overlap the bars.
         EnsureRows(enc, MathF.Max(60f, ImGui.GetContentRegionAvail().X), pad);
 
         var lineH = ImGui.GetTextLineHeight();
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
         _rowStride = rowH + C.MeterBarGap;
 
-        // Bars scale against the newest numbers, which is what lets them grow.
+        // Bars scale against the newest numbers.
         var max = 1.0;
         foreach (var r in _sorted) max = Math.Max(max, Metric(LiveRow(r)));
 
@@ -1223,7 +1222,7 @@ public class MeterWindow : Window
         if (_healCount > 0) DrawHealSection(enc, pad, rowH, lineH);
     }
 
-    // The healers' HPS block under the damage rows, scaled to its own biggest bar.
+    // The healers' block, scaled to its own biggest bar.
     private void DrawHealSection(MeterEncounter enc, float pad, float rowH, float lineH)
     {
         var dl = ImGui.GetWindowDrawList();
@@ -1257,7 +1256,7 @@ public class MeterWindow : Window
         var nameX = heal ? _healNameX : _nameX;
         var p = ImGui.GetCursorScreenPos();
         ImGui.InvisibleButton(e.Id, new Vector2(w, rowH));
-        // Both read off the bar before the icon and tooltip become the last item.
+        // Both read off the bar before the icon takes over.
         var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
         var opened = hovered && ImGui.IsItemClicked(ImGuiMouseButton.Left);
         var dl = ImGui.GetWindowDrawList();
@@ -1326,7 +1325,7 @@ public class MeterWindow : Window
         }
     }
 
-    // The party's limit break, in a short row under everyone who has a job.
+    // The party's limit break, in a short row of its own.
     private void DrawLimitBreakRow(RowEntry e, float pad, float rowH, float lineH, double max)
     {
         var w = _rowsWidth;
@@ -1365,14 +1364,14 @@ public class MeterWindow : Window
         ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + h + C.MeterBarGap));
     }
 
-    // One bar in whichever fill style is set, shared with the breakdown.
+    // One bar in whichever fill style is set.
     private void DrawBar(ImDrawListPtr dl, Vector2 a, float fill, float rowH, uint rgb, float capEndX,
         float scale = 1f)
     {
         if (fill <= 2f) return;
         var b = new Vector2(a.X + fill, a.Y + rowH);
         var op = C.MeterBarOpacity * scale;
-        // Solid bars fill with the color; the shine and cap still tell styles apart.
+        // Solid bars fill with the color; the cap still differs.
         var solid = C.MeterBarSolid;
         var wash = solid ? 0xFF000000u : 0x5C000000u;
         var lead = solid ? 0xFF000000u : 0x8C000000u;
@@ -1403,7 +1402,7 @@ public class MeterWindow : Window
         dl.AddRectFilled(a, new Vector2(capEndX, b.Y), Fade(rgb | 0xE6000000, op), 2f);
     }
 
-    // ---- one player's breakdown --------------------------------------------
+    // ---- one player's breakdown ----
 
     private string _detailFor = "";
     private int _detailKind;          // 0 abilities, 1 targets, 2 taken
@@ -1412,8 +1411,7 @@ public class MeterWindow : Window
 
     private readonly record struct DetailTab(int Kind, string Label);
 
-    // Kinds: 0 abilities, 1 targets, 2 taken, 3 heals, 4 healed, 5 received,
-    // 6 contributed, 8 deaths.
+    // Kinds: abilities, targets, taken, heals, credit, deaths.
     private static readonly DetailTab[] DamageTabs =
     {
         new(0, "Abilities"), new(1, "Targets"), new(2, "Taken"), new(6, "Contributed"), new(8, "Deaths"),
@@ -1424,13 +1422,13 @@ public class MeterWindow : Window
         new(3, "Heals"), new(4, "Healed"), new(5, "Received"), new(8, "Deaths"),
     };
 
-    // A breakdown opened off a heal row keeps the healing tabs whatever the mode.
+    // A breakdown opened off a heal row keeps healing tabs.
     private bool _detailHeal;
 
     private DetailTab[] Tabs()
         => C.MeterMode == 1 || (_detailHeal && _detailFor.Length > 0) ? HealTabs : DamageTabs;
 
-    // Where a click on a row lands: whatever the list itself is about.
+    // Where a row click lands: whatever the list is about.
     private int DefaultKind() => C.MeterMode switch { 1 => 3, 3 => 8, _ => 0 };
 
     private void OpenDetail(string player, int kind = -1)
@@ -1440,7 +1438,7 @@ public class MeterWindow : Window
         _detailHeal = _detailKind is 3 or 4 or 5;
     }
 
-    // Switching views changes which tabs exist, so land on one that does.
+    // Switching views changes the tabs, so land on a real one.
     private void ClampDetailKind()
     {
         foreach (var t in Tabs())
@@ -1456,7 +1454,7 @@ public class MeterWindow : Window
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
 
-        // Chips wrap onto another line rather than run off a narrow meter.
+        // Chips wrap rather than run off a narrow meter.
         var tabs = Tabs();
         var x = pad - 3f;
         var rowY = ImGui.GetCursorPosY();
@@ -1511,7 +1509,7 @@ public class MeterWindow : Window
             max = Math.Max(max, healing ? a.Raw : a.Damage);
         }
 
-        // Their own job color, so a breakdown still reads as that player's.
+        // Their own job color, so it reads as that player's.
         var jobRgb = JobRgbFor(enc, _detailFor);
 
         var rowH = MathF.Max(lineH + 4f, C.MeterBarHeight);
@@ -1528,7 +1526,7 @@ public class MeterWindow : Window
 
             dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
                 hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
-            // The whole cast faintly with what landed on top, so overheal reads.
+            // The whole cast faintly, with what landed on top.
             if (healing && a.Over > 0)
                 DrawBar(dl, p + new Vector2(pad - 3f, 0), (float)(a.Raw / max) * span, rowH, rgb,
                     p.X + pad, 0.34f);
@@ -1536,7 +1534,7 @@ public class MeterWindow : Window
 
             var ty = p.Y + (rowH - lineH) * 0.5f;
             var x2 = p.X + pad + 4f;
-            // A row naming a person or an enemy has no icon worth guessing at.
+            // A row naming a person has no icon worth guessing.
             if (C.MeterBreakdownIcons && _detailKind is not (1 or 4 or 5))
             {
                 var icon = a.IsStatus ? Icons.ByStatusId(a.Id) : Icons.ByActionId(a.Id);
@@ -1633,7 +1631,7 @@ public class MeterWindow : Window
         var i = 0;
         foreach (var a in rows)
         {
-            // Keyed by whose tab it is, so the same name opens under one player only.
+            // Keyed by whose tab it is, so names can't collide.
             var key = $"{_detailFor}|{label}|{a.Name}";
             var parts = a.Parts is { Count: > 0 } ? a.Parts : null;
             var open = parts != null && _creditOpen.Contains(key);
@@ -1653,7 +1651,7 @@ public class MeterWindow : Window
             BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterTextColor, right);
 
             var nx = p.X + pad + 4f;
-            // A caret where there are buffs to open, so the row says it can be.
+            // A caret where there are buffs to open.
             if (parts != null)
             {
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
@@ -1685,7 +1683,7 @@ public class MeterWindow : Window
     // Which player rows in the Contributed tab are opened up.
     private readonly HashSet<string> _creditOpen = new(StringComparer.Ordinal);
 
-    // The buffs behind one share, indented and drawn against the same scale.
+    // The buffs behind one share, on the same scale.
     private void CreditParts(string key, List<AbilityStat> parts, float pad, float w, float span,
         double max, float seconds)
     {
@@ -1697,7 +1695,7 @@ public class MeterWindow : Window
         foreach (var b in parts)
         {
             var p = ImGui.GetCursorScreenPos();
-            // Index first, or a key ending in a digit would share the next row's id.
+            // Index first, or a key ending in a digit collides.
             ImGui.InvisibleButton($"##cp{i++}_{key}", new Vector2(w, rowH));
             var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
             var rgb = TintFor(b.Name);
@@ -1725,7 +1723,7 @@ public class MeterWindow : Window
         }
     }
 
-    // Every death this player had, with the killing blow and the run-up to it.
+    // Every death, with the killing blow and the run-up.
     private void DrawDeaths(MeterEncounter enc, float pad, float w)
     {
         var dl = ImGui.GetWindowDrawList();
@@ -1786,7 +1784,7 @@ public class MeterWindow : Window
         => BText(dl, new Vector2(ImGui.GetWindowPos().X + (w - ImGui.CalcTextSize(msg).X) * 0.5f,
             ImGui.GetCursorScreenPos().Y + 8f), C.MeterSubColor, msg);
 
-    // A named player's job color, for rows that are about somebody else.
+    // A named player's job color.
     private uint JobRgbFor(MeterEncounter enc, string name)
     {
         foreach (var r in enc.Rows)
@@ -1859,12 +1857,12 @@ public class MeterWindow : Window
 
     private const int TooltipAbilities = 5;
 
-    // ---- right-click menu --------------------------------------------------
+    // ---- right-click menu ----
 
     private void ContextMenu()
     {
         if (C.MeterClickThrough) return;
-        // Open anywhere over the meter, which the stock helper would miss.
+        // Open anywhere over the meter.
         if (!_tabMenuOpen && ImGui.IsMouseReleased(ImGuiMouseButton.Right)
             && ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
         {
@@ -2011,7 +2009,7 @@ public class MeterWindow : Window
         if (ImGui.MenuItem("Lock position", "", C.MeterLocked)) { C.MeterLocked = !C.MeterLocked; C.SaveSettings(); }
         if (ImGui.MenuItem("Click-through", "", C.MeterClickThrough))
         {
-            // This takes the right-click menu with it; the config page is the way back.
+            // This takes the menu with it, so the config page returns it.
             C.MeterClickThrough = !C.MeterClickThrough;
             C.SaveSettings();
         }
@@ -2079,9 +2077,9 @@ public class MeterWindow : Window
         ImGui.SetClipboardText(sb.ToString());
     }
 
-    // ---- menu theme --------------------------------------------------------
+    // ---- menu theme ----
 
-    // The meter's own look carried into its popups, in place of stock ImGui.
+    // The meter's own look carried into its popups.
     private void PushMenuTheme()
     {
         var accent = C.MeterAccentColor & 0x00FFFFFF;
@@ -2108,13 +2106,13 @@ public class MeterWindow : Window
         ImGui.PopStyleColor(10);
     }
 
-    // ---- persistence -------------------------------------------------------
+    // ---- persistence ----
 
     private void SaveIfMoved()
     {
         if (C.MeterLocked) return;
         if (OverlayChrome.MovedCenterFrac(C.MeterPosition) is { } frac) { C.MeterPosition = frac; _posDirty = true; }
-        // While collapsed the height is ours, so only the width is remembered.
+        // While collapsed the height is ours, so save the width.
         var size = ImGui.GetWindowSize();
         if (C.MeterCollapsed)
         {
@@ -2138,13 +2136,13 @@ public class MeterWindow : Window
         }
     }
 
-    // ---- helpers -----------------------------------------------------------
+    // ---- helpers ----
 
     // Every piece of text on the meter, honoring the shadow toggle.
     private void BText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
         => OverlayChrome.BoardText(dl, pos, color, text, C.MeterTextShadow);
 
-    // A stable color per ability, so a skill keeps its shade between pulls.
+    // A stable color per ability, kept between pulls.
     private static readonly Dictionary<string, uint> TintCache = new(StringComparer.Ordinal);
 
     public static uint TintFor(string name)
@@ -2157,7 +2155,7 @@ public class MeterWindow : Window
         return TintCache[name] = Hsv(hue, 0.55f, 0.98f);
     }
 
-    // Hue, saturation and value into the packed color the draw list wants.
+    // Hue and friends into the packed color.
     private static uint Hsv(float h, float s, float v)
     {
         var i = (int)MathF.Floor(h * 6f);
@@ -2198,7 +2196,7 @@ public class MeterWindow : Window
         _ => $"{v:0}",
     };
 
-    // Binary search, so a long name costs a handful of measures and not one each.
+    // Binary search, so a long name costs few measures.
     private static string Clip(string s, float maxW)
     {
         if (ImGui.CalcTextSize(s).X <= maxW) return s;
@@ -2212,14 +2210,14 @@ public class MeterWindow : Window
         return s[..lo] + "…";
     }
 
-    // ---- themes ------------------------------------------------------------
+    // ---- themes ----
 
-    // Accent, Text and Sub are plain RGB; Bg and Rows carry their own alpha.
+    // Accent, Text and Sub are RGB; Bg and Rows carry alpha.
     public readonly record struct MeterTheme(
         string Name, uint Accent, uint Text, uint Sub, uint Bg, uint Rows, float Rounding, bool JobColors,
         int BarStyle);
 
-    // 0xAARRGGBB, the way a color picker spells it, into the packed order.
+    // Color-picker order into the packed order.
     private static uint Argb(uint argb)
         => (argb & 0xFF000000u) | ((argb & 0xFF) << 16) | (argb & 0xFF00) | ((argb >> 16) & 0xFF);
 

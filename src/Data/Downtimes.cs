@@ -38,8 +38,7 @@ public static class Downtimes
     // Cached: the board asks once per row per frame.
     private static readonly Dictionary<uint, (int Stamp, List<DowntimeWindow> Windows)> _effective = new();
 
-    // Territory -> its config key, so the per-frame lookups below don't allocate a
-    // fresh string on every ask just to index the learned table.
+    // Territory to config key, so per-frame lookups don't allocate.
     private static readonly Dictionary<uint, string> _keys = new();
 
     private static string KeyFor(uint territory)
@@ -61,7 +60,7 @@ public static class Downtimes
         return stamp;
     }
 
-    // The hardcoded windows, with learnable ones refined by a measured pull.
+    // The hardcoded windows, refined by a measured pull.
     public static List<DowntimeWindow> Effective(uint territory, Dictionary<string, List<DowntimeWindow>>? learned)
     {
         var baseWins = For(territory);
@@ -75,15 +74,10 @@ public static class Downtimes
         return built;
     }
 
-    // How far from a window's start the game may flag the lull and still be
-    // taken for that one. The flag trips on the push, not on the boss leaving:
-    // a party that ends the phase hard leaves it standing at zero health for a
-    // few seconds first, and how many depends on the party.
+    // How far off a window's start the flag may trip and still match.
     public const float MatchRadius = 10f;
 
-    // When the boss is targetable again for the lull flagged at `start`, or -1
-    // when none is close enough. The nearest window wins, so a fight whose lulls
-    // sit close together can't answer for its neighbor.
+    // When the boss is targetable again, or -1 when none is close.
     public static float TargetableAt(IReadOnlyList<DowntimeWindow> windows, float start)
     {
         var best = -1f;
@@ -98,12 +92,10 @@ public static class Downtimes
         return best;
     }
 
-    // Two windows this close apart are the same lull described twice.
+    // Two windows this close are the same lull twice.
     private const float SameLull = 5f;
 
-    // A fight's own imported windows on top of the hardcoded ones. An import
-    // derives its windows from the same lulls the built-ins already cover, so
-    // one that lands on a built-in is dropped rather than drawn a second time.
+    // A fight's imported windows on top of the hardcoded ones.
     public static List<DowntimeWindow> Merge(
         IReadOnlyList<DowntimeWindow> baseWins, IReadOnlyList<DowntimeWindow> custom)
     {
@@ -137,7 +129,7 @@ public static class Downtimes
         return result;
     }
 
-    // Dancing Mad (UMAD): times are the median across six top logs kills.
+    // Dancing Mad: the median across six top kills.
     private static readonly List<DowntimeWindow> Doomtrain = new()
     {
         new() { Start = 156, Duration = 18, TargetHp = -1f }, // logs agree 8/8
@@ -183,8 +175,7 @@ public static class Downtimes
         new() { Start = 634.3f, Duration = 21.3f, TargetHp = -1f },
     };
 
-    // The Cruiserweight tier, measured as the gaps where twelve logged kills
-    // recorded no cast at all.
+    // The Cruiserweight tier, from the gaps in twelve kills.
     private static readonly List<DowntimeWindow> M5s = new()
     {
         new() { Start = 253.3f, Duration = 21.8f, TargetHp = -1f },
@@ -204,8 +195,7 @@ public static class Downtimes
         new() { Start = 554.2f, Duration = 25.8f, TargetHp = -1f },
     };
 
-    // The first one is the P1/P2 cutscene, which is why M8S is the only fight in
-    // the tier with a phase anchor - see Builtin.PhaseStarts.
+    // The first is the P1 cutscene, so M8S phase-anchors.
     private static readonly List<DowntimeWindow> M8s = new()
     {
         new() { Start = 375.2f, Duration = 66.5f, TargetHp = -1f },
@@ -222,13 +212,11 @@ public static class Downtimes
     {
         new() { Start = 199, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 (targetable 209)
         new() { Start = 383, Duration = 46, TargetHp = 0.00f, Cutscene = true }, // P2 -> P3 cutscene (targetable 429)
-        // The lull opens on the second Ultima Upsurge, which the sheet clock reads
-        // as 872 (the P4 Upsurge at 833 is the last anchor before it), not the 857
-        // of a log's own clock.
+        // The lull opens on the second Upsurge, at 872 on this clock.
         new() { Start = 871.7f, Duration = 31.2f, TargetHp = 0.25f }, // P4 -> P5 (targetable 903)
     };
 
-    // Futures Rewritten (FRU): these times are on the sheet clock, not real time.
+    // Futures Rewritten: sheet clock, not real time.
     private static readonly List<DowntimeWindow> Fru = new()
     {
         new() { Start = 35,  Duration = 45,  Learn = true }, // P1 Utopian Sky intermission
@@ -240,11 +228,9 @@ public static class Downtimes
         new() { Start = 857, Duration = 173, Learn = true, Cutscene = true }, // P4 -> P5 Pandora cutscene
     };
 
-    // The five older ultimates: each window was converted by anchoring to the nearest
-    // same-phase sheet mechanic.
+    // The five older ultimates, anchored to nearby mechanics.
 
-    // Unending Coil (UCOB); every window log-verified across two independent 6-kill
-    // sets, converted onto the sheet clock through the fight's own anchor casts.
+    // Unending Coil; every window verified across two kill sets.
     private static readonly List<DowntimeWindow> Ucob = new()
     {
         new() { Start = 135, Duration = 24, Learn = true }, // P1 -> P2 Nael entrance
@@ -258,7 +244,7 @@ public static class Downtimes
         new() { Start = 724, Duration = 58, Learn = true }, // P4 -> P5 Golden Bahamut
     };
 
-    // Weapon's Refrain (UWU); log-verified across two independent 6-kill sets.
+    // Weapon's Refrain; verified across two kill sets.
     private static readonly List<DowntimeWindow> Uwu = new()
     {
         new() { Start = 135, Duration = 13, Learn = true }, // P1 -> P2 (Garuda -> Ifrit)
@@ -271,7 +257,7 @@ public static class Downtimes
         new() { Start = 642, Duration = 19, Learn = true }, // P5 Ultimate Suppression
     };
 
-    // Epic of Alexander (TEA): log-verified across two independent 6-kill sets.
+    // Epic of Alexander; verified across two kill sets.
     private static readonly List<DowntimeWindow> Tea = new()
     {
         new() { Start = 114, Duration = 32, Learn = true }, // P1 -> P2 Living Liquid -> BJCC
@@ -284,7 +270,7 @@ public static class Downtimes
         new() { Start = 839, Duration = 27, Learn = true }, // P4 Fate Calibration Beta
     };
 
-    // Dragonsong's Reprise (DSR): a 7-phase nonlinear clock; P6/P7 is left off.
+    // Dragonsong's Reprise; P6 and P7 are left off.
     private static readonly List<DowntimeWindow> Dsr = new()
     {
         new() { Start = 33,  Duration = 31, Learn = true }, // P2 Strength of the Ward adds
@@ -298,8 +284,7 @@ public static class Downtimes
         new() { Start = 622, Duration = 12, Learn = true }, // P5 -> P6 Wyrmsbreath
     };
 
-    // The Omega Protocol (TOP); log-verified across two independent 6-kill sets, and
-    // the clock is nearly 1:1 so it converts cleanly.
+    // The Omega Protocol; its clock converts almost 1:1.
     private static readonly List<DowntimeWindow> Top = new()
     {
         new() { Start = 158, Duration = 29, Learn = true }, // P1 -> P2 Party Synergy (M/F appear)

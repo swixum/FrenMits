@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Plan snapshots: a whole FightProfile written to the plugin config directory.
+// Plan snapshots, written to the plugin config directory.
 public sealed class SnapshotStore
 {
     private readonly Configuration _config;
@@ -60,8 +60,7 @@ public sealed class SnapshotStore
                         System.IO.File.ReadAllText(file));
                     if (b != null) list.Add(new SnapshotInfo(file, b.When, b.Reason));
                 }
-                // One unreadable file shouldn't hide the rest, but a snapshot that
-                // won't load is a restore point the user has quietly lost.
+                // One bad file shouldn't hide the rest, but say so.
                 catch (Exception ex) { Swallowed.Report("plan snapshot read", ex); }
             }
         }
@@ -72,8 +71,7 @@ public sealed class SnapshotStore
         return list;
     }
 
-    // Snapshots left behind by DELETED fights of this duty (matched by the
-    // territory stored inside each file).
+    // Snapshots left behind by deleted fights of this duty.
     public List<SnapshotInfo> ListOrphans(uint territory, string excludeFightId)
     {
         var list = new List<SnapshotInfo>();
@@ -92,8 +90,7 @@ public sealed class SnapshotStore
                     if (b?.Fight != null && b.Fight.TerritoryId == territory)
                         list.Add(new SnapshotInfo(file, b.When, b.Reason + " [previous sheet]"));
                 }
-                // One unreadable file shouldn't hide the rest, but a snapshot that
-                // won't load is a restore point the user has quietly lost.
+                // One bad file shouldn't hide the rest, but say so.
                 catch (Exception ex) { Swallowed.Report("plan snapshot read", ex); }
             }
         }
@@ -104,7 +101,7 @@ public sealed class SnapshotStore
         return list;
     }
 
-    // Restore a snapshot file over the target fight (full plan replace).
+    // Restore a snapshot over the target fight.
     public string Restore(FightProfile target, string file)
     {
         try
@@ -123,8 +120,7 @@ public sealed class SnapshotStore
             {
                 target.SyncPoints = b.Fight.SyncPoints ?? new();
                 target.BossAnchors = b.Fight.BossAnchors ?? new();
-                // Columns only when the snapshot has them: a pre-sheet-era
-                // snapshot must never wipe the fight's sheet layout.
+                // Columns only when present, so an old snapshot can't wipe them.
                 if (b.Fight.CustomSlots is { Count: > 0 })
                 {
                     target.CustomSlots = b.Fight.CustomSlots;
@@ -132,11 +128,10 @@ public sealed class SnapshotStore
                     target.CustomDowntimes = b.Fight.CustomDowntimes ?? new();
                 }
             }
-            // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
+            // Restore the active-slot alias.
             if (!string.IsNullOrEmpty(target.Slot) && target.SavedSlots.ContainsKey(target.Slot))
                 target.SavedSlots[target.Slot] = target.Lines;
-            // Snapshots taken before the column standard carry MT/OT/D1-style
-            // names; bring them onto the standard right away.
+            // Old snapshots carry legacy slot names, so standardize them.
             SlotNames.NormalizeFight(target);
             _config.Save();
             return $"Restored the {b.When:MMM d, h:mm tt} snapshot ({b.Reason}).";

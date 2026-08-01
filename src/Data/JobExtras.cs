@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Optional, job-specific mitigation timers derived from log clears.
+// Optional job mit timers, derived from log clears.
 public static class JobExtras
 {
-    // Steps: for a sequence extra each entry carries its own action at that time.
+    // Steps: a sequence extra carries its action per entry.
     public sealed record Extra(string Job, string Action, float Recast, (int Time, string Mechanic)[] Lines,
         (int Time, string Summon)[]? Steps = null);
 
@@ -15,7 +15,7 @@ public static class JobExtras
     {
         [Builtin.DmuTerritory] = new[]
         {
-            // Bard - Nature's Minne (120s recast), anchored to sheet v5.0 rows.
+            // Bard, anchored to sheet v5.0 rows.
             new Extra("BRD", "Nature's Minne", 120f, new[]
             {
                 (63, "Light of Judgment"),
@@ -46,10 +46,9 @@ public static class JobExtras
                 (789, "Grand Cross"),
                 (928, "Chaotic Flood"),
             }),
-            // DNC/MCH/RDM schedules are optimized from raalm.com top-100 kill logs.
+            // DNC, MCH and RDM schedules come from top kill logs.
 
-            // Dancer - Curing Waltz (60s recast), 10 presses
-            // (68/60/16/77/17/35/68/75/68/84% usage).
+            // Dancer, ten presses at 60s recast.
             new Extra("DNC", "Curing Waltz", 60f, new[]
             {
                 (64, "Light of Judgment"),
@@ -63,8 +62,7 @@ public static class JobExtras
                 (928, "Chaotic Flood"),
                 (1063, "Forsaken (1st Hit)"),
             }),
-            // Dismantle / Magick Barrier / Tempera Grassa follow the sheet's Extras
-            // column.
+            // These three follow the sheet's Extras column.
             new Extra("MCH", "Dismantle", 120f, new[]
             {
                 (62, "Light of Judgment"),
@@ -95,7 +93,7 @@ public static class JobExtras
                 (910, "Ultima Repeater"),
                 (1061, "Forsaken (1st Hit)"),
             }),
-            // Summoner: which primal to summon next, from a top Dancing Mad kill log.
+            // Summoner: which primal to summon next.
             new Extra("SMN", "Summon", 0f, Array.Empty<(int, string)>(), new[]
             {
                 (19, "Garuda"), (33, "Titan"), (48, "Ifrit"),
@@ -140,11 +138,11 @@ public static class JobExtras
         ("PCT", "Tempera Grassa", 120f, 88),
     };
 
-    // Every universal-kit extra for a custom sheet, from its own rows.
+    // Every universal-kit extra for a custom sheet.
     public static IReadOnlyList<Extra> ForCustomSheet(FightProfile fight, string? job)
     {
         if (string.IsNullOrEmpty(job) || fight.CustomRows.Count == 0) return Array.Empty<Extra>();
-        // Old synced duties: never suggest an ability the sync level locks out.
+        // Never suggest an ability the duty sync locks out.
         var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
         var result = new List<Extra>();
         foreach (var kit in Kit.Where(k => string.Equals(k.Job, job, StringComparison.OrdinalIgnoreCase)))
@@ -158,8 +156,7 @@ public static class JobExtras
     // Place one kit ability across a custom sheet's rows.
     private static Extra? ComputeExtra(FightProfile fight, (string Job, string Action, float Recast, int Level) kit)
     {
-        // On a graded sheet, extras go only where the fight actually hurts, while
-        // ungraded sheets fall back to every row (recast still spaces them out).
+        // Graded sheets place extras where the fight hurts.
         var pool = fight.CustomRows.Any(r => !r.Buster)
             ? fight.CustomRows.Where(r => !r.Buster).ToList()
             : fight.CustomRows;
@@ -177,7 +174,7 @@ public static class JobExtras
         return lines.Length == 0 ? null : new Extra(kit.Job, kit.Action, kit.Recast, lines);
     }
 
-    // Everything to offer on the fight page for this job; baked wins on a clash.
+    // Everything to offer for this job; baked wins a clash.
     public static IReadOnlyList<Extra> AllFor(FightProfile fight, string? job)
     {
         if (string.IsNullOrEmpty(job)) return Array.Empty<Extra>();

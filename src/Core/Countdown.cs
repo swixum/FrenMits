@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace FrenMits;
 
-// The party's pull countdown, read straight off the game's own agent.
+// The party's pull countdown, read off the game's agent.
 public static class Countdown
 {
     // What the game says about the countdown right now.
@@ -21,8 +21,7 @@ public static class Countdown
             var agent = AgentCountDownSettingDialog.Instance();
             if (agent == null) return None;
 
-            // TimeRemaining is the signal that decides it: it is only ever
-            // counting while a countdown runs, so a stale flag can't fake one.
+            // TimeRemaining decides it, so a stale flag can't fake one.
             var remaining = agent->TimeRemaining;
             if (remaining <= 0f || remaining > MaxSeconds) return None;
             if (!agent->Active && !agent->ShowingCountdown) return None;
@@ -31,15 +30,13 @@ public static class Countdown
         }
         catch (Exception ex)
         {
-            // Never let a game-memory read disturb the tick, but leave a trail:
-            // silently reading "no countdown" looks exactly like there being none.
+            // Leave a trail, since no countdown reads the same as a failure.
             Swallowed.Report("countdown read", ex);
             return None;
         }
     }
 
-    // Who started it, when that can be resolved to a party member - for the log
-    // line, so a mis-timed pull can be read back afterwards.
+    // Who started it, when that resolves to a party member.
     public static string InitiatorName(uint entityId)
     {
         if (entityId == 0) return "";

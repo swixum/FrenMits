@@ -10,15 +10,13 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// The whole raid plan as one sheet - the in-game version of the Google sheet
-// everyone plans from.
+// The whole raid plan as one sheet, in game.
 public partial class SheetViewWindow : Window
 {
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
-    // ### so the ImGui window ID stays "fmsheet" no matter how the visible
-    // title changes; future renames won't reset the saved position/size again.
+    // The ### keeps the window id stable across renames.
     public SheetViewWindow(Plugin plugin) : base("Fren Mits - Sheet View###fmsheet")
     {
         _plugin = plugin;
@@ -43,7 +41,7 @@ public partial class SheetViewWindow : Window
         Theme.PopWindow();
     }
 
-    // ---- state ------------------------------------------------------------
+    // ---- state ----
 
     private FightProfile? _fight;
     private string _phaseFilter = "";              // "" = all phases
@@ -56,27 +54,26 @@ public partial class SheetViewWindow : Window
     private List<Row> _rows = new();
     private List<BakedRow> _bakedRows = new();
     private List<(string Name, float Time)> _phases = new();
-    // The sheet's per-phase "Notes" footer (only phases that have one).
+    // The per-phase notes footer, for phases that have one.
     private List<(string Name, string Title, string Text)> _phaseNotes = new();
-    // Column display order: pinned columns first (into the frozen area).
+    // Column order: pinned first, into the frozen area.
     private int[] _order = Array.Empty<int>();
     private int _pinnedCount;
 
     private bool IsPinnedColumn(int i)
         => C.SheetPinnedSlots.Contains(_slots[i], StringComparer.OrdinalIgnoreCase);
 
-    // A user-made sheet: a non-builtin fight with its own column layout.
+    // A user-made sheet: not built in, with its own layout.
     private static bool IsCustomSheet(FightProfile f)
         => !Builtin.Has(f.TerritoryId) && f.CustomSlots.Count > 0;
 
-    // Set from the current fight each Rebuild; custom sheets have no bake, so
-    // ghosts, tombstone resets and the official notes panel don't apply.
+    // Set each Rebuild, since custom sheets have no bake.
     private bool _isCustom;
-    // Lines whose mit repeats before its cooldown can be back (message per line).
+    // Lines whose mit repeats before its cooldown is back.
     private readonly Dictionary<MitLine, string> _conflicts = new();
-    // Lines whose mit is above the duty's level sync (message per line).
+    // Lines whose mit is above the duty's level sync.
     private readonly Dictionary<MitLine, string> _levelWarns = new();
-    // Valid press windows ("press between X and Y"), from coverage + squeeze.
+    // Valid press windows, from coverage and squeeze.
     private readonly Dictionary<MitLine, string> _windows = new();
     // Text filter: show only rows whose mechanic or any mit matches.
     private string _filter = "";
@@ -86,9 +83,7 @@ public partial class SheetViewWindow : Window
     private string _replWith = "";
     private bool _replMineOnly;
 
-    // ---- undo (Ctrl+Z) -----------------------------------------------------
-    // Snapshot-based: every sheet edit pushes a deep copy of the fight's plan
-    // BEFORE mutating; undo swaps it back.
+    // ---- undo ----
 
     private sealed class PlanSnapshot
     {
@@ -149,7 +144,7 @@ public partial class SheetViewWindow : Window
         _undoStack.RemoveAt(_undoStack.Count - 1);
         if (!C.Fights.Contains(s.Fight)) { Flash("Can't undo: that fight no longer exists."); return; }
 
-        // Jumping to another fight's undo entry: reset the filters and snapshot first.
+        // Jumping to another fight's entry resets the filters first.
         var jumped = s.Fight != _fight;
         if (jumped)
         {
@@ -169,7 +164,7 @@ public partial class SheetViewWindow : Window
         s.Fight.BossAnchors = s.BossAnchors;
         s.Fight.Slot = s.Slot;
         s.Fight.TimerOffset = s.TimerOffset;
-        // Restore the active-slot alias (Lines IS SavedSlots[slot] normally).
+        // Restore the active-slot alias.
         if (!string.IsNullOrEmpty(s.Slot) && s.Fight.SavedSlots.ContainsKey(s.Slot))
             s.Fight.SavedSlots[s.Slot] = s.Fight.Lines;
 
@@ -179,15 +174,14 @@ public partial class SheetViewWindow : Window
         Flash(jumped ? $"Undid: {s.Label} (in {s.Fight.Name})." : $"Undid: {s.Label}.");
     }
 
-    // Sticky-phase pill state, recomputed every frame from the top visible row.
+    // Sticky-phase pill state, from the top visible row.
     private float _headerY;
     private int _rowIdxDrawing = -1;
     private int _firstDrawnIdx = -1;
     private int _stickyRowIdx = -1;
     private string _stickyTitle = "";
 
-    // A mechanic instance as the SHEET bakes it (unfiltered), used as the anchor
-    // for row resets, edited/deleted detection, and ghost rows.
+    // A mechanic instance as the sheet bakes it, unfiltered.
     private sealed class BakedRow
     {
         public float Time;
@@ -218,22 +212,20 @@ public partial class SheetViewWindow : Window
     private bool _focusPending;
     private bool Editing => _editTimeRow != null || _editCellRow != null;
 
-    // Held as coordinates, not references, because the commit rebuilds every
-    // row object before the next edit can start.
+    // Coordinates, not references, since the commit rebuilds rows.
     private (float Time, string Mech, int Slot)? _pendingEdit;
 
     private string _flash = "";
     private DateTime _flashAt;
     private void Flash(string msg) { _flash = msg; _flashAt = DateTime.Now; }
 
-    // Notes: the row the mouse is on (its note shows in the footer strip) and
-    // the edit buffer for the right-click note popup.
+    // The hovered row and the note popup's edit buffer.
     private Row? _hoverRow;
     private Row? _hoverLive;
     private Row? _hoverLivePrev;
     private string _noteBuf = "";
 
-    // Tight window (4s): some mechanics repeat under 10s apart with the same label.
+    // A tight window, since some mechanics repeat under 10s.
     private SheetNote? NoteFor(Row row)
         => _fight?.Notes.FirstOrDefault(n =>
             MechEquals(n.Mechanic, row.Mechanic) && MathF.Abs(n.Time - row.Time) < 4f);
@@ -258,7 +250,7 @@ public partial class SheetViewWindow : Window
         C.Save();
     }
 
-    // ---- opening ----------------------------------------------------------
+    // ---- opening ----
 
     public void Open(FightProfile? fight = null)
     {
@@ -274,7 +266,7 @@ public partial class SheetViewWindow : Window
     private FightProfile? PickDefaultFight()
     {
         var terr = Service.ClientState.TerritoryType;
-        // Prefer fights that already have a slot picked: the grid needs one.
+        // Prefer fights with a slot picked, since the grid needs one.
         return C.Fights.FirstOrDefault(f => Sheetable(f) && f.TerritoryId == terr && f.Enabled)
             ?? C.Fights.FirstOrDefault(f => Sheetable(f) && f.Id == C.LastSheetFightId)
             ?? C.Fights.FirstOrDefault(f => f.TerritoryId == Builtin.DmuTerritory && !string.IsNullOrEmpty(f.Slot))
@@ -283,7 +275,7 @@ public partial class SheetViewWindow : Window
             ?? C.Fights.FirstOrDefault(Sheetable);
     }
 
-    // ---- drawing ----------------------------------------------------------
+    // ---- drawing ----
 
     public override void Draw()
     {
@@ -316,7 +308,7 @@ public partial class SheetViewWindow : Window
             ImGui.Spacing();
             if (IsCustomSheet(_fight))
             {
-                // Custom sheets pick their column right here: no fight-page trip.
+                // Custom sheets pick their column right here.
                 ImGui.TextWrapped("Pick your column for this sheet; that column becomes the plan your overlay calls.");
                 ImGui.Spacing();
                 foreach (var s in _fight.CustomSlots)
@@ -337,21 +329,19 @@ public partial class SheetViewWindow : Window
         // The sheet reopens where you left off, across sessions.
         if (_fight.Id != C.LastSheetFightId) { C.LastSheetFightId = _fight.Id; C.Save(); }
 
-        // Regaining focus re-reads every slot, so edits made on the fight page
-        // while this window sat in the background always show up.
+        // Regaining focus re-reads every slot, so edits show up.
         var focused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
         if (focused && !_wasFocused) _dirty = true;
         _wasFocused = focused;
         if (_dirty && !Editing) Rebuild();
 
-        // A queued Enter/Tab edit lands once the grid is rebuilt and idle.
+        // A queued edit lands once the grid is rebuilt and idle.
         if (_pendingEdit is { } pe && !Editing && !_dirty)
         {
             _pendingEdit = null;
             var target = _rows.FirstOrDefault(r => !r.Ghost
                 && MechEquals(r.Mechanic, pe.Mech) && MathF.Abs(r.Time - pe.Time) < 0.9f
-                // Must be VISIBLE: an editor on a filtered-out row never draws,
-                // which would wedge the edit state machine.
+                // Must be visible, or the editor never draws and wedges.
                 && (_phaseFilter.Length == 0 || r.Phase == _phaseFilter) && MatchesFilter(r));
             if (target != null && pe.Slot >= 0 && pe.Slot < _slots.Length)
             {
@@ -368,8 +358,7 @@ public partial class SheetViewWindow : Window
             Undo();
 
         DrawToolbar();
-        // The toolbar's delete popup can remove the sheet mid-frame; bail out
-        // before the grid touches the gone fight.
+        // The delete popup can remove the sheet mid-frame.
         if (_fight == null) return;
         ImGui.Spacing();
         DrawGrid();
@@ -377,13 +366,12 @@ public partial class SheetViewWindow : Window
         DrawFooter();
     }
 
-    // ---- sheet notes (the per-phase "Notes" footer from the sheet's tabs) ----
+    // ---- sheet notes ----
 
     private float NotesBodyHeight() => Math.Clamp(C.SheetNotesHeight, 60f, 600f);
     private const float NotesGripHeight = 6f;
 
-    // Vertical space the notes panel takes below the grid, so the table can
-    // shrink to make room (header row + the body when expanded).
+    // Space the notes panel takes, so the table can shrink.
     private float NotesReserve()
     {
         if (_phaseNotes.Count == 0) return 0f;
@@ -397,8 +385,7 @@ public partial class SheetViewWindow : Window
     {
         if (_fight == null || _phaseNotes.Count == 0) return;
 
-        // Drag handle on the panel's top edge: pull it up for more notes, down
-        // for more grid.
+        // Drag the top edge for more notes or more grid.
         if (C.SheetNotesOpen)
         {
             ImGui.InvisibleButton("##notesgrip", new Vector2(-1, NotesGripHeight));
@@ -447,8 +434,7 @@ public partial class SheetViewWindow : Window
         if (fights.Count == 0) return;
 
         ImGui.SetNextItemWidth(230f);
-        // Popup sized to the longest fight name plus the slot tag (so nothing
-        // overlaps), and height-capped so a long list scrolls.
+        // Sized to the longest name plus its tag, and height-capped.
         var nameW = ImGui.CalcTextSize("+ New sheet...").X;
         foreach (var f in fights) nameW = MathF.Max(nameW, ImGui.CalcTextSize(f.Name).X);
         var popupW = nameW + 96f;
@@ -480,8 +466,7 @@ public partial class SheetViewWindow : Window
                         _phaseFilter = "";
                         _dirty = true;
                     }
-                    // Your slot for that fight, right-aligned; fights without one
-                    // land on the pick-your-slot screen when chosen.
+                    // Your slot for that fight, right-aligned.
                     var tag = string.IsNullOrEmpty(f.Slot) ? "no slot" : f.Slot;
                     ImGui.SameLine(MathF.Max(
                         ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(tag).X - 6f,
@@ -493,7 +478,7 @@ public partial class SheetViewWindow : Window
             ImGui.Spacing();
             ImGui.Separator();
             ImGui.Spacing();
-            // OpenPopup can't run inside the combo (wrong ID scope); flag it.
+            // OpenPopup can't run inside the combo, so flag it.
             if (ImGui.Selectable("+ New sheet...")) openNew = true;
             ImGui.EndCombo();
         }

@@ -4,19 +4,17 @@ using System.Linq;
 
 namespace FrenMits;
 
-// One place that decides which timeline rows become resync anchors, and which
-// of those may re-base a phase.
+// Decides which rows become anchors, and which re-base a phase.
 public static class SyncAnchors
 {
-    // How far past a phase start to look for an ability that can carry its re-base.
+    // How far past a phase start to look for a carrying ability.
     private const float HandoffReach = 60f;
 
     public static List<SyncPoint> Build(IEnumerable<(uint Sync, float Time, string Phase, string Mechanic)> rows)
     {
         var ordered = rows.Where(r => r.Sync != 0).OrderBy(r => r.Time).ToList();
 
-        // Which rows would re-base under the old rule: the first of each phase, and
-        // anything more than 90s after the last anchor (downtime, cutscenes).
+        // Which rows re-based under the old rule.
         var wants = new bool[ordered.Count];
         var phaseSeen = new HashSet<string>();
         var prevTime = float.NegativeInfinity;
@@ -26,7 +24,7 @@ public static class SyncAnchors
             prevTime = ordered[i].Time;
         }
 
-        // First anchor per ability, which is the only one allowed to re-base.
+        // First anchor per ability, the only one allowed to re-base.
         var firstFor = new Dictionary<uint, int>();
         for (var i = 0; i < ordered.Count; i++)
             if (!firstFor.ContainsKey(ordered[i].Sync)) firstFor[ordered[i].Sync] = i;
@@ -51,11 +49,10 @@ public static class SyncAnchors
         }).ToList();
     }
 
-    // The same rule for a list that already knows which anchors re-base.
+    // The same rule for a list that knows its re-basers.
     private const float EncounterGap = 150f;
 
-    // Where each encounter of a baked duty starts, taken from the ROW times,
-    // which is how the bake splits them.
+    // Where each encounter starts, taken from the row times.
     public static List<float> EncounterStarts(IEnumerable<float> rowTimes)
     {
         var times = rowTimes.OrderBy(t => t).ToList();
@@ -72,8 +69,7 @@ public static class SyncAnchors
         if (points.Count == 0) return;
         var order = points.Select((p, i) => (p, i)).OrderBy(x => x.p.Time).Select(x => x.i).ToList();
 
-        // Which encounter each anchor belongs to, and which encounters could
-        // re-base before any of this ran.
+        // Which encounter each anchor belongs to.
         var segment = new int[points.Count];
         if (encounterStarts is { Count: > 0 })
         {
@@ -123,8 +119,7 @@ public static class SyncAnchors
             if (take >= 0) points[take].IsPhase = true;
         }
 
-        // The invariant, enforced rather than hoped for: an encounter that
-        // could be entered before must still be enterable.
+        // An encounter that could be entered before must stay enterable.
         var canEnter = new HashSet<int>();
         foreach (var i in order)
             if (points[i].IsPhase) canEnter.Add(segment[i]);

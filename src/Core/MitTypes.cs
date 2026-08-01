@@ -2,13 +2,12 @@ using System;
 
 namespace FrenMits;
 
-// Classifies a call by the kind of mitigation it is, so the overlay can colour it
-// at a glance: party-wide raidbuffs vs tank cooldowns vs personal/other.
+// Sorts a call into party, tank or other, for its color.
 public static class MitTypes
 {
     public enum Kind { Party, Tank, Personal, Other }
 
-    // Tank invulns / tank-specific cooldowns and tank-buster prefixes.
+    // Tank cooldowns, invulns and buster prefixes.
     private static readonly string[] TankWords =
     {
         "holmgang", "living dead", "hallowed ground", "superbolide", "rampart",
@@ -20,7 +19,7 @@ public static class MitTypes
         "provoke", "shirk", "thrill of battle", "equilibrium", "tank:", "invuln",
     };
 
-    // Party-wide raid mitigation (tank/melee/ranged/caster utility + healer party CDs).
+    // Party-wide raid mitigation and healer party cooldowns.
     private static readonly string[] PartyWords =
     {
         "feint", "addle", "dismantle", "magick barrier", "tactician", "troubadour",
@@ -38,8 +37,7 @@ public static class MitTypes
         "second wind", "bloodbath", "personal", "feather", "stem the flow",
     };
 
-    // Memoized: the answer depends only on the two texts, which come from a fixed
-    // sheet.
+    // Memoized, since the answer depends only on the two texts.
     private static readonly System.Collections.Generic.Dictionary<(string Action, string Mech), Kind> _cache = new();
 
     public static Kind Classify(string? action, string? mechanic = null)
@@ -69,8 +67,7 @@ public static class MitTypes
         return false;
     }
 
-    // The configured colour for a kind, or 0 to fall back to the default overlay
-    // colour (for Other, or kinds the user has zeroed out).
+    // The configured color for a kind, or 0 for the default.
     public static uint Color(Kind kind, Configuration c) => kind switch
     {
         Kind.Party => c.MitColorParty,

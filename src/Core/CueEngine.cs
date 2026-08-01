@@ -3,8 +3,7 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Fires the audio cue for a line exactly once when it enters its warning window,
-// running every framework tick so cues sound even if the overlay is hidden.
+// Fires a line's audio cue once, even with the overlay hidden.
 public class CueEngine
 {
     private readonly Plugin _plugin;
@@ -23,23 +22,20 @@ public class CueEngine
     {
         var c = _plugin.Config;
 
-        // Only a fresh pull re-arms every call; a mid-pull bump leaves the fired-set
-        // alone.
+        // Only a fresh pull re-arms every call.
         if (_plugin.Timer.Generation != _generation)
         {
             _generation = _plugin.Timer.Generation;
-            // Freshness is judged on the raw timer, not a sheet clock with a phase
-            // offset.
+            // Freshness reads the raw timer, not a shifted clock.
             var fresh = _plugin.Timer.Elapsed < 5f;
             if (fresh) _fired.Clear();
         }
 
-        // Stay silent until a phase anchor re-bases the clock after a cutscene.
+        // Stay silent until a phase anchor re-bases the clock.
         if (_holding && (_plugin.Sync.PhaseSyncGeneration != _holdPhaseGen || DateTime.UtcNow >= _holdUntil))
             _holding = false;
 
-        // Live, not Running: the countdown is part of the pull, and a sheet's
-        // pre-pull presses are only worth anything if they're called before it.
+        // Live, not Running, so pre-pull presses still get called.
         if (!c.AudioEnabled || !_plugin.Timer.Live || Plugin.CutsceneActive) return;
         if (_holding) return;
 
@@ -48,7 +44,7 @@ public class CueEngine
         if (c.OnlyInTargetTerritory && fight.TerritoryId != Service.ClientState.TerritoryType) return;
 
         var job = _plugin.ActiveJobAbbreviation();
-        // Cue clock: sheet time + the fight's timer offset, so calls shift as set.
+        // Cue clock: sheet time plus the fight's offset.
         var elapsed = _plugin.CueClockFor(fight);
 
         foreach (var line in fight.Lines)
@@ -68,12 +64,12 @@ public class CueEngine
         }
     }
 
-    // How long to hold cues after a cutscene while waiting for the snap.
+    // How long to hold cues after a cutscene.
     private bool _holding;
     private int _holdPhaseGen;
     private DateTime _holdUntil;
 
-    // Re-arm every cue: a practice phase-jump parks the clock mid-sheet.
+    // Re-arm every cue after a phase jump.
     public void Rearm() => _fired.Clear();
 
     public void HoldForResync(int phaseGen, double maxSeconds)
@@ -83,17 +79,17 @@ public class CueEngine
         _holdUntil = DateTime.UtcNow.AddSeconds(maxSeconds);
     }
 
-    // True while waiting for the post-cutscene re-base; the overlays hide too.
+    // True while waiting for the post-cutscene re-base.
     public bool Holding => _holding;
 
-    // When each spoken phrase was last said, to debounce identical calls.
+    // When each phrase was last said, to debounce repeats.
     private readonly Dictionary<string, DateTime> _spokenAt = new();
 
     private void Fire(Configuration c, MitLine line, string? job)
     {
         if (!c.TtsEnabled) return;
 
-        // Per-line override wins, otherwise speak the action or mechanic.
+        // Per-line override wins over the action or mechanic.
         var fallback = c.TtsSpeakMechanic
             ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.ActionFor(job), job) : line.Mechanic)
             : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.ActionFor(job), job));
@@ -102,7 +98,7 @@ public class CueEngine
 
         var now = DateTime.UtcNow;
 
-        // Never speak the same phrase twice within a short window.
+        // Never say the same phrase twice in a short window.
         if (_spokenAt.TryGetValue(text, out var lastSame) && (now - lastSame).TotalSeconds < 2.0)
         {
             Service.Log.Information($"[FrenMits] (debounced duplicate '{text}', {(now - lastSame).TotalSeconds:0.00}s after last)");
@@ -110,7 +106,7 @@ public class CueEngine
             return;
         }
 
-        // Optional minimum gap between ANY cues.
+        // Optional minimum gap between any two cues.
         if (c.TtsMinGapSeconds > 0f && (now - _lastSpoke).TotalSeconds < c.TtsMinGapSeconds)
             return;
 

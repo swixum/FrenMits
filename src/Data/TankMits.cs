@@ -3,13 +3,12 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Tank-buster mit plans per tank pairing and per job, with times in seconds
-// from the pull (continuous, same clock as the main mit timeline).
+// Tank-buster plans per pairing and job, in pull seconds.
 public static class TankMits
 {
     public sealed record Entry(int Time, string Mechanic, string Action);
 
-    // DMU and FRU, plus the legacy ultimates whose sheets carry tank tabs.
+    // The fights whose sheets carry tank tabs.
     public static bool Has(uint territory) => territory is
         Builtin.DmuTerritory or Builtin.UcobTerritory or Builtin.UwuTerritory
         or Builtin.DsrTerritory or Builtin.TopTerritory or Builtin.FruTerritory;

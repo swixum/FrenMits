@@ -10,17 +10,15 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Sheet View: the toolbar and the small dialogs it opens (auto-plan, add row,
-// delete sheet, plan snapshots, custom rows).
+// Sheet View: the toolbar and the dialogs it opens.
 public partial class SheetViewWindow
 {
-    // ---- auto-plan mits (custom sheets) -------------------------------------
+    // ---- auto-plan mits ----
 
     private bool _openAutoPlan;
     private static readonly string[] HealerJobs = { "WHM", "AST", "SCH", "SGE" };
 
-    // Generic healer seats (H1, H2, H...) on this sheet: the four healer jobs'
-    // kits barely overlap, so these seats cannot be planned honestly by name.
+    // Generic healer seats, which can't be planned honestly by name.
     private List<string> GenericHealerCols()
         => _fight == null ? new List<string>() : _fight.CustomSlots
             .Where(sl => sl.Trim().ToUpperInvariant().StartsWith("H")
@@ -65,8 +63,7 @@ public partial class SheetViewWindow
             }
             if (string.Equals(fight.Slot, seat, StringComparison.OrdinalIgnoreCase)) fight.Slot = job;
         }
-        // The healer jobs no seat was left for still get their column, so the
-        // sheet covers every healer like the official ones do.
+        // Healer jobs with no seat still get their own column.
         foreach (var job in jobs)
         {
             if (fight.CustomSlots.Count >= 12) break;
@@ -115,8 +112,7 @@ public partial class SheetViewWindow
         ImGui.TextDisabled("kit; other role columns (MT, D3...) get terms that speak as each");
         ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
 
-        // Healer seats: the four healer jobs' kits barely overlap, so the
-        // sheets carry a column per healer JOB.
+        // Healer kits barely overlap, so sheets carry a column per job.
         var healerCols = GenericHealerCols();
         if (healerCols.Count > 0)
         {
@@ -151,8 +147,7 @@ public partial class SheetViewWindow
         {
             PushUndo("auto-plan mits");
             _plugin.Snapshots.Save(_fight, "before auto-plan");
-            // Healer seats become ALL FOUR healer job columns first (the
-            // sheets' convention), so every healer's kit is covered.
+            // Healer seats become all four job columns first.
             ExpandHealerSeats(_fight);
             var n = AutoPlanMits(_fight);
             C.Save();
@@ -182,7 +177,7 @@ public partial class SheetViewWindow
         _dirty = true;
     }
 
-    // Move "(you)" to another column of a custom sheet (header right-click).
+    // Move "(you)" to another column of a custom sheet.
     private void SwitchCustomSlot(int i)
     {
         if (_fight == null) return;
@@ -197,7 +192,7 @@ public partial class SheetViewWindow
         Flash($"{slot} is your column now; the overlay calls that plan.");
     }
 
-    // Short hover delay for informational tooltips on the toolbar sweep path.
+    // Short hover delay for the toolbar's tooltips.
     private static Vector2 _ttPos;
     private static double _ttSince;
     private static int _ttFrame;
@@ -205,8 +200,7 @@ public partial class SheetViewWindow
     private static bool DelayedHover(ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
     {
         if (!ImGui.IsItemHovered(flags)) return false;
-        // The item rect is a fine identity for "did the hovered thing change";
-        // a frame gap means the mouse left and the delay starts over.
+        // The item rect identifies the hovered thing well enough.
         var pos = ImGui.GetItemRectMin();
         var now = ImGui.GetTime();
         var frame = ImGui.GetFrameCount();
@@ -219,7 +213,7 @@ public partial class SheetViewWindow
     {
         DrawFightPicker();
 
-        // Phase filter: All + one button per phase, like the sheet's tabs.
+        // Phase filter: All plus one button per phase.
         PhaseButton("All", _phaseFilter.Length == 0);
         foreach (var (name, _) in _phases)
         {
@@ -227,7 +221,7 @@ public partial class SheetViewWindow
             PhaseButton(name, _phaseFilter == name);
         }
 
-        // Text filter across mechanics and mits ("Reprisal" = every Reprisal row).
+        // Text filter across mechanics and mits.
         ImGui.SameLine(0, 10);
         ImGui.SetNextItemWidth(140f);
         ImGui.InputTextWithHint("##sheetfilter", "filter...", ref _filter, 64);
@@ -266,8 +260,7 @@ public partial class SheetViewWindow
         if (DelayedHover(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(_undoStack.Count == 0 ? "Nothing to undo. Ctrl+Z also works." : $"Undo: {_undoStack[^1].Label} (Ctrl+Z).");
 
-        // Deferred popup opens: OpenPopup can't run inside another popup's
-        // scope, so menu items set flags and the popups open out here.
+        // Deferred opens, since OpenPopup can't run inside a popup.
         var openReplace = false;
         var openHistory = false;
         var openAddRow = false;
@@ -302,8 +295,7 @@ public partial class SheetViewWindow
             ImGui.SetTooltip("Export, import, history and view options.");
         if (ImGui.BeginPopup("##planmenu"))
         {
-            // Land any half-typed edit first, so the clipboard never captures
-            // a pre-edit grid.
+            // Land a half-typed edit, so the clipboard gets the real grid.
             if (ImGui.MenuItem("Export as text"))
             {
                 CommitPending();
@@ -366,11 +358,9 @@ public partial class SheetViewWindow
         DrawHistoryPopup();
         if (openDelete) ImGui.OpenPopup("##sheetdelete");
         DrawDeleteSheetPopup();
-        // Deleting the sheet nulls _fight mid-frame: stop the toolbar here so
-        // nothing after it can touch the gone fight this frame.
+        // Deleting nulls the fight mid-frame, so stop the toolbar.
         if (_fight == null) return;
-        // Deferred like the rest: the request can come from the Plan menu or from
-        // a cell's right-click menu (a different ID scope), so it rides a flag.
+        // Deferred too, since the request can come from either menu.
         if (_openResetAll) { _openResetAll = false; ImGui.OpenPopup("##sheetresetall"); }
         DrawResetAllPopup();
         if (_isCustom)
@@ -389,8 +379,7 @@ public partial class SheetViewWindow
 
     private void DrawAddRowPopup()
     {
-        // Modal so a stray click outside cannot dismiss the form; the X,
-        // Escape, or its own buttons close it.
+        // Modal, so a stray click outside cannot dismiss the form.
         var stay = true;
         if (!ImGui.BeginPopupModal("##addrow", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
@@ -415,15 +404,14 @@ public partial class SheetViewWindow
         ImGui.EndPopup();
     }
 
-    // Import a friend's plan code from the clipboard, then jump to the fight it
-    // touched so the result is on screen immediately.
+    // Import a plan code, then jump to the fight it touched.
     private void ImportPlan()
     {
         CommitPending();
         var (fight, _, message) = PlanCodes.Import(_plugin, ImGui.GetClipboardText());
         if (fight != null)
         {
-            // Older Ctrl+Z entries would revert the import under a misleading label.
+            // Older undo entries would revert the import misleadingly.
             _undoStack.RemoveAll(s => s.Fight == fight);
             if (Sheetable(fight))
             {
@@ -445,16 +433,14 @@ public partial class SheetViewWindow
         }
         if (ImGui.SmallButton($"{name}###ph{name}"))
         {
-            // Land any open editor BEFORE the filter hides its row, or the edit
-            // state would linger unseen (blocking rebuilds) until a later click.
+            // Land any editor before the filter hides its row.
             CommitPending();
             _phaseFilter = name == "All" ? "" : name;
         }
         if (on) ImGui.PopStyleColor(3);
     }
 
-    // Deleting a whole custom sheet: confirmed, snapshotted first, undoable
-    // only via History after recreating a sheet in the same duty.
+    // Deleting a whole sheet: confirmed, and snapshotted first.
     private void DrawDeleteSheetPopup()
     {
         var open = true;
@@ -489,14 +475,13 @@ public partial class SheetViewWindow
         ImGui.EndPopup();
     }
 
-    // ---- plan snapshots (History) -------------------------------------------
+    // ---- plan snapshots ----
 
     private List<SnapshotStore.SnapshotInfo> _snapList = new();
 
     private void DrawHistoryPopup()
     {
-        // Modal so a stray click outside cannot dismiss the form; the X,
-        // Escape, or its own buttons close it.
+        // Modal, so a stray click outside cannot dismiss the form.
         var stay = true;
         if (!ImGui.BeginPopupModal("##sheethistory", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
@@ -532,8 +517,7 @@ public partial class SheetViewWindow
             }
         }
 
-        // Recovery for deleted sheets: their snapshots survive under the old
-        // fight id; find them by duty and restore into THIS sheet.
+        // Deleted sheets keep snapshots, so find them by duty.
         if (_isCustom)
         {
             ImGui.Spacing();
@@ -547,7 +531,7 @@ public partial class SheetViewWindow
         ImGui.EndPopup();
     }
 
-    // ---- custom rows ---------------------------------------------------------
+    // ---- custom rows ----
 
     private string _rowMech = "";
     private string _rowTime = "";
@@ -575,7 +559,7 @@ public partial class SheetViewWindow
         Flash($"\"{mech}\" added at {TimeText(time)}. Click its cells to write mits.");
     }
 
-    // Delete a custom-sheet row: its scaffold entry and every column's lines.
+    // Delete a custom row and every column's lines on it.
     private void DeleteCustomRow(Row row)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;

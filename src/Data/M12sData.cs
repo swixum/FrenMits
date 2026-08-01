@@ -1,5 +1,4 @@
-// AUTO-GENERATED from the M12S (Lindwurm) mitigation sheet, with Phase 2
-// shifted by Phase2Offset onto the single continuous clock.
+// Generated from the M12S sheet, with Phase 2 on one clock.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,7 +67,7 @@ public static class M12sData
         new(952, "P2", "Arcadian Hell II", 0, new[]{"","Reprisal + Party Mit","Plenary Indulgence + Divine Caress","Collective Unconscious + Sun Sign","Spreadlo + Seraph + Sacred Soil","Zoe Shields + Panhaima + Kerachole","","Feint","Party Mit",""}),
     };
 
-    // Severity and buster flags measured from six kills, checked against six more.
+    // Severity and buster flags, measured from six kills.
     public static List<CustomRow> CustomRows()
     {
         var rows = new List<CustomRow>();
@@ -95,8 +94,7 @@ public static class M12sData
         return list;
     }
 
-    // Resync anchors from the cactbot r12s timeline (Lindwurm casts), with Phase 2
-    // times shifted by Phase2Offset so the clock snaps to resolve on time.
+    // Resync anchors, with Phase 2 shifted by Phase2Offset.
     public static List<SyncPoint> SyncPoints() => new()
     {
         // ---- Phase 1 ----

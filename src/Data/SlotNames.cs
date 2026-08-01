@@ -4,15 +4,14 @@ using System.Linq;
 
 namespace FrenMits;
 
-// One naming standard for sheet columns: T1 T2, the four healer jobs, M1 M2, R1 R2.
+// One naming standard for sheet columns.
 public static class SlotNames
 {
-    // The canonical column set (and order) every built-in sheet presents.
+    // The canonical column set every built-in presents.
     public static readonly string[] Standard =
         { "T1", "T2", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" };
 
-    // Any known alias -> its canonical name (unknown labels like custom columns
-    // or player names pass through untouched).
+    // Any known alias to its canonical name.
     public static string Canon(string? slot)
     {
         var s = (slot ?? "").Trim();
@@ -30,7 +29,7 @@ public static class SlotNames
         };
     }
 
-    // Canonical -> the MT/OT/D1-D4 labels the DMU-style data files are keyed by.
+    // Canonical to the labels the DMU-style files use.
     public static string ToLegacy(string slot) => Canon(slot) switch
     {
         "T1" => "MT", "T2" => "OT",
@@ -39,7 +38,7 @@ public static class SlotNames
         var c => c,
     };
 
-    // Canonical -> FRU's native labels (only its ranged pair differs).
+    // Canonical to FRU's native labels.
     public static string ToFru(string slot) => Canon(slot) switch
     {
         "R1" => "R", "R2" => "Caster",
@@ -75,7 +74,7 @@ public static class SlotNames
             if (!string.Equals(c, fight.CustomSlots[i], StringComparison.Ordinal))
             { fight.CustomSlots[i] = c; changed = true; }
         }
-        // Two old names can land on one standard name; drop the later duplicate.
+        // Two old names can collide, so drop the later one.
         for (var i = fight.CustomSlots.Count - 1; i > 0; i--)
             if (fight.CustomSlots.Take(i).Contains(fight.CustomSlots[i], StringComparer.OrdinalIgnoreCase))
             { fight.CustomSlots.RemoveAt(i); changed = true; }
@@ -86,12 +85,10 @@ public static class SlotNames
             if (!string.Equals(c, d.Slot, StringComparison.Ordinal)) { d.Slot = c; changed = true; }
         }
 
-        // The active slot's lines must stay aliased into the stash under the
-        // (possibly renamed) key, or the next slot switch would lose edits.
+        // The active slot stays aliased, or a switch loses edits.
         if (!string.IsNullOrEmpty(fight.Slot))
         {
-            // A rename collision can leave the fuller plan under the canonical
-            // key; that one wins.
+            // On a rename collision the fuller plan wins.
             if (changed && fight.SavedSlots.TryGetValue(fight.Slot, out var winner)
                 && !ReferenceEquals(winner, fight.Lines) && winner.Count > fight.Lines.Count)
                 fight.Lines = winner;

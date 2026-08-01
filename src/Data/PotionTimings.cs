@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Consensus potion timings per job, clustered from top logs and baked offline.
+// Consensus potion timings per job, baked offline.
 public static class PotionTimings
 {
-    // Fights with potion-cast data, else null; only the current tier is tracked.
+    // Fights with potion data, else null.
     public static string? BossSlug(uint territory) => territory switch
     {
         Builtin.DmuTerritory => "dancing-mad",
@@ -15,8 +15,7 @@ public static class PotionTimings
         _ => null,
     };
 
-    // Baked consensus windows (seconds from pull) per boss slug then per job,
-    // clustered from the top logs on raalm.com / Lorrgs (last refreshed 2026-06-20).
+    // Baked windows per boss then per job, clustered from logs.
     public static readonly Dictionary<string, Dictionary<string, int[]>> Defaults = new()
     {
         ["dancing-mad"] = new(StringComparer.OrdinalIgnoreCase)
@@ -69,7 +68,7 @@ public static class PotionTimings
         },
     };
 
-    // The standard 2-minute-meta plan: pot the opener, then each 6:00 burst that fits.
+    // The 2-minute meta: the opener, then each burst that fits.
     public static List<float> GenericWindows(float fightEnd)
     {
         var times = new List<float>();

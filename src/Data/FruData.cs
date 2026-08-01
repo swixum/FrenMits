@@ -32,8 +32,7 @@ public static class FruData
         new(236, "P2", "Diamond Dust", 0x9D05, new[]{"Rep","Party Mit","Concit/Soil","EukProg/Kera","Confession","CU","","Feint*","","Addle*"}, 3),
         new(246, "P2", "Frigid Stone", 0x9D07, new[]{"","","","","","","","","",""}, 2),
         new(246, "P2", "The House of Light", 0x9D0E, new[]{"","","","","","","","","",""}, 2),
-        // 0x9D10 is a Sinbound Holy the boss never casts; 0x9D11 is the one logs
-        // records, in every kill.
+        // 0x9D10 is never cast; 0x9D11 is the one logs record.
         new(255, "P2", "Sinbound Holy", 0x9D11, new[]{"","","Spread-Lo/Exp**","Zoe EukProg/Holos","","","","","Party Mit**",""}, 2),
         new(283, "P2", "Hallowed Ray", 0x9D12, new[]{"Party Mit","Rep","Concit/Soil","EukProg/Kera","","","Feint","","",""}, 3),
         new(293, "P2", "Mirror Mirror", 0x9CF3, new[]{"","","Fey/Seraph","Panhaima","Confession/Temp","Neutral/Sun","","","",""}),
@@ -112,8 +111,7 @@ public static class FruData
         new(1181, "P5", "Akh Morn 2", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Holos/EukProg/Kera","","","","Feint","","Addle"}, 3),
         new(1203, "P5", "Explosion", 0x9D80, new[]{"","","","","","","","","",""}, 1),
         new(1204, "P5", "Wings Dark and Light", 0x9D79, new[]{"","","","","","","","","",""}, 2, true),
-        // Unanchored: the Cruel Path pair lands in one instant, so one anchor is
-        // enough.
+        // Unanchored: the Cruel Path pair lands in one instant.
         new(1219, "P5", "Cruel Path of Darkness", 0, new[]{"","","","","","","","","",""}, 2),
         new(1219, "P5", "Cruel Path of Light", 0x9D7D, new[]{"","","","","","","","","",""}, 2),
         new(1220, "P5", "Polarizing Strikes 2", 0x9D7C, new[]{"","Party Mit","Seraph/ism/Exped/Fey","Panhaima/Sophia","Temp/Bell/Caress","Neutral/Sun/Macro","","","Party Mit",""}),
@@ -121,8 +119,7 @@ public static class FruData
         new(1272, "P5", "Akh Morn 3", 0x9D76, new[]{"Rep/Party Mit","","Spread-Lo/Soil","Zoe EukProg/Kera","","","","Feint","","Addle"}, 3),
     };
 
-    // Severity and tank-buster flags, measured from six kills: every damaging
-    // cast paired with what it actually lands for, unmitigated.
+    // Severity and buster flags, measured from six kills.
     public static List<CustomRow> CustomRows()
     {
         var rows = new List<CustomRow>();
@@ -155,20 +152,18 @@ public static class FruData
             Timeline.Select(e => (e.Sync, (float)e.Time, e.Phase, e.Mechanic)));
     }
 
-    // Phase bosses resolved by name (phase times); unresolved names are skipped.
+    // Phase bosses by name; unresolved names are skipped.
     public static List<BossAnchor> BossAnchors()
     {
         var list = new List<BossAnchor>();
-        // These re-base the clock when each boss appears, before that phase's first
-        // call.
+        // These re-base the clock when each boss appears.
         BossNames.Add(list, "Fatebreaker", 0f, "P1 Fatebreaker");
         BossNames.Add(list, "Usurper of Frost", 215.3f, "P2 Shiva");
         BossNames.Add(list, "Oracle of Darkness", 500.0f, "P3 Gaia");
         return list;
     }
 
-    // Phase starts on this file's own clock, read off the same community
-    // timeline the rows above are matched to.
+    // Phase starts on this file's own clock.
     public static List<(string Name, float Time)> PhaseStarts() => new()
     {
         ("P1", 0f),

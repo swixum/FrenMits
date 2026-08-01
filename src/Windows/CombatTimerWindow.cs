@@ -5,8 +5,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// A plain combat stopwatch (mm:ss of the current pull), shown as its own
-// independently placeable, independently styled overlay.
+// A plain combat stopwatch, in its own placeable overlay.
 public class CombatTimerWindow : Window
 {
     private readonly Plugin _plugin;
@@ -63,7 +62,7 @@ public class CombatTimerWindow : Window
     {
         SavePositionIfDragged();
 
-        // Live combat time; a sample (2:32) when previewing out of combat.
+        // Live combat time, or a sample while previewing.
         var secs = C.TestMode && !_plugin.Timer.CombatRunning ? 152f : _plugin.Timer.CombatElapsed;
 
         using var _ = PushFont(C.CombatTimerFontSizePx);
@@ -76,8 +75,7 @@ public class CombatTimerWindow : Window
     {
         if (EffectiveLocked) return;
         if (OverlayChrome.MovedCenterFrac(C.CombatTimerPosition) is { } frac) { C.CombatTimerPosition = frac; _posDirty = true; }
-        // ONE disk write when the drag ends - not sixty full-config saves a
-        // second while the window is being moved.
+        // One disk write when the drag ends, not one per frame.
         if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { C.SaveSettings(); _posDirty = false; }
     }
 

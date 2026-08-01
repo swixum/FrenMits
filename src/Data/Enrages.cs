@@ -6,8 +6,7 @@ namespace FrenMits;
 // The cast that ends a fight when the timer runs out.
 public static class Enrages
 {
-    // What an enrage looks like when there's no table entry: a party-wide hit
-    // far past anything a fight is balanced around.
+    // What an enrage looks like with no table entry.
     public const long DamageFloor = 1_000_000;
 
     public readonly record struct Enrage(uint Ability, float Time, string Name);
@@ -40,13 +39,11 @@ public static class Enrages
         return false;
     }
 
-    // Same question for a fight with no table entry, answered from the log itself:
-    // a party-wide hit this far past everything else is the timer, not a mechanic.
+    // The same question answered from the log itself.
     public static bool LooksLikeOne(long unmitigated, int targets)
         => unmitigated >= DamageFloor && targets > 3;
 
-    // Everything the plan should refuse to spend cooldowns on, for a fight the
-    // sheet knows by territory.
+    // Rows the plan should refuse to spend cooldowns on.
     public static bool IsEnrageRow(uint territory, CustomRow row)
         => row.Enrage || For(territory).Exists(e => MathF.Abs(e.Time - row.Time) < 3f
                                                     && MechEquals(e.Name, row.Mechanic));

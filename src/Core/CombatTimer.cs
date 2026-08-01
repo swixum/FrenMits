@@ -3,43 +3,40 @@ using Dalamud.Game.ClientState.Conditions;
 
 namespace FrenMits;
 
-// Tracks "seconds since the pull", syncing to combat start by default and
-// manually zeroable via /fm sync.
+// Seconds since the pull, synced to combat or /fm sync.
 public class CombatTimer
 {
     private DateTime? _startUtc;
     private DateTime? _combatStartUtc;
     private bool _wasInCombat;
 
-    // When the party's pull countdown reaches zero, once one has been seen.
+    // When the party countdown hits zero.
     private DateTime? _zeroUtc;
 
-    // How long after a countdown ends the pull is still assumed to be coming.
+    // How long after zero a pull is still expected.
     public const float PullGraceSeconds = 10f;
 
     public bool Running => _startUtc.HasValue;
 
-    // Where a pull starting NOW should date its clock from.
+    // Where a pull starting now dates its clock from.
     public static DateTime PullStart(DateTime now, DateTime? countdownZero)
         => countdownZero is { } z && z <= now && CountdownLive(now, countdownZero) ? z : now;
 
-    // Whether an armed countdown still means anything at `now`: true while it is
-    // counting, and for the grace after it ends while the pull is expected.
+    // Whether an armed countdown still means anything.
     public static bool CountdownLive(DateTime now, DateTime? countdownZero)
         => countdownZero is { } z && (now - z).TotalSeconds < PullGraceSeconds;
 
-    // The pull is coming but hasn't happened: the clock is live and reads negative.
+    // The pull is coming, so the clock reads negative.
     public bool PrePull => !Running && CountdownLive(DateTime.UtcNow, _zeroUtc);
 
-    // The clock means something - in a pull, or counting into one.
+    // The clock means something right now.
     public bool Live => Running || PrePull;
 
-    // Seconds until the pull, or 0 when none is counting.
+    // Seconds until the pull, 0 when none is counting.
     public float CountdownRemaining
         => !Running && _zeroUtc is { } z ? MathF.Max(0f, (float)(z - DateTime.UtcNow).TotalSeconds) : 0f;
 
-    // Arm the clock on a countdown the game reports, or follow one that was
-    // re-issued at a new length.
+    // Arm the clock, or follow a re-issued countdown.
     public void SetCountdown(float remaining)
     {
         if (Running) return;                  // a countdown mid-fight is not a pull
@@ -51,13 +48,13 @@ public class CombatTimer
         }
         else if (Math.Abs((zero - z).TotalSeconds) > 1.0)
         {
-            // Re-issued at a different length - somebody restarted it.
+            // Re-issued at a different length.
             _zeroUtc = zero;
             Generation++;
         }
     }
 
-    // The countdown was called off before it ran out.
+    // The countdown was called off.
     public void CancelCountdown()
     {
         if (_zeroUtc is not { } z || DateTime.UtcNow >= z) return;
@@ -65,16 +62,14 @@ public class CombatTimer
         Generation++;
     }
 
-    // A plain stopwatch of the current pull: seconds since combat actually started,
-    // never moved by resync so the combat-timer overlay ticks up smoothly.
+    // Plain stopwatch of the pull, never moved by resync.
     public float CombatElapsed => _combatStartUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds : 0f;
     public bool CombatRunning => _combatStartUtc.HasValue;
 
-    // Increments only on a genuine new run (pull / wipe / reset / manual sync) so
-    // cue tracking can tell one run from the next.
+    // Bumps only on a genuine new run.
     public int Generation { get; private set; }
 
-    // Seconds since the pull, negative while a countdown runs down to it.
+    // Seconds since the pull, negative before it.
     public float Elapsed
         => _startUtc is { } s ? (float)(DateTime.UtcNow - s).TotalSeconds
          : _zeroUtc is { } z ? (float)(DateTime.UtcNow - z).TotalSeconds
@@ -82,7 +77,7 @@ public class CombatTimer
 
     public void Update()
     {
-        // Freeze during a cutscene: phase transitions briefly drop combat.
+        // Freeze during a cutscene.
         if (Plugin.CutsceneActive) return;
 
         var now = DateTime.UtcNow;
@@ -94,7 +89,7 @@ public class CombatTimer
             _startUtc = start;                      // pull
             _combatStartUtc = start;
             _zeroUtc = null;
-            // A countdown already began this run and re-armed the cues.
+            // A countdown already armed the cues this run.
             if (!armed) Generation++;
         }
         else if (!inCombat && _wasInCombat)
@@ -113,14 +108,13 @@ public class CombatTimer
         _wasInCombat = inCombat;
     }
 
-    // Zero the timer to the current moment (e.g. on the first mechanic).
+    // Zero the timer to now.
     public void SyncNow() { _startUtc = DateTime.UtcNow; Generation++; }
 
-    // Force the timer to a specific elapsed value (automatic resync), same run so
-    // do NOT bump Generation or it would re-arm and replay recently-spoken cues.
+    // Force an elapsed value without bumping Generation.
     public void SetElapsed(float seconds) { _startUtc = DateTime.UtcNow.AddSeconds(-seconds); }
 
-    // Nudge the origin so Elapsed can track a replay's 2x, 0.5x or paused speed.
+    // Nudge the origin to track replay speed.
     public void ShiftStart(float seconds)
     {
         if (_startUtc is { } s) _startUtc = s.AddSeconds(seconds);
@@ -132,8 +126,7 @@ public class CombatTimer
         _startUtc = null;
         _combatStartUtc = null;
         _zeroUtc = null;
-        // Treat the current combat flag as already-seen so a wipe that fires
-        // while the flag is briefly still set cannot re-arm the timeline.
+        // Treat the combat flag as seen so a wipe can't re-arm.
         _wasInCombat = Service.Condition[ConditionFlag.InCombat];
         Generation++;
     }

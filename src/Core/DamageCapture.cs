@@ -8,15 +8,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace FrenMits;
 
-// Watches the game process each incoming action-effect (the packet that carries
-// every hit an action dealt), and records enemy hits on the party WITH which
-// boss damage-downs were on the attacker at that instant.
-//
-// This is the only honest way to grade a Feint or Reprisal: the game decides a
-// hit's damage from the state at its snapshot, so whether the debuff was up
-// half a second later (when a status scan happens to look) proves nothing. The
-// packet arrives at the snapshot, so what's on the attacker's status list right
-// now is exactly what the damage was calculated from.
+// Records enemy hits with the boss damage-downs that were up at snapshot.
 public unsafe class DamageCapture : IDisposable
 {
     private readonly Plugin _plugin;
@@ -26,25 +18,19 @@ public unsafe class DamageCapture : IDisposable
 
     private readonly Hook<ReceiveEffect>? _hook;
 
-    // One enemy action landing on the party: when (pull clock), what, on how
-    // many players, and which boss damage-downs were up as it was calculated.
-    // Mask bits index MitRecap.StandardRaidMits.
+    // One enemy action landing on the party, with the debuffs up.
     public readonly record struct EnemyHit(float Time, uint ActionId, string Action, int PlayerTargets, int DebuffMask);
 
     public List<EnemyHit> Hits { get; } = new();
     private const int MaxHits = 3000;
 
-    // The last few enemy hits each player took: what struck them, for how
-    // much, and what they had up AS IT LANDED. The death story reads this
-    // instead of a status scan that can be a beat stale by the time HP shows
-    // zero, and the recap's death detail plays the ring back hit by hit.
+    // The last few hits a player took, as they landed.
     public readonly record struct PlayerHit(float Time, string Action, uint Amount, string Mits);
 
     public Dictionary<string, List<PlayerHit>> RecentHits { get; } = new(StringComparer.OrdinalIgnoreCase);
     private const int HitRing = 6;
 
-    // Hooking can fail after a game patch; the recap then falls back to its
-    // status-scan grading rather than losing the feature outright.
+    // Hooking can fail after a patch, so the recap falls back.
     public bool Available => _hook != null;
 
     public DamageCapture(Plugin plugin)
@@ -78,8 +64,7 @@ public unsafe class DamageCapture : IDisposable
         catch (Exception ex) { Swallowed.Report("damage capture", ex); }
     }
 
-    // Effect entry types that mean the action connected (hit, blocked, parried,
-    // or missed outright); everything else on the entry list is bookkeeping.
+    // Entry types that mean the action connected.
     private static bool Connected(byte type) => type is 1 or 3 or 5 or 6;
 
     private void Record(uint casterEntityId, Character* caster,
@@ -88,13 +73,11 @@ public unsafe class DamageCapture : IDisposable
         if (!_plugin.Config.RecapEnabled || !_plugin.Timer.Running) return;
         if (header->NumTargets == 0 || Hits.Count >= MaxHits) return;
 
-        // Enemies only; a pet or trust NPC attacking its practice target must
-        // not read as boss damage. Subkind 5 = enemy (stable game data).
+        // Enemies only, so a pet's target dummy hits don't count.
         if (Service.ObjectTable.SearchById(casterEntityId) is not IBattleNpc npc
             || (byte)npc.BattleNpcKind != 5) return;
 
-        // Same clock the recap logs into, so the plan check compares like with
-        // like.
+        // Same clock the recap logs into.
         var fight = _plugin.ActiveFight();
         var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
         var action = ActionNameOf(header->SpellId);
@@ -109,8 +92,7 @@ public unsafe class DamageCapture : IDisposable
             {
                 if (!Connected(e.Type)) continue;
                 connected = true;
-                // Damage entries carry their amount split: high bits ride in
-                // Param3 when Param4 flags them.
+                // High bits of the amount ride in Param3.
                 if (e.Type is 3 or 5 or 6)
                     amount += (e.Param4 & 0x40) != 0 ? e.Value + ((uint)e.Param3 << 16) : e.Value;
             }
@@ -136,13 +118,11 @@ public unsafe class DamageCapture : IDisposable
         Hits.Add(new EnemyHit(elapsed, header->SpellId, action, players, mask));
     }
 
-    // ---- lookups -----------------------------------------------------------
+    // ---- lookups ----
 
     private Dictionary<uint, int>? _debuffBits;
 
-    // Status id -> StandardRaidMits bit, by name so no id list goes stale. The
-    // status sheet spells Dismantle's debuff "Dismantled"; Contains covers it,
-    // the same match IsBossMit uses.
+    // Status id to mit bit, matched by name so no id goes stale.
     private Dictionary<uint, int> DebuffBits()
     {
         if (_debuffBits != null) return _debuffBits;

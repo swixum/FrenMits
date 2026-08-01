@@ -4,8 +4,7 @@ using Lumina.Excel.Sheets;
 
 namespace FrenMits;
 
-// Reads the local player's currently-active mitigation buffs (by status name, so
-// no hard-coded ids) for the active-mits indicator.
+// Reads your active mit buffs by status name, for the indicator.
 public static class MitWatch
 {
     public readonly record struct Active(uint IconId, string Name, float Remaining, MitTypes.Kind Kind);
@@ -17,7 +16,7 @@ public static class MitWatch
         {
             var me = Plugin.LocalPlayer;
             if (me == null) return list;
-            // English, so MitTypes' English keyword tables can classify the status.
+            // English, so the keyword tables can classify the status.
             var sheet = GameSheets.English<Status>();
             if (sheet == null) return list;
 
@@ -35,8 +34,7 @@ public static class MitWatch
         }
         catch (Exception ex)
         {
-            // Never let a game-state read disturb the draw loop, but do leave a trail:
-            // silently returning nothing looks identical to "no mits are up".
+            // Leave a trail, since no mits up looks the same as a failed read.
             Swallowed.Report("active mit read", ex);
         }
         return list;

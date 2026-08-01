@@ -13,7 +13,7 @@ namespace FrenMits.Windows;
 // Sheet View: making a brand new sheet for a duty that has none.
 public partial class SheetViewWindow
 {
-    // ---- new custom sheet ---------------------------------------------------
+    // ---- new custom sheet ----
 
     private string _newName = "";
     private int _newTemplate;
@@ -31,8 +31,7 @@ public partial class SheetViewWindow
     private string[] TemplateSlots() => _newTemplate switch
     {
         0 => new[] { "T1", "T2", "H1", "H2", "M1", "M2", "R1", "R2" },
-        // The official sheets' layout: healer columns are job columns, which
-        // also lets Auto-plan use each healer's real kit.
+        // The official layout, where healer columns are job columns.
         1 => new[] { "T1", "T2", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" },
         2 => new[] { "T", "H", "M1", "M2" },
         // Hand-typed columns still run through the standard names.
@@ -49,8 +48,7 @@ public partial class SheetViewWindow
         _newMySlot = 0;
         _newCat = 4; // "Other" until the duty name suggests better
         _newCatTouched = false;
-        // Prefill with the zone you're standing in; editable, so a sheet can be
-        // made for any duty from anywhere.
+        // Prefilled with the zone you're in, but editable.
         var here = (uint)Service.ClientState.TerritoryType;
         _newZoneBuf = here != 0 ? here.ToString() : "";
         ImGui.OpenPopup("##newsheet");
@@ -60,11 +58,10 @@ public partial class SheetViewWindow
     private int _newCat = 2;
     private bool _newCatTouched;
 
-    // Where the sheet files in the sidebar (Raids/Other were retired; legacy
-    // sheets carrying them still group under their old name in the picker).
+    // Where the sheet files in the sidebar.
     private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme" };
 
-    // Best guess from the duty's name; the user's own pick always wins.
+    // Best guess from the duty name; your pick wins.
     private static int GuessCategory(string dutyName)
     {
         if (dutyName.Contains("(Ultimate)", StringComparison.OrdinalIgnoreCase)) return 0;
@@ -74,16 +71,14 @@ public partial class SheetViewWindow
         return 2;
     }
 
-    // True when the id is a real TerritoryType row (a typo'd id would bind the
-    // sheet to a zone that can never fire).
+    // True when the id is a real TerritoryType row.
     private static bool ZoneExists(uint terr)
     {
         try { return Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.HasRow(terr) == true; }
         catch { return false; }
     }
 
-    // Friendly label for a zone id: the duty's name when it is a duty, else the
-    // map's place name, else "".
+    // Friendly label for a zone id, or "" when unknown.
     private static string ZoneLabel(uint terr)
     {
         try
@@ -116,15 +111,13 @@ public partial class SheetViewWindow
                 }
         }
         catch { /* sheet hiccup: search just returns nothing */ }
-        // Over the cap, keep the NEWEST rows: a broad query used to fill every
-        // slot with ARR-era content and bury the current tier off the list.
+        // Over the cap, keep the newest, or old content buries the tier.
         if (found.Count > max) found.RemoveRange(0, found.Count - max);
         return found;
     }
 
 
-    // Duties whose boss has this id (a BNpcBase DataId, the id the game exposes
-    // on the boss object), as (zone id, duty name).
+    // Duties whose boss has this id, as zone and duty name.
     private static List<(uint Terr, string Name)> BossDuties(uint bossId)
     {
         var found = new List<(uint, string)>();
@@ -150,8 +143,7 @@ public partial class SheetViewWindow
 
     private void DrawNewSheetPopup()
     {
-        // Modal so a stray click outside cannot dismiss the form; the X,
-        // Escape, or its own buttons close it.
+        // Modal, so a stray click outside cannot dismiss the form.
         var stay = true;
         if (!ImGui.BeginPopupModal("##newsheet", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
@@ -181,8 +173,7 @@ public partial class SheetViewWindow
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Which sidebar group the sheet files under.");
 
-        // The zone the sheet binds to: prefilled with where you stand, or type a
-        // zone id, or type a duty name and pick it from the matches.
+        // The zone the sheet binds to, by id or by duty name.
         ImGui.SetNextItemWidth(250f);
         ImGui.InputTextWithHint("zone##nszone", "zone id, boss id, or duty name", ref _newZoneBuf, 64);
 
@@ -208,8 +199,7 @@ public partial class SheetViewWindow
         }
         else if (terr == 0)
         {
-            // A zone-less sheet can never fire (and re-imports of its code would
-            // stack duplicates, since imports match by territory).
+            // A zone-less sheet can never fire, and re-imports would stack.
             ImGui.TextColored(ImGuiColors.DalamudYellow,
                 "You're not in a duty. Type the duty's name or zone id above.");
             zoneBlocked = true;
@@ -265,8 +255,7 @@ public partial class SheetViewWindow
 
     private void CreateCustomSheet(string name, string[] slots, string mySlot, uint terr, string category)
     {
-        // A fight for this zone already exists, so upgrade it rather than add a
-        // duplicate.
+        // A fight for this zone exists, so upgrade instead of adding.
         var existing = C.Fights.FirstOrDefault(f => f.TerritoryId == terr && !Builtin.Has(f.TerritoryId));
         if (existing != null)
         {

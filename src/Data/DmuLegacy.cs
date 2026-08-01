@@ -89,8 +89,7 @@ public static class DmuLegacy
         new(1126, "P5", "Forsaken Null", 0, new[]{"Enrage!", "", "", "", "", "", "", "", "", ""}),
     };
 
-    // Build mit lines for a sheet slot (MT/OT/WHM/AST/SCH/SGE/D1..D4), exactly as
-    // the previous bake did, so the smart re-bake can identity-match old lines.
+    // Build mit lines exactly as the previous bake did.
     public static List<MitLine> BuildLines(string slot)
     {
         var idx = Array.IndexOf(Slots, slot);

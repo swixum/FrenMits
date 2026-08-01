@@ -13,12 +13,11 @@ namespace FrenMits.Windows;
 // Sheet View: search and replace across a plan.
 public partial class SheetViewWindow
 {
-    // ---- search & replace --------------------------------------------------
+    // ---- search and replace ----
 
     private void DrawReplacePopup()
     {
-        // Modal so a stray click outside cannot dismiss the form; the X,
-        // Escape, or its own buttons close it.
+        // Modal, so a stray click outside cannot dismiss the form.
         var stay = true;
         if (!ImGui.BeginPopupModal("##sheetreplace", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
@@ -38,8 +37,7 @@ public partial class SheetViewWindow
             for (var i = 0; i < _slots.Length; i++)
             {
                 if (_replMineOnly && !IsActiveSlot(i)) continue;
-                // Same "would it actually change" test the apply uses, so the
-                // preview never promises edits an identity replace won't make.
+                // The same test the apply uses, so the preview can't lie.
                 var n = _slotLines[i].Count(l => WouldReplace(l.Action, find, with) != null);
                 if (n > 0) { lines += n; slots++; }
             }
@@ -72,7 +70,7 @@ public partial class SheetViewWindow
         }
         if (would == 0) { Flash($"No mits containing \"{find}\"."); return; }
 
-        // Bulk edit: undoable AND snapshotted to disk (see the History button).
+        // Bulk edit: undoable and snapshotted to disk.
         PushUndo($"replace \"{find}\"");
         _plugin.Snapshots.Save(_fight, $"before replacing \"{find}\"");
 
@@ -91,8 +89,7 @@ public partial class SheetViewWindow
                 changed++;
                 if (replaced.Length == 0)
                 {
-                    // Replacing with nothing = delete the call, tombstoned like
-                    // any other delete so sheet updates don't resurrect it.
+                    // Replacing with nothing deletes the call, tombstoned as usual.
                     if (!l.Custom)
                         _fight.DeletedCalls.Add(new DeletedCall
                         { Slot = _slots[i], Time = l.Time, Mechanic = l.Mechanic, Action = l.Action });
@@ -116,8 +113,7 @@ public partial class SheetViewWindow
             : $"Replaced \"{find}\" in {changed} line(s) across {slotsTouched} slot(s). Kept through sheet updates.");
     }
 
-    // The action text after a real replacement, or null when nothing would
-    // change.
+    // The text after a real replacement, or null when unchanged.
     private static string? WouldReplace(string action, string find, string with)
     {
         var raw = action.Replace(find, with, StringComparison.OrdinalIgnoreCase);
@@ -126,8 +122,7 @@ public partial class SheetViewWindow
         return replaced == action ? null : replaced;
     }
 
-    // Re-join a "A + B + C" action string, dropping empty segments left behind
-    // by a replacement and normalizing the separators.
+    // Re-join an action string, dropping empty segments.
     private static string TidyJoins(string s)
         => string.Join(" + ", s.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
 }

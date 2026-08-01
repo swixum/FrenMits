@@ -9,8 +9,7 @@ internal static class Widgets
 {
     private const uint CardBorder = 0xFF2F2724; // #24272F soft panel outline
 
-    // Accent-bar section header: a short accent tab, then a muted upper-case
-    // label.
+    // Section header: an accent tab, then a muted label.
     public static void SectionHeader(string text)
     {
         ImGui.Dummy(new Vector2(0, 4));
@@ -23,7 +22,7 @@ internal static class Widgets
         ImGui.Spacing();
     }
 
-    // Small stat pill: grey label, colored value, in a rounded panel.
+    // Small stat pill: grey label, colored value.
     public static void Chip(string label, string value, uint valueColor)
     {
         var pad = new Vector2(8, 3);
@@ -39,8 +38,7 @@ internal static class Widgets
         ImGui.Dummy(size);
     }
 
-    // Clickable variant of Chip: same pill, but hit-tested, with a hover glow and
-    // an "open" state that stays lit while its detail panel is showing.
+    // Clickable Chip, with a hover glow and a lit open state.
     public static bool ChipButton(string label, string value, uint valueColor, bool open)
     {
         var pad = new Vector2(8, 3);
@@ -63,8 +61,7 @@ internal static class Widgets
         return clicked;
     }
 
-    // One number control that does both: drag left/right to adjust, or
-    // double-click / Ctrl+click to type the exact value.
+    // One control: drag to adjust, or click to type a value.
     public static bool SliderInput(string label, ref float v, float min, float max, string fmt, float width = 150f)
     {
         ImGui.SetNextItemWidth(width);
@@ -81,8 +78,7 @@ internal static class Widgets
         return changed;
     }
 
-    // Accent-filled button (white label), for the one primary action in a
-    // window.
+    // Accent-filled button, for a window's primary action.
     public static bool AccentButton(string label, Vector2 size = default)
     {
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);

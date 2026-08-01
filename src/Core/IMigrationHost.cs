@@ -1,14 +1,13 @@
 namespace FrenMits;
 
-// The narrow slice of the plugin that the versioned config migrations actually
-// touch.
+// The slice of the plugin the config migrations touch.
 public interface IMigrationHost
 {
     Configuration Config { get; }
 
-    // v5: a full rebake of every built-in fight from the current sheet data.
+    // v5: rebake every built-in from the current sheet data.
     int ResetAllBuiltins();
 
-    // v16..v19: stash a restorable copy of a fight before a rebake touches it.
+    // v16..v19: stash a restorable copy before a rebake.
     void SnapshotFight(FightProfile fight, string reason);
 }

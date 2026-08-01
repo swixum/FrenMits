@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Per-pull diagnostics: one local text file per pull, for reviewing resync afterwards.
+// One local text file per pull, for reviewing resync after.
 public class Diagnostics
 {
     private readonly Plugin _plugin;
@@ -24,7 +24,7 @@ public class Diagnostics
     {
         if (!_plugin.Config.Diagnostics) return;
 
-        // Running, not Live: this file is the record of a pull that actually happened.
+        // Running, not Live: this records a pull that happened.
         var running = _plugin.Timer.Running;
         if (running)
         {
@@ -35,15 +35,13 @@ public class Diagnostics
         }
         else if (_active)
         {
-            // Debounce a brief combat flicker so it doesn't split one pull in two;
-            // only finalize after combat has stayed off for a few seconds.
+            // Debounce a combat flicker so one pull isn't split in two.
             if (!_pendingEnd) { _pendingEnd = true; _falseAt = DateTime.Now; }
             else if ((DateTime.Now - _falseAt).TotalSeconds >= 5) End();
         }
     }
 
-    // Plugin unload/update mid-pull (or during the end debounce): write what
-    // we have instead of silently dropping the pull record.
+    // Unload mid-pull: write what we have instead of dropping it.
     public void FlushOnDispose()
     {
         if (_active || _pendingEnd) End();
@@ -75,15 +73,14 @@ public class Diagnostics
         Flush();
     }
 
-    // ---- event hooks (called from the engines) ---------------------------
+    // ---- event hooks ----
 
     public void Sync(string detail, float clock, bool isPhase)
     {
         if (_active) Log($"{(isPhase ? "PHASE" : "sync ")}  {detail}");
     }
 
-    // `elapsed` here is the CUE clock (sheet + the fight's timer offset) while sync
-    // lines log the sheet clock, so subtract the header's callShift to compare.
+    // This elapsed is the cue clock, so subtract callShift.
     public void Cue(string action, float time, float elapsed, int gen, string note)
     {
         if (_active) Log($"cue    '{action}'  time={time:0}  cueClock={elapsed:0.0}  gen={gen}{(note.Length > 0 ? "  " + note : "")}");

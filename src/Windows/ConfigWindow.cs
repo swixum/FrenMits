@@ -30,8 +30,7 @@ public partial class ConfigWindow : Window, IDisposable
     private string _editOffSeed = "";
     private bool _offFocusPending;
 
-    // Land a half-typed ±s edit before switching cells: clicking an EARLIER row
-    // draws before the active editor, which would otherwise drop the text.
+    // Land a half-typed offset before switching cells.
     private void CommitPendingOffset()
     {
         if (_editOffLine != null && _editOffBuf != _editOffSeed
@@ -46,11 +45,10 @@ public partial class ConfigWindow : Window, IDisposable
         _editOffLine = null;
     }
 
-    // In-memory line clipboard for the right-click copy / paste / duplicate menu.
+    // In-memory line clipboard for the right-click menu.
     private MitLine? _copiedLine;
 
-    // Plugin icon (group-hug logo), loaded once from the file next to the DLL; the
-    // Home page falls back to a glyph if it's missing.
+    // Plugin icon, loaded once from beside the DLL.
     private Dalamud.Interface.Textures.ISharedImmediateTexture? _iconShared;
     private bool _iconLookedUp;
     private Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? IconWrap()
@@ -77,11 +75,10 @@ public partial class ConfigWindow : Window, IDisposable
 
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme" };
 
-    // Every group a fight can file under (the sidebar's order); legacy "Raids" /
-    // "Other" categories display and file as Extreme (CategoryOf).
+    // Every group a fight can file under, in sidebar order.
     private static readonly string[] FightTypes = { "Ultimate", "Savage", "Extreme" };
 
-    // The sidebar group a fight belongs to, falling back to Extreme if its tab is gone.
+    // The sidebar group a fight belongs to.
     private static string CategoryOf(FightProfile f)
     {
         if (!string.IsNullOrEmpty(f.Category) && Array.IndexOf(Categories, f.Category) >= 0)
@@ -89,8 +86,7 @@ public partial class ConfigWindow : Window, IDisposable
         return Builtin.Has(f.TerritoryId) ? Builtin.Category(f.TerritoryId) : "Extreme";
     }
 
-    // Import state; the buffer + parsed grid are scratch loaded per fight from
-    // the maps below, since two fight headers can be open at once.
+    // Import scratch, per fight, since two headers can be open.
     private string _importBuffer = "";
     private List<string[]>? _importGrid;
     private readonly Dictionary<string, string> _importBufs = new();
@@ -111,8 +107,7 @@ public partial class ConfigWindow : Window, IDisposable
 
     public void Dispose() { }
 
-    // Window-level theming (background, title, border) must be applied before the
-    // window begins, so it lives in PreDraw/PostDraw.
+    // Window theming has to be applied before the window begins.
     public override void PreDraw()
     {
         Theme.PushWindow();
@@ -140,7 +135,7 @@ public partial class ConfigWindow : Window, IDisposable
         DrawStatusHeader();
         ImGui.Separator();
 
-        // Content sits above a pinned footer: a left nav sidebar + the active page.
+        // Content sits above a pinned footer, beside the sidebar.
         var footerH = ImGui.GetFrameHeightWithSpacing() + ImGui.GetStyle().ItemSpacing.Y + 4f;
         if (ImGui.BeginChild("##content", new Vector2(0, -footerH), false))
         {
@@ -166,20 +161,18 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PopStyleVar(4);
         Theme.PopWidgets();
 
-        // Toggle and friends return the new value for the caller to assign, so the save
-        // runs here.
+        // Toggle returns the new value, so the save runs here.
         if (_toggleDirty)
         {
             _toggleDirty = false;
-            // Settings only: nothing that reaches here can have edited a plan.
+            // Settings only: nothing here can have edited a plan.
             C.SaveSettings();
         }
     }
 
     private bool _toggleDirty;
 
-    // Truthful save status: every edit writes to disk the moment it happens, so
-    // there is never an unsaved state to warn about on exit.
+    // Every edit writes on the spot, so there is no unsaved state.
     private void DrawFooter()
     {
         ImGui.Separator();
@@ -210,11 +203,10 @@ public partial class ConfigWindow : Window, IDisposable
         return s < 90 ? $"{(int)s}s ago" : s < 5400 ? $"{(int)(s / 60)}m ago" : $"{(int)(s / 3600)}h ago";
     }
 
-    // Config-bound checkbox: edits a local copy, saves on change, returns the new value.
+    // Config-bound checkbox that saves on change.
     private bool CfgCheck(string label, bool value) => Toggle(label, value);
 
-    // A checkbox + label that saves on change (deferred to the end of Draw, AFTER
-    // the caller assigns the returned value).
+    // A checkbox that saves on change, deferred to the end of Draw.
     private bool Toggle(string label, bool value)
     {
         var v = value;
@@ -228,7 +220,7 @@ public partial class ConfigWindow : Window, IDisposable
     // The one checkbox style used across the whole config.
     private static bool GreenCheckbox(string label, ref bool v)
     {
-        var on = v; // style by the current state; push and pop must use the same flag
+        var on = v; // push and pop must use the same flag
         if (on)
         {
             ImGui.PushStyleColor(ImGuiCol.FrameBg, 0xFF5AC832);        // green (ABGR)
@@ -241,8 +233,7 @@ public partial class ConfigWindow : Window, IDisposable
         return changed;
     }
 
-    // Tooltip on the previous item with a short hover delay, so sweeping the mouse
-    // across a page doesn't flash help on every control it crosses.
+    // Tooltip with a hover delay, so sweeping a page stays quiet.
     private static Vector2 _tipPos;
     private static double _tipSince;
 
@@ -251,8 +242,7 @@ public partial class ConfigWindow : Window, IDisposable
     private static void Tip(string text)
     {
         if (!ImGui.IsItemHovered()) return;
-        // The item rect is a fine identity for "did the hovered thing change";
-        // a frame gap means the mouse left and the delay starts over.
+        // The item rect identifies the hovered thing well enough.
         var pos = ImGui.GetItemRectMin();
         var now = ImGui.GetTime();
         var frame = ImGui.GetFrameCount();
@@ -261,8 +251,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (now - _tipSince >= 0.35) ImGui.SetTooltip(text);
     }
 
-    // A checkbox in the next cell of a 2-column toggle grid, returning the value so
-    // the caller can assign it straight back to its setting.
+    // A checkbox in the next cell of a two-column grid.
     private bool GridCheck(string label, bool value, string? tip = null)
     {
         ImGui.TableNextColumn();
@@ -271,8 +260,7 @@ public partial class ConfigWindow : Window, IDisposable
         return value;
     }
 
-    // Section header with a blue accent bar + uppercase label, matching the
-    // panel-based look of the reference UI.
+    // Section header with an accent bar and uppercase label.
     private static void SeparatorText(string text)
     {
         ImGui.Spacing();
@@ -285,7 +273,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
-    // Collapsible section that returns true when expanded; wrap the body in the if.
+    // Collapsible section, true when expanded.
     private static bool Section(string text, bool open = false)
     {
         ImGui.Spacing();
@@ -307,8 +295,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextColored(ImGuiColors.DalamudYellow, label);
     }
 
-    // Small filled status dot via the draw list: the text font has no circle
-    // glyph, so a "●" literal renders as an empty box.
+    // A filled dot via the draw list, since the font has no circle.
     private static void StatusDot(Vector4 color)
     {
         var size = ImGui.GetTextLineHeight();
@@ -354,8 +341,7 @@ public partial class ConfigWindow : Window, IDisposable
             ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f),
                 fight != null ? fight.Name : "no supported fight in this zone");
 
-            // Right-aligned quick action (measured, not hardcoded, so font
-            // scaling can't push it off the edge).
+            // Right-aligned quick action, measured rather than hardcoded.
             var right = ImGui.GetWindowWidth()
                 - (ImGui.CalcTextSize("Test").X + ImGui.GetFrameHeight()
                    + ImGui.GetStyle().ItemInnerSpacing.X + ImGui.GetStyle().WindowPadding.X + 12f);
@@ -369,8 +355,7 @@ public partial class ConfigWindow : Window, IDisposable
             Dot(job != null, $"Job: {job ?? "?"}");
             ImGui.SameLine(0, 18);
             Dot(running, running ? $"Timer: {_plugin.Timer.Elapsed:0.0}s" : "Timer: idle");
-            // Audio / Resync only appear when they need attention: a healthy
-            // plugin shows a quiet header.
+            // These appear only when they need attention.
             if (!C.AudioEnabled) { ImGui.SameLine(0, 18); WarnDot("Audio off"); }
             if (!C.EnableSync) { ImGui.SameLine(0, 18); WarnDot("Resync off"); }
             if (_plugin.FrameErrorCount > 0 && (DateTime.Now - _plugin.LastFrameErrorAt.ToLocalTime()).TotalMinutes < 5)
@@ -378,8 +363,7 @@ public partial class ConfigWindow : Window, IDisposable
                 ImGui.SameLine(0, 18);
                 WarnDot($"internal errors ({_plugin.FrameErrorCount}): check /xllog");
             }
-            // Anything that failed quietly (a sheet moving under us on patch
-            // day, a status read going stale).
+            // Anything that failed quietly, like a sheet moving on patch day.
             if (Swallowed.Any)
             {
                 ImGui.SameLine(0, 18);
@@ -400,7 +384,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PopStyleColor();
     }
 
-    // ---- Left sidebar nav -------------------------------------------------
+    // ---- left sidebar nav ----
 
     private string _expandFightId = "";
 
@@ -430,7 +414,7 @@ public partial class ConfigWindow : Window, IDisposable
 
         ImGui.Spacing();
         SidebarHeading("TOOLS");
-        // Sheet View is a window, not a page: the nav item opens it directly.
+        // Sheet View is a window, so the nav item opens it.
         if (NavItem(FontAwesomeIcon.Table, "Sheet View", false))
         {
             var fight = _plugin.ActiveFight();
@@ -455,8 +439,7 @@ public partial class ConfigWindow : Window, IDisposable
     {
         ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
-        // Soft sky blue (same family as the user-created badge): cool headings
-        // against the warm orange selection reads cleaner than orange-on-orange.
+        // Cool headings read cleaner against the warm selection.
         ImGui.TextColored(new Vector4(0.55f, 0.75f, 0.98f, 1f), text);
         ImGui.Spacing();
     }
@@ -499,7 +482,7 @@ public partial class ConfigWindow : Window, IDisposable
         return clicked;
     }
 
-    // Job + role in one block; the role pick applies to every built-in fight.
+    // Job and role in one block, the role covering every built-in.
     private void DrawSidebarSetup()
     {
         ImGui.Spacing();
@@ -566,7 +549,7 @@ public partial class ConfigWindow : Window, IDisposable
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Every fight is on this role's slot.");
         }
 
-        // One click to match the role to your job, hidden when the pick is deliberate.
+        // One click to match the role to your job.
         var liveRole = RoleForJob(_plugin.ActiveJobAbbreviation());
         if (liveRole != null
             && !string.Equals(C.RoleSelection, liveRole, StringComparison.OrdinalIgnoreCase)
@@ -584,14 +567,12 @@ public partial class ConfigWindow : Window, IDisposable
         Tip("A popup on entry showing which slot is yours.");
     }
 
-    // Both roles are seats of the same pair (MT/OT, or Melee 1/2), so the
-    // current pick already matches the live job's role.
+    // Both roles are seats of one pair, so the pick already matches.
     private static bool SameSeatGroup(string selection, string liveRole)
         => (selection is "Main Tank" or "Off Tank" && liveRole is "Main Tank" or "Off Tank")
         || (selection is "Melee 1" or "Melee 2" && liveRole is "Melee 1" or "Melee 2");
 
-    // The canonical role for a job: healers map to their own column, everyone
-    // else by role bucket, preferring the first seat (mirrors DefaultSlotForJob).
+    // The canonical role for a job, preferring the first seat.
     private static string? RoleForJob(string? jobAbbr)
     {
         if (Jobs.ByAbbreviation(jobAbbr) is not { } job) return null;
@@ -606,8 +587,7 @@ public partial class ConfigWindow : Window, IDisposable
         };
     }
 
-    // True if every fight with a sheet is currently on the slot this role maps to
-    // (a sheet with no column for the role can't disagree, so it passes).
+    // True if every sheet is on the slot this role maps to.
     private bool RoleActiveEverywhere(string role)
     {
         var fights = C.Fights.Where(f => Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0).ToList();
@@ -620,8 +600,7 @@ public partial class ConfigWindow : Window, IDisposable
         });
     }
 
-    // Apply the chosen role to every built-in fight, loading each one's matching
-    // slot (keeping that slot's own edits).
+    // Apply the role to every built-in, keeping each slot's edits.
     private void SelectRoleForAll(string role)
     {
         _plugin.SetRoleForAll(role);
@@ -648,7 +627,7 @@ public partial class ConfigWindow : Window, IDisposable
 
     private string Version => typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
 
-    // Approximate width of an ImGuiComponents.IconButtonWithText, for centering it.
+    // Approximate width of an icon button, for centering.
     private float IconBtnWidth(FontAwesomeIcon icon, string text)
     {
         float iw;
@@ -671,7 +650,7 @@ public partial class ConfigWindow : Window, IDisposable
 
         ImGui.Dummy(new Vector2(0, 10));
 
-        // Emblem: the group-hug icon, or a glyph shield if it didn't load.
+        // The logo, or a glyph shield if it didn't load.
         var icon = IconWrap();
         if (icon != null)
         {
@@ -710,8 +689,7 @@ public partial class ConfigWindow : Window, IDisposable
         dl.AddRectFilled(new Vector2(cx - 60, cy), new Vector2(cx + 60, cy + 2), 0xFFF6823B, 1f);
         ImGui.Dummy(new Vector2(0, 14));
 
-        // First-run: three steps until the plugin is actually calling mits, gone
-        // forever once any fight has a slot picked.
+        // First-run steps, gone once any fight has a slot picked.
         if (!C.Fights.Any(f => !string.IsNullOrEmpty(f.Slot)))
         {
             var cardW = MathF.Max(220f, MathF.Min(430f, ImGui.GetContentRegionAvail().X - 20f));
@@ -749,7 +727,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled(ver);
     }
 
-    // ---- Display tab ------------------------------------------------------
+    // ---- Display tab ----
 
     private void ResetDisplayDefaults()
     {
@@ -761,8 +739,7 @@ public partial class ConfigWindow : Window, IDisposable
         C.TextShadow = true; C.ShowProgressBar = true; C.ProgressBarHeight = 6f;
         C.PulseWhenImminent = true; C.ShowBackground = false; C.BackgroundColor = 0xB0000000;
         C.WarningSeconds = 3f; C.HoldSeconds = 2f;
-        // The next-mits window's settings live on the Next Mits page with
-        // their own reset (ResetNextMitsDefaults) - not touched from here.
+        // The next-mits window has its own reset, not this one.
         C.OverlayPosition = new Vector2(0.5f, 0.35f);
         C.Save();
         _plugin.OverlayWindow.RequestReposition();

@@ -4,40 +4,39 @@ using System.Globalization;
 
 namespace FrenMits;
 
-// Splits every damage event's raid-buff gain between the buffers that caused
-// it, into per-second buckets any encounter window can sum later.
+// Splits each hit's raid-buff gain between the buffers behind it.
 public class RdpsEngine
 {
-    // Crit pays 1.35 plus the player's crit rate; a direct hit is +25% exactly.
+    // Crit pays 1.35 plus crit rate; a direct hit is +25%.
     public const float McBase = 1.35f;
     public const float DhMult = 1.25f;
 
-    // Stand-ins until enough hits are seen to learn a player's real rates.
+    // Stand-ins until a player's real rates are learned.
     public const float DefaultCritRate = 0.25f;
     public const float DefaultDirectHitRate = 0.30f;
     public const int MinRateSamples = 40;
 
-    // ---- per-second credit buckets ----------------------------------------
+    // ---- per-second credit buckets ----
 
     private sealed class Sums { public double Given; public double Received; }
 
     private readonly Dictionary<long, Dictionary<string, Sums>> _buckets = new();
 
-    // The newest event second seen, the anchor "now" for window queries.
+    // The newest event second, the anchor for window queries.
     public long LatestSec { get; private set; }
 
-    // Player name off the swap-to-character line, for the parser's "YOU" rows.
+    // Player name off the swap line, for the parser's rows.
     public string LocalPlayerName { get; private set; } = "";
 
-    // Limit break damage is unbuffable, so its hits never pay buff credits.
+    // Limit break damage is unbuffable, so it pays nothing.
     public Func<uint, bool>? IsLimitBreak;
 
-    // The limit break this fight has seen, for the icon on its row.
+    // The limit break this fight saw, for its row icon.
     public uint LastLimitBreak { get; private set; }
 
-    // ---- id lookups, so a non-English client matches the same events --------
+    // ---- id lookups ----
 
-    // English name to game ids, null while the sheets are not ready yet.
+    // English name to ids, null while the sheets load.
     public Func<string, List<uint>?>? ResolveStatusIds;
     public Func<string, List<uint>?>? ResolveActionIds;
 
@@ -119,10 +118,10 @@ public class RdpsEngine
         _idsReady = true;
     }
 
-    // Whoever the party is actually hitting, for naming the encounter.
+    // Whoever the party is hitting, for naming the encounter.
     public string CurrentEnemy { get; private set; } = "";
 
-    // ---- actor bookkeeping -------------------------------------------------
+    // ---- actor bookkeeping ----
 
     private readonly Dictionary<uint, string> _names = new();
     private readonly Dictionary<uint, uint> _owner = new();     // pet -> owning player
@@ -135,14 +134,14 @@ public class RdpsEngine
         public string SourceName = "";
         public int Stacks;
         public long ExpireSec;
-        // Strengths only the moment of application knows (finish steps, codas).
+        // Strengths only the application knows.
         public RaidBuffs.Effect[]? Resolved;
     }
 
-    // Buffs by the actor carrying them: players for party buffs, enemies for debuffs.
+    // Buffs by the actor carrying them, player or enemy.
     private readonly Dictionary<uint, List<ActiveBuff>> _buffs = new();
 
-    // ---- learned crit / direct hit rates ----------------------------------
+    // ---- learned crit and direct hit rates ----
 
     private sealed class Rates
     {
@@ -152,7 +151,7 @@ public class RdpsEngine
 
     private readonly Dictionary<uint, Rates> _rates = new();
 
-    // Base (gear) rates: observed frequency with the buffed share backed out.
+    // Gear rates: observed, with the buffed share backed out.
     private (double Cs, double Ds) BaseRates(uint owner)
     {
         var cs = (double)DefaultCritRate;
@@ -167,7 +166,7 @@ public class RdpsEngine
         return (cs, ds);
     }
 
-    // ---- guaranteed crits and direct hits ----------------------------------
+    // ---- guaranteed crits and direct hits ----
 
     [Flags]
     private enum Guard { None = 0, Crit = 1, Dh = 2, InnerRelease = 4, OpoForm = 8 }
@@ -188,7 +187,7 @@ public class RdpsEngine
         "Shadow of the Destroyer",
     };
 
-    // Only guaranteed crits while an opo-opo or formless form is up.
+    // Guaranteed crits only under an opo-opo or formless form.
     private static readonly HashSet<string> OpoActions = new(StringComparer.OrdinalIgnoreCase)
     {
         "Bootshine", "Leaping Opo",
@@ -199,7 +198,7 @@ public class RdpsEngine
         "Fell Cleave", "Decimate",
     };
 
-    // Public so a test can ask about the roll a hit was entitled to.
+    // Public so a test can ask what a hit was entitled to.
     public (bool Crit, bool Dh) GuaranteeFor(uint owner, string action, uint actionId)
         => Guarantee(owner, action, actionId);
 
@@ -225,7 +224,7 @@ public class RdpsEngine
         return ((g & Guard.Crit) != 0, (g & Guard.Dh) != 0);
     }
 
-    // ---- bard songs, for Radiant Finale's coda count -----------------------
+    // ---- bard songs, for Radiant Finale ----
 
     private readonly Dictionary<uint, HashSet<string>> _songs = new();
     private readonly Dictionary<uint, (float Mult, long At)> _finale = new();
@@ -238,7 +237,7 @@ public class RdpsEngine
 
     private float FinaleMult(uint bard, long sec)
     {
-        // One resolve covers the whole party's applications of that press.
+        // One resolve covers the whole party's applications.
         if (_finale.TryGetValue(bard, out var f) && sec - f.At <= 4) return f.Mult;
         var codas = _songs.TryGetValue(bard, out var s) ? s.Count : 0;
         var mult = codas switch { 1 => 1.02f, 2 => 1.04f, _ => 1.06f };
@@ -247,7 +246,7 @@ public class RdpsEngine
         return mult;
     }
 
-    // ---- dance finish steps ------------------------------------------------
+    // ---- dance finish steps ----
 
     private readonly Dictionary<uint, float> _finishTech = new();
     private readonly Dictionary<uint, float> _finishStd = new();
@@ -272,19 +271,19 @@ public class RdpsEngine
 
     private static bool Eq(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
 
-    // ---- per-player breakdowns ---------------------------------------------
+    // ---- per-player breakdowns ----
 
-    // What each player used, who they hit, and what hit them, for this fight.
+    // What each player used, hit, and was hit by.
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _dealt = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _targets = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _taken = new(StringComparer.OrdinalIgnoreCase);
 
-    // The same three for healing: cast, healed, and healed by.
+    // The same three for healing.
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healDealt = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healTargets = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healFrom = new(StringComparer.OrdinalIgnoreCase);
 
-    // Status names by id, so a damage-over-time tick can be named.
+    // Status names by id, so a damage-over-time tick is named.
     private readonly Dictionary<uint, string> _effectNames = new();
 
     private static void Tally(Dictionary<string, Dictionary<string, AbilityStat>> table,
@@ -292,7 +291,7 @@ public class RdpsEngine
         double over = 0)
     {
         if (who.Length == 0 || what.Length == 0) return;
-        // A heal swallowed entirely by a full health bar still happened.
+        // A heal swallowed by a full bar still happened.
         if (dmg <= 0 && over <= 0) return;
         if (!table.TryGetValue(who, out var by))
             table[who] = by = new Dictionary<string, AbilityStat>(StringComparer.OrdinalIgnoreCase);
@@ -310,18 +309,18 @@ public class RdpsEngine
     {
         var list = new List<AbilityStat>();
         if (who.Length > 0 && table.TryGetValue(who, out var by)) list.AddRange(by.Values);
-        // Overhealing only breaks ties, so a wasted cast sits below a landed one.
+        // Overhealing only breaks ties, so wasted casts sit below.
         list.Sort((a, b) => a.Damage != b.Damage ? b.Damage.CompareTo(a.Damage) : b.Over.CompareTo(a.Over));
         return list;
     }
 
-    // Everyone the engine has seen deal damage this fight.
+    // Everyone seen dealing damage this fight.
     public IEnumerable<string> Dealers() => _dealt.Keys;
 
-    // Every point of damage counted off the log lines this fight.
+    // Every point counted off the log lines this fight.
     public double DealtTotal { get; private set; }
 
-    // Event-exact roll counts and biggest hit for the fight on screen.
+    // Event-exact roll counts and biggest hit.
     public (int Hits, int Crits, int Dhs, double MaxHit, string MaxHitName) DealtFacts(string player)
     {
         int hits = 0, crits = 0, dhs = 0;
@@ -338,7 +337,7 @@ public class RdpsEngine
         return (hits, crits, dhs, max, maxName);
     }
 
-    // The same for healing, for an event-exact overheal share.
+    // The same for healing, for an exact overheal share.
     public (double Landed, double Over) HealFacts(string player)
     {
         double landed = 0, over = 0;
@@ -358,13 +357,13 @@ public class RdpsEngine
     public List<AbilityStat> HealTargets(string player) => Ranked(_healTargets, player);
     public List<AbilityStat> HealFrom(string player) => Ranked(_healFrom, player);
 
-    // ---- buff credit, player to player -------------------------------------
+    // ---- buff credit, player to player ----
 
-    // Who fed whose rDPS and off which buff, where the buckets only say how much.
+    // Who fed whose rDPS, and off which buff.
     private readonly Dictionary<string, Dictionary<string, Dictionary<string, double>>> _pairs
         = new(StringComparer.OrdinalIgnoreCase);
 
-    // One player's share of the trade, with the buffs behind it underneath.
+    // One player's share, with the buffs behind it.
     private static AbilityStat Trade(string who, Dictionary<string, double> buffs)
     {
         var row = new AbilityStat { Name = who, Parts = new List<AbilityStat>() };
@@ -400,9 +399,9 @@ public class RdpsEngine
         return list;
     }
 
-    // ---- deaths ------------------------------------------------------------
+    // ---- deaths ----
 
-    // The last few things that landed on each player, for the run-up to a death.
+    // The last few things that landed on each player.
     private readonly Dictionary<string, List<DeathHit>> _recent = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<DeathRecord> _deaths = new();
     private const int LeadIn = 6;
@@ -440,9 +439,9 @@ public class RdpsEngine
 
     public List<DeathRecord> Deaths() => new(_deaths);
 
-    // ---- overhealing -------------------------------------------------------
+    // ---- overhealing ----
 
-    // A heal line carries the health it landed on, so the room left is on the line.
+    // A heal line carries the health it landed on.
     private static int Room(string cur, string max)
     {
         var c = Dec(cur);
@@ -453,7 +452,7 @@ public class RdpsEngine
     private static int Dec(string s)
         => int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v) ? v : -1;
 
-    // What a heal does to the room it had, as (landed, overhealed).
+    // What a heal does to the room it had.
     private static (double Landed, double Over) Landing(uint amount, ref int room)
     {
         if (room < 0) return (amount, 0);
@@ -462,7 +461,7 @@ public class RdpsEngine
         return (landed, amount - landed);
     }
 
-    // Healing rolls a crit in its own flag bit, not the one damage uses.
+    // Healing rolls its crit in a different flag bit.
     private const uint HealCrit = 0x200000;
 
     // One heal, onto every table that wants it.
@@ -495,9 +494,9 @@ public class RdpsEngine
         _deaths.Clear();
     }
 
-    // ---- damage over time snapshots ---------------------------------------
+    // ---- damage over time snapshots ----
 
-    // A damage-over-time effect locks its buffs in at application, not per tick.
+    // A dot locks its buffs in at application, not per tick.
     private sealed class DotSnap
     {
         public List<(uint Src, string Name, string Buff, double Mult)> Flat = new();
@@ -511,20 +510,19 @@ public class RdpsEngine
 
     private static bool IsPlayer(uint id) => id is >= 0x10000000 and < 0x20000000;
 
-    // Allies that fight for themselves while the game marks them owned, told
-    // apart from pets by carrying a job.
+    // Owned allies that fight for themselves, told apart by job.
     private readonly HashSet<uint> _allies = new();
 
     private bool IsCombatant(uint id) => IsPlayer(id) || _allies.Contains(id);
 
-    // Who a damage source belongs to: itself, or the owner it is a pet of.
+    // Who a damage source belongs to.
     private uint OwnerOf(uint id)
     {
         if (IsCombatant(id)) return id;
         return _owner.TryGetValue(id, out var o) && IsCombatant(o) ? o : 0;
     }
 
-    // ---- line dispatch -----------------------------------------------------
+    // ---- line dispatch ----
 
     public void Process(string[] f)
     {
@@ -586,17 +584,17 @@ public class RdpsEngine
         if (owner != 0) _owner[id] = owner;
         if (Jobs.ByRowId(Hex(f[4])) is not { } job)
         {
-            // The game reuses object ids, so a jobless one must not stay an ally.
+            // Ids get reused, so a jobless one is no longer an ally.
             _allies.Remove(id);
             _roles.Remove(id);
             return;
         }
         _roles[id] = job.Role;
-        // Carrying a job means it acts on its own, whoever the game says owns it.
+        // Carrying a job means it acts on its own.
         if (!IsPlayer(id)) _allies.Add(id);
     }
 
-    // A guard status by id first, then by its English name.
+    // A guard status by id first, then by English name.
     private Guard GuardOf(uint statusId, string status)
     {
         if (_guardIds != null && _guardIds.TryGetValue(statusId, out var byId)) return byId;
@@ -622,14 +620,14 @@ public class RdpsEngine
         var sec = Sec(f[1]);
         if (status.Length > 0) _effectNames[statusId] = status;
 
-        // Any player status on an enemy could tick, so freeze the buffs behind it.
+        // Any player status on an enemy could tick, so freeze it.
         if (tgt >= 0x40000000 && OwnerOf(src) != 0)
         {
             float.TryParse(f[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var dotDur);
             SnapshotDot(tgt, statusId, src, sec, dotDur);
         }
 
-        // Statuses that turn later hits into guaranteed crits or direct hits.
+        // Statuses that make later hits guaranteed rolls.
         if (IsCombatant(tgt))
         {
             var add = GuardOf(statusId, status);
@@ -637,7 +635,7 @@ public class RdpsEngine
                 _guards[tgt] = (_guards.TryGetValue(tgt, out var g) ? g : Guard.None) | add;
         }
 
-        // A song starting is a coda banked for that bard's next finale.
+        // A song starting is a coda banked for the next finale.
         if (IsSong(statusId, status) && IsCombatant(src))
             (_songs.TryGetValue(src, out var set)
                 ? set
@@ -653,7 +651,7 @@ public class RdpsEngine
         if (f[8].Length > 0 && tgt != 0) _names[tgt] = f[8];
 
         float.TryParse(f[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var dur);
-        // A missing or zero duration gets a sane cap so nothing sticks forever.
+        // A missing duration gets a cap, so nothing sticks forever.
         var expire = sec + (long)MathF.Ceiling(dur > 0f ? dur : 30f) + 1;
 
         // Strengths the status name alone can't tell.
@@ -673,7 +671,7 @@ public class RdpsEngine
             : null;
 
         if (!_buffs.TryGetValue(tgt, out var list)) _buffs[tgt] = list = new List<ActiveBuff>();
-        // A refresh replaces the running copy from the same source.
+        // A refresh replaces the copy from the same source.
         list.RemoveAll(b => b.Def == def && b.SourceId == src);
         list.Add(new ActiveBuff
         {
@@ -705,7 +703,7 @@ public class RdpsEngine
         list.RemoveAll(b => b.Def == def && (src == 0 || b.SourceId == src));
     }
 
-    // ---- damage events -----------------------------------------------------
+    // ---- damage events ----
 
     private void OnAbility(string[] f)
     {
@@ -715,14 +713,14 @@ public class RdpsEngine
         var target = Hex(f[6]);
         if (owner == 0)
         {
-            // An enemy swinging at the party: only the taken breakdown wants it.
+            // An enemy swinging: only the taken breakdown wants it.
             if (IsCombatant(target)) OnTaken(f, target);
             return;
         }
         var action = f[5];
         var actionId = Hex(f[4]);
         if (action.Length > 0) Sniff(owner, action, actionId);
-        // Anything aimed at the party is healing, not damage.
+        // Anything aimed at the party is healing.
         if (IsCombatant(target)) { OnHeal(f, owner, target); return; }
         if (target < 0x40000000) return;     // only damage into enemies counts
         if (f[7].Length > 0) CurrentEnemy = f[7];
@@ -731,7 +729,7 @@ public class RdpsEngine
         if (IsLimitBreak?.Invoke(actionId) == true)
         {
             LastLimitBreak = actionId;
-            // Counted under its own row, never paying or earning credit.
+            // Counted under its own row, paying no credit.
             TallyLimitBreak(f, action, actionId);
             return;
         }
@@ -741,11 +739,11 @@ public class RdpsEngine
 
         var (gc, gd) = Guarantee(owner, action, actionId);
 
-        // A hit into an enemy can heal whoever landed it, their health at 34 and 35.
+        // A hit into an enemy can heal whoever landed it.
         var mine = src == owner;
         var selfRoom = mine && f.Length > 35 ? Room(f[34], f[35]) : -1;
 
-        // Eight flag|value pairs: low byte 03/05/06 is damage, 0x100 crit, 0x200 direct.
+        // Eight flag and value pairs, damage in the low byte.
         for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
         {
             var flags = Hex(f[i]);
@@ -808,7 +806,7 @@ public class RdpsEngine
         }
     }
 
-    // A party-facing ability, with the part the health bar had no room for.
+    // A party-facing ability, plus what had no room.
     private void OnHeal(string[] f, uint owner, uint target)
     {
         var who = f[7].Length > 0 ? f[7] : _names.TryGetValue(target, out var tn) ? tn : "";
@@ -852,7 +850,7 @@ public class RdpsEngine
         DealtTotal += dmg;
         if (f[3].Length > 0) Tally(_targets, ownerName, f[3], dmg, crit: false, dh: false);
 
-        // Ticks price against the frozen buffs, or what is up now if there are none.
+        // Ticks price against the frozen buffs, else what is up.
         if (_dotSnaps.TryGetValue((target, Hex(f[5]), src), out var snap) && sec <= snap.ExpireSec)
             LoadSnap(snap);
         else
@@ -860,7 +858,7 @@ public class RdpsEngine
         AllocateTick(owner, ownerName, dmg, sec);
     }
 
-    // A tick on a party member, which pays no credit but both breakdowns want.
+    // A tick on a party member, which pays no credit.
     private void OnPartyTick(string[] f, uint owner, uint target, bool hot)
     {
         var amount = (uint)HexLong(f[6]);
@@ -880,13 +878,13 @@ public class RdpsEngine
             return;
         }
 
-        // A tick the log never sourced still counts, it just credits nobody.
+        // An unsourced tick still counts, it just credits nobody.
         var room = Room(f[7], f[8]);
         var healer = owner != 0 && _names.TryGetValue(owner, out var hn) ? hn : "";
         Heal(healer, who, name, effect, status: true, amount, crit: false, ref room, sec);
     }
 
-    // ---- buff state for one event ------------------------------------------
+    // ---- buff state for one event ----
 
     private readonly List<(uint Src, string Name, string Buff, double Mult)> _extFlat = new();
     private readonly List<(uint Src, string Name, string Buff, double Rate)> _extCrit = new();
@@ -965,7 +963,7 @@ public class RdpsEngine
         }
     }
 
-    // ---- the split ---------------------------------------------------------
+    // ---- the split ----
 
     private void Allocate(uint owner, string ownerName, double dmg,
         bool crit, bool dh, bool gCrit, bool gDh, long sec)
@@ -978,7 +976,7 @@ public class RdpsEngine
         foreach (var b in _extCrit) extC += b.Rate;
         foreach (var b in _extDh) extD += b.Rate;
 
-        // How much of a rolled crit the buffs caused, against the player's own rate.
+        // How much of a rolled crit the buffs caused.
         var cb = Math.Min(1.0, cs + _selfCrit + extC);
         var cu = Math.Min(cb, cs + _selfCrit);
         var critShare = crit && !gCrit && extC > 0 ? (cb - cu) / cb : 0.0;
@@ -986,13 +984,13 @@ public class RdpsEngine
         var du = Math.Min(db, ds + _selfDh);
         var dhShare = dh && !gDh && extD > 0 ? (db - du) / db : 0.0;
 
-        // A guaranteed roll pays its rate buffs as the flat bonus instead.
+        // A guaranteed roll pays its rate buffs as flat bonus.
         var rc = gCrit && extC > 0
             ? (1.0 + (mc - 1.0) * (_selfCrit + extC)) / (1.0 + (mc - 1.0) * _selfCrit) : 1.0;
         var rd = gDh && extD > 0
             ? (1.0 + (DhMult - 1.0) * (_selfDh + extD)) / (1.0 + (DhMult - 1.0) * _selfDh) : 1.0;
 
-        // Four corners: the buff-caused and self-covered slices of each roll.
+        // Four corners: buff-caused and self-covered slices.
         Span<double> critW = stackalloc double[2] { 1.0 - critShare, critShare };
         Span<double> dhW = stackalloc double[2] { 1.0 - dhShare, dhShare };
         for (var ci = 0; ci < 2; ci++)
@@ -1009,7 +1007,7 @@ public class RdpsEngine
         }
     }
 
-    // One slice, its gain split by log ratio across every buff that earned it.
+    // One slice, split by log ratio across the buffs.
     private void Split(uint owner, string ownerName, double part,
         double critMult, double dhMult, double rc, double rd,
         double extC, double extD, long sec)
@@ -1023,7 +1021,7 @@ public class RdpsEngine
         foreach (var b in _extFlat)
             Credit(sec, b.Name, ownerName, b.Buff, gain * Math.Log(b.Mult) / lnM);
 
-        // The roll multipliers pay the rate buffers by how much rate each gave.
+        // Roll multipliers pay by how much rate each buff gave.
         var critGain = gain * (Math.Log(critMult) + Math.Log(rc)) / lnM;
         if (critGain > 0 && extC > 0)
             foreach (var b in _extCrit)
@@ -1035,7 +1033,7 @@ public class RdpsEngine
                 Credit(sec, b.Name, ownerName, b.Buff, dhGain * b.Rate / extD);
     }
 
-    // A tick carries no roll flags, so it blends the four outcomes by their odds.
+    // A tick has no roll flags, so blend by the odds.
     private void AllocateTick(uint owner, string ownerName, double dmg, long sec)
     {
         if (_extFlat.Count == 0 && _extCrit.Count == 0 && _extDh.Count == 0) return;
@@ -1112,9 +1110,9 @@ public class RdpsEngine
         return s;
     }
 
-    // ---- queries -----------------------------------------------------------
+    // ---- queries ----
 
-    // Per-player (given, received) totals for events at or after fromSec.
+    // Per-player given and received totals from fromSec.
     public Dictionary<string, (double Given, double Received)> WindowTotals(long fromSec)
     {
         var totals = new Dictionary<string, (double, double)>();
@@ -1130,7 +1128,7 @@ public class RdpsEngine
         return totals;
     }
 
-    // Drop buckets old enough that no live encounter window can still need them.
+    // Drop buckets no live window can still need.
     public void Trim()
     {
         if (_dotSnaps.Count > 500)
@@ -1152,13 +1150,13 @@ public class RdpsEngine
         foreach (var sec in stale) _buckets.Remove(sec);
     }
 
-    // ---- parsing helpers ---------------------------------------------------
+    // ---- parsing helpers ----
 
     private long _lastSec;
     private string _tsPrefix = "";
     private long _tsSec;
 
-    // Unix second of the log timestamp, cached within the same second.
+    // Unix second of the timestamp, cached within a second.
     private long Sec(string ts)
     {
         if (ts.Length >= 19 && _tsPrefix.Length == 19
@@ -1177,7 +1175,7 @@ public class RdpsEngine
     private static ulong HexLong(string s)
         => ulong.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var v) ? v : 0ul;
 
-    // The amount rides the high half, with huge hits wrapping their top byte.
+    // The amount rides the high half, huge hits wrapping.
     public static uint Unscramble(ulong v)
     {
         var dmg = (uint)(v >> 16);

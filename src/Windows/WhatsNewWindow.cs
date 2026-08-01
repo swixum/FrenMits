@@ -6,8 +6,7 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// A one-time "What's New" panel shown after the plugin updates, listing only
-// versions newer than the last one dismissed so it reads like a changelog.
+// A one-time panel listing versions newer than the last seen.
 public class WhatsNewWindow : Window
 {
     // Bump this (and the Notes below) when there's news to show.
@@ -63,7 +62,7 @@ public class WhatsNewWindow : Window
         IsOpen = false;
     }
 
-    // True when `version` is newer than `seen` ("" or unparseable = show).
+    // True when version is newer than seen.
     private static bool IsNewerThan(string version, string seen)
     {
         if (!Version.TryParse(seen, out var s)) return true;
