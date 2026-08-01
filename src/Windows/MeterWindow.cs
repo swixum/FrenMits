@@ -512,6 +512,7 @@ public class MeterWindow : Window
             d.Job = r.Job;
             d.LimitBreak = r.LimitBreak;
             d.DamagePct = r.DamagePct;
+            d.HealedPct = r.HealedPct;
             d.MaxHit = r.MaxHit;
             d.Deaths = r.Deaths;
             d.Dps = L(p.Dps, r.Dps, t);
@@ -522,6 +523,7 @@ public class MeterWindow : Window
             d.ADps = L(p.ADps, r.ADps, t);
             d.Hps = L(p.Hps, r.Hps, t);
             d.Healed = L(p.Healed, r.Healed, t);
+            d.Shielded = L(p.Shielded, r.Shielded, t);
             d.OverhealPct = L(p.OverhealPct, r.OverhealPct, t);
             d.Taken = L(p.Taken, r.Taken, t);
         }
@@ -807,7 +809,9 @@ public class MeterWindow : Window
         new("dh", "DH", "99.9%", c => $"{c.DirectHitPct:0.#}%"),
         new("maxhit", "MAX", "9.99M", c => Num(Meter.MaxHitValue(c.MaxHit))),
         new("hps", "HPS", "999.9k", c => Num(c.Hps)),
+        new("healpct", "H%", "99.9%", c => c.HealedPct.Length > 0 ? c.HealedPct : "-"),
         new("healed", "HEALED", "9.99M", c => Num(c.Healed)),
+        new("dshield", "D.SHIELD", "999.9k", c => Num(c.Shielded)),
         new("overheal", "OH%", "99.9%", c => $"{c.OverhealPct:0.#}%"),
         new("taken", "TAKEN", "999.9k", c => Num(c.Taken)),
         new("deaths", "D", "9", c => c.Deaths.ToString()),
@@ -966,6 +970,22 @@ public class MeterWindow : Window
     private float _nameX;
     private float _nameMax;
 
+    // The same layout again for the healers' half of a split board.
+    private readonly List<Col> _healCols = new();
+    private readonly List<Slot> _healSlots = new();
+    private readonly List<float> _healSlotX = new();
+    private readonly List<MeterCombatant> _healSorted = new();
+    private readonly List<RowEntry> _healEntries = new();
+    private int _healCount;
+    private float _healNameX;
+    private float _healNameMax;
+
+    // The split only exists on the damage board; every other mode is whole-window.
+    private bool SplitOn => C.MeterSplitHealing && C.MeterMode == 0;
+
+    public static bool IsHealer(MeterCombatant c)
+        => Jobs.ByAbbreviation(c.Job) is { Role: JobRole.Healer };
+
     // One row as it will be drawn, values and widths already worked out.
     private sealed class RowEntry
     {
@@ -998,8 +1018,11 @@ public class MeterWindow : Window
     {
         var h = new HashCode();
         h.Add(C.MeterMode);
+        h.Add(SplitOn);
         h.Add(ImGui.GetFontSize());
         foreach (var k in ActiveColumnList()) h.Add(k, StringComparer.Ordinal);
+        if (SplitOn)
+            foreach (var k in C.MeterHealColumns) h.Add(k, StringComparer.Ordinal);
         return h.ToHashCode();
     }
 
@@ -1013,6 +1036,18 @@ public class MeterWindow : Window
         _cols.AddRange(DisplayColumns());
         _slots.Clear();
         _slots.AddRange(Slots(_cols));
+        _healCols.Clear();
+        _healSlots.Clear();
+        if (SplitOn)
+        {
+            var keys = new List<string>(C.MeterHealColumns);
+            if (!keys.Contains("hps")) keys.Insert(0, "hps");
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var k in keys)
+                if (seen.Add(k) && ColOf(k) is { } c)
+                    _healCols.Add(c);
+            _healSlots.AddRange(Slots(_healCols));
+        }
         _rowsEnc = null;
     }
 
@@ -1103,29 +1138,59 @@ public class MeterWindow : Window
             _lbEntry.Icon = C.MeterShowJobIcons ? Icons.ByActionId(enc.LimitBreakAction) : 0u;
             _lb = _lbEntry;
         }
+
+        // The healers' half of a split board, laid out on its own columns.
+        _healCount = 0;
+        if (SplitOn && _healCols.Count > 0)
+        {
+            _healSorted.Clear();
+            foreach (var r in _sorted)
+                if (IsHealer(r))
+                    _healSorted.Add(r);
+            _healSorted.Sort((a, b) => b.Hps.CompareTo(a.Hps));
+
+            _healSlotX.Clear();
+            var hx = w - pad;
+            foreach (var slot in _healSlots)
+            {
+                hx -= slot.Width;
+                _healSlotX.Add(hx);
+                hx -= ColGap;
+            }
+            _healNameX = pad + 4f + (C.MeterShowJobIcons ? rowH : 0f);
+            _healNameMax = hx - _healNameX - 4f;
+
+            foreach (var r in _healSorted)
+            {
+                while (_healEntries.Count <= _healCount) _healEntries.Add(new RowEntry());
+                Fill(_healEntries[_healCount], r, _healCount + 1, you, heal: true);
+                _healCount++;
+            }
+        }
     }
 
     private RowEntry? _lbEntry;
 
-    private void Fill(RowEntry e, MeterCombatant r, int rank, string you)
+    private void Fill(RowEntry e, MeterCombatant r, int rank, string you, bool heal = false)
     {
+        var nameMax = heal ? _healNameMax : _nameMax;
         e.Row = r;
         e.Rank = rank;
         e.Who = r.Display.Length > 0 ? r.Display : r.Name;
         e.You = !r.LimitBreak && IsYou(r, you);
-        e.Id = r.LimitBreak ? "##barlb" : $"##bar{rank}";
-        e.RankText = rank > 0 ? $"{rank}." : "";
+        e.Id = heal ? $"##hb{rank}" : r.LimitBreak ? "##barlb" : $"##bar{rank}";
+        e.RankText = !heal && rank > 0 ? $"{rank}." : "";
         e.RankTextWidth = e.RankText.Length > 0 ? ImGui.CalcTextSize(e.RankText).X : 0f;
         e.Icon = !r.LimitBreak && C.MeterShowJobIcons && Jobs.ByAbbreviation(r.Job) is { } job
             ? 62100u + job.RowId
             : 0u;
-        e.Name = _nameMax > 12f
-            ? Clip(r.LimitBreak ? e.Who : DisplayName(r, you), _nameMax)
+        e.Name = nameMax > 12f
+            ? Clip(r.LimitBreak ? e.Who : DisplayName(r, you), nameMax)
             : "";
 
         e.Values.Clear();
         e.Widths.Clear();
-        foreach (var slot in _slots)
+        foreach (var slot in heal ? _healSlots : _slots)
         {
             var text = r.LimitBreak && !LimitBreakColumn(slot.Col.Key) ? "" : slot.Col.Text(r);
             e.Values.Add(text);
@@ -1155,12 +1220,41 @@ public class MeterWindow : Window
         for (var i = 0; i < _entryCount; i++)
             DrawRow(enc, _entries[i], pad, rowH, lineH, max);
         if (_lb != null) DrawLimitBreakRow(_lb, pad, rowH, lineH, max);
+        if (_healCount > 0) DrawHealSection(enc, pad, rowH, lineH);
     }
 
-    private void DrawRow(MeterEncounter enc, RowEntry e, float pad, float rowH, float lineH, double max)
+    // The healers' HPS block under the damage rows, scaled to its own biggest bar.
+    private void DrawHealSection(MeterEncounter enc, float pad, float rowH, float lineH)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var p = ImGui.GetCursorScreenPos();
+        dl.AddLine(new Vector2(p.X + pad, p.Y + 2f), new Vector2(p.X + _rowsWidth - pad, p.Y + 2f), 0x22FFFFFF);
+        var y = 6f;
+
+        if (C.MeterColumnHeader)
+        {
+            for (var i = 0; i < _healSlots.Count && i < _healSlotX.Count; i++)
+            {
+                var lw = ImGui.CalcTextSize(_healSlots[i].Col.Label).X;
+                BText(dl, new Vector2(p.X + _healSlotX[i] + _healSlots[i].Width - lw, p.Y + y),
+                    C.MeterSubColor, _healSlots[i].Col.Label);
+            }
+            y += lineH + 3f;
+        }
+        ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + y));
+
+        var max = 1.0;
+        foreach (var r in _healSorted) max = Math.Max(max, LiveRow(r).Hps);
+        for (var i = 0; i < _healCount; i++)
+            DrawRow(enc, _healEntries[i], pad, rowH, lineH, max, heal: true);
+    }
+
+    private void DrawRow(MeterEncounter enc, RowEntry e, float pad, float rowH, float lineH, double max,
+        bool heal = false)
     {
         var w = _rowsWidth;
         var r = e.Row;
+        var nameX = heal ? _healNameX : _nameX;
         var p = ImGui.GetCursorScreenPos();
         ImGui.InvisibleButton(e.Id, new Vector2(w, rowH));
         // Both read off the bar before the icon and tooltip become the last item.
@@ -1173,7 +1267,8 @@ public class MeterWindow : Window
 
         dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
             hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
-        var fill = (float)(Metric(LiveRow(r)) / max) * (w - pad * 2 + 6f);
+        var metric = heal ? LiveRow(r).Hps : Metric(LiveRow(r));
+        var fill = (float)(metric / max) * (w - pad * 2 + 6f);
         DrawBar(dl, p + new Vector2(pad - 3f, 0), fill, rowH, rgb, p.X + pad);
         if (C.MeterHighlightYou && e.You)
         {
@@ -1191,18 +1286,18 @@ public class MeterWindow : Window
         }
 
         var ty = p.Y + (rowH - lineH) * 0.5f;
-        if (C.MeterShowRank)
+        if (!heal && C.MeterShowRank)
             BText(dl, new Vector2(p.X + pad + 4f + _rankW - e.RankTextWidth, ty), C.MeterSubColor, e.RankText);
         if (e.Icon != 0)
         {
             var sz = rowH - 5f;
-            ImGui.SetCursorScreenPos(new Vector2(p.X + _nameX - sz - 5f, p.Y + 2.5f));
+            ImGui.SetCursorScreenPos(new Vector2(p.X + nameX - sz - 5f, p.Y + 2.5f));
             Icons.Draw(e.Icon, new Vector2(sz, sz));
         }
 
-        DrawValues(dl, e, p.X, ty);
+        DrawValues(dl, e, p.X, ty, heal);
         if (e.Name.Length > 0)
-            BText(dl, new Vector2(p.X + _nameX, ty), e.You ? C.MeterYouColor : C.MeterTextColor, e.Name);
+            BText(dl, new Vector2(p.X + nameX, ty), e.You ? C.MeterYouColor : C.MeterTextColor, e.Name);
 
         if (hovered)
         {
@@ -1210,19 +1305,23 @@ public class MeterWindow : Window
             PushMenuTheme();
             RowTooltip(enc, r);
             PopMenuTheme();
-            if (opened) OpenDetail(e.Who);
+            // A healer row opens on their healing, not their damage.
+            if (opened) OpenDetail(e.Who, heal ? 3 : -1);
         }
         ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + C.MeterBarGap));
     }
 
-    private void DrawValues(ImDrawListPtr dl, RowEntry e, float left, float ty)
+    private void DrawValues(ImDrawListPtr dl, RowEntry e, float left, float ty, bool heal = false)
     {
-        for (var i = 0; i < _slots.Count && i < e.Values.Count && i < _slotX.Count; i++)
+        var slots = heal ? _healSlots : _slots;
+        var slotX = heal ? _healSlotX : _slotX;
+        var cols = heal ? _healCols : _cols;
+        for (var i = 0; i < slots.Count && i < e.Values.Count && i < slotX.Count; i++)
         {
             if (e.Values[i].Length == 0) continue;
             // The leading (leftmost-configured) column reads bright.
-            var bright = _cols.Count > 0 && _slots[i].Col.Key == _cols[0].Key;
-            BText(dl, new Vector2(left + _slotX[i] + _slots[i].Width - e.Widths[i], ty),
+            var bright = cols.Count > 0 && slots[i].Col.Key == cols[0].Key;
+            BText(dl, new Vector2(left + slotX[i] + slots[i].Width - e.Widths[i], ty),
                 bright ? C.MeterTextColor : C.MeterSubColor, e.Values[i]);
         }
     }
@@ -1323,15 +1422,20 @@ public class MeterWindow : Window
         new(3, "Heals"), new(4, "Healed"), new(5, "Received"), new(8, "Deaths"),
     };
 
-    private DetailTab[] Tabs() => C.MeterMode == 1 ? HealTabs : DamageTabs;
+    // A breakdown opened off a heal row keeps the healing tabs whatever the mode.
+    private bool _detailHeal;
+
+    private DetailTab[] Tabs()
+        => C.MeterMode == 1 || (_detailHeal && _detailFor.Length > 0) ? HealTabs : DamageTabs;
 
     // Where a click on a row lands: whatever the list itself is about.
     private int DefaultKind() => C.MeterMode switch { 1 => 3, 3 => 8, _ => 0 };
 
-    private void OpenDetail(string player)
+    private void OpenDetail(string player, int kind = -1)
     {
         _detailFor = player;
-        _detailKind = DefaultKind();
+        _detailKind = kind >= 0 ? kind : DefaultKind();
+        _detailHeal = _detailKind is 3 or 4 or 5;
     }
 
     // Switching views changes which tabs exist, so land on one that does.
@@ -1722,7 +1826,10 @@ public class MeterWindow : Window
         ImGui.TextColored(Theme.V(Theme.Muted),
             $"crit {r.CritPct:0.#}%  direct {r.DirectHitPct:0.#}%  deaths {r.Deaths}");
         if (r.Hps > 0)
-            ImGui.TextColored(Theme.V(Theme.Muted), $"HPS {Num(r.Hps)}  overheal {r.OverhealPct:0.#}%");
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                r.Shielded > 0
+                    ? $"HPS {Num(r.Hps)}  shielded {Num(r.Shielded)}  overheal {r.OverhealPct:0.#}%"
+                    : $"HPS {Num(r.Hps)}  overheal {r.OverhealPct:0.#}%");
         if (r.MaxHit.Length > 0)
             ImGui.TextColored(Theme.V(Theme.Muted), $"biggest hit: {r.MaxHit.Replace('-', ' ')}");
 
@@ -1773,10 +1880,7 @@ public class MeterWindow : Window
             {
                 foreach (var t in Tabs())
                     if (ImGui.MenuItem(t.Label))
-                    {
-                        _detailFor = _menuPlayer;
-                        _detailKind = t.Kind;
-                    }
+                        OpenDetail(_menuPlayer, t.Kind);
                 ImGui.EndMenu();
             }
             ImGui.Separator();
@@ -1835,6 +1939,8 @@ public class MeterWindow : Window
                 { C.MeterFooterDeaths = !C.MeterFooterDeaths; C.SaveSettings(); }
                 if (ImGui.MenuItem("Limit break row", "", C.MeterLimitBreakRow))
                 { C.MeterLimitBreakRow = !C.MeterLimitBreakRow; C.SaveSettings(); }
+                if (ImGui.MenuItem("Split DPS/HPS", "", C.MeterSplitHealing))
+                { C.MeterSplitHealing = !C.MeterSplitHealing; C.SaveSettings(); }
                 if (ImGui.MenuItem("Drop shadow", "", C.MeterTextShadow)) { C.MeterTextShadow = !C.MeterTextShadow; C.SaveSettings(); }
                 if (ImGui.MenuItem("Breakdown icons", "", C.MeterBreakdownIcons))
                 { C.MeterBreakdownIcons = !C.MeterBreakdownIcons; C.SaveSettings(); }
@@ -1946,6 +2052,16 @@ public class MeterWindow : Window
             sb.Append("\nLimit Break  ").Append(Num(lb.Dps)).Append(" DPS");
             if (lb.DamagePct.Length > 0) sb.Append("  ").Append(lb.DamagePct);
         }
+        // A split board copies its healer half too.
+        if (SplitOn)
+            foreach (var r in rows)
+            {
+                if (!IsHealer(r)) continue;
+                sb.Append('\n').Append(r.Display.Length > 0 ? r.Display : r.Name)
+                    .Append(" (").Append(r.Job).Append(")  ").Append(Num(r.Hps)).Append(" HPS");
+                if (r.Shielded > 0) sb.Append("  ").Append(Num(r.Shielded)).Append(" shielded");
+                if (r.HealedPct.Length > 0) sb.Append("  ").Append(r.HealedPct);
+            }
         ImGui.SetClipboardText(sb.ToString());
     }
 
@@ -2142,7 +2258,9 @@ public class MeterWindow : Window
         "dh" => "Direct hit %",
         "maxhit" => "Biggest hit",
         "hps" => "HPS",
+        "healpct" => "Healing %",
         "healed" => "Healed total",
+        "dshield" => "Damage shielded",
         "overheal" => "Overheal %",
         "taken" => "Damage taken",
         "deaths" => "Deaths",

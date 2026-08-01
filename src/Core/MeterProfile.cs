@@ -64,6 +64,7 @@ public static class MeterProfile
             ["always"] = c.MeterAlwaysShow,
             ["deathtotal"] = c.MeterFooterDeaths,
             ["lbrow"] = c.MeterLimitBreakRow,
+            ["split"] = c.MeterSplitHealing,
             ["refresh"] = c.MeterRefreshSeconds,
         };
         var raw = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(o));
@@ -134,6 +135,7 @@ public static class MeterProfile
             if (o["always"] is { } aw) c.MeterAlwaysShow = (bool)aw;
             if (o["deathtotal"] is { } dt) c.MeterFooterDeaths = (bool)dt;
             if (o["lbrow"] is { } lb) c.MeterLimitBreakRow = (bool)lb;
+            if (o["split"] is { } sp) c.MeterSplitHealing = (bool)sp;
             if (o["refresh"] is { } rf) c.MeterRefreshSeconds = Math.Clamp((float)rf, 0f, 3f);
             return true;
         }

@@ -68,6 +68,9 @@ public sealed class MeterCombatant
     public double DirectHitPct;
     public double Hps;
     public double Healed;
+    public string HealedPct = "";
+    // Damage their shields absorbed, already inside Healed on the parser's count.
+    public double Shielded;
     public double OverhealPct;
     public double Taken;
     public int Deaths;
@@ -157,6 +160,8 @@ public sealed class MeterEncounter
                     DirectHitPct = Num(c["DirectHitPct"]),
                     Hps = Num(c["enchps"]),
                     Healed = Num(c["healed"]),
+                    HealedPct = c["healed%"]?.ToString() ?? "",
+                    Shielded = Num(c["damageShield"]),
                     OverhealPct = Num(c["OverHealPct"]),
                     Taken = Num(c["damagetaken"]),
                     Deaths = (int)Num(c["deaths"]),

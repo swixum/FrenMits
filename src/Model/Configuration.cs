@@ -240,12 +240,8 @@ public class Configuration : IPluginConfiguration
     // Fren Meter: the parser-fed damage meter overlay with rDPS.
     public bool MeterEnabled { get; set; }
     public int MeterConnection { get; set; }             // 0 auto, 1 in-process parser, 2 WebSocket
-    // Not shown in the settings: the parser decides what a fight is and the
-    // meter draws it, the way every other overlay works. Stitching segments
-    // back together is the only part that ever counted anything twice, and with
-    // ACT's idle limit set past a raid's longest downtime there is nothing left
-    // to stitch. Kept as a setting so a fight that does split can still be put
-    // back together by hand, from the config file.
+    // Hidden: the parser decides what a fight is, and this stays only so a
+    // split fight can be restitched by hand from the config file.
     public bool MeterStitchSegments { get; set; }
     public string MeterSocketAddress { get; set; } = "ws://127.0.0.1:10501/ws";
     public bool MeterLocked { get; set; }
@@ -260,7 +256,7 @@ public class Configuration : IPluginConfiguration
 
     // The healing view keeps its own columns: healing numbers, no damage ones.
     [Newtonsoft.Json.JsonProperty(ObjectCreationHandling = Newtonsoft.Json.ObjectCreationHandling.Replace)]
-    public List<string> MeterHealColumns { get; set; } = new() { "hps", "healed", "overheal" };
+    public List<string> MeterHealColumns { get; set; } = new() { "hps", "healpct", "dshield", "overheal" };
 
     // Repairs a column list a pre-fix load doubled up: the last copy of each
     // key is the saved one, so keeping it preserves the user's order.
@@ -310,8 +306,7 @@ public class Configuration : IPluginConfiguration
     public int MeterHighlightStyle { get; set; }              // 0 wash + outline, 1 wash, 2 outline, 3 stripe
     public float MeterHighlightStrength { get; set; } = 1f;
     public float MeterBarOpacity { get; set; } = 1f;
-    // Bars are drawn as a wash of the job color so the background reads through
-    // them. This fills them with the color itself instead.
+    // Fills bars with the job color itself instead of a wash of it.
     public bool MeterBarSolid { get; set; }
     public int MeterMaxRows { get; set; }                     // 0 shows everyone
     public bool MeterTextShadow { get; set; } = true;
@@ -320,6 +315,7 @@ public class Configuration : IPluginConfiguration
     public bool MeterBreakdownColors { get; set; } = true;  // a color per ability, not one per job
     public bool MeterFooterDeaths { get; set; } = true;     // the pull's death count in the footer
     public bool MeterLimitBreakRow { get; set; } = true;    // limit break in its own row under the party
+    public bool MeterSplitHealing { get; set; }             // DPS on top, the healers' HPS below
     public float MeterRefreshSeconds { get; set; } = 1f;    // how often values settle; 0 is every frame
     public bool MeterCollapsed { get; set; }                // rolled up to just its header
     public bool MeterAlwaysShow { get; set; } = true;       // stay on screen with no pull to show
@@ -399,7 +395,7 @@ public class Configuration : IPluginConfiguration
     // Online neural voices (Microsoft Edge "Read Aloud" - free, no key).
     public bool TtsUseEdge { get; set; } = true;
     public string TtsEdgeVoice { get; set; } = "en-US-AriaNeural";
-    // Optional override: any Edge voice id (e.g. "en-US-AvaMultilingualNeural").
+    // Any Edge voice id may override (e.g. "en-US-AvaMultilingualNeural").
     public string TtsCustomVoice { get; set; } = "";
     // Speak the mechanic name instead of the action (unless a per-line override is set).
     public bool TtsSpeakMechanic { get; set; }

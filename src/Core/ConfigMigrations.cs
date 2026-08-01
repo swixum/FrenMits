@@ -394,21 +394,31 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v38: downtime windows a profile derived for itself back when the fight
-        // shipped none, or shipped the wrong ones. Enuo's pair sat at 461s and
-        // 500s, which no kill ever reaches, and Doomtrain's were a second copy
-        // of the built-ins drawn on top of them.
+        // v38: drop downtime windows a profile derived for itself that the fight
+        // now ships correct versions of.
         if (config.Version < 38)
         {
             foreach (var f in config.Fights) DropStaleDowntimes(f);
             config.Version = 38;
             config.Save();
         }
+
+        // v39: the meter grew healing-share and shield columns.
+        if (config.Version < 39)
+        {
+            var heal = config.MeterHealColumns;
+            if (!heal.Contains("healpct")) heal.Insert(heal.IndexOf("hps") + 1, "healpct");
+            if (!heal.Contains("dshield"))
+            {
+                var over = heal.IndexOf("overheal");
+                heal.Insert(over >= 0 ? over : heal.Count, "dshield");
+            }
+            config.Version = 39;
+            config.Save();
+        }
     }
 
-    // A fight that ships log-verified windows is the authority on its own lulls,
-    // so a profile's derived copies go. Everything else keeps them: they are the
-    // only windows those fights have.
+    // A fight shipping log-verified windows drops a profile's derived copies.
     public static int DropStaleDowntimes(FightProfile fight)
     {
         if (fight.CustomDowntimes.Count == 0) return 0;

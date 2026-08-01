@@ -266,7 +266,7 @@ public class Meter : IDisposable
             InCombat = _inCombat, Cutscene = _cutscene, SawBoss = _sawBoss, LogLines = EngineTotal(),
         };
         foreach (var r in incoming.Rows)
-            m.Rows.Add((r.Name, r.Job, r.Damage, r.Healed, r.Taken, r.Deaths));
+            m.Rows.Add((r.Name, r.Job, r.Damage, r.Healed, r.Taken, r.Deaths, r.Shielded));
         MeterFeed.Record(m);
     }
 
@@ -674,10 +674,13 @@ public class Meter : IDisposable
         }
         e.TotalDps = e.TotalDamage / secs;
         e.TotalHps = 0;
+        var healed = 0.0;
+        foreach (var r in e.Rows) healed += r.Healed;
         foreach (var r in e.Rows)
         {
             e.TotalHps += r.Hps;
             r.DamagePct = e.TotalDamage > 0 ? $"{r.Damage / e.TotalDamage * 100:0}%" : "";
+            r.HealedPct = healed > 0 ? $"{r.Healed / healed * 100:0}%" : "";
         }
         return e;
     }
@@ -743,6 +746,7 @@ public class Meter : IDisposable
                 LimitBreak = r.LimitBreak,
                 Damage = Math.Max(0, r.Damage - (b?.Damage ?? 0)),
                 Healed = Math.Max(0, r.Healed - (b?.Healed ?? 0)),
+                Shielded = Math.Max(0, r.Shielded - (b?.Shielded ?? 0)),
                 Taken = Math.Max(0, r.Taken - (b?.Taken ?? 0)),
                 Deaths = Math.Max(0, r.Deaths - (b?.Deaths ?? 0)),
                 // Rates are running averages the parser never breaks down.
@@ -760,8 +764,13 @@ public class Meter : IDisposable
             e.TotalHps += row.Hps;
         }
         e.TotalDps = e.TotalDamage / div;
+        var healed = 0.0;
+        foreach (var r in e.Rows) healed += r.Healed;
         foreach (var r in e.Rows)
+        {
             r.DamagePct = e.TotalDamage > 0 ? $"{r.Damage / e.TotalDamage * 100:0}%" : "";
+            r.HealedPct = healed > 0 ? $"{r.Healed / healed * 100:0}%" : "";
+        }
         return e;
     }
 
@@ -779,6 +788,7 @@ public class Meter : IDisposable
             LimitBreak = b.LimitBreak || a.LimitBreak,
             Damage = dmg,
             Healed = healed,
+            Shielded = a.Shielded + b.Shielded,
             Taken = a.Taken + b.Taken,
             Deaths = a.Deaths + b.Deaths,
             ADps = dmg > 0 ? (a.ADps * a.Damage + b.ADps * b.Damage) / dmg : b.ADps,
@@ -876,9 +886,9 @@ public class Meter : IDisposable
             ("Auri Vale", "VPR", 20110, 0.94),
             ("Sable Marsh", "SAM", 19230, 0.97),
             ("Nophica Reed", "MCH", 18040, 1.02),
-            ("Ember Halcyon", "RDM", 17110, 1.11),
             ("Tia Windrun", "DRK", 12480, 1.05),
             ("Oren Bluewake", "GNB", 11930, 1.03),
+            ("Mira Dawnfall", "WHM", 6540, 1.01),
             ("Lily Farsong", "SGE", 5810, 0.99),
         };
         foreach (var r in rows)
@@ -888,12 +898,14 @@ public class Meter : IDisposable
                 Name = r.Name, Display = r.Name, Job = r.Job,
                 Dps = r.Dps, ADps = r.Dps * 1.08, RDps = r.Dps * r.Edge, Damage = r.Dps * e.Seconds,
                 CritPct = 18 + r.Dps % 13, DirectHitPct = 22 + r.Dps % 21,
-                Hps = r.Job is "SGE" ? 9840 : r.Dps % 900,
-                Healed = 0, OverhealPct = r.Job is "SGE" ? 21 : 4,
+                Hps = r.Job switch { "SGE" => 9840, "WHM" => 8630, _ => r.Dps % 900 },
+                Healed = 0, OverhealPct = r.Job switch { "SGE" => 21, "WHM" => 24, _ => 4 },
                 Taken = 42000 + r.Dps % 9000, Deaths = r.Job is "VPR" ? 1 : 0,
                 MaxHit = $"Big One-{(int)(r.Dps * 6)}",
             };
             c.Healed = c.Hps * e.Seconds;
+            // A shield healer's absorbs, already inside their healed total.
+            c.Shielded = r.Job switch { "SGE" => c.Healed * 0.38, "WHM" => c.Healed * 0.04, _ => 0 };
             e.TotalDps += c.Dps;
             e.RaidRDps += c.RDps;
             e.TotalHps += c.Hps;
@@ -913,8 +925,13 @@ public class Meter : IDisposable
         e.Rows.Add(lb);
         e.LimitBreakAction = SampleLimitBreak();
         e.TotalDamage = e.TotalDps * e.Seconds;
+        var healedTotal = 0.0;
+        foreach (var c in e.Rows) healedTotal += c.Healed;
         foreach (var c in e.Rows)
+        {
             c.DamagePct = $"{c.Damage / e.TotalDamage * 100:0}%";
+            c.HealedPct = healedTotal > 0 ? $"{c.Healed / healedTotal * 100:0}%" : "";
+        }
         SampleBreakdowns(e);
         return _sample = e;
     }
@@ -954,6 +971,8 @@ public class Meter : IDisposable
                               "Burst Strike", "Solid Barrel", "Brutal Shell", "Keen Edge" },
             ["SGE"] = new[] { "Pneuma", "Phlegma III", "Eukrasian Dosis III", "Dosis III",
                               "Toxikon II", "Dyskrasia II", "Psyche", "Eukrasia" },
+            ["WHM"] = new[] { "Glare IV", "Afflatus Misery", "Assize", "Glare III",
+                              "Dia", "Holy III", "Afflatus Rapture", "Stone IV" },
         };
         var generic = new[]
         {

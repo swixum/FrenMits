@@ -20,7 +20,7 @@ public static class MeterFeed
         public bool Cutscene;
         public bool SawBoss;
         public double LogLines;        // what the engine had counted by then
-        public List<(string Name, string Job, double Damage, double Healed, double Taken, int Deaths)> Rows = new();
+        public List<(string Name, string Job, double Damage, double Healed, double Taken, int Deaths, double Shielded)> Rows = new();
     }
 
     public static string Folder
@@ -61,7 +61,7 @@ public static class MeterFeed
         foreach (var r in m.Rows)
             sb.Append('|').Append(r.Name.Replace('|', '/')).Append('~').Append(r.Job).Append('~')
               .Append(F(r.Damage)).Append('~').Append(F(r.Healed)).Append('~')
-              .Append(F(r.Taken)).Append('~').Append(r.Deaths);
+              .Append(F(r.Taken)).Append('~').Append(r.Deaths).Append('~').Append(F(r.Shielded));
         _lines.Add(sb.ToString());
     }
 
@@ -101,7 +101,8 @@ public static class MeterFeed
             {
                 var r = f[i].Split('~');
                 if (r.Length < 6) continue;
-                m.Rows.Add((r[0], r[1], D(r[2]), D(r[3]), D(r[4]), (int)D(r[5])));
+                // Older recordings stop at deaths, so the shield field is optional.
+                m.Rows.Add((r[0], r[1], D(r[2]), D(r[3]), D(r[4]), (int)D(r[5]), r.Length > 6 ? D(r[6]) : 0));
             }
             list.Add(m);
         }
@@ -144,6 +145,7 @@ public static class MeterFeed
                 Name = r.Name, Display = r.Name, Job = r.Job,
                 LimitBreak = Jobs.ByAbbreviation(r.Job) == null,
                 Damage = r.Damage, Healed = r.Healed, Taken = r.Taken, Deaths = r.Deaths,
+                Shielded = r.Shielded,
                 Dps = m.Seconds > 0 ? r.Damage / m.Seconds : 0,
             });
         return e;
