@@ -75,9 +75,9 @@ public partial class ConfigWindow
             C.MeterFooterDeaths = GridCheck("Death count", C.MeterFooterDeaths,
                 "The pull's deaths in the footer; hover it for who.");
             C.MeterLimitBreakRow = GridCheck("Limit break row", C.MeterLimitBreakRow,
-                "A short row under the party, on the damage board.");
+                "A short row under the party.");
             C.MeterSplitHealing = GridCheck("Split DPS/HPS", C.MeterSplitHealing,
-                "DPS on top, the healers' HPS below, one window.");
+                "DPS on top, healer HPS below.");
             C.MeterAlwaysShow = GridCheck("Always on screen", C.MeterAlwaysShow,
                 "Stays put with no pull to show, so a reset cannot hide it.");
             C.MeterHideOutOfCombat = GridCheck("Hide out of combat", C.MeterHideOutOfCombat);

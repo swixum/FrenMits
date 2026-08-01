@@ -69,6 +69,50 @@ public class Meter : IDisposable
         _plugin = plugin;
         Link = new MeterLink(plugin);
         Engine.IsLimitBreak = IsLimitBreak;
+        // English-sheet lookups so localized logs still match by id.
+        Engine.ResolveStatusIds = StatusIdsOf;
+        Engine.ResolveActionIds = ActionIdsOf;
+    }
+
+    // One pass per sheet keeps the engine's lookups cheap.
+    private static Dictionary<string, List<uint>>? _statusIds;
+    private static Dictionary<string, List<uint>>? _actionIds;
+    private static readonly List<uint> NoIds = new();
+
+    private static List<uint>? StatusIdsOf(string english)
+    {
+        if (_statusIds == null)
+        {
+            var sheet = GameSheets.English<Lumina.Excel.Sheets.Status>();
+            if (sheet == null) return null;
+            var map = new Dictionary<string, List<uint>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in sheet)
+            {
+                var name = row.Name.ExtractText();
+                if (name.Length == 0) continue;
+                (map.TryGetValue(name, out var list) ? list : map[name] = new List<uint>()).Add(row.RowId);
+            }
+            _statusIds = map;
+        }
+        return _statusIds.TryGetValue(english, out var ids) ? ids : NoIds;
+    }
+
+    private static List<uint>? ActionIdsOf(string english)
+    {
+        if (_actionIds == null)
+        {
+            var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
+            if (sheet == null) return null;
+            var map = new Dictionary<string, List<uint>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in sheet)
+            {
+                var name = row.Name.ExtractText();
+                if (name.Length == 0) continue;
+                (map.TryGetValue(name, out var list) ? list : map[name] = new List<uint>()).Add(row.RowId);
+            }
+            _actionIds = map;
+        }
+        return _actionIds.TryGetValue(english, out var ids) ? ids : NoIds;
     }
 
     // Limit break action ids from the game sheet, resolved once sheets are up.
@@ -427,9 +471,11 @@ public class Meter : IDisposable
         var you = LocalName();
         foreach (var r in enc.Rows)
         {
-            var who = you.Length > 0 && string.Equals(r.Name, "YOU", StringComparison.OrdinalIgnoreCase)
-                ? you
-                : r.Display.Length > 0 ? r.Display : r.Name;
+            // The engine files the limit break under its English constant.
+            var who = r.LimitBreak ? RdpsEngine.LimitBreakName
+                : you.Length > 0 && string.Equals(r.Name, "YOU", StringComparison.OrdinalIgnoreCase)
+                    ? you
+                    : r.Display.Length > 0 ? r.Display : r.Name;
             if (Engine.Dealt(who) is { Count: > 0 } d) enc.Dealt[who] = Freeze(d);
             if (Engine.Targets(who) is { Count: > 0 } t) enc.Targets[who] = Freeze(t);
             if (Engine.Taken(who) is { Count: > 0 } k) enc.Taken[who] = Freeze(k);
@@ -827,6 +873,29 @@ public class Meter : IDisposable
                 row.RDps = Math.Max(0, row.Dps + (t.Given - t.Received) / seconds);
             enc.RaidRDps += row.RDps;
         }
+
+        // A replay's engine holds this session, so only live pulls overlay it.
+        if (!_replaying) OverlayEngineFacts(enc, Engine);
+    }
+
+    // Engine per-fight counts replace the parser's running averages.
+    public static void OverlayEngineFacts(MeterEncounter enc, RdpsEngine engine)
+    {
+        foreach (var row in enc.Rows)
+        {
+            var who = row.LimitBreak
+                ? RdpsEngine.LimitBreakName
+                : row.Display.Length > 0 ? row.Display : row.Name;
+            var (hits, crits, dhs, max, maxName) = engine.DealtFacts(who);
+            if (hits > 0 && !row.LimitBreak)
+            {
+                row.CritPct = crits * 100.0 / hits;
+                row.DirectHitPct = dhs * 100.0 / hits;
+            }
+            if (max > 0 && maxName.Length > 0) row.MaxHit = $"{maxName}-{(int)max}";
+            var (landed, over) = engine.HealFacts(who);
+            if (landed + over > 0) row.OverhealPct = over * 100.0 / (landed + over);
+        }
     }
 
     private string LocalName()
@@ -997,6 +1066,12 @@ public class Meter : IDisposable
                 new() { Name = buffs[(seed + 3) % buffs.Length], Damage = amount * 0.27 },
                 new() { Name = buffs[(seed + 5) % buffs.Length], Damage = amount * 0.15 },
             },
+        };
+
+        // A sample breakdown so the limit break row opens in Test mode.
+        e.Dealt[RdpsEngine.LimitBreakName] = new List<AbilityStat>
+        {
+            new() { Name = "Braver", Damage = 4820 * e.Seconds, Hits = 1, Max = 4820 * e.Seconds },
         };
 
         foreach (var r in e.Rows)

@@ -35,6 +35,90 @@ public class RdpsEngine
     // The limit break this fight has seen, for the icon on its row.
     public uint LastLimitBreak { get; private set; }
 
+    // ---- id lookups, so a non-English client matches the same events --------
+
+    // English name to game ids, null while the sheets are not ready yet.
+    public Func<string, List<uint>?>? ResolveStatusIds;
+    public Func<string, List<uint>?>? ResolveActionIds;
+
+    private bool _idsReady;
+    private int _idGate;
+    private Dictionary<uint, RaidBuffs.Buff>? _buffIds;
+    private Dictionary<uint, Guard>? _guardIds;
+    private HashSet<uint>? _songIds;
+    private HashSet<uint>? _critIds;
+    private HashSet<uint>? _critDhIds;
+    private HashSet<uint>? _opoActionIds;
+    private HashSet<uint>? _irActionIds;
+    private Dictionary<uint, (bool Tech, float Mult)>? _finishIds;
+
+    // Ids stay true in every client language.
+    private void TryBuildIds()
+    {
+        if (_idsReady || ResolveStatusIds == null) return;
+        if (_idGate-- > 0) return;
+        _idGate = 256;
+        if (ResolveStatusIds("Embolden") == null) return;
+
+        var buffs = new Dictionary<uint, RaidBuffs.Buff>();
+        foreach (var b in RaidBuffs.All)
+            foreach (var id in ResolveStatusIds(b.Name) ?? new List<uint>())
+                buffs.TryAdd(id, b);
+
+        var guards = new Dictionary<uint, Guard>();
+        void G(string name, Guard g)
+        {
+            foreach (var id in ResolveStatusIds(name) ?? new List<uint>())
+                guards.TryAdd(id, g);
+        }
+        G("Life Surge", Guard.Crit);
+        G("Reassembled", Guard.Crit | Guard.Dh);
+        G("Inner Release", Guard.InnerRelease);
+        G("Opo-opo Form", Guard.OpoForm);
+        G("Formless Fist", Guard.OpoForm);
+
+        var songs = new HashSet<uint>();
+        foreach (var s in new[] { "Mage's Ballad", "Army's Paeon", "The Wanderer's Minuet" })
+            foreach (var id in ResolveStatusIds(s) ?? new List<uint>())
+                songs.Add(id);
+
+        HashSet<uint>? Acts(IEnumerable<string> names)
+        {
+            if (ResolveActionIds == null) return null;
+            var set = new HashSet<uint>();
+            foreach (var n in names)
+                foreach (var id in ResolveActionIds(n) ?? new List<uint>())
+                    set.Add(id);
+            return set;
+        }
+        _critIds = Acts(AutoCrit);
+        _critDhIds = Acts(AutoCritDh);
+        _opoActionIds = Acts(OpoActions);
+        _irActionIds = Acts(InnerReleaseActions);
+
+        if (ResolveActionIds != null)
+        {
+            var fin = new Dictionary<uint, (bool, float)>();
+            void F(string name, bool tech, float mult)
+            {
+                foreach (var id in ResolveActionIds(name) ?? new List<uint>())
+                    fin.TryAdd(id, (tech, mult));
+            }
+            F("Single Technical Finish", true, 1.01f);
+            F("Double Technical Finish", true, 1.02f);
+            F("Triple Technical Finish", true, 1.03f);
+            F("Quadruple Technical Finish", true, 1.05f);
+            F("Single Standard Finish", false, 1.02f);
+            F("Double Standard Finish", false, 1.05f);
+            _finishIds = fin;
+        }
+
+        _buffIds = buffs;
+        _guardIds = guards;
+        _songIds = songs;
+        _idsReady = true;
+    }
+
     // Whoever the party is actually hitting, for naming the encounter.
     public string CurrentEnemy { get; private set; } = "";
 
@@ -86,7 +170,7 @@ public class RdpsEngine
     // ---- guaranteed crits and direct hits ----------------------------------
 
     [Flags]
-    private enum Guard { None = 0, Crit = 1, Dh = 2, InnerRelease = 4 }
+    private enum Guard { None = 0, Crit = 1, Dh = 2, InnerRelease = 4, OpoForm = 8 }
 
     private readonly Dictionary<uint, Guard> _guards = new();
 
@@ -101,19 +185,41 @@ public class RdpsEngine
     {
         "Midare Setsugekka", "Kaeshi: Setsugekka", "Tendo Setsugekka",
         "Tendo Kaeshi Setsugekka", "Ogi Namikiri", "Kaeshi: Namikiri",
-        "Bootshine", "Leaping Opo", "Shadow of the Destroyer",
+        "Shadow of the Destroyer",
     };
 
-    private (bool Crit, bool Dh) Guarantee(uint owner, string action)
+    // Only guaranteed crits while an opo-opo or formless form is up.
+    private static readonly HashSet<string> OpoActions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Bootshine", "Leaping Opo",
+    };
+
+    private static readonly HashSet<string> InnerReleaseActions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Fell Cleave", "Decimate",
+    };
+
+    // Public so a test can ask about the roll a hit was entitled to.
+    public (bool Crit, bool Dh) GuaranteeFor(uint owner, string action, uint actionId)
+        => Guarantee(owner, action, actionId);
+
+    private (bool Crit, bool Dh) Guarantee(uint owner, string action, uint actionId)
     {
         var g = _guards.TryGetValue(owner, out var v) ? v : Guard.None;
+        if (actionId != 0 && _critDhIds != null && _critIds != null
+            && _opoActionIds != null && _irActionIds != null)
+        {
+            if (_critDhIds.Contains(actionId)) return (true, true);
+            if (_critIds.Contains(actionId)) return (true, false);
+            if (_opoActionIds.Contains(actionId)) return ((g & Guard.OpoForm) != 0, (g & Guard.Dh) != 0);
+            if ((g & Guard.InnerRelease) != 0 && _irActionIds.Contains(actionId)) return (true, true);
+        }
         if (action.Length > 0)
         {
             if (AutoCritDh.Contains(action)) return (true, true);
             if (AutoCrit.Contains(action)) return (true, false);
-            if ((g & Guard.InnerRelease) != 0
-                && (action.Equals("Fell Cleave", StringComparison.OrdinalIgnoreCase)
-                    || action.Equals("Decimate", StringComparison.OrdinalIgnoreCase)))
+            if (OpoActions.Contains(action)) return ((g & Guard.OpoForm) != 0, (g & Guard.Dh) != 0);
+            if ((g & Guard.InnerRelease) != 0 && InnerReleaseActions.Contains(action))
                 return (true, true);
         }
         return ((g & Guard.Crit) != 0, (g & Guard.Dh) != 0);
@@ -124,8 +230,9 @@ public class RdpsEngine
     private readonly Dictionary<uint, HashSet<string>> _songs = new();
     private readonly Dictionary<uint, (float Mult, long At)> _finale = new();
 
-    private static bool IsSong(string status)
-        => status.Equals("Mage's Ballad", StringComparison.OrdinalIgnoreCase)
+    private bool IsSong(uint statusId, string status)
+        => (_songIds != null && _songIds.Contains(statusId))
+           || status.Equals("Mage's Ballad", StringComparison.OrdinalIgnoreCase)
            || status.Equals("Army's Paeon", StringComparison.OrdinalIgnoreCase)
            || status.Equals("The Wanderer's Minuet", StringComparison.OrdinalIgnoreCase);
 
@@ -145,18 +252,25 @@ public class RdpsEngine
     private readonly Dictionary<uint, float> _finishTech = new();
     private readonly Dictionary<uint, float> _finishStd = new();
 
-    private void Sniff(uint owner, string action)
+    private void Sniff(uint owner, string action, uint actionId)
     {
-        switch (action.ToLowerInvariant())
+        if (_finishIds != null && actionId != 0 && _finishIds.TryGetValue(actionId, out var f))
         {
-            case "single technical finish": _finishTech[owner] = 1.01f; break;
-            case "double technical finish": _finishTech[owner] = 1.02f; break;
-            case "triple technical finish": _finishTech[owner] = 1.03f; break;
-            case "quadruple technical finish": _finishTech[owner] = 1.05f; break;
-            case "single standard finish": _finishStd[owner] = 1.02f; break;
-            case "double standard finish": _finishStd[owner] = 1.05f; break;
+            if (f.Tech) _finishTech[owner] = f.Mult;
+            else _finishStd[owner] = f.Mult;
+            return;
         }
+        // Name fallback without the lowercase allocation.
+        if (!action.EndsWith("Finish", StringComparison.OrdinalIgnoreCase)) return;
+        if (Eq(action, "Single Technical Finish")) _finishTech[owner] = 1.01f;
+        else if (Eq(action, "Double Technical Finish")) _finishTech[owner] = 1.02f;
+        else if (Eq(action, "Triple Technical Finish")) _finishTech[owner] = 1.03f;
+        else if (Eq(action, "Quadruple Technical Finish")) _finishTech[owner] = 1.05f;
+        else if (Eq(action, "Single Standard Finish")) _finishStd[owner] = 1.02f;
+        else if (Eq(action, "Double Standard Finish")) _finishStd[owner] = 1.05f;
     }
+
+    private static bool Eq(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
 
     // ---- per-player breakdowns ---------------------------------------------
 
@@ -206,6 +320,36 @@ public class RdpsEngine
 
     // Every point of damage counted off the log lines this fight.
     public double DealtTotal { get; private set; }
+
+    // Event-exact roll counts and biggest hit for the fight on screen.
+    public (int Hits, int Crits, int Dhs, double MaxHit, string MaxHitName) DealtFacts(string player)
+    {
+        int hits = 0, crits = 0, dhs = 0;
+        double max = 0;
+        var maxName = "";
+        if (player.Length > 0 && _dealt.TryGetValue(player, out var by))
+            foreach (var a in by.Values)
+            {
+                hits += a.Hits;
+                crits += a.Crits;
+                dhs += a.Dhs;
+                if (a.Max > max) { max = a.Max; maxName = a.Name; }
+            }
+        return (hits, crits, dhs, max, maxName);
+    }
+
+    // The same for healing, for an event-exact overheal share.
+    public (double Landed, double Over) HealFacts(string player)
+    {
+        double landed = 0, over = 0;
+        if (player.Length > 0 && _healDealt.TryGetValue(player, out var by))
+            foreach (var a in by.Values)
+            {
+                landed += a.Damage;
+                over += a.Over;
+            }
+        return (landed, over);
+    }
 
     public List<AbilityStat> Dealt(string player) => Ranked(_dealt, player);
     public List<AbilityStat> Targets(string player) => Ranked(_targets, player);
@@ -385,6 +529,7 @@ public class RdpsEngine
     public void Process(string[] f)
     {
         if (f.Length < 2) return;
+        TryBuildIds();
         switch (f[0])
         {
             case "21" or "22": OnAbility(f); break;
@@ -417,9 +562,15 @@ public class RdpsEngine
                 _guards.Clear();
                 _songs.Clear();
                 _finale.Clear();
-                // Ids belong to whoever holds them in the zone being entered.
+                _finishTech.Clear();
+                _finishStd.Clear();
+                // Ids belong to whoever holds them in the new zone.
                 _allies.Clear();
                 _owner.Clear();
+                _names.Clear();
+                _roles.Clear();
+                _rates.Clear();
+                _effectNames.Clear();
                 ClearBreakdown();
                 break;
         }
@@ -445,65 +596,81 @@ public class RdpsEngine
         if (!IsPlayer(id)) _allies.Add(id);
     }
 
+    // A guard status by id first, then by its English name.
+    private Guard GuardOf(uint statusId, string status)
+    {
+        if (_guardIds != null && _guardIds.TryGetValue(statusId, out var byId)) return byId;
+        if (Eq(status, "Life Surge")) return Guard.Crit;
+        if (Eq(status, "Reassembled")) return Guard.Crit | Guard.Dh;
+        if (Eq(status, "Inner Release")) return Guard.InnerRelease;
+        if (Eq(status, "Opo-opo Form") || Eq(status, "Formless Fist")) return Guard.OpoForm;
+        return Guard.None;
+    }
+
+    private RaidBuffs.Buff? FindBuff(uint statusId, string status)
+        => _buffIds != null && _buffIds.TryGetValue(statusId, out var byId)
+            ? byId
+            : RaidBuffs.Find(status);
+
     private void OnGain(string[] f)
     {
         if (f.Length < 10) return;
         var status = f[3];
+        var statusId = Hex(f[2]);
         var tgt = Hex(f[7]);
         var src = Hex(f[5]);
         var sec = Sec(f[1]);
-        if (status.Length > 0) _effectNames[Hex(f[2])] = status;
+        if (status.Length > 0) _effectNames[statusId] = status;
 
         // Any player status on an enemy could tick, so freeze the buffs behind it.
         if (tgt >= 0x40000000 && OwnerOf(src) != 0)
         {
             float.TryParse(f[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var dotDur);
-            SnapshotDot(tgt, Hex(f[2]), src, sec, dotDur);
+            SnapshotDot(tgt, statusId, src, sec, dotDur);
         }
 
         // Statuses that turn later hits into guaranteed crits or direct hits.
         if (IsCombatant(tgt))
         {
-            var add = status.ToLowerInvariant() switch
-            {
-                "life surge" => Guard.Crit,
-                "reassembled" => Guard.Crit | Guard.Dh,
-                "inner release" => Guard.InnerRelease,
-                _ => Guard.None,
-            };
+            var add = GuardOf(statusId, status);
             if (add != Guard.None)
                 _guards[tgt] = (_guards.TryGetValue(tgt, out var g) ? g : Guard.None) | add;
         }
 
         // A song starting is a coda banked for that bard's next finale.
-        if (IsSong(status) && IsCombatant(src))
-            (_songs.TryGetValue(src, out var set) ? set : _songs[src] = new HashSet<string>())
-                .Add(status.ToLowerInvariant());
+        if (IsSong(statusId, status) && IsCombatant(src))
+            (_songs.TryGetValue(src, out var set)
+                ? set
+                : _songs[src] = new HashSet<string>(StringComparer.OrdinalIgnoreCase))
+                .Add(status);
 
-        if (RaidBuffs.Find(status) is not { } def) return;
+        if (FindBuff(statusId, status) is not { } def) return;
         if (tgt == 0) return;
         var sourceName = f[6];
         if (sourceName.Length > 0 && src != 0) _names[src] = sourceName;
         else if (sourceName.Length == 0) _names.TryGetValue(src, out sourceName!);
+        // A buff can name its target before any add line does.
+        if (f[8].Length > 0 && tgt != 0) _names[tgt] = f[8];
 
         float.TryParse(f[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var dur);
         // A missing or zero duration gets a sane cap so nothing sticks forever.
         var expire = sec + (long)MathF.Ceiling(dur > 0f ? dur : 30f) + 1;
 
         // Strengths the status name alone can't tell.
-        RaidBuffs.Effect[]? resolved = status.ToLowerInvariant() switch
-        {
-            "radiant finale" => new[] { new RaidBuffs.Effect(RaidBuffs.Kind.Damage, FinaleMult(src, sec)) },
-            "technical finish" => new[]
-            {
-                new RaidBuffs.Effect(RaidBuffs.Kind.Damage, _finishTech.TryGetValue(src, out var t) ? t : 1.05f),
-            },
-            "standard finish" => new[]
-            {
-                new RaidBuffs.Effect(RaidBuffs.Kind.Damage, _finishStd.TryGetValue(src, out var st) ? st : 1.05f),
-            },
-            _ => null,
-        };
+        RaidBuffs.Effect[]? resolved =
+            Eq(def.Name, "Radiant Finale")
+                ? new[] { new RaidBuffs.Effect(RaidBuffs.Kind.Damage, FinaleMult(src, sec)) }
+            : Eq(def.Name, "Technical Finish")
+                ? new[]
+                {
+                    new RaidBuffs.Effect(RaidBuffs.Kind.Damage, _finishTech.TryGetValue(src, out var t) ? t : 1.05f),
+                }
+            : Eq(def.Name, "Standard Finish")
+                ? new[]
+                {
+                    new RaidBuffs.Effect(RaidBuffs.Kind.Damage, _finishStd.TryGetValue(src, out var st) ? st : 1.05f),
+                }
+            : null;
 
         if (!_buffs.TryGetValue(tgt, out var list)) _buffs[tgt] = list = new List<ActiveBuff>();
         // A refresh replaces the running copy from the same source.
@@ -518,19 +685,14 @@ public class RdpsEngine
     private void OnLose(string[] f)
     {
         if (f.Length < 9) return;
+        var statusId = Hex(f[2]);
         var tgt = Hex(f[7]);
         var src = Hex(f[5]);
-        _dotSnaps.Remove((tgt, Hex(f[2]), src));
+        _dotSnaps.Remove((tgt, statusId, src));
 
         if (IsCombatant(tgt))
         {
-            var drop = f[3].ToLowerInvariant() switch
-            {
-                "life surge" => Guard.Crit,
-                "reassembled" => Guard.Crit | Guard.Dh,
-                "inner release" => Guard.InnerRelease,
-                _ => Guard.None,
-            };
+            var drop = GuardOf(statusId, f[3]);
             if (drop != Guard.None && _guards.TryGetValue(tgt, out var g))
             {
                 g &= ~drop;
@@ -538,7 +700,7 @@ public class RdpsEngine
             }
         }
 
-        if (RaidBuffs.Find(f[3]) is not { } def) return;
+        if (FindBuff(statusId, f[3]) is not { } def) return;
         if (!_buffs.TryGetValue(tgt, out var list)) return;
         list.RemoveAll(b => b.Def == def && (src == 0 || b.SourceId == src));
     }
@@ -558,24 +720,26 @@ public class RdpsEngine
             return;
         }
         var action = f[5];
-        if (action.Length > 0) Sniff(owner, action);
+        var actionId = Hex(f[4]);
+        if (action.Length > 0) Sniff(owner, action, actionId);
         // Anything aimed at the party is healing, not damage.
         if (IsCombatant(target)) { OnHeal(f, owner, target); return; }
         if (target < 0x40000000) return;     // only damage into enemies counts
         if (f[7].Length > 0) CurrentEnemy = f[7];
-        var actionId = Hex(f[4]);
+        var sec = Sec(f[1]);
+        if (sec > LatestSec) LatestSec = sec;
         if (IsLimitBreak?.Invoke(actionId) == true)
         {
             LastLimitBreak = actionId;
+            // Counted under its own row, never paying or earning credit.
+            TallyLimitBreak(f, action, actionId);
             return;
         }
 
-        var sec = Sec(f[1]);
-        if (sec > LatestSec) LatestSec = sec;
         if (src == owner && f[3].Length > 0) _names[owner] = f[3];
         if (!_names.TryGetValue(owner, out var ownerName) || ownerName.Length == 0) return;
 
-        var (gc, gd) = Guarantee(owner, action);
+        var (gc, gd) = Guarantee(owner, action, actionId);
 
         // A hit into an enemy can heal whoever landed it, their health at 34 and 35.
         var mine = src == owner;
@@ -604,6 +768,24 @@ public class RdpsEngine
             Gather(owner, target, sec);
             Learn(owner, crit, dh, gc && crit, gd && dh);
             Allocate(owner, ownerName, dmg, crit, dh, gc && crit, gd && dh, sec);
+        }
+    }
+
+    // The row the parser files limit break damage under.
+    public const string LimitBreakName = "Limit Break";
+
+    private void TallyLimitBreak(string[] f, string action, uint actionId)
+    {
+        for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
+        {
+            var flags = Hex(f[i]);
+            if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
+            var dmg = Unscramble(HexLong(f[i + 1]));
+            if (dmg == 0) continue;
+            Tally(_dealt, LimitBreakName, action.Length > 0 ? action : "Limit Break", dmg,
+                crit: false, dh: false, actionId);
+            DealtTotal += dmg;
+            if (f[7].Length > 0) Tally(_targets, LimitBreakName, f[7], dmg, crit: false, dh: false);
         }
     }
 
@@ -973,12 +1155,21 @@ public class RdpsEngine
     // ---- parsing helpers ---------------------------------------------------
 
     private long _lastSec;
+    private string _tsPrefix = "";
+    private long _tsSec;
 
-    // Unix second of a log timestamp like 2026-07-30T21:15:32.123+02:00.
+    // Unix second of the log timestamp, cached within the same second.
     private long Sec(string ts)
-        => DateTimeOffset.TryParse(ts, CultureInfo.InvariantCulture, DateTimeStyles.None, out var t)
-            ? _lastSec = t.ToUnixTimeSeconds()
-            : _lastSec;
+    {
+        if (ts.Length >= 19 && _tsPrefix.Length == 19
+            && ts.AsSpan(0, 19).SequenceEqual(_tsPrefix))
+            return _lastSec = _tsSec;
+        if (!DateTimeOffset.TryParse(ts, CultureInfo.InvariantCulture, DateTimeStyles.None, out var t))
+            return _lastSec;
+        _tsSec = t.ToUnixTimeSeconds();
+        _tsPrefix = ts.Length >= 19 ? ts[..19] : "";
+        return _lastSec = _tsSec;
+    }
 
     private static uint Hex(string s)
         => uint.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var v) ? v : 0u;

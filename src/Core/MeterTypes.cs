@@ -171,15 +171,20 @@ public sealed class MeterEncounter
                 row.RDps = row.Dps;
                 // Real jobs and the limit break; the parser's oddments stay off.
                 var job = Jobs.ByAbbreviation(row.Job);
-                if (job == null
-                    && !string.Equals(row.Name, "Limit Break", StringComparison.OrdinalIgnoreCase))
-                    continue;
+                if (job == null && !IsLimitBreakName(row.Name)) continue;
                 row.LimitBreak = job == null;
                 e.Rows.Add(row);
             }
 
         return e;
     }
+
+    // The limit break combatant in every log language the game writes.
+    public static bool IsLimitBreakName(string name)
+        => name.Equals("Limit Break", StringComparison.OrdinalIgnoreCase)
+           || name.Equals("リミットブレイク", StringComparison.Ordinal)
+           || name.Equals("Limitrausch", StringComparison.OrdinalIgnoreCase)
+           || name.Equals("Transcendance", StringComparison.OrdinalIgnoreCase);
 
     // Drops the owner tail the parser adds to an owned ally ("G'raha Tia (YOU)").
     public static string StripOwner(string name)

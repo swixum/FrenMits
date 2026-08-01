@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 namespace FrenMits;
 
-// Every party-wide damage buff the rDPS split recognizes, keyed by the status
-// name exactly as the combat log spells it. Values are the current live ones;
-// a balance patch only needs the number edited here.
+// Every party-wide damage buff the rDPS split recognizes, at current live
+// values a balance patch only needs to edit here.
 public static class RaidBuffs
 {
     public enum Kind { Damage, CritRate, DirectHitRate }
@@ -61,10 +60,8 @@ public static class RaidBuffs
         Crit("Chain Stratagem", 0.10f, onEnemy: true), // SCH
         Dmg("Dokumori", 1.05f, onEnemy: true),         // NIN
         Dmg("Mug", 1.05f, onEnemy: true),              // NIN, low level / synced
-        // Kunai's Bane and the Trick Attack it replaced are deliberately absent.
-        // Pricing them here as another party-wide debuff triples what a ninja
-        // is paid: three ranked kills put their contribution at 1.44%, 1.54%
-        // and 1.55% of raid damage, which Dokumori alone already accounts for.
+        // Kunai's Bane stays absent because ranked kills show Dokumori alone
+        // already accounts for a ninja's measured contribution.
 
         // Dance finishes: one status name for every step count; the engine
         // reads the finishing move to price partial dances, full is the default.
@@ -94,6 +91,9 @@ public static class RaidBuffs
             },
         },
     };
+
+    // The whole table, for building id lookups against the game sheets.
+    public static IReadOnlyList<Buff> All => Table;
 
     private static readonly Dictionary<string, Buff> ByName = Build();
 

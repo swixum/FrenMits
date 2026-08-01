@@ -1334,6 +1334,7 @@ public class MeterWindow : Window
         var p = ImGui.GetCursorScreenPos();
         ImGui.InvisibleButton(e.Id, new Vector2(w, h));
         var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
+        var opened = hovered && ImGui.IsItemClicked(ImGuiMouseButton.Left);
         var dl = ImGui.GetWindowDrawList();
         var rgb = C.MeterAccentColor & 0x00FFFFFF;
 
@@ -1357,8 +1358,9 @@ public class MeterWindow : Window
         if (hovered)
         {
             PushMenuTheme();
-            ImGui.SetTooltip($"{Num(e.Row.Damage)} damage from the party's limit break");
+            ImGui.SetTooltip($"{Num(e.Row.Damage)} limit break damage\nclick for the breakdown");
             PopMenuTheme();
+            if (opened) OpenDetail(RdpsEngine.LimitBreakName, 0);
         }
         ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + h + C.MeterBarGap));
     }
@@ -2026,12 +2028,18 @@ public class MeterWindow : Window
     private void CopySummary()
     {
         if (_shown is not { Rows.Count: > 0 } enc) return;
-        var heal = C.MeterMode == 1;
+        var mode = C.MeterMode;
         var sb = new System.Text.StringBuilder();
         sb.Append(enc.Title.Length > 0 ? enc.Title : "Encounter")
             .Append("  ").Append(enc.Duration.Length > 0 ? enc.Duration : "0:00")
             .Append("  ·  ")
-            .Append(heal ? $"raid {Num(enc.TotalHps)} HPS" : $"raid {Num(enc.RaidRDps)} rDPS");
+            .Append(mode switch
+            {
+                1 => $"raid {Num(enc.TotalHps)} HPS",
+                2 => $"raid {Num(enc.TotalTaken)} taken",
+                3 => $"{enc.TotalDeaths} deaths",
+                _ => $"raid {Num(enc.RaidRDps)} rDPS",
+            });
 
         var rows = new List<MeterCombatant>(enc.Rows);
         rows.Sort((a, b) => Metric(b).CompareTo(Metric(a)));
@@ -2043,11 +2051,17 @@ public class MeterWindow : Window
             sb.Append('\n').Append(rank++).Append(". ")
                 .Append(r.Display.Length > 0 ? r.Display : r.Name);
             if (r.Job.Length > 0) sb.Append(" (").Append(r.Job).Append(')');
-            sb.Append("  ").Append(heal ? $"{Num(r.Hps)} HPS" : $"{Num(r.RDps)} rDPS");
-            if (!heal && r.DamagePct.Length > 0) sb.Append("  ").Append(r.DamagePct);
+            sb.Append("  ").Append(mode switch
+            {
+                1 => $"{Num(r.Hps)} HPS",
+                2 => $"{Num(r.Taken)} taken",
+                3 => $"{r.Deaths} death{(r.Deaths == 1 ? "" : "s")}",
+                _ => $"{Num(r.RDps)} rDPS",
+            });
+            if (mode == 0 && r.DamagePct.Length > 0) sb.Append("  ").Append(r.DamagePct);
         }
         // The limit break is nobody's line, so it goes under the party.
-        if (lb != null && !heal && lb.Damage > 0)
+        if (lb != null && mode == 0 && lb.Damage > 0)
         {
             sb.Append("\nLimit Break  ").Append(Num(lb.Dps)).Append(" DPS");
             if (lb.DamagePct.Length > 0) sb.Append("  ").Append(lb.DamagePct);
