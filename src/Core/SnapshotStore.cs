@@ -24,18 +24,25 @@ public sealed class SnapshotStore
     private static string Dir => System.IO.Path.Combine(
         Service.PluginInterface.GetPluginConfigDirectory(), "snapshots");
 
+    // A fight id is a bare guid, so anything else can't reach the file name.
+    private static string FileKey(string? id)
+    {
+        var chars = (id ?? "").Where(char.IsLetterOrDigit).Take(64).ToArray();
+        return chars.Length > 0 ? new string(chars) : "unknown";
+    }
+
     public void Save(FightProfile fight, string reason)
     {
         try
         {
             System.IO.Directory.CreateDirectory(Dir);
             var file = System.IO.Path.Combine(Dir,
-                $"{fight.Id}_{DateTime.Now:yyyyMMdd-HHmmss-fff}.json");
+                $"{FileKey(fight.Id)}_{DateTime.Now:yyyyMMdd-HHmmss-fff}.json");
             System.IO.File.WriteAllText(file, Newtonsoft.Json.JsonConvert.SerializeObject(
                 new PlanBackup { Reason = reason, FightName = fight.Name, When = DateTime.Now, Fight = fight }));
 
             // Keep the newest 12 per fight.
-            var mine = System.IO.Directory.GetFiles(Dir, $"{fight.Id}_*.json")
+            var mine = System.IO.Directory.GetFiles(Dir, $"{FileKey(fight.Id)}_*.json")
                 .OrderByDescending(f => f).ToList();
             foreach (var old in mine.Skip(12)) System.IO.File.Delete(old);
         }
@@ -51,7 +58,7 @@ public sealed class SnapshotStore
         try
         {
             if (!System.IO.Directory.Exists(Dir)) return list;
-            foreach (var file in System.IO.Directory.GetFiles(Dir, $"{fightId}_*.json")
+            foreach (var file in System.IO.Directory.GetFiles(Dir, $"{FileKey(fightId)}_*.json")
                          .OrderByDescending(f => f))
             {
                 try
@@ -82,7 +89,7 @@ public sealed class SnapshotStore
                          .OrderByDescending(f => f))
             {
                 if (excludeFightId.Length > 0
-                    && System.IO.Path.GetFileName(file).StartsWith(excludeFightId + "_")) continue;
+                    && System.IO.Path.GetFileName(file).StartsWith(FileKey(excludeFightId) + "_")) continue;
                 try
                 {
                     var b = Newtonsoft.Json.JsonConvert.DeserializeObject<PlanBackup>(

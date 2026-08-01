@@ -24,31 +24,54 @@ public static class PlanCodes
         return t.StartsWith("FRENMITS2:") || t.StartsWith("FRENMITS1:");
     }
 
+    // The heaviest real plan is tens of KB, so past this it isn't one.
+    private const int MaxPlanBytes = 16 * 1024 * 1024;
+
+    // A pasted code that long is never a plan either.
+    private const int MaxCodeChars = 4 * 1024 * 1024;
+
     // A plan code back into its fight, or null when it won't decode.
     public static FightProfile? Decode(string? codeText)
     {
         try
         {
             var text = (codeText ?? "").Trim();
+            if (text.Length > MaxCodeChars) return null;
             string json;
             if (text.StartsWith("FRENMITS2:"))
             {
                 var data = Convert.FromBase64String(text["FRENMITS2:".Length..]);
                 using var ms = new System.IO.MemoryStream(data);
                 using var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Decompress);
-                using var outMs = new System.IO.MemoryStream();
-                gz.CopyTo(outMs);
-                json = System.Text.Encoding.UTF8.GetString(outMs.ToArray());
+                var raw = ReadCapped(gz);
+                if (raw == null) return null;
+                json = System.Text.Encoding.UTF8.GetString(raw);
             }
             else if (text.StartsWith("FRENMITS1:"))
             {
-                json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(text["FRENMITS1:".Length..]));
+                var raw = Convert.FromBase64String(text["FRENMITS1:".Length..]);
+                if (raw.Length > MaxPlanBytes) return null;
+                json = System.Text.Encoding.UTF8.GetString(raw);
             }
             else return null;
 
             return Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(json);
         }
         catch { return null; }
+    }
+
+    // Read to the ceiling, so a crafted code can't expand until the game dies.
+    private static byte[]? ReadCapped(System.IO.Stream stream)
+    {
+        using var outMs = new System.IO.MemoryStream();
+        var buf = new byte[64 * 1024];
+        int read;
+        while ((read = stream.Read(buf, 0, buf.Length)) > 0)
+        {
+            if (outMs.Length + read > MaxPlanBytes) return null;
+            outMs.Write(buf, 0, read);
+        }
+        return outMs.ToArray();
     }
 
     // Decode and apply; a same-duty code updates in place.
