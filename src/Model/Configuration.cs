@@ -316,6 +316,8 @@ public class Configuration : IPluginConfiguration
     public bool MeterFooterDeaths { get; set; } = true;     // the pull's death count in the footer
     public bool MeterLimitBreakRow { get; set; } = true;    // limit break in its own row under the party
     public bool MeterSplitHealing { get; set; }             // DPS on top, the healers' HPS below
+    // No UI for this: the meter's session diag file, off unless /fm meterdiag.
+    public bool MeterDiagFile { get; set; }
     public float MeterRefreshSeconds { get; set; } = 1f;    // how often values settle; 0 is every frame
     public bool MeterCollapsed { get; set; }                // rolled up to just its header
     public bool MeterAlwaysShow { get; set; } = true;       // stay on screen with no pull to show

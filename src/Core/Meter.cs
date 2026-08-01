@@ -13,6 +13,14 @@ public class Meter : IDisposable
 
     public MeterLink Link { get; }
     public RdpsEngine Engine { get; } = new();
+    private readonly MeterDiag _mdiag = new();
+
+    // One line into the pull record, and the session file where it is enabled.
+    private void Note(string what)
+    {
+        if (_plugin.Config.Diagnostics) _plugin.Diag.Note("meter: " + what);
+        if (C.MeterDiagFile) _mdiag.Note(_replaying ? "(replay) " + what : what);
+    }
 
     public MeterEncounter? Current { get; private set; }
     public List<MeterEncounter> History { get; } = new();
@@ -160,6 +168,8 @@ public class Meter : IDisposable
 
         // Combat over: close the fight here rather than wait out the parser.
         var inCombat = _inCombat;
+        if (inCombat != _wasInCombat && !_replaying)
+            Note($"combat {(inCombat ? "on" : "off")} - board {Current?.Seconds ?? 0:0}s");
         if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
         // A cutscene between phases drops combat without ending the pull.
         if (_cutscene) _combatDropAt = DateTime.UtcNow;
@@ -172,6 +182,7 @@ public class Meter : IDisposable
         // A stitched fight that ended in the quiet gap, such as a downtime wipe.
         if (!Paused && _carry != null && _rawSeg is not { Active: true } && settle)
         {
+            Note($"stitched fight settled in the gap after {sinceDrop:0.0}s quiet");
             if (Current != null)
             {
                 Current.Active = false;
@@ -187,9 +198,13 @@ public class Meter : IDisposable
             Engine.Trim();
         }
 
+        _mdiag.Update();
+
         if (!_cutDone && !Paused && _rawSeg is { Active: true } && settle)
         {
             _cutDone = true;
+            Note($"settle cut after {sinceDrop:0.0}s quiet - board {Current?.Seconds ?? 0:0}s "
+               + $"{(Current?.TotalDamage ?? 0) / 1e6:0.0}M");
             CutHere();
         }
 
@@ -226,6 +241,7 @@ public class Meter : IDisposable
             {
                 var line = new string[arr.Count];
                 for (var i = 0; i < arr.Count; i++) line[i] = arr[i]?.ToString() ?? "";
+                if (line.Length > 3 && line[0] == "01") Note($"zone change - {line[3]}");
                 Engine.Process(line);
             }
             return;
@@ -283,11 +299,11 @@ public class Meter : IDisposable
         if (stale != FeedStale)
         {
             FeedStale = stale;
-            _plugin.Diag.Note(stale
+            Note(stale
                 ? FeedStaleInReplay
-                    ? "meter: a replay feeds the parser nothing - the board is still showing the last real pull"
-                    : "meter: the parser feed has gone quiet mid-fight - what is on the board is not this pull"
-                : "meter: parser feed is live again");
+                    ? "a replay feeds the parser nothing - the board is still showing the last real pull"
+                    : "the parser feed has gone quiet mid-fight - what is on the board is not this pull"
+                : "parser feed is live again");
             Service.Log.Warning(stale
                 ? "[FrenMits] Meter: no new parser data and no damage counted for "
                   + $"{StaleAfterSeconds:0}s{(replay ? " of playback" : " of combat")}."
@@ -370,8 +386,8 @@ public class Meter : IDisposable
             // The parser starting its own new encounter retires the cut.
             if (!CutStillHolds(raw.TotalDamage, _cut.Damage))
             {
-                _plugin.Diag.Note($"meter: parser restarted (damage {raw.TotalDamage / 1e6:0.0}M "
-                                + $"under the cut's {_cut.Damage / 1e6:0.0}M); baseline dropped");
+                Note($"parser restarted (damage {raw.TotalDamage / 1e6:0.0}M "
+                   + $"under the cut's {_cut.Damage / 1e6:0.0}M); baseline dropped");
                 _cut = null;
                 restarted = true;
             }
@@ -389,13 +405,16 @@ public class Meter : IDisposable
 
         if (raw.Active)
         {
-            var continuing = _rawSeg is { Active: true } && raw.Seconds + 0.5f >= _rawSeg.Seconds;
+            var continuing = SameSegment(restarted, _rawSeg, raw.TotalDamage);
             if (!continuing)
             {
                 // A segment ended without its final update, so bank what THIS
                 // message shows and start the live segment from here.
                 if (_rawSeg is { Active: true })
                 {
+                    if (!restarted)
+                        Note($"segment break - parser clock {_rawSeg.Seconds:0}s -> {raw.Seconds:0}s, "
+                           + $"damage {_rawSeg.TotalDamage / 1e6:0.0}M -> {raw.TotalDamage / 1e6:0.0}M");
                     if (restarted)
                     {
                         // Nothing of the new encounter is banked, so this message is all of it.
@@ -413,6 +432,8 @@ public class Meter : IDisposable
                     _fightStartSec = Math.Max(0, Engine.LatestSec - (long)raw.Seconds);
                     _fightTitle = ""; // a fresh fight names itself from scratch
                     _sawBoss = false;
+                    Note($"pull start - parser {raw.Seconds:0}s {raw.TotalDamage / 1e6:0.00}M"
+                       + $"{(_cut != null ? " (cut active)" : "")}{(_inCombat ? "" : ", combat off")}");
                 }
             }
             SetTitle(raw);
@@ -446,9 +467,9 @@ public class Meter : IDisposable
             // Banked now, so the parser has to be measured from here on.
             if (_rawIn != null) _cut = Snapshot(_rawIn);
             // Printed beside the parser's total, a stitch gone wrong shows itself.
-            _plugin.Diag.Note($"meter: banked segment {final.Seconds:0}s {final.TotalDamage / 1e6:0.0}M; "
-                            + $"fight now {_carry.Seconds:0}s {Total(_carry) / 1e6:0.0}M "
-                            + $"(log lines say {EngineTotal() / 1e6:0.0}M)");
+            Note($"banked segment {final.Seconds:0}s {final.TotalDamage / 1e6:0.0}M; "
+               + $"fight now {_carry.Seconds:0}s {Total(_carry) / 1e6:0.0}M "
+               + $"(log lines say {EngineTotal() / 1e6:0.0}M)");
             display.Active = true;
             Publish(display);
             return;
@@ -457,6 +478,8 @@ public class Meter : IDisposable
         display.Active = false;
         Materialize(display);
         Publish(display);
+        Note($"pull ended - {display.Seconds:0}s {display.TotalDamage / 1e6:0.0}M"
+           + $"{(WorthKeeping(display) ? "" : ", not kept")}");
         if (WorthKeeping(display)) PushHistory(display);
         EndFight();
     }
@@ -632,8 +655,8 @@ public class Meter : IDisposable
         if (counted <= 0 || enc.TotalDamage <= counted * DriftWarnAbove) return;
         if (enc.TotalDamage < _warnedAt * 1.05) return;   // once per step, not per frame
         _warnedAt = enc.TotalDamage;
-        _plugin.Diag.Note($"meter: DRIFT - showing {enc.TotalDamage / 1e6:0.0}M but the log lines "
-                        + $"only account for {counted / 1e6:0.0}M");
+        Note($"DRIFT - showing {enc.TotalDamage / 1e6:0.0}M but the log lines "
+           + $"only account for {counted / 1e6:0.0}M");
     }
 
     private void Publish(MeterEncounter enc)
@@ -748,6 +771,11 @@ public class Meter : IDisposable
     // which its damage says and its idle-trimmed clock cannot.
     public static bool CutStillHolds(double parserDamage, double cutDamage)
         => parserDamage + 1.0 >= cutDamage;
+
+    // The same rule decides segment continuation, because the parser's clock
+    // steps backwards when it trims idle time off a running encounter.
+    public static bool SameSegment(bool restarted, MeterEncounter? prev, double damage)
+        => !restarted && prev is { Active: true } && damage + 1.0 >= prev.TotalDamage;
 
     public static Baseline Snapshot(MeterEncounter raw)
     {
@@ -1158,5 +1186,9 @@ public class Meter : IDisposable
         }
     }
 
-    public void Dispose() => Link.Dispose();
+    public void Dispose()
+    {
+        _mdiag.Flush();
+        Link.Dispose();
+    }
 }

@@ -546,10 +546,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // Measured in game time, so a lull learned from a 2x replay records its real
     // length.
     public float DowntimeElapsed => _downtimeElapsed;
-    // Seconds left until targetable, once this lull has been seen before (learned);
-    // -1 the very first time, when we're still measuring it. Counted to the
-    // window's own targetable time rather than down from its length, so a lull
-    // the game flags a few seconds off the sheet still ends where it really ends.
+    // Seconds left until targetable for a learned lull, -1 while still measuring.
     public float DowntimeRemaining => _downtimeRemaining;
     private float _downtimeElapsed;
     private float _downtimeRemaining = -1f;
@@ -559,8 +556,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     // The current boss's HP as a 0..1 fraction (-1 when there's no boss).
     public float BossHpFraction { get; private set; } = -1f;
 
-    // Players still on their feet, or -1 when nothing was counted this frame.
-    // Zero while the party is still in combat is what a wipe looks like.
+    // Players still up, -1 when uncounted, and zero mid-combat is a wipe.
     public int PlayersStanding { get; private set; } = -1;
 
     // Whoever this pull is about, by NameId: the key a learned timeline is filed
@@ -585,20 +581,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return true;
     }
 
-    // A raid boss's health bar rather than a trash mob's. A flat floor only tells
-    // the two apart at the level cap: under sync a boss can hold less health than
-    // a capped player does, and the meter would then see no boss in the duty at
-    // all - no stitching across a lull, no kill on the pull. The lower of the two
-    // tests wins, so capped content reads exactly as it did.
+    // A raid boss's health bar, told from trash by whichever floor test is lower.
     public const uint BossHpFloor = 1_000_000;
     private const uint BossHpPlayerMultiple = 15;
 
     public static bool BossSized(uint maxHp, uint playerMaxHp)
         => maxHp > (playerMaxHp > 0 ? Math.Min(BossHpFloor, playerMaxHp * BossHpPlayerMultiple) : BossHpFloor);
 
-    // Who in your own party is still up, which is what a wipe empties. The object
-    // table counts every player in the zone: the other two alliances, or whoever
-    // happened to be standing in the same FATE.
+    // Who in your OWN party is up, not the whole zone the object table counts.
     private static int StandingInParty()
     {
         var party = Service.PartyList;
@@ -629,9 +619,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                 {
                     // The DPS-gate readout wants a raid boss, so trash stays out.
                     if (boss is null || n.MaxHp > boss.MaxHp) boss = n;
-                    // A fight can carry huge untargetable extras (clones, set
-                    // pieces, a corpse not yet despawned); the one you can hit is
-                    // the boss, not the biggest.
+                    // The targetable enemy is the boss, not the biggest.
                     if (n is { IsTargetable: true, CurrentHp: > 0 }
                         && (targetable is null || n.MaxHp > targetable.MaxHp)) targetable = n;
                 }
@@ -686,9 +674,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             ? MathF.Max(0f, _downtimeKnownEnd - clock) : -1f;
     }
 
-    // When the sheet says the boss is targetable again, for the lull starting
-    // near `start` (-1 if none). The game can flag a lull a few seconds either
-    // side of the sheet, so the countdown reads the window's end, not its length.
+    // When the boss is targetable again for the lull near start, -1 if none.
     private float LookupTargetable(uint? territory, float start)
         => territory is { } t
             ? Downtimes.TargetableAt(Downtimes.Effective(t, Config.LearnedDowntimes), start)
@@ -888,9 +874,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         _wasInCutscene = inCs;
     }
 
-    // ---- Door-boss phase tracking ----------------------------------------
-    // A door boss (e.g. M12S) is one instance with two phases, each its own combat
-    // from 0.
+    // ---- door-boss phases: one instance, two combats from zero ----------
     private bool _phaseTwo;
     private uint _trackedBossEntity;
     private uint _trackedBossLastHp;
@@ -1054,6 +1038,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                 Chat(newest.Length == 0
                     ? "No recordings yet - run /fm meterrec before a pull."
                     : $"{System.IO.Path.GetFileName(newest)}: {Meter.Replay(newest)}");
+                break;
+            // The meter's session diag file, kept off unless turned on here.
+            case "meterdiag":
+                Config.MeterDiagFile = !Config.MeterDiagFile;
+                Config.SaveSettings();
+                Chat(Config.MeterDiagFile
+                    ? "Meter diag file on (this PC only)."
+                    : "Meter diag file off.");
                 break;
             default:
                 var pm = System.Text.RegularExpressions.Regex.Match(args.Trim().ToLowerInvariant(), @"^(?:phase|p)\s*(\d)$");
