@@ -5,8 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// One line of a player's breakdown: an ability they used, an enemy they hit,
-// or something that hit them.
+// One line of a player's breakdown: an ability, an enemy, or an incoming hit.
 public sealed class AbilityStat
 {
     public string Name = "";
@@ -15,14 +14,12 @@ public sealed class AbilityStat
     public int Dhs;
     public double Damage;
     public double Max;
-    // The game id behind the row, for its icon: an action, or a status when
-    // the damage came from an effect ticking. Zero for anything unresolved.
+    // The action or status id behind the row, for its icon.
     public uint Id;
     public bool IsStatus;
-    // Healing that landed on a full bar. Zero on every damage row.
+    // Healing that landed on a full bar.
     public double Over;
-    // What this row breaks down into a level further: the buffs behind a
-    // player's share of the credit. Null everywhere else.
+    // The buffs behind a player's share of the credit.
     public List<AbilityStat>? Parts;
 
     public double Average => Hits > 0 ? Damage / Hits : 0;
@@ -32,8 +29,7 @@ public sealed class AbilityStat
     public double OverPct => Raw > 0 ? Over * 100.0 / Raw : 0;
 }
 
-// How a pull finished. Unknown covers walking away, a reset, and anything the
-// plugin cannot vouch for: better to say nothing than to guess.
+// How a pull finished, with Unknown for anything the plugin cannot vouch for.
 public enum PullEnd { Unknown, Kill, Wipe }
 
 // One thing that landed on a player shortly before they died.
@@ -62,6 +58,7 @@ public sealed class MeterCombatant
     public string Name = "";       // as the parser reports it ("YOU" for yourself)
     public string Display = "";    // resolved name shown on the bar
     public string Job = "";        // abbreviation, empty for Limit Break
+    public bool LimitBreak;        // the party's shared limit break, not a player
     public double Dps;
     public double ADps;            // the parser's own active-time DPS, idle taken out
     public double RDps;            // Dps adjusted by buff credits given and received
@@ -77,8 +74,7 @@ public sealed class MeterCombatant
     public string MaxHit = "";
 }
 
-// One encounter snapshot from the parser's summary feed, plus the rDPS numbers
-// this plugin works out itself from the line stream.
+// One encounter from the parser's summary feed, plus the rDPS worked out here.
 public sealed class MeterEncounter
 {
     public string Title = "";
@@ -91,15 +87,15 @@ public sealed class MeterEncounter
     public double TotalTaken;
     public int TotalDeaths;
     public double RaidRDps;
-    // How much of the boss was still up when the pull closed. Below zero when
-    // no raid-sized enemy was ever on the field to read.
+    // How much of the boss was left when the pull closed, below zero if unread.
     public float BossLeft = -1f;
+    // The limit break action this pull used, for the icon on its row.
+    public uint LimitBreakAction;
     public PullEnd Ended = PullEnd.Unknown;
     public DateTime When = DateTime.Now;
     public List<MeterCombatant> Rows = new();
 
-    // Per-player breakdowns, filled in when the pull finishes so a look back
-    // through history still has them.
+    // Per-player breakdowns, banked when the pull finishes so history keeps them.
     public Dictionary<string, List<AbilityStat>> Dealt { get; }
         = new(StringComparer.OrdinalIgnoreCase);
 
@@ -168,20 +164,19 @@ public sealed class MeterEncounter
                 };
                 row.Display = StripOwner(row.Name);
                 row.RDps = row.Dps;
-                // Real jobs and the Limit Break row; the parser's oddments
-                // (unmerged pets, the blank server row) stay off the meter.
-                if (Jobs.ByAbbreviation(row.Job) != null
-                    || string.Equals(row.Name, "Limit Break", StringComparison.OrdinalIgnoreCase))
-                    e.Rows.Add(row);
+                // Real jobs and the limit break; the parser's oddments stay off.
+                var job = Jobs.ByAbbreviation(row.Job);
+                if (job == null
+                    && !string.Equals(row.Name, "Limit Break", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                row.LimitBreak = job == null;
+                e.Rows.Add(row);
             }
 
         return e;
     }
 
-    // The parser tags anything the game marks as owned with its owner, so a
-    // duty support ally arrives as "G'raha Tia (YOU)". Character names never
-    // carry brackets, and the bare name is what the log lines use, so the tail
-    // comes off for both matching and display.
+    // Drops the owner tail the parser adds to an owned ally ("G'raha Tia (YOU)").
     public static string StripOwner(string name)
     {
         if (!name.EndsWith(")", StringComparison.Ordinal)) return name;

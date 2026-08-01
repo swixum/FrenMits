@@ -4,17 +4,11 @@ using System.Globalization;
 
 namespace FrenMits;
 
-// Splits every damage event's raid-buff gain between the buffers, from the raw
-// log stream. Stacked percent buffs divide the exact combined gain N*(M-1)/M
-// by log ratio, so two small buffs earn what one equal product buff would.
-// Crit and direct hit rate buffs are paid only on hits that actually rolled
-// one, in proportion to how likely the roll came from the buff, with the crit
-// multiplier learned per player from their observed rates. Everything lands in
-// per-second buckets so any encounter window can be summed later.
+// Splits every damage event's raid-buff gain between the buffers that caused
+// it, into per-second buckets any encounter window can sum later.
 public class RdpsEngine
 {
-    // The game's crit multiplier is 1.35 plus the player's crit rate; direct
-    // hits are +25% exactly.
+    // Crit pays 1.35 plus the player's crit rate; a direct hit is +25% exactly.
     public const float McBase = 1.35f;
     public const float DhMult = 1.25f;
 
@@ -32,13 +26,14 @@ public class RdpsEngine
     // The newest event second seen, the anchor "now" for window queries.
     public long LatestSec { get; private set; }
 
-    // Player name from the swap-to-character line, for mapping the parser's
-    // "YOU" rows when the game object isn't reachable.
+    // Player name off the swap-to-character line, for the parser's "YOU" rows.
     public string LocalPlayerName { get; private set; } = "";
 
-    // Limit break actions deal fixed, unbuffable damage, so their hits must
-    // never pay buff credits. The host supplies the id check (game sheet).
+    // Limit break damage is unbuffable, so its hits never pay buff credits.
     public Func<uint, bool>? IsLimitBreak;
+
+    // The limit break this fight has seen, for the icon on its row.
+    public uint LastLimitBreak { get; private set; }
 
     // Whoever the party is actually hitting, for naming the encounter.
     public string CurrentEnemy { get; private set; } = "";
@@ -165,14 +160,12 @@ public class RdpsEngine
 
     // ---- per-player breakdowns ---------------------------------------------
 
-    // What each player used, who they hit with it, and what hit them. Kept for
-    // the running fight only; a finished pull keeps its own copy.
+    // What each player used, who they hit, and what hit them, for this fight.
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _dealt = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _targets = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _taken = new(StringComparer.OrdinalIgnoreCase);
 
-    // The same three, for healing: what each healer cast, who they healed, and
-    // who healed each player.
+    // The same three for healing: cast, healed, and healed by.
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healDealt = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healTargets = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, AbilityStat>> _healFrom = new(StringComparer.OrdinalIgnoreCase);
@@ -203,14 +196,16 @@ public class RdpsEngine
     {
         var list = new List<AbilityStat>();
         if (who.Length > 0 && table.TryGetValue(who, out var by)) list.AddRange(by.Values);
-        // Overhealing only breaks ties, so a spell that did nothing but overheal
-        // still sits below one that landed.
+        // Overhealing only breaks ties, so a wasted cast sits below a landed one.
         list.Sort((a, b) => a.Damage != b.Damage ? b.Damage.CompareTo(a.Damage) : b.Over.CompareTo(a.Over));
         return list;
     }
 
     // Everyone the engine has seen deal damage this fight.
     public IEnumerable<string> Dealers() => _dealt.Keys;
+
+    // Every point of damage counted off the log lines this fight.
+    public double DealtTotal { get; private set; }
 
     public List<AbilityStat> Dealt(string player) => Ranked(_dealt, player);
     public List<AbilityStat> Targets(string player) => Ranked(_targets, player);
@@ -221,9 +216,7 @@ public class RdpsEngine
 
     // ---- buff credit, player to player -------------------------------------
 
-    // Who fed whose rDPS and with which buff, over the same fight the
-    // breakdowns cover. The per-second buckets answer "how much" for a window;
-    // this answers "from whom, and off what".
+    // Who fed whose rDPS and off which buff, where the buckets only say how much.
     private readonly Dictionary<string, Dictionary<string, Dictionary<string, double>>> _pairs
         = new(StringComparer.OrdinalIgnoreCase);
 
@@ -265,8 +258,7 @@ public class RdpsEngine
 
     // ---- deaths ------------------------------------------------------------
 
-    // The last few things that landed on each player, kept only long enough to
-    // become the run-up to a death.
+    // The last few things that landed on each player, for the run-up to a death.
     private readonly Dictionary<string, List<DeathHit>> _recent = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<DeathRecord> _deaths = new();
     private const int LeadIn = 6;
@@ -284,8 +276,7 @@ public class RdpsEngine
         var rec = new DeathRecord { Name = who, Sec = sec };
         if (_recent.TryGetValue(who, out var list))
         {
-            // The last thing that hurt them is the killing blow; everything
-            // else is what led there.
+            // The last thing that hurt them is the killing blow.
             var blow = -1;
             for (var i = list.Count - 1; i >= 0; i--)
                 if (!list[i].Heal) { blow = i; break; }
@@ -307,10 +298,7 @@ public class RdpsEngine
 
     // ---- overhealing -------------------------------------------------------
 
-    // A heal line carries the target's health as it stood BEFORE the heal, so
-    // the room left in the bar is right there on the line and nothing has to be
-    // tracked between events. Below zero means the line did not say, and then
-    // none of the heal gets called overhealing.
+    // A heal line carries the health it landed on, so the room left is on the line.
     private static int Room(string cur, string max)
     {
         var c = Dec(cur);
@@ -350,6 +338,8 @@ public class RdpsEngine
 
     public void ClearBreakdown()
     {
+        DealtTotal = 0;
+        LastLimitBreak = 0;
         _dealt.Clear();
         _targets.Clear();
         _taken.Clear();
@@ -363,9 +353,7 @@ public class RdpsEngine
 
     // ---- damage over time snapshots ---------------------------------------
 
-    // The game locks a damage-over-time effect's buffs in when it is applied,
-    // not per tick, so each application on an enemy freezes the caster's buff
-    // state and every tick prices against that.
+    // A damage-over-time effect locks its buffs in at application, not per tick.
     private sealed class DotSnap
     {
         public List<(uint Src, string Name, string Buff, double Mult)> Flat = new();
@@ -379,15 +367,13 @@ public class RdpsEngine
 
     private static bool IsPlayer(uint id) => id is >= 0x10000000 and < 0x20000000;
 
-    // Allies that fight for themselves while the game still marks them as
-    // owned: the duty support and trust characters. A pet has no job of its
-    // own, so a job is what tells the two apart.
+    // Allies that fight for themselves while the game marks them owned, told
+    // apart from pets by carrying a job.
     private readonly HashSet<uint> _allies = new();
 
     private bool IsCombatant(uint id) => IsPlayer(id) || _allies.Contains(id);
 
-    // Who a damage source belongs to: itself if it fights for itself, else the
-    // owner it is a pet of.
+    // Who a damage source belongs to: itself, or the owner it is a pet of.
     private uint OwnerOf(uint id)
     {
         if (IsCombatant(id)) return id;
@@ -449,9 +435,7 @@ public class RdpsEngine
         if (owner != 0) _owner[id] = owner;
         if (Jobs.ByRowId(Hex(f[4])) is not { } job)
         {
-            // The game reuses object ids, so whatever this one used to be, it
-            // has no job now: it must not stay an ally, or a later pet's damage
-            // would stop reaching its owner.
+            // The game reuses object ids, so a jobless one must not stay an ally.
             _allies.Remove(id);
             _roles.Remove(id);
             return;
@@ -470,8 +454,7 @@ public class RdpsEngine
         var sec = Sec(f[1]);
         if (status.Length > 0) _effectNames[Hex(f[2])] = status;
 
-        // Any player-sourced status landing on an enemy could be a damage over
-        // time effect: freeze the caster's buff state for its ticks.
+        // Any player status on an enemy could tick, so freeze the buffs behind it.
         if (tgt >= 0x40000000 && OwnerOf(src) != 0)
         {
             float.TryParse(f[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var dotDur);
@@ -580,7 +563,12 @@ public class RdpsEngine
         if (IsCombatant(target)) { OnHeal(f, owner, target); return; }
         if (target < 0x40000000) return;     // only damage into enemies counts
         if (f[7].Length > 0) CurrentEnemy = f[7];
-        if (IsLimitBreak?.Invoke(Hex(f[4])) == true) return;
+        var actionId = Hex(f[4]);
+        if (IsLimitBreak?.Invoke(actionId) == true)
+        {
+            LastLimitBreak = actionId;
+            return;
+        }
 
         var sec = Sec(f[1]);
         if (sec > LatestSec) LatestSec = sec;
@@ -589,15 +577,11 @@ public class RdpsEngine
 
         var (gc, gd) = Guarantee(owner, action);
 
-        // A hit into an enemy can heal the one who landed it: a combo finisher
-        // that leeches, or anything under a buff that heals on damage. The
-        // caster's own health rides further along the same line, at 34 and 35.
+        // A hit into an enemy can heal whoever landed it, their health at 34 and 35.
         var mine = src == owner;
         var selfRoom = mine && f.Length > 35 ? Room(f[34], f[35]) : -1;
 
-        // Every connected damage pair (fields 8..23 are eight flag|value
-        // pairs): low byte 03/05/06 is damage, 0x100 crit, 0x200 direct hit.
-        // Bookkeeping entries and the odd shifted pair fall through.
+        // Eight flag|value pairs: low byte 03/05/06 is damage, 0x100 crit, 0x200 direct.
         for (var i = 8; i + 1 < f.Length && i <= 22; i += 2)
         {
             var flags = Hex(f[i]);
@@ -614,6 +598,7 @@ public class RdpsEngine
             var dh = (flags & 0x200) != 0;
 
             Tally(_dealt, ownerName, action.Length > 0 ? action : "Attack", dmg, crit, dh, Hex(f[4]));
+            DealtTotal += dmg;
             if (f[7].Length > 0) Tally(_targets, ownerName, f[7], dmg, crit, dh);
 
             Gather(owner, target, sec);
@@ -641,8 +626,7 @@ public class RdpsEngine
         }
     }
 
-    // A party-facing ability: healing, and the part of it the health bar had no
-    // room left for.
+    // A party-facing ability, with the part the health bar had no room for.
     private void OnHeal(string[] f, uint owner, uint target)
     {
         var who = f[7].Length > 0 ? f[7] : _names.TryGetValue(target, out var tn) ? tn : "";
@@ -683,10 +667,10 @@ public class RdpsEngine
         Tally(_dealt, ownerName,
             _effectNames.TryGetValue(effect, out var en) && en.Length > 0 ? en : "Damage over time",
             dmg, crit: false, dh: false, effect, status: true);
+        DealtTotal += dmg;
         if (f[3].Length > 0) Tally(_targets, ownerName, f[3], dmg, crit: false, dh: false);
 
-        // Ticks price against the buffs frozen at application; a tick with no
-        // snapshot (ground effects) falls back to what is up right now.
+        // Ticks price against the frozen buffs, or what is up now if there are none.
         if (_dotSnaps.TryGetValue((target, Hex(f[5]), src), out var snap) && sec <= snap.ExpireSec)
             LoadSnap(snap);
         else
@@ -694,8 +678,7 @@ public class RdpsEngine
         AllocateTick(owner, ownerName, dmg, sec);
     }
 
-    // A regeneration or a lingering effect ticking on a party member: no buff
-    // credit is involved, but the healing and taken breakdowns both want it.
+    // A tick on a party member, which pays no credit but both breakdowns want.
     private void OnPartyTick(string[] f, uint owner, uint target, bool hot)
     {
         var amount = (uint)HexLong(f[6]);
@@ -715,8 +698,7 @@ public class RdpsEngine
             return;
         }
 
-        // A tick whose source the log never named still counts as healing the
-        // player received, it just has nobody to credit it to.
+        // A tick the log never sourced still counts, it just credits nobody.
         var room = Room(f[7], f[8]);
         var healer = owner != 0 && _names.TryGetValue(owner, out var hn) ? hn : "";
         Heal(healer, who, name, effect, status: true, amount, crit: false, ref room, sec);
@@ -754,8 +736,7 @@ public class RdpsEngine
                 switch (e.Kind)
                 {
                     case RaidBuffs.Kind.Damage:
-                        // A player's own percent buffs stay personal: they are
-                        // neither shared out nor divided from anyone's base.
+                        // A player's own percent buffs stay personal.
                         if (!self && e.Amount > 1.0001f)
                             _extFlat.Add((b.SourceId, b.SourceName, b.Def.Name, e.Amount));
                         break;
@@ -815,8 +796,7 @@ public class RdpsEngine
         foreach (var b in _extCrit) extC += b.Rate;
         foreach (var b in _extDh) extD += b.Rate;
 
-        // How much of a rolled crit was the buffs' doing, versus a roll the
-        // player's own rate covered anyway.
+        // How much of a rolled crit the buffs caused, against the player's own rate.
         var cb = Math.Min(1.0, cs + _selfCrit + extC);
         var cu = Math.Min(cb, cs + _selfCrit);
         var critShare = crit && !gCrit && extC > 0 ? (cb - cu) / cb : 0.0;
@@ -824,9 +804,7 @@ public class RdpsEngine
         var du = Math.Min(db, ds + _selfDh);
         var dhShare = dh && !gDh && extD > 0 ? (db - du) / db : 0.0;
 
-        // A guaranteed roll pays its rate buffs as the flat bonus the game
-        // grants them there instead: each point of rate adds that share of the
-        // roll's damage bonus.
+        // A guaranteed roll pays its rate buffs as the flat bonus instead.
         var rc = gCrit && extC > 0
             ? (1.0 + (mc - 1.0) * (_selfCrit + extC)) / (1.0 + (mc - 1.0) * _selfCrit) : 1.0;
         var rd = gDh && extD > 0
@@ -849,8 +827,7 @@ public class RdpsEngine
         }
     }
 
-    // One slice: percent buffs, plus whichever roll multipliers act as
-    // external buffs on it, split the slice's total gain by log ratio.
+    // One slice, its gain split by log ratio across every buff that earned it.
     private void Split(uint owner, string ownerName, double part,
         double critMult, double dhMult, double rc, double rd,
         double extC, double extD, long sec)
@@ -864,8 +841,7 @@ public class RdpsEngine
         foreach (var b in _extFlat)
             Credit(sec, b.Name, ownerName, b.Buff, gain * Math.Log(b.Mult) / lnM);
 
-        // The roll multipliers' shares go to the rate buffers, each by how
-        // much rate they contributed.
+        // The roll multipliers pay the rate buffers by how much rate each gave.
         var critGain = gain * (Math.Log(critMult) + Math.Log(rc)) / lnM;
         if (critGain > 0 && extC > 0)
             foreach (var b in _extCrit)
@@ -877,8 +853,7 @@ public class RdpsEngine
                 Credit(sec, b.Name, ownerName, b.Buff, dhGain * b.Rate / extD);
     }
 
-    // A tick carries no roll flags, so it is the odds-weighted blend of the
-    // four outcomes its snapshotted rates allowed.
+    // A tick carries no roll flags, so it blends the four outcomes by their odds.
     private void AllocateTick(uint owner, string ownerName, double dmg, long sec)
     {
         if (_extFlat.Count == 0 && _extCrit.Count == 0 && _extDh.Count == 0) return;
@@ -1011,8 +986,7 @@ public class RdpsEngine
     private static ulong HexLong(string s)
         => ulong.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var v) ? v : 0ul;
 
-    // The damage dword rides its amount in the high half; huge hits set 0x4000
-    // and wrap their top byte into the low byte.
+    // The amount rides the high half, with huge hits wrapping their top byte.
     public static uint Unscramble(ulong v)
     {
         var dmg = (uint)(v >> 16);

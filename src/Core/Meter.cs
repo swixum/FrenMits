@@ -4,14 +4,8 @@ using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
 
-// Fren Meter's brain: drains the parser link, feeds the rDPS engine, and keeps
-// the current encounter plus history for the overlay.
-//
-// The parser splits an encounter whenever the log goes quiet, which happens
-// mid-boss in every downtime phase. Fights are stitched back together here:
-// while the game still says the party is in combat with a boss, a "new"
-// parser encounter is a continuation, its segments summed. Dungeon trash
-// resets per pack as normal, and anything worth looking back at is kept.
+// Drains the parser link, feeds the rDPS engine, and keeps the pull on screen
+// plus the history behind it.
 public class Meter : IDisposable
 {
     private readonly Plugin _plugin;
@@ -28,8 +22,7 @@ public class Meter : IDisposable
     // Freezes the display (log lines keep flowing so rDPS stays honest).
     public bool Paused { get; set; }
 
-    // The prior update of the running pull, so the overlay can glide between
-    // the parser's once-a-second ticks instead of jumping.
+    // The previous update, so the bars glide between parser ticks.
     public MeterEncounter? Previous { get; private set; }
     public DateTime CurrentAt { get; private set; }
     public float LerpSpan { get; private set; } = 1f;
@@ -43,11 +36,7 @@ public class Meter : IDisposable
     private float _bossLeft = -1f;
     private int _standing = -1;
 
-    // How a pull finished. A wipe is the party going down, which is the only
-    // thing that says so for certain: enemy health cannot, because a dungeon
-    // pack is several enemies and killing one leaves the next at full. A kill
-    // is the other way round, the enemy at zero with the party still up.
-    // Anything else stays unknown, and the list says nothing at all.
+    // How a pull finished: the party down is a wipe, the enemy at zero a kill.
     public static PullEnd EndOf(int standing, float bossLeft)
     {
         if (standing == 0) return PullEnd.Wipe;
@@ -55,11 +44,7 @@ public class Meter : IDisposable
         return PullEnd.Unknown;
     }
 
-    // The boss reading a pull should keep. While the party is in combat the
-    // newest one always wins, so a fight that changes boss between phases
-    // follows it. Once combat drops only a lower reading counts: that is the
-    // killing blow landing, where a higher one is the boss walking back to full
-    // after a wipe.
+    // The boss reading to keep: the newest in combat, the lowest once it drops.
     public static float TrackBoss(float current, float reading, bool inCombat)
     {
         if (reading < 0f) return current;
@@ -67,16 +52,11 @@ public class Meter : IDisposable
         return current < 0f || reading < current ? reading : current;
     }
 
-    // Whether the readout is due for a fresh set of numbers. Values that move
-    // every frame are unreadable, so they are taken on a cadence and held
-    // still in between; a rate of zero is the old every-frame behavior.
+    // Whether the readout is due a fresh set of numbers, zero meaning every frame.
     public static bool DueToRefresh(double since, float rate)
         => rate <= 0f || since >= rate || since < 0;
 
-    // A pull is only over once combat has stayed off for a beat with the game
-    // back in the player's hands. The flag alone says nothing: every phase
-    // cutscene drops it mid-fight, and filing there would leave one pull spread
-    // across several entries in the list.
+    // A pull is only over once combat has stayed off with control handed back.
     public const double SettleSeconds = 1.5;
 
     public static bool SettleDue(bool inCombat, bool cutscene, double sinceDrop)
@@ -91,8 +71,7 @@ public class Meter : IDisposable
         Engine.IsLimitBreak = IsLimitBreak;
     }
 
-    // Limit break action ids from the game sheet (category 9), resolved lazily
-    // because sheets are not ready at load.
+    // Limit break action ids from the game sheet, resolved once sheets are up.
     private HashSet<uint>? _lbActions;
 
     private bool IsLimitBreak(uint actionId)
@@ -122,9 +101,7 @@ public class Meter : IDisposable
         var budget = 5000;
         while (budget-- > 0 && Link.TryDequeue(out var msg)) Handle(msg);
 
-        // The world the stitch reads, taken once a frame. A replay hands it the
-        // same values the recording was made under, so the decisions it makes
-        // are the ones it made in the fight.
+        // The world the stitch reads, taken once a frame.
         _inCombat = Plugin.InCombat;
         _cutscene = Plugin.CutsceneActive;
 
@@ -133,20 +110,14 @@ public class Meter : IDisposable
         // A boss on the field marks this fight as one worth stitching and keeping.
         if (_inCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
         _bossLeft = TrackBoss(_bossLeft, _plugin.BossHpFraction, _inCombat);
-        // The last word on who was still up, taken while the fight was still on.
-        // A cutscene can empty the object table with the party perfectly alive,
-        // so nothing is counted through one.
+        // The last word on who was up, never counted through a cutscene.
         if (_inCombat && !_cutscene && _plugin.PlayersStanding >= 0)
             _standing = _plugin.PlayersStanding;
 
-        // Combat over: close this fight right away instead of waiting out the
-        // parser's idle timeout. That is what makes each trash pack in a
-        // dungeon start from zero, and freezes a kill at the killing blow.
+        // Combat over: close the fight here rather than wait out the parser.
         var inCombat = _inCombat;
         if (!inCombat && _wasInCombat) _combatDropAt = DateTime.UtcNow;
-        // A cutscene between phases drops combat without ending the pull, and
-        // filing one there splits a single fight across several entries in the
-        // list. The settle only starts once the game hands control back.
+        // A cutscene between phases drops combat without ending the pull.
         if (_cutscene) _combatDropAt = DateTime.UtcNow;
         if (inCombat) _cutDone = false;
         _wasInCombat = inCombat;
@@ -154,9 +125,7 @@ public class Meter : IDisposable
             ? 0.0 : (DateTime.UtcNow - _combatDropAt).TotalSeconds;
         var settle = SettleDue(inCombat, _cutscene, sinceDrop);
 
-        // A stitched fight that ended inside the quiet gap (a wipe during
-        // downtime): no further segment is coming, settle it once combat has
-        // really gone.
+        // A stitched fight that ended in the quiet gap, such as a downtime wipe.
         if (!Paused && _carry != null && _rawSeg is not { Active: true } && settle)
         {
             if (Current != null)
@@ -181,7 +150,7 @@ public class Meter : IDisposable
         }
 
         // The active profile follows every tweak by itself; no manual save.
-        if (DateTime.UtcNow >= _nextProfileSync)
+        if (Configuration.SaveTick != _syncedTick && DateTime.UtcNow >= _nextProfileSync)
         {
             _nextProfileSync = DateTime.UtcNow + TimeSpan.FromSeconds(2);
             var name = C.MeterProfileName;
@@ -194,10 +163,13 @@ public class Meter : IDisposable
                     C.SaveSettings();
                 }
             }
+            // Set last, so the save just above does not ask for another pass.
+            _syncedTick = Configuration.SaveTick;
         }
     }
 
     private DateTime _nextProfileSync = DateTime.MinValue;
+    private int _syncedTick = -1;
     private DateTime _combatDropAt = DateTime.MinValue;
     private bool _wasInCombat;
     private bool _cutDone;
@@ -220,23 +192,15 @@ public class Meter : IDisposable
         OnSummary(raw);
     }
 
-    // The world the stitch reads. Live these follow the game; through a replay
-    // they are whatever the recording says they were.
+    // The world the stitch reads, from the game live or from a recording in replay.
     private bool _inCombat;
     private bool _cutscene;
     private bool _replaying;
 
     // ---- is the feed even alive? -------------------------------------------
-    //
-    // A parser link can die without disconnecting. The socket stays open, the
-    // summaries keep arriving once a second, and every one of them repeats an
-    // encounter that ended some pulls ago - the board goes on showing numbers
-    // that stopped being about this fight, and nothing says so. A recorded
-    // Dancing Mad kill came back as 1111 identical messages.
-    //
-    // Two things have to be quiet at once for that to be the case: the parser's
-    // own totals, and the damage this plugin counts off the log lines itself.
-    // A real fight cannot leave both untouched.
+
+    // A link can die without disconnecting and repeat an encounter that ended
+    // pulls ago, so both the parser's totals and the counted damage must go quiet.
     public const double StaleAfterSeconds = 15;
 
     // A fight is on and the numbers have stopped being about it.
@@ -245,10 +209,7 @@ public class Meter : IDisposable
 
     public bool FeedStale { get; private set; }
 
-    // A replay is the other way a fight can be underway with nothing arriving:
-    // the parser is not fed by a duty recording at all, so the board sits on
-    // whatever real pull came last. Worth saying plainly rather than leaving
-    // someone reading an old pull's numbers over a replay of a new one.
+    // A replay feeds the parser nothing, so the board sits on the last real pull.
     public bool FeedStaleInReplay { get; private set; }
 
     private DateTime _feedFreshAt = DateTime.UtcNow;
@@ -289,9 +250,7 @@ public class Meter : IDisposable
                 : "[FrenMits] Meter: parser feed recovered.");
         }
 
-        // Ask for the subscription again: the parser can drop a listener and
-        // leave the socket open, and a reconnect is the only way back. A replay
-        // is not a broken link, so it is left alone.
+        // Ask for the subscription again, unless a replay is what went quiet.
         if (!stale || replay || now < _nextRelink) return;
         _nextRelink = now + TimeSpan.FromSeconds(30);
         Link.RetryNow();
@@ -311,8 +270,7 @@ public class Meter : IDisposable
         MeterFeed.Record(m);
     }
 
-    // Run a recorded feed back through the real stitch and report what it makes
-    // of it, against what the log lines said at the time.
+    // Run a recorded feed back through the stitch and report what it makes of it.
     public string Replay(string path)
     {
         List<MeterFeed.Message> feed;
@@ -327,8 +285,7 @@ public class Meter : IDisposable
         MeterFeed.Pause();
         _replaying = true;
         Clear(keepHistory: true);
-        // Clear baselines against whatever the parser last said live; a replay
-        // starts from nothing, the way the recorded pull did.
+        // A replay starts from nothing, the way the recorded pull did.
         _cut = null;
         _rawIn = null;
 
@@ -377,9 +334,7 @@ public class Meter : IDisposable
             else
             {
                 raw = Subtract(incoming, _cut);
-                // A pull starts when damage does. Until then the cut slides
-                // along, so neither the wait after a wipe nor the healing that
-                // follows one lands on the next pull's clock.
+                // A pull starts when damage does, so until then the cut slides along.
                 if (raw.TotalDamage <= 0)
                 {
                     _cut = Snapshot(incoming);
@@ -393,20 +348,13 @@ public class Meter : IDisposable
             var continuing = _rawSeg is { Active: true } && raw.Seconds + 0.5f >= _rawSeg.Seconds;
             if (!continuing)
             {
-                // A segment ended without its final update: settle it first.
-                //
-                // Which one gets banked matters. Banking is what moves the
-                // baseline, so bank what THIS message shows and start the live
-                // segment from here. Banking the previous message instead left
-                // the stretch between the two in the bank and on screen at once,
-                // and the fight grew by that much at every lull.
+                // A segment ended without its final update, so bank what THIS
+                // message shows and start the live segment from here.
                 if (_rawSeg is { Active: true })
                 {
                     if (restarted)
                     {
-                        // Nothing of the parser's new encounter is banked yet, so
-                        // the old encounter's leftovers go in and this message
-                        // stands as the whole of the new one.
+                        // Nothing of the new encounter is banked, so this message is all of it.
                         EndSegment(_rawSeg);
                         _cut = null;
                     }
@@ -444,23 +392,16 @@ public class Meter : IDisposable
     private void EndSegment(MeterEncounter final)
     {
         var display = Merge(_carry, final);
-        // Stitching is the only place the meter does arithmetic of its own on
-        // the parser's numbers, and every miscount it has ever shown came from
-        // there. Off by default: the parser's encounter is the fight, drawn as
-        // it arrives.
+        // Stitching is the meter's only arithmetic on the parser's own numbers,
+        // and it is off by default.
         if (C.MeterStitchSegments && _inCombat && _sawBoss)
         {
             // Mid-boss split (downtime): stitch, and keep reading as a live fight.
             _carry ??= new FightCarry { StartSec = _fightStartSec, Title = _fightTitle };
             Fold(_carry, final, Engine.LatestSec);
-            // This segment is banked now, so the parser has to be measured from
-            // here on. Without it, a parser that resumes its old encounter
-            // instead of starting a new one hands back totals this fight has
-            // already counted, and every split doubles the clock.
+            // Banked now, so the parser has to be measured from here on.
             if (_rawIn != null) _cut = Snapshot(_rawIn);
-            // The engine's own figure is counted straight off the log lines, one
-            // event at a time, so it cannot double count. Printed beside the
-            // parser's running total, a stitch that has gone wrong shows itself.
+            // Printed beside the parser's total, a stitch gone wrong shows itself.
             _plugin.Diag.Note($"meter: banked segment {final.Seconds:0}s {final.TotalDamage / 1e6:0.0}M; "
                             + $"fight now {_carry.Seconds:0}s {Total(_carry) / 1e6:0.0}M "
                             + $"(log lines say {EngineTotal() / 1e6:0.0}M)");
@@ -476,16 +417,13 @@ public class Meter : IDisposable
         EndFight();
     }
 
-    // A finished pull carries its own breakdowns, so looking back at it later
-    // does not depend on the engine still holding that fight.
+    // A finished pull carries its own breakdowns, so history never needs the engine.
     private void Materialize(MeterEncounter enc)
     {
         enc.BossLeft = _bossLeft;
         enc.Ended = EndOf(_standing, _bossLeft);
 
-        // The parser calls the local player "YOU", and only publishing the pull
-        // turns that into their name. Resolve it here as well, or their own
-        // breakdown ends up filed under a name nothing later looks it up by.
+        // The parser calls the local player "YOU", so resolve it before filing.
         var you = LocalName();
         foreach (var r in enc.Rows)
         {
@@ -507,8 +445,7 @@ public class Meter : IDisposable
         foreach (var d in Engine.Deaths()) enc.Deaths.Add(Freeze(d, start));
     }
 
-    // Copies, not the engine's own rows: it keeps tallying into those, and a
-    // finished pull must never move again.
+    // Copies, because the engine keeps tallying into its own rows.
     public static List<AbilityStat> Freeze(List<AbilityStat> live)
     {
         var copy = new List<AbilityStat>(live.Count);
@@ -540,8 +477,7 @@ public class Meter : IDisposable
     private long FightStart(MeterEncounter enc)
         => _carry?.StartSec ?? (_fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)enc.Seconds);
 
-    // A pull that carries its own breakdowns is finished, and the engine has
-    // long since moved on: never fall back to live data for it.
+    // A pull with its own breakdowns is finished, so never read live data for it.
     private static bool Banked(MeterEncounter enc)
         => enc.Dealt.Count > 0 || enc.Taken.Count > 0 || enc.Heals.Count > 0 || enc.Deaths.Count > 0;
 
@@ -596,11 +532,7 @@ public class Meter : IDisposable
 
     private void EndFight()
     {
-        // The parser's encounter can outlive the pull: it goes on counting
-        // through a wipe and, if it never times out, carries those totals into
-        // the next pull as one 20-minute fight that barely moves. Baselining
-        // here means the next pull starts from zero whether the parser starts
-        // a new encounter or not; if it does, the cut retires itself.
+        // The parser's encounter can outlive the pull, so the next starts from here.
         if (_rawIn != null) _cut = Snapshot(_rawIn);
         _carry = null;
         _fightStartSec = 0;
@@ -610,15 +542,11 @@ public class Meter : IDisposable
         _standing = -1;
         _warnedAt = 0;
         _seenLines = 0;   // the engine's table is cleared below, so its count restarts
-        // Clear when a fight ENDS, not when the next one starts: the summary
-        // feed lags the log, so clearing on arrival would eat the opener.
+        // Clear when a fight ENDS, or the lagging summary feed would eat the opener.
         Engine.ClearBreakdown();
     }
 
-    // Worth looking back at: a boss, or anything that ran long enough that it
-    // cannot have been a trash pack. The boss test reads a raid-sized health
-    // bar, which a duty boss below the level cap never has, so duration is what
-    // keeps those in the list.
+    // Worth looking back at: a boss, or anything too long to have been trash.
     public const float HistoryMinSeconds = 25f;
 
     public static bool WorthKeeping(bool sawBoss, float seconds)
@@ -633,9 +561,7 @@ public class Meter : IDisposable
         while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
     }
 
-    // The parser calls every fight "Encounter" until it ends. Until it gives
-    // the real name, the boss actually on the field beats whoever got tagged
-    // first, and any target name beats the placeholder.
+    // The parser calls every fight "Encounter" until it ends, so name it here.
     private void SetTitle(MeterEncounter e)
     {
         if (e.Title.Length > 0 && !e.Title.Equals("Encounter", StringComparison.OrdinalIgnoreCase))
@@ -647,15 +573,12 @@ public class Meter : IDisposable
         e.Title = _fightTitle.Length > 0 ? _fightTitle : "Encounter";
     }
 
-    // How far the parser's running total may sit above the plugin's own count of
-    // the same log lines before something has gone wrong with the stitch.
+    // How far the parser's total may sit above the plugin's own count of the lines.
     private const double DriftWarnAbove = 1.10;
     private double _warnedAt;
 
-    // The two totals come from completely separate paths: the parser's summary,
-    // and the engine adding up damage events one at a time. They should track.
-    // When they don't, the pull record says so rather than the board quietly
-    // showing a fight that did half again the damage it really did.
+    // The two totals come from separate paths and should track, so the pull
+    // record says when they do not.
     private void CheckAgainstLogLines(MeterEncounter enc)
     {
         if (_replaying) return;   // the engine holds this session, not the recording
@@ -670,6 +593,8 @@ public class Meter : IDisposable
     private void Publish(MeterEncounter enc)
     {
         ApplyRdps(enc);
+        // Banked with the pull, so a history entry keeps its own icon.
+        if (Engine.LastLimitBreak != 0) enc.LimitBreakAction = Engine.LastLimitBreak;
         if (enc.Active) CheckAgainstLogLines(enc);
         // Glide only within the same running fight; anything else snaps.
         Previous = enc.Active && Current is { Active: true } cur
@@ -692,10 +617,7 @@ public class Meter : IDisposable
         public Dictionary<string, MeterCombatant> Rows { get; } = new(StringComparer.OrdinalIgnoreCase);
     }
 
-    // Bank a finished segment's numbers into the running fight. A stitched
-    // fight leaves the gaps between its segments out, so its clock can never
-    // pass the time actually elapsed since it started: that ceiling is what
-    // stops a miscounted segment from compounding into an hour-long pull.
+    // Bank a segment into the running fight, capped at the time really elapsed.
     public static void Fold(FightCarry carry, MeterEncounter final, long nowSec = 0)
     {
         foreach (var r in final.Rows)
@@ -707,14 +629,7 @@ public class Meter : IDisposable
     }
 
     // Everything the engine has counted from the log lines this fight.
-    private double EngineTotal()
-    {
-        var sum = 0.0;
-        foreach (var name in Engine.Dealers())
-            foreach (var a in Engine.Dealt(name))
-                sum += a.Damage;
-        return sum;
-    }
+    private double EngineTotal() => Engine.DealtTotal;
 
     // What a stitched fight has banked so far, for the pull record.
     public static double Total(FightCarry carry)
@@ -769,9 +684,7 @@ public class Meter : IDisposable
 
     // ---- cutting the parser's running encounter ----------------------------
 
-    // Where the meter last drew a line under the parser's totals. Everything
-    // before it is subtracted out, so a new pull starts from zero without
-    // asking the parser to end anything.
+    // Where the meter last drew a line under the parser's totals.
     public sealed class Baseline
     {
         public float Seconds;
@@ -782,15 +695,8 @@ public class Meter : IDisposable
     private Baseline? _cut;
     private MeterEncounter? _rawIn;
 
-    // A cut only means anything while the parser is still on the encounter it
-    // was taken from, and its totals are what say so: damage only ever climbs
-    // inside one encounter, so a drop is the parser starting over.
-    //
-    // The encounter clock cannot answer this. The parser trims idle time off an
-    // encounter, so the duration steps BACKWARDS while the same fight carries
-    // on - which read as a new encounter, dropped the baseline, and handed back
-    // totals already banked. Every lull then re-counted the fight from the top:
-    // a Dancing Mad pull came out at five times the damage it really did.
+    // A cut holds while the parser is still on the encounter it was taken from,
+    // which its damage says and its idle-trimmed clock cannot.
     public static bool CutStillHolds(double parserDamage, double cutDamage)
         => parserDamage + 1.0 >= cutDamage;
 
@@ -834,12 +740,12 @@ public class Meter : IDisposable
             var row = new MeterCombatant
             {
                 Name = r.Name, Display = r.Display, Job = r.Job, ADps = r.ADps,
+                LimitBreak = r.LimitBreak,
                 Damage = Math.Max(0, r.Damage - (b?.Damage ?? 0)),
                 Healed = Math.Max(0, r.Healed - (b?.Healed ?? 0)),
                 Taken = Math.Max(0, r.Taken - (b?.Taken ?? 0)),
                 Deaths = Math.Max(0, r.Deaths - (b?.Deaths ?? 0)),
-                // Rates are running averages the parser never breaks down, so
-                // they carry over as they stand.
+                // Rates are running averages the parser never breaks down.
                 CritPct = r.CritPct, DirectHitPct = r.DirectHitPct, OverhealPct = r.OverhealPct,
                 MaxHit = r.MaxHit,
             };
@@ -870,6 +776,7 @@ public class Meter : IDisposable
             Name = b.Name.Length > 0 ? b.Name : a.Name,
             Display = b.Display.Length > 0 ? b.Display : a.Display,
             Job = b.Job.Length > 0 ? b.Job : a.Job,
+            LimitBreak = b.LimitBreak || a.LimitBreak,
             Damage = dmg,
             Healed = healed,
             Taken = a.Taken + b.Taken,
@@ -892,8 +799,7 @@ public class Meter : IDisposable
 
     private void ApplyRdps(MeterEncounter enc)
     {
-        // The window reaches back over the whole stitched fight, downtime
-        // included; a small pad absorbs the summary feed lagging the lines.
+        // The window covers the whole fight, with a pad for the lagging feed.
         var from = (_carry?.StartSec
                     ?? (enc.Active && _fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)enc.Seconds)) - 2;
         var totals = Engine.WindowTotals(from);
@@ -928,9 +834,7 @@ public class Meter : IDisposable
         EndFight();
     }
 
-    // A mid-combat reset draws a line under the parser's running totals, or
-    // they would just repopulate the meter one second later. Past pulls stay:
-    // starting the board over is not a reason to lose the bosses behind it.
+    // A reset draws a line under the parser's totals but keeps past pulls.
     public void ResetEncounter()
     {
         Clear(keepHistory: true);
@@ -997,6 +901,17 @@ public class Meter : IDisposable
             e.TotalDeaths += c.Deaths;
             e.Rows.Add(c);
         }
+        // The party's shared limit break, drawn under everyone in its own row.
+        var lb = new MeterCombatant
+        {
+            Name = "Limit Break", Display = "Limit Break", LimitBreak = true,
+            Dps = 4820, ADps = 4820, RDps = 4820, Damage = 4820 * e.Seconds,
+            MaxHit = "Dragonsong Dive-1214000",
+        };
+        e.TotalDps += lb.Dps;
+        e.RaidRDps += lb.RDps;
+        e.Rows.Add(lb);
+        e.LimitBreakAction = SampleLimitBreak();
         e.TotalDamage = e.TotalDps * e.Seconds;
         foreach (var c in e.Rows)
             c.DamagePct = $"{c.Damage / e.TotalDamage * 100:0}%";
@@ -1004,8 +919,18 @@ public class Meter : IDisposable
         return _sample = e;
     }
 
-    // Give the sample pull a breakdown too, so the detail view can be placed
-    // and styled from Test mode like everything else.
+    // A stand-in limit break for the sample, so Test mode has an icon to show.
+    private static uint SampleLimitBreak()
+    {
+        var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
+        if (sheet == null) return 0;
+        foreach (var row in sheet)
+            if (row.ActionCategory.RowId == 9 && row.Name.ExtractText() == "Braver")
+                return row.RowId;
+        return 0;
+    }
+
+    // A breakdown for the sample too, so the detail view can be styled in Test mode.
     private static void SampleBreakdowns(MeterEncounter e)
     {
         // Shares of a player's damage, and of what they took, by rank.
@@ -1057,6 +982,7 @@ public class Meter : IDisposable
 
         foreach (var r in e.Rows)
         {
+            if (r.LimitBreak) continue;
             var who = r.Display.Length > 0 ? r.Display : r.Name;
             var names = byJob.TryGetValue(r.Job, out var jobNames) ? jobNames : generic;
             var dealt = new List<AbilityStat>();
@@ -1095,10 +1021,10 @@ public class Meter : IDisposable
             if (r.Healed > 0) e.Heals[who] = heals;
         }
 
-        // Healing and buff credit only make sense across the party, so both are
-        // shared out from everyone else's rows.
+        // Healing and buff credit only make sense across the party.
         foreach (var r in e.Rows)
         {
+            if (r.LimitBreak) continue;
             var who = r.Display.Length > 0 ? r.Display : r.Name;
             var healed = new List<AbilityStat>();
             var from = new List<AbilityStat>();
@@ -1107,6 +1033,7 @@ public class Meter : IDisposable
             var i = 0;
             foreach (var other in e.Rows)
             {
+                if (other.LimitBreak) continue;
                 var name = other.Display.Length > 0 ? other.Display : other.Name;
                 if (string.Equals(name, who, StringComparison.OrdinalIgnoreCase)) continue;
                 var share = 0.34 - i * 0.04;

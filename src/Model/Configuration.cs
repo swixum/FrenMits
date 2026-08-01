@@ -319,6 +319,7 @@ public class Configuration : IPluginConfiguration
     public bool MeterBreakdownIcons { get; set; } = true;   // action icons in a player's breakdown
     public bool MeterBreakdownColors { get; set; } = true;  // a color per ability, not one per job
     public bool MeterFooterDeaths { get; set; } = true;     // the pull's death count in the footer
+    public bool MeterLimitBreakRow { get; set; } = true;    // limit break in its own row under the party
     public float MeterRefreshSeconds { get; set; } = 1f;    // how often values settle; 0 is every frame
     public bool MeterCollapsed { get; set; }                // rolled up to just its header
     public bool MeterAlwaysShow { get; set; } = true;       // stay on screen with no pull to show
@@ -424,6 +425,9 @@ public class Configuration : IPluginConfiguration
         PlanStore.Save(Fights);
     }
 
+    // Bumped on every save, so watchers can skip work when nothing has changed.
+    public static int SaveTick { get; private set; }
+
     // Settings only, for paths that provably cannot have touched a plan - the
     // config window's toggles and the overlays' drag-to-move.
     public void SaveSettings()
@@ -431,5 +435,6 @@ public class Configuration : IPluginConfiguration
         if (SuppressSave) return;
         Service.PluginInterface.SavePluginConfig(this);
         LastSavedAt = DateTime.Now;
+        SaveTick++;
     }
 }

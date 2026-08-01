@@ -6,16 +6,8 @@ using System.Text;
 
 namespace FrenMits;
 
-// A recording of what the parser fed the meter during a pull, and the world the
-// meter read it in.
-//
-// The stitch - banking a segment, moving the baseline, deciding a pull is over -
-// is the one part of the meter no test could reach: it needs a parser on one
-// side and the game on the other. Three separate counting bugs have lived there,
-// each found only by a screenshot of a wrong number after an 18-minute pull.
-//
-// Recording the feed turns any pull into a case that can be run again in
-// seconds, with the same code doing the same work, off the same numbers.
+// A recording of what the parser fed the meter and the world it read it in, so
+// a pull that came out wrong can be run again offline.
 public static class MeterFeed
 {
     public sealed class Message
@@ -150,6 +142,7 @@ public static class MeterFeed
             e.Rows.Add(new MeterCombatant
             {
                 Name = r.Name, Display = r.Name, Job = r.Job,
+                LimitBreak = Jobs.ByAbbreviation(r.Job) == null,
                 Damage = r.Damage, Healed = r.Healed, Taken = r.Taken, Deaths = r.Deaths,
                 Dps = m.Seconds > 0 ? r.Damage / m.Seconds : 0,
             });
