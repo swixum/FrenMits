@@ -148,6 +148,8 @@ public class Meter : IDisposable
             return;
         }
         Link.EnsureStarted();
+        // Ids resolve once the sheets are up, whether or not lines are flowing.
+        Engine.PrimeIds();
 
         var budget = 5000;
         while (budget-- > 0 && Link.TryDequeue(out var msg)) Handle(msg);
@@ -236,8 +238,10 @@ public class Meter : IDisposable
     {
         if (string.Equals(msg["type"]?.ToString(), "LogLine", StringComparison.Ordinal))
         {
-            if (msg["line"] is JArray arr)
+            if (msg["line"] is JArray { Count: > 1 } arr)
             {
+                // Most of a raid's lines are types the engine skips, so ask first.
+                if (!RdpsEngine.Handles(arr[0]?.ToString() ?? "")) return;
                 var line = new string[arr.Count];
                 for (var i = 0; i < arr.Count; i++) line[i] = arr[i]?.ToString() ?? "";
                 if (line.Length > 3 && line[0] == "01") Note($"zone change - {line[3]}");

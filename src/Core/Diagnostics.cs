@@ -9,7 +9,8 @@ namespace FrenMits;
 public class Diagnostics
 {
     private readonly Plugin _plugin;
-    private readonly List<string> _lines = new();
+    // A queue, so dropping the oldest line doesn't shift the rest.
+    private readonly Queue<string> _lines = new();
 
     private bool _active;
     private bool _pendingEnd;
@@ -91,11 +92,13 @@ public class Diagnostics
         if (_active) Log(what);
     }
 
+    private const int MaxLines = 4000;
+
     private void Log(string s)
     {
         var t = (DateTime.Now - _start).TotalSeconds;
-        _lines.Add($"[{t,7:0.0}] {s}");
-        if (_lines.Count > 4000) _lines.RemoveAt(0);
+        _lines.Enqueue($"[{t,7:0.0}] {s}");
+        if (_lines.Count > MaxLines) _lines.Dequeue();
     }
 
     private void Flush()

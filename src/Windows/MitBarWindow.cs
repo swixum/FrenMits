@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
@@ -11,6 +12,9 @@ public class MitBarWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
     private bool _applyPos = true;
+
+    // Refilled every frame, since the bar redraws continuously.
+    private readonly List<MitWatch.Active> _mits = new();
 
     private bool EffectiveLocked => OverlayChrome.Locked(C.MitBarLocked, C);
 
@@ -51,7 +55,8 @@ public class MitBarWindow : Window
     {
         SavePositionIfDragged();
 
-        var mits = MitWatch.Current();
+        var mits = _mits;
+        MitWatch.Fill(mits);
         if (mits.Count == 0)
         {
             ImGui.Dummy(new Vector2(1, 1)); // keep the window alive between buffs

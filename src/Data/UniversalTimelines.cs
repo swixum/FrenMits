@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace FrenMits;
@@ -16,12 +17,26 @@ public static class UniversalTimelines
         public List<(float Time, uint Ability, bool Phase)> Syncs = new();
     }
 
-    private static Dictionary<uint, Zone>? _zones;
+    private static volatile Dictionary<uint, Zone>? _zones;
+    private static readonly object LoadGate = new();
 
-    // Built locally and published in one go at the end.
+    // Unpacking this costs a frame, so spend it off-thread before a duty asks.
+    public static void Warm()
+        => Task.Run(() => { try { Load(); } catch { /* the read logs its own trouble */ } });
+
+    // Whoever asks first loads it; everyone else waits on that one read.
     private static void Load()
     {
         if (_zones != null) return;
+        lock (LoadGate)
+        {
+            if (_zones == null) ReadResource();
+        }
+    }
+
+    // Built locally and published in one go at the end.
+    private static void ReadResource()
+    {
         var zones = new Dictionary<uint, Zone>();
         try
         {

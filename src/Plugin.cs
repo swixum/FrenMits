@@ -106,6 +106,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         AdoptSupersededSheets();
 
+        // The baked duty timelines unpack in the background, off the first frame.
+        UniversalTimelines.Warm();
+
         // Deferred to the first tick, since both need game state.
 
         Cues = new CueEngine(this, Audio);
@@ -171,6 +174,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             };
         }
         catch (Exception ex) { Service.Log.Warning(ex, "FrenMits: DTR entry failed"); }
+
+        // Migrations and seeding may have changed things, so land them at load.
+        if (Config.SavePending) Config.SaveSettingsNow();
 
         Service.PluginInterface.UiBuilder.Draw += DrawUi;
         Service.PluginInterface.UiBuilder.OpenConfigUi += OpenConfig;
@@ -612,8 +618,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         PlayersStanding = standing;
         if (biggest != null)
         {
+            // The name costs a string, so read it only when the boss changes.
+            if (CurrentBossNameId != biggest.NameId) _currentBossName = biggest.Name.ToString();
             CurrentBossNameId = biggest.NameId;
-            _currentBossName = biggest.Name.ToString();
             _currentBossMaxHp = biggest.MaxHp;
         }
 
@@ -797,6 +804,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                 _lastFrameErrLog = DateTime.UtcNow;
                 Service.Log.Error(ex, $"FrenMits: framework update error (x{FrameErrorCount} this session)");
             }
+        }
+        finally
+        {
+            // Held settings land here, even if an engine threw this frame.
+            Config.FlushSettings();
         }
     }
 
@@ -1216,6 +1228,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     public void Dispose()
     {
+        // A held change lands now, but a bad write must not skip the unhooking below.
+        try { Config.SaveSettingsNow(); }
+        catch (Exception ex) { Swallowed.Report("settings save", ex); }
         Diag.FlushOnDispose();
         Service.Log.Information($"[FrenMits] dispose - live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
         Service.Framework.Update -= OnFrameworkUpdate;

@@ -402,15 +402,59 @@ public class Configuration : IPluginConfiguration
         PlanStore.Save(Fights);
     }
 
-    // Bumped on every save, so watchers can skip work when nothing has changed.
+    // Bumped on every change, so watchers can skip work when nothing has changed.
     public static int SaveTick { get; private set; }
+
+    // A drag asks to save every frame, so the write waits for the quiet.
+    public const double QuietSeconds = 0.4;
+    public const double HoldCeilingSeconds = 2;
+
+    // Write once the asks stop, and never hold a change longer than the ceiling.
+    public static bool WriteDue(double sinceLastAsk, double sinceFirstAsk)
+        => sinceLastAsk >= QuietSeconds || sinceFirstAsk >= HoldCeilingSeconds
+           // A clock that stepped backwards must not park the change forever.
+           || sinceLastAsk < 0 || sinceFirstAsk < 0;
+
+    private bool _dirty;
+    private DateTime _firstAsk;
+    private DateTime _lastAsk;
+
+    // True while a change is still waiting on disk.
+    public bool SavePending => _dirty;
 
     // Settings only, for paths that cannot have touched a plan.
     public void SaveSettings()
     {
         if (SuppressSave) return;
+        var now = DateTime.UtcNow;
+        if (!_dirty) { _dirty = true; _firstAsk = now; }
+        _lastAsk = now;
+        // Watchers follow the change itself, not the disk write behind it.
+        SaveTick++;
+    }
+
+    // Called every frame: the write lands once the changes stop coming.
+    public void FlushSettings()
+    {
+        if (!_dirty) return;
+        var now = DateTime.UtcNow;
+        if (!WriteDue((now - _lastAsk).TotalSeconds, (now - _firstAsk).TotalSeconds)) return;
+        try { SaveSettingsNow(); }
+        catch (Exception ex)
+        {
+            // Hold the change and try again shortly, rather than spin on a bad disk.
+            _firstAsk = _lastAsk = now;
+            Swallowed.Report("settings save", ex);
+        }
+    }
+
+    // For anything that cannot wait, unload above all.
+    public void SaveSettingsNow()
+    {
+        if (SuppressSave) { _dirty = false; return; }
         Service.PluginInterface.SavePluginConfig(this);
         LastSavedAt = DateTime.Now;
-        SaveTick++;
+        // Cleared last, so a failed write is tried again.
+        _dirty = false;
     }
 }

@@ -9,27 +9,25 @@ public static class MitWatch
 {
     public readonly record struct Active(uint IconId, string Name, float Remaining, MitTypes.Kind Kind);
 
-    public static List<Active> Current()
+    // What a status id turned out to be; null means it is not a mit.
+    private readonly record struct Known(uint IconId, string Name, MitTypes.Kind Kind);
+
+    private static readonly Dictionary<uint, Known?> Resolved = new();
+
+    // Fills the caller's list, since the bar asks for this every frame.
+    public static void Fill(List<Active> into)
     {
-        var list = new List<Active>();
+        into.Clear();
         try
         {
             var me = Plugin.LocalPlayer;
-            if (me == null) return list;
-            // English, so the keyword tables can classify the status.
-            var sheet = GameSheets.English<Status>();
-            if (sheet == null) return list;
+            if (me == null) return;
 
             foreach (var st in me.StatusList)
             {
                 if (st is null || st.StatusId == 0) continue;
-                if (sheet.GetRowOrDefault(st.StatusId) is not { } row) continue;
-                var name = row.Name.ExtractText();
-                if (string.IsNullOrWhiteSpace(name)) continue;
-
-                var kind = MitTypes.Classify(name);
-                if (kind == MitTypes.Kind.Other) continue; // only show recognised mits
-                list.Add(new Active((uint)row.Icon, name, MathF.Abs(st.RemainingTime), kind));
+                if (Resolve(st.StatusId) is not { } known) continue;
+                into.Add(new Active(known.IconId, known.Name, MathF.Abs(st.RemainingTime), known.Kind));
             }
         }
         catch (Exception ex)
@@ -37,6 +35,27 @@ public static class MitWatch
             // Leave a trail, since no mits up looks the same as a failed read.
             Swallowed.Report("active mit read", ex);
         }
-        return list;
+    }
+
+    // A status id means the same thing all session, so name it once.
+    private static Known? Resolve(uint statusId)
+    {
+        if (Resolved.TryGetValue(statusId, out var cached)) return cached;
+
+        // English, so the keyword tables can classify the status.
+        var sheet = GameSheets.English<Status>();
+        // No sheet yet is a bad moment to ask, not an answer worth keeping.
+        if (sheet == null) return null;
+
+        Known? known = null;
+        if (sheet.GetRowOrDefault(statusId) is { } row)
+        {
+            var name = row.Name.ExtractText();
+            var kind = string.IsNullOrWhiteSpace(name) ? MitTypes.Kind.Other : MitTypes.Classify(name);
+            // Only recognized mits belong on the bar.
+            if (kind != MitTypes.Kind.Other) known = new Known((uint)row.Icon, name, kind);
+        }
+        Resolved[statusId] = known;
+        return known;
     }
 }

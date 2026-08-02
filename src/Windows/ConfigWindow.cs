@@ -172,7 +172,7 @@ public partial class ConfigWindow : Window, IDisposable
 
     private bool _toggleDirty;
 
-    // Every edit writes on the spot, so there is no unsaved state.
+    // Every edit is kept the moment it happens; the write follows a breath later.
     private void DrawFooter()
     {
         ImGui.Separator();
@@ -186,15 +186,24 @@ public partial class ConfigWindow : Window, IDisposable
             return;
         }
 
+        // A drag holds its write until it stops, so say so rather than look stale.
+        if (C.SavePending)
+        {
+            StatusDot(ImGuiColors.DalamudYellow);
+            ImGui.SameLine(0, 6);
+            ImGui.TextDisabled("Saving your changes...");
+            return;
+        }
+
         var last = Configuration.LastSavedAt;
         var recent = last != DateTime.MinValue && (DateTime.Now - last).TotalSeconds < 3;
         StatusDot(recent ? ImGuiColors.ParsedGreen : ImGuiColors.HealerGreen);
         ImGui.SameLine(0, 6);
         ImGui.TextDisabled(last == DateTime.MinValue
-            ? "All changes save instantly; nothing to lose on exit."
+            ? "All changes are saved; nothing to lose on exit."
             : recent
                 ? "All changes saved just now."
-                : $"All changes saved; every edit writes instantly (last {Ago(last)}).");
+                : $"All changes saved; nothing to lose on exit (last {Ago(last)}).");
     }
 
     private static string Ago(DateTime t)

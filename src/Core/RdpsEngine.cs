@@ -51,6 +51,9 @@ public class RdpsEngine
     private HashSet<uint>? _irActionIds;
     private Dictionary<uint, (bool Tech, float Mult)>? _finishIds;
 
+    // The build waits on the sheets, so retry off the clock, not the feed's volume.
+    public void PrimeIds() => TryBuildIds();
+
     // Ids stay true in every client language.
     private void TryBuildIds()
     {
@@ -524,9 +527,13 @@ public class RdpsEngine
 
     // ---- line dispatch ----
 
+    // The line types dispatched below, so a feed can skip the rest before building one.
+    public static bool Handles(string opcode)
+        => opcode is "21" or "22" or "24" or "26" or "30" or "03" or "25" or "02" or "01";
+
     public void Process(string[] f)
     {
-        if (f.Length < 2) return;
+        if (f.Length < 2 || !Handles(f[0])) return;
         TryBuildIds();
         switch (f[0])
         {
