@@ -206,6 +206,9 @@ public class Meter : IDisposable
 
         if (!_replaying) CheckFeedAlive();
 
+        // Seeded from the game's own list, since the log only names allies once.
+        if (_inCombat && !_replaying) SeedAllies();
+
         // A boss on the field makes this fight worth keeping.
         if (_inCombat && _plugin.BossHpFraction >= 0f) _sawBoss = true;
         _bossLeft = TrackBoss(_bossLeft, _plugin.BossHpFraction, _inCombat);
@@ -950,7 +953,26 @@ public class Meter : IDisposable
         }
 
         // A replay's engine holds, so only live pulls overlay it.
-        if (!_replaying) OverlayEngineFacts(enc, Engine);
+        if (!_replaying) { OverlayEngineFacts(enc, Engine); NoteUnattributed(enc); }
+    }
+
+    // The last set of names the engine had nothing for, so the note fires once per change.
+    private string _blindNote = "";
+
+    // Empty roll columns mean the engine never matched that name, so say whose.
+    private void NoteUnattributed(MeterEncounter enc)
+    {
+        if (!C.Diagnostics && !C.MeterDiagFile) return;
+        var blind = "";
+        foreach (var r in enc.Rows)
+        {
+            if (r.LimitBreak || r.Damage <= 0) continue;
+            if (r.CritPct > 0 || r.DirectHitPct > 0 || r.CritDirectHitPct > 0) continue;
+            blind += (blind.Length > 0 ? ", " : "") + (r.Display.Length > 0 ? r.Display : r.Name);
+        }
+        if (blind == _blindNote) return;
+        _blindNote = blind;
+        if (blind.Length > 0) Note($"no log lines matched - {blind}");
     }
 
     // Engine counts replace the parser's running averages.
@@ -972,6 +994,21 @@ public class Meter : IDisposable
             var (landed, over) = engine.HealFacts(who);
             if (landed + over > 0) row.OverhealPct = over * 100.0 / (landed + over);
         }
+    }
+
+    // How often the party list is walked; it is eight entries, but not every frame.
+    private DateTime _nextSeed = DateTime.MinValue;
+
+    private void SeedAllies()
+    {
+        if (DateTime.UtcNow < _nextSeed) return;
+        _nextSeed = DateTime.UtcNow.AddSeconds(2);
+        try
+        {
+            foreach (var m in Service.PartyList)
+                Engine.NoteAlly(m.EntityId, m.Name.ToString(), m.ClassJob.RowId);
+        }
+        catch (Exception ex) { Swallowed.Report("seed allies", ex); }
     }
 
     private string LocalName()

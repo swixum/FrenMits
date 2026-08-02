@@ -539,12 +539,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         return true;
     }
 
-    // A raid boss's health bar, told from trash by the lower floor.
+    // A boss's health bar, told from trash by how it compares to a player's own.
+    // The flat floor is only for when there is no player to measure against.
     public const uint BossHpFloor = 1_000_000;
     private const uint BossHpPlayerMultiple = 15;
 
     public static bool BossSized(uint maxHp, uint playerMaxHp)
-        => maxHp > (playerMaxHp > 0 ? Math.Min(BossHpFloor, playerMaxHp * BossHpPlayerMultiple) : BossHpFloor);
+        => maxHp > (playerMaxHp > 0 ? playerMaxHp * BossHpPlayerMultiple : BossHpFloor);
 
     // Who in your own party is up, not the whole zone.
     private static int StandingInParty()

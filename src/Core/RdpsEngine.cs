@@ -521,6 +521,18 @@ public class RdpsEngine
     private bool IsCombatant(uint id) => IsPlayer(id) || _allies.Contains(id);
 
     // Who a damage source belongs to.
+    // A party member the log never introduced. Duty Support allies are only ever announced
+    // by an AddCombatant line, so loading mid-duty leaves them unrecognised for the whole run.
+    public void NoteAlly(uint id, string name, uint jobRowId)
+    {
+        if (id is 0 or 0xE0000000) return;
+        if (name.Length > 0) _names[id] = name;
+        if (Jobs.ByRowId(jobRowId) is not { } job) return;
+        _roles[id] = job.Role;
+        // Carrying a job means it acts on its own, same as the log's own line says.
+        if (!IsPlayer(id)) _allies.Add(id);
+    }
+
     private uint OwnerOf(uint id)
     {
         if (IsCombatant(id)) return id;

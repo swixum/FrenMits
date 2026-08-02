@@ -75,8 +75,14 @@ public class MeterHistoryWindow : Window
         var reserve = detail == null ? 0f
             : DetailHeight() + GripHeight + ImGui.GetFrameHeightWithSpacing() + style.ItemSpacing.Y * 2f;
 
+        // A short list hugs its rows instead of leaving a hole above the panel.
+        var rowH = ImGui.GetTextLineHeight() + style.CellPadding.Y * 2f;
+        var room = MathF.Max(rowH * 2f, ImGui.GetContentRegionAvail().Y - footerH - reserve);
+        var wanted = (m.History.Count + 2) * rowH + 2f;   // every pull, the live row, and the header
+        var listH = MathF.Min(wanted, room);
+
         var flags = ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX;
-        if (ImGui.BeginTable("##pullhistory", 6, flags, new Vector2(0, -(footerH + reserve))))
+        if (ImGui.BeginTable("##pullhistory", 6, flags, new Vector2(0, listH)))
         {
             ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, timeW);
             ImGui.TableSetupColumn("Fight", ImGuiTableColumnFlags.WidthStretch);
@@ -91,6 +97,10 @@ public class MeterHistoryWindow : Window
             for (var i = 0; i < m.History.Count; i++) DrawPullRow(m.History[i], i);
             ImGui.EndTable();
         }
+
+        // Slack between the two, so the panel and its grip stay put as the list grows.
+        var slack = room - listH;
+        if (slack > 1f) ImGui.Dummy(new Vector2(1f, slack));
 
         if (detail != null) DrawDetail(detail.Value.Enc, detail.Value.Live, footerH);
         DrawFooter(m, style);
@@ -130,7 +140,7 @@ public class MeterHistoryWindow : Window
             hot ? Theme.Accent : 0x30FFFFFF, hot ? 3f : 2f);
         if (hot) ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNs);
         if (ImGui.IsItemActive())
-            C.MeterHistoryDetailHeight = Math.Clamp(DetailHeight() + ImGui.GetIO().MouseDelta.Y, 90f, 700f);
+            C.MeterHistoryDetailHeight = Math.Clamp(DetailHeight() - ImGui.GetIO().MouseDelta.Y, 90f, 700f);
         if (ImGui.IsItemDeactivated()) C.Save();
 
         DrawDetailHead(enc, live);
@@ -152,6 +162,7 @@ public class MeterHistoryWindow : Window
         PullTag(enc.Boss || (live && _plugin.Meter.SawBoss), !live || !enc.Active);
 
         ImGui.SameLine(0, 8f);
+        ImGui.AlignTextToFramePadding();
         if (live && enc.Active) Pill("in progress", Theme.Accent);
         else
         {
@@ -160,6 +171,7 @@ public class MeterHistoryWindow : Window
         }
 
         ImGui.SameLine(0, 10f);
+        ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.Muted),
             $"{(enc.Duration.Length > 0 ? enc.Duration : "0:00")}  ·  {Total(enc)}");
 
@@ -245,10 +257,12 @@ public class MeterHistoryWindow : Window
                 ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.RDps), Theme.TextBright);
                 ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.Dps), Theme.Muted);
                 ImGui.TableNextColumn(); RightText(r.DamagePct.Length > 0 ? r.DamagePct : "-", Theme.Muted);
-                // Roll quality, and the one that pays: both at once.
-                ImGui.TableNextColumn(); RightText(Pct(r.LimitBreak ? -1 : r.CritPct), Theme.Muted);
-                ImGui.TableNextColumn(); RightText(Pct(r.LimitBreak ? -1 : r.DirectHitPct), Theme.Muted);
-                ImGui.TableNextColumn(); RightText(Pct(r.LimitBreak ? -1 : r.CritDirectHitPct), Theme.TextBright);
+                // Roll quality, and the one that pays: both at once. All three flat means nobody counted.
+                var rolled = !r.LimitBreak
+                    && (r.CritPct > 0 || r.DirectHitPct > 0 || r.CritDirectHitPct > 0);
+                ImGui.TableNextColumn(); RightText(Pct(rolled ? r.CritPct : -1), Theme.Muted);
+                ImGui.TableNextColumn(); RightText(Pct(rolled ? r.DirectHitPct : -1), Theme.Muted);
+                ImGui.TableNextColumn(); RightText(Pct(rolled ? r.CritDirectHitPct : -1), Theme.TextBright);
                 ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.Hps), Theme.Muted);
                 ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.Taken), Theme.Muted);
                 ImGui.TableNextColumn();
@@ -260,7 +274,7 @@ public class MeterHistoryWindow : Window
 
     private const int RosterCols = 10;
 
-    // The limit break rolls nothing, so it gets a dash rather than a fake zero.
+    // A dash where nothing was counted, rather than a zero that reads as a fact.
     private static string Pct(double v) => v < 0 ? "-" : $"{v:0.#}%";
 
     // Who went down, when, and to what.
@@ -372,6 +386,7 @@ public class MeterHistoryWindow : Window
     {
         if (!boss && !settled) return;
         ImGui.SameLine(0, 5f);
+        ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(boss ? Theme.Accent : Theme.Muted), boss ? "(Boss)" : "(Trash)");
     }
 
