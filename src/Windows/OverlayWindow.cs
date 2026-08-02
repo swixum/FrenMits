@@ -330,7 +330,7 @@ public class OverlayWindow : Window
                 var tickFrac = totalDur > 0.01f ? Math.Clamp((activeDur - delay) / totalDur, 0f, 1f) : 0f;
                 var lead = dt.LeadNew;
                 var action = Icons.DisplayAction(call.MitName, job);
-                DrawIconClock(Icons.ForMitPress(call, job), action, MathF.Max(0f, remaining), imminent,
+                DrawIconClock(Icons.ForMitPress(call, job), action, remaining, imminent,
                     lead, barFrac, tickFrac, call.SourceLine.Color, d);
             }
             return;
@@ -354,7 +354,7 @@ public class OverlayWindow : Window
             var lead = dt.LeadNew;
             var icon = C.ShowAbilityIcon ? Icons.ForMitPress(call, job) : 0u;
             var action = Icons.DisplayAction(call.MitName, job);
-            DrawCurrent(call.SourceLine.Mechanic, action, MathF.Max(0f, remaining), imminent, call.SourceLine.Color, lead, barFrac, tickFrac, icon);
+            DrawCurrent(call.SourceLine.Mechanic, action, remaining, imminent, call.SourceLine.Color, lead, barFrac, tickFrac, icon);
         }
     }
 
@@ -367,6 +367,24 @@ public class OverlayWindow : Window
     private const uint BoardMuted = 0xFFA89A90;
     private const uint BoardBorder = 0x66594A3F;
     private const uint BoardPanelRgb = 0x0014110E;
+
+    private float BoardRound => Math.Clamp(C.UpcomingBoardRounding, 0f, 12f);
+    private uint BoardPanel => ((uint)(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24) | BoardPanelRgb;
+
+    // The board's layered fill: a solid base, a gradient body, a crisp moving edge.
+    private static void BoardFill(ImDrawListPtr dl, Vector2 p0, Vector2 p1, float frac, uint color, float round)
+    {
+        if (frac <= 0.004f) return;
+        var rgb = color & 0x00FFFFFF;
+        var edgeX = p0.X + (p1.X - p0.X) * frac;
+        var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
+        dl.AddRectFilled(p0, new Vector2(edgeX, p1.Y), rgb | 0x66000000, round, corners);
+        dl.AddRectFilledMultiColor(p0, new Vector2(edgeX, p1.Y),
+            rgb | 0x14000000, rgb | 0x7A000000, rgb | 0x7A000000, rgb | 0x14000000);
+        if (frac > 0.02f && frac < 0.985f)
+            dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
+                new Vector2(edgeX + 0.5f, p1.Y - 1f), rgb | 0xF0000000);
+    }
 
     // A uniform bar width, so stacked bars line up.
     private float BoardWidth()
@@ -398,18 +416,7 @@ public class OverlayWindow : Window
         // Draining countdown fill (full at the lead, empty at the call).
         if (lead > 0.01f)
         {
-            var frac = barFrac;
-            if (frac > 0.001f)
-            {
-                var edgeX = p0.X + width * frac;
-                var rgb = barCol & 0x00FFFFFF;
-                var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
-
-                dl.AddRectFilled(p0, new Vector2(edgeX, p1.Y), rgb | 0x66000000, round, corners);
-                if (frac > 0.02f && frac < 0.985f)
-                    dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
-                        new Vector2(edgeX + 0.5f, p1.Y - 1f), rgb | 0xF0000000);
-            }
+            BoardFill(dl, p0, p1, barFrac, barCol, round);
             // The mark the fill reaches as the press first becomes usable.
             if (imminent && tickFrac > 0.001f && tickFrac < 0.999f)
             {
@@ -481,17 +488,24 @@ public class OverlayWindow : Window
         float lead, float barFrac, float tickFrac, uint colorOverride, float diam)
     {
         var dl = ImGui.GetWindowDrawList();
-        var p0 = ImGui.GetCursorScreenPos();
-        var p1 = p0 + new Vector2(diam, diam);
-        var center = p0 + new Vector2(diam * 0.5f, diam * 0.5f);
+        var box = ImGui.GetCursorScreenPos();
+        // The rim arc rides outside the tile, so inset the tile to leave it room.
+        var rimW = MathF.Max(2f, diam * 0.05f);
+        var pad = rimW * 2f;              // keeps the arc AND its notch inside the box
+        var tile = MathF.Max(8f, diam - pad * 2f);
+        var p0 = box + new Vector2(pad, pad);
+        var p1 = p0 + new Vector2(tile, tile);
+        var center = p0 + new Vector2(tile * 0.5f, tile * 0.5f);
         var accent = colorOverride != 0 ? colorOverride : BoardAccent;
-        var rounding = diam * 0.14f;
+        var rounding = tile * 0.14f;
+        const float Top = -MathF.PI * 0.5f;   // 12 o'clock
+        var frac = Math.Clamp(barFrac, 0f, 1f);
 
         // The icon itself (or a themed disc when it can't be resolved).
         if (iconId != 0)
         {
             ImGui.SetCursorScreenPos(p0);
-            Icons.Draw(iconId, new Vector2(diam, diam));
+            Icons.Draw(iconId, new Vector2(tile, tile));
         }
         else
         {
@@ -501,15 +515,52 @@ public class OverlayWindow : Window
         // Cooldown sweep: a dark wedge growing clockwise.
         if (lead > 0.01f)
         {
-            var frac = barFrac;
             var covered = 1f - frac;
             if (covered > 0.001f)
             {
-                var start = -MathF.PI * 0.5f;
                 dl.PathLineTo(center);
-                dl.PathArcTo(center, diam * 0.72f, start, start + covered * MathF.PI * 2f, 96);
+                dl.PathArcTo(center, tile * 0.72f, Top, Top + covered * MathF.PI * 2f, 96);
                 dl.PathFillConvex(0xC0000000);
             }
+        }
+
+        // Once the window is open the tile washes green, like the board's NOW badge.
+        if (!imminent)
+        {
+            var beat = C.PulseWhenImminent ? MathF.Sin((float)ImGui.GetTime() * 10f) * 0.5f + 0.5f : 1f;
+            dl.AddRectFilled(p0, p1, (BoardNow & 0x00FFFFFF) | ((uint)(0x20 + 0x38 * beat) << 24), rounding);
+        }
+
+        // The rim arc: what is left of the lead and the window, with a bright head.
+        var rimR = tile * 0.5f + pad * 0.4f;
+        dl.PathArcTo(center, rimR, Top, Top + MathF.PI * 2f, 64);
+        dl.PathStroke(0x30FFFFFF, ImDrawFlags.None, rimW);
+        if (lead > 0.01f && frac > 0.004f)
+        {
+            var arcCol = ((imminent ? accent : BoardNow) & 0x00FFFFFF) | 0xF0000000;
+            dl.PathArcTo(center, rimR, Top, Top + frac * MathF.PI * 2f, 64);
+            dl.PathStroke(arcCol, ImDrawFlags.None, rimW);
+            var head = Top + frac * MathF.PI * 2f;
+            dl.AddCircleFilled(center + new Vector2(MathF.Cos(head), MathF.Sin(head)) * rimR,
+                rimW * 0.6f, 0xF0FFFFFF);
+        }
+
+        // The notch the arc reaches as the press first becomes usable.
+        if (imminent && tickFrac > 0.001f && tickFrac < 0.999f)
+        {
+            var a = Top + tickFrac * MathF.PI * 2f;
+            var dir = new Vector2(MathF.Cos(a), MathF.Sin(a));
+            dl.AddLine(center + dir * (rimR - rimW), center + dir * (rimR + rimW), 0xB0FFFFFF, 2f);
+        }
+
+        // A spark on that notch as the window opens.
+        if (remaining <= 0.05f && remaining > -0.55f && tickFrac > 0.001f)
+        {
+            var a = Top + tickFrac * MathF.PI * 2f;
+            // Sized to the room between the rim and the edge of the reserved box.
+            var k = Math.Clamp((diam * 0.5f - rimR) / 11f, 0.25f, 1f);
+            OverlayChrome.Spark(dl, center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * rimR,
+                (0.05f - remaining) / 0.6f, accent, k);
         }
 
         // Border, green + pulsing at go time.
@@ -518,9 +569,10 @@ public class OverlayWindow : Window
         dl.AddRect(p0, p1, (ring & 0x00FFFFFF) | 0xE0000000, rounding, ImDrawFlags.None, 2.5f);
 
         // Centered countdown, outlined so it reads over busy icon art.
-        var num = !imminent ? "" : remaining < 3f ? $"{remaining:0.0}" : $"{MathF.Ceiling(remaining):0}";
+        var shown = MathF.Max(0f, remaining);
+        var num = !imminent ? "" : shown < 3f ? $"{shown:0.0}" : $"{MathF.Ceiling(shown):0}";
         if (num.Length > 0)
-            using (PushFont(MathF.Round(diam * 0.42f)))
+            using (PushFont(MathF.Round(tile * 0.42f)))
             {
                 var np = center - ImGui.CalcTextSize(num) * 0.5f;
                 for (var oy = -1; oy <= 1; oy++)
@@ -530,23 +582,31 @@ public class OverlayWindow : Window
                 dl.AddText(np, 0xFFFFFFFF, num);
             }
 
-        ImGui.SetCursorScreenPos(p0);
+        ImGui.SetCursorScreenPos(box);
         ImGui.Dummy(new Vector2(diam, diam));
     }
 
     private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
         uint colorOverride, float lead, float barFrac, float tickFrac, uint iconId = 0)
     {
+        var dl = ImGui.GetWindowDrawList();
+        var panel = C.OverlayCallPanel;
+        // Split so the plate can be drawn behind content that has not been measured yet.
+        if (panel) { dl.ChannelsSplit(2); dl.ChannelsSetCurrent(1); }
+        var top = ImGui.GetCursorScreenPos();
+        if (panel) ImGui.Dummy(new Vector2(1f, 5f));
+
         // Color priority: override, mit type, then default.
         var typeColor = C.ColorByMitType ? MitTypes.Color(MitTypes.Classify(action, mechanic), C) : 0u;
         var baseColor = colorOverride != 0 ? colorOverride
             : typeColor != 0 ? typeColor
             : (imminent ? C.OverlayColorImminent : C.OverlayColorActive);
-        var color = imminent && C.PulseWhenImminent && remaining < 1.5f ? Pulse(baseColor) : baseColor;
-        var headline = FormatHeadline(mechanic, action, remaining, imminent);
+        var shown = MathF.Max(0f, remaining);
+        var color = imminent && C.PulseWhenImminent && shown < 1.5f ? Pulse(baseColor) : baseColor;
+        var headline = FormatHeadline(mechanic, action, shown, imminent);
 
         // Flag a call whose mit won't be off recast in time.
-        if (C.CooldownAwareCalls && imminent && Cooldowns.Remaining(action) is { } cd && cd > remaining + 0.5f)
+        if (C.CooldownAwareCalls && imminent && Cooldowns.Remaining(action) is { } cd && cd > shown + 0.5f)
         {
             headline += $"  [CD {MathF.Ceiling(cd):0}s]";
             color = 0xFF3C3CF0; // red-ish warning
@@ -565,33 +625,53 @@ public class OverlayWindow : Window
         {
             // Its own countdown, so the mechanic line ticks down too.
             var mechText = imminent
-                ? $"{mechanic}   {MathF.Ceiling(remaining):0}"
+                ? $"{mechanic}   {MathF.Ceiling(shown):0}"
                 : mechanic;
             using (PushFont(C.OverlayFontSizePx * 0.55f))
                 CenteredText(mechText, C.OverlayColorMechanic);
         }
 
         if (C.ShowProgressBar && lead > 0.01f)
-            DrawProgressBar(barFrac, tickFrac, color, imminent);
+            DrawProgressBar(barFrac, tickFrac, remaining, color, imminent);
+
+        if (!panel) return;
+        ImGui.Dummy(new Vector2(1f, 5f));
+
+        // The plate: the board's panel, border and go-time stripe.
+        var width = MathF.Max(1f, ImGui.GetContentRegionAvail().X);
+        var q0 = new Vector2(top.X, top.Y);
+        var q1 = new Vector2(top.X + width, ImGui.GetCursorScreenPos().Y);
+        dl.ChannelsSetCurrent(0);
+        var round = BoardRound;
+        dl.AddRectFilled(q0, q1, BoardPanel, round);
+        var stripe = imminent ? (colorOverride != 0 ? colorOverride : BoardAccent) : BoardNow;
+        if (!imminent && C.PulseWhenImminent) stripe = Pulse(stripe);
+        dl.AddRectFilled(q0, new Vector2(q0.X + 3f, q1.Y), stripe, round, ImDrawFlags.RoundCornersLeft);
+        dl.AddRect(q0, q1, BoardBorder, round);
+        dl.ChannelsMerge();
     }
 
-    private void DrawProgressBar(float frac, float tickFrac, uint color, bool imminent)
+    private void DrawProgressBar(float frac, float tickFrac, float remaining, uint color, bool imminent)
     {
         var width = MathF.Max(ImGui.GetContentRegionAvail().X, C.ProgressBarWidthPx);
         var height = MathF.Max(1f, C.ProgressBarHeight);
         var origin = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
-        dl.AddRectFilled(origin, origin + new Vector2(width, height), 0x80202020, 2f);
-        if (frac > 0.001f)
-        {
-            dl.AddRectFilled(origin, origin + new Vector2(width * frac, height), color, 2f);
-        }
+        var far = origin + new Vector2(width, height);
+        var round = MathF.Min(BoardRound, height * 0.5f);
+        dl.AddRectFilled(origin, far, 0x80202020, round);
+        BoardFill(dl, origin, far, frac, color, round);
+        dl.AddRect(origin, far, BoardBorder, round);
         // The mark the fill reaches as the press first becomes usable.
         if (imminent && tickFrac > 0.001f && tickFrac < 0.999f)
         {
             var tickX = origin.X + width * tickFrac;
-            dl.AddLine(new Vector2(tickX, origin.Y), new Vector2(tickX, origin.Y + height), 0x80FFFFFF, 2f);
+            dl.AddLine(new Vector2(tickX, origin.Y - 1f), new Vector2(tickX, far.Y + 1f), 0xB0FFFFFF, 2f);
         }
+        // A spark on that mark as the window opens.
+        if (remaining <= 0.05f && remaining > -0.55f && tickFrac > 0.001f)
+            OverlayChrome.Spark(dl, new Vector2(origin.X + width * tickFrac, origin.Y + height * 0.5f),
+                (0.05f - remaining) / 0.6f, color);
         ImGui.Dummy(new Vector2(width, height));
     }
 

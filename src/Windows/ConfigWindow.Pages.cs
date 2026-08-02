@@ -302,6 +302,8 @@ public partial class ConfigWindow
                     "Matched from the action name; pin one per line with the \"...\" button.");
                 C.ShowRadialRing = GridCheck("Radial ring", C.ShowRadialRing,
                     "A depleting countdown ring around the call icon.");
+                C.OverlayCallPanel = GridCheck("Call panel", C.OverlayCallPanel,
+                    "A board-style plate behind the classic call.");
                 C.ShowMechanicLine = GridCheck("Mechanic 2nd line", C.ShowMechanicLine);
                 C.ShowCountdownNumber = GridCheck("Countdown number", C.ShowCountdownNumber);
                 C.TextShadow = GridCheck("Drop shadow", C.TextShadow,

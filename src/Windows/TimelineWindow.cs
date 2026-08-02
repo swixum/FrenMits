@@ -760,26 +760,7 @@ public class TimelineWindow : Window
 
     // A brief spark: a hot core expanding into a fading ring.
     private static void BoardSpark(ImDrawListPtr dl, Vector2 c, float progress, uint color)
-    {
-        var p = Math.Clamp(progress, 0f, 1f);
-        var fade = 1f - p;
-        var rgb = color & 0x00FFFFFF;
-        // expanding ring, white and fading fast
-        var ringA = (uint)(0xC0 * fade * fade) << 24;
-        dl.AddCircle(c, 2f + p * 9f, ringA | 0x00FFFFFF, 14, 1.6f * fade + 0.4f);
-        // white-hot core
-        var coreA = (uint)(0xF0 * fade) << 24;
-        dl.AddCircleFilled(c, 1.4f + fade * 1.8f, coreA | 0x00FFFFFF);
-        // rays in the row's own color, thrown outward as it fades
-        var rayA = ((uint)(0xB0 * fade * fade) << 24) | rgb;
-        for (var i = 0; i < 6; i++)
-        {
-            var ang = i * (MathF.PI / 3f) + 0.4f;
-            var dir = new Vector2(MathF.Cos(ang), MathF.Sin(ang));
-            var r0 = 2.5f + p * 5f;
-            dl.AddLine(c + dir * r0, c + dir * (r0 + 3.5f + p * 5f), rayA, 1.3f * fade + 0.3f);
-        }
-    }
+        => OverlayChrome.Spark(dl, c, progress, color);
 
     // Reused, since this runs once per visible row.
     private readonly List<string> _actionParts = new();

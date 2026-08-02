@@ -52,6 +52,27 @@ internal static class OverlayChrome
         }
     }
 
+    // A brief spark when a countdown drains out: hot core, fading ring, rays.
+    public static void Spark(ImDrawListPtr dl, Vector2 c, float progress, uint color, float scale = 1f)
+    {
+        var p = Math.Clamp(progress, 0f, 1f);
+        var fade = 1f - p;
+        var k = MathF.Max(0.15f, scale);
+        var rgb = color & 0x00FFFFFF;
+        var ringA = (uint)(0xC0 * fade * fade) << 24;
+        dl.AddCircle(c, (2f + p * 9f) * k, ringA | 0x00FFFFFF, 14, (1.6f * fade + 0.4f) * k);
+        var coreA = (uint)(0xF0 * fade) << 24;
+        dl.AddCircleFilled(c, (1.4f + fade * 1.8f) * k, coreA | 0x00FFFFFF);
+        var rayA = ((uint)(0xB0 * fade * fade) << 24) | rgb;
+        for (var i = 0; i < 6; i++)
+        {
+            var ang = i * (MathF.PI / 3f) + 0.4f;
+            var dir = new Vector2(MathF.Cos(ang), MathF.Sin(ang));
+            var r0 = (2.5f + p * 5f) * k;
+            dl.AddLine(c + dir * r0, c + dir * (r0 + (3.5f + p * 5f) * k), rayA, (1.3f * fade + 0.3f) * k);
+        }
+    }
+
     // Pin the window's center to the saved work-area fraction.
     public static void ApplyPosition(Vector2 savedFrac, bool locked, ref bool applyPos)
     {

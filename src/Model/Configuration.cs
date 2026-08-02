@@ -337,8 +337,15 @@ public class Configuration : IPluginConfiguration
     // Radial countdown ring around the call icon.
     public bool ShowRadialRing { get; set; } = true;
 
+    // Board-style backing plate behind the classic call.
+    public bool OverlayCallPanel { get; set; } = true;
+
     // Cooldown-aware calls: warn when a mit won't be ready.
     public bool CooldownAwareCalls { get; set; }
+
+    // Read on load only, so v40 can tell a solved plan from a hand-tuned one.
+    public bool AutoCooldownTiming { get; set; }
+    public bool ShouldSerializeAutoCooldownTiming() => false;
 
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;

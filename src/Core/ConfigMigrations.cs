@@ -391,6 +391,36 @@ public static class ConfigMigrations
             config.Version = 39;
             config.Save();
         }
+
+        // v40: usage windows replace the offsets the old auto-timer wrote.
+        if (config.Version < 40)
+        {
+            // Only a plan the solver actually ran on, so hand tweaks survive.
+            if (config.AutoCooldownTiming)
+            {
+                var seen = new HashSet<List<MitLine>>();
+                void ClearSolved(List<MitLine>? lines)
+                {
+                    // A slot's stash is often the very same list as fight.Lines.
+                    if (lines == null || !seen.Add(lines)) return;
+                    foreach (var l in lines)
+                    {
+                        if (l == null || l.OffsetManual) continue;
+                        l.OffsetSeconds = 0f;
+                        l.CoverUntil = 0f;
+                    }
+                }
+                foreach (var f in config.Fights)
+                {
+                    ClearSolved(f.Lines);
+                    if (f.SavedSlots != null)
+                        foreach (var slot in f.SavedSlots.Values) ClearSolved(slot);
+                }
+                config.AutoCooldownTiming = false;
+            }
+            config.Version = 40;
+            config.Save();
+        }
     }
 
     // A fight's verified windows drop a profile's derived ones.
