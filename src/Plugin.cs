@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Command;
@@ -50,6 +50,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         pluginInterface.Create<Service>();
+        // Every phase of the load is timed, so a stutter on update can be pinned on one of them.
+        var load = new LoadClock();
 
         Config = LoadConfig();
         Config.Fights ??= new();
@@ -58,9 +60,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Config.LearnedFights ??= new();
         Snapshots = new SnapshotStore(Config);
         FrenMits.Windows.Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
+        load.Mark("config");
 
         // Versioned migrations (v2..v23) live in ConfigMigrations.
         ConfigMigrations.Run(this);
+        load.Mark("migrations");
 
         // Slot names run through the standard on every load.
         var slotsRenamed = false;
@@ -105,9 +109,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         if (seeded) Config.Save();
 
         AdoptSupersededSheets();
+        load.Mark("seeding");
 
-        // The baked duty timelines unpack in the background, off the first frame.
+        // Both unpack in the background, off the game's thread.
         UniversalTimelines.Warm();
+        Meter.WarmSheets();
 
         // Deferred to the first tick, since both need game state.
 
@@ -154,6 +160,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         RecapButtonWindow.IsOpen = true;
         // Pop the "What's New" panel once after an update with notes.
         WhatsNewWindow.IsOpen = Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
+        load.Mark("windows");
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
@@ -186,7 +193,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         // If this ever logs a second instance, cues would double.
         var n = System.Threading.Interlocked.Increment(ref _liveInstances);
-        Service.Log.Information($"[FrenMits] init - live instance #{n}");
+        // Last mark, so the parts add up to the total rather than leaving a silent remainder.
+        load.Mark("commands");
+        Service.Log.Information($"[FrenMits] init - live instance #{n} - {load.Report()}");
     }
 
     private static int _liveInstances;

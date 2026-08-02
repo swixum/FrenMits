@@ -343,6 +343,9 @@ public class Configuration : IPluginConfiguration
     // A spark riding the bar edge across the classic call text.
     public bool OverlayTextSpark { get; set; } = true;
 
+    // Height of the Pull history window's detail panel, dragged via its top edge.
+    public float MeterHistoryDetailHeight { get; set; } = 170f;
+
     // Cooldown-aware calls: warn when a mit won't be ready.
     public bool CooldownAwareCalls { get; set; }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
@@ -40,6 +40,8 @@ public class Meter : IDisposable
     private long _fightStartSec;
     private string _fightTitle = "";
     private bool _sawBoss;
+    // Whether the pull in progress has a boss in it yet.
+    public bool SawBoss => _sawBoss;
     private float _bossLeft = -1f;
     private int _standing = -1;
 
@@ -81,64 +83,108 @@ public class Meter : IDisposable
         Engine.ResolveActionIds = ActionIdsOf;
     }
 
-    // One pass per sheet keeps the engine's lookups cheap.
-    private static Dictionary<string, List<uint>>? _statusIds;
-    private static Dictionary<string, List<uint>>? _actionIds;
+    // One pass per sheet keeps the engine's lookups cheap. Volatile: the warm task publishes these.
+    private static volatile Dictionary<string, List<uint>>? _statusIds;
+    private static volatile Dictionary<string, List<uint>>? _actionIds;
+    private static volatile HashSet<uint>? _lbActions;
+    // Separate gates: the cheap limit-break pass must not queue behind the name maps.
+    private static readonly object NameGate = new();
+    private static readonly object LbGate = new();
     private static readonly List<uint> NoIds = new();
 
-    private static List<uint>? StatusIdsOf(string english)
-    {
-        if (_statusIds == null)
+    // The Action sheet alone is tens of thousands of rows, so pay for it off the game's thread.
+    // Best effort: the sheets may not be up yet, and the lazy paths below still cover that.
+    public static void WarmSheets()
+        => System.Threading.Tasks.Task.Run(() =>
         {
+            try
+            {
+                // Cheapest and most load-bearing first, so a live pull is right soonest.
+                BuildLimitBreaks(wait: true);
+                StatusMap(wait: true);
+                ActionMap(wait: true);
+            }
+            catch (Exception ex) { Swallowed.Report("meter sheet warm", ex); }
+        });
+
+    // Names are not unique, so each one keeps every row id that carries it.
+    private static void Add(Dictionary<string, List<uint>> map, string name, uint id)
+        => (map.TryGetValue(name, out var list) ? list : map[name] = new List<uint>()).Add(id);
+
+    // The game's thread never waits on the warm task: a miss just retries next frame.
+    private static bool Enter(object gate, bool wait)
+    {
+        if (wait) { System.Threading.Monitor.Enter(gate); return true; }
+        return System.Threading.Monitor.TryEnter(gate);
+    }
+
+    private static Dictionary<string, List<uint>>? StatusMap(bool wait = false)
+    {
+        if (_statusIds != null) return _statusIds;
+        if (!Enter(NameGate, wait)) return null;
+        try
+        {
+            if (_statusIds != null) return _statusIds;
             var sheet = GameSheets.English<Lumina.Excel.Sheets.Status>();
             if (sheet == null) return null;
             var map = new Dictionary<string, List<uint>>(StringComparer.OrdinalIgnoreCase);
             foreach (var row in sheet)
             {
                 var name = row.Name.ExtractText();
-                if (name.Length == 0) continue;
-                (map.TryGetValue(name, out var list) ? list : map[name] = new List<uint>()).Add(row.RowId);
+                if (name.Length > 0) Add(map, name, row.RowId);
             }
-            _statusIds = map;
+            return _statusIds = map;
         }
-        return _statusIds.TryGetValue(english, out var ids) ? ids : NoIds;
+        finally { System.Threading.Monitor.Exit(NameGate); }
     }
 
-    private static List<uint>? ActionIdsOf(string english)
+    private static Dictionary<string, List<uint>>? ActionMap(bool wait = false)
     {
-        if (_actionIds == null)
+        if (_actionIds != null) return _actionIds;
+        if (!Enter(NameGate, wait)) return null;
+        try
         {
+            if (_actionIds != null) return _actionIds;
             var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
             if (sheet == null) return null;
             var map = new Dictionary<string, List<uint>>(StringComparer.OrdinalIgnoreCase);
             foreach (var row in sheet)
             {
                 var name = row.Name.ExtractText();
-                if (name.Length == 0) continue;
-                (map.TryGetValue(name, out var list) ? list : map[name] = new List<uint>()).Add(row.RowId);
+                if (name.Length > 0) Add(map, name, row.RowId);
             }
-            _actionIds = map;
+            return _actionIds = map;
         }
-        return _actionIds.TryGetValue(english, out var ids) ? ids : NoIds;
+        finally { System.Threading.Monitor.Exit(NameGate); }
     }
 
-    // Limit break ids, resolved once the sheets are up.
-    private HashSet<uint>? _lbActions;
+    private static List<uint>? StatusIdsOf(string english)
+        => StatusMap() is { } map ? map.TryGetValue(english, out var ids) ? ids : NoIds : null;
 
-    private bool IsLimitBreak(uint actionId)
+    private static List<uint>? ActionIdsOf(string english)
+        => ActionMap() is { } map ? map.TryGetValue(english, out var ids) ? ids : NoIds : null;
+
+    // Limit break ids, resolved once the sheets are up. No text to pull out, so this pass is cheap.
+    private static HashSet<uint>? BuildLimitBreaks(bool wait = false)
     {
-        if (_lbActions == null)
+        if (_lbActions != null) return _lbActions;
+        if (!Enter(LbGate, wait)) return null;
+        try
         {
+            if (_lbActions != null) return _lbActions;
             var sheet = GameSheets.English<Lumina.Excel.Sheets.Action>();
-            if (sheet == null) return false; // not ready: retry on a later hit
+            if (sheet == null) return null;
             var set = new HashSet<uint>();
             foreach (var row in sheet)
                 if (row.ActionCategory.RowId == 9)
                     set.Add(row.RowId);
-            _lbActions = set;
+            return _lbActions = set;
         }
-        return _lbActions.Contains(actionId);
+        finally { System.Threading.Monitor.Exit(LbGate); }
     }
+
+    // Not ready: retry on a later hit.
+    private bool IsLimitBreak(uint actionId) => BuildLimitBreaks()?.Contains(actionId) ?? false;
 
     public void Update()
     {
@@ -488,6 +534,7 @@ public class Meter : IDisposable
     private void Materialize(MeterEncounter enc)
     {
         enc.BossLeft = _bossLeft;
+        enc.Boss = _sawBoss;
         enc.Ended = EndOf(_standing, _bossLeft);
 
         // The parser says "YOU", so resolve it before filing.
@@ -821,7 +868,8 @@ public class Meter : IDisposable
                 Taken = Math.Max(0, r.Taken - (b?.Taken ?? 0)),
                 Deaths = Math.Max(0, r.Deaths - (b?.Deaths ?? 0)),
                 // Rates are running averages the parser never breaks down.
-                CritPct = r.CritPct, DirectHitPct = r.DirectHitPct, OverhealPct = r.OverhealPct,
+                CritPct = r.CritPct, DirectHitPct = r.DirectHitPct,
+                CritDirectHitPct = r.CritDirectHitPct, OverhealPct = r.OverhealPct,
                 MaxHit = r.MaxHit,
             };
             if (row.Damage <= 0 && row.Healed <= 0 && row.Taken <= 0 && row.Deaths <= 0) continue;
@@ -865,6 +913,8 @@ public class Meter : IDisposable
             ADps = dmg > 0 ? (a.ADps * a.Damage + b.ADps * b.Damage) / dmg : b.ADps,
             CritPct = dmg > 0 ? (a.CritPct * a.Damage + b.CritPct * b.Damage) / dmg : b.CritPct,
             DirectHitPct = dmg > 0 ? (a.DirectHitPct * a.Damage + b.DirectHitPct * b.Damage) / dmg : b.DirectHitPct,
+            CritDirectHitPct = dmg > 0
+                ? (a.CritDirectHitPct * a.Damage + b.CritDirectHitPct * b.Damage) / dmg : b.CritDirectHitPct,
             OverhealPct = healed > 0 ? (a.OverhealPct * a.Healed + b.OverhealPct * b.Healed) / healed : b.OverhealPct,
             MaxHit = MaxHitValue(b.MaxHit) >= MaxHitValue(a.MaxHit) ? b.MaxHit : a.MaxHit,
         };
@@ -911,11 +961,12 @@ public class Meter : IDisposable
             var who = row.LimitBreak
                 ? RdpsEngine.LimitBreakName
                 : row.Display.Length > 0 ? row.Display : row.Name;
-            var (hits, crits, dhs, max, maxName) = engine.DealtFacts(who);
+            var (hits, crits, dhs, cdhs, max, maxName) = engine.DealtFacts(who);
             if (hits > 0 && !row.LimitBreak)
             {
                 row.CritPct = crits * 100.0 / hits;
                 row.DirectHitPct = dhs * 100.0 / hits;
+                row.CritDirectHitPct = cdhs * 100.0 / hits;
             }
             if (max > 0 && maxName.Length > 0) row.MaxHit = $"{maxName}-{(int)max}";
             var (landed, over) = engine.HealFacts(who);
@@ -992,6 +1043,7 @@ public class Meter : IDisposable
                 Name = r.Name, Display = r.Name, Job = r.Job,
                 Dps = r.Dps, ADps = r.Dps * 1.08, RDps = r.Dps * r.Edge, Damage = r.Dps * e.Seconds,
                 CritPct = 18 + r.Dps % 13, DirectHitPct = 22 + r.Dps % 21,
+                CritDirectHitPct = 4 + r.Dps % 7,
                 Hps = r.Job switch { "SGE" => 9840, "WHM" => 8630, _ => r.Dps % 900 },
                 Healed = 0, OverhealPct = r.Job switch { "SGE" => 21, "WHM" => 24, _ => 4 },
                 Taken = 42000 + r.Dps % 9000, Deaths = r.Job is "VPR" ? 1 : 0,

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
@@ -382,16 +382,32 @@ public class MeterWindow : Window
         PopMenuTheme();
     }
 
+    // As many boss pulls as the picker shows before sending you to the history.
+    public const int RecentBossPulls = 8;
+    private readonly List<int> _picker = new();
+
+    // What the picker offers: the newest boss pulls, by their place in the history.
+    public static void PickerRows(IReadOnlyList<MeterEncounter> history, List<int> into)
+    {
+        into.Clear();
+        for (var i = 0; i < history.Count && into.Count < RecentBossPulls; i++)
+            if (history[i].Boss) into.Add(i);
+    }
+
     private void DrawPullList()
     {
         var m = _plugin.Meter;
+
+        // Recent boss pulls only, so the picker stays short. The history window has the lot.
+        PickerRows(m.History, _picker);
 
         // Sized to the widest entry, so the columns line up.
         var durW = ImGui.CalcTextSize(Now).X;
         var bodyW = ImGui.CalcTextSize("Current").X;
         var whenW = 0f;
-        foreach (var h in m.History)
+        foreach (var i in _picker)
         {
+            var h = m.History[i];
             durW = MathF.Max(durW, ImGui.CalcTextSize(h.Duration).X);
             whenW = MathF.Max(whenW, ImGui.CalcTextSize(Ago(h.When)).X);
             bodyW = MathF.Max(bodyW, ImGui.CalcTextSize(h.Title + Dot + Outcome(h)).X);
@@ -400,24 +416,33 @@ public class MeterWindow : Window
         var total = durW + 10f + bodyW + 18f + whenW;
 
         if (PullRow("cur", _histIdx < 0, total, durW, Now, "Current", "", 0u, "")) _histIdx = -1;
-        if (m.History.Count == 0)
-        {
-            ImGui.TextDisabled("no past pulls yet");
-            return;
-        }
-        ImGui.Separator();
 
-        for (var i = 0; i < m.History.Count; i++)
+        if (_picker.Count > 0)
         {
-            var h = m.History[i];
-            // The boss name gives way first.
-            var outcome = Outcome(h);
-            var ow = outcome.Length > 0 ? ImGui.CalcTextSize(Dot + outcome).X : 0f;
-            // The time is what tells two pulls of the same boss apart.
-            if (PullRow($"h{i}", _histIdx == i, total, durW, h.Duration,
-                    Clip(h.Title, bodyW - ow), outcome, OutcomeTint(h), Ago(h.When)))
-                _histIdx = i;
+            ImGui.Separator();
+            foreach (var i in _picker)
+            {
+                var h = m.History[i];
+                // The boss name gives way first.
+                var outcome = Outcome(h);
+                var ow = outcome.Length > 0 ? ImGui.CalcTextSize(Dot + outcome).X : 0f;
+                // The time is what tells two pulls of the same boss apart.
+                if (PullRow($"h{i}", _histIdx == i, total, durW, h.Duration,
+                        Clip(h.Title, bodyW - ow), outcome, OutcomeTint(h), Ago(h.When)))
+                    _histIdx = i;
+            }
         }
+        else
+            ImGui.TextDisabled(m.History.Count == 0 ? "no past pulls yet" : "no boss pulls yet");
+
+        // Trash and anything older than the last few bosses.
+        var rest = m.History.Count - _picker.Count;
+        if (rest <= 0) return;
+        ImGui.Separator();
+        ImGui.PushStyleColor(ImGuiCol.Text, C.MeterSubColor);
+        var toHistory = ImGui.Selectable($"{rest} more in Pull history");
+        ImGui.PopStyleColor();
+        if (toHistory) _plugin.MeterHistoryWindow.IsOpen = true;
     }
 
     // One line of the pull list, drawn by hand.
@@ -528,6 +553,7 @@ public class MeterWindow : Window
             d.Damage = L(p.Damage, r.Damage, t);
             d.CritPct = L(p.CritPct, r.CritPct, t);
             d.DirectHitPct = L(p.DirectHitPct, r.DirectHitPct, t);
+            d.CritDirectHitPct = L(p.CritDirectHitPct, r.CritDirectHitPct, t);
             d.ADps = L(p.ADps, r.ADps, t);
             d.Hps = L(p.Hps, r.Hps, t);
             d.Healed = L(p.Healed, r.Healed, t);
@@ -814,6 +840,7 @@ public class MeterWindow : Window
         new("dmgpct", "D%", "99.9%", c => c.DamagePct.Length > 0 ? c.DamagePct : "-"),
         new("crit", "CRIT", "99.9%", c => $"{c.CritPct:0.#}%"),
         new("dh", "DH", "99.9%", c => $"{c.DirectHitPct:0.#}%"),
+        new("cdh", "CDH", "99.9%", c => $"{c.CritDirectHitPct:0.#}%"),
         new("maxhit", "MAX", "9.99M", c => Num(Meter.MaxHitValue(c.MaxHit))),
         new("hps", "HPS", "999.9k", c => Num(c.Hps)),
         new("healpct", "H%", "99.9%", c => c.HealedPct.Length > 0 ? c.HealedPct : "-"),
@@ -2278,6 +2305,7 @@ public class MeterWindow : Window
         "dmgpct" => "Damage %",
         "crit" => "Crit %",
         "dh" => "Direct hit %",
+        "cdh" => "Crit direct hit %",
         "maxhit" => "Biggest hit",
         "hps" => "HPS",
         "healpct" => "Healing %",

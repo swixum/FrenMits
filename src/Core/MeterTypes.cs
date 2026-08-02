@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
@@ -12,6 +12,8 @@ public sealed class AbilityStat
     public int Hits;
     public int Crits;
     public int Dhs;
+    // Rolls that were both, which is the one that pays.
+    public int Cdhs;
     public double Damage;
     public double Max;
     // The action or status behind the row, for its icon.
@@ -25,6 +27,7 @@ public sealed class AbilityStat
     public double Average => Hits > 0 ? Damage / Hits : 0;
     public double CritPct => Hits > 0 ? Crits * 100.0 / Hits : 0;
     public double DhPct => Hits > 0 ? Dhs * 100.0 / Hits : 0;
+    public double CdhPct => Hits > 0 ? Cdhs * 100.0 / Hits : 0;
     public double Raw => Damage + Over;
     public double OverPct => Raw > 0 ? Over * 100.0 / Raw : 0;
 }
@@ -66,6 +69,8 @@ public sealed class MeterCombatant
     public string DamagePct = "";
     public double CritPct;
     public double DirectHitPct;
+    // Hits that crit and direct hit at once.
+    public double CritDirectHitPct;
     public double Hps;
     public double Healed;
     public string HealedPct = "";
@@ -92,6 +97,8 @@ public sealed class MeterEncounter
     public double RaidRDps;
     // Boss health left at the close, below zero if unread.
     public float BossLeft = -1f;
+    // A boss health bar was read during the pull, so this was not trash.
+    public bool Boss;
     // The limit break this pull used, for its row icon.
     public uint LimitBreakAction;
     public PullEnd Ended = PullEnd.Unknown;
@@ -158,6 +165,7 @@ public sealed class MeterEncounter
                     DamagePct = c["damage%"]?.ToString() ?? "",
                     CritPct = Num(c["crithit%"]),
                     DirectHitPct = Num(c["DirectHitPct"]),
+                    CritDirectHitPct = Num(c["CritDirectHitPct"]),
                     Hps = Num(c["enchps"]),
                     Healed = Num(c["healed"]),
                     HealedPct = c["healed%"]?.ToString() ?? "",

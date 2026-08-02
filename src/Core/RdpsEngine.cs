@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -303,6 +303,7 @@ public class RdpsEngine
         s.Hits++;
         if (crit) s.Crits++;
         if (dh) s.Dhs++;
+        if (crit && dh) s.Cdhs++;
         s.Damage += dmg;
         s.Over += over;
         if (dmg > s.Max) s.Max = dmg;
@@ -324,9 +325,9 @@ public class RdpsEngine
     public double DealtTotal { get; private set; }
 
     // Event-exact roll counts and biggest hit.
-    public (int Hits, int Crits, int Dhs, double MaxHit, string MaxHitName) DealtFacts(string player)
+    public (int Hits, int Crits, int Dhs, int Cdhs, double MaxHit, string MaxHitName) DealtFacts(string player)
     {
-        int hits = 0, crits = 0, dhs = 0;
+        int hits = 0, crits = 0, dhs = 0, cdhs = 0;
         double max = 0;
         var maxName = "";
         if (player.Length > 0 && _dealt.TryGetValue(player, out var by))
@@ -335,9 +336,10 @@ public class RdpsEngine
                 hits += a.Hits;
                 crits += a.Crits;
                 dhs += a.Dhs;
+                cdhs += a.Cdhs;
                 if (a.Max > max) { max = a.Max; maxName = a.Name; }
             }
-        return (hits, crits, dhs, max, maxName);
+        return (hits, crits, dhs, cdhs, max, maxName);
     }
 
     // The same for healing, for an exact overheal share.
