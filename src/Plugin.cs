@@ -80,7 +80,6 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         for (var i = Config.SheetPinnedSlots.Count - 1; i > 0; i--)
             if (Config.SheetPinnedSlots.Take(i).Contains(Config.SheetPinnedSlots[i], StringComparer.OrdinalIgnoreCase))
             { Config.SheetPinnedSlots.RemoveAt(i); slotsRenamed = true; }
-        if (slotsRenamed) Config.Save();
 
         // Meter columns from a pre-Replace build carry doubles.
         var colsFixed = Configuration.DedupeMeterColumns(Config.MeterColumns);
@@ -106,7 +105,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             else if (f.Name == "Futures Rewritten (Ultimate)") { f.Name = Builtin.Name(Builtin.FruTerritory); seeded = true; }
         }
 
-        if (seeded) Config.Save();
+        // One save covers the rename and seed passes, so the load frame pays it once.
+        if (slotsRenamed || seeded) Config.Save();
 
         AdoptSupersededSheets();
         load.Mark("seeding");
@@ -1147,7 +1147,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (TimelineLearner.LearnPull(Config, _learnBossNameId, _learnBossName,
                     Sync.LastPullTerritory, CapturedCasts()))
             {
-                Config.Save();
+                // Learning only touches settings, so the plan file stays out of it.
+                Config.SaveSettings();
                 Service.Log.Information(
                     $"[FrenMits] learned timeline updated for \"{_learnBossName}\" from this pull.");
             }
@@ -1227,11 +1228,12 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     public void Dispose()
     {
+        var clock = new LoadClock();
         // A held change lands now, but a bad write must not skip the unhooking below.
-        try { Config.SaveSettingsNow(); }
+        try { if (Config.SavePending) Config.SaveSettingsNow(); }
         catch (Exception ex) { Swallowed.Report("settings save", ex); }
         Diag.FlushOnDispose();
-        Service.Log.Information($"[FrenMits] dispose - live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
+        clock.Mark("save");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;
@@ -1242,11 +1244,17 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.CommandManager.RemoveHandler(CommandAlias);
 
         _dtr?.Remove();
+        clock.Mark("unhook");
         Meter.Dispose();
         Damage.Dispose();
+        FFLogsClient.Shutdown();
+        clock.Mark("engines");
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();
         Fonts.Dispose();
         Audio.Dispose();
+        clock.Mark("windows");
+        Service.Log.Information($"[FrenMits] dispose - live instances now "
+            + $"{System.Threading.Interlocked.Decrement(ref _liveInstances)} - {clock.Report("dispose")}");
     }
 }

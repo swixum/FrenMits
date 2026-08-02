@@ -190,6 +190,8 @@ public class MeterLink : IDisposable
                 ws.Options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
 
             await ws.ConnectAsync(uri, token);
+            // A stop raced the connect, so land dead rather than flip the status back up.
+            token.ThrowIfCancellationRequested();
             await ws.SendAsync(Encoding.UTF8.GetBytes(Subscribe), WebSocketMessageType.Text, true, token);
             up = true;
             _wsUp = true;
@@ -238,7 +240,7 @@ public class MeterLink : IDisposable
         ActiveAddress = "";
         try { _cts?.Cancel(); } catch { }
         try { _ws?.Dispose(); } catch { }
-        try { _wsTask?.Wait(500); } catch { }
+        // No wait here: cancel and abort end the task, and a wait stalls the game's thread.
         _cts = null;
         _ws = null;
         _wsTask = null;

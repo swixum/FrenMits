@@ -466,7 +466,9 @@ public class RdpsEngine
         return (landed, amount - landed);
     }
 
-    // Healing rolls its crit in a different flag bit.
+    // Damage rolls sit in the high nibble of the second byte, healing in a bit of its own.
+    private const uint DamageCrit = 0x2000;
+    private const uint DamageDh = 0x4000;
     private const uint HealCrit = 0x200000;
 
     // One heal, onto every table that wants it.
@@ -777,8 +779,8 @@ public class RdpsEngine
             if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
             var dmg = Unscramble(HexLong(f[i + 1]));
             if (dmg == 0) continue;
-            var crit = (flags & 0x100) != 0;
-            var dh = (flags & 0x200) != 0;
+            var crit = (flags & DamageCrit) != 0;
+            var dh = (flags & DamageDh) != 0;
 
             Tally(_dealt, ownerName, action.Length > 0 ? action : "Attack", dmg, crit, dh, Hex(f[4]));
             DealtTotal += dmg;
@@ -822,7 +824,7 @@ public class RdpsEngine
             if ((flags & 0xFF) is not (0x03 or 0x05 or 0x06)) continue;
             var dmg = Unscramble(HexLong(f[i + 1]));
             if (dmg == 0) continue;
-            Tally(_taken, who, action, dmg, (flags & 0x100) != 0, (flags & 0x200) != 0, id);
+            Tally(_taken, who, action, dmg, (flags & DamageCrit) != 0, (flags & DamageDh) != 0, id);
             Recent(who, action, dmg, sec, heal: false);
         }
     }

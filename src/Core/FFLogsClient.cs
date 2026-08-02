@@ -14,6 +14,12 @@ public sealed class FFLogsClient
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
 
+    // Unload drops the pool, so its sockets and timers don't outlive the plugin.
+    public static void Shutdown()
+    {
+        try { Http.CancelPendingRequests(); Http.Dispose(); } catch { /* ignore */ }
+    }
+
     private string? _token;
     private DateTime _tokenExpiry = DateTime.MinValue;
     private string _tokenForId = "";

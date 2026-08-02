@@ -48,6 +48,9 @@ public class Audio : IDisposable
     private long _playedSeq;
     private volatile bool _disposed;
 
+    // Unload cancels any fetch still on the wire.
+    private readonly CancellationTokenSource _shutdown = new();
+
     // True if seq is the newest cue played.
     private static bool TryAdvance(ref long played, long seq)
     {
@@ -70,7 +73,7 @@ public class Audio : IDisposable
     // Speaks through Edge when useEdge, else SAPI.
     public void Speak(string text, int rate, int volume, bool useEdge, string voice)
     {
-        if (string.IsNullOrWhiteSpace(text)) return;
+        if (_disposed || string.IsNullOrWhiteSpace(text)) return;
 
         var seq = Interlocked.Increment(ref _speakSeq);
 
@@ -265,7 +268,9 @@ public class Audio : IDisposable
             $"?TrustedClientToken={EdgeToken}&Sec-MS-GEC={EdgeSecToken()}&Sec-MS-GEC-Version={EdgeVersion}" +
             $"&ConnectionId={Guid.NewGuid():N}";
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        // Ten seconds, or sooner if the plugin is unloading.
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
         ws.ConnectAsync(new Uri(url), cts.Token).GetAwaiter().GetResult();
 
         var ts = DateTime.UtcNow.ToString(
@@ -414,24 +419,34 @@ public class Audio : IDisposable
     {
         // Flag first so in-flight tasks bail at their next gate.
         _disposed = true;
+        try { _shutdown.Cancel(); } catch { /* ignore */ }
 
-        lock (_sapiLock)
+        // Bounded waits: a speak in flight must never hang the game's thread; the GC mops up.
+        if (Monitor.TryEnter(_sapiLock, 250))
         {
             try
             {
-                if (_voice is not null && Marshal.IsComObject(_voice))
-                    Marshal.ReleaseComObject(_voice);
+                try
+                {
+                    if (_voice is not null && Marshal.IsComObject(_voice))
+                        Marshal.ReleaseComObject(_voice);
+                }
+                catch { /* ignore */ }
+                _voice = null;
             }
-            catch { /* ignore */ }
-            _voice = null;
+            finally { Monitor.Exit(_sapiLock); }
         }
 
-        lock (_playLock)
+        if (Monitor.TryEnter(_playLock, 250))
         {
-            try { _output?.Dispose(); } catch { /* ignore */ }
-            try { _reader?.Dispose(); } catch { /* ignore */ }
-            try { _readerMs?.Dispose(); } catch { /* ignore */ }
-            _output = null; _reader = null; _readerMs = null;
+            try
+            {
+                try { _output?.Dispose(); } catch { /* ignore */ }
+                try { _reader?.Dispose(); } catch { /* ignore */ }
+                try { _readerMs?.Dispose(); } catch { /* ignore */ }
+                _output = null; _reader = null; _readerMs = null;
+            }
+            finally { Monitor.Exit(_playLock); }
         }
     }
 }

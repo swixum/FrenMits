@@ -20,11 +20,11 @@ public sealed class LoadClock
 
     // "load 214ms (config 61, migrations 3, seeding 12, windows 138)"
     // The total is the marks added up, so no time hides between the last one and here.
-    public string Report()
+    public string Report(string label = "load")
     {
         var total = 0L;
         foreach (var m in _marks) total += m.Ms;
-        var sb = new StringBuilder($"load {total}ms (");
+        var sb = new StringBuilder($"{label} {total}ms (");
         for (var i = 0; i < _marks.Count; i++)
         {
             if (i > 0) sb.Append(", ");
