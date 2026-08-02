@@ -14,11 +14,11 @@ public class MeterHistoryWindow : Window
     public MeterHistoryWindow(Plugin plugin) : base("Pull history###fmmeterhistory")
     {
         _plugin = plugin;
-        Size = new Vector2(520, 350);
+        Size = new Vector2(700, 380);
         SizeCondition = ImGuiCond.FirstUseEver;
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(400, 190),
+            MinimumSize = new Vector2(430, 190),
             MaximumSize = new Vector2(1400, 1400),
         };
     }
@@ -206,11 +206,19 @@ public class MeterHistoryWindow : Window
         var numW = ImGui.CalcTextSize("999.9k").X + 6f;
         var pctW = ImGui.CalcTextSize("99.9%").X + 6f;
         var dW = ImGui.CalcTextSize("D").X + 10f;
-        // Fixed, not stretched: a scrolling table has no room to give away.
         var whoW = ImGui.CalcTextSize("Limit Break").X;
         foreach (var r in _roster)
             whoW = MathF.Max(whoW, ImGui.CalcTextSize($"{Who(r)} {r.Job}").X);
         whoW += 10f;
+
+        // Every column's width is known here, and the header and the rows below both align
+        // against it. Asking the cell how much room is left gives a different answer under
+        // ScrollX, which is what threw the right-hand columns out of line with their headers.
+        _colW[0] = whoW;
+        _colW[1] = _colW[2] = numW;
+        _colW[3] = _colW[4] = _colW[5] = _colW[6] = pctW;
+        _colW[7] = _colW[8] = numW;
+        _colW[9] = dW;
 
         // Scrolls sideways rather than clipping, so a narrow window still reaches every column.
         var flags = ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX
@@ -232,13 +240,14 @@ public class MeterHistoryWindow : Window
             ImGui.TableSetupColumn("HPS", ImGuiTableColumnFlags.WidthFixed, numW);
             ImGui.TableSetupColumn("Taken", ImGuiTableColumnFlags.WidthFixed, numW);
             ImGui.TableSetupColumn("D", ImGuiTableColumnFlags.WidthFixed, dW);
+            // The name stays put while the numbers scroll past it.
             ImGui.TableSetupScrollFreeze(1, 0);
             ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
             for (var col = 0; col < RosterCols; col++)
             {
                 if (!ImGui.TableSetColumnIndex(col)) continue;
                 if (col == 0) ImGui.TableHeader(ImGui.TableGetColumnName(col));
-                else RightText(ImGui.TableGetColumnName(col), Theme.TextBright);
+                else RightIn(col, ImGui.TableGetColumnName(col), Theme.TextBright);
             }
 
             foreach (var r in _roster)
@@ -254,25 +263,36 @@ public class MeterHistoryWindow : Window
                     ImGui.TextColored(Theme.V(JobTint(r.Job)), r.Job);
                 }
 
-                ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.RDps), Theme.TextBright);
-                ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.Dps), Theme.Muted);
-                ImGui.TableNextColumn(); RightText(r.DamagePct.Length > 0 ? r.DamagePct : "-", Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(1, MeterWindow.Num(r.RDps), Theme.TextBright);
+                ImGui.TableNextColumn(); RightIn(2, MeterWindow.Num(r.Dps), Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(3, r.DamagePct.Length > 0 ? r.DamagePct : "-", Theme.Muted);
                 // Roll quality, and the one that pays: both at once. All three flat means nobody counted.
                 var rolled = !r.LimitBreak
                     && (r.CritPct > 0 || r.DirectHitPct > 0 || r.CritDirectHitPct > 0);
-                ImGui.TableNextColumn(); RightText(Pct(rolled ? r.CritPct : -1), Theme.Muted);
-                ImGui.TableNextColumn(); RightText(Pct(rolled ? r.DirectHitPct : -1), Theme.Muted);
-                ImGui.TableNextColumn(); RightText(Pct(rolled ? r.CritDirectHitPct : -1), Theme.TextBright);
-                ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.Hps), Theme.Muted);
-                ImGui.TableNextColumn(); RightText(MeterWindow.Num(r.Taken), Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(4, Pct(rolled ? r.CritPct : -1), Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(5, Pct(rolled ? r.DirectHitPct : -1), Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(6, Pct(rolled ? r.CritDirectHitPct : -1), Theme.TextBright);
+                ImGui.TableNextColumn(); RightIn(7, MeterWindow.Num(r.Hps), Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(8, MeterWindow.Num(r.Taken), Theme.Muted);
                 ImGui.TableNextColumn();
-                RightText(r.Deaths.ToString(), r.Deaths > 0 ? Theme.Danger : Theme.Muted);
+                RightIn(9, r.Deaths.ToString(), r.Deaths > 0 ? Theme.Danger : Theme.Muted);
             }
         }
         finally { ImGui.EndTable(); }
     }
 
     private const int RosterCols = 10;
+    private readonly float[] _colW = new float[RosterCols];
+
+    // Right-aligned against the column's own width, so the header and the rows agree
+    // whether or not the table is scrolled sideways.
+    private void RightIn(int col, string text, uint color)
+    {
+        var w = ImGui.CalcTextSize(text).X;
+        var room = _colW[col];
+        if (room > w) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + room - w);
+        ImGui.TextColored(Theme.V(color), text);
+    }
 
     // A dash where nothing was counted, rather than a zero that reads as a fact.
     private static string Pct(double v) => v < 0 ? "-" : $"{v:0.#}%";

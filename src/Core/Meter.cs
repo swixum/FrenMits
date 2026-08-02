@@ -711,6 +711,7 @@ public class Meter : IDisposable
     private void Publish(MeterEncounter enc)
     {
         ApplyRdps(enc);
+        if (!enc.Active && !_replaying) NoteAttribution(enc);
         // Banked with the pull, so history keeps its icon.
         if (Engine.LastLimitBreak != 0) enc.LimitBreakAction = Engine.LastLimitBreak;
         if (enc.Active) CheckAgainstLogLines(enc);
@@ -953,26 +954,35 @@ public class Meter : IDisposable
         }
 
         // A replay's engine holds, so only live pulls overlay it.
-        if (!_replaying) { OverlayEngineFacts(enc, Engine); NoteUnattributed(enc); }
+        if (!_replaying) OverlayEngineFacts(enc, Engine);
     }
 
-    // The last set of names the engine had nothing for, so the note fires once per change.
-    private string _blindNote = "";
-
-    // Empty roll columns mean the engine never matched that name, so say whose.
-    private void NoteUnattributed(MeterEncounter enc)
+    // Whether the engine matched every row, once the pull is over and the counts are final.
+    // Asked mid-pull this says nothing: nobody has landed enough hits to have rolled anything yet.
+    private void NoteAttribution(MeterEncounter enc)
     {
         if (!C.Diagnostics && !C.MeterDiagFile) return;
         var blind = "";
         foreach (var r in enc.Rows)
         {
             if (r.LimitBreak || r.Damage <= 0) continue;
-            if (r.CritPct > 0 || r.DirectHitPct > 0 || r.CritDirectHitPct > 0) continue;
-            blind += (blind.Length > 0 ? ", " : "") + (r.Display.Length > 0 ? r.Display : r.Name);
+            var who = r.Display.Length > 0 ? r.Display : r.Name;
+            if (Engine.DealtFacts(who).Hits > 0) continue;
+            // Both names, since the parser's raw one is what the display is derived from.
+            blind += (blind.Length > 0 ? ", " : "")
+                   + (string.Equals(who, r.Name, StringComparison.Ordinal) ? who : $"{who} (raw {r.Name})");
         }
-        if (blind == _blindNote) return;
-        _blindNote = blind;
-        if (blind.Length > 0) Note($"no log lines matched - {blind}");
+        if (blind.Length == 0) { Note("every row matched the log lines"); return; }
+        // The engine's own names beside them, so a mismatch reads instead of being guessed at.
+        var had = "";
+        foreach (var d in Engine.Dealers())
+        {
+            if (had.Length > 240) { had += ", ..."; break; }
+            had += (had.Length > 0 ? ", " : "") + d;
+        }
+        Note($"unmatched at close - {blind}");
+        // Who the plugin thinks you are, since the parser only ever says "YOU".
+        Note($"engine had - {(had.Length > 0 ? had : "nothing")} (you = '{LocalName()}')");
     }
 
     // Engine counts replace the parser's running averages.

@@ -527,9 +527,9 @@ public class RdpsEngine
     {
         if (id is 0 or 0xE0000000) return;
         if (name.Length > 0) _names[id] = name;
-        if (Jobs.ByRowId(jobRowId) is not { } job) return;
-        _roles[id] = job.Role;
-        // Carrying a job means it acts on its own, same as the log's own line says.
+        if (Jobs.ByRowId(jobRowId) is { } job) _roles[id] = job.Role;
+        // Being in the party is the point, not the job: the log announces Duty Support
+        // allies with no job at all, and without this they fold into their owner's row.
         if (!IsPlayer(id)) _allies.Add(id);
     }
 
