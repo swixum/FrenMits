@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -148,19 +148,19 @@ public class OverlayWindow : Window
                 using (PushFont(C.OverlayFontSizePx))
                 {
                     var w = BoardWidth();
-                    DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0f, Icons.ResolveFromText("Reprisal"), w);
+                    DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0.28f, Icons.ResolveFromText("Reprisal"), w);
                     ImGui.Dummy(new Vector2(1f, 4f));
-                    DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, 0.5f, 0f, Icons.ResolveFromText("Feint"), w);
+                    DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, 0.5f, 0.28f, Icons.ResolveFromText("Feint"), w);
                 }
             else if (C.OverlayStyle == 2)
             {
                 var d = IconClockDiameter();
-                DrawIconClock(Icons.ResolveFromText("Reprisal"), "Reprisal", 1.4f, true, C.WarningSeconds, 0.5f, 0f, 0, d);
+                DrawIconClock(Icons.ResolveFromText("Reprisal"), "Reprisal", 1.4f, true, C.WarningSeconds, 0.5f, 0.28f, 0, d);
                 ImGui.SameLine(0, 10f);
-                DrawIconClock(Icons.ResolveFromText("Feint"), "Feint", 3.2f, true, C.WarningSeconds, 0.5f, 0f, 0, d);
+                DrawIconClock(Icons.ResolveFromText("Feint"), "Feint", 3.2f, true, C.WarningSeconds, 0.5f, 0.28f, 0, d);
             }
             else
-                DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0f,
+                DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0.28f,
                     Icons.ResolveFromText("Reprisal"));
             return;
         }
@@ -616,17 +616,23 @@ public class OverlayWindow : Window
         var ringFrac = C.ShowRadialRing && lead > 0.01f && barFrac > 0.001f
             ? Math.Clamp(barFrac, 0f, 1f) : -1f;
 
-        // Where the bar's fill ends, so the text fades in step with the bar below it.
-        var sweepX = float.NaN;
-        if (C.OverlayTextSweep && lead > 0.01f)
+        // Both marks ride the bar's own geometry, so the text and the bar stay in step.
+        TextMarks? marks = null;
+        if (C.OverlayTextSpark && lead > 0.01f)
         {
             var avail = ImGui.GetContentRegionAvail().X;
             var barW = C.ShowProgressBar ? MathF.Max(avail, C.ProgressBarWidthPx) : avail;
-            sweepX = ImGui.GetCursorScreenPos().X + barW * Math.Clamp(barFrac, 0f, 1f);
+            var barX = ImGui.GetCursorScreenPos().X;
+            var onBar = tickFrac > 0.001f && tickFrac < 0.999f;
+            marks = new TextMarks(
+                barX + barW * Math.Clamp(barFrac, 0f, 1f),
+                onBar ? barX + barW * tickFrac : float.NaN,
+                imminent,
+                remaining <= 0.05f && remaining > -0.55f ? (0.05f - remaining) / 0.6f : float.NaN);
         }
 
         using (PushFont(C.OverlayFontSizePx))
-            CenteredIconText(iconId, headline, color, ringFrac, baseColor, sweepX);
+            CenteredIconText(iconId, headline, color, ringFrac, baseColor, marks);
 
         if (C.ShowMechanicLine
             && !string.IsNullOrWhiteSpace(mechanic)
@@ -704,48 +710,53 @@ public class OverlayWindow : Window
     // Brightness oscillation for the imminent pulse.
     private static uint Pulse(uint abgr) => OverlayChrome.Pulse(abgr);
 
-    private static uint Fade(uint abgr, float scale) => OverlayChrome.Fade(abgr, scale);
+    // How far outside the word the lines fade in and back out.
+    private const float SparkMargin = 14f;
 
-    // How dim the text goes once the bar's edge has swept past it.
-    private const float SweptAlpha = 0.5f;
+    // What the classic call draws over its text: the bar's edge, where it stops, and the hit.
+    private readonly record struct TextMarks(float LineX, float TickX, bool TickLive, float Burst);
 
-    // Draws the call text lit ahead of the bar's edge and faded behind it.
-    private void SweptText(string text, uint color, float sweepX)
+    // Draws the call text, with a light line on the bar's edge crossing it.
+    private void CallText(string text, uint color, TextMarks? marks)
     {
-        if (C.TextShadow)
-            ImGui.GetWindowDrawList().AddText(ImGui.GetCursorScreenPos() + new Vector2(1.5f, 1.5f), 0xE0000000, text);
-
-        if (float.IsNaN(sweepX))
-        {
-            ImGui.PushStyleColor(ImGuiCol.Text, color);
-            ImGui.TextUnformatted(text);
-            ImGui.PopStyleColor();
-            return;
-        }
-
-        var dl = ImGui.GetWindowDrawList();
         var p = ImGui.GetCursorScreenPos();
+        if (C.TextShadow)
+            ImGui.GetWindowDrawList().AddText(p + new Vector2(1.5f, 1.5f), 0xE0000000, text);
+
+        ImGui.PushStyleColor(ImGuiCol.Text, color);
+        ImGui.TextUnformatted(text);
+        ImGui.PopStyleColor();
+        if (marks is not { } m) return;
+
         var size = ImGui.CalcTextSize(text);
-        var y0 = p.Y - 2f;
-        var y1 = p.Y + size.Y + 2f;
-        const float feather = 24f;
-        const int steps = 6;
+        var dl = ImGui.GetWindowDrawList();
+        // Taller than the glyphs, so it is already fading where the letters end.
+        var pad = size.Y * 0.12f;
+        var y0 = p.Y - pad;
+        var y1 = p.Y + size.Y + pad;
+        var core = MathF.Max(1f, MathF.Round(size.Y * 0.03f));
+        var halo = MathF.Max(3f, size.Y * 0.16f);
 
-        // Slices left to right, none overlapping, so the glyph weight stays even.
-        var soft = sweepX - feather * 0.5f;
-        Slice(p.X - 2f, soft, 1f);
-        for (var i = 0; i < steps; i++)
-            Slice(soft + feather * i / steps, soft + feather * (i + 1) / steps,
-                1f - (1f - SweptAlpha) * (i + 0.5f) / steps);
-        Slice(soft + feather, p.X + size.X + 2f, SweptAlpha);
-        ImGui.Dummy(size);
+        // The mark the line lands on as the press becomes usable, then the line itself.
+        if (m.TickLive) Line(m.TickX, 0x7A, 0x22);
+        Line(m.LineX, 0xFF, 0x52);
 
-        void Slice(float a, float b, float mul)
+        // And a spark on that mark the moment the line reaches it.
+        if (!float.IsNaN(m.Burst) && Over(m.TickX) > 0f)
+            OverlayChrome.Spark(dl, new Vector2(MathF.Round(m.TickX), p.Y + size.Y * 0.5f),
+                m.Burst, color, Math.Clamp(size.Y / 32f, 0.5f, 3f));
+
+        // Full strength while it is over the word, fading out past either end.
+        float Over(float x)
+            => float.IsNaN(x) ? 0f
+                : Math.Clamp(MathF.Min(x - (p.X - SparkMargin), p.X + size.X + SparkMargin - x) / SparkMargin, 0f, 1f);
+
+        void Line(float x, uint coreA, uint haloA)
         {
-            if (b <= a) return;
-            dl.PushClipRect(new Vector2(a, y0), new Vector2(b, y1), true);
-            dl.AddText(p, Fade(color, mul), text);
-            dl.PopClipRect();
+            var t = Over(x);
+            if (t <= 0f) return;
+            OverlayChrome.Beam(dl, x, y0, y1, halo, color & 0x00FFFFFF, (uint)(haloA * t), true);
+            OverlayChrome.Beam(dl, MathF.Round(x), y0, y1, core, 0x00FFFFFF, (uint)(coreA * t), false);
         }
     }
 
@@ -782,11 +793,11 @@ public class OverlayWindow : Window
 
     // Centers an optional icon and the text as one group.
     private void CenteredIconText(uint iconId, string text, uint color, float ringFrac = -1f, uint ringColor = 0,
-        float sweepX = float.NaN)
+        TextMarks? marks = null)
     {
         if (iconId == 0)
         {
-            CenteredText(text, color, sweepX);
+            CenteredText(text, color, marks);
             return;
         }
 
@@ -806,7 +817,7 @@ public class OverlayWindow : Window
         if (ringFrac >= 0f) DrawRing(iconTopLeft, iconH, ringFrac, ringColor);
         ImGui.SameLine(0, spacing);
         ImGui.SetCursorPosY(baseY);
-        SweptText(text, color, sweepX);
+        CallText(text, color, marks);
     }
 
     // Horizontal offset for the configured alignment.
@@ -817,12 +828,12 @@ public class OverlayWindow : Window
         _ => MathF.Max(0f, (avail - contentWidth) * 0.5f),
     };
 
-    private void CenteredText(string text, uint color, float sweepX = float.NaN)
+    private void CenteredText(string text, uint color, TextMarks? marks = null)
     {
         var textWidth = ImGui.CalcTextSize(text).X;
         var offset = AlignOffset(ImGui.GetContentRegionAvail().X, textWidth);
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
-        SweptText(text, color, sweepX);
+        CallText(text, color, marks);
     }
 
     private void SavePositionIfDragged()

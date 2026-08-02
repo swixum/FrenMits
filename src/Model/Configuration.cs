@@ -340,8 +340,8 @@ public class Configuration : IPluginConfiguration
     // Board-style backing plate behind the classic call.
     public bool OverlayCallPanel { get; set; }
 
-    // Fade the classic call text out behind the bar edge as it sweeps through.
-    public bool OverlayTextSweep { get; set; } = true;
+    // A spark riding the bar edge across the classic call text.
+    public bool OverlayTextSpark { get; set; } = true;
 
     // Cooldown-aware calls: warn when a mit won't be ready.
     public bool CooldownAwareCalls { get; set; }

@@ -93,9 +93,30 @@ internal static class OverlayChrome
         return (frac - saved).LengthSquared() > 0.0000001f ? frac : null;
     }
 
-    // A color's alpha scaled by a factor, clamped to a byte.
-    public static uint Fade(uint abgr, float scale)
-        => ((uint)Math.Clamp((abgr >> 24) * scale, 0f, 255f) << 24) | (abgr & 0x00FFFFFF);
+    // A vertical light beam: brightest down its middle, fading out at both ends.
+    public static void Beam(ImDrawListPtr dl, float x, float y0, float y1, float half, uint rgb, uint peak, bool soft)
+    {
+        if (peak == 0u || y1 <= y0) return;
+        var fade = (y1 - y0) * 0.22f;
+        Band(y0, y0 + fade, 0u, peak);
+        Band(y0 + fade, y1 - fade, peak, peak);
+        Band(y1 - fade, y1, peak, 0u);
+
+        void Band(float top, float bot, uint at, uint ab)
+        {
+            if (bot <= top) return;
+            var ct = (at << 24) | rgb;
+            var cb = (ab << 24) | rgb;
+            if (!soft)
+            {
+                dl.AddRectFilledMultiColor(new Vector2(x - half, top), new Vector2(x + half, bot), ct, ct, cb, cb);
+                return;
+            }
+            // Two mirrored halves, so it falls off sideways as well.
+            dl.AddRectFilledMultiColor(new Vector2(x - half, top), new Vector2(x, bot), rgb, ct, cb, rgb);
+            dl.AddRectFilledMultiColor(new Vector2(x, top), new Vector2(x + half, bot), ct, rgb, rgb, cb);
+        }
+    }
 
     // Brightness oscillation for imminent pulses, preserving alpha.
     public static uint Pulse(uint abgr)
