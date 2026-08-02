@@ -304,6 +304,8 @@ public partial class ConfigWindow
                     "A depleting countdown ring around the call icon.");
                 C.OverlayCallPanel = GridCheck("Call panel", C.OverlayCallPanel,
                     "A board-style plate behind the classic call.");
+                C.OverlayTextSweep = GridCheck("Text sweep", C.OverlayTextSweep,
+                    "Fades the classic call text out behind the bar's edge as it runs down.");
                 C.ShowMechanicLine = GridCheck("Mechanic 2nd line", C.ShowMechanicLine);
                 C.ShowCountdownNumber = GridCheck("Countdown number", C.ShowCountdownNumber);
                 C.TextShadow = GridCheck("Drop shadow", C.TextShadow,

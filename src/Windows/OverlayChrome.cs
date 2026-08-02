@@ -93,6 +93,10 @@ internal static class OverlayChrome
         return (frac - saved).LengthSquared() > 0.0000001f ? frac : null;
     }
 
+    // A color's alpha scaled by a factor, clamped to a byte.
+    public static uint Fade(uint abgr, float scale)
+        => ((uint)Math.Clamp((abgr >> 24) * scale, 0f, 255f) << 24) | (abgr & 0x00FFFFFF);
+
     // Brightness oscillation for imminent pulses, preserving alpha.
     public static uint Pulse(uint abgr)
     {

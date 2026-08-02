@@ -338,7 +338,10 @@ public class Configuration : IPluginConfiguration
     public bool ShowRadialRing { get; set; } = true;
 
     // Board-style backing plate behind the classic call.
-    public bool OverlayCallPanel { get; set; } = true;
+    public bool OverlayCallPanel { get; set; }
+
+    // Fade the classic call text out behind the bar edge as it sweeps through.
+    public bool OverlayTextSweep { get; set; } = true;
 
     // Cooldown-aware calls: warn when a mit won't be ready.
     public bool CooldownAwareCalls { get; set; }

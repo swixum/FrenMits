@@ -421,6 +421,14 @@ public static class ConfigMigrations
             config.Version = 40;
             config.Save();
         }
+
+        // v41: the classic call plate is opt-in, so it stops surprising anyone on 1.0.0.426.
+        if (config.Version < 41)
+        {
+            config.OverlayCallPanel = false;
+            config.Version = 41;
+            config.Save();
+        }
     }
 
     // A fight's verified windows drop a profile's derived ones.

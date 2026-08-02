@@ -616,8 +616,17 @@ public class OverlayWindow : Window
         var ringFrac = C.ShowRadialRing && lead > 0.01f && barFrac > 0.001f
             ? Math.Clamp(barFrac, 0f, 1f) : -1f;
 
+        // Where the bar's fill ends, so the text fades in step with the bar below it.
+        var sweepX = float.NaN;
+        if (C.OverlayTextSweep && lead > 0.01f)
+        {
+            var avail = ImGui.GetContentRegionAvail().X;
+            var barW = C.ShowProgressBar ? MathF.Max(avail, C.ProgressBarWidthPx) : avail;
+            sweepX = ImGui.GetCursorScreenPos().X + barW * Math.Clamp(barFrac, 0f, 1f);
+        }
+
         using (PushFont(C.OverlayFontSizePx))
-            CenteredIconText(iconId, headline, color, ringFrac, baseColor);
+            CenteredIconText(iconId, headline, color, ringFrac, baseColor, sweepX);
 
         if (C.ShowMechanicLine
             && !string.IsNullOrWhiteSpace(mechanic)
@@ -695,6 +704,51 @@ public class OverlayWindow : Window
     // Brightness oscillation for the imminent pulse.
     private static uint Pulse(uint abgr) => OverlayChrome.Pulse(abgr);
 
+    private static uint Fade(uint abgr, float scale) => OverlayChrome.Fade(abgr, scale);
+
+    // How dim the text goes once the bar's edge has swept past it.
+    private const float SweptAlpha = 0.5f;
+
+    // Draws the call text lit ahead of the bar's edge and faded behind it.
+    private void SweptText(string text, uint color, float sweepX)
+    {
+        if (C.TextShadow)
+            ImGui.GetWindowDrawList().AddText(ImGui.GetCursorScreenPos() + new Vector2(1.5f, 1.5f), 0xE0000000, text);
+
+        if (float.IsNaN(sweepX))
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, color);
+            ImGui.TextUnformatted(text);
+            ImGui.PopStyleColor();
+            return;
+        }
+
+        var dl = ImGui.GetWindowDrawList();
+        var p = ImGui.GetCursorScreenPos();
+        var size = ImGui.CalcTextSize(text);
+        var y0 = p.Y - 2f;
+        var y1 = p.Y + size.Y + 2f;
+        const float feather = 24f;
+        const int steps = 6;
+
+        // Slices left to right, none overlapping, so the glyph weight stays even.
+        var soft = sweepX - feather * 0.5f;
+        Slice(p.X - 2f, soft, 1f);
+        for (var i = 0; i < steps; i++)
+            Slice(soft + feather * i / steps, soft + feather * (i + 1) / steps,
+                1f - (1f - SweptAlpha) * (i + 0.5f) / steps);
+        Slice(soft + feather, p.X + size.X + 2f, SweptAlpha);
+        ImGui.Dummy(size);
+
+        void Slice(float a, float b, float mul)
+        {
+            if (b <= a) return;
+            dl.PushClipRect(new Vector2(a, y0), new Vector2(b, y1), true);
+            dl.AddText(p, Fade(color, mul), text);
+            dl.PopClipRect();
+        }
+    }
+
     private string FormatHeadline(string mechanic, string action, float remaining, bool imminent)
     {
         var label = string.IsNullOrWhiteSpace(action) ? mechanic : action;
@@ -727,11 +781,12 @@ public class OverlayWindow : Window
         => OverlayChrome.PushFont(_plugin.Fonts, sizePx, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
 
     // Centers an optional icon and the text as one group.
-    private void CenteredIconText(uint iconId, string text, uint color, float ringFrac = -1f, uint ringColor = 0)
+    private void CenteredIconText(uint iconId, string text, uint color, float ringFrac = -1f, uint ringColor = 0,
+        float sweepX = float.NaN)
     {
         if (iconId == 0)
         {
-            CenteredText(text, color);
+            CenteredText(text, color, sweepX);
             return;
         }
 
@@ -751,15 +806,7 @@ public class OverlayWindow : Window
         if (ringFrac >= 0f) DrawRing(iconTopLeft, iconH, ringFrac, ringColor);
         ImGui.SameLine(0, spacing);
         ImGui.SetCursorPosY(baseY);
-
-        if (C.TextShadow)
-        {
-            var p = ImGui.GetCursorScreenPos();
-            ImGui.GetWindowDrawList().AddText(p + new Vector2(1.5f, 1.5f), 0xE0000000, text);
-        }
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-        ImGui.TextUnformatted(text);
-        ImGui.PopStyleColor();
+        SweptText(text, color, sweepX);
     }
 
     // Horizontal offset for the configured alignment.
@@ -770,21 +817,12 @@ public class OverlayWindow : Window
         _ => MathF.Max(0f, (avail - contentWidth) * 0.5f),
     };
 
-    private void CenteredText(string text, uint color)
+    private void CenteredText(string text, uint color, float sweepX = float.NaN)
     {
         var textWidth = ImGui.CalcTextSize(text).X;
         var offset = AlignOffset(ImGui.GetContentRegionAvail().X, textWidth);
         if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
-
-        if (C.TextShadow)
-        {
-            var p = ImGui.GetCursorScreenPos();
-            ImGui.GetWindowDrawList().AddText(p + new Vector2(1.5f, 1.5f), 0xE0000000, text);
-        }
-
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-        ImGui.TextUnformatted(text);
-        ImGui.PopStyleColor();
+        SweptText(text, color, sweepX);
     }
 
     private void SavePositionIfDragged()
