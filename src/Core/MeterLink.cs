@@ -30,6 +30,9 @@ public class MeterLink : IDisposable
     public LinkStatus Status { get; private set; } = LinkStatus.Off;
     public string LastError { get; private set; } = "";
 
+    // The socket address actually in use, which may not be the configured scheme.
+    public string ActiveAddress { get; private set; } = "";
+
     private DateTime _nextAttempt = DateTime.MinValue;
     private DateTime _nextHealthCheck = DateTime.MaxValue;
 
@@ -143,18 +146,56 @@ public class MeterLink : IDisposable
     {
         StopSocket();
         _cts = new CancellationTokenSource();
-        _ws = new ClientWebSocket();
         var address = _plugin.Config.MeterSocketAddress;
-        _wsTask = Task.Run(() => RunSocket(address, _ws, _cts.Token));
+        _wsTask = Task.Run(() => RunSocket(address, _cts.Token));
     }
 
-    private async Task RunSocket(string address, ClientWebSocket ws, CancellationToken token)
+    // A parser with SSL on serves wss, so try the other scheme before giving up.
+    private async Task RunSocket(string address, CancellationToken token)
     {
+        // Whatever came up last time goes first, as long as it's the same endpoint.
+        var first = _worked.Length > 0 && (_worked == address || _worked == OtherScheme(address))
+            ? _worked : address;
+        if (await Pump(first, token) || token.IsCancellationRequested) return;
+
+        var firstError = LastError;
+        if (OtherScheme(first) is { } alt && await Pump(alt, token)) return;
+        // Neither worked, so report the address that was actually configured.
+        if (firstError.Length > 0) LastError = firstError;
+    }
+
+    // The same endpoint under the other scheme, null if it isn't a WebSocket address.
+    public static string? OtherScheme(string address)
+    {
+        if (address.StartsWith("wss://", StringComparison.OrdinalIgnoreCase)) return "ws://" + address[6..];
+        if (address.StartsWith("ws://", StringComparison.OrdinalIgnoreCase)) return "wss://" + address[5..];
+        return null;
+    }
+
+    // The address that last came up, so a reconnect doesn't relearn the scheme.
+    private string _worked = "";
+
+    // One address, connect to close; true once the link has been up.
+    private async Task<bool> Pump(string address, CancellationToken token)
+    {
+        if (token.IsCancellationRequested) return false;
+        var up = false;
+        var ws = new ClientWebSocket();
+        _ws = ws;
         try
         {
-            await ws.ConnectAsync(new Uri(address), token);
+            var uri = new Uri(address);
+            // A local parser signs its own certificate, and this never leaves the machine.
+            if (uri.Scheme == "wss" && uri.IsLoopback)
+                ws.Options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+
+            await ws.ConnectAsync(uri, token);
             await ws.SendAsync(Encoding.UTF8.GetBytes(Subscribe), WebSocketMessageType.Text, true, token);
+            up = true;
             _wsUp = true;
+            _worked = address;
+            ActiveAddress = address;
+            LastError = "";
             Status = LinkStatus.Socket;
             Service.Log.Information($"[FrenMits] meter: parser link up ({address}).");
 
@@ -181,17 +222,20 @@ public class MeterLink : IDisposable
         }
         catch (Exception ex)
         {
-            LastError = ex.Message;
+            // A link we closed ourselves is not a failure worth showing.
+            if (!token.IsCancellationRequested) LastError = $"{address} - {ex.Message}";
         }
         finally
         {
             _wsUp = false; // EnsureStarted notices and schedules a reconnect
         }
+        return up;
     }
 
     private void StopSocket()
     {
         _wsUp = false;
+        ActiveAddress = "";
         try { _cts?.Cancel(); } catch { }
         try { _ws?.Dispose(); } catch { }
         try { _wsTask?.Wait(500); } catch { }

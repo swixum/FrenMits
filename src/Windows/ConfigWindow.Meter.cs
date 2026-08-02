@@ -270,6 +270,14 @@ public partial class ConfigWindow
             var addr = C.MeterSocketAddress;
             if (ImGui.InputText("WebSocket address", ref addr, 128))
             { C.MeterSocketAddress = addr; C.SaveSettings(); }
+            // Read before the tooltip, which leaves its own text as the last item.
+            var addressEdited = ImGui.IsItemDeactivatedAfterEdit();
+            Tip("Wherever the parser listens, e.g. wss://127.0.0.1:10501/ws for SSL,\n"
+                + "or ws://192.168.1.50:10501/ws for ACT on another PC.\n"
+                + "Both ws:// and wss:// are tried, so ACT's SSL setting can stay as it is.");
+            // A new address takes effect without hunting for the button.
+            if (addressEdited) ReconnectMeter();
+            DrawLinkState();
         }
 
         ImGui.Spacing();
@@ -280,6 +288,22 @@ public partial class ConfigWindow
 
         ImGui.Spacing();
         if (ImGui.Button("Reconnect")) ReconnectMeter();
+    }
+
+    // What the socket is doing, since "searching" alone explains nothing.
+    private void DrawLinkState()
+    {
+        var link = _plugin.Meter.Link;
+        if (link.Status == MeterLink.LinkStatus.Socket && link.ActiveAddress.Length > 0)
+        {
+            ImGui.TextColored(Theme.V(Theme.Good), $"Connected on {link.ActiveAddress}");
+            return;
+        }
+        if (link.LastError.Length == 0) return;
+        ImGui.TextColored(Theme.V(Theme.Warn), "Last attempt failed");
+        ImGui.PushTextWrapPos(0f);
+        ImGui.TextDisabled(link.LastError);
+        ImGui.PopTextWrapPos();
     }
 
     // ---- Profiles ----
