@@ -12,6 +12,10 @@ public class CueEngine
     private int _generation = -1;
     private DateTime _lastSpoke = DateTime.MinValue;
 
+    // When each line's earliest press window opens, rebuilt only when the solver does.
+    private readonly Dictionary<MitLine, float> _windowStarts = new();
+    private IReadOnlyList<MitPress>? _windowSrc;
+
     public CueEngine(Plugin plugin, Audio audio)
     {
         _plugin = plugin;
@@ -47,18 +51,37 @@ public class CueEngine
         // Cue clock: sheet time plus the fight's offset.
         var elapsed = _plugin.CueClockFor(fight);
 
+        // Speak off the press window, so voice and overlay open together.
+        // A solver fault falls back to plain cue times rather than losing the voice.
+        try
+        {
+            var presses = _plugin.ActivePresses();
+            if (!ReferenceEquals(_windowSrc, presses))
+            {
+                _windowSrc = presses;
+                _windowStarts.Clear();
+                // The earliest of a combined cell's presses, since that is what shows first.
+                foreach (var p in presses)
+                    if (!_windowStarts.TryGetValue(p.SourceLine, out var ws) || p.WindowStart < ws)
+                        _windowStarts[p.SourceLine] = p.WindowStart;
+            }
+        }
+        catch (Exception ex) { Swallowed.Report("cue press windows", ex); }
+
         foreach (var line in fight.Lines)
         {
             if (!line.Enabled || !line.Sound || !line.AppliesTo(job)) continue;
             if (_fired.Contains(line)) continue;
 
             var lead = line.LeadOverride > 0f ? line.LeadOverride : c.WarningSeconds;
-            var remaining = line.CueTime - elapsed; // honors the per-line offset
+            // A line with no tracked mit keeps its plain cue time.
+            var cueAt = _windowStarts.TryGetValue(line, out var open) ? open : line.CueTime;
+            var remaining = cueAt - elapsed; // honors the per-line offset
             if (remaining > lead || remaining < -0.5f) continue;
 
             _fired.Add(line);
             Service.Log.Information(
-                $"[FrenMits] FIRE '{line.Action}' (time={line.Time} elapsed={elapsed:0.0} gen={_generation})");
+                $"[FrenMits] FIRE '{line.Action}' (time={line.Time} cue={cueAt:0.0} elapsed={elapsed:0.0} gen={_generation})");
             _plugin.Diag.Cue(line.Action, line.Time, elapsed, _generation, "");
             Fire(c, line, job);
         }
