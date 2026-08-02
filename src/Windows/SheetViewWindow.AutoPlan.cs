@@ -98,28 +98,6 @@ public partial class SheetViewWindow
         public List<float> UserTimes = new();
     }
 
-    // Auto-offsets for the active slot, from the sheet's row times.
-    private int SolveTiming()
-    {
-        if (_fight == null) return 0;
-
-        // Bake this column's plan now, so there are lines to time.
-        if (_fight.Lines.Count == 0 && !_isCustom && !string.IsNullOrEmpty(_fight.Slot))
-            _fight.Lines = Builtin.BuildLines(_fight.TerritoryId, _fight.Slot)
-                .Where(b => !Builtin.IsDeleted(_fight, _fight.Slot, b)).ToList();
-
-        var hits = _rows.Where(r => !r.Ghost).Select(r => r.Time).ToList();
-        var changed = TimingSolver.Solve(_fight, hits, C.CooldownLeadSeconds);
-
-        if (changed > 0)
-        {
-            // Persist onto the slot, so the offsets survive a re-bake.
-            if (!string.IsNullOrEmpty(_fight.Slot)) _fight.SavedSlots[_fight.Slot] = _fight.Lines;
-            C.Save();
-            _dirty = true;
-        }
-        return changed;
-    }
 
     private int AutoPlanMits(FightProfile fight)
     {

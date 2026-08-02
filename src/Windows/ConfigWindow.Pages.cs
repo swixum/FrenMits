@@ -430,28 +430,24 @@ public partial class ConfigWindow
             if (Widgets.SliderInput("Hold on screen", ref hold, 0f, 6f, "%.1fs")) { C.HoldSeconds = hold; C.SaveSettings(); }
             Tip("How long a call stays up after its time passes.");
 
-            var autoWas = C.AutoCooldownTiming;
-            C.AutoCooldownTiming = Toggle("Auto cooldown timing", C.AutoCooldownTiming);
-            if (autoWas != C.AutoCooldownTiming)
+            ImGui.Spacing();
+            var useWinWas = C.ShowUseWindows;
+            C.ShowUseWindows = Toggle("Usage window", C.ShowUseWindows);
+            if (C.ShowUseWindows != useWinWas) { C.SaveSettings(); _plugin.InvalidateSolverCache(); }
+            Tip("Times the window's start from the mit's own duration.");
+            if (C.ShowUseWindows)
             {
-                // Off wipes the solver's offsets; on re-times the plan.
-                if (!C.AutoCooldownTiming) _plugin.ClearSolvedOffsets();
-                else _plugin.AutoTime(_plugin.ActiveFight());
-                C.Save();
+                ImGui.Indent(20f);
+                var maxDur = C.MaxUseWindowSeconds;
+                if (Widgets.SliderInput("Max window duration", ref maxDur, 1f, 30f, "%.1fs", width: 200f))
+                {
+                    C.MaxUseWindowSeconds = maxDur;
+                    C.SaveSettings();
+                }
+                if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.InvalidateSolverCache();
+                Tip("Clamps how wide a usage window may get.");
+                ImGui.Unindent(20f);
             }
-            Tip("Times every plan so mits cover their hit and come back up.");
-            ImGui.Indent(20f);
-            if (C.AutoCooldownTiming)
-            {
-                var cdLead = C.CooldownLeadSeconds;
-                if (Widgets.SliderInput("Press window", ref cdLead, 2f, 8f, "%.1f s", width: 200f))
-                { C.CooldownLeadSeconds = cdLead; C.SaveSettings(); }
-                if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.AutoTime(_plugin.ActiveFight());
-                Tip("Your reaction window before the press is due.");
-            }
-            C.PrepAlerts = Toggle("Prep window text", C.PrepAlerts);
-            Tip("Adds a \"(use between X and Y)\" line to the call.");
-            ImGui.Unindent(20f);
             ImGui.EndTabItem();
         }
 

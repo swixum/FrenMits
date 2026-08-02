@@ -101,9 +101,6 @@ public class Configuration : IPluginConfiguration
     // How long the call stays on screen after its time passes.
     public float HoldSeconds { get; set; } = 2f;
 
-    // Reaction window for AUTO-TIMED cooldown presses.
-    public float CooldownLeadSeconds { get; set; } = 5f;
-
     // Only run the overlay while in the fight's territory.
     public bool OnlyInTargetTerritory { get; set; } = true;
     // Show the overlay even out of combat / out of duty for placement + testing.
@@ -325,6 +322,7 @@ public class Configuration : IPluginConfiguration
     // Countdown bar under the call.
     public bool ShowProgressBar { get; set; } = true;
     public float ProgressBarHeight { get; set; } = 6f;
+    public float ProgressBarWidthPx { get; set; } = 280f;
     public bool PulseWhenImminent { get; set; } = true;
     public bool ShowAbilityIcon { get; set; } = true;
 
@@ -342,11 +340,6 @@ public class Configuration : IPluginConfiguration
     // Cooldown-aware calls: warn when a mit won't be ready.
     public bool CooldownAwareCalls { get; set; }
 
-    // Auto cooldown timing: run the offset solver on zone-in and slot change.
-    public bool AutoCooldownTiming { get; set; }
-
-    // Press-window text under a call solved to fire early.
-    public bool PrepAlerts { get; set; }
     // Icon size relative to the call text height (1.0 = same height as the text).
     public float IconScale { get; set; } = 0.8f;
 
@@ -359,6 +352,10 @@ public class Configuration : IPluginConfiguration
     // Resync: snap the pull-clock when known boss casts happen.
     public bool EnableSync { get; set; } = true;
     public float SyncWindowSeconds { get; set; } = 8f;        // backward window, mechanic anchors (fine drift)
+    public bool ShowUseWindows { get; set; } = true;
+
+    // Widest a usage window may be drawn.
+    public float MaxUseWindowSeconds { get; set; } = 7.5f;
     public float SyncPhaseWindowSeconds { get; set; } = 60f;  // backward window, phase anchors (re-base)
     // Forward window: how far ahead an anchor may still snap.
     public float SyncForwardWindowSeconds { get; set; } = 2000f;

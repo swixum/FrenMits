@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace FrenMits;
 
-// Cooldown-aware offset solver, timed in snapshot terms like the recap.
+// Cooldown-aware solver that produces individual MitPress usage windows
+// for each mitigation in a fight plan.
 public static class TimingSolver
 {
     // Keep equal to the recap, or plan and grade disagree.
@@ -16,15 +17,16 @@ public static class TimingSolver
     // The least a press may precede a hit and still apply.
     private const float MinLead = SnapshotLead + ApplyDelay;
 
-    // Time the active-slot lines against the hit times, in place.
-    public static int Solve(FightProfile fight, IReadOnlyList<float> hitTimes, float lead = 5f,
+    public static IReadOnlyList<MitPress> Solve(FightProfile fight, IReadOnlyList<float> hitTimes,
+        bool showUseWindows = true, float maxUseWindowSeconds = 7.5f,
         Func<string, IEnumerable<Cooldowns.PlanMit>>? mitsFor = null)
     {
         mitsFor ??= Cooldowns.PlanMits;
-        if (fight == null || hitTimes == null) return 0;
+        var result = new List<MitPress>();
+        if (fight == null || hitTimes == null) return result;
         var hits = hitTimes.OrderBy(t => t).ToArray();
         var n = hits.Length;
-        if (n == 0) return 0;
+        if (n == 0) return result;
 
         var covered = new bool[n];
         var readyAt = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
@@ -44,73 +46,85 @@ public static class TimingSolver
             .Where(l => l.Enabled && !string.IsNullOrWhiteSpace(l.Action))
             .OrderBy(l => l.Time).ToList();
 
-        var changed = 0;
         foreach (var line in lines)
         {
             var mits = mitsFor(line.Action).ToList();
             if (mits.Count == 0) continue;
 
-            // Only something with a real buff can be pressed early.
-            var covering = mits.Where(m => m.Duration > 0f).ToList();
-            if (covering.Count == 0)
-            {
-                foreach (var m in mits) readyAt[m.Name] = line.Time + (m.Recast > 0f ? m.Recast : 60f);
-                continue;
-            }
-
-            var dur = covering.Min(m => m.Duration);        // shortest buff bounds the reach
-            // How far past the press the last covered hit may land.
-            var reach = dur + ApplyDelay + SnapshotLead - Grace;
-            // How far apart a run's first and last hits may be.
-            var span = MathF.Max(reach - MinLead, dur * 0.5f);
-            var ready = mits.Max(m => readyAt.GetValueOrDefault(m.Name, -9999f)); // all its abilities must be up
-
-            // Leave a hand-timed press, but book the hits it covers.
-            if (line.OffsetManual)
-            {
-                var press0 = line.Time - line.OffsetSeconds;
-                MarkCovered(press0, MathF.Max(press0 + reach, line.CoverUntil));
-                foreach (var m in mits) readyAt[m.Name] = press0 + (m.Recast > 0f ? m.Recast : 60f);
-                continue;
-            }
-
             var iT = Nearest(line.Time);
             var T = hits[iT];
 
-            // Grow the run back to the earliest hit, then forward.
-            int lo = iT, hi = iT;
-            while (lo - 1 >= 0 && !covered[lo - 1]
-                   && hits[hi] - hits[lo - 1] <= span
-                   && hits[lo - 1] >= ready - 0.01f) lo--;
-            while (hi + 1 < n && !covered[hi + 1]
-                   && hits[hi + 1] - hits[lo] <= span) hi++;
-
-            var last = hits[hi];
-            var readyFloor = MathF.Max(ready, 0f);
-
-            // Press as early as the cooldown allows, keeping margin.
-            var margin = MathF.Min(lead, dur * 0.5f);
-            var press = MathF.Max(readyFloor, last - reach + margin - Grace);
-            // But never so late it misses the front hit's snapshot.
-            if (press > hits[lo] - MinLead) press = MathF.Max(readyFloor, hits[lo] - MinLead);
-
-            // Write the offset when the press can cover its own hit.
-            if (press <= T + 0.01f && press + reach >= T - 0.01f)
+            foreach (var m in mits)
             {
-                var newOff = MathF.Round((T - press) * 10f) / 10f;
-                var newCover = last > T + 0.5f ? last : 0f;
-                if (MathF.Abs(line.OffsetSeconds - newOff) > 0.001f
-                    || MathF.Abs(line.CoverUntil - newCover) > 0.001f)
+                var dur = m.Duration;
+                var ready = readyAt.GetValueOrDefault(m.Name, -9999f);
+                var readyFloor = MathF.Max(ready, 0f);
+
+                if (dur <= 0f || !showUseWindows)
                 {
-                    line.OffsetSeconds = newOff;
-                    line.CoverUntil = newCover;
-                    changed++;
+                    // Instant/no-duration or disabled dynamic windows
+                    var wStart = line.Time;
+                    var wEnd = line.Time;
+                    if (line.OffsetManual) { wStart -= line.OffsetSeconds; wEnd -= line.OffsetSeconds; }
+                    result.Add(new MitPress(line, m.Name, wStart, wEnd, line.Time, dur));
+                    readyAt[m.Name] = wEnd + (m.Recast > 0f ? m.Recast : 60f);
+                    continue;
                 }
+
+                // How far past the press the last covered hit may land.
+                var reach = dur + ApplyDelay + SnapshotLead - Grace;
+                // How far apart a run's first and last hits may be.
+                var span = MathF.Max(reach - MinLead, dur * 0.5f);
+                
+                // Find next explicitly assigned use of this mitigation
+                float nextHitTime = float.MaxValue;
+                foreach (var nextLine in lines.Where(l => l.Time > line.Time))
+                {
+                    if (mitsFor(nextLine.Action).Any(nm => nm.Name == m.Name))
+                    {
+                        nextHitTime = nextLine.Time;
+                        break;
+                    }
+                }
+                var latestByNext = nextHitTime != float.MaxValue ? nextHitTime - (m.Recast > 0f ? m.Recast : 60f) - 3f : float.MaxValue;
+
+                int lo = iT, hi = iT;
+                while (lo - 1 >= 0 && !covered[lo - 1]
+                       && hits[hi] - hits[lo - 1] <= span
+                       && hits[lo - 1] >= ready - 0.01f) lo--;
+                       
+                // Only expand hi if it can actually be covered without shrinking the window below 3s
+                while (hi + 1 < n && !covered[hi + 1]
+                       && hits[hi + 1] - hits[lo] <= span
+                       && MathF.Max(readyFloor, hits[hi + 1] - reach) <= latestByNext - 3f) hi++;
+
+                var last = hits[hi];
+
+                // Window end: latest possible time to still cover the first hit
+                var windowEnd = hits[lo] - MinLead;
+                if (windowEnd > latestByNext) windowEnd = latestByNext;
+
+                // Window start: no earlier than absolute earliest, but keep window at least 3s wide
+                var absoluteEarliest = MathF.Max(readyFloor, last - reach);
+                if (absoluteEarliest > hits[lo] - MinLead) absoluteEarliest = MathF.Max(readyFloor, hits[lo] - MinLead); // clamp to lo
+
+                var windowStart = MathF.Min(absoluteEarliest, windowEnd - 3f);
+                if (showUseWindows) windowStart = MathF.Max(windowStart, windowEnd - maxUseWindowSeconds);
+                if (windowStart > windowEnd) windowStart = windowEnd; // sanity clamp
+
+                if (line.OffsetManual) 
+                { 
+                    windowStart -= line.OffsetSeconds; 
+                    windowEnd -= line.OffsetSeconds; 
+                }
+
+                result.Add(new MitPress(line, m.Name, windowStart, windowEnd, T, dur));
+                
+                MarkCovered(windowStart, windowStart + reach);
+                readyAt[m.Name] = windowStart + (m.Recast > 0f ? m.Recast : 60f);
             }
-            MarkCovered(press, press + reach);
-            foreach (var m in mits) readyAt[m.Name] = press + (m.Recast > 0f ? m.Recast : 60f);
         }
 
-        return changed;
+        return result;
     }
 }

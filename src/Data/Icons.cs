@@ -219,6 +219,17 @@ public static class Icons
             },
         };
 
+    // The icon a line should display: its pinned icon, else the potion icon for a
+    // potion line, else the active job's matching ability for a generic mit term
+    // ("Party Mit" -> Troubadour on BRD, Shake It Off on WAR, ...), else inferred
+    // from the action text.
+    public static uint ForMitPress(MitPress press, string? job = null)
+    {
+        if (press.SourceLine.IconId != 0) return press.SourceLine.IconId;
+        var jm = JobMitIcon(press.MitName, job);
+        return jm != 0 ? jm : ResolveFromText(press.MitName);
+    }
+
     // The active job's ability for a generic mit term.
     private static string? ResolveMitAbility(string? action, string? job)
     {

@@ -12,22 +12,22 @@ public class OverlayWindow : Window
     private readonly Plugin _plugin;
     private Configuration C => _plugin.Config;
 
-    // The line being counted down, and the run it belongs to.
-    private readonly List<MitLine> _activeLines = new();
+    // The press being counted down, and the run it belongs to.
+    private readonly List<MitPress> _activeLines = new();
     private int _lastGen = -1;
 
-    // Per-frame scratch for this job's lines and the call group.
-    private readonly List<MitLine> _lines = new();
-    private readonly List<MitLine> _group = new();
+    // Per-frame scratch for this job's presses and the call group.
+    private readonly List<MitPress> _lines = new();
+    private readonly List<MitPress> _group = new();
 
     // Stable, so calls tied on the clock keep their baked order.
-    private static void StableSortByCueTime(List<MitLine> lines)
+    private static void StableSortByCueTime(List<MitPress> lines)
     {
         for (var i = 1; i < lines.Count; i++)
         {
             var l = lines[i];
             var j = i - 1;
-            while (j >= 0 && lines[j].CueTime > l.CueTime) { lines[j + 1] = lines[j]; j--; }
+            while (j >= 0 && lines[j].WindowStart > l.WindowStart) { lines[j + 1] = lines[j]; j--; }
             lines[j + 1] = l;
         }
     }
@@ -107,24 +107,11 @@ public class OverlayWindow : Window
         return _plugin.Timer.Live;
     }
 
-    // How far before its cue time a call first appears.
-    private float LeadFor(MitLine line)
+    // How far before its window opens a call first appears.
+    private float LeadFor(MitPress line)
     {
-        if (line.LeadOverride > 0f) return line.LeadOverride;
-        if (line.OffsetManual || line.OffsetSeconds <= 1f) return C.WarningSeconds;
-        // Cached and loop-free of LINQ, since this runs per line.
-        var dur = MinDuration(Cooldowns.PlanMitsCached(line.Action));
-        return MathF.Min(C.CooldownLeadSeconds, dur * 0.5f);
-    }
-
-    // Shortest buff among a call's mits, 15s when unknown.
-    private static float MinDuration(IReadOnlyList<Cooldowns.PlanMit> mits)
-    {
-        if (mits.Count == 0) return 15f;
-        var dur = float.MaxValue;
-        for (var i = 0; i < mits.Count; i++)
-            dur = MathF.Min(dur, mits[i].Duration > 0f ? mits[i].Duration : 15f);
-        return dur;
+        if (line.SourceLine.LeadOverride > 0f) return line.SourceLine.LeadOverride;
+        return C.WarningSeconds;
     }
 
     public override void Draw()
@@ -160,20 +147,20 @@ public class OverlayWindow : Window
             if (C.OverlayStyle == 1)
                 using (PushFont(C.OverlayFontSizePx))
                 {
-                    var w = BoardWidth(new[] { ("Reprisal", 1.4f), ("Feint", 3.2f) });
-                    DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, Icons.ResolveFromText("Reprisal"), "", w);
+                    var w = BoardWidth();
+                    DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0f, Icons.ResolveFromText("Reprisal"), w);
                     ImGui.Dummy(new Vector2(1f, 4f));
-                    DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, Icons.ResolveFromText("Feint"), "", w);
+                    DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, 0.5f, 0f, Icons.ResolveFromText("Feint"), w);
                 }
             else if (C.OverlayStyle == 2)
             {
                 var d = IconClockDiameter();
-                DrawIconClock(Icons.ResolveFromText("Reprisal"), "Reprisal", 1.4f, true, C.WarningSeconds, 0, d);
+                DrawIconClock(Icons.ResolveFromText("Reprisal"), "Reprisal", 1.4f, true, C.WarningSeconds, 0.5f, 0f, 0, d);
                 ImGui.SameLine(0, 10f);
-                DrawIconClock(Icons.ResolveFromText("Feint"), "Feint", 3.2f, true, C.WarningSeconds, 0, d);
+                DrawIconClock(Icons.ResolveFromText("Feint"), "Feint", 3.2f, true, C.WarningSeconds, 0.5f, 0f, 0, d);
             }
             else
-                DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds,
+                DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0f,
                     Icons.ResolveFromText("Reprisal"));
             return;
         }
@@ -181,14 +168,55 @@ public class OverlayWindow : Window
         var fight = _plugin.ActiveFight();
         if (fight == null) return;
 
+        (float RemNew, float LeadNew, bool Hidden) GetDynamicTiming(MitPress call, float currentElapsed)
+        {
+            var rem = call.WindowStart - currentElapsed;
+            var lead = LeadFor(call);
+
+            // Before the window at all, so a wipe or a resync drops the latch.
+            if (rem > lead)
+            {
+                call.ComputedDelay = null;
+            }
+
+            var cd = Cooldowns.Remaining(call.MitName) ?? 0f;
+
+            // Gone until well past the window, which is also how a press hides it.
+            if (currentElapsed + cd > call.WindowEnd + 5.0f)
+            {
+                call.ComputedDelay = null;
+                return (rem, lead, true);
+            }
+
+            // What the delay would be right now.
+            var freshDelay = 0f;
+            if (cd > 0f)
+            {
+                freshDelay = MathF.Max(0f, currentElapsed + cd - call.WindowStart);
+            }
+
+            // Latch it as the call spawns, so the countdown never jumps after.
+            if (!call.ComputedDelay.HasValue && freshDelay > 0f)
+            {
+                if (rem + freshDelay <= lead)
+                {
+                    call.ComputedDelay = freshDelay;
+                }
+            }
+
+            var delay = call.ComputedDelay ?? freshDelay;
+
+            return (rem + delay, lead, false);
+        }
+
         var job = _plugin.ActiveJobAbbreviation();
         var elapsed = _plugin.CueClockFor(fight); // call schedule, not sheet position
 
         // A reused buffer, since the overlay redraws continuously.
         var lines = _lines;
         lines.Clear();
-        foreach (var l in fight.OrderedLines)
-            if (l.Enabled && l.AppliesTo(job)) lines.Add(l);
+        foreach (var l in _plugin.ActivePresses())
+            if (l.SourceLine.Enabled && l.SourceLine.AppliesTo(job)) lines.Add(l);
 
         // Reset the held call on a new run, so nothing carries over.
         if (_plugin.Timer.Generation != _lastGen) { _lastGen = _plugin.Timer.Generation; _activeLines.Clear(); }
@@ -197,8 +225,10 @@ public class OverlayWindow : Window
         var bestRemaining = float.MaxValue;
         foreach (var line in lines)
         {
-            var remaining = line.CueTime - elapsed;
-            var lead = LeadFor(line);
+            var dt = GetDynamicTiming(line, elapsed);
+            if (dt.Hidden) continue;
+            var remaining = dt.RemNew;
+            var lead = dt.LeadNew;
             if (remaining < 0f || remaining > lead) continue;
             if (remaining < bestRemaining) bestRemaining = remaining;
         }
@@ -210,16 +240,23 @@ public class OverlayWindow : Window
         {
             foreach (var l in lines)
             {
-                var rem = l.CueTime - elapsed;
-                if (rem >= 0f && rem <= LeadFor(l) && rem <= bestRemaining + tieWindow) group.Add(l);
+                var dt = GetDynamicTiming(l, elapsed);
+                if (dt.Hidden) continue;
+                var rem = dt.RemNew;
+                if (rem >= 0f && rem <= dt.LeadNew && rem <= bestRemaining + tieWindow) group.Add(l);
             }
             StableSortByCueTime(group);
-            // Keep a just-passed call up for its hold, stacked with the next.
+            // Keep an open call up for its window and hold, stacked with the next.
             var heldCount = 0;
             foreach (var l in _activeLines)
             {
-                var rem = l.CueTime - elapsed;
-                if (rem <= 0f && rem >= -C.HoldSeconds && !group.Contains(l))
+                var dt = GetDynamicTiming(l, elapsed);
+                if (dt.Hidden) continue;
+                var activeDur = l.WindowEnd - l.WindowStart;
+                var remNew = dt.RemNew;
+                var activePhase = remNew <= 0f && remNew >= -activeDur;
+                var pastPhase = remNew < -activeDur && remNew >= -activeDur - C.HoldSeconds;
+                if ((activePhase || pastPhase) && !group.Contains(l))
                 { group.Insert(heldCount++, l); }
             }
             if (heldCount > 0) StableSortByCueTime(group);
@@ -231,8 +268,13 @@ public class OverlayWindow : Window
             // Nothing upcoming: hold what we counted, never a skipped call.
             foreach (var l in _activeLines)
             {
-                var rem = l.CueTime - elapsed;
-                if (rem <= 0f && rem >= -C.HoldSeconds) group.Add(l);
+                var dt = GetDynamicTiming(l, elapsed);
+                if (dt.Hidden) continue;
+                var activeDur = l.WindowEnd - l.WindowStart;
+                var remNew = dt.RemNew;
+                var activePhase = remNew <= 0f && remNew >= -activeDur;
+                var pastPhase = remNew < -activeDur && remNew >= -activeDur - C.HoldSeconds;
+                if (activePhase || pastPhase) group.Add(l);
             }
             StableSortByCueTime(group);
             if (group.Count == 0) _activeLines.Clear();
@@ -242,18 +284,27 @@ public class OverlayWindow : Window
         {
             using (PushFont(C.OverlayFontSizePx))
             {
-                var width = BoardWidth(group.Select(l =>
-                    (Icons.DisplayAction(l.ActionFor(job), job), l.CueTime - elapsed)));
+                var width = BoardWidth();
                 for (var i = 0; i < group.Count; i++)
                 {
                     if (i > 0) ImGui.Dummy(new Vector2(1f, 4f));
                     var call = group[i];
-                    var remaining = call.CueTime - elapsed;
-                    var lead = LeadFor(call);
-                    var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
-                    var action = Icons.DisplayAction(call.ActionFor(job), job);
-                    DrawBoardCall(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f,
-                        call.Color, lead, icon, PrepText(call), width);
+                    var dt = GetDynamicTiming(call, elapsed);
+                    if (dt.Hidden) continue;
+                    var remaining = dt.RemNew;
+                    var activeDur = call.WindowEnd - call.WindowStart;
+                    var imminent = remaining > 0f;
+                    var baseLead = LeadFor(call);
+                    var delay = MathF.Max(0f, remaining - (call.WindowStart - elapsed));
+                    var totalDur = baseLead + activeDur - delay;
+                    var activeRem = call.WindowEnd - elapsed;
+                    var barFrac = totalDur > 0.01f ? Math.Clamp(activeRem / totalDur, 0f, 1f) : 0f;
+                    var tickFrac = totalDur > 0.01f ? Math.Clamp((activeDur - delay) / totalDur, 0f, 1f) : 0f;
+                    var lead = dt.LeadNew;
+                    var icon = C.ShowAbilityIcon ? Icons.ForMitPress(call, job) : 0u;
+                    var action = Icons.DisplayAction(call.MitName, job);
+                    DrawBoardCall(call.SourceLine.Mechanic, action, MathF.Max(0f, remaining), imminent,
+                        call.SourceLine.Color, lead, barFrac, tickFrac, icon, width);
                 }
             }
             return;
@@ -266,11 +317,21 @@ public class OverlayWindow : Window
             {
                 if (i > 0) ImGui.SameLine(0, 10f);
                 var call = group[i];
-                var remaining = call.CueTime - elapsed;
-                var lead = LeadFor(call);
-                var action = Icons.DisplayAction(call.ActionFor(job), job);
-                DrawIconClock(Icons.For(call, job), action, MathF.Max(0f, remaining), remaining > 0f,
-                    lead, call.Color, d);
+                var dt = GetDynamicTiming(call, elapsed);
+                if (dt.Hidden) continue;
+                var remaining = dt.RemNew;
+                var activeDur = call.WindowEnd - call.WindowStart;
+                var imminent = remaining > 0f;
+                var baseLead = LeadFor(call);
+                var delay = MathF.Max(0f, remaining - (call.WindowStart - elapsed));
+                var totalDur = baseLead + activeDur - delay;
+                var activeRem = call.WindowEnd - elapsed;
+                var barFrac = totalDur > 0.01f ? Math.Clamp(activeRem / totalDur, 0f, 1f) : 0f;
+                var tickFrac = totalDur > 0.01f ? Math.Clamp((activeDur - delay) / totalDur, 0f, 1f) : 0f;
+                var lead = dt.LeadNew;
+                var action = Icons.DisplayAction(call.MitName, job);
+                DrawIconClock(Icons.ForMitPress(call, job), action, MathF.Max(0f, remaining), imminent,
+                    lead, barFrac, tickFrac, call.SourceLine.Color, d);
             }
             return;
         }
@@ -279,11 +340,21 @@ public class OverlayWindow : Window
         {
             if (i > 0) ImGui.Spacing();
             var call = group[i];
-            var remaining = call.CueTime - elapsed;
-            var lead = LeadFor(call);
-            var icon = C.ShowAbilityIcon ? Icons.For(call, job) : 0u;
-            var action = Icons.DisplayAction(call.ActionFor(job), job);
-            DrawCurrent(call.Mechanic, action, MathF.Max(0f, remaining), remaining > 0f, call.Color, lead, icon, PrepText(call));
+            var dt = GetDynamicTiming(call, elapsed);
+            if (dt.Hidden) continue;
+            var remaining = dt.RemNew;
+            var activeDur = call.WindowEnd - call.WindowStart;
+            var imminent = remaining > 0f;
+            var baseLead = LeadFor(call);
+            var delay = MathF.Max(0f, remaining - (call.WindowStart - elapsed));
+            var totalDur = baseLead + activeDur - delay;
+            var activeRem = call.WindowEnd - elapsed;
+            var barFrac = totalDur > 0.01f ? Math.Clamp(activeRem / totalDur, 0f, 1f) : 0f;
+            var tickFrac = totalDur > 0.01f ? Math.Clamp((activeDur - delay) / totalDur, 0f, 1f) : 0f;
+            var lead = dt.LeadNew;
+            var icon = C.ShowAbilityIcon ? Icons.ForMitPress(call, job) : 0u;
+            var action = Icons.DisplayAction(call.MitName, job);
+            DrawCurrent(call.SourceLine.Mechanic, action, MathF.Max(0f, remaining), imminent, call.SourceLine.Color, lead, barFrac, tickFrac, icon);
         }
     }
 
@@ -298,21 +369,13 @@ public class OverlayWindow : Window
     private const uint BoardPanelRgb = 0x0014110E;
 
     // A uniform bar width, so stacked bars line up.
-    private float BoardWidth(IEnumerable<(string Action, float Remaining)> calls)
+    private float BoardWidth()
     {
-        var lineH = ImGui.GetTextLineHeight();
-        var iconSlot = C.ShowAbilityIcon ? MathF.Round(lineH * Math.Clamp(C.IconScale, 0.4f, 1.5f)) + 8f : 0f;
-        var content = 0f;
-        foreach (var (action, rem) in calls)
-        {
-            var time = rem > 0f ? $"{MathF.Ceiling(rem):0}s" : "NOW";
-            content = MathF.Max(content, ImGui.CalcTextSize(action).X + ImGui.CalcTextSize(time).X);
-        }
-        return MathF.Max(170f, 14f + iconSlot + content + 22f + 10f);
+        return MathF.Max(170f, C.ProgressBarWidthPx);
     }
 
     private void DrawBoardCall(string mechanic, string action, float remaining, bool imminent,
-        uint colorOverride, float lead, uint iconId, string prep, float width)
+        uint colorOverride, float lead, float barFrac, float tickFrac, uint iconId, float width)
     {
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
@@ -321,10 +384,8 @@ public class OverlayWindow : Window
         var p0 = ImGui.GetCursorScreenPos();
         var p1 = p0 + new Vector2(width, barH);
 
-        var isPrep = prep.Length > 0 && imminent;
         var typeColor = C.ColorByMitType ? MitTypes.Color(MitTypes.Classify(action, mechanic), C) : 0u;
         var baseCol = colorOverride != 0 ? colorOverride
-            : isPrep ? PrepCol
             : typeColor != 0 ? typeColor
             : BoardAccent;
         // At go-time the whole bar goes green, like the board.
@@ -335,16 +396,26 @@ public class OverlayWindow : Window
         dl.AddRectFilled(p0, p1, back, round);
 
         // Draining countdown fill (full at the lead, empty at the call).
-        if (imminent && lead > 0.01f)
+        if (lead > 0.01f)
         {
-            var frac = Math.Clamp(remaining / lead, 0f, 1f);
-            var edgeX = p0.X + width * frac;
-            var rgb = barCol & 0x00FFFFFF;
-            var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
-            dl.AddRectFilled(p0, new Vector2(edgeX, p1.Y), rgb | 0x66000000, round, corners);
-            if (frac > 0.02f && frac < 0.985f)
-                dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
-                    new Vector2(edgeX + 0.5f, p1.Y - 1f), rgb | 0xF0000000);
+            var frac = barFrac;
+            if (frac > 0.001f)
+            {
+                var edgeX = p0.X + width * frac;
+                var rgb = barCol & 0x00FFFFFF;
+                var corners = frac >= 0.999f ? ImDrawFlags.RoundCornersAll : ImDrawFlags.RoundCornersLeft;
+
+                dl.AddRectFilled(p0, new Vector2(edgeX, p1.Y), rgb | 0x66000000, round, corners);
+                if (frac > 0.02f && frac < 0.985f)
+                    dl.AddRectFilled(new Vector2(edgeX - 1.5f, p0.Y + 1f),
+                        new Vector2(edgeX + 0.5f, p1.Y - 1f), rgb | 0xF0000000);
+            }
+            // The mark the fill reaches as the press first becomes usable.
+            if (imminent && tickFrac > 0.001f && tickFrac < 0.999f)
+            {
+                var tickX = p0.X + width * tickFrac;
+                dl.AddLine(new Vector2(tickX, p0.Y), new Vector2(tickX, p1.Y), 0x80FFFFFF, 2f);
+            }
         }
 
         // Left accent stripe, pulsing at go time.
@@ -378,9 +449,6 @@ public class OverlayWindow : Window
             && !string.Equals(mechanic, action, StringComparison.OrdinalIgnoreCase))
             using (PushFont(C.OverlayFontSizePx * 0.5f))
                 SubText(mechanic, BoardMuted, subX);
-        if (isPrep)
-            using (PushFont(C.OverlayFontSizePx * 0.5f))
-                SubText(prep, PrepCol, subX);
     }
 
     // Draw-list text with a readability shadow.
@@ -410,7 +478,7 @@ public class OverlayWindow : Window
         => MathF.Round(Math.Clamp(C.OverlayFontSizePx * 2.4f, 40f, 220f));
 
     private void DrawIconClock(uint iconId, string action, float remaining, bool imminent,
-        float lead, uint colorOverride, float diam)
+        float lead, float barFrac, float tickFrac, uint colorOverride, float diam)
     {
         var dl = ImGui.GetWindowDrawList();
         var p0 = ImGui.GetCursorScreenPos();
@@ -431,9 +499,9 @@ public class OverlayWindow : Window
         }
 
         // Cooldown sweep: a dark wedge growing clockwise.
-        if (imminent && lead > 0.01f)
+        if (lead > 0.01f)
         {
-            var frac = Math.Clamp(remaining / lead, 0f, 1f);
+            var frac = barFrac;
             var covered = 1f - frac;
             if (covered > 0.001f)
             {
@@ -466,33 +534,12 @@ public class OverlayWindow : Window
         ImGui.Dummy(new Vector2(diam, diam));
     }
 
-    // Green prep accent (matches the board's "now" green).
-    private const uint PrepCol = 0xFF64DC64;
-
-    // The press window for a call pulled early, else "".
-    private string PrepText(MitLine call)
-    {
-        if (!C.PrepAlerts) return "";
-        // A prep window only exists when the press covers a later hit.
-        var windowEnd = call.Time - call.OffsetSeconds; // latest press: the front hit
-        if (call.CoverUntil <= windowEnd + 2f) return ""; // covers only itself: nothing to prep
-        var dur = MinDuration(Cooldowns.PlanMitsCached(call.Action));
-        var windowStart = MathF.Max(0f, call.CoverUntil - dur); // earliest press still reaching the last hit
-        return windowStart >= windowEnd - 0.5f
-            ? $"(use at {AbsTime(windowEnd)})"
-            : $"(use between {AbsTime(windowStart)} and {AbsTime(windowEnd)})";
-    }
-
-    private static string AbsTime(float t) => Fmt.MmssRound(t);
-
     private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
-        uint colorOverride, float lead, uint iconId = 0, string prep = "")
+        uint colorOverride, float lead, float barFrac, float tickFrac, uint iconId = 0)
     {
-        // Color priority: override, prep, mit type, then default.
-        var isPrep = prep.Length > 0 && imminent;
+        // Color priority: override, mit type, then default.
         var typeColor = C.ColorByMitType ? MitTypes.Color(MitTypes.Classify(action, mechanic), C) : 0u;
         var baseColor = colorOverride != 0 ? colorOverride
-            : isPrep ? PrepCol
             : typeColor != 0 ? typeColor
             : (imminent ? C.OverlayColorImminent : C.OverlayColorActive);
         var color = imminent && C.PulseWhenImminent && remaining < 1.5f ? Pulse(baseColor) : baseColor;
@@ -505,9 +552,9 @@ public class OverlayWindow : Window
             color = 0xFF3C3CF0; // red-ish warning
         }
 
-        // A depleting ring while counting down; -1 means none.
-        var ringFrac = C.ShowRadialRing && imminent && lead > 0.01f
-            ? Math.Clamp(remaining / lead, 0f, 1f) : -1f;
+        // A depleting ring across the lead and the window; -1 means none.
+        var ringFrac = C.ShowRadialRing && lead > 0.01f && barFrac > 0.001f
+            ? Math.Clamp(barFrac, 0f, 1f) : -1f;
 
         using (PushFont(C.OverlayFontSizePx))
             CenteredIconText(iconId, headline, color, ringFrac, baseColor);
@@ -524,24 +571,27 @@ public class OverlayWindow : Window
                 CenteredText(mechText, C.OverlayColorMechanic);
         }
 
-        // Prep line: press now, it holds for the mechanic it covers.
-        if (isPrep)
-            using (PushFont(C.OverlayFontSizePx * 0.5f))
-                CenteredText(prep, PrepCol);
-
         if (C.ShowProgressBar && lead > 0.01f)
-            DrawProgressBar(Math.Clamp(remaining / lead, 0f, 1f), color);
+            DrawProgressBar(barFrac, tickFrac, color, imminent);
     }
 
-    private void DrawProgressBar(float frac, uint color)
+    private void DrawProgressBar(float frac, float tickFrac, uint color, bool imminent)
     {
-        var width = ImGui.GetContentRegionAvail().X;
-        if (width < 4f) width = 200f;
+        var width = MathF.Max(ImGui.GetContentRegionAvail().X, C.ProgressBarWidthPx);
         var height = MathF.Max(1f, C.ProgressBarHeight);
         var origin = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
         dl.AddRectFilled(origin, origin + new Vector2(width, height), 0x80202020, 2f);
-        dl.AddRectFilled(origin, origin + new Vector2(width * frac, height), color, 2f);
+        if (frac > 0.001f)
+        {
+            dl.AddRectFilled(origin, origin + new Vector2(width * frac, height), color, 2f);
+        }
+        // The mark the fill reaches as the press first becomes usable.
+        if (imminent && tickFrac > 0.001f && tickFrac < 0.999f)
+        {
+            var tickX = origin.X + width * tickFrac;
+            dl.AddLine(new Vector2(tickX, origin.Y), new Vector2(tickX, origin.Y + height), 0x80FFFFFF, 2f);
+        }
         ImGui.Dummy(new Vector2(width, height));
     }
 

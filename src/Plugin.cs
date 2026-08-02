@@ -336,7 +336,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (Builtin.Has(f.TerritoryId))
             {
                 var slot = Builtin.RoleSlot(f.TerritoryId, role);
-                if (!string.IsNullOrEmpty(slot)) { Builtin.ApplySlot(f, slot!); AutoTime(f); }
+                if (!string.IsNullOrEmpty(slot)) { Builtin.ApplySlot(f, slot!); InvalidateSolverCache(); }
             }
             else if (f.CustomSlots.Count > 0)
             {
@@ -354,7 +354,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         if (Builtin.Has(fight.TerritoryId))
         {
             Builtin.ApplySlot(fight, slot);
-            AutoTime(fight);
+            InvalidateSolverCache();
             Config.Save();
             return;
         }
@@ -369,7 +369,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         fight.Slot = slot;
         fight.Lines = fight.SavedSlots.TryGetValue(slot, out var lines) ? lines : new System.Collections.Generic.List<MitLine>();
         fight.SavedSlots[slot] = fight.Lines;
-        AutoTime(fight);
+        InvalidateSolverCache();
     }
 
     public void AutoLoadForTerritory(uint territory)
@@ -402,55 +402,15 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var added = Builtin.ApplySlot(fight, slot);
         Config.DmuSlot = fight.Slot;
         Config.Save();
-        AutoTime(fight);
+        InvalidateSolverCache();
 
         Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {fight.Slot}, +{added} lines.");
     }
 
-    // Run the offset solver over a fight's active slot.
-    public void AutoTime(FightProfile? fight)
+    // Drop the cached windows, so the next frame re-solves them.
+    public void InvalidateSolverCache()
     {
-        if (!Config.AutoCooldownTiming || fight == null || fight.Lines.Count == 0) return;
-        try
-        {
-            var hits = SheetTimeline.Build(fight).Select(r => r.Time).ToList();
-            var changed = TimingSolver.Solve(fight, hits, Config.CooldownLeadSeconds);
-            if (changed > 0)
-            {
-                if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;
-                Config.Save();
-                Service.Log.Information($"FrenMits auto-time: {fight.Name}/{fight.Slot}, {changed} offsets solved.");
-            }
-        }
-        catch (Exception ex) { Service.Log.Warning($"FrenMits auto-time failed: {ex.Message}"); }
-    }
-
-    // Erase every offset the auto-timer wrote, everywhere.
-    public void ClearSolvedOffsets()
-    {
-        var changed = false;
-        void Clear(List<MitLine>? lines)
-        {
-            if (lines == null) return;
-            foreach (var l in lines)
-                if (!l.OffsetManual && (l.OffsetSeconds != 0f || l.CoverUntil != 0f))
-                {
-                    l.OffsetSeconds = 0f;
-                    l.CoverUntil = 0f;
-                    changed = true;
-                }
-        }
-        foreach (var f in Config.Fights)
-        {
-            Clear(f.Lines);
-            if (f.SavedSlots != null)
-                foreach (var slot in f.SavedSlots.Values) Clear(slot);
-        }
-        if (changed)
-        {
-            Config.Save();
-            Service.Log.Information("FrenMits: auto cooldown timing off - cleared solver offsets.");
-        }
+        _pressesFight = null;
     }
 
     // Custom sheets follow the sidebar pick unless you chose one.
@@ -1051,6 +1011,35 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     // Practice: a fight to preview out of its zone.
     public static FightProfile? PreviewFight;
+
+    private FightProfile? _pressesFight;
+    private int _pressesStamp;
+    private IReadOnlyList<MitPress> _activePresses = Array.Empty<MitPress>();
+
+    public IReadOnlyList<MitPress> ActivePresses()
+    {
+        var fight = ActiveFight();
+        if (fight == null) return Array.Empty<MitPress>();
+
+        var stamp = fight.Lines.Count;
+        unchecked
+        {
+            foreach (var l in fight.Lines)
+            {
+                stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.Time);
+                stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.OffsetSeconds);
+            }
+        }
+        
+        if (_pressesFight != fight || _pressesStamp != stamp)
+        {
+            var hits = SheetTimeline.Build(fight).Select(r => r.Time).ToList();
+            _activePresses = TimingSolver.Solve(fight, hits, Config.ShowUseWindows, Config.MaxUseWindowSeconds);
+            _pressesFight = fight;
+            _pressesStamp = stamp;
+        }
+        return _activePresses;
+    }
 
     public FightProfile? ActiveFight()
     {

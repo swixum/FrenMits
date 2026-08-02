@@ -178,11 +178,27 @@ public partial class SheetViewWindow
         }
 
         FindCooldownConflicts();
-        BuildCarryGhosts();
+
+        IReadOnlyList<MitPress>? presses = null;
+        if (_fight != null)
+        {
+            var hitTimes = _rows.Where(r => !r.Ghost).Select(r => r.Time).ToList();
+            presses = FrenMits.TimingSolver.Solve(_fight, hitTimes, C.ShowUseWindows, C.MaxUseWindowSeconds);
+            foreach (var p in presses)
+            {
+                var hitTime = p.SourceLine.Time;
+                var relStart = p.WindowStart - hitTime;
+                var relEnd = p.WindowEnd - hitTime;
+                var w1 = $"Usage window: {relStart:0.0}s to {relEnd:0.0}s relative to this hit.";
+                AppendOnce(_windows, p.SourceLine, w1);
+            }
+        }
+
+        BuildCarryGhosts(presses);
     }
 
     // Carry-over ghosts: a dim arrow where a buff still covers.
-    private void BuildCarryGhosts()
+    private void BuildCarryGhosts(IReadOnlyList<MitPress>? presses)
     {
         foreach (var row in _rows) row.Carry = null;
         for (var i = 0; i < _slots.Length; i++)
@@ -204,6 +220,11 @@ public partial class SheetViewWindow
                     foreach (var pm in Cooldowns.PlanMits(l.Action))
                     {
                         var end = pm.Duration > 0f ? l.CueTime + pm.Duration : 0f;
+                        if (presses != null)
+                        {
+                            var press = presses.FirstOrDefault(p => p.SourceLine == l && p.MitName == pm.Name);
+                            if (press != null) end = pm.Duration > 0f ? press.WindowEnd + pm.Duration : 0f;
+                        }
                         if (l.CoverUntil > end) end = l.CoverUntil; // stretched coverage counts
                         if (row.Time > end + 0.01f) continue;
                         parts ??= new List<string>();

@@ -181,7 +181,6 @@ public static class ConfigMigrations
         // v21: force auto cooldown timing off once for old configs.
         if (config.Version < 21)
         {
-            config.AutoCooldownTiming = false;
             config.Version = 21;
             config.Save();
         }

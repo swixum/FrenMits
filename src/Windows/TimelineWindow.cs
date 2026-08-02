@@ -103,22 +103,25 @@ public class TimelineWindow : Window
             return;
         }
 
-        // Lines past their lead and inside the look-ahead.
-        var upcoming = _upcoming;
-        upcoming.Clear();
-        foreach (var l in fight.OrderedLines)
-        {
-            if (!l.Enabled || !l.AppliesTo(job)) continue;
-            var rem = l.CueTime - elapsed;
-            var lead = fight.TimelineOnly
-                ? -C.HoldSeconds
-                : l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds;
-            if (rem > lead && rem <= C.UpcomingLookaheadSeconds) upcoming.Add(l);
-        }
-        // Fire order, so offsets can't cut the soonest call.
-        StableSortByCueTime(upcoming);
-        var take = Math.Max(0, C.UpcomingCount);
-        if (upcoming.Count > take) upcoming.RemoveRange(take, upcoming.Count - take);
+        var earlyWindow = C.WarningSeconds;
+        var upcoming = _plugin.ActivePresses()
+            .Where(p =>
+            {
+                var l = p.SourceLine;
+                if (!l.Enabled || !l.AppliesTo(job)) return false;
+                var jobAction = l.ActionFor(job);
+                var mitsForJob = Cooldowns.PlanMitsCached(jobAction);
+                var handlesThisPress = false;
+                for (var i = 0; i < mitsForJob.Count; i++)
+                    if (string.Equals(mitsForJob[i].Name, p.MitName, StringComparison.OrdinalIgnoreCase))
+                        handlesThisPress = true;
+                if (!handlesThisPress) return false;
+                var rem = p.WindowStart - elapsed;
+                return rem > earlyWindow && rem <= C.UpcomingLookaheadSeconds;
+            })
+            .OrderBy(p => p.WindowStart)
+            .Take(Math.Max(0, C.UpcomingCount))
+            .ToList();
 
         if (upcoming.Count == 0)
         {
@@ -128,31 +131,17 @@ public class TimelineWindow : Window
         }
 
         using (PushFont(C.UpcomingFontSizePx))
-            foreach (var l in upcoming)
+            foreach (var p in upcoming)
             {
-                var inSec = (int)MathF.Round(l.CueTime - elapsed);
-                var name = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.ActionFor(job), job);
-                var icon = C.ShowAbilityIcon ? Icons.For(l, job) : 0u;
+                var l = p.SourceLine;
+                var inSec = (int)MathF.Round(p.WindowStart - elapsed);
+                var name = string.IsNullOrWhiteSpace(p.MitName) ? l.Mechanic : Icons.DisplayAction(p.MitName, job);
+                var icon = C.ShowAbilityIcon ? Icons.ResolveFromText(p.MitName) : 0u;
                 // Mark a mit that won't be ready when it's called.
                 var notReady = C.CooldownAwareCalls
-                    && Cooldowns.Remaining(l.Action) is { } cd && cd > (l.CueTime - elapsed) + 0.5f;
+                    && Cooldowns.Remaining(p.MitName) is { } cd && cd > (p.WindowStart - elapsed) + 0.5f;
                 Row(icon, $"+{inSec}s  ", name + (notReady ? "  (cd)" : ""), notReady);
             }
-    }
-
-    // The compact list's rows, reused since it redraws every frame.
-    private readonly List<MitLine> _upcoming = new();
-
-    // Insertion sort by cue time, stable like the OrderBy it replaces.
-    private static void StableSortByCueTime(List<MitLine> lines)
-    {
-        for (var i = 1; i < lines.Count; i++)
-        {
-            var l = lines[i];
-            var j = i - 1;
-            while (j >= 0 && lines[j].CueTime > l.CueTime) { lines[j + 1] = lines[j]; j--; }
-            lines[j + 1] = l;
-        }
     }
 
     // ---- mechanic board ----
@@ -223,21 +212,21 @@ public class TimelineWindow : Window
         return _marks;
     }
 
-    private static readonly List<MitLine> NoLines = new();
+    private static readonly List<MitPress> NoLines = new();
     private static readonly List<SheetTimeline.MechRow> NoRows = new();
 
     // ---- per-frame scratch ----
     private readonly List<SheetTimeline.MechRow> _windowRows = new();
     private readonly List<SheetTimeline.MechRow> _visibleRows = new();
-    private readonly List<List<MitLine>> _mineForVisible = new();
-    private readonly Dictionary<SheetTimeline.MechRow, List<MitLine>> _mineByRow = new();
-    private readonly List<List<MitLine>> _linePool = new();
+    private readonly List<List<MitPress>> _mineForVisible = new();
+    private readonly Dictionary<SheetTimeline.MechRow, List<MitPress>> _mineByRow = new();
+    private readonly List<List<MitPress>> _linePool = new();
     private int _linePoolUsed;
 
     // A pooled press list, so rows don't allocate each frame.
-    private List<MitLine> RentLineList()
+    private List<MitPress> RentLineList()
     {
-        if (_linePoolUsed == _linePool.Count) _linePool.Add(new List<MitLine>());
+        if (_linePoolUsed == _linePool.Count) _linePool.Add(new List<MitPress>());
         var list = _linePool[_linePoolUsed++];
         list.Clear();
         return list;
@@ -369,23 +358,31 @@ public class TimelineWindow : Window
         _mineByRow.Clear();
         _linePoolUsed = 0;
         if (!fight.TimelineOnly)
-            foreach (var l in fight.OrderedLines)
+            foreach (var p in _plugin.ActivePresses())
             {
+                var l = p.SourceLine;
                 if (!l.Enabled || !l.AppliesTo(job)) continue;
-                if (l.Time < elapsed - 6f || l.Time > elapsed + look + 4f) continue;
+                // Only the presses this job actually owns out of a combined cell.
+                var mitsForJob = Cooldowns.PlanMitsCached(l.ActionFor(job));
+                var handlesThisPress = false;
+                for (var i = 0; i < mitsForJob.Count; i++)
+                    if (string.Equals(mitsForJob[i].Name, p.MitName, StringComparison.OrdinalIgnoreCase))
+                        handlesThisPress = true;
+                if (!handlesThisPress) continue;
+                if (p.WindowStart < elapsed - 6f || p.WindowStart > elapsed + look + 4f) continue;
                 SheetTimeline.MechRow? best = null;
                 var bestGap = 2.5f;
                 foreach (var r in windowRows)
                 {
-                    var gap = MathF.Abs(l.Time - r.Time);
+                    var gap = MathF.Abs(p.TargetHitTime - r.Time);
                     if (gap < bestGap && SheetTimeline.MechEquals(l.Mechanic, r.Mechanic)) { best = r; bestGap = gap; }
                 }
                 if (best == null) continue;
                 if (!_mineByRow.TryGetValue(best, out var list)) _mineByRow[best] = list = RentLineList();
-                list.Add(l);
+                list.Add(p);
             }
 
-        List<MitLine> MineFor(SheetTimeline.MechRow r)
+        List<MitPress> MineFor(SheetTimeline.MechRow r)
             => _mineByRow.TryGetValue(r, out var list) ? list : NoLines;
 
         // Trim to your own rows before the cap, not after.
@@ -410,11 +407,11 @@ public class TimelineWindow : Window
         }
 
         // Green matches the main call, so offsets stay in lockstep.
-        bool InWindow(MitLine l)
-            => l.CueTime - elapsed <= (l.LeadOverride > 0f ? l.LeadOverride : C.WarningSeconds);
+        bool InWindow(MitPress p)
+            => p.WindowStart - elapsed <= C.WarningSeconds;
 
         // A plain loop, or it's a delegate per row per frame.
-        bool AnyInWindow(List<MitLine> lines)
+        bool AnyInWindow(List<MitPress> lines)
         {
             for (var i = 0; i < lines.Count; i++)
                 if (InWindow(lines[i])) return true;
@@ -450,7 +447,7 @@ public class TimelineWindow : Window
             var bareTimer = string.IsNullOrWhiteSpace(name);
             if (bareTimer)
                 name = mine[i].Count > 0
-                    ? Icons.DisplayAction(mine[i][0].ActionFor(job), job)
+                    ? Icons.DisplayAction(mine[i][0].MitName, job)
                     : r.Fallback;
 
             // Row kind: a lull marker, or the mechanic's hit type.
@@ -825,25 +822,26 @@ public class TimelineWindow : Window
         ImGui.Dummy(new Vector2(width, h));
     }
 
-    private void BoardActions(List<MitLine> mine, string? job, float elapsed, float width, uint accent)
+    private void BoardActions(List<MitPress> mine, string? job, float elapsed, float width, uint accent)
     {
         var parts = _actionParts;
         parts.Clear();
         var icon = 0u;
         var cdWarn = false;
-        foreach (var l in mine)
+        foreach (var p in mine)
         {
-            var text = Icons.DisplayAction(l.ActionFor(job), job);
+            var text = Icons.DisplayAction(p.MitName, job);
             if (string.IsNullOrWhiteSpace(text)) continue;
+            var l = p.SourceLine;
             // Off-row presses take the mit-type tint, dimmed.
             if (accent == 0 && C.ColorByMitType && MitTypes.Color(MitTypes.Classify(text, l.Mechanic), C) is not 0 and var tc)
                 accent = (tc & 0x00FFFFFF) | 0xC8000000;
             // Flag a press that won't be back by its own call moment.
-            if (C.CooldownAwareCalls && Cooldowns.Remaining(l.Action) is { } cd && cd > l.CueTime - elapsed + 0.5f)
+            if (C.CooldownAwareCalls && Cooldowns.Remaining(p.MitName) is { } cd && cd > (p.WindowStart - elapsed) + 0.5f)
             { text += " (cd)"; cdWarn = true; }
             if (!parts.Contains(text)) parts.Add(text);
-            // Icon from the first line that actually contributes text.
-            if (icon == 0 && C.ShowAbilityIcon) icon = Icons.For(l, job);
+            // Icon from the first press that actually contributes text.
+            if (icon == 0 && C.ShowAbilityIcon) icon = Icons.ResolveFromText(p.MitName);
         }
         if (parts.Count == 0) return;
         // A press that won't be back blinks, so it catches the eye.

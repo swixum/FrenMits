@@ -309,14 +309,6 @@ public partial class SheetViewWindow
             if (ImGui.MenuItem("Plan history...")) openHistory = true;
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Restore an automatic snapshot.");
-            if (ImGui.MenuItem("Solve timing (offsets)") && !AbortIfStale())
-            {
-                PushUndo("solve timing");
-                var solved = SolveTiming();
-                Service.Log.Information($"[FrenMits] Solve timing: set {solved} offset(s) on '{_fight?.Slot}'.");
-            }
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Auto-sets offsets so each press covers as much as it can.");
             if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
             if (!_isCustom && ImGui.IsItemHovered())
                 ImGui.SetTooltip("Reload every column from the sheet. Snapshot saved first.");

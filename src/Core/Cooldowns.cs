@@ -56,10 +56,10 @@ public static class Cooldowns
         _byName = map;
     }
 
-    // Action text to id, memoized for per-frame callers.
-    private static readonly Dictionary<string, uint> _idByText = new(StringComparer.Ordinal);
+    // Action text to every id it names, memoized for per-frame callers.
+    private static readonly Dictionary<string, List<uint>> _idsByText = new(StringComparer.Ordinal);
 
-    // Seconds until that mit is ready, or null.
+    // Seconds until the soonest mit the text names is ready, or null.
     public static float? Remaining(string? actionText)
     {
         try
@@ -68,20 +68,32 @@ public static class Cooldowns
             EnsureMap();
             if (_byName == null || _byName.Count == 0) return null;
 
-            if (!_idByText.TryGetValue(actionText!, out var id))
+            if (!_idsByText.TryGetValue(actionText!, out var ids))
             {
                 // Same matching the planner uses.
-                var first = int.MaxValue;
+                ids = new List<uint>();
                 foreach (var kv in _byName)
                 {
-                    var at = MentionAt(actionText!, kv.Key);
-                    if (at >= 0 && at < first) { first = at; id = kv.Value; }
+                    if (MentionAt(actionText!, kv.Key) >= 0)
+                    {
+                        ids.Add(kv.Value);
+                    }
                 }
-                _idByText[actionText!] = id;
+                _idsByText[actionText!] = ids;
             }
-            if (id == 0) return null;
+            if (ids.Count == 0) return null;
 
-            return RecastRemaining(id);
+            // A cell naming several reads as ready when any one of them is.
+            float? min = null;
+            foreach (var id in ids)
+            {
+                var r = RecastRemaining(id);
+                if (r.HasValue)
+                {
+                    if (min == null || r.Value < min.Value) min = r.Value;
+                }
+            }
+            return min;
         }
         catch (Exception ex) { Swallowed.Report("cooldown recast read", ex); return null; }
     }
@@ -129,10 +141,17 @@ public static class Cooldowns
         ["Shield Samba"] = 15, ["Improvisation"] = 15,
         ["Tempera Grassa"] = 10, ["Seraphism"] = 20,
         ["Earthly Star"] = 20, ["Celestial Opposition"] = 15,
+        ["Zoe"] = 45, ["Recitation"] = 45,
+    };
+
+    // Traits cut some recasts, which the Action sheet's base value misses.
+    private static readonly Dictionary<string, float> RecastOverrides = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Zoe"] = 90f,
     };
 
     // Tracked for recast, but they shield nobody.
-    public static readonly string[] Windowless = { "Zoe", "Recitation", "Seraph", "Second Wind" };
+    public static readonly string[] Windowless = { "Seraph", "Second Wind" };
 
     // Every tracked mit, once each.
     public static readonly string[] Tracked = Names.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
@@ -164,7 +183,7 @@ public static class Cooldowns
                 {
                     var row = sheet.GetRowOrDefault(kv.Value);
                     if (row == null) continue;
-                    var recast = row.Value.Recast100ms / 10f;
+                    var recast = RecastOverrides.GetValueOrDefault(kv.Key, row.Value.Recast100ms / 10f);
                     if (recast <= 5f) continue; // GCD-ish rows aren't worth validating
                     map[kv.Key] = new PlanMit(kv.Key, recast,
                         Math.Max(1, (int)row.Value.MaxCharges),
@@ -360,7 +379,7 @@ public static class Cooldowns
         if (am == null) return null;
         var adjusted = am->GetAdjustedActionId(id);
         var total = am->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
-        if (total <= 0f) return 0f; // no recast group / not on your current job
+        if (total <= 0f) return null; // no recast group / not on your current job
         var elapsed = am->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
 
         // Charge actions: the recast spans all charges.
