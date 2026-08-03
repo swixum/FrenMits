@@ -467,6 +467,12 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]
         || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent];
 
+    // True on a loading screen or before the world is up, so overlays stay off it.
+    public static bool Loading =>
+        !Service.ClientState.IsLoggedIn
+        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
+        || Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas51];
+
     // The cutscene state to use, since the raw flags stick.
     public static bool CutsceneActive => InCutscene && !CutsceneStuck;
     public static bool CutsceneStuck { get; private set; }

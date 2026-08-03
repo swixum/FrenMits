@@ -87,6 +87,8 @@ public class MeterWindow : Window
     public override bool DrawConditions()
     {
         if (!C.MeterEnabled) return false;
+        // Never on a loading screen, whatever the other settings say.
+        if (Plugin.Loading) return false;
         if (Plugin.CutsceneActive && !C.TestMode) return false;
         // Stay up long enough to read the pull, then get out.
         if (C.MeterHideOutOfCombat && !C.TestMode && !Plugin.InCombat && _histIdx < 0
