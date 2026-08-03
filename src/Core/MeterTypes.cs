@@ -88,6 +88,8 @@ public sealed class MeterEncounter
     public string Title = "";
     public string Duration = "";
     public float Seconds;
+    // The whole fight on the wall clock; 0 means same as Seconds. Only per-second math uses Seconds.
+    public float WallSeconds;
     public bool Active;
     public double TotalDps;
     public double TotalDamage;

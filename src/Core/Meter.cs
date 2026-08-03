@@ -215,6 +215,7 @@ public class Meter : IDisposable
         // The last word on who was up, never through a cutscene.
         if (_inCombat && !_cutscene && _plugin.PlayersStanding >= 0)
             _standing = _plugin.PlayersStanding;
+        UpdateKillFreeze();
 
         // Combat over: close the fight without waiting.
         var inCombat = _inCombat;
@@ -516,7 +517,8 @@ public class Meter : IDisposable
             }
             SetTitle(raw);
             _rawSeg = raw;
-            Publish(Merge(_carry, Trimmed(raw)));
+            // Frozen at the kill: already trimmed, so it skips the second pass.
+            Publish(Merge(_carry, _killFrozen ?? Trimmed(raw)));
             return;
         }
 
@@ -536,8 +538,8 @@ public class Meter : IDisposable
 
     private void EndSegment(MeterEncounter final)
     {
-        // Banked on the active clock, with the segment's idle time out.
-        final = Trimmed(final);
+        // Banked on the active clock, and held at the kill if the boss died first.
+        final = _killFrozen ?? Trimmed(final);
         var display = Merge(_carry, final);
         // Stitching is the only arithmetic here, and it's opt-in.
         if (C.MeterStitchSegments && _inCombat && _sawBoss)
@@ -568,6 +570,8 @@ public class Meter : IDisposable
     // A finished pull carries its own breakdowns.
     private void Materialize(MeterEncounter enc)
     {
+        // Already carrying them: banked before, or frozen at the kill.
+        if (enc.Dealt.Count > 0 || enc.Deaths.Count > 0) return;
         enc.BossLeft = _bossLeft;
         enc.Boss = _sawBoss;
         enc.Ended = EndOf(_standing, _bossLeft);
@@ -694,6 +698,7 @@ public class Meter : IDisposable
         _warnedAt = 0;
         _seenLines = 0;   // the engine's table is cleared below, so its count restarts
         _idle.Clear();
+        _killFrozen = null;
         // Clear at fight end, or the lagging feed eats the opener.
         Engine.ClearBreakdown();
     }
@@ -704,7 +709,9 @@ public class Meter : IDisposable
     public static bool WorthKeeping(bool sawBoss, float seconds)
         => sawBoss || seconds >= HistoryMinSeconds;
 
-    private bool WorthKeeping(MeterEncounter enc) => WorthKeeping(_sawBoss, enc.Seconds);
+    // Judged on the wall clock, so a cutscene can't disqualify a long pull.
+    private bool WorthKeeping(MeterEncounter enc)
+        => WorthKeeping(_sawBoss, MathF.Max(enc.Seconds, enc.WallSeconds));
 
     private void PushHistory(MeterEncounter enc)
     {
@@ -746,7 +753,8 @@ public class Meter : IDisposable
 
     private void Publish(MeterEncounter enc)
     {
-        ApplyRdps(enc);
+        // The frozen board keeps its capture-time credit; the engine has moved on.
+        if (!ReferenceEquals(enc, _killFrozen)) ApplyRdps(enc);
         if (!enc.Active && !_replaying) NoteAttribution(enc);
         // Banked with the pull, so history keeps its icon.
         if (Engine.LastLimitBreak != 0) enc.LimitBreakAction = Engine.LastLimitBreak;
@@ -768,6 +776,8 @@ public class Meter : IDisposable
     {
         public long StartSec;
         public float Seconds;
+        // The banked segments on the wall clock, for the on-screen timer.
+        public float WallSeconds;
         public string Title = "";
         public Dictionary<string, MeterCombatant> Rows { get; } = new(StringComparer.OrdinalIgnoreCase);
     }
@@ -778,8 +788,13 @@ public class Meter : IDisposable
         foreach (var r in final.Rows)
             carry.Rows[r.Name] = Combine(carry.Rows.GetValueOrDefault(r.Name), r);
         carry.Seconds += final.Seconds;
+        carry.WallSeconds += final.WallSeconds > 0f ? final.WallSeconds : final.Seconds;
         if (nowSec > 0 && carry.StartSec > 0)
-            carry.Seconds = Math.Min(carry.Seconds, Math.Max(0, nowSec - carry.StartSec));
+        {
+            var elapsed = Math.Max(0, nowSec - carry.StartSec);
+            carry.Seconds = Math.Min(carry.Seconds, elapsed);
+            carry.WallSeconds = Math.Min(carry.WallSeconds, elapsed);
+        }
         if (final.Title.Length > 0) carry.Title = final.Title;
     }
 
@@ -799,12 +814,17 @@ public class Meter : IDisposable
     {
         if (carry == null || carry.Seconds <= 0f) return seg;
         var secs = Math.Max(1f, carry.Seconds + seg.Seconds);
+        // The timer shows the whole fight; the rates below divide by active time only.
+        var wall = Math.Max(secs,
+            (carry.WallSeconds > 0f ? carry.WallSeconds : carry.Seconds)
+            + (seg.WallSeconds > 0f ? seg.WallSeconds : seg.Seconds));
         var e = new MeterEncounter
         {
             Title = seg.Title.Length > 0 ? seg.Title : carry.Title,
             Active = seg.Active,
             Seconds = secs,
-            Duration = $"{(int)secs / 60:00}:{(int)secs % 60:00}",
+            WallSeconds = wall,
+            Duration = $"{(int)wall / 60:00}:{(int)wall % 60:00}",
             When = seg.When,
         };
 
@@ -874,18 +894,69 @@ public class Meter : IDisposable
     private void AccrueIdle(float parserSec, double damage)
         => _idle.Accrue(parserSec, damage, _cutscene || (!_replaying && _plugin.DowntimeActive));
 
-    private void ResetIdle(float parserSec, double damage) => _idle.Reset(parserSec, damage);
+    // A new segment also outlives any kill freeze from the last one.
+    private void ResetIdle(float parserSec, double damage)
+    {
+        _idle.Reset(parserSec, damage);
+        _killFrozen = null;
+    }
+
+    // ---- kill freeze ----
+
+    // The board as it stood when the boss hit zero; hits on the corpse stay off the pull.
+    private MeterEncounter? _killFrozen;
+    private DateTime _killAt;
+
+    // Combat outliving a dead boss this long reads as a phase, not the kill.
+    private const double KillGraceSeconds = 10;
+
+    private void UpdateKillFreeze()
+    {
+        if (_replaying) return;
+        var hp = _plugin.BossHpFraction;
+        if (_killFrozen == null)
+        {
+            if (hp == 0f && _sawBoss && _rawSeg is { Active: true } seg)
+            {
+                var frozen = Trimmed(seg);
+                // Always a copy, so the live segment object stays untouched.
+                if (ReferenceEquals(frozen, seg)) frozen = Subtract(seg, new Baseline());
+                // Credit and breakdowns land now, before the engine counts corpse hits.
+                ApplyRdps(frozen);
+                Materialize(frozen);
+                _killFrozen = frozen;
+                _killAt = DateTime.UtcNow;
+                Note($"boss down at {frozen.TotalDamage / 1e6:0.0}M - hits on the corpse stay off this pull");
+            }
+            return;
+        }
+        // A boss went live again, or combat carried on: a phase or the next target, not the kill.
+        if (hp > 0f || (_inCombat && (DateTime.UtcNow - _killAt).TotalSeconds > KillGraceSeconds))
+        {
+            Note("fight carries on - counting again");
+            _killFrozen = null;
+        }
+    }
 
     // The same numbers on the active clock only; a copy, so the stitch math upstream keeps the raw clock.
     private MeterEncounter Trimmed(MeterEncounter enc)
-        => _idle.IdleSec < 0.25f ? enc : Subtract(enc, new Baseline { Seconds = _idle.IdleSec });
+    {
+        if (_idle.IdleSec < 0.25f) return enc;
+        var e = Subtract(enc, new Baseline { Seconds = _idle.IdleSec });
+        // The clock on screen keeps the whole fight; only the per-second math shrinks.
+        e.WallSeconds = enc.Seconds;
+        e.Duration = enc.Duration.Length > 0
+            ? enc.Duration
+            : $"{(int)enc.Seconds / 60:00}:{(int)enc.Seconds % 60:00}";
+        return e;
+    }
 
     // Close the running fight here and start the next one from zero.
     private void CutHere()
     {
         if (_rawSeg is { Active: true } seg)
         {
-            var display = Merge(_carry, Trimmed(seg));
+            var display = Merge(_carry, _killFrozen ?? Trimmed(seg));
             display.Active = false;
             Materialize(display);
             Publish(display);
@@ -982,9 +1053,10 @@ public class Meter : IDisposable
 
     private void ApplyRdps(MeterEncounter enc)
     {
-        // The window covers the fight, padded for feed lag.
+        // The window covers the fight, padded for feed lag; wall time, since log lines span idle too.
+        var wall = enc.WallSeconds > 0f ? enc.WallSeconds : enc.Seconds;
         var from = (_carry?.StartSec
-                    ?? (enc.Active && _fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)enc.Seconds)) - 2;
+                    ?? (enc.Active && _fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)wall)) - 2;
         var totals = Engine.WindowTotals(from);
         var seconds = Math.Max(1f, enc.Seconds);
         var you = LocalName();
