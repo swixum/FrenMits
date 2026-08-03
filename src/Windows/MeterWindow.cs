@@ -1922,6 +1922,12 @@ public class MeterWindow : Window
         if (!_tabMenuOpen && ImGui.IsMouseReleased(ImGuiMouseButton.Right)
             && ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows))
         {
+            // Inside a breakdown, a right click is the way back out.
+            if (_detailFor.Length > 0)
+            {
+                _detailFor = "";
+                return;
+            }
             _menuPlayer = _rowUnderMouse;
             ImGui.OpenPopup("##metermenu");
         }
@@ -1939,11 +1945,6 @@ public class MeterWindow : Window
                         OpenDetail(_menuPlayer, t.Kind);
                 ImGui.EndMenu();
             }
-            ImGui.Separator();
-        }
-        else if (_detailFor.Length > 0)
-        {
-            if (ImGui.MenuItem("Back to the list")) _detailFor = "";
             ImGui.Separator();
         }
         if (ImGui.BeginMenu("View"))
