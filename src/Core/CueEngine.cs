@@ -70,6 +70,7 @@ public class CueEngine
         }
         catch (Exception ex) { Swallowed.Report("cue press windows", ex); }
 
+        List<MitLine>? due = null;
         foreach (var line in fight.Lines)
         {
             if (!line.Enabled || !line.Sound || !line.AppliesTo(job)) continue;
@@ -84,12 +85,41 @@ public class CueEngine
             var remaining = cueAt - elapsed; // honors the per-line offset
             if (remaining > lead || remaining < -0.5f) continue;
 
-            _fired.Add(line);
-            Service.Log.Information(
-                $"[FrenMits] FIRE '{line.Action}' (time={line.Time} cue={cueAt:0.0} elapsed={elapsed:0.0} gen={_generation})");
-            _plugin.Diag.Cue(line.Action, line.Time, elapsed, _generation, "");
-            Fire(c, line, job);
+            (due ??= new()).Add(line);
         }
+        if (due == null) return;
+
+        // Lines sharing a sheet moment speak as one call, the way a combined
+        // cell used to - fired one by one, the queue keeps only the newest.
+        foreach (var group in GroupSameMoment(due))
+        {
+            foreach (var line in group)
+            {
+                _fired.Add(line);
+                Service.Log.Information(
+                    $"[FrenMits] FIRE '{line.Action}' (time={line.Time} elapsed={elapsed:0.0} gen={_generation})");
+                _plugin.Diag.Cue(line.Action, line.Time, elapsed, _generation, group.Count > 1 ? "merged" : "");
+            }
+            Fire(c, group, job);
+        }
+    }
+
+    // Due lines bucketed by their sheet second, in order.
+    public static List<List<MitLine>> GroupSameMoment(List<MitLine> due)
+    {
+        var groups = new List<List<MitLine>>();
+        var byMoment = new Dictionary<int, List<MitLine>>();
+        foreach (var l in due)
+        {
+            var key = (int)MathF.Round(l.Time * 10f);
+            if (!byMoment.TryGetValue(key, out var g))
+            {
+                byMoment[key] = g = new List<MitLine>();
+                groups.Add(g);
+            }
+            g.Add(l);
+        }
+        return groups;
     }
 
     // How long to hold cues after a cutscene.
@@ -113,15 +143,35 @@ public class CueEngine
     // When each phrase was last said, to debounce repeats.
     private readonly Dictionary<string, DateTime> _spokenAt = new();
 
-    private void Fire(Configuration c, MitLine line, string? job)
+    // The spoken text for one line, exactly as a lone cue says it.
+    public static string CueText(Configuration c, MitLine line, string? job)
     {
-        if (!c.TtsEnabled) return;
-
         // Per-line override wins over the action or mechanic.
         var fallback = c.TtsSpeakMechanic
             ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.ActionFor(job), job) : line.Mechanic)
             : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.ActionFor(job), job));
-        var text = string.IsNullOrWhiteSpace(line.Tts) ? fallback : line.Tts;
+        return string.IsNullOrWhiteSpace(line.Tts) ? fallback : line.Tts;
+    }
+
+    // One utterance per moment: distinct line texts joined like a combined cell.
+    public static string MergedCueText(Configuration c, IReadOnlyList<MitLine> group, string? job)
+    {
+        var parts = new List<string>();
+        foreach (var l in group)
+        {
+            var t = CueText(c, l, job);
+            if (string.IsNullOrWhiteSpace(t)) continue;
+            if (parts.FindIndex(p => string.Equals(p, t, StringComparison.OrdinalIgnoreCase)) < 0)
+                parts.Add(t);
+        }
+        return string.Join(" + ", parts);
+    }
+
+    private void Fire(Configuration c, List<MitLine> group, string? job)
+    {
+        if (!c.TtsEnabled) return;
+
+        var text = MergedCueText(c, group, job);
         if (string.IsNullOrWhiteSpace(text)) return;
 
         var now = DateTime.UtcNow;
