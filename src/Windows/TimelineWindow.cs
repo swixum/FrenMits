@@ -109,7 +109,8 @@ public class TimelineWindow : Window
             {
                 var l = p.SourceLine;
                 if (!l.Enabled || !l.AppliesTo(job)) return false;
-                var jobAction = l.ActionFor(job);
+                // Resolve generic terms first, or their presses never match.
+                var jobAction = Icons.DisplayAction(l.ActionFor(job), job);
                 var mitsForJob = Cooldowns.PlanMitsCached(jobAction);
                 var handlesThisPress = false;
                 for (var i = 0; i < mitsForJob.Count; i++)
@@ -362,8 +363,8 @@ public class TimelineWindow : Window
             {
                 var l = p.SourceLine;
                 if (!l.Enabled || !l.AppliesTo(job)) continue;
-                // Only the presses this job actually owns out of a combined cell.
-                var mitsForJob = Cooldowns.PlanMitsCached(l.ActionFor(job));
+                // Only the presses this job actually owns, with generic terms resolved.
+                var mitsForJob = Cooldowns.PlanMitsCached(Icons.DisplayAction(l.ActionFor(job), job));
                 var handlesThisPress = false;
                 for (var i = 0; i < mitsForJob.Count; i++)
                     if (string.Equals(mitsForJob[i].Name, p.MitName, StringComparison.OrdinalIgnoreCase))

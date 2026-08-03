@@ -1037,6 +1037,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var fight = ActiveFight();
         if (fight == null) return Array.Empty<MitPress>();
 
+        var job = ActiveJobAbbreviation();
         var stamp = fight.Lines.Count;
         unchecked
         {
@@ -1045,12 +1046,16 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                 stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.Time);
                 stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.OffsetSeconds);
             }
+            // Generic terms resolve per job, so the solve is job-specific too.
+            stamp = stamp * 31 + (job != null ? StringComparer.OrdinalIgnoreCase.GetHashCode(job) : 0);
         }
-        
+
         if (_pressesFight != fight || _pressesStamp != stamp)
         {
             var hits = SheetTimeline.Build(fight).Select(r => r.Time).ToList();
-            _activePresses = TimingSolver.Solve(fight, hits, Config.ShowUseWindows, Config.MaxUseWindowSeconds);
+            // "Party Mit" solves as the job's real press, so it reaches the boards.
+            _activePresses = TimingSolver.Solve(fight, hits, Config.ShowUseWindows, Config.MaxUseWindowSeconds,
+                text => Cooldowns.PlanMits(Icons.DisplayAction(text, job)));
             _pressesFight = fight;
             _pressesStamp = stamp;
         }

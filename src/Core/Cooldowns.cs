@@ -11,7 +11,7 @@ public static class Cooldowns
     // Mit names, matched as substrings against a cell.
     private static readonly string[] Names =
     {
-        "Reprisal", "Rampart", "Feint", "Addle", "Bloodbath", "Second Wind", "Arm's Length",
+        "Reprisal", "Rampart", "Feint", "Addle", "Bloodbath", "Second Wind", "Arm's Length", "Mantra",
         "Holmgang", "Vengeance", "Damnation", "Thrill of Battle", "Shake It Off", "Bloodwhetting",
         "Nascent Flash", "Raw Intuition", "Equilibrium",
         "Sentinel", "Guardian", "Hallowed Ground", "Bulwark", "Sheltron", "Holy Sheltron",
@@ -24,6 +24,7 @@ public static class Cooldowns
         "Collective Unconscious", "Neutral Sect", "Macrocosmos", "Exaltation", "Sun Sign",
         "Kerachole", "Holos", "Panhaima", "Haima", "Physis II", "Krasis", "Zoe", "Philosophia",
         "Magick Barrier", "Addle", "Tactician", "Troubadour", "Shield Samba", "Improvisation", "Dismantle",
+        "Nature's Minne", "Curing Waltz",
         "Tempera Grassa", "Seraphism", "Earthly Star", "Celestial Opposition",
     };
 
@@ -150,8 +151,8 @@ public static class Cooldowns
         ["Zoe"] = 90f,
     };
 
-    // Tracked for recast, but they shield nobody.
-    public static readonly string[] Windowless = { "Seraph", "Second Wind" };
+    // Tracked for recast but windowless for now; Mantra and Minne get real windows once tooltips confirm them.
+    public static readonly string[] Windowless = { "Seraph", "Second Wind", "Curing Waltz", "Mantra", "Nature's Minne" };
 
     // Every tracked mit, once each.
     public static readonly string[] Tracked = Names.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
