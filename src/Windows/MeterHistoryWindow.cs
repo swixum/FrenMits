@@ -61,7 +61,8 @@ public class MeterHistoryWindow : Window
     {
         var m = _plugin.Meter;
         var style = ImGui.GetStyle();
-        var footerH = ImGui.GetFrameHeight() + style.ItemSpacing.Y * 2;
+        // Frame, spacing, and the rule above the footer.
+        var footerH = ImGui.GetFrameHeight() + style.ItemSpacing.Y * 3 + 1f;
 
         // Every column is sized off its own widest value, so a font change follows.
         var timeW = ImGui.CalcTextSize("00:00").X + 6f;
@@ -75,11 +76,16 @@ public class MeterHistoryWindow : Window
         var reserve = detail == null ? 0f
             : DetailHeight() + GripHeight + ImGui.GetFrameHeightWithSpacing() + style.ItemSpacing.Y * 2f;
 
-        // A short list hugs its rows instead of leaving a hole above the panel.
+        // The list owns everything above the panel and the footer; a short list keeps
+        // its empty space inside the frame rather than opening a hole in the window.
         var rowH = ImGui.GetTextLineHeight() + style.CellPadding.Y * 2f;
-        var room = MathF.Max(rowH * 2f, ImGui.GetContentRegionAvail().Y - footerH - reserve);
-        var wanted = (m.History.Count + 2) * rowH + 2f;   // every pull, the live row, and the header
-        var listH = MathF.Min(wanted, room);
+        var listH = MathF.Max(rowH * 3f, ImGui.GetContentRegionAvail().Y - footerH - reserve);
+
+        // Once banked, the pull lives in the history list; a second live row would lie.
+        _liveBanked = m.Current != null && m.History.Count > 0 && ReferenceEquals(m.History[0], m.Current);
+
+        // Rows scrolled under the frozen header must not paint over it.
+        _bodyTopY = ImGui.GetCursorScreenPos().Y + rowH + 2f;
 
         var flags = ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX;
         if (ImGui.BeginTable("##pullhistory", 6, flags, new Vector2(0, listH)))
@@ -93,18 +99,20 @@ public class MeterHistoryWindow : Window
             ImGui.TableSetupScrollFreeze(0, 1);
             DrawColumnHeader();
 
-            DrawLiveRow(m.Current);
+            if (!_liveBanked) DrawLiveRow(m.Current);
             for (var i = 0; i < m.History.Count; i++) DrawPullRow(m.History[i], i);
             ImGui.EndTable();
         }
 
-        // Slack between the two, so the panel and its grip stay put as the list grows.
-        var slack = room - listH;
-        if (slack > 1f) ImGui.Dummy(new Vector2(1f, slack));
-
         if (detail != null) DrawDetail(detail.Value.Enc, detail.Value.Live, footerH);
         DrawFooter(m, style);
     }
+
+    // True while the freshest pull sits in both Current and History.
+    private bool _liveBanked;
+
+    // Where the list body starts on screen, for clipping custom draws.
+    private float _bodyTopY;
 
     // ---- the opened pull ----
 
@@ -159,7 +167,7 @@ public class MeterHistoryWindow : Window
     {
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.TextBright), enc.Title.Length > 0 ? enc.Title : "Encounter");
-        PullTag(enc.Boss || (live && _plugin.Meter.SawBoss), !live || !enc.Active);
+        PullTag(enc.Boss || (live && _plugin.Meter.SawBoss), !live || !enc.Active, padded: true);
 
         ImGui.SameLine(0, 8f);
         ImGui.AlignTextToFramePadding();
@@ -339,12 +347,11 @@ public class MeterHistoryWindow : Window
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         var clock = live?.Duration is { Length: > 0 } d ? d : "0:00";
-        if (RowHead("##livepull", _plugin.MeterWindow.HistoryIndex < 0, clock))
+        if (RowHead("##livepull", _plugin.MeterWindow.HistoryIndex < 0, clock, out var hovered))
         {
             _plugin.MeterWindow.HistoryIndex = -1;
             ToggleDetail(-1);
         }
-        var hovered = ImGui.IsItemHovered();
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(live is { Title.Length: > 0 } ? live.Title : "Current pull");
@@ -372,13 +379,15 @@ public class MeterHistoryWindow : Window
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        if (RowHead($"##pull{index}", _plugin.MeterWindow.HistoryIndex == index,
-                enc.Duration.Length > 0 ? enc.Duration : "0:00"))
+        // With the live row folded away, its selection belongs to this newest pull.
+        var selected = _plugin.MeterWindow.HistoryIndex == index
+            || (index == 0 && _liveBanked && _plugin.MeterWindow.HistoryIndex < 0);
+        if (RowHead($"##pull{index}", selected,
+                enc.Duration.Length > 0 ? enc.Duration : "0:00", out var hovered))
         {
             _plugin.MeterWindow.HistoryIndex = index;
             ToggleDetail(index);
         }
-        var hovered = ImGui.IsItemHovered();
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(enc.Title.Length > 0 ? enc.Title : "Encounter");
@@ -402,19 +411,19 @@ public class MeterHistoryWindow : Window
     }
 
     // What kind of pull it was, so trash reads as trash at a glance.
-    private static void PullTag(bool boss, bool settled)
+    // Padded only in the detail head; a table row must keep its plain text height.
+    private static void PullTag(bool boss, bool settled, bool padded = false)
     {
         if (!boss && !settled) return;
         ImGui.SameLine(0, 5f);
-        ImGui.AlignTextToFramePadding();
+        if (padded) ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(boss ? Theme.Accent : Theme.Muted), boss ? "(Boss)" : "(Trash)");
     }
 
-    // The row's hit area, with the clock laid over it and a stripe when picked.
-    private static bool RowHead(string id, bool selected, string clock)
+    // The row's hit area, with the clock right-aligned in its own cell.
+    private bool RowHead(string id, bool selected, string clock, out bool hovered)
     {
         var cellW = ImGui.GetContentRegionAvail().X;
-        var start = ImGui.GetCursorScreenPos();
 
         // The wash is painted per row instead, so it covers the cell padding too.
         ImGui.PushStyleColor(ImGuiCol.Header, 0u);
@@ -422,31 +431,35 @@ public class MeterHistoryWindow : Window
         ImGui.PushStyleColor(ImGuiCol.HeaderActive, 0u);
         var picked = ImGui.Selectable(id, selected, ImGuiSelectableFlags.SpanAllColumns);
         ImGui.PopStyleColor(3);
+        hovered = ImGui.IsItemHovered();
         if (selected) ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, RowPicked);
-        else if (ImGui.IsItemHovered()) ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, RowHot);
+        else if (hovered) ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, RowHot);
 
+        // Clipped to the row and the list body, so a scrolled clock stays off the header.
         var dl = ImGui.GetWindowDrawList();
-        var lineH = ImGui.GetTextLineHeight();
-        dl.AddText(new Vector2(start.X + cellW - ImGui.CalcTextSize(clock).X, start.Y),
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
+        dl.PushClipRect(new Vector2(min.X, MathF.Max(min.Y, _bodyTopY)), max, true);
+        dl.AddText(new Vector2(min.X + cellW - ImGui.CalcTextSize(clock).X, min.Y),
             selected ? Theme.TextBright : Theme.Muted, clock);
-        if (selected)
-            dl.AddRectFilled(new Vector2(start.X - 6f, start.Y - 4f),
-                new Vector2(start.X - 3.5f, start.Y + lineH + 4f), Theme.Accent, 1.5f);
+        dl.PopClipRect();
         return picked;
     }
 
     // A tinted capsule, so the result reads before the words do.
-    private static void Pill(string label, uint color)
+    private void Pill(string label, uint color)
     {
         var size = ImGui.CalcTextSize(label);
         const float pad = 7f;
-        var p = ImGui.GetCursorScreenPos();
-        var dl = ImGui.GetWindowDrawList();
-        // The capsule leans into the cell padding, so its text still lines up.
-        dl.AddRectFilled(new Vector2(p.X, p.Y - 1f), new Vector2(p.X + size.X + pad * 2, p.Y + size.Y + 1f),
-            (color & 0x00FFFFFFu) | 0x30000000u, 4f);
-        dl.AddText(new Vector2(p.X + pad, p.Y), color, label);
         ImGui.Dummy(new Vector2(size.X + pad * 2, size.Y));
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
+        var dl = ImGui.GetWindowDrawList();
+        // Clipped like the clock, so a scrolled capsule stays off the header.
+        dl.PushClipRect(new Vector2(min.X, MathF.Max(min.Y, _bodyTopY)), max, true);
+        dl.AddRectFilled(min, max, (color & 0x00FFFFFFu) | 0x30000000u, 4f);
+        dl.AddText(new Vector2(min.X + pad, min.Y), color, label);
+        dl.PopClipRect();
     }
 
     // Numbers read as a column only when their right edges line up.
@@ -507,6 +520,7 @@ public class MeterHistoryWindow : Window
 
     private void DrawFooter(Meter m, ImGuiStylePtr style)
     {
+        ImGui.Separator();
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.Muted), m.History.Count switch
         {
