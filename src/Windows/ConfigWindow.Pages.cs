@@ -576,7 +576,7 @@ public partial class ConfigWindow
                 ImGui.Spacing();
                 C.UpcomingBoardOnlyMine = CfgCheck("Only hits I have a press for", C.UpcomingBoardOnlyMine);
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Off shows the whole fight.");
-                ImGui.SameLine(300f);
+                NextColumn();
                 C.UpcomingShowHeader = CfgCheck("Header:", C.UpcomingShowHeader);
                 if (C.UpcomingShowHeader)
                 {
@@ -651,7 +651,7 @@ public partial class ConfigWindow
 
             ImGui.Spacing();
             C.UpcomingBoardStripe = CfgCheck("Accent stripe on the left edge", C.UpcomingBoardStripe);
-            ImGui.SameLine(300f);
+            NextColumn();
             C.UpcomingBoardDrain = CfgCheck("Bars drain toward the hit", C.UpcomingBoardDrain);
             if (ImGui.IsItemHovered()) ImGui.SetTooltip("Unticked, bars FILL toward the hit instead.");
             ImGui.EndTabItem();
@@ -662,11 +662,11 @@ public partial class ConfigWindow
             ImGui.Spacing();
             // Two tidy columns, two controls per row at most.
             C.UpcomingBoardTimeText = CfgCheck("Countdown seconds", C.UpcomingBoardTimeText);
-            ImGui.SameLine(300f);
+            NextColumn();
             C.UpcomingBoardShowActions = CfgCheck("Planned mits", C.UpcomingBoardShowActions);
             ImGui.Spacing();
             C.UpcomingBoardShowSeverity = CfgCheck("Severity marks (! !! !!!)", C.UpcomingBoardShowSeverity);
-            ImGui.SameLine(300f);
+            NextColumn();
             C.UpcomingBoardShowType = CfgCheck("Tank buster icon", C.UpcomingBoardShowType);
             Tip("An orange shield on tank-buster rows.");
             ImGui.Spacing();

@@ -142,7 +142,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (ImGui.BeginChild("##content", new Vector2(0, -footerH), false))
         {
             ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
-            if (ImGui.BeginChild("##sidebar", new Vector2(186, 0), true))
+            if (ImGui.BeginChild("##sidebar", new Vector2(_sidebarW, 0), true))
                 DrawSidebar();
             ImGui.EndChild();
             ImGui.PopStyleColor();
@@ -212,6 +212,14 @@ public partial class ConfigWindow : Window, IDisposable
     {
         var s = (DateTime.Now - t).TotalSeconds;
         return s < 90 ? $"{(int)s}s ago" : s < 5400 ? $"{(int)(s / 60)}m ago" : $"{(int)(s / 3600)}h ago";
+    }
+
+    // Second column of a two-up row: half the page, never on top of a long first label.
+    private static void NextColumn()
+    {
+        var half = ImGui.GetContentRegionMax().X * 0.5f;
+        var after = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X + ImGui.GetStyle().ItemSpacing.X * 2;
+        ImGui.SameLine(MathF.Max(half, after));
     }
 
     // Config-bound checkbox that saves on change.
@@ -399,6 +407,11 @@ public partial class ConfigWindow : Window, IDisposable
 
     private string _expandFightId = "";
 
+    // The sidebar fits its longest nav label, measured while it draws.
+    private const float SidebarMinWidth = 186f;
+    private float _sidebarW = SidebarMinWidth;
+    private float _navNeed;
+
     private static FontAwesomeIcon CategoryIcon(string cat) => cat switch
     {
         "Ultimate" => FontAwesomeIcon.Crown,
@@ -409,6 +422,7 @@ public partial class ConfigWindow : Window, IDisposable
 
     private void DrawSidebar()
     {
+        _navNeed = 0f;
         if (NavItem(FontAwesomeIcon.Home, "Home", _nav == NavKind.Home)) _nav = NavKind.Home;
 
         ImGui.Spacing();
@@ -444,6 +458,10 @@ public partial class ConfigWindow : Window, IDisposable
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", _nav == NavKind.Audio)) _nav = NavKind.Audio;
 
         DrawSidebarSetup();
+
+        // Next frame's width, so no label is clipped once a scrollbar appears.
+        var bar = ImGui.GetScrollMaxY() > 0f ? ImGui.GetStyle().ScrollbarSize : 0f;
+        _sidebarW = MathF.Max(SidebarMinWidth, _navNeed + bar);
     }
 
     private static void SidebarHeading(string text)
@@ -480,6 +498,9 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         ImGui.SetCursorPos(new Vector2(startX + 36, startY + 6));
         ImGui.TextColored(col, label);
+        // 36 is the icon column; the tail is the right padding plus any count badge.
+        _navNeed = MathF.Max(_navNeed,
+            startX + 36 + ImGui.CalcTextSize(label).X + (count is null ? 12f : 40f));
 
         if (count is { } n)
         {
@@ -509,13 +530,14 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextColored(ImGuiColors.DalamudYellow, jobStr);
         Tip("Your current job.");
 
-        // Show Auto-detected Role read-only
+        // The seat the plugin would pick, so a preference below shows up at once.
         var roleStr = "[---]";
         if (liveJob != null)
         {
-            roleStr = RoleForJob(liveJob) ?? "[---]";
+            var seat = Builtin.DefaultSlotForJobIn(SlotNames.Standard, liveJob, C);
+            if (seat.Length > 0) roleStr = seat;
         }
-        
+
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled("Role:");
         ImGui.SameLine();
@@ -576,22 +598,6 @@ public partial class ConfigWindow : Window, IDisposable
     private static bool SameSeatGroup(string selection, string liveRole)
         => (selection is "MT" or "OT" && liveRole is "MT" or "OT")
         || (selection is "M1" or "M2" && liveRole is "M1" or "M2");
-
-    // The canonical role for a job, preferring the first seat.
-    private static string? RoleForJob(string? jobAbbr)
-    {
-        if (Jobs.ByAbbreviation(jobAbbr) is not { } job) return null;
-        if (Builtin.Roles.Contains(job.Abbreviation)) return job.Abbreviation;
-        return job.Role switch
-        {
-            JobRole.Tank => "MT",
-            JobRole.Healer => job.Abbreviation is "WHM" or "AST" ? "H1" : "H2",
-            JobRole.Melee => "M1",
-            JobRole.PhysicalRanged => "R1",
-            JobRole.Caster => "R2",
-            _ => null,
-        };
-    }
 
     // True if every sheet is on the slot this role maps to.
     private bool RoleActiveEverywhere(string role)

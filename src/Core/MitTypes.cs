@@ -38,8 +38,9 @@ public static class MitTypes
         "second wind", "bloodbath", "personal", "feather", "stem the flow",
     };
 
-    // Memoized, since the answer depends only on the two texts.
-    private static readonly System.Collections.Generic.Dictionary<(string Action, string Mech), Kind> _cache = new();
+    // Memoized, since the answer depends only on the two texts. Concurrent:
+    // the cue worker and the meter classify off the frame thread.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(string Action, string Mech), Kind> _cache = new();
 
     public static Kind Classify(string? action, string? mechanic = null)
     {

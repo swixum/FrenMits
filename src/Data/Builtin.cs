@@ -636,6 +636,13 @@ public static class Builtin
                 if (string.Equals(s, jobPref, StringComparison.OrdinalIgnoreCase)) return s;
         }
 
+        // A chosen role preference outranks the built-in seat guess below.
+        if (config != null && config.GlobalRolePreferences.TryGetValue(job.Role, out var rolePref))
+        {
+            foreach (var s in slots)
+                if (string.Equals(s, rolePref, StringComparison.OrdinalIgnoreCase)) return s;
+        }
+
         // Healers map to their own column (or their H1/H2 seat group).
         if (job.Role == JobRole.Healer)
         {
@@ -652,13 +659,6 @@ public static class Builtin
         // Any job whose own abbreviation is a column maps directly.
         foreach (var s in slots)
             if (string.Equals(s, job.Abbreviation, StringComparison.OrdinalIgnoreCase)) return s;
-
-        // Apply legacy role preferences if provided
-        if (config != null && config.GlobalRolePreferences.TryGetValue(job.Role, out var preferredSlot))
-        {
-            foreach (var s in slots)
-                if (string.Equals(s, preferredSlot, StringComparison.OrdinalIgnoreCase)) return s;
-        }
 
         var prefs = job.Role switch
         {
