@@ -8,8 +8,8 @@ namespace FrenMits;
 public static class SlotNames
 {
     // The canonical column set every built-in presents.
-    public static readonly string[] Standard =
-        { "T1", "T2", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" };
+    public static readonly string[] Standard = 
+        { "MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2" };
 
     // Any known alias to its canonical name.
     public static string Canon(string? slot)
@@ -17,27 +17,29 @@ public static class SlotNames
         var s = (slot ?? "").Trim();
         return s.ToUpperInvariant() switch
         {
-            "MT" or "T1" => "T1",
-            "OT" or "T2" => "T2",
+            "T1" or "MT" => "MT",
+            "T2" or "OT" => "OT",
             "D1" or "M1" => "M1",
             "D2" or "M2" => "M2",
             "D3" or "R" or "R1" => "R1",
             "D4" or "CASTER" or "R2" => "R2",
-            "WHM" => "WHM", "AST" => "AST", "SCH" => "SCH", "SGE" => "SGE",
-            "H1" => "H1", "H2" => "H2",
+            "WHM" or "AST" or "H1" => "H1",
+            "SCH" or "SGE" or "H2" => "H2",
             _ => s,
         };
     }
 
     // Canonical to the labels the DMU-style files use.
+    public static string Display(string slot) => Canon(slot);
+    
+    // Canonical to the labels the DMU-style files use.
     public static string ToLegacy(string slot) => Canon(slot) switch
     {
-        "T1" => "MT", "T2" => "OT",
         "M1" => "D1", "M2" => "D2",
         "R1" => "D3", "R2" => "D4",
         var c => c,
     };
-
+    
     // Canonical to FRU's native labels.
     public static string ToFru(string slot) => Canon(slot) switch
     {

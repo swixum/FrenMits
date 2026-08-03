@@ -426,6 +426,7 @@ public partial class ConfigWindow
             Tip("Timeline, call and voice run through the countdown.");
             ImGui.Spacing();
 
+            SeparatorText("Calls with no usage window");
             var warn = C.WarningSeconds;
             if (Widgets.SliderInput("Show ahead", ref warn, 1f, 12f, "%.1fs")) { C.WarningSeconds = warn; C.SaveSettings(); }
             Tip("How early a call appears.");
@@ -438,10 +439,19 @@ public partial class ConfigWindow
             var useWinWas = C.ShowUseWindows;
             C.ShowUseWindows = Toggle("Usage window", C.ShowUseWindows);
             if (C.ShowUseWindows != useWinWas) { C.SaveSettings(); _plugin.InvalidateSolverCache(); }
-            Tip("Times the window's start from the mit's own duration.");
+            Tip("Gives a mit with a duration a span to press in, timed from that duration. "
+                + "Instants have no such span and keep the timing above.");
             if (C.ShowUseWindows)
             {
                 ImGui.Indent(20f);
+                var winLead = C.UseWindowLeadSeconds;
+                if (Widgets.SliderInput("Show ahead##usewin", ref winLead, 0f, 12f, "%.1fs"))
+                {
+                    C.UseWindowLeadSeconds = winLead;
+                    C.SaveSettings();
+                }
+                Tip("How early a windowed call appears, counting down to the window opening.");
+                ImGui.SameLine(0, 18);
                 var maxDur = C.MaxUseWindowSeconds;
                 if (Widgets.SliderInput("Max window duration", ref maxDur, 1f, 30f, "%.1fs", width: 200f))
                 {
@@ -450,6 +460,7 @@ public partial class ConfigWindow
                 }
                 if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.InvalidateSolverCache();
                 Tip("Clamps how wide a usage window may get.");
+                ImGui.TextDisabled("Clears as the window closes - these never hold.");
                 ImGui.Unindent(20f);
             }
             ImGui.EndTabItem();
@@ -889,154 +900,6 @@ public partial class ConfigWindow
 
     private string _ttsTestText = "";
 
-    // ---- per-line overrides popup ----
-
-    private string _iconSearch = "";
-    private int _iconBrowseStart = 405; // action icons start around here
-    private const int IconPage = 64;
-
-    private void DrawLineOptionsPopup(MitLine line)
-    {
-        if (!ImGui.BeginPopup("lineopt")) return;
-
-        var fight = (_selectedFight >= 0 && _selectedFight < C.Fights.Count) ? C.Fights[_selectedFight] : null;
-        if (fight != null)
-        {
-            var idx = fight.Lines.IndexOf(line);
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowUp) && idx > 0)
-            {
-                (fight.Lines[idx - 1], fight.Lines[idx]) = (fight.Lines[idx], fight.Lines[idx - 1]);
-                C.Save();
-            }
-            ImGui.SameLine();
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowDown) && idx >= 0 && idx < fight.Lines.Count - 1)
-            {
-                (fight.Lines[idx + 1], fight.Lines[idx]) = (fight.Lines[idx], fight.Lines[idx + 1]);
-                C.Save();
-            }
-            ImGui.SameLine();
-            ImGui.TextDisabled("reorder");
-            ImGui.Separator();
-        }
-
-        SeparatorText("Icon");
-        var resolved = Icons.For(line, _plugin.ActiveJobAbbreviation());
-        Icons.Draw(resolved, new Vector2(40, 40));
-        ImGui.SameLine();
-        ImGui.BeginGroup();
-        ImGui.TextUnformatted(line.IconId != 0 ? $"pinned (#{line.IconId})"
-            : (resolved != 0 ? "auto (action / status / keyword)" : "none"));
-        if (ImGui.SmallButton("Use auto")) { line.IconId = 0; C.Save(); }
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Potion")) { line.IconId = Icons.PotionIconFor(line); C.Save(); }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Pin the potion (Gemdraught) icon to this line.");
-        ImGui.SameLine();
-        var iconId = (int)line.IconId;
-        ImGui.SetNextItemWidth(110f);
-        if (ImGui.InputInt("##iconid", ref iconId)) { line.IconId = (uint)Math.Max(0, iconId); C.Save(); }
-        ImGui.SameLine();
-        ImGui.TextDisabled("id");
-        ImGui.EndGroup();
-
-        // Search actions + statuses by name -> clickable icon grid.
-        ImGui.SetNextItemWidth(240f);
-        ImGui.InputTextWithHint("##iconsearch", "search actions & statuses...", ref _iconSearch, 64);
-        if (!string.IsNullOrWhiteSpace(_iconSearch))
-        {
-            var n = 0;
-            foreach (var (name, ic) in Icons.Search(_iconSearch, 40))
-            {
-                if (Icons.Button(ic, new Vector2(32, 32), $"##s{ic}_{n}")) { line.IconId = ic; C.Save(); }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{name}  (#{ic})");
-                if (++n % 8 != 0) ImGui.SameLine();
-            }
-            ImGui.NewLine();
-        }
-
-        // Quick palette of keyword icons, click one to pin it.
-        if (ImGui.TreeNode("Common mechanic icons"))
-        {
-            var n = 0;
-            foreach (var (label, ic) in Icons.Common())
-            {
-                if (Icons.Button(ic, new Vector2(32, 32), $"##c{ic}_{n}")) { line.IconId = ic; C.Save(); }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{label}  (#{ic})");
-                if (++n % 8 != 0) ImGui.SameLine();
-            }
-            ImGui.NewLine();
-            ImGui.TreePop();
-        }
-
-        // Browse any icon by id (paged grid) - pick literally anything.
-        if (ImGui.TreeNode("Browse all icons"))
-        {
-            ImGui.SetNextItemWidth(120f);
-            ImGui.InputInt("Start id", ref _iconBrowseStart, 8, 64);
-            _iconBrowseStart = Math.Clamp(_iconBrowseStart, 0, 250000);
-            ImGui.SameLine();
-            if (ImGui.ArrowButton("##icoprev", ImGuiDir.Left)) _iconBrowseStart = Math.Max(0, _iconBrowseStart - IconPage);
-            ImGui.SameLine();
-            if (ImGui.ArrowButton("##iconext", ImGuiDir.Right)) _iconBrowseStart += IconPage;
-            ImGui.SameLine();
-            ImGui.TextDisabled($"{_iconBrowseStart}-{_iconBrowseStart + IconPage - 1}");
-
-            if (ImGui.BeginChild("##iconbrowse", new Vector2(0, 220), true))
-            {
-                for (var k = 0; k < IconPage; k++)
-                {
-                    var id = (uint)(_iconBrowseStart + k);
-                    if (Icons.Button(id, new Vector2(32, 32), $"##b{id}")) { line.IconId = id; C.Save(); }
-                    if (ImGui.IsItemHovered()) ImGui.SetTooltip($"#{id}");
-                    if ((k + 1) % 8 != 0) ImGui.SameLine();
-                }
-            }
-            ImGui.EndChild();
-            ImGui.TreePop();
-        }
-
-        SeparatorText("Overrides (0 / empty = global)");
-
-        var lead = line.LeadOverride;
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputFloat("Warning lead (s)", ref lead, 0.5f, 1f, "%.1f"))
-        {
-            line.LeadOverride = MathF.Max(0f, lead);
-            C.Save();
-        }
-
-        var off = line.OffsetSeconds;
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.InputFloat("Offset (s)", ref off, 0.5f, 1f, "%.1f"))
-        {
-            line.OffsetSeconds = Math.Clamp(off, -30f, 30f);
-            line.OffsetManual = true; // hand-set: the auto cooldown timer won't touch it
-            C.Save();
-            _plugin.SheetViewWindow.MarkPlanDirty();
-        }
-        Tip("Shift this call only: + earlier, - later.");
-
-        var tts = line.Tts;
-        ImGui.SetNextItemWidth(220f);
-        if (ImGui.InputText("Speak instead", ref tts, 128)) { line.Tts = tts; C.Save(); }
-        ImGui.TextDisabled("Empty = speak the action.");
-
-        var sound = line.Sound;
-        if (GreenCheckbox("Play audio cue for this line", ref sound)) { line.Sound = sound; C.Save(); }
-
-        var useColor = line.Color != 0;
-        if (GreenCheckbox("Custom text color", ref useColor))
-        {
-            line.Color = useColor ? 0xFF55FFFF : 0u;
-            C.Save();
-        }
-        if (line.Color != 0)
-        {
-            var col = ColorToVec4(line.Color);
-            if (ImGui.ColorEdit4("Color", ref col)) { line.Color = Vec4ToColor(col); C.Save(); }
-        }
-
-        ImGui.EndPopup();
-    }
 
     // ---- share via clipboard ----
 
@@ -1069,11 +932,14 @@ public partial class ConfigWindow
 
     // ---- helpers ----
 
-    // The best-matching baked line for the reset options.
-    private MitLine? DefaultLineFor(FightProfile fight, MitLine line)
+    // The best-matching baked line for the reset options. `baked` is the
+    // priority-resolved baseline (Builtin.BakedLinesForFight) - pass the
+    // caller's already-computed one when looping over many lines, since
+    // building it re-bakes the sheet and it's not cheap to redo per line.
+    private MitLine? DefaultLineFor(FightProfile fight, MitLine line, IReadOnlyList<MitLine>? baked = null)
     {
         if (!Builtin.Has(fight.TerritoryId)) return null;
-        var baked = Builtin.BuildLines(fight.TerritoryId, fight.Slot);
+        baked ??= Builtin.BakedLinesForFight(fight, fight.Slot);
         if (baked.Count == 0) return null;
 
         var mech = line.Mechanic.Trim();
@@ -1084,6 +950,8 @@ public partial class ConfigWindow
         var bestHasMatch = false;
         foreach (var b in baked)
         {
+            if (line.Custom && !Builtin.IsDeleted(fight, fight.Slot, b)) continue;
+
             var mMatch = mech.Length > 0 && string.Equals(b.Mechanic.Trim(), mech, StringComparison.OrdinalIgnoreCase);
             var aMatch = act.Length > 0 && string.Equals(b.Action.Trim(), act, StringComparison.OrdinalIgnoreCase);
             var hasMatch = mMatch || aMatch;

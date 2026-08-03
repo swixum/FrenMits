@@ -164,20 +164,37 @@ public partial class ConfigWindow
                     DrawFightOffsetRow(fight);
                     DrawPracticeRow(fight);
                     // Add-ons live behind one fold, so a fight reads simply.
-                    var job = _plugin.ActiveJobAbbreviation();
+                    var job = _plugin.GetActiveJobAbbr(fight);
+                    // Your job's kit extras (Mantra, Curing Waltz, ...) ride into
+                    // the line list on their own, same as a baked sheet call;
+                    // idempotent, so this is a no-op once they're already there.
+                    if (!string.IsNullOrEmpty(fight.Slot) && JobExtras.EnsureAutoLines(fight, job))
+                    {
+                        C.Save();
+                        _plugin.SheetViewWindow.MarkPlanDirty();
+                    }
                     var hasExtras = PotionTimings.BossSlug(fight.TerritoryId) != null
                         || (fight.CustomSlots.Count > 0 && fight.CustomRows.Count > 0)
-                        || (!string.IsNullOrEmpty(job) && JobExtras.AllFor(fight, job).Count > 0)
-                        || (TankMits.Has(fight.TerritoryId) && IsTankSlot(fight.Slot));
-                    if (hasExtras && Section("Extras: potions, job mits, tank busters", false))
+                        || (!string.IsNullOrEmpty(job) && JobExtras.AllFor(fight, job).Count > 0);
+                    if (hasExtras && Section("Extras: potions, job mits", false))
                     {
                         DrawPotionsSection(fight);
                         DrawJobExtrasSection(fight);
-                        DrawTankSection(fight);
                     }
                     ImGui.Separator();
-                    DrawLineTable(fight);
-                    ImGui.Spacing();
+                    
+                    if (string.IsNullOrEmpty(fight.Slot))
+                    {
+                        ImGui.Spacing();
+                        ImGui.TextColored(ImGuiColors.DalamudYellow, "Please select your slot above to view the mitigations timeline.");
+                        ImGui.Spacing();
+                    }
+                    else
+                    {
+                        DrawLineTable(fight);
+                        ImGui.Spacing();
+                    }
+                    
                     DrawImportSection(fight);
                     DrawAdvancedFightSettings(fight);
                 }
@@ -219,7 +236,6 @@ public partial class ConfigWindow
         var b = C.Fights.IndexOf(shown[j]);
         if (a < 0 || b < 0) return;
         (C.Fights[a], C.Fights[b]) = (C.Fights[b], C.Fights[a]);
-        (shown[i], shown[j]) = (shown[j], shown[i]); // keep this frame's list in step
         ImGui.ResetMouseDragDelta();
         C.Save();
     }
@@ -286,16 +302,7 @@ public partial class ConfigWindow
     };
 
     // Friendly names for the raw slot codes in the picker.
-    private static string SlotLabel(string code) => SlotNames.Canon(code) switch
-    {
-        "M1" => "Melee 1",
-        "M2" => "Melee 2",
-        "R1" => "Phys Ranged",
-        "R2" => "Caster",
-        "T1" => "Main Tank",
-        "T2" => "Off Tank",
-        var c => c,
-    };
+    private static string SlotLabel(string code) => SlotNames.Canon(code);
 
     private string _builtinMsg = "";
     private DateTime _builtinMsgAt = DateTime.MinValue;
@@ -338,29 +345,71 @@ public partial class ConfigWindow
     private void DrawBuiltinLoad(FightProfile fight)
     {
         var slots = Builtin.Slots(fight.TerritoryId);
-
-        // Show the fight's active slot, falling back to the first.
-        var savedIdx = Array.IndexOf(slots, fight.Slot);
-        _builtinSlot = savedIdx >= 0 ? savedIdx : 0;
-        _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
-
-        var slotLabels = slots.Select(SlotLabel).ToArray();
-        ImGui.SetNextItemWidth(170f);
-        if (ImGui.Combo("Your slot", ref _builtinSlot, slotLabels, slotLabels.Length))
-            SelectBuiltinSlot(fight, slots[_builtinSlot]);  // load that slot now
-        Tip("Your seat. Each slot keeps its own edits.");
-        var slot = slots[_builtinSlot];
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Reset to sheet"))
+        
+        var useSetup = C.UseSetup;
+        if (ImGui.Checkbox("Use Your Setup", ref useSetup))
         {
-            if (HasBuiltinEdits(fight, slot)) ImGui.OpenPopup("##confirm-replace");
-            else ResetBuiltinSlot(fight, slot);
+            C.UseSetup = useSetup;
+            C.Save();
         }
-        Tip("Reload this slot from the sheet.");
+        Tip("Automatically pick your slot based on your Job and Role Preferences.");
 
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Reset all columns")) ImGui.OpenPopup("##confirm-resetall");
+        string activeSlot;
+        if (C.UseSetup)
+        {
+            activeSlot = Builtin.DefaultSlotForJob(fight.TerritoryId, _plugin.ActiveJobAbbreviation(), C);
+            if (!string.IsNullOrEmpty(activeSlot) && activeSlot != fight.Slot)
+                SelectBuiltinSlot(fight, activeSlot);
+        }
+        else
+        {
+            activeSlot = fight.Slot;
+        }
+
+        if (string.IsNullOrEmpty(activeSlot) || !C.UseSetup)
+        {
+            if (!C.UseSetup)
+            {
+                var simJobIdx = Math.Max(0, Array.IndexOf(Jobs.Abbreviations, fight.SimulatedJob));
+                if (string.IsNullOrEmpty(fight.SimulatedJob) && !string.IsNullOrEmpty(_plugin.ActiveJobAbbreviation()))
+                    simJobIdx = Math.Max(0, Array.IndexOf(Jobs.Abbreviations, _plugin.ActiveJobAbbreviation()));
+                
+                ImGui.SetNextItemWidth(65f);
+                if (ImGui.Combo("##simjob", ref simJobIdx, Jobs.Abbreviations, Jobs.Abbreviations.Length))
+                {
+                    fight.SimulatedJob = Jobs.Abbreviations[simJobIdx];
+                    C.Save();
+                }
+                Tip("Simulated Job. Replaces your current job for timeline edits.");
+                ImGui.SameLine();
+            }
+
+            // Show the fight's active slot, falling back to the first.
+            var savedIdx = Array.IndexOf(slots, fight.Slot);
+            _builtinSlot = savedIdx >= 0 ? savedIdx : 0;
+            _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
+
+            var slotLabels = slots.Select(SlotLabel).ToArray();
+            ImGui.SetNextItemWidth(170f);
+            if (ImGui.Combo("Your slot", ref _builtinSlot, slotLabels, slotLabels.Length))
+                SelectBuiltinSlot(fight, slots[_builtinSlot]);  // load that slot now
+            Tip("Your seat. Each slot keeps its own edits.");
+            activeSlot = slots.Length > 0 ? slots[_builtinSlot] : "";
+        }
+        else
+        {
+            ImGui.SameLine();
+            ImGui.TextDisabled($"Auto-selected: {SlotLabel(activeSlot)}");
+        }
+
+        var inDuty = Service.ClientState.TerritoryType == fight.TerritoryId;
+        var jobAbbr = _plugin.ActiveJobAbbreviation() ?? "";
+        if (!inDuty && !C.UseSetup && !string.IsNullOrEmpty(fight.SimulatedJob))
+        {
+            jobAbbr = fight.SimulatedJob;
+        }
+
+        if (ImGui.SmallButton("Reset all overrides")) ImGui.OpenPopup("##confirm-resetall");
         Tip("Reload every column from the sheet. Snapshot saved first.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
@@ -369,8 +418,7 @@ public partial class ConfigWindow
             ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
         }
 
-        DrawReplaceConfirm(fight, slot);
-        DrawResetAllConfirm(fight, slot);
+        DrawResetAllConfirm(fight, activeSlot);
     }
 
     // Full reset across every column; snapshot-first and confirmed.

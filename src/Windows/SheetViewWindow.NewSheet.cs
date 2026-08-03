@@ -22,17 +22,17 @@ public partial class SheetViewWindow
 
     private static readonly string[] SlotTemplates =
     {
-        "Full party (T1 T2 H1 H2 M1 M2 R1 R2)",
-        "Full party, job healers (T1 T2 WHM AST SCH SGE M1 M2 R1 R2)",
+        "Full party (MT OT H1 H2 M1 M2 R1 R2)",
+        "Full party, job healers (MT OT WHM AST SCH SGE M1 M2 R1 R2)",
         "Light party (T H M1 M2)",
         "Custom columns",
     };
 
     private string[] TemplateSlots() => _newTemplate switch
     {
-        0 => new[] { "T1", "T2", "H1", "H2", "M1", "M2", "R1", "R2" },
+        0 => new[] { "MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2" },
         // The official layout, where healer columns are job columns.
-        1 => new[] { "T1", "T2", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" },
+        1 => new[] { "MT", "OT", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" },
         2 => new[] { "T", "H", "M1", "M2" },
         // Hand-typed columns still run through the standard names.
         _ => _newSlotsBuf.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)

@@ -201,6 +201,22 @@ public static class Cooldowns
     // Tracked for recast but windowless for now; Mantra and Minne get real windows once tooltips confirm them.
     public static readonly string[] Windowless = { "Seraph", "Second Wind", "Curing Waltz", "Mantra", "Nature's Minne" };
 
+    public static readonly string[] NoCarryOver =
+    {
+        "Zoe", "Recitation", "Seraph", "Emergency Tactics", "Pepsis", "Dissipation", "Swiftcast", "Lightspeed"
+    };
+
+    public static bool IsNoCarryOver(string name)
+        => NoCarryOver.Contains(name, StringComparer.OrdinalIgnoreCase);
+
+    public static readonly HashSet<string> PartyMits = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Reprisal", "Feint", "Addle", "Shake It Off", "Divine Veil", "Passage of Arms", 
+        "Dark Missionary", "Heart of Light", "Sacred Soil", "Expedient", "Fey Illumination", 
+        "Kerachole", "Panhaima", "Holos", "Trophy", "Collective Unconscious", 
+        "Celestial Opposition", "Earthly Star", "Macrocosmos"
+    };
+
     // Every tracked mit, once each.
     public static readonly string[] Tracked = Names.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 

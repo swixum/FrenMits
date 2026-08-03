@@ -22,8 +22,12 @@ public static class SheetTimeline
     public static bool MechEquals(string a, string b)
         => string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
 
-    public static List<MechRow> Build(FightProfile fight)
+    // Without a plugin there is no active job, so job-gated rows stay generic.
+    public static List<MechRow> Build(FightProfile fight) => Build(null, fight);
+
+    public static List<MechRow> Build(Plugin? plugin, FightProfile fight)
     {
+        var jobAbbr = plugin?.GetActiveJobAbbr(fight) ?? "";
         var rows = new List<MechRow>();
         var byMech = new Dictionary<string, List<MechRow>>(StringComparer.OrdinalIgnoreCase);
 
@@ -45,6 +49,13 @@ public static class SheetTimeline
         {
             foreach (var l in lines)
             {
+                // A hidden mechanic names a personal timer (a summoner's pet
+                // cycle), not a boss cast, so it raises a row only for the job
+                // that owns it - otherwise every board carries Summon bars for
+                // seven players who can't press them.
+                if (!l.AppliesTo(jobAbbr) && Builtin.IsHiddenMechanic(fight.TerritoryId, l.Mechanic))
+                    continue;
+
                 var row = RowFor(l.Mechanic, l.Time, 1.6f);
                 // Extras ride ahead, so plain lines own the row's time.
                 if (l.Jobs.Count == 0) row.Time = MathF.Max(row.Time, l.Time);
@@ -126,7 +137,7 @@ public static class SheetTimeline
         var territory = fight.TerritoryId;
         // Straight from Builtin, the one place that answers this.
         Add(Builtin.PhaseStarts(territory),
-            territory == Builtin.DmuTerritory ? DmuData.PhaseTitle : null);
+            territory == Builtin.DmuTerritory ? p => Builtin.PhaseTitle(territory, p) : null);
 
         if (marks.Count == 0)
             foreach (var a in fight.BossAnchors)

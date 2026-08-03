@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
@@ -35,6 +36,7 @@ public static class Icons
         ["tbn"] = "The Blackest Night", // the sheet's tank tabs abbreviate it
         ["knockback"] = "Arm's Length", ["kb"] = "Arm's Length", ["arms length"] = "Arm's Length",
         ["bait"] = "Cast", // fisher's rod, a stand-in for baiting
+        ["zoe"] = "Zoe",
     };
 
     private static void EnsureBuilt()
@@ -217,7 +219,33 @@ public static class Icons
                 ["WAR"] = "Holmgang", ["PLD"] = "Hallowed Ground",
                 ["DRK"] = "Living Dead", ["GNB"] = "Superbolide",
             },
+            // The tank's big self-mit (~40% reduction) and its long-recast (~90s)
+            // partner, as generic magnitude/recast tags rather than a fixed
+            // ability name. Max-level trait upgrades shown (Damnation over
+            // Vengeance, Guardian over Sentinel, Shadowed Vigil over Shadow
+            // Wall, Great Nebula over Nebula).
+            ["40%"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["WAR"] = "Damnation", ["PLD"] = "Guardian",
+                ["DRK"] = "Shadowed Vigil", ["GNB"] = "Great Nebula",
+            },
+            ["90s"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["WAR"] = "Thrill of Battle", ["PLD"] = "Bulwark",
+                ["DRK"] = "Dark Mind", ["GNB"] = "Camouflage",
+            },
         };
+
+        // Whether a term's trailing "(...)" is a job-restriction list (e.g.
+        // "Short Mit (PLD/DRK)") rather than decorative context (e.g.
+        // "(First Hit)", "(Close)", "(Solo)") - true only when every token
+        // inside is itself a real job abbreviation.
+        private static bool IsJobList(string quals)
+        {
+            if (quals.Length == 0) return false;
+            var tokens = quals.Split(new[] { '/', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return tokens.Length > 0 && tokens.All(t => Jobs.ByAbbreviation(t) != null);
+        }
 
     // The icon a line should display: its pinned icon, else the potion icon for a
     // potion line, else the active job's matching ability for a generic mit term
@@ -240,7 +268,7 @@ public static class Icons
             var m = Regex.Match(action!, Regex.Escape(term) + @"(?:\s*\(([^)]*)\))?", RegexOptions.IgnoreCase);
             if (!m.Success) continue;
             var quals = m.Groups[1].Value;
-            if (quals.Length == 0 || quals.IndexOf(job!, StringComparison.OrdinalIgnoreCase) >= 0)
+            if (quals.Length == 0 || !IsJobList(quals) || quals.IndexOf(job!, StringComparison.OrdinalIgnoreCase) >= 0)
                 return ability;
         }
         return null;
@@ -272,8 +300,9 @@ public static class Icons
             action = Regex.Replace(action, Regex.Escape(term) + @"(?:\s*\(([^)]*)\))?", m =>
             {
                 var quals = m.Groups[1].Value;
-                return quals.Length == 0 || quals.IndexOf(job!, StringComparison.OrdinalIgnoreCase) >= 0
-                    ? ability : m.Value;
+                if (quals.Length == 0) return ability;
+                if (!IsJobList(quals)) return $"{ability} ({quals})"; // decorative, e.g. "(First Hit)"
+                return quals.IndexOf(job!, StringComparison.OrdinalIgnoreCase) >= 0 ? ability : m.Value;
             }, RegexOptions.IgnoreCase);
         }
         return action;
@@ -446,12 +475,24 @@ public static class Icons
         try
         {
             var tex = Service.TextureProvider.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrEmpty();
-            ImGui.Image(tex.Handle, size);
+            if (tex != null) ImGui.Image(tex.Handle, size);
         }
         catch
         {
             ImGui.Dummy(size);
         }
+    }
+
+    // Draws an icon directly to a draw list, avoiding ImGui layout side effects.
+    public static void DrawTo(ImDrawListPtr dl, uint iconId, Vector2 p0, Vector2 size)
+    {
+        if (iconId == 0) return;
+        try
+        {
+            var tex = Service.TextureProvider.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrEmpty();
+            if (tex != null) dl.AddImage(tex.Handle, p0, p0 + size);
+        }
+        catch { }
     }
 
     // A clickable icon, falling back to an empty button.

@@ -12,8 +12,10 @@ public class CueEngine
     private int _generation = -1;
     private DateTime _lastSpoke = DateTime.MinValue;
 
-    // When each line's earliest press window opens, rebuilt only when the solver does.
-    private readonly Dictionary<MitLine, float> _windowStarts = new();
+    // When each line's earliest press window opens, rebuilt only when the solver
+    // does. Carries whether that press is windowed too, so the voice leads by the
+    // same setting the overlay does and the two still open together.
+    private readonly Dictionary<MitLine, (float Start, bool Windowed)> _windowStarts = new();
     private IReadOnlyList<MitPress>? _windowSrc;
 
     public CueEngine(Plugin plugin, Audio audio)
@@ -62,8 +64,8 @@ public class CueEngine
                 _windowStarts.Clear();
                 // The earliest of a combined cell's presses, since that is what shows first.
                 foreach (var p in presses)
-                    if (!_windowStarts.TryGetValue(p.SourceLine, out var ws) || p.WindowStart < ws)
-                        _windowStarts[p.SourceLine] = p.WindowStart;
+                    if (!_windowStarts.TryGetValue(p.SourceLine, out var ws) || p.WindowStart < ws.Start)
+                        _windowStarts[p.SourceLine] = (p.WindowStart, p.HasWindow);
             }
         }
         catch (Exception ex) { Swallowed.Report("cue press windows", ex); }
@@ -73,9 +75,12 @@ public class CueEngine
             if (!line.Enabled || !line.Sound || !line.AppliesTo(job)) continue;
             if (_fired.Contains(line)) continue;
 
-            var lead = line.LeadOverride > 0f ? line.LeadOverride : c.WarningSeconds;
-            // A line with no tracked mit keeps its plain cue time.
-            var cueAt = _windowStarts.TryGetValue(line, out var open) ? open : line.CueTime;
+            // A line with no tracked mit keeps its plain cue time, and with it
+            // the plain lead - there is no window for it to be early to.
+            var hasWindow = _windowStarts.TryGetValue(line, out var open);
+            var cueAt = hasWindow ? open.Start : line.CueTime;
+            var lead = line.LeadOverride > 0f ? line.LeadOverride
+                : hasWindow && open.Windowed ? c.UseWindowLeadSeconds : c.WarningSeconds;
             var remaining = cueAt - elapsed; // honors the per-line offset
             if (remaining > lead || remaining < -0.5f) continue;
 

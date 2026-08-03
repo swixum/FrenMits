@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows7.0</TargetFramework>
@@ -11,9 +11,9 @@
     <RootNamespace>FrenMits</RootNamespace>
     <OutputType>Library</OutputType>
     <!-- Bump on each release, matching repo.json and FrenMits.json. -->
-    <Version>1.0.0.444</Version>
-    <AssemblyVersion>1.0.0.444</AssemblyVersion>
-    <FileVersion>1.0.0.444</FileVersion>
+    <Version>1.0.0.445</Version>
+    <AssemblyVersion>1.0.0.445</AssemblyVersion>
+    <FileVersion>1.0.0.445</FileVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <!-- True so the bundled NAudio assemblies land in the output. -->
@@ -28,12 +28,26 @@
     <None Include="..\images\icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" />
     <!-- Baked per-duty boss timelines (every instanced duty), gzipped JSON. -->
     <EmbeddedResource Include="Data\universal_timelines.json.gz" LogicalName="FrenMits.universal_timelines.json.gz" />
+    <!-- Relational JSON data for fights -->
+    <Content Include="Data\Sheets\**\*.json" CopyToOutputDirectory="PreserveNewest" TargetPath="Sheets\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- MP3 decode + playback for the online neural voices. Bundled into the zip. -->
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
+
+  <!-- A DefaultAction that names a mechanic the sheet's Timeline doesn't carry
+       splits one row in two in the UI and never surfaces as an error at runtime,
+       so it is caught here instead. See scripts/validate-sheets.ps1. -->
+  <Target Name="ValidateSheets" BeforeTargets="BeforeBuild"
+          Inputs="@(Content);$(MSBuildProjectDirectory)\..\scripts\validate-sheets.ps1"
+          Outputs="$(IntermediateOutputPath)sheets.validated">
+    <Exec Command="powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\scripts\validate-sheets.ps1&quot; -SheetsPath &quot;$(MSBuildProjectDirectory)\Data\Sheets&quot;"
+          StandardOutputImportance="high" />
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <Touch Files="$(IntermediateOutputPath)sheets.validated" AlwaysCreate="true" />
+  </Target>
 
   <ItemGroup>
     <Reference Include="Dalamud">

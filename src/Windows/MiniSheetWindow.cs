@@ -54,7 +54,7 @@ public class MiniSheetWindow : Window
             return;
         }
 
-        var job = _plugin.ActiveJobAbbreviation();
+        var job = _plugin.GetActiveJobAbbr(fight);
         var elapsed = _plugin.CueClockFor(fight);
         var running = _plugin.Timer.Live;
         var lines = fight.OrderedLines

@@ -13,6 +13,7 @@ public class SlotPopupWindow : Window
 
     private FightProfile? _fight;
     private string[] _slots = Array.Empty<string>();
+    private bool _rememberPref = false;
 
     public SlotPopupWindow(Plugin plugin) : base("Your slot###fmslotpop")
     {
@@ -60,7 +61,7 @@ public class SlotPopupWindow : Window
             // No slot yet must show as "(pick)", never as the first entry.
             var current = _fight.Slot ?? "";
             var preview = string.IsNullOrEmpty(current) ? "(pick)" : current;
-            ImGui.SetNextItemWidth(90f);
+            ImGui.SetNextItemWidth(120f);
             if (ImGui.BeginCombo("##slotpick", preview))
             {
                 foreach (var slot in _slots)
@@ -74,45 +75,33 @@ public class SlotPopupWindow : Window
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("OK", new Vector2(50, 0))) IsOpen = false;
-
-            // Job pick, the same one the sidebar owns.
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextDisabled("Job:");
-            ImGui.SameLine(58f);
-            var jobPreview = C.JobSelection == "Auto" ? "Auto (current job)" : C.JobSelection;
-            ImGui.SetNextItemWidth(120f);
-            if (ImGui.BeginCombo("##jobpick", jobPreview))
+            if (ImGui.Button("OK", new Vector2(50, 0))) 
             {
-                if (ImGui.Selectable("Auto (current job)", C.JobSelection == "Auto") && C.JobSelection != "Auto")
-                { C.JobSelection = "Auto"; C.SaveSettings(); }
-                foreach (var job in Jobs.Abbreviations)
-                    if (ImGui.Selectable(job, string.Equals(job, C.JobSelection, StringComparison.OrdinalIgnoreCase))
-                        && !string.Equals(job, C.JobSelection, StringComparison.OrdinalIgnoreCase))
-                    { C.JobSelection = job; C.SaveSettings(); }
-                ImGui.EndCombo();
+                if (_rememberPref && !string.IsNullOrEmpty(current))
+                {
+                    var job = Jobs.ByAbbreviation(_plugin.ActiveJobAbbreviation());
+                    if (job != null)
+                    {
+                        C.GlobalRolePreferences[job.Value.Role] = current;
+                        C.Save();
+                    }
+                }
+                IsOpen = false;
             }
 
-            // Role pick: one pick maps every sheet to that role's slot.
+            var activeJob = Jobs.ByAbbreviation(_plugin.ActiveJobAbbreviation());
+            if (activeJob != null && !string.IsNullOrEmpty(current))
             {
-                ImGui.AlignTextToFramePadding();
-                ImGui.TextDisabled("Role:");
-                ImGui.SameLine(58f);
-                var rolePreview = string.IsNullOrEmpty(C.RoleSelection) ? "(pick)" : C.RoleSelection;
-                ImGui.SetNextItemWidth(120f);
-                if (ImGui.BeginCombo("##rolepick", rolePreview))
+                var roleName = activeJob.Value.Role switch
                 {
-                    foreach (var role in Builtin.Roles)
-                        if (ImGui.Selectable(role, string.Equals(role, C.RoleSelection, StringComparison.OrdinalIgnoreCase))
-                            && !string.Equals(role, C.RoleSelection, StringComparison.OrdinalIgnoreCase))
-                        {
-                            _plugin.SetRoleForAll(role);
-                            _plugin.SheetViewWindow.MarkPlanDirty(); // background grid follows
-                        }
-                    ImGui.EndCombo();
-                }
-                ImGui.SameLine();
-                ImGui.TextDisabled("(every fight)");
+                    JobRole.Tank => "Tank",
+                    JobRole.Healer => "Healer",
+                    JobRole.Melee => "Melee",
+                    JobRole.PhysicalRanged => "Phys Ranged",
+                    JobRole.Caster => "Caster",
+                    _ => "Role"
+                };
+                ImGui.Checkbox($"Remember as my default {roleName} slot", ref _rememberPref);
             }
 
             if (string.IsNullOrEmpty(_fight.Slot))

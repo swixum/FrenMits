@@ -35,6 +35,8 @@ public static class Builtin
     public const ushort TeaTerritory = 887;
     public const ushort DsrTerritory = 968;
     public const ushort TopTerritory = 1122;
+    
+    public const float M12sPhase2Offset = 420f;
 
     // Newest expansion first, release order inside it.
     public static readonly string[] Expansions =
@@ -66,13 +68,7 @@ public static class Builtin
         (UwuTerritory, "Weapon's Refrain (UWU)", "Ultimate", "Stormblood"),
     };
 
-    public static bool Has(uint territory) =>
-        territory is DmuTerritory or FruTerritory
-            or M1sTerritory or M2sTerritory or M3sTerritory or M4sTerritory
-            or M5sTerritory or M6sTerritory or M7sTerritory
-            or M8sTerritory or M9sTerritory or M10sTerritory or M11sTerritory
-            or M12sTerritory or DoomtrainTerritory or EnuoTerritory or ZeleniaTerritory
-            || IkuyaTimelines.Has(territory);
+    public static bool Has(uint territory) => LoadJsonDef(territory) != null;
 
     public static string Name(uint territory) => territory switch
     {
@@ -119,21 +115,19 @@ public static class Builtin
 
     // Canonical cross-fight roles for the global role picker.
     public static readonly string[] Roles =
-        { "Main Tank", "Off Tank", "WHM", "AST", "SCH", "SGE", "Melee 1", "Melee 2", "Phys Ranged", "Caster" };
+        { "Main Tank", "Off Tank", "Healer 1", "Healer 2", "Melee 1", "Melee 2", "Phys Ranged", "Caster" };
 
     // Healer roles carry a seat-group fallback for bare H1/H2.
     static readonly Dictionary<string, string[]> RoleSlotCodes = new()
     {
-        ["Main Tank"] = new[] { "T1", "MT" },
-        ["Off Tank"] = new[] { "T2", "OT" },
-        ["WHM"] = new[] { "WHM", "H1" },
-        ["AST"] = new[] { "AST", "H1" },
-        ["SCH"] = new[] { "SCH", "H2" },
-        ["SGE"] = new[] { "SGE", "H2" },
+        ["Main Tank"] = new[] { "MT", "T1" },
+        ["Off Tank"] = new[] { "OT", "T2" },
+        ["Healer 1"] = new[] { "H1", "WHM", "AST" },
+        ["Healer 2"] = new[] { "H2", "SCH", "SGE" },
         ["Melee 1"] = new[] { "M1", "D1" },
         ["Melee 2"] = new[] { "M2", "D2" },
         ["Phys Ranged"] = new[] { "R1", "D3", "R" },
-        ["Caster"] = new[] { "R2", "D4", "Caster" },
+        ["Caster"] = new[] { "R2", "D4", "Caster" }
     };
 
     // The slot a fight uses for a role, or null if it has none.
@@ -157,48 +151,28 @@ public static class Builtin
         return starts.Count > 1 ? starts : new();
     }
 
-    private static List<(string Name, float Time)> RawPhaseStarts(uint territory) => territory switch
+    private static List<(string Name, float Time)> RawPhaseStarts(uint territory)
     {
-        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.PhaseStarts(territory),
-        DmuTerritory => DmuData.PhaseStarts(),
-        FruTerritory => FruData.PhaseStarts(),
-        DoomtrainTerritory => DoomtrainData.PhaseStarts(),
-        EnuoTerritory => EnuoData.PhaseStarts(),
-        ZeleniaTerritory => ZeleniaData.PhaseStarts(),
-        M1sTerritory => M1sData.PhaseStarts(),
-        M2sTerritory => M2sData.PhaseStarts(),
-        M3sTerritory => M3sData.PhaseStarts(),
-        M4sTerritory => M4sData.PhaseStarts(),
-        M5sTerritory => M5sData.PhaseStarts(),
-        M6sTerritory => M6sData.PhaseStarts(),
-        M7sTerritory => M7sData.PhaseStarts(),
-        // Howling Blade's P1 ends on a cutscene, so it phase-jumps.
-        M8sTerritory => M8sData.PhaseStarts(),
-        M9sTerritory => M9sData.PhaseStarts(),
-        M10sTerritory => M10sData.PhaseStarts(),
-        M11sTerritory => M11sData.PhaseStarts(),
-        M12sTerritory => M12sData.PhaseStarts(),
-        _ => new(),
-    };
+        var def = LoadJsonDef(territory);
+        if (def == null) return new();
+        return def.PhaseStarts.Select(p => (p.Name, p.Time)).ToList();
+    }
+
+    // Windows where a Tank-kind MT/OT line means priority 1 / priority 2
+    // instead of literal enmity. See PriorityPhase and TankPriority.
+    public static IReadOnlyList<PriorityPhase> PriorityPhases(uint territory)
+        => (IReadOnlyList<PriorityPhase>?)LoadJsonDef(territory)?.PriorityPhases ?? Array.Empty<PriorityPhase>();
 
     // The sheet's per-phase notes footer, shown in Sheet View.
-    public static string PhaseNotes(uint territory, string phase) => territory switch
-    {
-        DmuTerritory => DmuData.PhaseNotes(phase),
-        _ => "",
-    };
+    public static string PhaseNotes(uint territory, string phase) => "";
 
     // Long display title for a phase key ("P1" -> "Phase 1: Kefka").
-    public static string PhaseTitle(uint territory, string phase) => territory switch
-    {
-        DmuTerritory => DmuData.PhaseTitle(phase),
-        _ => phase,
-    };
+    public static string PhaseTitle(uint territory, string phase) => phase;
 
-    // Takes a standard slot name and translates to the native one.
     public static List<MitLine> BuildLines(uint territory, string slot)
     {
         var lines = Bake(territory, slot);
+        PlanStore.SplitLineList(lines);
         CoveredRepeats.Strip(lines);
         // In time order, because a data file need not be.
         return lines.OrderBy(l => l.Time).ToList();
@@ -210,54 +184,111 @@ public static class Builtin
     public static IReadOnlyList<MitLine> BakedLines(uint territory, string slot)
     {
         var key = (territory, slot);
-        if (!_bakeCache.TryGetValue(key, out var lines))
-            _bakeCache[key] = lines = BuildLines(territory, slot);
+        lock (_bakeCache)
+        {
+            if (!_bakeCache.TryGetValue(key, out var lines))
+                _bakeCache[key] = lines = BuildLines(territory, slot);
+            return lines;
+        }
+    }
+
+    // BakedLines, run through this player's live priority-phase pick - the
+    // "what does the sheet say for me right now" baseline that override
+    // detection (LineTable, DefaultLineFor) must diff against. Comparing
+    // against the literal per-slot bake instead flags a borrowed priority
+    // pick as a user override, since its text differs from this slot's own
+    // column - the row shows a false "reset" affordance, and clicking it
+    // would overwrite the correct borrowed pick with the wrong-slot default.
+    public static List<MitLine> BakedLinesForFight(FightProfile fight, string slot, bool includeDeleted = false)
+        => TankPriority.Apply(fight, slot, BakedLines(fight.TerritoryId, slot).ToList(), includeDeleted);
+
+    // Same, but for the Sheet View grid's passive tank column - see
+    // TankPriority.ApplyGrid. `slot` must not be fight.Slot.
+    public static List<MitLine> BakedLinesForGrid(FightProfile fight, string slot, bool includeDeleted = false)
+        => TankPriority.ApplyGrid(fight, fight.Slot, slot, BakedLines(fight.TerritoryId, slot).ToList(), includeDeleted);
+
+    private static readonly Dictionary<uint, HashSet<string>> _hiddenCache = new();
+
+    // Mechanic names the sheet marks as personal timers rather than boss casts
+    // (see MechanicAction.Hidden). Keyed by name, not carried on the line: a
+    // plan saved before the flag existed has no Hidden of its own, so the sheet
+    // stays the one authority and old saves resolve the same as new ones.
+    public static bool IsHiddenMechanic(uint territory, string mechanic)
+    {
+        if (string.IsNullOrWhiteSpace(mechanic)) return false;
+        HashSet<string>? names;
+        lock (_hiddenCache)
+        {
+            if (!_hiddenCache.TryGetValue(territory, out names))
+            {
+                names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var d = LoadJsonDef(territory);
+                if (d != null)
+                    foreach (var a in d.DefaultActions)
+                        if (a.Hidden && !string.IsNullOrWhiteSpace(a.Mechanic))
+                            names.Add(a.Mechanic.Trim());
+                _hiddenCache[territory] = names;
+            }
+        }
+        return names.Count > 0 && names.Contains(mechanic.Trim());
+    }
+
+    // The raw sheet behind a built-in, for callers that need the whole thing.
+    public static FightDefinition? Definition(uint territory) => LoadJsonDef(territory);
+
+    private static readonly Dictionary<uint, FightDefinition> _jsonCache = new();
+
+    // Locked: readers can race the first load (worker threads, parallel tests).
+    private static FightDefinition? LoadJsonDef(uint territory)
+    {
+        lock (_jsonCache)
+        {
+            if (_jsonCache.TryGetValue(territory, out var cached)) return cached;
+            var f = Fights.FirstOrDefault(x => x.Territory == territory);
+            if (f.Territory == 0) return null;
+            var safeName = string.Join("_", f.Name.Split(System.IO.Path.GetInvalidFileNameChars())).Replace(" ", "");
+            // Outside Dalamud (the test host) the sheets sit next to this assembly.
+            var dir = Service.PluginInterface?.AssemblyLocation.DirectoryName
+                      ?? System.IO.Path.GetDirectoryName(typeof(Builtin).Assembly.Location)!;
+            var path = System.IO.Path.Combine(dir, "Sheets", $"{safeName}.json");
+            if (!System.IO.File.Exists(path)) return null;
+            var json = System.IO.File.ReadAllText(path);
+            var def = System.Text.Json.JsonSerializer.Deserialize<FightDefinition>(json);
+            if (def == null) return null;
+            // Sheets aren't guaranteed to be sorted on disk.
+            def.Timeline.Sort((a, b) => a.Time.CompareTo(b.Time));
+            _jsonCache[territory] = def;
+            return def;
+        }
+    }
+
+    private static List<MitLine> Bake(uint territory, string slot)
+    {
+        var def = LoadJsonDef(territory);
+        if (def == null) return new List<MitLine>();
+        var lines = new List<MitLine>();
+        foreach (var a in def.DefaultActions)
+        {
+            // A blank Slot is a job-only entry (e.g. a job-extra timer): it
+            // applies to whoever plays that job, regardless of which party
+            // position they're viewing, so it isn't filtered by slot here -
+            // AppliesTo(jobAbbr) does the actual gating at render time.
+            // Canon on both sides, so saved fights carrying old column names still bake.
+            if (a.Slot.Length == 0 || string.Equals(SlotNames.Canon(a.Slot), SlotNames.Canon(slot), StringComparison.OrdinalIgnoreCase))
+            {
+                lines.Add(new MitLine { Time = a.Time, Mechanic = a.Mechanic, Action = a.Action, Jobs = a.Jobs, IsJobExtra = a.Slot.Length == 0 && a.Jobs.Count > 0 });
+            }
+        }
+        
         return lines;
     }
 
-    private static List<MitLine> Bake(uint territory, string slot) => territory switch
+    public static List<SyncPoint> SyncPoints(uint territory)
     {
-        FruTerritory => FruData.BuildLines(SlotNames.ToFru(slot)),
-        DoomtrainTerritory => DoomtrainData.BuildLines(SlotNames.ToLegacy(slot)),
-        ZeleniaTerritory => ZeleniaData.BuildLines(SlotNames.ToLegacy(slot)),
-        EnuoTerritory => EnuoData.BuildLines(SlotNames.ToLegacy(slot)),
-        M1sTerritory => M1sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M2sTerritory => M2sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M3sTerritory => M3sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M4sTerritory => M4sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M5sTerritory => M5sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M6sTerritory => M6sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M7sTerritory => M7sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M8sTerritory => M8sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M9sTerritory => M9sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M10sTerritory => M10sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M11sTerritory => M11sData.BuildLines(SlotNames.ToLegacy(slot)),
-        M12sTerritory => M12sData.BuildLines(SlotNames.ToLegacy(slot)),
-        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BuildLines(territory, SlotNames.ToLegacy(slot)),
-        _ => DmuData.BuildLines(SlotNames.ToLegacy(slot)),
-    };
-
-    public static List<SyncPoint> SyncPoints(uint territory) => Dedupe(territory switch
-    {
-        FruTerritory => FruData.SyncPoints(),
-        DoomtrainTerritory => DoomtrainData.SyncPoints(),
-        ZeleniaTerritory => ZeleniaData.SyncPoints(),
-        EnuoTerritory => EnuoData.SyncPoints(),
-        M1sTerritory => M1sData.SyncPoints(),
-        M2sTerritory => M2sData.SyncPoints(),
-        M3sTerritory => M3sData.SyncPoints(),
-        M4sTerritory => M4sData.SyncPoints(),
-        M5sTerritory => M5sData.SyncPoints(),
-        M6sTerritory => M6sData.SyncPoints(),
-        M7sTerritory => M7sData.SyncPoints(),
-        M8sTerritory => M8sData.SyncPoints(),
-        M9sTerritory => M9sData.SyncPoints(),
-        M10sTerritory => M10sData.SyncPoints(),
-        M11sTerritory => M11sData.SyncPoints(),
-        M12sTerritory => M12sData.SyncPoints(),
-        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.SyncPoints(territory),
-        _ => DmuData.SyncPoints(),
-    });
+        var def = LoadJsonDef(territory);
+        if (def == null) return new();
+        return Dedupe(def.SyncPoints);
+    }
 
     // A sheet can carry two rows for one cast.
     private static List<SyncPoint> Dedupe(List<SyncPoint> points)
@@ -301,56 +332,27 @@ public static class Builtin
                 seen.Enrage |= r.Enrage;
                 continue;
             }
-            at[(r.Time, r.Mechanic)] = r;
-            folded.Add(r);
+            // A copy, so folding and callers never write into the cached sheet.
+            var copy = new CustomRow { Time = r.Time, Mechanic = r.Mechanic, Hurt = r.Hurt, Buster = r.Buster, Enrage = r.Enrage };
+            at[(r.Time, r.Mechanic)] = copy;
+            folded.Add(copy);
         }
         return folded;
     }
 
-    private static List<CustomRow> RawCustomRows(uint territory) => territory switch
+    private static List<CustomRow> RawCustomRows(uint territory)
     {
-        FruTerritory => FruData.CustomRows(),
-        DmuTerritory => DmuData.CustomRows(),
-        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.CustomRows(territory),
-        DoomtrainTerritory => DoomtrainData.CustomRows(),
-        ZeleniaTerritory => ZeleniaData.CustomRows(),
-        EnuoTerritory => EnuoData.CustomRows(),
-        M1sTerritory => M1sData.CustomRows(),
-        M2sTerritory => M2sData.CustomRows(),
-        M3sTerritory => M3sData.CustomRows(),
-        M4sTerritory => M4sData.CustomRows(),
-        M5sTerritory => M5sData.CustomRows(),
-        M6sTerritory => M6sData.CustomRows(),
-        M7sTerritory => M7sData.CustomRows(),
-        M8sTerritory => M8sData.CustomRows(),
-        M9sTerritory => M9sData.CustomRows(),
-        M10sTerritory => M10sData.CustomRows(),
-        M11sTerritory => M11sData.CustomRows(),
-        M12sTerritory => M12sData.CustomRows(),
-        _ => new List<CustomRow>(),
-    };
+        var def = LoadJsonDef(territory);
+        if (def == null) return new();
+        return def.CustomRows;
+    }
 
-    public static List<BossAnchor> BossAnchors(uint territory) => territory switch
+    public static List<BossAnchor> BossAnchors(uint territory)
     {
-        FruTerritory => FruData.BossAnchors(),
-        DoomtrainTerritory => DoomtrainData.BossAnchors(),
-        ZeleniaTerritory => ZeleniaData.BossAnchors(),
-        EnuoTerritory => EnuoData.BossAnchors(),
-        M1sTerritory => M1sData.BossAnchors(),
-        M2sTerritory => M2sData.BossAnchors(),
-        M3sTerritory => M3sData.BossAnchors(),
-        M4sTerritory => M4sData.BossAnchors(),
-        M5sTerritory => M5sData.BossAnchors(),
-        M6sTerritory => M6sData.BossAnchors(),
-        M7sTerritory => M7sData.BossAnchors(),
-        M8sTerritory => M8sData.BossAnchors(),
-        M9sTerritory => M9sData.BossAnchors(),
-        M10sTerritory => M10sData.BossAnchors(),
-        M11sTerritory => M11sData.BossAnchors(),
-        M12sTerritory => M12sData.BossAnchors(),
-        _ when IkuyaTimelines.Has(territory) => IkuyaTimelines.BossAnchors(territory),
-        _ => DmuData.BossAnchors(),
-    };
+        var def = LoadJsonDef(territory);
+        // A copy, so a fight's own edits never write into the cached sheet.
+        return def == null ? new() : new List<BossAnchor>(def.BossAnchors);
+    }
 
     // Two baked lines match when they share a time and mechanic.
     public static bool SameCall(MitLine a, MitLine b)
@@ -380,15 +382,14 @@ public static class Builtin
             Action = line.Action,
         });
         line.Custom = true;
+        line.Personal = true; // Edits from the Fights view are personal overrides.
     }
 
-    // Make this the active slot and load only its mits.
-    public static int ApplySlot(FightProfile fight, string slot)
+    // Reconcile a fight's lines with the baked sheet, optionally adding missing calls.
+    public static void UpdateLines(FightProfile fight, string slot, bool topUp = true)
     {
-        if (string.IsNullOrEmpty(slot))
-            slot = Slots(fight.TerritoryId).FirstOrDefault() ?? "";
-
-        var topUp = true;
+        bool SameCall(MitLine a, MitLine b)
+            => MathF.Abs(a.Time - b.Time) < 0.1f && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
         // A fresh bake never includes calls deleted from this slot.
         List<MitLine> Bake(string s)
@@ -442,6 +443,72 @@ public static class Builtin
         }
 
         fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
+    }
+
+    // Make this the active slot and load only its mits.
+    public static int ApplySlot(FightProfile fight, string slot)
+    {
+        if (string.IsNullOrEmpty(slot))
+            slot = Slots(fight.TerritoryId).FirstOrDefault() ?? "";
+
+        var topUp = true;
+
+        // A fresh bake never includes calls deleted from this slot, and
+        // borrows the other column's Tank-kind lines during a PriorityPhase
+        // when the live party's job ranking (or a manual swap) says so.
+        List<MitLine> Bake(string s)
+            => TankPriority.Apply(fight, s, BuildLines(fight.TerritoryId, s).Where(b => !IsDeleted(fight, s, b)).ToList());
+
+        if (string.IsNullOrEmpty(fight.Slot))
+        {
+            // First use or an old profile: adopt this slot, keep lines.
+            fight.Slot = slot;
+            if (fight.Lines.Count == 0) fight.Lines = Bake(slot);
+            else topUp = false;
+        }
+        else if (!string.Equals(fight.Slot, slot, StringComparison.OrdinalIgnoreCase))
+        {
+            fight.SavedSlots[fight.Slot] = fight.Lines;   // stash what we're leaving
+            fight.Slot = slot;
+            fight.Lines = fight.SavedSlots.TryGetValue(slot, out var saved) && saved.Count > 0
+                ? saved                                    // your saved edits for this slot
+                : Bake(slot);                              // or a clean bake
+        }
+        else if (fight.Lines.Count == 0)
+        {
+            fight.Lines = Bake(slot);
+        }
+
+        var added = 0;
+        if (topUp)
+        {
+            // Deleted or not, so a tombstone on a borrowed priority line still
+            // sees the call it's suppressing and doesn't prune itself away.
+            var baked = TankPriority.Apply(fight, slot, BuildLines(fight.TerritoryId, slot), includeDeleted: true);
+            // The bake minus deletions, so what the slot is entitled to.
+            var live = Bake(slot);
+            foreach (var b in live)
+                if (!fight.Lines.Any(l => SameCall(l, b)))
+                {
+                    fight.Lines.Add(b);
+                    added++;
+                }
+
+            // Drop a line shadowing a baked call, since mits don't repeat.
+            fight.Lines.RemoveAll(l =>
+                !string.IsNullOrWhiteSpace(l.Action)
+                && !live.Any(b => SameCall(l, b))
+                && live.Any(b => MathF.Abs(b.Time - l.Time) < 6f
+                                 && string.Equals(b.Action.Trim(), l.Action.Trim(),
+                                                  StringComparison.OrdinalIgnoreCase)));
+
+            // Drop tombstones for calls the sheet no longer bakes.
+            fight.DeletedCalls.RemoveAll(d =>
+                string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase)
+                && !baked.Any(b => MatchesTombstone(d, slot, b)));
+        }
+
+        fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
         fight.SavedSlots[slot] = fight.Lines;
         fight.SyncPoints = SyncPoints(fight.TerritoryId);
         fight.BossAnchors = BossAnchors(fight.TerritoryId);
@@ -455,7 +522,7 @@ public static class Builtin
     {
         fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase));
         fight.Slot = slot;
-        fight.Lines = BuildLines(fight.TerritoryId, slot);
+        fight.Lines = TankPriority.Apply(fight, slot, BuildLines(fight.TerritoryId, slot));
         fight.SavedSlots[slot] = fight.Lines;
         fight.SyncPoints = SyncPoints(fight.TerritoryId);
         fight.BossAnchors = BossAnchors(fight.TerritoryId);
@@ -463,31 +530,69 @@ public static class Builtin
         fight.AutoLoaded = true;
     }
 
+    // Re-resolve a fight's priority-phase tank lines against the current
+    // party/manual-swap state, dropping only the auto-resolved (non-Custom)
+    // ones so a re-pick can bring in the correct column; ApplySlot's top-up
+    // then re-adds whatever the fresh resolution calls for.
+    public static void ReapplyPriority(FightProfile fight)
+    {
+        if (string.IsNullOrEmpty(fight.Slot)) return;
+        var phases = PriorityPhases(fight.TerritoryId);
+        if (phases.Count == 0) return;
+        fight.Lines.RemoveAll(l => !l.Custom
+            && phases.Any(p => l.Time >= p.Start && l.Time < p.End)
+            && MitTypes.Classify(l.Action, l.Mechanic) != MitTypes.Kind.Party);
+        ApplySlot(fight, fight.Slot);
+    }
+
     // Best-guess slot for a job, for the first auto-load.
-    public static string DefaultSlotForJob(uint territory, string? jobAbbr)
+    public static string DefaultSlotForJob(uint territory, string? jobAbbr, Configuration? config = null)
     {
         var slots = Slots(territory);
         if (slots.Length == 0) return "";
-        var hit = DefaultSlotForJobIn(slots, jobAbbr);
+        var hit = DefaultSlotForJobIn(slots, jobAbbr, config);
         return hit.Length > 0 ? hit : slots[0];
     }
 
     // Same guess with no fallback, so "" means ask.
-    public static string DefaultSlotForJobIn(IReadOnlyList<string> slots, string? jobAbbr)
+    public static string DefaultSlotForJobIn(IReadOnlyList<string> slots, string? jobAbbr, Configuration? config = null)
     {
         if (slots.Count == 0 || Jobs.ByAbbreviation(jobAbbr) is not { } job) return "";
 
+        // Apply specific job preferences first! (e.g. PCT -> D4, RDM -> M2)
+        if (config != null && config.JobSlotPreferences.TryGetValue(job.Abbreviation, out var jobPref))
+        {
+            foreach (var s in slots)
+                if (string.Equals(s, jobPref, StringComparison.OrdinalIgnoreCase)) return s;
+        }
+
         // Healers map to their own column (or their H1/H2 seat group).
         if (job.Role == JobRole.Healer)
-            return RoleSlotIn(slots, job.Abbreviation) ?? "";
+        {
+            foreach (var kvp in RoleSlotCodes)
+            {
+                if (kvp.Value.Contains(job.Abbreviation, StringComparer.OrdinalIgnoreCase))
+                {
+                    var slot = RoleSlotIn(slots, kvp.Key);
+                    if (!string.IsNullOrEmpty(slot)) return slot;
+                }
+            }
+        }
 
         // Any job whose own abbreviation is a column maps directly.
         foreach (var s in slots)
             if (string.Equals(s, job.Abbreviation, StringComparison.OrdinalIgnoreCase)) return s;
 
+        // Apply legacy role preferences if provided
+        if (config != null && config.GlobalRolePreferences.TryGetValue(job.Role, out var preferredSlot))
+        {
+            foreach (var s in slots)
+                if (string.Equals(s, preferredSlot, StringComparison.OrdinalIgnoreCase)) return s;
+        }
+
         var prefs = job.Role switch
         {
-            JobRole.Tank => new[] { "T1", "MT", "T2", "OT" },
+            JobRole.Tank => new[] { "MT", "T1", "OT", "T2" },
             JobRole.Melee => new[] { "M1", "D1", "M2", "D2" },
             JobRole.PhysicalRanged => new[] { "R1", "D3", "R" },
             JobRole.Caster => new[] { "R2", "D4", "Caster" },

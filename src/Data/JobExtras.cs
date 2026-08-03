@@ -11,111 +11,12 @@ public static class JobExtras
     public sealed record Extra(string Job, string Action, float Recast, (int Time, string Mechanic)[] Lines,
         (int Time, string Summon)[]? Steps = null);
 
-    private static readonly Dictionary<uint, Extra[]> ByZone = new()
-    {
-        [Builtin.DmuTerritory] = new[]
-        {
-            // Bard, anchored to sheet v5.0 rows.
-            new Extra("BRD", "Nature's Minne", 120f, new[]
-            {
-                (63, "Light of Judgment"),
-                (250, "Towers I"),
-                (450, "Bowels of Agony (Chaos)"),
-                (637, "Thunder III (5th Set)"),
-                (789, "Grand Cross"),
-                (928, "Chaotic Flood"),
-                (1062, "Forsaken (1st Hit)"),
-            }),
-            // Monk - Mantra (90s recast), sheet v5.0 rows.
-            new Extra("MNK", "Mantra", 90f, new[]
-            {
-                (88, "Gravitas II (Part I)"),
-                (236, "Forsaken"),
-                (450, "Bowels of Agony (Chaos)"),
-                (545, "The Decisive Battle"),
-                (650, "Black Holes III (6th Tether Set)"),
-                (769, "Inferno/Tsunami"),
-                (911, "Ultima Repeater"),
-            }),
-            // Paladin - Passage of Arms (120s recast), sheet v5.0 rows.
-            new Extra("PLD", "Passage of Arms", 120f, new[]
-            {
-                (63, "Light of Judgment"),
-                (343, "Light of Judgement"),
-                (609, "Shocking Impact/Shockwave"),
-                (789, "Grand Cross"),
-                (928, "Chaotic Flood"),
-            }),
-            // DNC, MCH and RDM schedules come from top kill logs.
-
-            // Dancer, ten presses at 60s recast.
-            new Extra("DNC", "Curing Waltz", 60f, new[]
-            {
-                (64, "Light of Judgment"),
-                (134, "Light of Judgment"),
-                (196, "Mystery Magic"),
-                (327, "Towers VIII (Past/Future's End)"),
-                (453, "Bowels of Agony (Chaos)"),
-                (519, "Cyclone"),
-                (681, "Shocking Impact/Shockwave"),
-                (781, "Inferno/Tsunami"),
-                (928, "Chaotic Flood"),
-                (1063, "Forsaken (1st Hit)"),
-            }),
-            // These three follow the sheet's Extras column.
-            new Extra("MCH", "Dismantle", 120f, new[]
-            {
-                (62, "Light of Judgment"),
-                (235, "Forsaken"),
-                (469, "Stray Flames/Tsunami"),
-                (608, "Shocking Impact/Shockwave"),
-                (762, "Grand Cross"),
-                (910, "Ultima Repeater"),
-                (1061, "Forsaken (1st Hit)"),
-            }),
-            new Extra("RDM", "Magick Barrier", 120f, new[]
-            {
-                (62, "Light of Judgment"),
-                (235, "Forsaken"),
-                (469, "Stray Flames/Tsunami"),
-                (608, "Shocking Impact/Shockwave"),
-                (762, "Grand Cross"),
-                (910, "Ultima Repeater"),
-                (1061, "Forsaken (1st Hit)"),
-            }),
-            new Extra("PCT", "Tempera Grassa", 120f, new[]
-            {
-                (62, "Light of Judgment"),
-                (235, "Forsaken"),
-                (469, "Stray Flames/Tsunami"),
-                (608, "Shocking Impact/Shockwave"),
-                (762, "Grand Cross"),
-                (910, "Ultima Repeater"),
-                (1061, "Forsaken (1st Hit)"),
-            }),
-            // Summoner: which primal to summon next.
-            new Extra("SMN", "Summon", 0f, Array.Empty<(int, string)>(), new[]
-            {
-                (19, "Garuda"), (33, "Titan"), (48, "Ifrit"),
-                (79, "Garuda"), (91, "Ifrit"), (107, "Titan"),
-                (139, "Ifrit"), (155, "Titan"), (168, "Garuda"),
-                (209, "Ifrit"), (222, "Garuda"), (231, "Titan"),
-                (261, "Garuda"), (273, "Ifrit"), (286, "Titan"),
-                (321, "Titan"), (334, "Ifrit"), (347, "Garuda"),
-                (448, "Titan"), (461, "Garuda"), (473, "Ifrit"),
-                (506, "Ifrit"), (520, "Titan"), (535, "Garuda"),
-                (567, "Ifrit"), (580, "Garuda"), (595, "Titan"),
-                (627, "Garuda"), (641, "Titan"), (654, "Ifrit"),
-                (687, "Ifrit"), (701, "Garuda"), (713, "Titan"),
-                (751, "Ifrit"), (764, "Garuda"), (781, "Titan"),
-                (811, "Ifrit"), (827, "Garuda"), (839, "Titan"),
-                (896, "Garuda"), (904, "Titan"), (911, "Ifrit"),
-                (936, "Ifrit"), (952, "Garuda"), (966, "Titan"),
-                (996, "Titan"), (1009, "Garuda"), (1021, "Ifrit"),
-                (1057, "Garuda"), (1071, "Titan"), (1084, "Ifrit"),
-            }),
-        },
-    };
+    // Baked zone schedules used to live here, hardcoded per job. That data
+    // (BRD/MNK/PLD/DNC/MCH/RDM/PCT/SMN for Dancing Mad) now lives in
+    // DancingMad(UMAD).json's DefaultActions, the sheet's single source of
+    // truth. This dictionary is empty until another zone needs the same
+    // baked-schedule mechanism.
+    private static readonly Dictionary<uint, Extra[]> ByZone = new();
 
     public static IReadOnlyList<Extra> For(uint territory)
         => ByZone.TryGetValue(territory, out var e) ? e : Array.Empty<Extra>();
@@ -141,6 +42,7 @@ public static class JobExtras
     // Every universal-kit extra for a custom sheet.
     public static IReadOnlyList<Extra> ForCustomSheet(FightProfile fight, string? job)
     {
+        if (Builtin.Has(fight.TerritoryId)) return Array.Empty<Extra>();
         if (string.IsNullOrEmpty(job) || fight.CustomRows.Count == 0) return Array.Empty<Extra>();
         // Never suggest an ability the duty sync locks out.
         var sync = Cooldowns.DutySyncLevel(fight.TerritoryId);
@@ -185,5 +87,84 @@ public static class JobExtras
             if (!result.Any(r => string.Equals(r.Action, e.Action, StringComparison.OrdinalIgnoreCase)))
                 result.Add(e);
         return result;
+    }
+
+    // A job-extra line looks exactly like this: yours, gated to one job, and
+    // not a personal override of a shared row. Sheet View uses the same test
+    // to tag "job extra" rows, so the two stay in lockstep.
+    public static bool IsAutoExtra(MitLine line)
+    {
+        if (line.Jobs.Count == 0 || line.Personal) return false;
+        if (line.Custom || line.IsJobExtra) return true;
+        
+        // Auto-heal / fallback for older saves without IsJobExtra:
+        // Any baked line that restricts to a job other than the standard healers is a job extra.
+        return line.Jobs.Any(j => j != "WHM" && j != "AST" && j != "SCH" && j != "SGE");
+    }
+
+    // Top up a fight's lines with every applicable job-extra schedule, the
+    // same way Builtin.UpdateLines tops up the sheet's own baked calls: never
+    // duplicate a call already there, and honor a tombstone left by deleting
+    // one, so a removal sticks instead of reappearing next frame.
+    public static bool EnsureAutoLines(FightProfile fight, string? job)
+    {
+        if (string.IsNullOrEmpty(job)) return false;
+        var extras = AllFor(fight, job);
+        if (extras.Count == 0) return false;
+
+        var slot = fight.Slot;
+        var added = false;
+
+        void AddIfMissing(float time, string mechanic, string action, string tts)
+        {
+            if (fight.DeletedCalls.Any(d => string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase)
+                    && MathF.Abs(d.Time - time) < 0.9f
+                    && string.Equals(d.Action.Trim(), action.Trim(), StringComparison.OrdinalIgnoreCase)))
+                return;
+            if (fight.Lines.Any(l => string.Equals(l.Action.Trim(), action.Trim(), StringComparison.OrdinalIgnoreCase)
+                    && l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase)
+                    && MathF.Abs(l.Time - time) < 0.9f))
+                return;
+            fight.Lines.Add(new MitLine
+            {
+                Time = time,
+                Mechanic = mechanic,
+                Action = action,
+                Tts = tts,
+                Jobs = new List<string> { job },
+                Enabled = true,
+                Custom = true,
+                Sound = true,
+            });
+            added = true;
+        }
+
+        foreach (var extra in extras)
+        {
+            if (extra.Steps is { Length: > 0 } steps)
+            {
+                // Grouped into bursts of up to three, same as the manual
+                // "Grouped" add - one cue per burst instead of per summon.
+                var bursts = new List<List<(int Time, string Summon)>>();
+                foreach (var s in steps)
+                {
+                    if (bursts.Count == 0 || bursts[^1].Count >= 3 || s.Time - bursts[^1][^1].Time > 20f)
+                        bursts.Add(new List<(int, string)>());
+                    bursts[^1].Add(s);
+                }
+                foreach (var b in bursts)
+                    AddIfMissing(b[0].Time, "Summon",
+                        string.Join(" / ", b.Select(x => x.Summon)),
+                        string.Join(", ", b.Select(x => x.Summon)));
+            }
+            else
+            {
+                foreach (var (time, mech) in extra.Lines)
+                    AddIfMissing(time, mech, extra.Action, "");
+            }
+        }
+
+        if (added) fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
+        return added;
     }
 }

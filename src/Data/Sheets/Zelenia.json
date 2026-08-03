@@ -1,0 +1,1713 @@
+{
+  "TerritoryId": 1271,
+  "Name": "Zelenia",
+  "Timeline": [
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis"
+    },
+    {
+      "Time": 22,
+      "Mechanic": "Shock"
+    },
+    {
+      "Time": 45,
+      "Mechanic": "Specter of the Lost"
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Escelons' Fall"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Stock Break"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 131,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV"
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Specter of the Lost"
+    },
+    {
+      "Time": 243,
+      "Mechanic": "Queen's Crusade"
+    },
+    {
+      "Time": 276,
+      "Mechanic": "Thorned Catharsis"
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock"
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Alexandrian Banish II"
+    },
+    {
+      "Time": 360,
+      "Mechanic": "Encircling Thorns"
+    },
+    {
+      "Time": 368,
+      "Mechanic": "Alexandrian Banish III"
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy"
+    },
+    {
+      "Time": 35,
+      "Mechanic": "Shock"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Emblazon"
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Escelons' Fall"
+    },
+    {
+      "Time": 160,
+      "Mechanic": "Roseblood Bloom"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Alexandrian Thunder III"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "Roseblood: 3rd Bloom"
+    },
+    {
+      "Time": 356,
+      "Mechanic": "Emblazon"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 22,
+      "Mechanic": "Shock",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 29,
+      "Mechanic": "Alexandrian Holy",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 35,
+      "Mechanic": "Shock",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 45,
+      "Mechanic": "Specter of the Lost",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 45,
+      "Mechanic": "Specter of the Lost",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Escelons' Fall",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Escelons' Fall",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Escelons' Fall",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Escelons' Fall",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Stock Break",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Stock Break",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 131,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 131,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 131,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 131,
+      "Mechanic": "Explosion",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 160,
+      "Mechanic": "Roseblood Bloom",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 160,
+      "Mechanic": "Roseblood Bloom",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Alexandrian Thunder III",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Alexandrian Thunder III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Specter of the Lost",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Specter of the Lost",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Specter of the Lost",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "Roseblood: 3rd Bloom",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "Roseblood: 3rd Bloom",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 243,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 243,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 243,
+      "Mechanic": "Queen's Crusade",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 276,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 276,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 276,
+      "Mechanic": "Thorned Catharsis",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Alexandrian Banish II",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Alexandrian Banish II",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Alexandrian Banish II",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Emblazon",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 356,
+      "Mechanic": "Emblazon",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 360,
+      "Mechanic": "Encircling Thorns",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 360,
+      "Mechanic": "Encircling Thorns",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 368,
+      "Mechanic": "Alexandrian Banish III",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 368,
+      "Mechanic": "Alexandrian Banish III",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 368,
+      "Mechanic": "Alexandrian Banish III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 43166,
+      "Time": 12,
+      "IsPhase": true,
+      "Label": "P1 Thorned Catharsis"
+    },
+    {
+      "Ability": 43169,
+      "Time": 22,
+      "IsPhase": false,
+      "Label": "P1 Shock"
+    },
+    {
+      "Ability": 43200,
+      "Time": 29,
+      "IsPhase": false,
+      "Label": "P1 Alexandrian Holy"
+    },
+    {
+      "Ability": 43226,
+      "Time": 33,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 43167,
+      "Time": 45,
+      "IsPhase": false,
+      "Label": "P1 Specter of the Lost"
+    },
+    {
+      "Ability": 43181,
+      "Time": 65,
+      "IsPhase": false,
+      "Label": "P1 Escelons' Fall"
+    },
+    {
+      "Ability": 43221,
+      "Time": 85,
+      "IsPhase": false,
+      "Label": "P1 Stock Break"
+    },
+    {
+      "Ability": 43189,
+      "Time": 95,
+      "IsPhase": false,
+      "Label": "P1 Blessed Barricade"
+    },
+    {
+      "Ability": 43068,
+      "Time": 107,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 43068,
+      "Time": 119,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 43068,
+      "Time": 131,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 43191,
+      "Time": 139,
+      "IsPhase": false,
+      "Label": "P1 Perfumed Quietus"
+    },
+    {
+      "Ability": 43213,
+      "Time": 146,
+      "IsPhase": false,
+      "Label": "P1 Perfumed Quietus"
+    },
+    {
+      "Ability": 43193,
+      "Time": 160,
+      "IsPhase": false,
+      "Label": "P1 Roseblood Bloom"
+    },
+    {
+      "Ability": 43194,
+      "Time": 161,
+      "IsPhase": false,
+      "Label": "P1 Queen's Crusade"
+    },
+    {
+      "Ability": 43198,
+      "Time": 169,
+      "IsPhase": false,
+      "Label": "P1 Alexandrian Thunder II"
+    },
+    {
+      "Ability": 43235,
+      "Time": 189,
+      "IsPhase": false,
+      "Label": "P1 Alexandrian Thunder III"
+    },
+    {
+      "Ability": 43166,
+      "Time": 197,
+      "IsPhase": false,
+      "Label": "P1 Thorned Catharsis"
+    },
+    {
+      "Ability": 43540,
+      "Time": 207,
+      "IsPhase": false,
+      "Label": "P1 Roseblood: 2nd Bloom"
+    },
+    {
+      "Ability": 43194,
+      "Time": 208,
+      "IsPhase": false,
+      "Label": "P1 Queen's Crusade"
+    },
+    {
+      "Ability": 43449,
+      "Time": 216,
+      "IsPhase": false,
+      "Label": "P1 Thunder Slash"
+    },
+    {
+      "Ability": 43451,
+      "Time": 219,
+      "IsPhase": false,
+      "Label": "P1 Alexandrian Thunder IV"
+    },
+    {
+      "Ability": 43167,
+      "Time": 232,
+      "IsPhase": false,
+      "Label": "P1 Specter of the Lost"
+    },
+    {
+      "Ability": 43541,
+      "Time": 242,
+      "IsPhase": false,
+      "Label": "P1 Roseblood: 3rd Bloom"
+    },
+    {
+      "Ability": 43194,
+      "Time": 243,
+      "IsPhase": false,
+      "Label": "P1 Queen's Crusade"
+    },
+    {
+      "Ability": 43186,
+      "Time": 248,
+      "IsPhase": false,
+      "Label": "P1 Bud of Valor"
+    },
+    {
+      "Ability": 43195,
+      "Time": 256,
+      "IsPhase": false,
+      "Label": "P1 Emblazon"
+    },
+    {
+      "Ability": 43201,
+      "Time": 268,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 43166,
+      "Time": 276,
+      "IsPhase": false,
+      "Label": "P1 Thorned Catharsis"
+    },
+    {
+      "Ability": 43186,
+      "Time": 288,
+      "IsPhase": false,
+      "Label": "P1 Bud of Valor"
+    },
+    {
+      "Ability": 43181,
+      "Time": 310,
+      "IsPhase": false,
+      "Label": "P1 Escelons' Fall"
+    },
+    {
+      "Ability": 43221,
+      "Time": 330,
+      "IsPhase": false,
+      "Label": "P1 Stock Break"
+    },
+    {
+      "Ability": 43542,
+      "Time": 342,
+      "IsPhase": false,
+      "Label": "P1 Roseblood: 4th Bloom"
+    },
+    {
+      "Ability": 43194,
+      "Time": 343,
+      "IsPhase": false,
+      "Label": "P1 Queen's Crusade"
+    },
+    {
+      "Ability": 43195,
+      "Time": 348,
+      "IsPhase": false,
+      "Label": "P1 Emblazon"
+    },
+    {
+      "Ability": 43236,
+      "Time": 356,
+      "IsPhase": false,
+      "Label": "P1 Alexandrian Thunder III"
+    },
+    {
+      "Ability": 43203,
+      "Time": 360,
+      "IsPhase": false,
+      "Label": "P1 Encircling Thorns"
+    },
+    {
+      "Ability": 43240,
+      "Time": 368,
+      "IsPhase": false,
+      "Label": "P1 Alexandrian Banish III"
+    },
+    {
+      "Ability": 43166,
+      "Time": 380,
+      "IsPhase": false,
+      "Label": "P1 Thorned Catharsis"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 12,
+      "Mechanic": "Thorned Catharsis",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 22,
+      "Mechanic": "Shock",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 35,
+      "Mechanic": "Shock",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 45,
+      "Mechanic": "Specter of the Lost",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Escelons' Fall",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Stock Break",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Stock Break",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 119,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 131,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Perfumed Quietus",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Queen's Crusade",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 169,
+      "Mechanic": "Alexandrian Thunder II",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Thorned Catharsis",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Queen's Crusade",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Alexandrian Thunder IV",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Specter of the Lost",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 243,
+      "Mechanic": "Queen's Crusade",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 248,
+      "Mechanic": "Bud of Valor",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 256,
+      "Mechanic": "Emblazon",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Emblazon",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 276,
+      "Mechanic": "Thorned Catharsis",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 288,
+      "Mechanic": "Bud of Valor",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Shock",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Alexandrian Banish II",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 314,
+      "Mechanic": "Escelons' Fall",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Stock Break",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Stock Break",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Queen's Crusade",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Emblazon",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 356,
+      "Mechanic": "Emblazon",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 356,
+      "Mechanic": "Alexandrian Thunder III",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 360,
+      "Mechanic": "Encircling Thorns",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 368,
+      "Mechanic": "Alexandrian Banish III",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 380,
+      "Mechanic": "Thorned Catharsis",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

@@ -22,13 +22,15 @@ public partial class ConfigWindow : Window, IDisposable
 
     private int _selectedFight;
 
+
     // In-progress m:ss edit for the line table (one row at a time).
     private MitLine? _editTimeLine;
     private string _editTimeBuf = "";
+    private MitLine? _scrollToLine;
+    private MitLine? _focusNewAction;
     private MitLine? _editOffLine;      // per-line offset (±s column) inline edit
     private string _editOffBuf = "";
     private string _editOffSeed = "";
-    private bool _offFocusPending;
 
     // Land a half-typed offset before switching cells.
     private void CommitPendingOffset()
@@ -497,89 +499,88 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("YOUR SETUP");
 
-        // Job row.
-        var options = new List<string> { "Auto (current job)" };
-        options.AddRange(Jobs.Abbreviations);
-        var jobIdx = C.JobSelection == "Auto"
-            ? 0
-            : Math.Max(0, Array.IndexOf(Jobs.Abbreviations, C.JobSelection) + 1);
+        // Remove Job dropdown, show Job read-only
+        var liveJob = Plugin.LocalPlayer?.ClassJob.RowId is { } rid ? Jobs.ByRowId(rid)?.Abbreviation : null;
+        var jobStr = liveJob ?? "[---]";
+        
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.TextDisabled("Job:");
+        ImGui.SameLine();
+        ImGui.TextColored(ImGuiColors.DalamudYellow, jobStr);
+        Tip("Your current job.");
 
+        // Show Auto-detected Role read-only
+        var roleStr = "[---]";
+        if (liveJob != null)
+        {
+            roleStr = RoleForJob(liveJob) ?? "[---]";
+        }
+        
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
+        ImGui.TextDisabled("Role:");
+        ImGui.SameLine();
+        ImGui.TextColored(ImGuiColors.DalamudYellow, roleStr);
+        Tip("The role the plugin assigns you based on your party/preferences.");
+
+        ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.AlignTextToFramePadding();
-        ImGui.TextDisabled("Job");
-        ImGui.SameLine(48f);
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 12);
-        if (ImGui.Combo("##sbjob", ref jobIdx, options.ToArray(), options.Count))
-        {
-            C.JobSelection = jobIdx == 0 ? "Auto" : Jobs.Abbreviations[jobIdx - 1];
-            C.Save();
-        }
-        Tip($"The job your calls are read for. Now: {_plugin.ActiveJobAbbreviation() ?? "?"}.");
+        ImGui.TextDisabled("Role Preferences");
+        Tip("Default roles chosen when you play each job type.");
 
-        // One click to pin whatever you're playing; hidden on Auto.
-        var live = Plugin.LocalPlayer?.ClassJob.RowId is { } rid ? Jobs.ByRowId(rid)?.Abbreviation : null;
-        if (live != null
-            && !string.Equals(C.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(C.JobSelection, live, StringComparison.OrdinalIgnoreCase))
+        var rolesLeft = new[]
         {
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8f);
-            if (ImGui.SmallButton($"Use current ({live})"))
-            {
-                C.JobSelection = live;
-                C.Save();
-            }
-            Tip("Pin your current job.");
-        }
-
-        // Role row.
-        var roles = Builtin.Roles;
-        var labels = new List<string> { "(pick a role)" };
-        labels.AddRange(roles);
-        var roleIdx = string.IsNullOrEmpty(C.RoleSelection) ? 0 : Math.Max(0, Array.IndexOf(roles, C.RoleSelection) + 1);
-
-        var active = !string.IsNullOrEmpty(C.RoleSelection) && RoleActiveEverywhere(C.RoleSelection);
-
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextDisabled("Role");
-        ImGui.SameLine(48f);
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 12 - (active ? 24 : 0));
-        if (ImGui.Combo("##sbrole", ref roleIdx, labels.ToArray(), labels.Count))
+            ("Tank", new[] { JobRole.Tank }, new[] { "MT", "OT" }),
+            ("Melee", new[] { JobRole.Melee }, new[] { "M1", "M2" })
+        };
+        var rolesRight = new[]
         {
-            if (roleIdx == 0) { C.RoleSelection = ""; C.Save(); }
-            else SelectRoleForAll(roles[roleIdx - 1]);
-        }
-        Tip("One pick sets your slot in every fight that has a sheet.");
-        if (active)
+            ("Healer", new[] { JobRole.Healer }, new[] { "H1", "H2" }),
+            ("Ranged", new[] { JobRole.PhysicalRanged, JobRole.Caster }, new[] { "R1", "R2" })
+        };
+
+        for (int i = 0; i < rolesLeft.Length; i++)
         {
-            ImGui.SameLine();
-            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-                ImGui.TextColored(ImGuiColors.HealerGreen, FontAwesomeIcon.Check.ToIconString());
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Every fight is on this role's slot.");
+            var left = rolesLeft[i];
+            DrawRolePrefCombo(left.Item1, left.Item2, left.Item3, 16f, 40f, 50f);
+            
+            ImGui.SameLine(120f);
+            var right = rolesRight[i];
+            DrawRolePrefCombo(right.Item1, right.Item2, right.Item3, ImGui.GetCursorPosX(), 40f, 50f);
         }
 
-        // One click to match the role to your job.
-        var liveRole = RoleForJob(_plugin.ActiveJobAbbreviation());
-        if (liveRole != null
-            && !string.Equals(C.RoleSelection, liveRole, StringComparison.OrdinalIgnoreCase)
-            && !SameSeatGroup(C.RoleSelection, liveRole))
-        {
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8f);
-            if (ImGui.SmallButton($"Use current ({liveRole})"))
-                SelectRoleForAll(liveRole);
-            Tip("Set the role from your current job.");
-        }
-
+        ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         var ask = C.ShowSlotPopupOnEntry;
         if (GreenCheckbox("Ask on duty entry", ref ask)) { C.ShowSlotPopupOnEntry = ask; C.Save(); }
         Tip("A popup on entry showing which slot is yours.");
     }
 
+    private void DrawRolePrefCombo(string label, JobRole[] roleTypes, string[] opts, float cursorX, float labelW, float comboW)
+    {
+        ImGui.SetCursorPosX(cursorX);
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled(label);
+        ImGui.SameLine(cursorX + labelW);
+        
+        var firstRole = roleTypes[0];
+        var current = C.GlobalRolePreferences.TryGetValue(firstRole, out var pref) ? pref : opts[0];
+        var idx = Array.IndexOf(opts, current);
+        if (idx < 0) idx = 0;
+
+        ImGui.SetNextItemWidth(comboW);
+        if (ImGui.Combo($"##rolepref{label}", ref idx, opts, opts.Length))
+        {
+            foreach (var r in roleTypes)
+                C.GlobalRolePreferences[r] = opts[idx];
+            C.Save();
+        }
+    }
+
     // Both roles are seats of one pair, so the pick already matches.
     private static bool SameSeatGroup(string selection, string liveRole)
-        => (selection is "Main Tank" or "Off Tank" && liveRole is "Main Tank" or "Off Tank")
-        || (selection is "Melee 1" or "Melee 2" && liveRole is "Melee 1" or "Melee 2");
+        => (selection is "MT" or "OT" && liveRole is "MT" or "OT")
+        || (selection is "M1" or "M2" && liveRole is "M1" or "M2");
 
     // The canonical role for a job, preferring the first seat.
     private static string? RoleForJob(string? jobAbbr)
@@ -588,10 +589,11 @@ public partial class ConfigWindow : Window, IDisposable
         if (Builtin.Roles.Contains(job.Abbreviation)) return job.Abbreviation;
         return job.Role switch
         {
-            JobRole.Tank => "Main Tank",
-            JobRole.Melee => "Melee 1",
-            JobRole.PhysicalRanged => "Phys Ranged",
-            JobRole.Caster => "Caster",
+            JobRole.Tank => "MT",
+            JobRole.Healer => job.Abbreviation is "WHM" or "AST" ? "H1" : "H2",
+            JobRole.Melee => "M1",
+            JobRole.PhysicalRanged => "R1",
+            JobRole.Caster => "R2",
             _ => null,
         };
     }
@@ -747,7 +749,7 @@ public partial class ConfigWindow : Window, IDisposable
         C.ShowCountdownNumber = false; C.ShowMechanicLine = true; C.ShowAbilityIcon = true;
         C.TextShadow = true; C.ShowProgressBar = true; C.ProgressBarHeight = 6f;
         C.PulseWhenImminent = true; C.ShowBackground = false; C.BackgroundColor = 0xB0000000;
-        C.WarningSeconds = 3f; C.HoldSeconds = 2f;
+        C.WarningSeconds = 3f; C.HoldSeconds = 2f; C.UseWindowLeadSeconds = 2f;
         // The next-mits window has its own reset, not this one.
         C.OverlayPosition = new Vector2(0.5f, 0.35f);
         C.Save();

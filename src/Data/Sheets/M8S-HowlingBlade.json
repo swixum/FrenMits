@@ -1,0 +1,3080 @@
+{
+  "TerritoryId": 1263,
+  "Name": "M8S - Howling Blade",
+  "Timeline": [
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign"
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Millennial Decay"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Gust"
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit"
+    },
+    {
+      "Time": 125,
+      "Mechanic": "Great Divide"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang"
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Sand Surge"
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign"
+    },
+    {
+      "Time": 319,
+      "Mechanic": "Great Divide"
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III"
+    },
+    {
+      "Time": 467,
+      "Mechanic": "Twinbite"
+    },
+    {
+      "Time": 480,
+      "Mechanic": "Hero's Blow"
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III"
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest"
+    },
+    {
+      "Time": 566,
+      "Mechanic": "Twofold Tempest"
+    },
+    {
+      "Time": 613,
+      "Mechanic": "Champion's Circuit"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Twinbite"
+    },
+    {
+      "Time": 665,
+      "Mechanic": "Rise of the Hunter's Blade"
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight"
+    },
+    {
+      "Time": 750,
+      "Mechanic": "Howling Eight"
+    },
+    {
+      "Time": 782,
+      "Mechanic": "Howling Eight"
+    },
+    {
+      "Time": 102,
+      "Mechanic": "Tracking Tremors"
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar"
+    },
+    {
+      "Time": 309,
+      "Mechanic": "Weal of Stone"
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Beckon Moonlight"
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Hero's Blow"
+    },
+    {
+      "Time": 600,
+      "Mechanic": "Champion's Circuit"
+    },
+    {
+      "Time": 680,
+      "Mechanic": "Prowling Gale"
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight"
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Howling Eight"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Titanic Pursuit"
+    },
+    {
+      "Time": 282,
+      "Mechanic": "Heavensearth"
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III"
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Eminent Reign"
+    },
+    {
+      "Time": 140,
+      "Mechanic": "Terrestrial Titans"
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Wolves' Reign"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Howling Havoc"
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Pack Predation"
+    },
+    {
+      "Time": 274,
+      "Mechanic": "Terrestrial Rage"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Heavensearth"
+    },
+    {
+      "Time": 490,
+      "Mechanic": "Ultraviolent Ray"
+    },
+    {
+      "Time": 521,
+      "Mechanic": "Elemental Purge"
+    },
+    {
+      "Time": 585,
+      "Mechanic": "Bare Fangs"
+    },
+    {
+      "Time": 711,
+      "Mechanic": "Ultraviolent Ray"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Howling Eight"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Millennial Decay",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Millennial Decay",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Millennial Decay",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Millennial Decay",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Millennial Decay",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Gust",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Gust",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Gust",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Eminent Reign",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Eminent Reign",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 102,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 102,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 125,
+      "Mechanic": "Great Divide",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 125,
+      "Mechanic": "Great Divide",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 140,
+      "Mechanic": "Terrestrial Titans",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 140,
+      "Mechanic": "Terrestrial Titans",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Titanic Pursuit",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Titanic Pursuit",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Titanic Pursuit",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Howling Havoc",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Howling Havoc",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Howling Havoc",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Howling Havoc",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Pack Predation",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Pack Predation",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Sand Surge",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Sand Surge",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Sand Surge",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Sand Surge",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Sand Surge",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 274,
+      "Mechanic": "Terrestrial Rage",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 282,
+      "Mechanic": "Heavensearth",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 282,
+      "Mechanic": "Heavensearth",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 309,
+      "Mechanic": "Weal of Stone",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 319,
+      "Mechanic": "Great Divide",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 319,
+      "Mechanic": "Great Divide",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Beckon Moonlight",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Beckon Moonlight",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Beckon Moonlight",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Beckon Moonlight",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Beckon Moonlight",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Beckon Moonlight",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Heavensearth",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Heavensearth",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Heavensearth",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 467,
+      "Mechanic": "Twinbite",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 467,
+      "Mechanic": "Twinbite",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 467,
+      "Mechanic": "Twinbite",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 480,
+      "Mechanic": "Hero's Blow",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 490,
+      "Mechanic": "Ultraviolent Ray",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 490,
+      "Mechanic": "Ultraviolent Ray",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 521,
+      "Mechanic": "Elemental Purge",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 521,
+      "Mechanic": "Elemental Purge",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 566,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 566,
+      "Mechanic": "Twofold Tempest",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 585,
+      "Mechanic": "Bare Fangs",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 585,
+      "Mechanic": "Bare Fangs",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Hero's Blow",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Hero's Blow",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Hero's Blow",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Hero's Blow",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 600,
+      "Mechanic": "Champion's Circuit",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 613,
+      "Mechanic": "Champion's Circuit",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Twinbite",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Twinbite",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Twinbite",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 665,
+      "Mechanic": "Rise of the Hunter's Blade",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 680,
+      "Mechanic": "Prowling Gale",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 680,
+      "Mechanic": "Prowling Gale",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 680,
+      "Mechanic": "Prowling Gale",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 711,
+      "Mechanic": "Ultraviolent Ray",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 711,
+      "Mechanic": "Ultraviolent Ray",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 750,
+      "Mechanic": "Howling Eight",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 750,
+      "Mechanic": "Howling Eight",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Howling Eight",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 782,
+      "Mechanic": "Howling Eight",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 782,
+      "Mechanic": "Howling Eight",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 782,
+      "Mechanic": "Howling Eight",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 782,
+      "Mechanic": "Howling Eight",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 41946,
+      "Time": 13,
+      "IsPhase": true,
+      "Label": "P1 Extraplanar Pursuit"
+    },
+    {
+      "Ability": 41890,
+      "Time": 30,
+      "IsPhase": false,
+      "Label": "P1 Stonefang"
+    },
+    {
+      "Ability": 43308,
+      "Time": 42,
+      "IsPhase": false,
+      "Label": "P1 Wolves' Reign"
+    },
+    {
+      "Ability": 41882,
+      "Time": 47,
+      "IsPhase": false,
+      "Label": "P1 Wolves' Reign"
+    },
+    {
+      "Ability": 41946,
+      "Time": 52,
+      "IsPhase": false,
+      "Label": "P1 Extraplanar Pursuit"
+    },
+    {
+      "Ability": 41906,
+      "Time": 67,
+      "IsPhase": false,
+      "Label": "P1 Millennial Decay"
+    },
+    {
+      "Ability": 41911,
+      "Time": 78,
+      "IsPhase": false,
+      "Label": "P1 Aero III"
+    },
+    {
+      "Ability": 41908,
+      "Time": 80,
+      "IsPhase": false,
+      "Label": "P1 Breath of Decay"
+    },
+    {
+      "Ability": 41911,
+      "Time": 94,
+      "IsPhase": false,
+      "Label": "P1 Aero III"
+    },
+    {
+      "Ability": 41910,
+      "Time": 96,
+      "IsPhase": false,
+      "Label": "P1 Prowling Gale"
+    },
+    {
+      "Ability": 43281,
+      "Time": 100,
+      "IsPhase": false,
+      "Label": "P1 Eminent Reign"
+    },
+    {
+      "Ability": 41913,
+      "Time": 102,
+      "IsPhase": false,
+      "Label": "P1 Tracking Tremors"
+    },
+    {
+      "Ability": 41946,
+      "Time": 114,
+      "IsPhase": false,
+      "Label": "P1 Extraplanar Pursuit"
+    },
+    {
+      "Ability": 41944,
+      "Time": 125,
+      "IsPhase": false,
+      "Label": "P1 Great Divide"
+    },
+    {
+      "Ability": 41924,
+      "Time": 140,
+      "IsPhase": false,
+      "Label": "P1 Terrestrial Titans"
+    },
+    {
+      "Ability": 41927,
+      "Time": 144,
+      "IsPhase": false,
+      "Label": "P1 Titanic Pursuit"
+    },
+    {
+      "Ability": 41926,
+      "Time": 154,
+      "IsPhase": false,
+      "Label": "P1 Towerfall"
+    },
+    {
+      "Ability": 43284,
+      "Time": 160,
+      "IsPhase": false,
+      "Label": "P1 Revolutionary Reign"
+    },
+    {
+      "Ability": 43308,
+      "Time": 162,
+      "IsPhase": false,
+      "Label": "P1 Wolves' Reign"
+    },
+    {
+      "Ability": 41881,
+      "Time": 167,
+      "IsPhase": false,
+      "Label": "P1 Wolves' Reign"
+    },
+    {
+      "Ability": 41928,
+      "Time": 180,
+      "IsPhase": false,
+      "Label": "P1 Tactical Pack"
+    },
+    {
+      "Ability": 41947,
+      "Time": 189,
+      "IsPhase": false,
+      "Label": "P1 Howling Havoc"
+    },
+    {
+      "Ability": 41932,
+      "Time": 199,
+      "IsPhase": false,
+      "Label": "P1 Pack Predation"
+    },
+    {
+      "Ability": 41932,
+      "Time": 214,
+      "IsPhase": false,
+      "Label": "P1 Pack Predation"
+    },
+    {
+      "Ability": 41932,
+      "Time": 228,
+      "IsPhase": false,
+      "Label": "P1 Pack Predation"
+    },
+    {
+      "Ability": 42825,
+      "Time": 252,
+      "IsPhase": false,
+      "Label": "P1 Ravenous Saber"
+    },
+    {
+      "Ability": 41918,
+      "Time": 274,
+      "IsPhase": false,
+      "Label": "P1 Terrestrial Rage"
+    },
+    {
+      "Ability": 41916,
+      "Time": 283,
+      "IsPhase": false,
+      "Label": "P1 Shadowchase"
+    },
+    {
+      "Ability": 42890,
+      "Time": 294,
+      "IsPhase": false,
+      "Label": "P1 Roaring Wind"
+    },
+    {
+      "Ability": 43283,
+      "Time": 296,
+      "IsPhase": false,
+      "Label": "P1 Revolutionary Reign"
+    },
+    {
+      "Ability": 43308,
+      "Time": 300,
+      "IsPhase": false,
+      "Label": "P1 Wolves' Reign"
+    },
+    {
+      "Ability": 43313,
+      "Time": 300,
+      "IsPhase": false,
+      "Label": "P1 Revolutionary Reign"
+    },
+    {
+      "Ability": 41882,
+      "Time": 305,
+      "IsPhase": false,
+      "Label": "P1 Wolves' Reign"
+    },
+    {
+      "Ability": 42894,
+      "Time": 309,
+      "IsPhase": false,
+      "Label": "P1 Weal of Stone"
+    },
+    {
+      "Ability": 41944,
+      "Time": 319,
+      "IsPhase": false,
+      "Label": "P1 Great Divide"
+    },
+    {
+      "Ability": 41921,
+      "Time": 334,
+      "IsPhase": false,
+      "Label": "P1 Beckon Moonlight"
+    },
+    {
+      "Ability": 41918,
+      "Time": 341,
+      "IsPhase": false,
+      "Label": "P1 Terrestrial Rage"
+    },
+    {
+      "Ability": 42898,
+      "Time": 359,
+      "IsPhase": false,
+      "Label": "P1 Weal of Stone"
+    },
+    {
+      "Ability": 41913,
+      "Time": 373,
+      "IsPhase": false,
+      "Label": "P1 Tracking Tremors"
+    },
+    {
+      "Ability": 42074,
+      "Time": 444,
+      "IsPhase": true,
+      "Label": "P2 Quake III"
+    },
+    {
+      "Ability": 42076,
+      "Time": 456,
+      "IsPhase": false,
+      "Label": "P2 Ultraviolent Ray"
+    },
+    {
+      "Ability": 42189,
+      "Time": 467,
+      "IsPhase": false,
+      "Label": "P2 Twinbite"
+    },
+    {
+      "Ability": 42079,
+      "Time": 480,
+      "IsPhase": false,
+      "Label": "P2 Hero's Blow"
+    },
+    {
+      "Ability": 42076,
+      "Time": 490,
+      "IsPhase": false,
+      "Label": "P2 Ultraviolent Ray"
+    },
+    {
+      "Ability": 42074,
+      "Time": 501,
+      "IsPhase": false,
+      "Label": "P2 Quake III"
+    },
+    {
+      "Ability": 42085,
+      "Time": 513,
+      "IsPhase": false,
+      "Label": "P2 Mooncleaver"
+    },
+    {
+      "Ability": 42087,
+      "Time": 521,
+      "IsPhase": false,
+      "Label": "P2 Elemental Purge"
+    },
+    {
+      "Ability": 42094,
+      "Time": 531,
+      "IsPhase": false,
+      "Label": "P2 Prowling Gale"
+    },
+    {
+      "Ability": 42095,
+      "Time": 540,
+      "IsPhase": false,
+      "Label": "P2 Prowling Gale"
+    },
+    {
+      "Ability": 43050,
+      "Time": 542,
+      "IsPhase": false,
+      "Label": "P2 Rise of the Howling Wind"
+    },
+    {
+      "Ability": 42097,
+      "Time": 552,
+      "IsPhase": false,
+      "Label": "P2 Twofold Tempest"
+    },
+    {
+      "Ability": 42101,
+      "Time": 585,
+      "IsPhase": false,
+      "Label": "P2 Bare Fangs"
+    },
+    {
+      "Ability": 42104,
+      "Time": 596,
+      "IsPhase": false,
+      "Label": "P2 Champion's Circuit"
+    },
+    {
+      "Ability": 42074,
+      "Time": 624,
+      "IsPhase": false,
+      "Label": "P2 Quake III"
+    },
+    {
+      "Ability": 42076,
+      "Time": 639,
+      "IsPhase": false,
+      "Label": "P2 Ultraviolent Ray"
+    },
+    {
+      "Ability": 42189,
+      "Time": 650,
+      "IsPhase": false,
+      "Label": "P2 Twinbite"
+    },
+    {
+      "Ability": 43052,
+      "Time": 665,
+      "IsPhase": false,
+      "Label": "P2 Rise of the Hunter's Blade"
+    },
+    {
+      "Ability": 42115,
+      "Time": 670,
+      "IsPhase": false,
+      "Label": "P2 Lone Wolf's Lament"
+    },
+    {
+      "Ability": 42117,
+      "Time": 680,
+      "IsPhase": false,
+      "Label": "P2 Prowling Gale"
+    },
+    {
+      "Ability": 42118,
+      "Time": 689,
+      "IsPhase": false,
+      "Label": "P2 Prowling Gale"
+    },
+    {
+      "Ability": 42076,
+      "Time": 711,
+      "IsPhase": false,
+      "Label": "P2 Ultraviolent Ray"
+    },
+    {
+      "Ability": 43522,
+      "Time": 726,
+      "IsPhase": false,
+      "Label": "P2 Howling Eight"
+    },
+    {
+      "Ability": 43527,
+      "Time": 730,
+      "IsPhase": false,
+      "Label": "P2 Howling Eight"
+    },
+    {
+      "Ability": 42137,
+      "Time": 750,
+      "IsPhase": false,
+      "Label": "P2 Howling Eight"
+    },
+    {
+      "Ability": 42137,
+      "Time": 769,
+      "IsPhase": false,
+      "Label": "P2 Howling Eight"
+    }
+  ],
+  "PhaseStarts": [
+    {
+      "Time": 13,
+      "Name": "P1"
+    },
+    {
+      "Time": 444,
+      "Name": "P2"
+    }
+  ],
+  "CustomRows": [
+    {
+      "Time": 13,
+      "Mechanic": "Extraplanar Pursuit",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Wolves' Reign",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 48,
+      "Mechanic": "Sovereign Scar",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 52,
+      "Mechanic": "Extraplanar Pursuit",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Millennial Decay",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 78,
+      "Mechanic": "Aero III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Breath of Decay",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Gust",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Gust",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 94,
+      "Mechanic": "Aero III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 96,
+      "Mechanic": "Winds of Decay",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 102,
+      "Mechanic": "Tracking Tremors",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 114,
+      "Mechanic": "Extraplanar Pursuit",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 125,
+      "Mechanic": "Great Divide",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Titanic Pursuit",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 148,
+      "Mechanic": "Bare Fangs",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Towerfall",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 162,
+      "Mechanic": "Wolves' Reign",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Sovereign Scar",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Howling Havoc",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Windfang",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Stonefang",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 200,
+      "Mechanic": "Stalking Stone",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Sand Surge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 207,
+      "Mechanic": "Wind Surge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Stalking Stone",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 216,
+      "Mechanic": "Sand Surge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Wind Surge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 228,
+      "Mechanic": "Stalking Stone",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Sand Surge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 233,
+      "Mechanic": "Wind Surge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Ravenous Saber",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 282,
+      "Mechanic": "Heavensearth",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 283,
+      "Mechanic": "Shadowchase",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 289,
+      "Mechanic": "Heavensearth",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Wolves' Reign",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 306,
+      "Mechanic": "Sovereign Scar",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 309,
+      "Mechanic": "Weal of Stone",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 319,
+      "Mechanic": "Great Divide",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Heavensearth",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 355,
+      "Mechanic": "Heavensearth",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 359,
+      "Mechanic": "Weal of Stone",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Tracking Tremors",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Quake III",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Ultraviolent Ray",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 467,
+      "Mechanic": "Twinbite",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 480,
+      "Mechanic": "Hero's Blow",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 490,
+      "Mechanic": "Ultraviolent Ray",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 501,
+      "Mechanic": "Quake III",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Geotemporal Blast",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 531,
+      "Mechanic": "Prowling Gale",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Prowling Gale",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 542,
+      "Mechanic": "Rise of the Howling Wind",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 555,
+      "Mechanic": "Wind Surge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Twofold Tempest",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 566,
+      "Mechanic": "Twofold Tempest",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Hero's Blow",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 600,
+      "Mechanic": "Champion's Circuit",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 605,
+      "Mechanic": "Champion's Circuit",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Champion's Circuit",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 613,
+      "Mechanic": "Champion's Circuit",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 624,
+      "Mechanic": "Quake III",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 639,
+      "Mechanic": "Ultraviolent Ray",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Twinbite",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 665,
+      "Mechanic": "Rise of the Hunter's Blade",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 670,
+      "Mechanic": "Lone Wolf's Lament",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 680,
+      "Mechanic": "Prowling Gale",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 689,
+      "Mechanic": "Prowling Gale",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 711,
+      "Mechanic": "Ultraviolent Ray",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 726,
+      "Mechanic": "Howling Eight",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Howling Eight",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Howling Eight",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 750,
+      "Mechanic": "Howling Eight",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Howling Eight",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Howling Eight",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 782,
+      "Mechanic": "Howling Eight",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

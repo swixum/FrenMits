@@ -1,0 +1,2770 @@
+{
+  "TerritoryId": 1232,
+  "Name": "M4S - Wicked Thunder",
+  "Timeline": [
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus"
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Witch Hunt"
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus"
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Electrope Edge"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Sidewise Spark"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Wicked Jolt"
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark"
+    },
+    {
+      "Time": 182,
+      "Mechanic": "Spark III"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ion Cluster"
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????"
+    },
+    {
+      "Time": 253,
+      "Mechanic": "Positron Stream"
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Negatron Stream"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Wicked Jolt"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Fulminous Field"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Fulminous Field"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock"
+    },
+    {
+      "Time": 441,
+      "Mechanic": "Wicked Special"
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron"
+    },
+    {
+      "Time": 505,
+      "Mechanic": "Azure Thunder"
+    },
+    {
+      "Time": 541,
+      "Mechanic": "Midnight Sabbath"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder"
+    },
+    {
+      "Time": 627,
+      "Mechanic": "Chain Lightning"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight"
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Symphony Fantastique"
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Electrope Edge"
+    },
+    {
+      "Time": 253,
+      "Mechanic": "Negatron Stream"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Roundhouse Current"
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Fulminous Field"
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Conduction Point"
+    },
+    {
+      "Time": 369,
+      "Mechanic": "Fulminous Field"
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch"
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Flame"
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Sidewise Spark"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst"
+    },
+    {
+      "Time": 560,
+      "Mechanic": "Wicked Special"
+    },
+    {
+      "Time": 615,
+      "Mechanic": "Chain Lightning"
+    },
+    {
+      "Time": 675,
+      "Mechanic": "Aetherial Conversion"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Stampeding Thunder"
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides"
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Burst"
+    },
+    {
+      "Time": 75,
+      "Mechanic": "Widening Witch Hunt"
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III"
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Cross Tail Switch"
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Mustard Bomb"
+    },
+    {
+      "Time": 594,
+      "Mechanic": "Raining Swords"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Mustard Bomb"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Bewitching Flight",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 75,
+      "Mechanic": "Widening Witch Hunt",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 75,
+      "Mechanic": "Widening Witch Hunt",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Witch Hunt",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Witch Hunt",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Electrope Edge",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Symphony Fantastique",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Wicked Jolt",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Electrope Edge",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 182,
+      "Mechanic": "Spark III",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 182,
+      "Mechanic": "Spark III",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ion Cluster",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 233,
+      "Mechanic": "??????",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Stampeding Thunder",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Stampeding Thunder",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 253,
+      "Mechanic": "Positron Stream",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 253,
+      "Mechanic": "Negatron Stream",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 253,
+      "Mechanic": "Positron Stream",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 253,
+      "Mechanic": "Positron Stream",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Roundhouse Current",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Roundhouse Current",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Roundhouse Current",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Roundhouse Current",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Roundhouse Current",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Negatron Stream",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Wicked Jolt",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Wicked Jolt",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Electrope Transplant",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Fulminous Field",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Fulminous Field",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Fulminous Field",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Conduction Point",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Conduction Point",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Conduction Point",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Conduction Point",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 369,
+      "Mechanic": "Fulminous Field",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 441,
+      "Mechanic": "Wicked Special",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Mustard Bomb",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Mustard Bomb",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Flame",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 505,
+      "Mechanic": "Azure Thunder",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 505,
+      "Mechanic": "Azure Thunder",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 505,
+      "Mechanic": "Azure Thunder",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 505,
+      "Mechanic": "Azure Thunder",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 505,
+      "Mechanic": "Azure Thunder",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Sidewise Spark",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 541,
+      "Mechanic": "Midnight Sabbath",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Concentrated Burst",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 560,
+      "Mechanic": "Wicked Special",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 594,
+      "Mechanic": "Raining Swords",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 594,
+      "Mechanic": "Raining Swords",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 615,
+      "Mechanic": "Chain Lightning",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 627,
+      "Mechanic": "Chain Lightning",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Mustard Bomb",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Mustard Bomb",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 675,
+      "Mechanic": "Aetherial Conversion",
+      "Slot": "OT",
+      "Action": "Rampart"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 38383,
+      "Time": 16,
+      "IsPhase": true,
+      "Label": "P1 Wrath of Zeus"
+    },
+    {
+      "Ability": 38513,
+      "Time": 39,
+      "IsPhase": false,
+      "Label": "P1 Bewitching Flight"
+    },
+    {
+      "Ability": 38373,
+      "Time": 50,
+      "IsPhase": false,
+      "Label": "P1 Electrifying Witch Hunt"
+    },
+    {
+      "Ability": 38378,
+      "Time": 50,
+      "IsPhase": false,
+      "Label": "P1 Burst"
+    },
+    {
+      "Ability": 38366,
+      "Time": 58,
+      "IsPhase": false,
+      "Label": "P1 Witch Hunt"
+    },
+    {
+      "Ability": 38378,
+      "Time": 58,
+      "IsPhase": false,
+      "Label": "P1 Burst"
+    },
+    {
+      "Ability": 38368,
+      "Time": 75,
+      "IsPhase": false,
+      "Label": "P1 Widening Witch Hunt"
+    },
+    {
+      "Ability": 38383,
+      "Time": 100,
+      "IsPhase": false,
+      "Label": "P1 Wrath of Zeus"
+    },
+    {
+      "Ability": 38341,
+      "Time": 111,
+      "IsPhase": false,
+      "Label": "P1 Electrope Edge"
+    },
+    {
+      "Ability": 38342,
+      "Time": 119,
+      "IsPhase": false,
+      "Label": "P1 Witchgleam"
+    },
+    {
+      "Ability": 38344,
+      "Time": 126,
+      "IsPhase": false,
+      "Label": "P1 Symphony Fantastique"
+    },
+    {
+      "Ability": 38384,
+      "Time": 145,
+      "IsPhase": false,
+      "Label": "P1 Wicked Jolt"
+    },
+    {
+      "Ability": 38341,
+      "Time": 159,
+      "IsPhase": false,
+      "Label": "P1 Electrope Edge"
+    },
+    {
+      "Ability": 38789,
+      "Time": 166,
+      "IsPhase": false,
+      "Label": "P1 Witchgleam"
+    },
+    {
+      "Ability": 38350,
+      "Time": 175,
+      "IsPhase": false,
+      "Label": "P1 Lightning Cage"
+    },
+    {
+      "Ability": 38351,
+      "Time": 183,
+      "IsPhase": false,
+      "Label": "P1 Lightning Cage"
+    },
+    {
+      "Ability": 38351,
+      "Time": 203,
+      "IsPhase": false,
+      "Label": "P1 Lightning Cage"
+    },
+    {
+      "Ability": 37570,
+      "Time": 209,
+      "IsPhase": false,
+      "Label": "P1 Wicked Bolt"
+    },
+    {
+      "Ability": 38356,
+      "Time": 221,
+      "IsPhase": false,
+      "Label": "P1 Ion Cluster"
+    },
+    {
+      "Ability": 36399,
+      "Time": 242,
+      "IsPhase": false,
+      "Label": "P1 Stampeding Thunder"
+    },
+    {
+      "Ability": 38360,
+      "Time": 253,
+      "IsPhase": false,
+      "Label": "P1 Positron Stream"
+    },
+    {
+      "Ability": 38361,
+      "Time": 253,
+      "IsPhase": false,
+      "Label": "P1 Negatron Stream"
+    },
+    {
+      "Ability": 38359,
+      "Time": 266,
+      "IsPhase": false,
+      "Label": "P1 Electron Stream"
+    },
+    {
+      "Ability": 38360,
+      "Time": 266,
+      "IsPhase": false,
+      "Label": "P1 Positron Stream"
+    },
+    {
+      "Ability": 38361,
+      "Time": 266,
+      "IsPhase": false,
+      "Label": "P1 Negatron Stream"
+    },
+    {
+      "Ability": 38360,
+      "Time": 279,
+      "IsPhase": false,
+      "Label": "P1 Positron Stream"
+    },
+    {
+      "Ability": 38361,
+      "Time": 279,
+      "IsPhase": false,
+      "Label": "P1 Negatron Stream"
+    },
+    {
+      "Ability": 38384,
+      "Time": 292,
+      "IsPhase": false,
+      "Label": "P1 Wicked Jolt"
+    },
+    {
+      "Ability": 39123,
+      "Time": 317,
+      "IsPhase": false,
+      "Label": "P1 Electrope Transplant"
+    },
+    {
+      "Ability": 37118,
+      "Time": 325,
+      "IsPhase": false,
+      "Label": "P1 Fulminous Field"
+    },
+    {
+      "Ability": 37118,
+      "Time": 351,
+      "IsPhase": false,
+      "Label": "P1 Fulminous Field"
+    },
+    {
+      "Ability": 38386,
+      "Time": 412,
+      "IsPhase": false,
+      "Label": "P1 Cross Tail Switch"
+    },
+    {
+      "Ability": 38391,
+      "Time": 430,
+      "IsPhase": false,
+      "Label": "P1 Wicked Blaze"
+    },
+    {
+      "Ability": 38389,
+      "Time": 431,
+      "IsPhase": false,
+      "Label": "P1 Sabertail"
+    },
+    {
+      "Ability": 38416,
+      "Time": 441,
+      "IsPhase": false,
+      "Label": "P1 Wicked Special"
+    },
+    {
+      "Ability": 38430,
+      "Time": 457,
+      "IsPhase": false,
+      "Label": "P1 Mustard Bomb"
+    },
+    {
+      "Ability": 38414,
+      "Time": 484,
+      "IsPhase": false,
+      "Label": "P1 Switch of Flame"
+    },
+    {
+      "Ability": 38415,
+      "Time": 484,
+      "IsPhase": false,
+      "Label": "P1 Switch of Tides"
+    },
+    {
+      "Ability": 38414,
+      "Time": 488,
+      "IsPhase": false,
+      "Label": "P1 Switch of Flame"
+    },
+    {
+      "Ability": 38415,
+      "Time": 488,
+      "IsPhase": false,
+      "Label": "P1 Switch of Tides"
+    },
+    {
+      "Ability": 38447,
+      "Time": 505,
+      "IsPhase": false,
+      "Label": "P1 Azure Thunder"
+    },
+    {
+      "Ability": 38435,
+      "Time": 512,
+      "IsPhase": false,
+      "Label": "P1 Twilight Sabbath"
+    },
+    {
+      "Ability": 38448,
+      "Time": 520,
+      "IsPhase": false,
+      "Label": "P1 Wicked Fire"
+    },
+    {
+      "Ability": 38442,
+      "Time": 523,
+      "IsPhase": false,
+      "Label": "P1 Sidewise Spark"
+    },
+    {
+      "Ability": 38449,
+      "Time": 524,
+      "IsPhase": false,
+      "Label": "P1 Wicked Fire"
+    },
+    {
+      "Ability": 38418,
+      "Time": 529,
+      "IsPhase": false,
+      "Label": "P1 Wicked Special"
+    },
+    {
+      "Ability": 38441,
+      "Time": 530,
+      "IsPhase": false,
+      "Label": "P1 Sidewise Spark"
+    },
+    {
+      "Ability": 39609,
+      "Time": 541,
+      "IsPhase": false,
+      "Label": "P1 Midnight Sabbath"
+    },
+    {
+      "Ability": 38443,
+      "Time": 552,
+      "IsPhase": false,
+      "Label": "P1 Concentrated Burst"
+    },
+    {
+      "Ability": 38436,
+      "Time": 552,
+      "IsPhase": false,
+      "Label": "P1 Wicked Cannon"
+    },
+    {
+      "Ability": 38418,
+      "Time": 560,
+      "IsPhase": false,
+      "Label": "P1 Wicked Special"
+    },
+    {
+      "Ability": 38043,
+      "Time": 569,
+      "IsPhase": false,
+      "Label": "P1 Wicked Thunder"
+    },
+    {
+      "Ability": 38405,
+      "Time": 580,
+      "IsPhase": false,
+      "Label": "P1 Aetherial Conversion"
+    },
+    {
+      "Ability": 38420,
+      "Time": 589,
+      "IsPhase": false,
+      "Label": "P1 Flame Slash"
+    },
+    {
+      "Ability": 38422,
+      "Time": 594,
+      "IsPhase": false,
+      "Label": "P1 Raining Swords"
+    },
+    {
+      "Ability": 38425,
+      "Time": 615,
+      "IsPhase": false,
+      "Label": "P1 Chain Lightning"
+    },
+    {
+      "Ability": 38430,
+      "Time": 658,
+      "IsPhase": false,
+      "Label": "P1 Mustard Bomb"
+    },
+    {
+      "Ability": 38404,
+      "Time": 675,
+      "IsPhase": false,
+      "Label": "P1 Aetherial Conversion"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 16,
+      "Mechanic": "Wrath of Zeus",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Burst",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Burst",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 59,
+      "Mechanic": "Forked Lightning",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Witch Hunt",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 84,
+      "Mechanic": "Witch Hunt",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Wrath of Zeus",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Electrope Edge",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 119,
+      "Mechanic": "Witchgleam",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Symphony Fantastique",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 137,
+      "Mechanic": "Four Star",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 137,
+      "Mechanic": "Eight Star",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Wicked Jolt",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Electrope Edge",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 164,
+      "Mechanic": "Sidewise Spark",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 166,
+      "Mechanic": "Witchgleam",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 182,
+      "Mechanic": "Spark III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 183,
+      "Mechanic": "Lightning Cage",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Spark III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 203,
+      "Mechanic": "Lightning Cage",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Wicked Bolt",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ion Cluster",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Stampeding Thunder",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 253,
+      "Mechanic": "Negatron Stream",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Roundhouse Current",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Spinning Current",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Negatron Stream",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 279,
+      "Mechanic": "Negatron Stream",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Spinning Current",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Wicked Jolt",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Fulminous Field",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Fulminous Field",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Conduction Point",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 340,
+      "Mechanic": "Forked Fissures",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Fulminous Field",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Fulminous Field",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Fulminous Field",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Conduction Point",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 366,
+      "Mechanic": "Forked Fissures",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 369,
+      "Mechanic": "Fulminous Field",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Soulshock",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 383,
+      "Mechanic": "Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 388,
+      "Mechanic": "Cannonbolt",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Cross Tail Switch",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 422,
+      "Mechanic": "Cross Tail Switch",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 431,
+      "Mechanic": "Sabertail",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 441,
+      "Mechanic": "Wicked Special",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 458,
+      "Mechanic": "Kindling Cauldron",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 467,
+      "Mechanic": "Mustard Bomb",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Flame",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Switch of Tides",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 488,
+      "Mechanic": "Switch of Flame",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 488,
+      "Mechanic": "Switch of Tides",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 505,
+      "Mechanic": "Azure Thunder",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 512,
+      "Mechanic": "Twilight Sabbath",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 520,
+      "Mechanic": "Wicked Fire",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Sidewise Spark",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 524,
+      "Mechanic": "Wicked Fire",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 529,
+      "Mechanic": "Wicked Special",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 530,
+      "Mechanic": "Sidewise Spark",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 541,
+      "Mechanic": "Midnight Sabbath",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Wicked Cannon",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Wicked Flare",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Wicked Spark",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 560,
+      "Mechanic": "Wicked Special",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 569,
+      "Mechanic": "Wicked Thunder",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 580,
+      "Mechanic": "Aetherial Conversion",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Flame Slash",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 594,
+      "Mechanic": "Raining Swords",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 615,
+      "Mechanic": "Chain Lightning",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 621,
+      "Mechanic": "Chain Lightning",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 627,
+      "Mechanic": "Chain Lightning",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 632,
+      "Mechanic": "Chain Lightning",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Kindling Cauldron",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 668,
+      "Mechanic": "Mustard Bomb",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 675,
+      "Mechanic": "Aetherial Conversion",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

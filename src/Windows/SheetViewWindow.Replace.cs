@@ -116,13 +116,7 @@ public partial class SheetViewWindow
     // The text after a real replacement, or null when unchanged.
     private static string? WouldReplace(string action, string find, string with)
     {
-        var raw = action.Replace(find, with, StringComparison.OrdinalIgnoreCase);
-        if (raw == action) return null;
-        var replaced = TidyJoins(raw);
-        return replaced == action ? null : replaced;
+        var raw = action.Replace(find, with, StringComparison.OrdinalIgnoreCase).Trim();
+        return raw == action ? null : raw;
     }
-
-    // Re-join an action string, dropping empty segments.
-    private static string TidyJoins(string s)
-        => string.Join(" + ", s.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
 }

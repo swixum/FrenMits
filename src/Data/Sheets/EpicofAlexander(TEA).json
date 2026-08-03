@@ -1,0 +1,2203 @@
+{
+  "TerritoryId": 887,
+  "Name": "Epic of Alexander (TEA)",
+  "Timeline": [
+    {
+      "Time": 6,
+      "Mechanic": "Countdown"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Fluid Swing"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Cascade"
+    },
+    {
+      "Time": 37,
+      "Mechanic": "Fluid Swing/Strike"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain"
+    },
+    {
+      "Time": 56,
+      "Mechanic": "Fluid Swing/Strike"
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage"
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Cascade"
+    },
+    {
+      "Time": 96,
+      "Mechanic": "Throttles"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Protean Wave"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "J Kick"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind"
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Photon"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Water/Thunder I"
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Missile Command"
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Hidden Minefield"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Photon"
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Whirlwind"
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Chastening Heat + Divine Spear"
+    },
+    {
+      "Time": 364,
+      "Mechanic": "Judgment Crystal + True Heart"
+    },
+    {
+      "Time": 387,
+      "Mechanic": "Flamethrower"
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Super Jump"
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Chastening Heat + Divine Spear"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Incinerating Heat"
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Mega Holy I"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Mega Holy II"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "J Storm"
+    },
+    {
+      "Time": 591,
+      "Mechanic": "J Waves (0-10s)"
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)"
+    },
+    {
+      "Time": 647,
+      "Mechanic": "J Waves (20-30s)"
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement"
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Ordained Capital Punishment"
+    },
+    {
+      "Time": 777,
+      "Mechanic": "Ordained Punishment"
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)"
+    },
+    {
+      "Time": 874,
+      "Mechanic": "Ordained Capital Punishment"
+    },
+    {
+      "Time": 877,
+      "Mechanic": "Ordained Punishment"
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace"
+    },
+    {
+      "Time": 919,
+      "Mechanic": "Ordained Capital Punishment"
+    },
+    {
+      "Time": 922,
+      "Mechanic": "Ordained Punishment"
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 6,
+      "Mechanic": "Countdown",
+      "Slot": "MT",
+      "Action": "Rampart (-6s)"
+    },
+    {
+      "Time": 6,
+      "Mechanic": "Countdown",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 6,
+      "Mechanic": "Countdown",
+      "Slot": "H1",
+      "Action": "Asylum (-10s)",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Fluid Swing",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Fluid Swing",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Cascade",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Cascade",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Cascade",
+      "Slot": "H2",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Cascade",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 37,
+      "Mechanic": "Fluid Swing/Strike",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 37,
+      "Mechanic": "Fluid Swing/Strike",
+      "Slot": "MT",
+      "Action": "Provoke (Hand)"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "MT",
+      "Action": "120s"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "OT",
+      "Action": "120s"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "R1",
+      "Action": "Personals"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Slot": "R2",
+      "Action": "Personals"
+    },
+    {
+      "Time": 56,
+      "Mechanic": "Fluid Swing/Strike",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 56,
+      "Mechanic": "Fluid Swing/Strike",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 56,
+      "Mechanic": "Fluid Swing/Strike",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "MT",
+      "Action": "Party Mit (DRK/GNB)"
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "OT",
+      "Action": "Invulnerability (DRK Only) or Kitchen Sink"
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "H2",
+      "Action": "Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "M2",
+      "Action": "Feint (Living Liquid)"
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Splash (x6) + Drainage",
+      "Slot": "R2",
+      "Action": "Addle (Living Liquid)"
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Cascade",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Cascade",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Cascade",
+      "Slot": "OT",
+      "Action": "90s (DRK Only)"
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Cascade",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Cascade",
+      "Slot": "H2",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 96,
+      "Mechanic": "Throttles",
+      "Slot": "H1",
+      "Action": "Esuna (Top Down)"
+    },
+    {
+      "Time": 96,
+      "Mechanic": "Throttles",
+      "Slot": "H2",
+      "Action": "Esuna (Bottom Up)"
+    },
+    {
+      "Time": 96,
+      "Mechanic": "Throttles",
+      "Slot": "R1",
+      "Action": "The Warden's Paean (Bard)"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Protean Wave",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Protean Wave",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Protean Wave",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Protean Wave",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Protean Wave",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "J Kick",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "J Kick",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "J Kick",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "J Kick",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "J Kick",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Slot": "MT",
+      "Action": "Short Mit (Autos After)"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Slot": "OT",
+      "Action": "Short Mit (Autos After)"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Slot": "H2",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Slot": "M1",
+      "Action": "Feint (Cruise Chaser)"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Slot": "R2",
+      "Action": "Addle (Cruise Chaser)"
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Photon",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Photon",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Photon",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Photon",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Photon",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Water/Thunder I",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Water/Thunder I",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Water/Thunder I",
+      "Slot": "OT",
+      "Action": "Rampart (After Water Resolves)"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Water/Thunder I",
+      "Slot": "H2",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Water/Thunder I",
+      "Slot": "M2",
+      "Action": "Feint (Brute Justice)"
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Missile Command",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Missile Command",
+      "Slot": "H2",
+      "Action": "Excogitation (OT)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Missile Command",
+      "Slot": "H2",
+      "Action": "Haima (OT)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Hidden Minefield",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Hidden Minefield",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Hidden Minefield",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "MT",
+      "Action": "120s"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Water/Thunder II",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "MT",
+      "Action": "Party Mit (GNB/DRK)"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "M1",
+      "Action": "Feint (Cruise Chaser)"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Slot": "R2",
+      "Action": "Addle (Cruise Chaser)"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Water/Thunder III",
+      "Slot": "R1",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Photon",
+      "Slot": "H1",
+      "Action": "Benediction (MT)",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Photon",
+      "Slot": "H1",
+      "Action": "Essential Dignity (MT)",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Photon",
+      "Slot": "H2",
+      "Action": "Excogitation (OT)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Photon",
+      "Slot": "H2",
+      "Action": "Taurochole (OT)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Double Rocket Punch",
+      "Slot": "M2",
+      "Action": "Feint (Brute Justice)"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Whirlwind",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Whirlwind",
+      "Slot": "M1",
+      "Action": "Feint (Cruise Chaser)"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Whirlwind",
+      "Slot": "R2",
+      "Action": "Addle (Cruise Chaser)"
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Slot": "MT",
+      "Action": "Provoke"
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Slot": "MT",
+      "Action": "Invulnerability (End of Castbar)"
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Slot": "OT",
+      "Action": "Provoke (After 3rd Divine Spear)"
+    },
+    {
+      "Time": 364,
+      "Mechanic": "Judgment Crystal + True Heart",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 364,
+      "Mechanic": "Judgment Crystal + True Heart",
+      "Slot": "H1",
+      "Action": "Everything",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 364,
+      "Mechanic": "Judgment Crystal + True Heart",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 387,
+      "Mechanic": "Flamethrower",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Super Jump",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Slot": "MT",
+      "Action": "Provoke (After 3rd Divine Spear)"
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Slot": "OT",
+      "Action": "Kitchen Sink (Chastening Heat)"
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Incinerating Heat",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Mega Holy I",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Mega Holy I",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Mega Holy I",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Mega Holy I",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Mega Holy I",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Mega Holy I",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Mega Holy II",
+      "Slot": "MT",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Mega Holy II",
+      "Slot": "H2",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Mega Holy II",
+      "Slot": "M1",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Mega Holy II",
+      "Slot": "R2",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "J Storm",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "J Storm",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "J Storm",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 591,
+      "Mechanic": "J Waves (0-10s)",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 628,
+      "Mechanic": "J Waves (10-20s)",
+      "Slot": "M2",
+      "Action": "Feint (Brute Justice)"
+    },
+    {
+      "Time": 647,
+      "Mechanic": "J Waves (20-30s)",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 647,
+      "Mechanic": "J Waves (20-30s)",
+      "Slot": "H1",
+      "Action": "Cure III",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 647,
+      "Mechanic": "J Waves (20-30s)",
+      "Slot": "H1",
+      "Action": "Aspected Helios",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 647,
+      "Mechanic": "J Waves (20-30s)",
+      "Slot": "H2",
+      "Action": "Succor",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 647,
+      "Mechanic": "J Waves (20-30s)",
+      "Slot": "H2",
+      "Action": "Eukrasian Prognosis",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement",
+      "Slot": "OT",
+      "Action": "LB3"
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement",
+      "Slot": "H1",
+      "Action": "Medica II (When Z Appears)",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement",
+      "Slot": "H1",
+      "Action": "Aspected Helios (When Z Appears)",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Divine Judgement",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "H1",
+      "Action": "Everything",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 694,
+      "Mechanic": "Optical Sight",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Ordained Capital Punishment",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Ordained Capital Punishment",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Ordained Capital Punishment",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Ordained Capital Punishment",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 777,
+      "Mechanic": "Ordained Punishment",
+      "Slot": "OT",
+      "Action": "Provoke (Castbar)"
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 836,
+      "Mechanic": "Optical Sight (Fate Calibration β)",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 874,
+      "Mechanic": "Ordained Capital Punishment",
+      "Slot": "OT",
+      "Action": "Invulnerability (Use Late)"
+    },
+    {
+      "Time": 877,
+      "Mechanic": "Ordained Punishment",
+      "Slot": "MT",
+      "Action": "Provoke (Castbar)"
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 919,
+      "Mechanic": "Ordained Capital Punishment",
+      "Slot": "MT",
+      "Action": "Invulnerability (Use Late)"
+    },
+    {
+      "Time": 922,
+      "Mechanic": "Ordained Punishment",
+      "Slot": "OT",
+      "Action": "Provoke (Castbar)"
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 954,
+      "Mechanic": "Irresistible Grace",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 18864,
+      "Time": 11,
+      "IsPhase": true,
+      "Label": "P1 Fluid Swing"
+    },
+    {
+      "Ability": 18470,
+      "Time": 19.1,
+      "IsPhase": false,
+      "Label": "P1 Cascade"
+    },
+    {
+      "Ability": 18864,
+      "Time": 37.4,
+      "IsPhase": false,
+      "Label": "P1 Fluid Swing/Strike"
+    },
+    {
+      "Ability": 18477,
+      "Time": 42.5,
+      "IsPhase": false,
+      "Label": "P1 Hand of Pain"
+    },
+    {
+      "Ability": 18864,
+      "Time": 56.5,
+      "IsPhase": false,
+      "Label": "P1 Fluid Swing/Strike"
+    },
+    {
+      "Ability": 18471,
+      "Time": 86.5,
+      "IsPhase": false,
+      "Label": "P1 Splash (x6) + Drainage"
+    },
+    {
+      "Ability": 18470,
+      "Time": 91.6,
+      "IsPhase": false,
+      "Label": "P1 Cascade"
+    },
+    {
+      "Ability": 18472,
+      "Time": 95.8,
+      "IsPhase": false,
+      "Label": "P1 Throttles"
+    },
+    {
+      "Ability": 18466,
+      "Time": 106.8,
+      "IsPhase": false,
+      "Label": "P1 Protean Wave"
+    },
+    {
+      "Ability": 18516,
+      "Time": 143.7,
+      "IsPhase": true,
+      "Label": "P2 J Kick"
+    },
+    {
+      "Ability": 18882,
+      "Time": 155.8,
+      "IsPhase": false,
+      "Label": "P2 Whirlwind"
+    },
+    {
+      "Ability": 18486,
+      "Time": 180.1,
+      "IsPhase": false,
+      "Label": "P2 Photon"
+    },
+    {
+      "Ability": 18497,
+      "Time": 194.9,
+      "IsPhase": false,
+      "Label": "P2 Water/Thunder I"
+    },
+    {
+      "Ability": 18513,
+      "Time": 208.3,
+      "IsPhase": false,
+      "Label": "P2 Hidden Minefield"
+    },
+    {
+      "Ability": 18497,
+      "Time": 224.6,
+      "IsPhase": false,
+      "Label": "P2 Water/Thunder II"
+    },
+    {
+      "Ability": 18882,
+      "Time": 245.6,
+      "IsPhase": false,
+      "Label": "P2 Whirlwind"
+    },
+    {
+      "Ability": 18497,
+      "Time": 254.3,
+      "IsPhase": false,
+      "Label": "P2 Water/Thunder III"
+    },
+    {
+      "Ability": 18486,
+      "Time": 285,
+      "IsPhase": false,
+      "Label": "P2 Photon"
+    },
+    {
+      "Ability": 18503,
+      "Time": 292.8,
+      "IsPhase": false,
+      "Label": "P2 Double Rocket Punch"
+    },
+    {
+      "Ability": 18882,
+      "Time": 316.7,
+      "IsPhase": false,
+      "Label": "P2 Whirlwind"
+    },
+    {
+      "Ability": 19072,
+      "Time": 333.2,
+      "IsPhase": true,
+      "Label": "P3 Chastening Heat + Divine Spear"
+    },
+    {
+      "Ability": 18523,
+      "Time": 364.2,
+      "IsPhase": false,
+      "Label": "P3 Judgment Crystal + True Heart"
+    },
+    {
+      "Ability": 18506,
+      "Time": 410.4,
+      "IsPhase": false,
+      "Label": "P3 Super Jump"
+    },
+    {
+      "Ability": 19072,
+      "Time": 422.6,
+      "IsPhase": false,
+      "Label": "P3 Chastening Heat + Divine Spear"
+    },
+    {
+      "Ability": 19025,
+      "Time": 482,
+      "IsPhase": false,
+      "Label": "P3 Incinerating Heat"
+    },
+    {
+      "Ability": 19075,
+      "Time": 494.9,
+      "IsPhase": false,
+      "Label": "P3 Mega Holy I"
+    },
+    {
+      "Ability": 19075,
+      "Time": 502,
+      "IsPhase": false,
+      "Label": "P3 Mega Holy II"
+    },
+    {
+      "Ability": 18550,
+      "Time": 517.8,
+      "IsPhase": false,
+      "Label": "P3 J Storm"
+    },
+    {
+      "Ability": 18578,
+      "Time": 773.8,
+      "IsPhase": true,
+      "Label": "P4 Ordained Capital Punishment"
+    },
+    {
+      "Ability": 18579,
+      "Time": 776.9,
+      "IsPhase": false,
+      "Label": "P4 Ordained Punishment"
+    },
+    {
+      "Ability": 19220,
+      "Time": 836.2,
+      "IsPhase": false,
+      "Label": "P4 Optical Sight (Fate Calibration β)"
+    },
+    {
+      "Ability": 18578,
+      "Time": 873.7,
+      "IsPhase": false,
+      "Label": "P4 Ordained Capital Punishment"
+    },
+    {
+      "Ability": 18579,
+      "Time": 876.9,
+      "IsPhase": false,
+      "Label": "P4 Ordained Punishment"
+    },
+    {
+      "Ability": 18580,
+      "Time": 909.2,
+      "IsPhase": false,
+      "Label": "P4 Irresistible Grace"
+    },
+    {
+      "Ability": 18578,
+      "Time": 919.4,
+      "IsPhase": false,
+      "Label": "P4 Ordained Capital Punishment"
+    },
+    {
+      "Ability": 18579,
+      "Time": 922.5,
+      "IsPhase": false,
+      "Label": "P4 Ordained Punishment"
+    },
+    {
+      "Ability": 18580,
+      "Time": 954.1,
+      "IsPhase": false,
+      "Label": "P4 Irresistible Grace"
+    }
+  ],
+  "PhaseStarts": [
+    {
+      "Time": 6,
+      "Name": "P1"
+    },
+    {
+      "Time": 144,
+      "Name": "P2"
+    },
+    {
+      "Time": 333,
+      "Name": "P3"
+    },
+    {
+      "Time": 694,
+      "Name": "P4"
+    }
+  ],
+  "CustomRows": [
+    {
+      "Time": 11,
+      "Mechanic": "Fluid Swing",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Cascade",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Hand of Pain",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 56,
+      "Mechanic": "Fluid Swing/Strike",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 144,
+      "Mechanic": "J Kick",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Whirlwind",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Photon",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Hidden Minefield",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Whirlwind",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Photon",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Divine Spear",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Judgment Crystal",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Aetheroplasm",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 377,
+      "Mechanic": "Tetrashatter",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Flarethrower",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 402,
+      "Mechanic": "Plaint of Severity",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 402,
+      "Mechanic": "Plaint of Solidarity",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Super Jump",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Chastening Heat + Divine Spear",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Divine Spear",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Alpha Sword",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 465,
+      "Mechanic": "Super Blassty Charge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Incinerating Heat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 518,
+      "Mechanic": "J Storm",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 524,
+      "Mechanic": "J Wave",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Ordained Capital Punishment",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 777,
+      "Mechanic": "Ordained Punishment",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 849,
+      "Mechanic": "Plaint of Solidarity",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 849,
+      "Mechanic": "Plaint of Surety",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 850,
+      "Mechanic": "J Jump",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 909,
+      "Mechanic": "Irresistible Grace",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": [],
+  "PriorityPhases": []
+}

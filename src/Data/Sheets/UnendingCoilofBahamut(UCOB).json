@@ -1,0 +1,2050 @@
+{
+  "TerritoryId": 733,
+  "Name": "Unending Coil of Bahamut (UCOB)",
+  "Timeline": [
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Death Sentence I"
+    },
+    {
+      "Time": 62,
+      "Mechanic": "Death Sentence II"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Death Sentence III"
+    },
+    {
+      "Time": 127,
+      "Mechanic": "Double Plummet"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Heavensfall + Meteor Stream"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Dalamud Dive I + Bahamut's Claw I"
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Thermionic Beam (1st Quote)"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Bahamut's Claw II"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Bahamut's Claw III"
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Calamatous Flame + Blaze"
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Ravensbeak"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Dalamud Dive II + Bahamut's Claw IV"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Flare Breath + Flatten"
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Quickmarch Trio"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten"
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio"
+    },
+    {
+      "Time": 388,
+      "Mechanic": "Flare Breath (x3)"
+    },
+    {
+      "Time": 403,
+      "Mechanic": "Fellruin Trio"
+    },
+    {
+      "Time": 418,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten + Flare Breath"
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Flare Breath (x3)"
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio"
+    },
+    {
+      "Time": 562,
+      "Mechanic": "Flatten + Flare Breath"
+    },
+    {
+      "Time": 574,
+      "Mechanic": "Grand Octet"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Bahamut's Claw & Plummet"
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I"
+    },
+    {
+      "Time": 693,
+      "Mechanic": "Thermionic Beam (1st Quote)"
+    },
+    {
+      "Time": 709,
+      "Mechanic": "Death Sentence & Ravensbeak"
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Death Sentence & Ravensbeak"
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Thermionic Beam (2nd Quote)"
+    },
+    {
+      "Time": 785,
+      "Mechanic": "Megaflare II"
+    },
+    {
+      "Time": 794,
+      "Mechanic": "Ahk Morn I"
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I"
+    },
+    {
+      "Time": 825,
+      "Mechanic": "Ahk Morn II"
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II"
+    },
+    {
+      "Time": 882,
+      "Mechanic": "Ahk Morn III"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Ahk Morn IV"
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV"
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I",
+      "Slot": "H2",
+      "Action": "Soil (If No Critical Hit)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Death Sentence I",
+      "Slot": "MT",
+      "Action": "30%"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Death Sentence I",
+      "Slot": "MT",
+      "Action": "Rampart (Early)"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Death Sentence I",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Death Sentence I",
+      "Slot": "OT",
+      "Action": "Provoke"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Death Sentence I",
+      "Slot": "OT",
+      "Action": "Rampart (During Castbar)"
+    },
+    {
+      "Time": 62,
+      "Mechanic": "Death Sentence II",
+      "Slot": "MT",
+      "Action": "Provoke"
+    },
+    {
+      "Time": 62,
+      "Mechanic": "Death Sentence II",
+      "Slot": "OT",
+      "Action": "30%"
+    },
+    {
+      "Time": 62,
+      "Mechanic": "Death Sentence II",
+      "Slot": "OT",
+      "Action": "90s"
+    },
+    {
+      "Time": 62,
+      "Mechanic": "Death Sentence II",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Death Sentence III",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Death Sentence III",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Death Sentence III",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Death Sentence III",
+      "Slot": "OT",
+      "Action": "Provoke"
+    },
+    {
+      "Time": 127,
+      "Mechanic": "Double Plummet",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 127,
+      "Mechanic": "Double Plummet",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Heavensfall + Meteor Stream",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Heavensfall + Meteor Stream",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Heavensfall + Meteor Stream",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Dalamud Dive I + Bahamut's Claw I",
+      "Slot": "MT",
+      "Action": "Provoke (After Bahamut's Claw)"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Dalamud Dive I + Bahamut's Claw I",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "MT",
+      "Action": "Reprisal (If Applicable)"
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Bahamut's Claw II",
+      "Slot": "MT",
+      "Action": "30%"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Bahamut's Claw II",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Bahamut's Claw II",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "H2",
+      "Action": "Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Bahamut's Claw III",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Bahamut's Claw III",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Calamatous Flame + Blaze",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Calamatous Flame + Blaze",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Calamatous Flame + Blaze",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Calamatous Flame + Blaze",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Calamatous Flame + Blaze",
+      "Slot": "R1",
+      "Action": "Party Mit (LB2)"
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Ravensbeak",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Ravensbeak",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Ravensbeak",
+      "Slot": "OT",
+      "Action": "Provoke"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Dalamud Dive II + Bahamut's Claw IV",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "30%"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "Invulnerability (Flatten)"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "Provoke (Immediately)"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "Reprisal Alternative: Short Mit (Flare Breath)"
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "Short Mit (Stomp)"
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Quickmarch Trio",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Quickmarch Trio",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Quickmarch Trio",
+      "Slot": "H2",
+      "Action": "Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Quickmarch Trio",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Quickmarch Trio",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Quickmarch Trio",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "Invulnerability (Flatten) Alternative: Kitchen Sink (Excluding 30%)"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten",
+      "Slot": "OT",
+      "Action": "Flare Breath)"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten",
+      "Slot": "OT",
+      "Action": "Provoke (Flatten Castbar)"
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten",
+      "Slot": "OT",
+      "Action": "Reprisal (Tempest Wing"
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence (Thermionic Beam)",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "H1",
+      "Action": "Collective Unconscious (Thermionic Beam)",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "R1",
+      "Action": "Party Mit (If Available)"
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Blackfire Trio",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 388,
+      "Mechanic": "Flare Breath (x3)",
+      "Slot": "MT",
+      "Action": "Provoke (After 3rd Breath)"
+    },
+    {
+      "Time": 388,
+      "Mechanic": "Flare Breath (x3)",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 403,
+      "Mechanic": "Fellruin Trio",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 403,
+      "Mechanic": "Fellruin Trio",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 403,
+      "Mechanic": "Fellruin Trio",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 403,
+      "Mechanic": "Fellruin Trio",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 403,
+      "Mechanic": "Fellruin Trio",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 418,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten + Flare Breath",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 418,
+      "Mechanic": "Tempest Wing + Flare Breath + Flatten + Flare Breath",
+      "Slot": "OT",
+      "Action": "Provoke (After 2nd Flare Breath)"
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "OT",
+      "Action": "Party Mit (Fireball"
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "OT",
+      "Action": "Gigaflare)"
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence (Fireball",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H1",
+      "Action": "Gigaflare)"
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H1",
+      "Action": "Collective Unconscious (Fireball",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "R1",
+      "Action": "Party Mit (If Used During Transition)"
+    },
+    {
+      "Time": 456,
+      "Mechanic": "Heavensfall Trio",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Flare Breath (x3)",
+      "Slot": "MT",
+      "Action": "Provoke (After 3rd Breath)"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Flare Breath (x3)",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "H2",
+      "Action": "Sacred Soil (Earthshakers",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "H2",
+      "Action": "Gigaflare)"
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "H2",
+      "Action": "Kerachole (Earthshakers",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Tenstrike Trio",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 562,
+      "Mechanic": "Flatten + Flare Breath",
+      "Slot": "MT",
+      "Action": "30%"
+    },
+    {
+      "Time": 562,
+      "Mechanic": "Flatten + Flare Breath",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 574,
+      "Mechanic": "Grand Octet",
+      "Slot": "MT",
+      "Action": "LB3 (Towers Spawn)"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Bahamut's Claw & Plummet",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Bahamut's Claw & Plummet",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Bahamut's Claw & Plummet",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Bahamut's Claw & Plummet",
+      "Slot": "OT",
+      "Action": "90s"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Bahamut's Claw & Plummet",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Bahamut's Claw & Plummet",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "H2",
+      "Action": "Carry Over",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "H2",
+      "Action": "Kerachole (If Available)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 693,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "MT",
+      "Action": "Reprisal (If Applicable)"
+    },
+    {
+      "Time": 693,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 693,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 693,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 693,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 709,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "MT",
+      "Action": "Provoke (Nael) 30%"
+    },
+    {
+      "Time": 709,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 709,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "OT",
+      "Action": "Provoke (Twintania) 30%"
+    },
+    {
+      "Time": 709,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "MT",
+      "Action": "Provoke (Twintania)"
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "OT",
+      "Action": "90s"
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "OT",
+      "Action": "Provoke (Nael)"
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Death Sentence & Ravensbeak",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "OT",
+      "Action": "Reprisal (If Applicable)"
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Thermionic Beam (2nd Quote)",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 785,
+      "Mechanic": "Megaflare II",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 785,
+      "Mechanic": "Megaflare II",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 785,
+      "Mechanic": "Megaflare II",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 785,
+      "Mechanic": "Megaflare II",
+      "Slot": "H2",
+      "Action": "Carry Over",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 785,
+      "Mechanic": "Megaflare II",
+      "Slot": "H2",
+      "Action": "Kerachole (If Available)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 785,
+      "Mechanic": "Megaflare II",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 794,
+      "Mechanic": "Ahk Morn I",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 794,
+      "Mechanic": "Ahk Morn I",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Morn Afah I",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 825,
+      "Mechanic": "Ahk Morn II",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 825,
+      "Mechanic": "Ahk Morn II",
+      "Slot": "OT",
+      "Action": "Provoke (After Ahk Morn Concludes)"
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Morn Afah II",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 882,
+      "Mechanic": "Ahk Morn III",
+      "Slot": "MT",
+      "Action": "Provoke (After Ahk Morn Concludes)"
+    },
+    {
+      "Time": 882,
+      "Mechanic": "Ahk Morn III",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Morn Afah III",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Ahk Morn IV",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 906,
+      "Mechanic": "Ahk Morn IV",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 956,
+      "Mechanic": "Morn Afah IV",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Morn Afah V",
+      "Slot": "R2",
+      "Action": "Addle"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 9900,
+      "Time": 16.3,
+      "IsPhase": true,
+      "Label": "P1 Fireball I"
+    },
+    {
+      "Ability": 9900,
+      "Time": 96.6,
+      "IsPhase": false,
+      "Label": "P1 Fireball II"
+    },
+    {
+      "Ability": 9912,
+      "Time": 144.6,
+      "IsPhase": true,
+      "Label": "P2 Heavensfall + Meteor Stream"
+    },
+    {
+      "Ability": 9917,
+      "Time": 184.3,
+      "IsPhase": false,
+      "Label": "P2 Thermionic Beam (1st Quote)"
+    },
+    {
+      "Ability": 9917,
+      "Time": 209,
+      "IsPhase": false,
+      "Label": "P2 Thermionic Beam (2nd Quote)"
+    },
+    {
+      "Ability": 9954,
+      "Time": 310.7,
+      "IsPhase": true,
+      "Label": "P3 Quickmarch Trio"
+    },
+    {
+      "Ability": 9955,
+      "Time": 351.8,
+      "IsPhase": false,
+      "Label": "P3 Blackfire Trio"
+    },
+    {
+      "Ability": 9956,
+      "Time": 403.1,
+      "IsPhase": false,
+      "Label": "P3 Fellruin Trio"
+    },
+    {
+      "Ability": 9957,
+      "Time": 455.5,
+      "IsPhase": false,
+      "Label": "P3 Heavensfall Trio"
+    },
+    {
+      "Ability": 9958,
+      "Time": 516.7,
+      "IsPhase": false,
+      "Label": "P3 Tenstrike Trio"
+    },
+    {
+      "Ability": 9959,
+      "Time": 573.7,
+      "IsPhase": false,
+      "Label": "P3 Grand Octet"
+    },
+    {
+      "Ability": 9917,
+      "Time": 692.8,
+      "IsPhase": false,
+      "Label": "P4 Thermionic Beam (1st Quote)"
+    },
+    {
+      "Ability": 9914,
+      "Time": 682.2,
+      "IsPhase": true,
+      "Label": "P4 Megaflare I"
+    },
+    {
+      "Ability": 9917,
+      "Time": 730.3,
+      "IsPhase": false,
+      "Label": "P4 Thermionic Beam (2nd Quote)"
+    },
+    {
+      "Ability": 9914,
+      "Time": 784.9,
+      "IsPhase": false,
+      "Label": "P4 Megaflare II"
+    },
+    {
+      "Ability": 9964,
+      "Time": 817.4,
+      "IsPhase": true,
+      "Label": "P5 Morn Afah I"
+    },
+    {
+      "Ability": 9964,
+      "Time": 872.5,
+      "IsPhase": false,
+      "Label": "P5 Morn Afah II"
+    },
+    {
+      "Ability": 9964,
+      "Time": 905.8,
+      "IsPhase": false,
+      "Label": "P5 Morn Afah III"
+    },
+    {
+      "Ability": 9964,
+      "Time": 955.5,
+      "IsPhase": false,
+      "Label": "P5 Morn Afah IV"
+    },
+    {
+      "Ability": 9964,
+      "Time": 1040,
+      "IsPhase": false,
+      "Label": "P5 Morn Afah V"
+    }
+  ],
+  "PhaseStarts": [
+    {
+      "Time": 16,
+      "Name": "P1"
+    },
+    {
+      "Time": 145,
+      "Name": "P2"
+    },
+    {
+      "Time": 260,
+      "Name": "P3"
+    },
+    {
+      "Time": 682,
+      "Name": "P4"
+    },
+    {
+      "Time": 817,
+      "Name": "P5"
+    }
+  ],
+  "CustomRows": [
+    {
+      "Time": 16,
+      "Mechanic": "Fireball I",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fireball II",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Heavensfall + Meteor Stream",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 151,
+      "Mechanic": "Meteor Stream",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 157,
+      "Mechanic": "Dalamud Dive",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Megaflare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 328,
+      "Mechanic": "Megaflare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 331,
+      "Mechanic": "Earth Shaker",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Tempest Wing",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 336,
+      "Mechanic": "Flare Breath",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 344,
+      "Mechanic": "Flatten",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Tempest Wing",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Meteor Stream",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 431,
+      "Mechanic": "Gigaflare",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 434,
+      "Mechanic": "Flare Breath",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Flatten",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 472,
+      "Mechanic": "Heavensfall",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 487,
+      "Mechanic": "Fireball",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 495,
+      "Mechanic": "Gigaflare",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Meteor Stream",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 539,
+      "Mechanic": "Earth Shaker",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 563,
+      "Mechanic": "Flatten",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 612,
+      "Mechanic": "Megaflare",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 639,
+      "Mechanic": "Plummet",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 682,
+      "Mechanic": "Megaflare I",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 693,
+      "Mechanic": "Thermionic Beam (1st Quote)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": [],
+  "PriorityPhases": []
+}

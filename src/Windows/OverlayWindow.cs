@@ -108,11 +108,7 @@ public class OverlayWindow : Window
     }
 
     // How far before its window opens a call first appears.
-    private float LeadFor(MitPress line)
-    {
-        if (line.SourceLine.LeadOverride > 0f) return line.SourceLine.LeadOverride;
-        return C.WarningSeconds;
-    }
+    private float LeadFor(MitPress line) => C.LeadFor(line);
 
     public override void Draw()
     {
@@ -211,7 +207,7 @@ public class OverlayWindow : Window
             return (rem + delay, lead, false);
         }
 
-        var job = _plugin.ActiveJobAbbreviation();
+        var job = _plugin.GetActiveJobAbbr(fight);
         var elapsed = _plugin.CueClockFor(fight); // call schedule, not sheet position
 
         // A reused buffer, since the overlay redraws continuously.
@@ -257,7 +253,7 @@ public class OverlayWindow : Window
                 var activeDur = l.WindowEnd - l.WindowStart;
                 var remNew = dt.RemNew;
                 var activePhase = remNew <= 0f && remNew >= -activeDur;
-                var pastPhase = remNew < -activeDur && remNew >= -activeDur - C.HoldSeconds;
+                var pastPhase = remNew < -activeDur && remNew >= -activeDur - C.HoldFor(l);
                 if ((activePhase || pastPhase) && !group.Contains(l))
                 { group.Insert(heldCount++, l); }
             }
@@ -275,7 +271,7 @@ public class OverlayWindow : Window
                 var activeDur = l.WindowEnd - l.WindowStart;
                 var remNew = dt.RemNew;
                 var activePhase = remNew <= 0f && remNew >= -activeDur;
-                var pastPhase = remNew < -activeDur && remNew >= -activeDur - C.HoldSeconds;
+                var pastPhase = remNew < -activeDur && remNew >= -activeDur - C.HoldFor(l);
                 if (activePhase || pastPhase) group.Add(l);
             }
             StableSortByCueTime(group);

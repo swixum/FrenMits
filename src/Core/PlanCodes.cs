@@ -8,6 +8,16 @@ public static class PlanCodes
 {
     public static string Encode(FightProfile fight)
     {
+        var cloneJson = Newtonsoft.Json.JsonConvert.SerializeObject(fight);
+        var clone = Newtonsoft.Json.JsonConvert.DeserializeObject<FightProfile>(cloneJson);
+        if (clone != null)
+        {
+            clone.Lines.RemoveAll(l => l.Personal);
+            foreach (var kv in clone.SavedSlots)
+                kv.Value.RemoveAll(l => l.Personal);
+            fight = clone;
+        }
+
         var json = Newtonsoft.Json.JsonConvert.SerializeObject(fight);
         // FRENMITS2 is gzipped, so a raid plan pastes much shorter.
         var raw = System.Text.Encoding.UTF8.GetBytes(json);

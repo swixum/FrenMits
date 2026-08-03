@@ -1,0 +1,1878 @@
+{
+  "TerritoryId": 1308,
+  "Name": "Doomtrain",
+  "Timeline": [
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught"
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Lightning Burst"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train"
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Aetherosote"
+    },
+    {
+      "Time": 204,
+      "Mechanic": "Aetherochar"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train"
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Lightning Burst"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder"
+    },
+    {
+      "Time": 381,
+      "Mechanic": "Derailment Siege"
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet"
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Derailment Siege"
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege"
+    },
+    {
+      "Time": 82,
+      "Mechanic": "Plasma Beam"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Hyperexplosive Plasma"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Lightning Burst"
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Aetherosote"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege"
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet"
+    },
+    {
+      "Time": 431,
+      "Mechanic": "Lightning Burst"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught"
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Dead Man's Blastpipe"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Dead Man's Windpipe"
+    },
+    {
+      "Time": 45,
+      "Mechanic": "Plasma"
+    },
+    {
+      "Time": 52,
+      "Mechanic": "Unlimited Express"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Third Rail"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Third Rail"
+    },
+    {
+      "Time": 409,
+      "Mechanic": "Psychokinesis"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Psychokinesis"
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Arcane Revelation"
+    },
+    {
+      "Time": 500,
+      "Mechanic": "Headlight"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 13,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Dead Man's Blastpipe",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Dead Man's Blastpipe",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Dead Man's Blastpipe",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 45,
+      "Mechanic": "Plasma",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 52,
+      "Mechanic": "Unlimited Express",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Dead Man's Express",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 82,
+      "Mechanic": "Plasma Beam",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Lightning Burst",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Lightning Burst",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Lightning Burst",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Dead Man's Windpipe",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Dead Man's Windpipe",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Dead Man's Windpipe",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Dead Man's Windpipe",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Dead Man's Windpipe",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Lightning Burst",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Runaway Train",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Aetherosote",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Aetherosote",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Aetherosote",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 204,
+      "Mechanic": "Aetherochar",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 204,
+      "Mechanic": "Aetherochar",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 204,
+      "Mechanic": "Aetherochar",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Lightning Burst",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Lightning Burst",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Third Rail",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Arcane Revelation",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Third Rail",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 381,
+      "Mechanic": "Derailment Siege",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 381,
+      "Mechanic": "Derailment Siege",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 409,
+      "Mechanic": "Psychokinesis",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 431,
+      "Mechanic": "Lightning Burst",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Psychokinesis",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Derailment Siege",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Derailment Siege",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Dead Man's Overdraught",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 500,
+      "Mechanic": "Headlight",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 45670,
+      "Time": 21,
+      "IsPhase": true,
+      "Label": "P1 Dead Man's Express"
+    },
+    {
+      "Ability": 45672,
+      "Time": 23,
+      "IsPhase": false,
+      "Label": "P1 Plasma Beam"
+    },
+    {
+      "Ability": 45677,
+      "Time": 40,
+      "IsPhase": false,
+      "Label": "P1 Dead Man's Windpipe"
+    },
+    {
+      "Ability": 45679,
+      "Time": 43,
+      "IsPhase": false,
+      "Label": "P1 Dead Man's Blastpipe"
+    },
+    {
+      "Ability": 45623,
+      "Time": 52,
+      "IsPhase": false,
+      "Label": "P1 Unlimited Express"
+    },
+    {
+      "Ability": 45628,
+      "Time": 70,
+      "IsPhase": false,
+      "Label": "P1 Turret Crossing"
+    },
+    {
+      "Ability": 45670,
+      "Time": 80,
+      "IsPhase": false,
+      "Label": "P1 Dead Man's Express"
+    },
+    {
+      "Ability": 45672,
+      "Time": 82,
+      "IsPhase": false,
+      "Label": "P1 Plasma Beam"
+    },
+    {
+      "Ability": 45660,
+      "Time": 98,
+      "IsPhase": false,
+      "Label": "P1 Lightning Burst"
+    },
+    {
+      "Ability": 45677,
+      "Time": 108,
+      "IsPhase": false,
+      "Label": "P1 Dead Man's Windpipe"
+    },
+    {
+      "Ability": 45679,
+      "Time": 111,
+      "IsPhase": false,
+      "Label": "P1 Dead Man's Blastpipe"
+    },
+    {
+      "Ability": 45623,
+      "Time": 120,
+      "IsPhase": false,
+      "Label": "P1 Unlimited Express"
+    },
+    {
+      "Ability": 45660,
+      "Time": 136,
+      "IsPhase": false,
+      "Label": "P1 Lightning Burst"
+    },
+    {
+      "Ability": 45638,
+      "Time": 149,
+      "IsPhase": false,
+      "Label": "P1 Runaway Train"
+    },
+    {
+      "Ability": 45660,
+      "Time": 260,
+      "IsPhase": false,
+      "Label": "P1 Lightning Burst"
+    },
+    {
+      "Ability": 45648,
+      "Time": 268,
+      "IsPhase": true,
+      "Label": "P1 Derailment Siege"
+    },
+    {
+      "Ability": 45649,
+      "Time": 271,
+      "IsPhase": false,
+      "Label": "P1 Derailment Siege"
+    },
+    {
+      "Ability": 45711,
+      "Time": 277,
+      "IsPhase": false,
+      "Label": "P1 Derail"
+    },
+    {
+      "Ability": 45690,
+      "Time": 301,
+      "IsPhase": false,
+      "Label": "P1 Headlight"
+    },
+    {
+      "Ability": 47527,
+      "Time": 310,
+      "IsPhase": false,
+      "Label": "P1 Arcane Revelation"
+    },
+    {
+      "Ability": 46489,
+      "Time": 392,
+      "IsPhase": false,
+      "Label": "P1 Derail"
+    },
+    {
+      "Ability": 45660,
+      "Time": 431,
+      "IsPhase": false,
+      "Label": "P1 Lightning Burst"
+    },
+    {
+      "Ability": 45701,
+      "Time": 457,
+      "IsPhase": false,
+      "Label": "P1 Derailment Siege"
+    },
+    {
+      "Ability": 45704,
+      "Time": 463,
+      "IsPhase": false,
+      "Label": "P1 Derailment Siege"
+    },
+    {
+      "Ability": 45711,
+      "Time": 469,
+      "IsPhase": false,
+      "Label": "P1 Derail"
+    },
+    {
+      "Ability": 45628,
+      "Time": 488,
+      "IsPhase": false,
+      "Label": "P1 Turret Crossing"
+    },
+    {
+      "Ability": 45690,
+      "Time": 500,
+      "IsPhase": false,
+      "Label": "P1 Headlight"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 23,
+      "Mechanic": "Plasma Beam",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 40,
+      "Mechanic": "Dead Man's Windpipe",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 45,
+      "Mechanic": "Plasma",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 52,
+      "Mechanic": "Unlimited Express",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 82,
+      "Mechanic": "Plasma Beam",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Plasma",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Lightning Burst",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Hyperexplosive Plasma",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 120,
+      "Mechanic": "Unlimited Express",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Lightning Burst",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Aetherosote",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Aetherial Ray",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Aetherosote",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Aetherial Ray",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 204,
+      "Mechanic": "Aetherochar",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 204,
+      "Mechanic": "Aetherial Ray",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Runaway Train",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Shockwave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Lightning Burst",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Derailment Siege",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Derailment Siege",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Thunderous Breath",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hail of Thunder",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Hyperconductive Plasma",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Hail of Thunder",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Hyperconductive Plasma",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hail of Thunder",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Hyperconductive Plasma",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 362,
+      "Mechanic": "Thunderous Breath",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 381,
+      "Mechanic": "Derailment Siege",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Derailment Siege",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 410,
+      "Mechanic": "Plummet",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Plummet",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 431,
+      "Mechanic": "Lightning Burst",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 441,
+      "Mechanic": "Plummet",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Derailment Siege",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Derailment Siege",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 504,
+      "Mechanic": "Thunderous Breath",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

@@ -1,0 +1,1811 @@
+{
+  "TerritoryId": 1226,
+  "Name": "M1S - Black Cat",
+  "Timeline": [
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Biscuit Maker"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Nine Lives"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Quadruple Swipe"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch"
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser"
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Biscuit Maker"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Shockwave"
+    },
+    {
+      "Time": 265,
+      "Mechanic": "Leaping One-Two Paw"
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Leaping Quadruple Crossing"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Leaping Quadruple Crossing"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Nailchipper"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch"
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate"
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives"
+    },
+    {
+      "Time": 66,
+      "Mechanic": "Soulshade"
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate"
+    },
+    {
+      "Time": 241,
+      "Mechanic": "Grimalkin Gale"
+    },
+    {
+      "Time": 273,
+      "Mechanic": "Soulshade"
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Copycat"
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Impact"
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Nine Lives"
+    },
+    {
+      "Time": 338,
+      "Mechanic": "Nailchipper"
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Leaping Quadruple Crossing"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Biscuit Maker",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Biscuit Maker",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 66,
+      "Mechanic": "Soulshade",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Nine Lives",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Quadruple Swipe",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Quadruple Swipe",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Quadruple Swipe",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Quadruple Swipe",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Quadruple Swipe",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Impact",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Impact",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Impact",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Biscuit Maker",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Biscuit Maker",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Biscuit Maker",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Shockwave",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Shockwave",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Shockwave",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 241,
+      "Mechanic": "Grimalkin Gale",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 241,
+      "Mechanic": "Grimalkin Gale",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 241,
+      "Mechanic": "Grimalkin Gale",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 241,
+      "Mechanic": "Grimalkin Gale",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 241,
+      "Mechanic": "Grimalkin Gale",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Nine Lives",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Nine Lives",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 265,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 265,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 265,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 265,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 265,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 273,
+      "Mechanic": "Soulshade",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 338,
+      "Mechanic": "Nailchipper",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Nailchipper",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Nailchipper",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Nailchipper",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Copycat",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Slot": "R2",
+      "Action": "Addle"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 37948,
+      "Time": 14,
+      "IsPhase": true,
+      "Label": "P1 Quadruple Crossing"
+    },
+    {
+      "Ability": 37949,
+      "Time": 20,
+      "IsPhase": false,
+      "Label": "P1 Quadruple Crossing"
+    },
+    {
+      "Ability": 38037,
+      "Time": 33,
+      "IsPhase": false,
+      "Label": "P1 Biscuit Maker"
+    },
+    {
+      "Ability": 37985,
+      "Time": 50,
+      "IsPhase": false,
+      "Label": "P1 Nine Lives"
+    },
+    {
+      "Ability": 37945,
+      "Time": 58,
+      "IsPhase": false,
+      "Label": "P1 One-Two Paw"
+    },
+    {
+      "Ability": 37946,
+      "Time": 62,
+      "IsPhase": false,
+      "Label": "P1 One-Two Paw"
+    },
+    {
+      "Ability": 37986,
+      "Time": 66,
+      "IsPhase": false,
+      "Label": "P1 Soulshade"
+    },
+    {
+      "Ability": 37985,
+      "Time": 80,
+      "IsPhase": false,
+      "Label": "P1 Nine Lives"
+    },
+    {
+      "Ability": 37993,
+      "Time": 83,
+      "IsPhase": false,
+      "Label": "P1 One-Two Paw"
+    },
+    {
+      "Ability": 37981,
+      "Time": 88,
+      "IsPhase": false,
+      "Label": "P1 Quadruple Swipe"
+    },
+    {
+      "Ability": 37986,
+      "Time": 94,
+      "IsPhase": false,
+      "Label": "P1 Soulshade"
+    },
+    {
+      "Ability": 37975,
+      "Time": 101,
+      "IsPhase": false,
+      "Label": "P1 Leaping Quadruple Crossing"
+    },
+    {
+      "Ability": 37978,
+      "Time": 111,
+      "IsPhase": false,
+      "Label": "P1 Leaping Quadruple Crossing"
+    },
+    {
+      "Ability": 38016,
+      "Time": 113,
+      "IsPhase": false,
+      "Label": "P1 Quadruple Swipe"
+    },
+    {
+      "Ability": 37953,
+      "Time": 146,
+      "IsPhase": false,
+      "Label": "P1 Mouser"
+    },
+    {
+      "Ability": 37957,
+      "Time": 168,
+      "IsPhase": false,
+      "Label": "P1 Copycat"
+    },
+    {
+      "Ability": 38037,
+      "Time": 225,
+      "IsPhase": false,
+      "Label": "P1 Biscuit Maker"
+    },
+    {
+      "Ability": 37963,
+      "Time": 236,
+      "IsPhase": false,
+      "Label": "P1 Shockwave"
+    },
+    {
+      "Ability": 39812,
+      "Time": 241,
+      "IsPhase": false,
+      "Label": "P1 Grimalkin Gale"
+    },
+    {
+      "Ability": 37985,
+      "Time": 257,
+      "IsPhase": false,
+      "Label": "P1 Nine Lives"
+    },
+    {
+      "Ability": 37986,
+      "Time": 273,
+      "IsPhase": false,
+      "Label": "P1 Soulshade"
+    },
+    {
+      "Ability": 37985,
+      "Time": 278,
+      "IsPhase": false,
+      "Label": "P1 Nine Lives"
+    },
+    {
+      "Ability": 37977,
+      "Time": 292,
+      "IsPhase": false,
+      "Label": "P1 Leaping Quadruple Crossing"
+    },
+    {
+      "Ability": 37986,
+      "Time": 300,
+      "IsPhase": false,
+      "Label": "P1 Soulshade"
+    },
+    {
+      "Ability": 38008,
+      "Time": 327,
+      "IsPhase": false,
+      "Label": "P1 Leaping One-Two Paw"
+    },
+    {
+      "Ability": 37953,
+      "Time": 395,
+      "IsPhase": false,
+      "Label": "P1 Mouser"
+    },
+    {
+      "Ability": 37957,
+      "Time": 416,
+      "IsPhase": false,
+      "Label": "P1 Copycat"
+    },
+    {
+      "Ability": 38039,
+      "Time": 429,
+      "IsPhase": false,
+      "Label": "P1 Overshadow"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 14,
+      "Mechanic": "Quadruple Crossing",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 20,
+      "Mechanic": "Quadruple Crossing",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Biscuit Maker",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Nine Lives",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 58,
+      "Mechanic": "One-Two Paw",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 62,
+      "Mechanic": "One-Two Paw",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 66,
+      "Mechanic": "Soulshade",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Nine Lives",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 83,
+      "Mechanic": "One-Two Paw",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Quadruple Swipe",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 94,
+      "Mechanic": "Soulshade",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 101,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Quadruple Swipe",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Bloody Scratch",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Mouser",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Copycat",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Elevate and Eviscerate",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 180,
+      "Mechanic": "Shockwave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 188,
+      "Mechanic": "Elevate and Eviscerate",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Shockwave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 203,
+      "Mechanic": "Shockwave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 205,
+      "Mechanic": "Elevate and Eviscerate",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 214,
+      "Mechanic": "Shockwave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 225,
+      "Mechanic": "Biscuit Maker",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 241,
+      "Mechanic": "Grimalkin Gale",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Nine Lives",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 265,
+      "Mechanic": "Leaping One-Two Paw",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 273,
+      "Mechanic": "Soulshade",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 278,
+      "Mechanic": "Nine Lives",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Soulshade",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 327,
+      "Mechanic": "Leaping One-Two Paw",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 341,
+      "Mechanic": "Tempestuous Tear",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Leaping Quadruple Crossing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Nailchipper",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Bloody Scratch",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Mouser",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Copycat",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 426,
+      "Mechanic": "Elevate and Eviscerate",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Shockwave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Overshadow",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

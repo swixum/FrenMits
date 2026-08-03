@@ -1,0 +1,2949 @@
+{
+  "TerritoryId": 1325,
+  "Name": "M11S - The Tyrant",
+  "Timeline": [
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Raw Steel"
+    },
+    {
+      "Time": 74,
+      "Mechanic": "Trophy Weapons"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste"
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination"
+    },
+    {
+      "Time": 166,
+      "Mechanic": "Raw Steel"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Heavy Weight"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Great Wall of Fire"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Fire and Fury"
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain"
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Foregone Fatality"
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Triple Tyrannhilation"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor"
+    },
+    {
+      "Time": 407,
+      "Mechanic": "Majestic Meteowrath"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia"
+    },
+    {
+      "Time": 494,
+      "Mechanic": "Great Wall of Fire"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Atomic Impact"
+    },
+    {
+      "Time": 596,
+      "Mechanic": "Heartbreak Kick"
+    },
+    {
+      "Time": 621,
+      "Mechanic": "Heartbreak Kick"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Heartbreak Kick"
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact"
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Raw Steel Trophy"
+    },
+    {
+      "Time": 240,
+      "Mechanic": "One and Only"
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Fearsome Fireball"
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Flatliner"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Fire Breath"
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Fire and Fury"
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Atomic Impact"
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Cosmic Kiss"
+    },
+    {
+      "Time": 584,
+      "Mechanic": "Crown of Arcadia"
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick"
+    },
+    {
+      "Time": 615,
+      "Mechanic": "Heartbreak Kick"
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Majestic Meteor"
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Mammoth Meteor"
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick"
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Immortal Reign"
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact"
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Assault Evolved"
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Sweeping Victory"
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Charybdistopia"
+    },
+    {
+      "Time": 259,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Fearsome Fireball"
+    },
+    {
+      "Time": 392,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 448,
+      "Mechanic": "Massive Meteor"
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Arcadion Avalanche"
+    },
+    {
+      "Time": 124,
+      "Mechanic": "Crown of Arcadia"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Raw Steel",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Raw Steel",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Assault Evolved",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Assault Evolved",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Assault Evolved",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Sweeping Victory",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Sweeping Victory",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 74,
+      "Mechanic": "Trophy Weapons",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 74,
+      "Mechanic": "Trophy Weapons",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 74,
+      "Mechanic": "Trophy Weapons",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 74,
+      "Mechanic": "Trophy Weapons",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 124,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 124,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Raw Steel Trophy",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Raw Steel Trophy",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Raw Steel Trophy",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Raw Steel Trophy",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Raw Steel Trophy",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Raw Steel Trophy",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 166,
+      "Mechanic": "Raw Steel",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 166,
+      "Mechanic": "Raw Steel",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Charybdistopia",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Charybdistopia",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Heavy Weight",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Heavy Weight",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Heavy Weight",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Immortal Reign",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Immortal Reign",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Immortal Reign",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Immortal Reign",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Immortal Reign",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 240,
+      "Mechanic": "One and Only",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 240,
+      "Mechanic": "One and Only",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Great Wall of Fire",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Great Wall of Fire",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Great Wall of Fire",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 259,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 259,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Fire and Fury",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Fire and Fury",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Fire and Fury",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Fire and Fury",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Fire and Fury",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Meteorain",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Foregone Fatality",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Foregone Fatality",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Foregone Fatality",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Fearsome Fireball",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Triple Tyrannhilation",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Triple Tyrannhilation",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Triple Tyrannhilation",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Triple Tyrannhilation",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Triple Tyrannhilation",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Flatliner",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Flatliner",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Flatliner",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Flatliner",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 379,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 392,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 392,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 392,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 407,
+      "Mechanic": "Majestic Meteowrath",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 407,
+      "Mechanic": "Majestic Meteowrath",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 407,
+      "Mechanic": "Majestic Meteowrath",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 407,
+      "Mechanic": "Majestic Meteowrath",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 407,
+      "Mechanic": "Majestic Meteowrath",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Majestic Meteor",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Fire Breath",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Fire Breath",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Fire Breath",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Fire Breath",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Fire Breath",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 448,
+      "Mechanic": "Massive Meteor",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Arcadion Avalanche",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Arcadion Avalanche",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 494,
+      "Mechanic": "Great Wall of Fire",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 494,
+      "Mechanic": "Great Wall of Fire",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Fire and Fury",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Fire and Fury",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 517,
+      "Mechanic": "Fire and Fury",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Ecliptic Stampede",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Atomic Impact",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Mammoth Meteor",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Mammoth Meteor",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Mammoth Meteor",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Atomic Impact",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Atomic Impact",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Cosmic Kiss",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 584,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 584,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 584,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 584,
+      "Mechanic": "Crown of Arcadia",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 596,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 596,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 615,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 621,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Heartbreak Kick",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 46086,
+      "Time": 11,
+      "IsPhase": true,
+      "Label": "P1 Crown of Arcadia"
+    },
+    {
+      "Ability": 46114,
+      "Time": 19,
+      "IsPhase": false,
+      "Label": "P1 Raw Steel Trophy"
+    },
+    {
+      "Ability": 46102,
+      "Time": 40,
+      "IsPhase": false,
+      "Label": "P1 Trophy Weapons"
+    },
+    {
+      "Ability": 46103,
+      "Time": 49,
+      "IsPhase": false,
+      "Label": "P1 Assault Evolved"
+    },
+    {
+      "Ability": 46102,
+      "Time": 74,
+      "IsPhase": false,
+      "Label": "P1 Trophy Weapons"
+    },
+    {
+      "Ability": 46098,
+      "Time": 81,
+      "IsPhase": false,
+      "Label": "P1 Void Stardust"
+    },
+    {
+      "Ability": 46099,
+      "Time": 85,
+      "IsPhase": false,
+      "Label": "P1 Cometite"
+    },
+    {
+      "Ability": 46100,
+      "Time": 91,
+      "IsPhase": false,
+      "Label": "P1 Comet"
+    },
+    {
+      "Ability": 46103,
+      "Time": 94,
+      "IsPhase": false,
+      "Label": "P1 Assault Evolved"
+    },
+    {
+      "Ability": 46099,
+      "Time": 112,
+      "IsPhase": false,
+      "Label": "P1 Cometite"
+    },
+    {
+      "Ability": 46101,
+      "Time": 118,
+      "IsPhase": false,
+      "Label": "P1 Crushing Comet"
+    },
+    {
+      "Ability": 46086,
+      "Time": 124,
+      "IsPhase": false,
+      "Label": "P1 Crown of Arcadia"
+    },
+    {
+      "Ability": 47035,
+      "Time": 137,
+      "IsPhase": false,
+      "Label": "P1 Dance of Domination Trophy"
+    },
+    {
+      "Ability": 46111,
+      "Time": 143,
+      "IsPhase": false,
+      "Label": "P1 Dance of Domination"
+    },
+    {
+      "Ability": 46116,
+      "Time": 152,
+      "IsPhase": false,
+      "Label": "P1 Eye of the Hurricane"
+    },
+    {
+      "Ability": 46112,
+      "Time": 152,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46115,
+      "Time": 158,
+      "IsPhase": false,
+      "Label": "P1 Raw Steel Trophy"
+    },
+    {
+      "Ability": 46117,
+      "Time": 181,
+      "IsPhase": false,
+      "Label": "P1 Charybdistopia"
+    },
+    {
+      "Ability": 47085,
+      "Time": 187,
+      "IsPhase": false,
+      "Label": "P1 Ultimate Trophy Weapons"
+    },
+    {
+      "Ability": 47086,
+      "Time": 194,
+      "IsPhase": false,
+      "Label": "P1 Assault Apex"
+    },
+    {
+      "Ability": 46120,
+      "Time": 230,
+      "IsPhase": false,
+      "Label": "P1 Immortal Reign"
+    },
+    {
+      "Ability": 46121,
+      "Time": 240,
+      "IsPhase": false,
+      "Label": "P1 One and Only"
+    },
+    {
+      "Ability": 46122,
+      "Time": 243,
+      "IsPhase": false,
+      "Label": "P1 One and Only"
+    },
+    {
+      "Ability": 46123,
+      "Time": 255,
+      "IsPhase": false,
+      "Label": "P1 Great Wall of Fire"
+    },
+    {
+      "Ability": 46126,
+      "Time": 259,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46130,
+      "Time": 268,
+      "IsPhase": false,
+      "Label": "P1 Orbital Omen"
+    },
+    {
+      "Ability": 46127,
+      "Time": 277,
+      "IsPhase": false,
+      "Label": "P1 Fire and Fury"
+    },
+    {
+      "Ability": 46131,
+      "Time": 278,
+      "IsPhase": false,
+      "Label": "P1 Orbital Omen"
+    },
+    {
+      "Ability": 46132,
+      "Time": 295,
+      "IsPhase": false,
+      "Label": "P1 Meteorain"
+    },
+    {
+      "Ability": 46137,
+      "Time": 302,
+      "IsPhase": false,
+      "Label": "P1 Fearsome Fireball"
+    },
+    {
+      "Ability": 46136,
+      "Time": 316,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46137,
+      "Time": 322,
+      "IsPhase": false,
+      "Label": "P1 Fearsome Fireball"
+    },
+    {
+      "Ability": 46136,
+      "Time": 336,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46140,
+      "Time": 345,
+      "IsPhase": false,
+      "Label": "P1 Triple Tyrannhilation"
+    },
+    {
+      "Ability": 46143,
+      "Time": 363,
+      "IsPhase": false,
+      "Label": "P1 Flatliner"
+    },
+    {
+      "Ability": 46144,
+      "Time": 379,
+      "IsPhase": false,
+      "Label": "P1 Majestic Meteor"
+    },
+    {
+      "Ability": 46148,
+      "Time": 392,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46145,
+      "Time": 403,
+      "IsPhase": false,
+      "Label": "P1 Majestic Meteor"
+    },
+    {
+      "Ability": 46150,
+      "Time": 406,
+      "IsPhase": false,
+      "Label": "P1 Fire Breath"
+    },
+    {
+      "Ability": 46148,
+      "Time": 424,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46145,
+      "Time": 435,
+      "IsPhase": false,
+      "Label": "P1 Majestic Meteor"
+    },
+    {
+      "Ability": 46150,
+      "Time": 438,
+      "IsPhase": false,
+      "Label": "P1 Fire Breath"
+    },
+    {
+      "Ability": 46152,
+      "Time": 448,
+      "IsPhase": false,
+      "Label": "P1 Massive Meteor"
+    },
+    {
+      "Ability": 46148,
+      "Time": 462,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46158,
+      "Time": 463,
+      "IsPhase": false,
+      "Label": "P1 Arcadion Avalanche"
+    },
+    {
+      "Ability": 46159,
+      "Time": 473,
+      "IsPhase": false,
+      "Label": "P1 Arcadion Avalanche"
+    },
+    {
+      "Ability": 46086,
+      "Time": 483,
+      "IsPhase": false,
+      "Label": "P1 Crown of Arcadia"
+    },
+    {
+      "Ability": 46123,
+      "Time": 494,
+      "IsPhase": false,
+      "Label": "P1 Great Wall of Fire"
+    },
+    {
+      "Ability": 46126,
+      "Time": 498,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 46130,
+      "Time": 508,
+      "IsPhase": false,
+      "Label": "P1 Orbital Omen"
+    },
+    {
+      "Ability": 46127,
+      "Time": 517,
+      "IsPhase": false,
+      "Label": "P1 Fire and Fury"
+    },
+    {
+      "Ability": 46131,
+      "Time": 517,
+      "IsPhase": false,
+      "Label": "P1 Orbital Omen"
+    },
+    {
+      "Ability": 46086,
+      "Time": 526,
+      "IsPhase": false,
+      "Label": "P1 Crown of Arcadia"
+    },
+    {
+      "Ability": 46162,
+      "Time": 538,
+      "IsPhase": false,
+      "Label": "P1 Ecliptic Stampede"
+    },
+    {
+      "Ability": 46163,
+      "Time": 545,
+      "IsPhase": false,
+      "Label": "P1 Mammoth Meteor"
+    },
+    {
+      "Ability": 46165,
+      "Time": 548,
+      "IsPhase": false,
+      "Label": "P1 Majestic Meteor"
+    },
+    {
+      "Ability": 46166,
+      "Time": 561,
+      "IsPhase": false,
+      "Label": "P1 Cosmic Kiss"
+    },
+    {
+      "Ability": 46167,
+      "Time": 561,
+      "IsPhase": false,
+      "Label": "P1 Weighty Impact"
+    },
+    {
+      "Ability": 47037,
+      "Time": 574,
+      "IsPhase": false,
+      "Label": "P1 Two-Way Fireball"
+    },
+    {
+      "Ability": 46086,
+      "Time": 584,
+      "IsPhase": false,
+      "Label": "P1 Crown of Arcadia"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 11,
+      "Mechanic": "Crown of Arcadia",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Raw Steel",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 26,
+      "Mechanic": "Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Sweeping Victory",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 57,
+      "Mechanic": "Sharp Taste",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 62,
+      "Mechanic": "Heavy Weight",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Cometite",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 91,
+      "Mechanic": "Comet",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 96,
+      "Mechanic": "Heavy Weight",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 101,
+      "Mechanic": "Sweeping Victory",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Sharp Taste",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Crushing Comet",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 124,
+      "Mechanic": "Crown of Arcadia",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 143,
+      "Mechanic": "Dance of Domination",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 147,
+      "Mechanic": "Dance of Domination",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 152,
+      "Mechanic": "Eye of the Hurricane",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 166,
+      "Mechanic": "Raw Steel",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 166,
+      "Mechanic": "Heavy Hitter",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Heavy Weight",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Sweeping Victory",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 207,
+      "Mechanic": "Sharp Taste",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Sharp Taste",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 217,
+      "Mechanic": "Sweeping Victory",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Heavy Weight",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 229,
+      "Mechanic": "Powerful Gust",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 240,
+      "Mechanic": "One and Only",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 243,
+      "Mechanic": "One and Only",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Great Wall of Fire",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Great Wall of Fire",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Fearsome Fireball",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Cosmic Kiss",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Foregone Fatality",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Fearsome Fireball",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 314,
+      "Mechanic": "Cosmic Kiss",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Foregone Fatality",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Fearsome Fireball",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Cosmic Kiss",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 332,
+      "Mechanic": "Foregone Fatality",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 332,
+      "Mechanic": "Fearsome Fireball",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 363,
+      "Mechanic": "Flatliner",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 392,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Fire Breath",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 407,
+      "Mechanic": "Majestic Meteowrath",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Fire Breath",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 439,
+      "Mechanic": "Majestic Meteowrath",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 448,
+      "Mechanic": "Massive Meteor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Massive Meteor",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 462,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Crown of Arcadia",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 494,
+      "Mechanic": "Great Wall of Fire",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Great Wall of Fire",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Crown of Arcadia",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Mammoth Meteor",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 545,
+      "Mechanic": "Atomic Impact",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Atomic Impact",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 551,
+      "Mechanic": "Atomic Impact",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Atomic Impact",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 557,
+      "Mechanic": "Atomic Impact",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 560,
+      "Mechanic": "Atomic Impact",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Cosmic Kiss",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Weighty Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 571,
+      "Mechanic": "Majestic Meteowrath",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 574,
+      "Mechanic": "Two-Way Fireball",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 584,
+      "Mechanic": "Crown of Arcadia",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 596,
+      "Mechanic": "Heartbreak Kick",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 601,
+      "Mechanic": "Heartbreak Kick",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 605,
+      "Mechanic": "Heartbreak Kick",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 615,
+      "Mechanic": "Heartbreak Kick",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 621,
+      "Mechanic": "Heartbreak Kick",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Heartbreak Kick",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Heartbreak Kick",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

@@ -33,9 +33,10 @@ public static class DmuRebake
         // The DMU data files stay keyed by their native labels.
         var native = SlotNames.ToLegacy(slot);
         var oldBaked = DmuLegacy.BuildLines(native);
-        // Deleted calls stay deleted through a re-bake.
-        var newBaked = DmuData.BuildLines(native)
-            .Where(b => !Builtin.IsDeleted(fight, slot, b)).ToList();
+        // Deleted calls stay deleted through a re-bake. Clones, because the
+        // merged fight owns these lines and edits must not reach the cache.
+        var newBaked = Builtin.BakedLines(Builtin.DmuTerritory, native)
+            .Where(b => !Builtin.IsDeleted(fight, slot, b)).Select(b => b.Clone()).ToList();
 
         // Exact match against the previous bake.
         static bool SameBaked(MitLine a, MitLine b)
@@ -43,19 +44,10 @@ public static class DmuRebake
                && string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
                && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
 
-        // Mit parts of a combined call, for containment checks.
-        static string[] Parts(string action)
-            => action.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-        // Every mit a names is also named by b.
-        static bool Covers(MitLine b, MitLine a)
-            => Parts(a.Action).All(p => Parts(b.Action).Contains(p, StringComparer.OrdinalIgnoreCase));
-
         // The same spoken action within a few seconds of a baked line.
         static bool Shadows(MitLine line, List<MitLine> baked)
             => baked.Any(b => MathF.Abs(b.Time - line.Time) < 6f
-                              && (string.Equals(b.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase)
-                                  || Covers(b, line)));
+                              && string.Equals(b.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase));
 
         // Keep a line only if it shadows nothing and isn't old bake.
         var customs = existing
@@ -101,8 +93,7 @@ public static class DmuRebake
             var near = donors
                 .Where(d => MathF.Abs(d.Time - b.Time) <= 30f
                             && (string.Equals(d.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)
-                                || string.Equals(BaseAction(d.Action), BaseAction(b.Action), StringComparison.OrdinalIgnoreCase)
-                                || Covers(b, d)))
+                                || string.Equals(BaseAction(d.Action), BaseAction(b.Action), StringComparison.OrdinalIgnoreCase)))
                 .OrderBy(d => MathF.Abs(d.Time - b.Time))
                 .FirstOrDefault();
             if (near == null) continue;
@@ -161,63 +152,6 @@ public static class DmuRebake
                     l.Mechanic = m.NewMech;
                     break;
                 }
-
-        // Tank-buster plans, added as job-tagged "Tank:" lines.
-        foreach (var job in new[] { "WAR", "PLD", "DRK", "GNB" })
-        {
-            var mine = lines.Where(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
-                                        && l.Jobs.Count == 1
-                                        && string.Equals(l.Jobs[0], job, StringComparison.OrdinalIgnoreCase)).ToList();
-            if (mine.Count == 0) continue;
-
-            // Find the source pairing by counting exact matches.
-            string? comp = null;
-            var matched = new List<MitLine>();
-            foreach (var c in TankMits.Comps(Builtin.DmuTerritory))
-            {
-                if (!TankMits.Jobs(c).Contains(job)) continue;
-                var old = TankMitsLegacy.DmuFor(c, job);
-                var hits = mine.Where(l => old.Any(e =>
-                    MathF.Abs(l.Time - e.Time) < 0.5f
-                    && l.Mechanic == $"Tank: {e.Mechanic}"
-                    && l.Action == e.Action)).ToList();
-                if (hits.Count > matched.Count
-                    || (hits.Count == matched.Count && hits.Count > 0 && c == fight.TankPairing))
-                {
-                    comp = c;
-                    matched = hits;
-                }
-            }
-            if (comp == null || matched.Count == 0) continue; // fully hand-edited: hands off
-
-            // Swap the unedited old lines out; edited lines stay and win.
-            foreach (var l in matched) lines.Remove(l);
-            var kept = lines.Where(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
-                                        && l.Jobs.Count == 1
-                                        && string.Equals(l.Jobs[0], job, StringComparison.OrdinalIgnoreCase)).ToList();
-            foreach (var e in TankMits.For(Builtin.DmuTerritory, comp, job))
-            {
-                if (kept.Any(k => MathF.Abs(k.Time - e.Time) < 1f)) continue;
-                var donor = matched.FirstOrDefault(d => MathF.Abs(d.Time - e.Time) < 0.5f);
-                lines.Add(new MitLine
-                {
-                    Time = e.Time,
-                    Mechanic = $"Tank: {e.Mechanic}",
-                    Action = e.Action,
-                    Jobs = new List<string> { job },
-                    Custom = true,
-                    Enabled = donor?.Enabled ?? true,
-                    OffsetSeconds = donor?.OffsetSeconds ?? 0f,
-                    OffsetManual = donor?.OffsetManual ?? false,
-                    CoverUntil = donor?.CoverUntil ?? 0f,
-                    LeadOverride = donor?.LeadOverride ?? 0f,
-                    Tts = donor?.Tts ?? "",
-                    Sound = donor?.Sound ?? true,
-                    Color = donor?.Color ?? 0,
-                    IconId = donor?.IconId ?? 0,
-                });
-            }
-        }
 
         var sorted = lines.OrderBy(l => l.Time).ToList();
         lines.Clear();

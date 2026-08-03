@@ -1,0 +1,2437 @@
+{
+  "TerritoryId": 1321,
+  "Name": "M9S - Vamp Fatale",
+  "Timeline": [
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Hardcore"
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Sadistic Screech"
+    },
+    {
+      "Time": 76,
+      "Mechanic": "Half Moon"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech"
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Finale Fatale"
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Aetherletting"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Aetherletting"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Hardcore"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst"
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Gravegrazer"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Gravegrazer"
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice"
+    },
+    {
+      "Time": 332,
+      "Mechanic": "Gravegrazer"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Gravegrazer"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Crowd Kill"
+    },
+    {
+      "Time": 408,
+      "Mechanic": "Blood Lash"
+    },
+    {
+      "Time": 409,
+      "Mechanic": "Ultrasonic Spread"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage"
+    },
+    {
+      "Time": 490,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Hardcore"
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Hardcore"
+    },
+    {
+      "Time": 289,
+      "Mechanic": "Gravegrazer"
+    },
+    {
+      "Time": 306,
+      "Mechanic": "Killer Voice"
+    },
+    {
+      "Time": 326,
+      "Mechanic": "Gravegrazer"
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Gravegrazer"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech"
+    },
+    {
+      "Time": 449,
+      "Mechanic": "Pulping Pulse"
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech"
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Blood Lash"
+    },
+    {
+      "Time": 432,
+      "Mechanic": "Ultrasonic Amp"
+    },
+    {
+      "Time": 480,
+      "Mechanic": "Sanguine Scratch"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Vamp Stomp"
+    },
+    {
+      "Time": 93,
+      "Mechanic": "Half Moon"
+    },
+    {
+      "Time": 124,
+      "Mechanic": "Half Moon"
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Aetherletting"
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Aetherletting"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Vamp Stomp"
+    },
+    {
+      "Time": 251,
+      "Mechanic": "Half Moon"
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Finale Fatale"
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Undead Deathmatch"
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Brutal Rain"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Hardcore",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Hardcore",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Hardcore",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Hardcore",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Vamp Stomp",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Vamp Stomp",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 76,
+      "Mechanic": "Half Moon",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 76,
+      "Mechanic": "Half Moon",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 93,
+      "Mechanic": "Half Moon",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 93,
+      "Mechanic": "Half Moon",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 124,
+      "Mechanic": "Half Moon",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 124,
+      "Mechanic": "Half Moon",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Finale Fatale",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Finale Fatale",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Aetherletting",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Aetherletting",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Aetherletting",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Aetherletting",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Aetherletting",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Aetherletting",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Aetherletting",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Aetherletting",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Aetherletting",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Aetherletting",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Aetherletting",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Aetherletting",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Aetherletting",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Hardcore",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Hardcore",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Vamp Stomp",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Vamp Stomp",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 251,
+      "Mechanic": "Half Moon",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 251,
+      "Mechanic": "Half Moon",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Brutal Rain",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 289,
+      "Mechanic": "Gravegrazer",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Gravegrazer",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 306,
+      "Mechanic": "Killer Voice",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 306,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Gravegrazer",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 326,
+      "Mechanic": "Gravegrazer",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 332,
+      "Mechanic": "Gravegrazer",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Gravegrazer",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Gravegrazer",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Crowd Kill",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Finale Fatale",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Finale Fatale",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Finale Fatale",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Finale Fatale",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Blood Lash",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Blood Lash",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Blood Lash",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Blood Lash",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Blood Lash",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 408,
+      "Mechanic": "Blood Lash",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 408,
+      "Mechanic": "Blood Lash",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 409,
+      "Mechanic": "Ultrasonic Spread",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 409,
+      "Mechanic": "Ultrasonic Spread",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 409,
+      "Mechanic": "Ultrasonic Spread",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 432,
+      "Mechanic": "Ultrasonic Amp",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 449,
+      "Mechanic": "Pulping Pulse",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 449,
+      "Mechanic": "Pulping Pulse",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 449,
+      "Mechanic": "Pulping Pulse",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Undead Deathmatch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Undead Deathmatch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 480,
+      "Mechanic": "Sanguine Scratch",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 490,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 45956,
+      "Time": 11,
+      "IsPhase": true,
+      "Label": "P1 Killer Voice"
+    },
+    {
+      "Ability": 45914,
+      "Time": 19,
+      "IsPhase": false,
+      "Label": "P1 Hardcore"
+    },
+    {
+      "Ability": 45951,
+      "Time": 21,
+      "IsPhase": false,
+      "Label": "P1 Hardcore"
+    },
+    {
+      "Ability": 45898,
+      "Time": 30,
+      "IsPhase": false,
+      "Label": "P1 Vamp Stomp"
+    },
+    {
+      "Ability": 45917,
+      "Time": 46,
+      "IsPhase": false,
+      "Label": "P1 Brutal Rain"
+    },
+    {
+      "Ability": 45875,
+      "Time": 61,
+      "IsPhase": false,
+      "Label": "P1 Sadistic Screech"
+    },
+    {
+      "Ability": 45927,
+      "Time": 69,
+      "IsPhase": false,
+      "Label": "P1 Dead Wake"
+    },
+    {
+      "Ability": 46854,
+      "Time": 76,
+      "IsPhase": false,
+      "Label": "P1 Coffinfiller"
+    },
+    {
+      "Ability": 45929,
+      "Time": 94,
+      "IsPhase": false,
+      "Label": "P1 Coffinfiller"
+    },
+    {
+      "Ability": 46853,
+      "Time": 103,
+      "IsPhase": false,
+      "Label": "P1 Dead Wake"
+    },
+    {
+      "Ability": 45930,
+      "Time": 111,
+      "IsPhase": false,
+      "Label": "P1 Coffinfiller"
+    },
+    {
+      "Ability": 45875,
+      "Time": 139,
+      "IsPhase": false,
+      "Label": "P1 Sadistic Screech"
+    },
+    {
+      "Ability": 45886,
+      "Time": 148,
+      "IsPhase": false,
+      "Label": "P1 Crowd Kill"
+    },
+    {
+      "Ability": 45888,
+      "Time": 172,
+      "IsPhase": false,
+      "Label": "P1 Finale Fatale"
+    },
+    {
+      "Ability": 45939,
+      "Time": 178,
+      "IsPhase": false,
+      "Label": "P1 Pulping Pulse"
+    },
+    {
+      "Ability": 45967,
+      "Time": 191,
+      "IsPhase": false,
+      "Label": "P1 Aetherletting"
+    },
+    {
+      "Ability": 45970,
+      "Time": 194,
+      "IsPhase": false,
+      "Label": "P1 Aetherletting"
+    },
+    {
+      "Ability": 45971,
+      "Time": 208,
+      "IsPhase": false,
+      "Label": "P1 Aetherletting"
+    },
+    {
+      "Ability": 45914,
+      "Time": 219,
+      "IsPhase": false,
+      "Label": "P1 Hardcore"
+    },
+    {
+      "Ability": 45951,
+      "Time": 221,
+      "IsPhase": false,
+      "Label": "P1 Hardcore"
+    },
+    {
+      "Ability": 45939,
+      "Time": 226,
+      "IsPhase": false,
+      "Label": "P1 Pulping Pulse"
+    },
+    {
+      "Ability": 45898,
+      "Time": 231,
+      "IsPhase": false,
+      "Label": "P1 Vamp Stomp"
+    },
+    {
+      "Ability": 45917,
+      "Time": 257,
+      "IsPhase": false,
+      "Label": "P1 Brutal Rain"
+    },
+    {
+      "Ability": 45892,
+      "Time": 269,
+      "IsPhase": false,
+      "Label": "P1 Insatiable Thirst"
+    },
+    {
+      "Ability": 45875,
+      "Time": 284,
+      "IsPhase": false,
+      "Label": "P1 Sadistic Screech"
+    },
+    {
+      "Ability": 45963,
+      "Time": 297,
+      "IsPhase": false,
+      "Label": "P1 Plummet"
+    },
+    {
+      "Ability": 45956,
+      "Time": 306,
+      "IsPhase": false,
+      "Label": "P1 Killer Voice"
+    },
+    {
+      "Ability": 45963,
+      "Time": 316,
+      "IsPhase": false,
+      "Label": "P1 Plummet"
+    },
+    {
+      "Ability": 45956,
+      "Time": 324,
+      "IsPhase": false,
+      "Label": "P1 Killer Voice"
+    },
+    {
+      "Ability": 45963,
+      "Time": 334,
+      "IsPhase": false,
+      "Label": "P1 Plummet"
+    },
+    {
+      "Ability": 45875,
+      "Time": 357,
+      "IsPhase": false,
+      "Label": "P1 Sadistic Screech"
+    },
+    {
+      "Ability": 45886,
+      "Time": 367,
+      "IsPhase": false,
+      "Label": "P1 Crowd Kill"
+    },
+    {
+      "Ability": 45889,
+      "Time": 390,
+      "IsPhase": false,
+      "Label": "P1 Finale Fatale"
+    },
+    {
+      "Ability": 45939,
+      "Time": 396,
+      "IsPhase": false,
+      "Label": "P1 Pulping Pulse"
+    },
+    {
+      "Ability": 45973,
+      "Time": 401,
+      "IsPhase": false,
+      "Label": "P1 Hell in a Cell"
+    },
+    {
+      "Ability": 45974,
+      "Time": 402,
+      "IsPhase": false,
+      "Label": "P1 Bloody Bondage"
+    },
+    {
+      "Ability": 45980,
+      "Time": 409,
+      "IsPhase": false,
+      "Label": "P1 Ultrasonic Spread"
+    },
+    {
+      "Ability": 45981,
+      "Time": 416,
+      "IsPhase": false,
+      "Label": "P1 Ultrasonic Amp"
+    },
+    {
+      "Ability": 45973,
+      "Time": 423,
+      "IsPhase": false,
+      "Label": "P1 Hell in a Cell"
+    },
+    {
+      "Ability": 45974,
+      "Time": 424,
+      "IsPhase": false,
+      "Label": "P1 Bloody Bondage"
+    },
+    {
+      "Ability": 45980,
+      "Time": 439,
+      "IsPhase": false,
+      "Label": "P1 Ultrasonic Spread"
+    },
+    {
+      "Ability": 45939,
+      "Time": 445,
+      "IsPhase": false,
+      "Label": "P1 Pulping Pulse"
+    },
+    {
+      "Ability": 45984,
+      "Time": 454,
+      "IsPhase": false,
+      "Label": "P1 Undead Deathmatch"
+    },
+    {
+      "Ability": 45985,
+      "Time": 455,
+      "IsPhase": false,
+      "Label": "P1 Bloody Bondage"
+    },
+    {
+      "Ability": 45988,
+      "Time": 461,
+      "IsPhase": false,
+      "Label": "P1 Sanguine Scratch"
+    },
+    {
+      "Ability": 45989,
+      "Time": 480,
+      "IsPhase": false,
+      "Label": "P1 Sanguine Scratch"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 11,
+      "Mechanic": "Killer Voice",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Hardcore",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Hardcore",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Blast Beat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 37,
+      "Mechanic": "Blast Beat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 40,
+      "Mechanic": "Blast Beat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 46,
+      "Mechanic": "Brutal Rain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Sadistic Screech",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Sadistic Screech",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 148,
+      "Mechanic": "Crowd Kill",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Crowd Kill",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Finale Fatale",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Aetherletting",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 198,
+      "Mechanic": "Aetherletting",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Aetherletting",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Hardcore",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Hardcore",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Blast Beat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 237,
+      "Mechanic": "Blast Beat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 257,
+      "Mechanic": "Brutal Rain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 261,
+      "Mechanic": "Brutal Rain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 269,
+      "Mechanic": "Insatiable Thirst",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Insatiable Thirst",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 284,
+      "Mechanic": "Sadistic Screech",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 289,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 291,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 297,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 297,
+      "Mechanic": "Plummet",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 304,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 306,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 306,
+      "Mechanic": "Killer Voice",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 309,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 316,
+      "Mechanic": "Plummet",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 319,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 321,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 323,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 324,
+      "Mechanic": "Killer Voice",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 326,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 329,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 332,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Plummet",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 336,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 338,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 341,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 345,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 354,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Gravegrazer",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Sadistic Screech",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Crowd Kill",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Finale Fatale",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 402,
+      "Mechanic": "Bloody Bondage",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Blood Lash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 408,
+      "Mechanic": "Blood Lash",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 409,
+      "Mechanic": "Ultrasonic Spread",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 411,
+      "Mechanic": "Blood Lash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Blood Lash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Ultrasonic Amp",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 417,
+      "Mechanic": "Blood Lash",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 424,
+      "Mechanic": "Bloody Bondage",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 427,
+      "Mechanic": "Blood Lash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 430,
+      "Mechanic": "Blood Lash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 432,
+      "Mechanic": "Ultrasonic Amp",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 433,
+      "Mechanic": "Blood Lash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 439,
+      "Mechanic": "Ultrasonic Spread",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Undead Deathmatch",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 455,
+      "Mechanic": "Bloody Bondage",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 490,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

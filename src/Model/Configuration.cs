@@ -13,6 +13,9 @@ public class Configuration : IPluginConfiguration
     // Last plugin version whose "What's New" panel was dismissed.
     public string LastWhatsNew { get; set; } = "";
 
+    // Whether to show official mechanics that have no actions assigned
+    public bool ShowEmptyMechanics { get; set; } = true;
+
     // Your fight plans.
     [Newtonsoft.Json.JsonIgnore]
     public List<FightProfile> Fights { get; set; } = new();
@@ -90,16 +93,37 @@ public class Configuration : IPluginConfiguration
     // Built-ins already auto-added, so a deleted one stays gone.
     public List<uint> SeededTerritories { get; set; } = new();
 
-    // "Auto" follows your current job; otherwise a job abbreviation override.
-    public string JobSelection { get; set; } = "Auto";
-
     // Global sheet-role pick, applied to every built-in fight.
     public string RoleSelection { get; set; } = "";
+
+    // Toggle to use the "Setup" preferences instead of manual overrides
+    public bool UseSetup { get; set; } = true;
+
+    // Legacy role preferences, preserved for smooth JSON loading.
+    public Dictionary<JobRole, string> GlobalRolePreferences { get; set; } = new();
+
+    // Preferences per specific job (e.g., RDM -> M2, PCT -> D4)
+    public Dictionary<string, string> JobSlotPreferences { get; set; } = new();
 
     // Seconds of lead time the warning appears before the mit time.
     public float WarningSeconds { get; set; } = 3f;
     // How long the call stays on screen after its time passes.
     public float HoldSeconds { get; set; } = 2f;
+    // The same lead, for a call the solver gave a real usage window. Its own
+    // setting because the two are different asks: a plain call is one moment
+    // you want warning of, a windowed call is a span you want to be inside.
+    public float UseWindowLeadSeconds { get; set; } = 2f;
+
+    // How early a call appears. A per-line override wins; otherwise a windowed
+    // press leads by its own setting.
+    public float LeadFor(MitPress p)
+        => p.SourceLine.LeadOverride > 0f ? p.SourceLine.LeadOverride
+           : p.HasWindow ? UseWindowLeadSeconds : WarningSeconds;
+
+    // How long a call lingers once its moment has passed. A windowed press
+    // never lingers: the window IS its time on screen, so holding it past the
+    // close would go on saying "press this" after the chance to press it went.
+    public float HoldFor(MitPress p) => p.HasWindow ? 0f : HoldSeconds;
 
     // Only run the overlay while in the fight's territory.
     public bool OnlyInTargetTerritory { get; set; } = true;
@@ -405,11 +429,15 @@ public class Configuration : IPluginConfiguration
     // When the config last hit disk, for a truthful saved status.
     public static DateTime LastSavedAt { get; private set; } = DateTime.MinValue;
 
+    [Newtonsoft.Json.JsonIgnore]
+    public Action? PlanMutated;
+
     // Settings AND plans.
     public void Save()
     {
         SaveSettings();
         PlanStore.Save(Fights);
+        PlanMutated?.Invoke();
     }
 
     // Bumped on every change, so watchers can skip work when nothing has changed.

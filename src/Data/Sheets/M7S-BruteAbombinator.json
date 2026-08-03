@@ -1,0 +1,2926 @@
+{
+  "TerritoryId": 1261,
+  "Name": "M7S - Brute Abombinator",
+  "Timeline": [
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Smash Here"
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Spore Sac"
+    },
+    {
+      "Time": 72,
+      "Mechanic": "Roots of Evil"
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special"
+    },
+    {
+      "Time": 186,
+      "Mechanic": "Brutish Swing"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink"
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Sporesplosion"
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines"
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Brutal Smash"
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Brutish Swing"
+    },
+    {
+      "Time": 335,
+      "Mechanic": "Electrogenetic Force"
+    },
+    {
+      "Time": 353,
+      "Mechanic": "Powerslam"
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 433,
+      "Mechanic": "Slaminator"
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Debris Deathmatch"
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp"
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Tendrils of Terror"
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds"
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds"
+    },
+    {
+      "Time": 613,
+      "Mechanic": "Slaminator"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing"
+    },
+    {
+      "Time": 35,
+      "Mechanic": "Brutal Smash"
+    },
+    {
+      "Time": 78,
+      "Mechanic": "Brutal Smash"
+    },
+    {
+      "Time": 94,
+      "Mechanic": "Quarry Swamp"
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer"
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Electrogenetic Force"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Sporesplosion"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror"
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Lashing Lariat"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror"
+    },
+    {
+      "Time": 530,
+      "Mechanic": "Sinister Seeds"
+    },
+    {
+      "Time": 600,
+      "Mechanic": "Brutish Swing"
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Impact"
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Pulp Smash"
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Abominable Blink"
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing"
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Glower Power"
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Spore Sac"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tendrils of Terror"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Smash Here",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 35,
+      "Mechanic": "Brutal Smash",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Spore Sac",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Spore Sac",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Spore Sac",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Spore Sac",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Spore Sac",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Impact",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 72,
+      "Mechanic": "Roots of Evil",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 78,
+      "Mechanic": "Brutal Smash",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 78,
+      "Mechanic": "Brutal Smash",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 94,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 94,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Pulp Smash",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Pulp Smash",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Pulp Smash",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Pulp Smash",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Pulp Smash",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 186,
+      "Mechanic": "Brutish Swing",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Electrogenetic Force",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Electrogenetic Force",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Electrogenetic Force",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Electrogenetic Force",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Electrogenetic Force",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Sporesplosion",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Sporesplosion",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Sporesplosion",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Abominable Blink",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Brutal Smash",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Brutal Smash",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Brutal Smash",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Brutish Swing",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Glower Power",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Glower Power",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Glower Power",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 335,
+      "Mechanic": "Electrogenetic Force",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 335,
+      "Mechanic": "Electrogenetic Force",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 353,
+      "Mechanic": "Powerslam",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 353,
+      "Mechanic": "Powerslam",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 353,
+      "Mechanic": "Powerslam",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Lashing Lariat",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 433,
+      "Mechanic": "Slaminator",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Debris Deathmatch",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Debris Deathmatch",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Debris Deathmatch",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Debris Deathmatch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Debris Deathmatch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Spore Sac",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Spore Sac",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Spore Sac",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 530,
+      "Mechanic": "Sinister Seeds",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 530,
+      "Mechanic": "Sinister Seeds",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 530,
+      "Mechanic": "Sinister Seeds",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 582,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 600,
+      "Mechanic": "Brutish Swing",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tendrils of Terror",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 613,
+      "Mechanic": "Slaminator",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 613,
+      "Mechanic": "Slaminator",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 42331,
+      "Time": 11,
+      "IsPhase": true,
+      "Label": "P1 Brutal Impact"
+    },
+    {
+      "Ability": 42334,
+      "Time": 24,
+      "IsPhase": false,
+      "Label": "P1 Stoneringer"
+    },
+    {
+      "Ability": 42345,
+      "Time": 44,
+      "IsPhase": false,
+      "Label": "P1 Spore Sac"
+    },
+    {
+      "Ability": 42346,
+      "Time": 49,
+      "IsPhase": false,
+      "Label": "P1 Spore Sac"
+    },
+    {
+      "Ability": 42349,
+      "Time": 53,
+      "IsPhase": false,
+      "Label": "P1 Sinister Seeds"
+    },
+    {
+      "Ability": 42347,
+      "Time": 55,
+      "IsPhase": false,
+      "Label": "P1 Pollen"
+    },
+    {
+      "Ability": 42353,
+      "Time": 58,
+      "IsPhase": false,
+      "Label": "P1 Sinister Seeds"
+    },
+    {
+      "Ability": 42350,
+      "Time": 62,
+      "IsPhase": false,
+      "Label": "P1 Sinister Seeds"
+    },
+    {
+      "Ability": 42351,
+      "Time": 66,
+      "IsPhase": false,
+      "Label": "P1 Tendrils of Terror"
+    },
+    {
+      "Ability": 42354,
+      "Time": 72,
+      "IsPhase": false,
+      "Label": "P1 Roots of Evil"
+    },
+    {
+      "Ability": 43278,
+      "Time": 79,
+      "IsPhase": false,
+      "Label": "P1 Crossing Crosswinds"
+    },
+    {
+      "Ability": 42357,
+      "Time": 94,
+      "IsPhase": false,
+      "Label": "P1 Quarry Swamp"
+    },
+    {
+      "Ability": 42358,
+      "Time": 106,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 42333,
+      "Time": 109,
+      "IsPhase": false,
+      "Label": "P1 Stoneringer"
+    },
+    {
+      "Ability": 42358,
+      "Time": 111,
+      "IsPhase": false,
+      "Label": "P1 Explosion"
+    },
+    {
+      "Ability": 42336,
+      "Time": 118,
+      "IsPhase": false,
+      "Label": "P1 Smash There"
+    },
+    {
+      "Ability": 42359,
+      "Time": 126,
+      "IsPhase": false,
+      "Label": "P1 Pulp Smash"
+    },
+    {
+      "Ability": 42362,
+      "Time": 130,
+      "IsPhase": false,
+      "Label": "P1 It Came from the Dirt"
+    },
+    {
+      "Ability": 42364,
+      "Time": 149,
+      "IsPhase": false,
+      "Label": "P1 Neo Bombarian Special"
+    },
+    {
+      "Ability": 42381,
+      "Time": 181,
+      "IsPhase": false,
+      "Label": "P1 Brutish Swing"
+    },
+    {
+      "Ability": 42386,
+      "Time": 186,
+      "IsPhase": false,
+      "Label": "P1 Brutish Swing"
+    },
+    {
+      "Ability": 42373,
+      "Time": 189,
+      "IsPhase": false,
+      "Label": "P1 Glower Power"
+    },
+    {
+      "Ability": 42375,
+      "Time": 196,
+      "IsPhase": false,
+      "Label": "P1 Revenge of the Vines"
+    },
+    {
+      "Ability": 42376,
+      "Time": 207,
+      "IsPhase": false,
+      "Label": "P1 Thorny Deathmatch"
+    },
+    {
+      "Ability": 42377,
+      "Time": 222,
+      "IsPhase": false,
+      "Label": "P1 Abominable Blink"
+    },
+    {
+      "Ability": 42378,
+      "Time": 232,
+      "IsPhase": false,
+      "Label": "P1 Sporesplosion"
+    },
+    {
+      "Ability": 42379,
+      "Time": 238,
+      "IsPhase": false,
+      "Label": "P1 Sporesplosion"
+    },
+    {
+      "Ability": 42373,
+      "Time": 251,
+      "IsPhase": false,
+      "Label": "P1 Glower Power"
+    },
+    {
+      "Ability": 42375,
+      "Time": 258,
+      "IsPhase": false,
+      "Label": "P1 Revenge of the Vines"
+    },
+    {
+      "Ability": 42390,
+      "Time": 267,
+      "IsPhase": false,
+      "Label": "P1 Demolition Deathmatch"
+    },
+    {
+      "Ability": 42377,
+      "Time": 281,
+      "IsPhase": false,
+      "Label": "P1 Abominable Blink"
+    },
+    {
+      "Ability": 42391,
+      "Time": 289,
+      "IsPhase": false,
+      "Label": "P1 Strange Seeds"
+    },
+    {
+      "Ability": 42367,
+      "Time": 296,
+      "IsPhase": false,
+      "Label": "P1 Stoneringer"
+    },
+    {
+      "Ability": 42395,
+      "Time": 320,
+      "IsPhase": false,
+      "Label": "P1 Killer Seeds"
+    },
+    {
+      "Ability": 42396,
+      "Time": 325,
+      "IsPhase": false,
+      "Label": "P1 Tendrils of Terror"
+    },
+    {
+      "Ability": 42386,
+      "Time": 330,
+      "IsPhase": false,
+      "Label": "P1 Brutish Swing"
+    },
+    {
+      "Ability": 42373,
+      "Time": 334,
+      "IsPhase": false,
+      "Label": "P1 Glower Power"
+    },
+    {
+      "Ability": 42375,
+      "Time": 341,
+      "IsPhase": false,
+      "Label": "P1 Revenge of the Vines"
+    },
+    {
+      "Ability": 42398,
+      "Time": 353,
+      "IsPhase": false,
+      "Label": "P1 Powerslam"
+    },
+    {
+      "Ability": 42331,
+      "Time": 382,
+      "IsPhase": false,
+      "Label": "P1 Brutal Impact"
+    },
+    {
+      "Ability": 42400,
+      "Time": 397,
+      "IsPhase": false,
+      "Label": "P1 Stoneringer 2: Stoneringers"
+    },
+    {
+      "Ability": 42402,
+      "Time": 406,
+      "IsPhase": false,
+      "Label": "P1 Brutish Swing"
+    },
+    {
+      "Ability": 42407,
+      "Time": 416,
+      "IsPhase": false,
+      "Label": "P1 Lashing Lariat"
+    },
+    {
+      "Ability": 42411,
+      "Time": 421,
+      "IsPhase": false,
+      "Label": "P1 Brutish Swing"
+    },
+    {
+      "Ability": 43338,
+      "Time": 427,
+      "IsPhase": false,
+      "Label": "P1 Glower Power"
+    },
+    {
+      "Ability": 42413,
+      "Time": 433,
+      "IsPhase": false,
+      "Label": "P1 Slaminator"
+    },
+    {
+      "Ability": 42331,
+      "Time": 443,
+      "IsPhase": false,
+      "Label": "P1 Brutal Impact"
+    },
+    {
+      "Ability": 42334,
+      "Time": 455,
+      "IsPhase": false,
+      "Label": "P1 Stoneringer"
+    },
+    {
+      "Ability": 42416,
+      "Time": 478,
+      "IsPhase": false,
+      "Label": "P1 Debris Deathmatch"
+    },
+    {
+      "Ability": 42345,
+      "Time": 483,
+      "IsPhase": false,
+      "Label": "P1 Spore Sac"
+    },
+    {
+      "Ability": 42346,
+      "Time": 488,
+      "IsPhase": false,
+      "Label": "P1 Spore Sac"
+    },
+    {
+      "Ability": 42347,
+      "Time": 494,
+      "IsPhase": false,
+      "Label": "P1 Pollen"
+    },
+    {
+      "Ability": 42395,
+      "Time": 497,
+      "IsPhase": false,
+      "Label": "P1 Killer Seeds"
+    },
+    {
+      "Ability": 42396,
+      "Time": 502,
+      "IsPhase": false,
+      "Label": "P1 Tendrils of Terror"
+    },
+    {
+      "Ability": 42357,
+      "Time": 514,
+      "IsPhase": false,
+      "Label": "P1 Quarry Swamp"
+    },
+    {
+      "Ability": 42349,
+      "Time": 526,
+      "IsPhase": false,
+      "Label": "P1 Sinister Seeds"
+    },
+    {
+      "Ability": 42353,
+      "Time": 530,
+      "IsPhase": false,
+      "Label": "P1 Sinister Seeds"
+    },
+    {
+      "Ability": 42350,
+      "Time": 534,
+      "IsPhase": false,
+      "Label": "P1 Sinister Seeds"
+    },
+    {
+      "Ability": 42351,
+      "Time": 540,
+      "IsPhase": false,
+      "Label": "P1 Tendrils of Terror"
+    },
+    {
+      "Ability": 42354,
+      "Time": 540,
+      "IsPhase": false,
+      "Label": "P1 Roots of Evil"
+    },
+    {
+      "Ability": 42359,
+      "Time": 542,
+      "IsPhase": false,
+      "Label": "P1 Pulp Smash"
+    },
+    {
+      "Ability": 42362,
+      "Time": 546,
+      "IsPhase": false,
+      "Label": "P1 It Came from the Dirt"
+    },
+    {
+      "Ability": 42331,
+      "Time": 552,
+      "IsPhase": false,
+      "Label": "P1 Brutal Impact"
+    },
+    {
+      "Ability": 43274,
+      "Time": 582,
+      "IsPhase": false,
+      "Label": "P1 Strange Seeds"
+    },
+    {
+      "Ability": 42402,
+      "Time": 589,
+      "IsPhase": false,
+      "Label": "P1 Brutish Swing"
+    },
+    {
+      "Ability": 42403,
+      "Time": 600,
+      "IsPhase": false,
+      "Label": "P1 Brutish Swing"
+    },
+    {
+      "Ability": 42413,
+      "Time": 613,
+      "IsPhase": false,
+      "Label": "P1 Slaminator"
+    },
+    {
+      "Ability": 42333,
+      "Time": 619,
+      "IsPhase": false,
+      "Label": "P1 Stoneringer"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 11,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 24,
+      "Mechanic": "Stoneringer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Smash Here",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 35,
+      "Mechanic": "Brutal Smash",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 44,
+      "Mechanic": "Spore Sac",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Spore Sac",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Sinister Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 55,
+      "Mechanic": "Pollen",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Sinister Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 66,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 72,
+      "Mechanic": "Roots of Evil",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 76,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 78,
+      "Mechanic": "Brutal Smash",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Crossing Crosswinds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 94,
+      "Mechanic": "Quarry Swamp",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 109,
+      "Mechanic": "Stoneringer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 119,
+      "Mechanic": "Smash Here",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Pulp Smash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 130,
+      "Mechanic": "The Unpotted",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 149,
+      "Mechanic": "Neo Bombarian Special",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Grappling Ivy",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 172,
+      "Mechanic": "Stoneringer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 186,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Electrogenetic Force",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Revenge of the Vines",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 207,
+      "Mechanic": "Thorny Deathmatch",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Abominable Blink",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 232,
+      "Mechanic": "Sporesplosion",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Sporesplosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 244,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 252,
+      "Mechanic": "Electrogenetic Force",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Revenge of the Vines",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Demolition Deathmatch",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Abominable Blink",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 289,
+      "Mechanic": "Strange Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Brutal Smash",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 295,
+      "Mechanic": "Strange Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 296,
+      "Mechanic": "Stoneringer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 300,
+      "Mechanic": "Strange Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Strange Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Strange Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 320,
+      "Mechanic": "Killer Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 335,
+      "Mechanic": "Electrogenetic Force",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 341,
+      "Mechanic": "Revenge of the Vines",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 353,
+      "Mechanic": "Powerslam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 406,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 411,
+      "Mechanic": "Revenge of the Vines",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Lashing Lariat",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Electrogenetic Force",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 433,
+      "Mechanic": "Slaminator",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 455,
+      "Mechanic": "Stoneringer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 483,
+      "Mechanic": "Spore Sac",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 488,
+      "Mechanic": "Spore Sac",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 494,
+      "Mechanic": "Pollen",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Killer Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 502,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Quarry Swamp",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Sinister Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 530,
+      "Mechanic": "Sinister Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 540,
+      "Mechanic": "Roots of Evil",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 542,
+      "Mechanic": "Pulp Smash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 546,
+      "Mechanic": "The Unpotted",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 552,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Strange Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 589,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 593,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 600,
+      "Mechanic": "Brutish Swing",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 602,
+      "Mechanic": "Strange Seeds",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tendrils of Terror",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 613,
+      "Mechanic": "Slaminator",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 619,
+      "Mechanic": "Stoneringer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

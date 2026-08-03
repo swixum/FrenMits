@@ -1,0 +1,4981 @@
+{
+  "TerritoryId": 1363,
+  "Name": "Dancing Mad (UMAD)",
+  "Timeline": [
+    {
+      "Time": 16,
+      "Mechanic": "Revolting Ruin III"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic"
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Wave Cannon"
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Double-Trouble Trap"
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment"
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Hyperdrive"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Gravitas II (Part I)"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Revolting Ruin III"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Gravitas II (Part II)"
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap"
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment"
+    },
+    {
+      "Time": 135,
+      "Mechanic": "Hyperdrive"
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Double-Trouble Trap"
+    },
+    {
+      "Time": 173,
+      "Mechanic": "Indulgent Will"
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Mystery Magic"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken"
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Towers I"
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Towers II (Past/Future's End)"
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Towers III (All Things Ending)"
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Towers IV (Past/Future's End)"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Towers V (All Things Ending)"
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)"
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Towers VII (All Things Ending)"
+    },
+    {
+      "Time": 323,
+      "Mechanic": "Towers VIII (Past/Future's End)"
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction"
+    },
+    {
+      "Time": 378,
+      "Mechanic": "Ultimate Embrace"
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)"
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami"
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Thunder III (1st Set)"
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Stray Flames/Tsunami"
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster"
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Vacuum Wave"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Cyclone"
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Thunder III (2nd Set)"
+    },
+    {
+      "Time": 545,
+      "Mechanic": "The Decisive Battle"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Thunder III (3rd Set)"
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake"
+    },
+    {
+      "Time": 578,
+      "Mechanic": "Shocking Impact/Shockwave"
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Thunder III (4th Set)"
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave"
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)"
+    },
+    {
+      "Time": 626,
+      "Mechanic": "Black Holes II (5th Tether Set)"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Black Holes III (6th Tether Set)"
+    },
+    {
+      "Time": 677,
+      "Mechanic": "Shocking Impact/Shockwave"
+    },
+    {
+      "Time": 691,
+      "Mechanic": "Black Holes IV (10th Tether Set)"
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole"
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross"
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Inferno/Tsunami"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Grand Cross"
+    },
+    {
+      "Time": 783,
+      "Mechanic": "Inferno/Tsunami"
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross"
+    },
+    {
+      "Time": 805,
+      "Mechanic": "Flood of Naught"
+    },
+    {
+      "Time": 815,
+      "Mechanic": "Death Bolt/Wave"
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge"
+    },
+    {
+      "Time": 840,
+      "Mechanic": "Death Bolt/Wave"
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Ultima Upsurge"
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater"
+    },
+    {
+      "Time": 916,
+      "Mechanic": "Fell Forces (3x)"
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood"
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra"
+    },
+    {
+      "Time": 943,
+      "Mechanic": "Flare/Holy"
+    },
+    {
+      "Time": 953,
+      "Mechanic": "Fell Forces (2x)"
+    },
+    {
+      "Time": 963,
+      "Mechanic": "Celestriad"
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater"
+    },
+    {
+      "Time": 998,
+      "Mechanic": "Fell Forces (2x)"
+    },
+    {
+      "Time": 1024,
+      "Mechanic": "Stray Entropy"
+    },
+    {
+      "Time": 1033,
+      "Mechanic": "Maddening Orchestra"
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Flare/Holy"
+    },
+    {
+      "Time": 1041,
+      "Mechanic": "Fell Forces I"
+    },
+    {
+      "Time": 1044,
+      "Mechanic": "Fell Forces II"
+    },
+    {
+      "Time": 1045,
+      "Mechanic": "Fell Forces (3x)"
+    },
+    {
+      "Time": 1047,
+      "Mechanic": "Fell Forces III"
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)"
+    },
+    {
+      "Time": 1067,
+      "Mechanic": "Forsaken Bonds (2nd Hit)"
+    },
+    {
+      "Time": 1070,
+      "Mechanic": "Forsaken (3rd Hit)"
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)"
+    },
+    {
+      "Time": 1084,
+      "Mechanic": "Forsaken Bonds (6th Hit)"
+    },
+    {
+      "Time": 1087,
+      "Mechanic": "Forsaken (7th Hit)"
+    },
+    {
+      "Time": 1092,
+      "Mechanic": "Forsaken Bonds (8th Hit)"
+    },
+    {
+      "Time": 1126,
+      "Mechanic": "Forsaken Null"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 16,
+      "Mechanic": "Revolting Ruin III",
+      "Slot": "H1",
+      "Action": "Assist MT",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Revolting Ruin III",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Revolting Ruin III",
+      "Slot": "OT",
+      "Action": "Buddy Mit + Provoke During Castbar"
+    },
+    {
+      "Time": 19,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 33,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "MT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "DRK",
+        "GNB"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Mystery Magic",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Wave Cannon",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Wave Cannon",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Wave Cannon",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Wave Cannon",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Wave Cannon",
+      "Slot": "MT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "WAR",
+        "PLD"
+      ]
+    },
+    {
+      "Time": 48,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Action": "Nature's Minne",
+      "Jobs": [
+        "BRD"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Action": "Passage of Arms",
+      "Jobs": [
+        "PLD"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Hyperdrive",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Hyperdrive",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 79,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Gravitas II (Part I)",
+      "Action": "Mantra",
+      "Jobs": [
+        "MNK"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Gravitas II (Part I)",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Gravitas II (Part I)",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 91,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Revolting Ruin III",
+      "Slot": "MT",
+      "Action": "Provoke During Castbar"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Revolting Ruin III",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Gravitas II (Part II)",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Gravitas II (Part II)",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Gravitas II (Part II)",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Gravitas II (Part II)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Gravitas II (Part II)",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 135,
+      "Mechanic": "Hyperdrive",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 139,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 155,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Double-Trouble Trap",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 168,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 173,
+      "Mechanic": "Indulgent Will",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 173,
+      "Mechanic": "Indulgent Will",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 173,
+      "Mechanic": "Indulgent Will",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 173,
+      "Mechanic": "Indulgent Will",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Mystery Magic",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Mystery Magic",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "H1",
+      "Action": "Assist Tanks",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 222,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Action": "Mantra",
+      "Jobs": [
+        "MNK"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Towers I",
+      "Action": "Nature's Minne",
+      "Jobs": [
+        "BRD"
+      ]
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Towers I",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Towers I",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Towers I",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Towers I",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Towers II (Past/Future's End)",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 261,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Towers III (All Things Ending)",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Towers III (All Things Ending)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Towers III (All Things Ending)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Towers III (All Things Ending)",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Towers III (All Things Ending)",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 273,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Towers V (All Things Ending)",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Towers V (All Things Ending)",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Towers VII (All Things Ending)",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Towers VII (All Things Ending)",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Towers VII (All Things Ending)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Towers VII (All Things Ending)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 321,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 323,
+      "Mechanic": "Towers VIII (Past/Future's End)",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Action": "Passage of Arms",
+      "Jobs": [
+        "PLD"
+      ]
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgment",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "MT",
+      "Action": "Rampart + 40% + 90s (Close)"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Slot": "OT",
+      "Action": "Rampart + 40% + 90s (Far)"
+    },
+    {
+      "Time": 378,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 378,
+      "Mechanic": "Ultimate Embrace",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 448,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Action": "Mantra",
+      "Jobs": [
+        "MNK"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Action": "Nature's Minne",
+      "Jobs": [
+        "BRD"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Slot": "M1",
+      "Action": "Feint (Chaos)"
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 461,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 473,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Thunder III (1st Set)",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Thunder III (1st Set)",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Thunder III (1st Set)",
+      "Slot": "MT",
+      "Action": "Rampart + 90s + Short Mit (First Hit)"
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Thunder III (1st Set)",
+      "Slot": "OT",
+      "Action": "Rampart + 90s + Short Mit (Second Hit)"
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Thunder III (1st Set)",
+      "Slot": "R2",
+      "Action": "Addle (Exdeath)"
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 506,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "M2",
+      "Action": "Feint (Chaos)"
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Vacuum Wave",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Vacuum Wave",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Vacuum Wave",
+      "Slot": "MT",
+      "Action": "LB3"
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Vacuum Wave",
+      "Slot": "OT",
+      "Action": "LB3"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Cyclone",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Cyclone",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 520,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 535,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Thunder III (2nd Set)",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 545,
+      "Mechanic": "The Decisive Battle",
+      "Action": "Mantra",
+      "Jobs": [
+        "MNK"
+      ]
+    },
+    {
+      "Time": 545,
+      "Mechanic": "The Decisive Battle",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 545,
+      "Mechanic": "The Decisive Battle",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 545,
+      "Mechanic": "The Decisive Battle",
+      "Slot": "OT",
+      "Action": "Reprisal (Exdeath)"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Thunder III (3rd Set)",
+      "Slot": "MT",
+      "Action": "40% + Short Mit (Second Hit)"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Thunder III (3rd Set)",
+      "Slot": "OT",
+      "Action": "40% + Short Mit (First Hit)"
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Slot": "M1",
+      "Action": "Feint (Chaos)"
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Slot": "MT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "DRK",
+        "GNB"
+      ]
+    },
+    {
+      "Time": 567,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 578,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 578,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 578,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "MT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "WAR",
+        "PLD"
+      ]
+    },
+    {
+      "Time": 578,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 580,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Thunder III (4th Set)",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Action": "Passage of Arms",
+      "Jobs": [
+        "PLD"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "OT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "DRK",
+        "GNB"
+      ]
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)",
+      "Slot": "OT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "WAR",
+        "PLD"
+      ]
+    },
+    {
+      "Time": 626,
+      "Mechanic": "Black Holes II (5th Tether Set)",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 627,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Action": "Nature's Minne",
+      "Jobs": [
+        "BRD"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "M2",
+      "Action": "Feint (Chaos)"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "MT",
+      "Action": "Rampart + 90s + Short Mit (Second Hit)"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "OT",
+      "Action": "Rampart + 90s + Short Mit (First Hit)"
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Slot": "R2",
+      "Action": "Addle (Exdeath)"
+    },
+    {
+      "Time": 641,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Black Holes III (6th Tether Set)",
+      "Action": "Mantra",
+      "Jobs": [
+        "MNK"
+      ]
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Black Holes III (6th Tether Set)",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Black Holes III (6th Tether Set)",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 654,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 677,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 677,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 677,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 677,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 677,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 687,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 691,
+      "Mechanic": "Black Holes IV (10th Tether Set)",
+      "Slot": "MT",
+      "Action": "40% + Short Mit"
+    },
+    {
+      "Time": 691,
+      "Mechanic": "Black Holes IV (10th Tether Set)",
+      "Slot": "OT",
+      "Action": "40% + Short Mit"
+    },
+    {
+      "Time": 701,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Slot": "M1",
+      "Action": "Feint (Chaos)"
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 713,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 764,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Inferno/Tsunami",
+      "Action": "Mantra",
+      "Jobs": [
+        "MNK"
+      ]
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Inferno/Tsunami",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Grand Cross",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Grand Cross",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 781,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 783,
+      "Mechanic": "Inferno/Tsunami",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 783,
+      "Mechanic": "Inferno/Tsunami",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 783,
+      "Mechanic": "Inferno/Tsunami",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 783,
+      "Mechanic": "Inferno/Tsunami",
+      "Slot": "OT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "DRK",
+        "GNB"
+      ]
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross",
+      "Action": "Nature's Minne",
+      "Jobs": [
+        "BRD"
+      ]
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross",
+      "Action": "Passage of Arms",
+      "Jobs": [
+        "PLD"
+      ]
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross",
+      "Slot": "OT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "WAR",
+        "PLD"
+      ]
+    },
+    {
+      "Time": 805,
+      "Mechanic": "Flood of Naught",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 805,
+      "Mechanic": "Flood of Naught",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 805,
+      "Mechanic": "Flood of Naught",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 805,
+      "Mechanic": "Flood of Naught",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 811,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 815,
+      "Mechanic": "Death Bolt/Wave",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 827,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 839,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 840,
+      "Mechanic": "Death Bolt/Wave",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Ultima Upsurge",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 896,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 904,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Action": "Mantra",
+      "Jobs": [
+        "MNK"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 916,
+      "Mechanic": "Fell Forces (3x)",
+      "Slot": "MT",
+      "Action": "40% + Short"
+    },
+    {
+      "Time": 916,
+      "Mechanic": "Fell Forces (3x)",
+      "Slot": "OT",
+      "Action": "40% + Short Mit"
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Action": "Nature's Minne",
+      "Jobs": [
+        "BRD"
+      ]
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Action": "Passage of Arms",
+      "Jobs": [
+        "PLD"
+      ]
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "MT",
+      "Action": "Rampart + Short Mit + Provoke"
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "OT",
+      "Action": "Rampart + Short Mit"
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 943,
+      "Mechanic": "Flare/Holy",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 943,
+      "Mechanic": "Flare/Holy",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 953,
+      "Mechanic": "Fell Forces (2x)",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 963,
+      "Mechanic": "Celestriad",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 963,
+      "Mechanic": "Celestriad",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 963,
+      "Mechanic": "Celestriad",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 966,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 996,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 998,
+      "Mechanic": "Fell Forces (2x)",
+      "Slot": "MT",
+      "Action": "90s + Short Mit"
+    },
+    {
+      "Time": 998,
+      "Mechanic": "Fell Forces (2x)",
+      "Slot": "OT",
+      "Action": "90s + Short Mit"
+    },
+    {
+      "Time": 1009,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 1021,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 1024,
+      "Mechanic": "Stray Entropy",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 1033,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1033,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1033,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "MT",
+      "Action": "Rampart + 40%"
+    },
+    {
+      "Time": 1033,
+      "Mechanic": "Maddening Orchestra",
+      "Slot": "OT",
+      "Action": "Rampart + 40% + Short Mit (PLD/DRK) + Provoke"
+    },
+    {
+      "Time": 1040,
+      "Mechanic": "Flare/Holy",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 1041,
+      "Mechanic": "Fell Forces I",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 1044,
+      "Mechanic": "Fell Forces II",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 1045,
+      "Mechanic": "Fell Forces (3x)",
+      "Slot": "H1",
+      "Action": "Assist Tanks",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 1047,
+      "Mechanic": "Fell Forces III",
+      "Slot": "MT",
+      "Action": "Rampart + Short Mit"
+    },
+    {
+      "Time": 1047,
+      "Mechanic": "Fell Forces III",
+      "Slot": "OT",
+      "Action": "Rampart + Short Mit"
+    },
+    {
+      "Time": 1057,
+      "Mechanic": "Summon",
+      "Action": "Garuda",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Action": "Curing Waltz",
+      "Jobs": [
+        "DNC"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Action": "Nature's Minne",
+      "Jobs": [
+        "BRD"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 1067,
+      "Mechanic": "Forsaken Bonds (2nd Hit)",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 1067,
+      "Mechanic": "Forsaken Bonds (2nd Hit)",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1067,
+      "Mechanic": "Forsaken Bonds (2nd Hit)",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1070,
+      "Mechanic": "Forsaken (3rd Hit)",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 1070,
+      "Mechanic": "Forsaken (3rd Hit)",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1070,
+      "Mechanic": "Forsaken (3rd Hit)",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1071,
+      "Mechanic": "Summon",
+      "Action": "Titan",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "OT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "DRK",
+        "GNB"
+      ]
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 1084,
+      "Mechanic": "Forsaken Bonds (6th Hit)",
+      "Slot": "OT",
+      "Action": "Party Mit",
+      "Jobs": [
+        "WAR",
+        "PLD"
+      ]
+    },
+    {
+      "Time": 1084,
+      "Mechanic": "Summon",
+      "Action": "Ifrit",
+      "Jobs": [
+        "SMN"
+      ],
+      "Hidden": true
+    },
+    {
+      "Time": 1087,
+      "Mechanic": "Forsaken (7th Hit)",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1092,
+      "Mechanic": "Forsaken Bonds (8th Hit)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 1092,
+      "Mechanic": "Forsaken Bonds (8th Hit)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1092,
+      "Mechanic": "Forsaken Bonds (8th Hit)",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1126,
+      "Mechanic": "Forsaken Null",
+      "Slot": "MT",
+      "Action": "Enrage!"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 50179,
+      "Time": 16,
+      "IsPhase": true,
+      "Label": "P1 Revolting Ruin III"
+    },
+    {
+      "Ability": 47764,
+      "Time": 38,
+      "IsPhase": false,
+      "Label": "P1 Mystery Magic"
+    },
+    {
+      "Ability": 47784,
+      "Time": 43,
+      "IsPhase": false,
+      "Label": "P1 Wave Cannon"
+    },
+    {
+      "Ability": 47783,
+      "Time": 50,
+      "IsPhase": false,
+      "Label": "P1 Double-Trouble Trap"
+    },
+    {
+      "Ability": 50722,
+      "Time": 63,
+      "IsPhase": false,
+      "Label": "P1 Light of Judgment"
+    },
+    {
+      "Ability": 47788,
+      "Time": 88,
+      "IsPhase": false,
+      "Label": "P1 Gravitas II (Part I)"
+    },
+    {
+      "Ability": 47788,
+      "Time": 106,
+      "IsPhase": false,
+      "Label": "P1 Gravitas II (Part II)"
+    },
+    {
+      "Ability": 47783,
+      "Time": 118,
+      "IsPhase": false,
+      "Label": "P1 Double-Trouble Trap"
+    },
+    {
+      "Ability": 50722,
+      "Time": 132,
+      "IsPhase": false,
+      "Label": "P1 Light of Judgment"
+    },
+    {
+      "Ability": 48370,
+      "Time": 165,
+      "IsPhase": false,
+      "Label": "P1 Double-Trouble Trap"
+    },
+    {
+      "Ability": 47797,
+      "Time": 173,
+      "IsPhase": false,
+      "Label": "P1 Indulgent Will"
+    },
+    {
+      "Ability": 47764,
+      "Time": 187,
+      "IsPhase": false,
+      "Label": "P1 Mystery Magic"
+    },
+    {
+      "Ability": 49740,
+      "Time": 221,
+      "IsPhase": true,
+      "Label": "P2 Ultimate Embrace"
+    },
+    {
+      "Ability": 47804,
+      "Time": 236,
+      "IsPhase": false,
+      "Label": "P2 Forsaken"
+    },
+    {
+      "Ability": 47808,
+      "Time": 250,
+      "IsPhase": false,
+      "Label": "P2 Towers I"
+    },
+    {
+      "Ability": 47806,
+      "Time": 281,
+      "IsPhase": false,
+      "Label": "P2 Towers IV (Past/Future's End)"
+    },
+    {
+      "Ability": 47806,
+      "Time": 292,
+      "IsPhase": false,
+      "Label": "P2 Towers V (All Things Ending)"
+    },
+    {
+      "Ability": 47805,
+      "Time": 343,
+      "IsPhase": false,
+      "Label": "P2 Light of Judgement"
+    },
+    {
+      "Ability": 47823,
+      "Time": 371,
+      "IsPhase": false,
+      "Label": "P2 Wings of Destruction"
+    },
+    {
+      "Ability": 49740,
+      "Time": 378,
+      "IsPhase": false,
+      "Label": "P2 Ultimate Embrace"
+    },
+    {
+      "Ability": 47858,
+      "Time": 450,
+      "IsPhase": true,
+      "Label": "P3 Bowels of Agony (Chaos)"
+    },
+    {
+      "Ability": 47872,
+      "Time": 511,
+      "IsPhase": false,
+      "Label": "P3 Ultima Blaster"
+    },
+    {
+      "Ability": 47864,
+      "Time": 518,
+      "IsPhase": false,
+      "Label": "P3 Cyclone"
+    },
+    {
+      "Ability": 47881,
+      "Time": 537,
+      "IsPhase": false,
+      "Label": "P3 Thunder III (2nd Set)"
+    },
+    {
+      "Ability": 47849,
+      "Time": 578,
+      "IsPhase": false,
+      "Label": "P3 Shocking Impact/Shockwave"
+    },
+    {
+      "Ability": 47849,
+      "Time": 609,
+      "IsPhase": false,
+      "Label": "P3 Shocking Impact/Shockwave"
+    },
+    {
+      "Ability": 47849,
+      "Time": 677,
+      "IsPhase": false,
+      "Label": "P3 Shocking Impact/Shockwave"
+    },
+    {
+      "Ability": 47856,
+      "Time": 705,
+      "IsPhase": false,
+      "Label": "P3 Stomp-a-Mole"
+    },
+    {
+      "Ability": 49884,
+      "Time": 745,
+      "IsPhase": true,
+      "Label": "P4 Kefka Returns (phase enter)"
+    },
+    {
+      "Ability": 47892,
+      "Time": 759,
+      "IsPhase": false,
+      "Label": "P4 Grand Cross"
+    },
+    {
+      "Ability": 47892,
+      "Time": 774,
+      "IsPhase": false,
+      "Label": "P4 Grand Cross"
+    },
+    {
+      "Ability": 47892,
+      "Time": 789,
+      "IsPhase": false,
+      "Label": "P4 Grand Cross"
+    },
+    {
+      "Ability": 50067,
+      "Time": 805,
+      "IsPhase": false,
+      "Label": "P4 Flood of Naught"
+    },
+    {
+      "Ability": 49738,
+      "Time": 833,
+      "IsPhase": false,
+      "Label": "P4 Ultima Upsurge"
+    },
+    {
+      "Ability": 47899,
+      "Time": 840,
+      "IsPhase": false,
+      "Label": "P4 Death Bolt/Wave"
+    },
+    {
+      "Ability": 47936,
+      "Time": 911,
+      "IsPhase": true,
+      "Label": "P5 Ultima Repeater"
+    },
+    {
+      "Ability": 50772,
+      "Time": 916,
+      "IsPhase": false,
+      "Label": "P5 Fell Forces (3x)"
+    },
+    {
+      "Ability": 49471,
+      "Time": 928,
+      "IsPhase": false,
+      "Label": "P5 Chaotic Flood"
+    },
+    {
+      "Ability": 47952,
+      "Time": 940,
+      "IsPhase": false,
+      "Label": "P5 Maddening Orchestra"
+    },
+    {
+      "Ability": 50772,
+      "Time": 953,
+      "IsPhase": false,
+      "Label": "P5 Fell Forces (2x)"
+    },
+    {
+      "Ability": 47938,
+      "Time": 963,
+      "IsPhase": false,
+      "Label": "P5 Celestriad"
+    },
+    {
+      "Ability": 50772,
+      "Time": 998,
+      "IsPhase": false,
+      "Label": "P5 Fell Forces (2x)"
+    },
+    {
+      "Ability": 47935,
+      "Time": 1024,
+      "IsPhase": false,
+      "Label": "P5 Stray Entropy"
+    },
+    {
+      "Ability": 47953,
+      "Time": 1033,
+      "IsPhase": false,
+      "Label": "P5 Maddening Orchestra"
+    },
+    {
+      "Ability": 47925,
+      "Time": 1062,
+      "IsPhase": false,
+      "Label": "P5 Forsaken (1st Hit)"
+    },
+    {
+      "Ability": 47926,
+      "Time": 1070,
+      "IsPhase": false,
+      "Label": "P5 Forsaken (3rd Hit)"
+    },
+    {
+      "Ability": 47926,
+      "Time": 1079,
+      "IsPhase": false,
+      "Label": "P5 Forsaken (5th Hit)"
+    },
+    {
+      "Ability": 47926,
+      "Time": 1087,
+      "IsPhase": false,
+      "Label": "P5 Forsaken (7th Hit)"
+    }
+  ],
+  "PhaseStarts": [
+    {
+      "Time": 16,
+      "Name": "P1"
+    },
+    {
+      "Time": 221,
+      "Name": "P2"
+    },
+    {
+      "Time": 450,
+      "Name": "P3"
+    },
+    {
+      "Time": 745,
+      "Name": "P4"
+    },
+    {
+      "Time": 911,
+      "Name": "P5"
+    }
+  ],
+  "CustomRows": [
+    {
+      "Time": 16,
+      "Mechanic": "Revolting Ruin III",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 43,
+      "Mechanic": "Wave Cannon",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 47,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 50,
+      "Mechanic": "Double-Trouble Trap",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Light of Judgment",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 67,
+      "Mechanic": "Hyperdrive",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Gravitas II (Part I)",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 93,
+      "Mechanic": "Vitrophyre",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Revolting Ruin III",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Gravitas II (Part II)",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Vitrophyre",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 118,
+      "Mechanic": "Double-Trouble Trap",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 121,
+      "Mechanic": "Gravity III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Light of Judgment",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 135,
+      "Mechanic": "Hyperdrive",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Double-Trouble Trap",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 173,
+      "Mechanic": "Indulgent Will",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Indulgent Will",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Ultimate Embrace",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Forsaken",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 250,
+      "Mechanic": "Towers I",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 260,
+      "Mechanic": "Towers II (Past/Future's End)",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 271,
+      "Mechanic": "Towers III (All Things Ending)",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Towers IV (Past/Future's End)",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Towers V (All Things Ending)",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Towers VI (Past/Future's End)",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 312,
+      "Mechanic": "Towers VII (All Things Ending)",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 323,
+      "Mechanic": "Towers VIII (Past/Future's End)",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 343,
+      "Mechanic": "Light of Judgement",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 364,
+      "Mechanic": "Wings of Destruction",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Wings of Destruction",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Bowels of Agony (Chaos)",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Stray Flames/Tsunami",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 478,
+      "Mechanic": "Thunder III (1st Set)",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 493,
+      "Mechanic": "Tsunami",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 503,
+      "Mechanic": "Ultima Blaster",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 511,
+      "Mechanic": "Ultima Blaster",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Cyclone",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 529,
+      "Mechanic": "Ultima Blaster",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Thunder III (2nd Set)",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Thunder III",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Earthquake",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 578,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 586,
+      "Mechanic": "Nothingness",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 592,
+      "Mechanic": "Nothingness",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Earthquake",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Thunder III",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Shocking Impact/Shockwave",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 616,
+      "Mechanic": "Black Holes II (3rd Tether Set)",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 621,
+      "Mechanic": "Black Holes II (4th Tether Set)",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 635,
+      "Mechanic": "Earthquake",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 637,
+      "Mechanic": "Thunder III (5th Set)",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Black Holes III (6th Tether Set)",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 655,
+      "Mechanic": "Nothingness",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 661,
+      "Mechanic": "Nothingness",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 668,
+      "Mechanic": "Earthquake",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 689,
+      "Mechanic": "Earthquake",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 705,
+      "Mechanic": "Stomp-a-Mole",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 759,
+      "Mechanic": "Grand Cross",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Inferno/Tsunami",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Grand Cross",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 783,
+      "Mechanic": "Inferno/Tsunami",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 789,
+      "Mechanic": "Grand Cross",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 805,
+      "Mechanic": "Flood of Naught",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 806,
+      "Mechanic": "White Antilight",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 815,
+      "Mechanic": "Death Bolt/Wave",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 817,
+      "Mechanic": "Death Wave",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 833,
+      "Mechanic": "Ultima Upsurge",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 872,
+      "Mechanic": "Ultima Upsurge",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 911,
+      "Mechanic": "Ultima Repeater",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 916,
+      "Mechanic": "Fell Forces (3x)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 928,
+      "Mechanic": "Chaotic Flood",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 940,
+      "Mechanic": "Maddening Orchestra",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 942,
+      "Mechanic": "Holy",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 945,
+      "Mechanic": "Chaotic Flare",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 949,
+      "Mechanic": "Chaotic Holy",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 949,
+      "Mechanic": "Flare Diffusion",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 953,
+      "Mechanic": "Fell Forces (2x)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 963,
+      "Mechanic": "Celestriad",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 969,
+      "Mechanic": "Fire III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 969,
+      "Mechanic": "Thunder III",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 978,
+      "Mechanic": "Blizzard III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 978,
+      "Mechanic": "Fire III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 978,
+      "Mechanic": "Thunder III",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 984,
+      "Mechanic": "Blizzard III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 984,
+      "Mechanic": "Fire III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 984,
+      "Mechanic": "Thunder III",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 993,
+      "Mechanic": "Ultima Repeater",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 998,
+      "Mechanic": "Fell Forces (2x)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1024,
+      "Mechanic": "Stray Entropy",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1032,
+      "Mechanic": "Holy",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1033,
+      "Mechanic": "Maddening Orchestra",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 1034,
+      "Mechanic": "Chaotic Flare",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 1038,
+      "Mechanic": "Flare Diffusion",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 1045,
+      "Mechanic": "Fell Forces (3x)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1062,
+      "Mechanic": "Forsaken (1st Hit)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1067,
+      "Mechanic": "Forsaken Bonds (2nd Hit)",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1070,
+      "Mechanic": "Forsaken (3rd Hit)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1076,
+      "Mechanic": "Forsaken Bonds (4th Hit)",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1079,
+      "Mechanic": "Forsaken (5th Hit)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 1084,
+      "Mechanic": "Forsaken Bonds (6th Hit)",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": [],
+  "PriorityPhases": [
+    {
+      "Start": 400,
+      "End": 700,
+      "JobPriority": [
+        "WAR",
+        "DRK",
+        "GNB",
+        "PLD"
+      ]
+    },
+    {
+      "Start": 900,
+      "End": 1060,
+      "JobPriority": [
+        "WAR",
+        "DRK",
+        "GNB",
+        "PLD"
+      ]
+    }
+  ]
+}

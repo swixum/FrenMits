@@ -1,0 +1,2343 @@
+{
+  "TerritoryId": 1327,
+  "Name": "M12S - Lindwurm",
+  "Timeline": [
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer"
+    },
+    {
+      "Time": 44,
+      "Mechanic": "Mortal Slayer"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "The Fixer"
+    },
+    {
+      "Time": 188,
+      "Mechanic": "Splattershed"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge"
+    },
+    {
+      "Time": 241,
+      "Mechanic": "The Fixer"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach"
+    },
+    {
+      "Time": 290,
+      "Mechanic": "Splattershed"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Mortal Slayer"
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III"
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame"
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I"
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II"
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash"
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment"
+    },
+    {
+      "Time": 622,
+      "Mechanic": "Blood Mana"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Arcadia Aflame"
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor"
+    },
+    {
+      "Time": 792,
+      "Mechanic": "Twisted Vision"
+    },
+    {
+      "Time": 860,
+      "Mechanic": "Reenactment + Twisted Vision"
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream"
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I"
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "The Fixer",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 44,
+      "Mechanic": "Mortal Slayer",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 44,
+      "Mechanic": "Mortal Slayer",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 44,
+      "Mechanic": "Mortal Slayer",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "OT",
+      "Action": "Party Mit (DRK/GNB)"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "H2",
+      "Action": "Spreadlo (The Fixer)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "H2",
+      "Action": "Zoe Shields (The Fixer)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "The Fixer",
+      "Slot": "OT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "The Fixer",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 108,
+      "Mechanic": "The Fixer",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 188,
+      "Mechanic": "Splattershed",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 188,
+      "Mechanic": "Splattershed",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 188,
+      "Mechanic": "Splattershed",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 188,
+      "Mechanic": "Splattershed",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "OT",
+      "Action": "Party Mit (DRK/GNB)"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "H2",
+      "Action": "Fey Illumination+ Spreadlo (The Fixer)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "H2",
+      "Action": "Zoe Shields (The Fixer)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 241,
+      "Mechanic": "The Fixer",
+      "Slot": "OT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 241,
+      "Mechanic": "The Fixer",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 241,
+      "Mechanic": "The Fixer",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 290,
+      "Mechanic": "Splattershed",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 290,
+      "Mechanic": "Splattershed",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 290,
+      "Mechanic": "Splattershed",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 290,
+      "Mechanic": "Splattershed",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Mortal Slayer",
+      "Slot": "H2",
+      "Action": "Succor",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Mortal Slayer",
+      "Slot": "H2",
+      "Action": "Eukrasian Prognosis",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Slaughtershed III",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 622,
+      "Mechanic": "Blood Mana",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 622,
+      "Mechanic": "Blood Mana",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "OT",
+      "Action": "Party Mit (DRK/GNB)"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Arcadia Aflame",
+      "Slot": "OT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Fey Illumination (Use Early)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Holos (Use Early)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 792,
+      "Mechanic": "Twisted Vision",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 792,
+      "Mechanic": "Twisted Vision",
+      "Slot": "H1",
+      "Action": "Everything",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 792,
+      "Mechanic": "Twisted Vision",
+      "Slot": "M1",
+      "Action": "Use Personals!"
+    },
+    {
+      "Time": 860,
+      "Mechanic": "Reenactment + Twisted Vision",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 860,
+      "Mechanic": "Reenactment + Twisted Vision",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 860,
+      "Mechanic": "Reenactment + Twisted Vision",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 860,
+      "Mechanic": "Reenactment + Twisted Vision",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 860,
+      "Mechanic": "Reenactment + Twisted Vision",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 860,
+      "Mechanic": "Reenactment + Twisted Vision",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 936,
+      "Mechanic": "Arcadian Hell I",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H1",
+      "Action": "Divine Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H1",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 952,
+      "Mechanic": "Arcadian Hell II",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 46295,
+      "Time": 15.6,
+      "IsPhase": true,
+      "Label": "P1 The Fixer"
+    },
+    {
+      "Ability": 46237,
+      "Time": 87.7,
+      "IsPhase": false,
+      "Label": "P1 Ravenous Reach"
+    },
+    {
+      "Ability": 46295,
+      "Time": 107.3,
+      "IsPhase": false,
+      "Label": "P1 The Fixer"
+    },
+    {
+      "Ability": 46274,
+      "Time": 176.7,
+      "IsPhase": false,
+      "Label": "P1 Constrictor"
+    },
+    {
+      "Ability": 47558,
+      "Time": 188.2,
+      "IsPhase": false,
+      "Label": "P1 Splattershed"
+    },
+    {
+      "Ability": 46248,
+      "Time": 230.4,
+      "IsPhase": false,
+      "Label": "P1 Venomous Scourge"
+    },
+    {
+      "Ability": 46295,
+      "Time": 239.6,
+      "IsPhase": false,
+      "Label": "P1 The Fixer"
+    },
+    {
+      "Ability": 46237,
+      "Time": 266.5,
+      "IsPhase": false,
+      "Label": "P1 Ravenous Reach"
+    },
+    {
+      "Ability": 47558,
+      "Time": 288.5,
+      "IsPhase": false,
+      "Label": "P1 Splattershed"
+    },
+    {
+      "Ability": 44489,
+      "Time": 340.9,
+      "IsPhase": false,
+      "Label": "P1 Slaughtershed"
+    },
+    {
+      "Ability": 46376,
+      "Time": 435.7,
+      "IsPhase": true,
+      "Label": "P2 Arcadia Aflame"
+    },
+    {
+      "Ability": 46375,
+      "Time": 465.3,
+      "IsPhase": false,
+      "Label": "P2 Snaking Kick"
+    },
+    {
+      "Ability": 46308,
+      "Time": 547.8,
+      "IsPhase": false,
+      "Label": "P2 Firefall Splash"
+    },
+    {
+      "Ability": 46316,
+      "Time": 571.3,
+      "IsPhase": false,
+      "Label": "P2 Reenactment"
+    },
+    {
+      "Ability": 46331,
+      "Time": 610,
+      "IsPhase": false,
+      "Label": "P2 Blood Mana"
+    },
+    {
+      "Ability": 46376,
+      "Time": 655.8,
+      "IsPhase": false,
+      "Label": "P2 Arcadia Aflame"
+    },
+    {
+      "Ability": 46345,
+      "Time": 688.8,
+      "IsPhase": false,
+      "Label": "P2 Idyllic Dream"
+    },
+    {
+      "Ability": 46322,
+      "Time": 762.8,
+      "IsPhase": false,
+      "Label": "P2 Lindwurm's Meteor"
+    },
+    {
+      "Ability": 46316,
+      "Time": 855.7,
+      "IsPhase": false,
+      "Label": "P2 Reenactment"
+    }
+  ],
+  "PhaseStarts": [
+    {
+      "Time": 16,
+      "Name": "P1"
+    },
+    {
+      "Time": 437,
+      "Name": "P2"
+    }
+  ],
+  "CustomRows": [
+    {
+      "Time": 88,
+      "Mechanic": "Ravenous Reach",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 97,
+      "Mechanic": "Fourth-wall Fusion",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 108,
+      "Mechanic": "The Fixer",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 150,
+      "Mechanic": "Dramatic Lysis",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 153,
+      "Mechanic": "Roiling Mass",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 154,
+      "Mechanic": "Roiling Mass",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 188,
+      "Mechanic": "Splattershed",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Dramatic Lysis",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Metamitosis",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 231,
+      "Mechanic": "Venomous Scourge",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 241,
+      "Mechanic": "The Fixer",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Ravenous Reach",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 290,
+      "Mechanic": "Splattershed",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Slaughtershed I",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Dramatic Lysis",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Fourth-Wall Fusion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 371,
+      "Mechanic": "Slaughtershed II",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Arcadia Aflame",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Mighty Magic / Top-tier Slam I",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Mighty Magic / Top-tier Slam II",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Esoteric Finisher",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 548,
+      "Mechanic": "Firefall Splash",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Heavy Slam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 581,
+      "Mechanic": "Reenactment",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 622,
+      "Mechanic": "Blood Mana",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 650,
+      "Mechanic": "Netherworld Near/Far",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Arcadia Aflame",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 673,
+      "Mechanic": "Esoteric Finisher",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Idyllic Dream",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 765,
+      "Mechanic": "Lindwurm's Meteor",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 777,
+      "Mechanic": "Arcadian Arcanum",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 819,
+      "Mechanic": "Cosmic Kiss",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 819,
+      "Mechanic": "Lindwurm's Dark II",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 829,
+      "Mechanic": "Lindwurm's Glare",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 829,
+      "Mechanic": "Lindwurm's Thunder II",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 893,
+      "Mechanic": "Idyllic Dream",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 907,
+      "Mechanic": "Esoteric Finisher",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": [],
+  "PriorityPhases": []
+}

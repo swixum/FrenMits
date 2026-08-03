@@ -50,7 +50,7 @@ public static class ConfigMigrations
         // v6: the legacy ultimates re-timed from real clears.
         if (config.Version < 6)
         {
-            ResetDutyFights(config, f => IkuyaTimelines.Has(f.TerritoryId));
+            ResetDutyFights(config, f => f.TerritoryId is Builtin.UcobTerritory or Builtin.UwuTerritory or Builtin.TeaTerritory or Builtin.DsrTerritory or Builtin.TopTerritory);
             config.Version = 6;
             config.Save();
         }
@@ -429,6 +429,74 @@ public static class ConfigMigrations
             config.Version = 41;
             config.Save();
         }
+
+        // v43: a windowed call leads by its own setting. Adopting the plain lead
+        // here (as v42 briefly did) defeats the point - the two are split because
+        // a window wants a SHORT lead: the window itself is the "you have time"
+        // signal, and a long lead on top only stretches the bar. So take the
+        // standalone default and let it be tuned from there.
+        if (config.Version < 43)
+        {
+            config.UseWindowLeadSeconds = 2f;
+            config.Version = 43;
+            config.Save();
+        }
+
+        // v44: the Dancing Mad sheet re-timed rows, renamed mechanics onto their
+        // real casts, and dropped the calls with no cast behind them. A plan holds
+        // the lines it was baked from, and the top-up only clears a stale one
+        // sitting within 6s of its replacement - so a row that moved further (a
+        // Curing Waltz by 9s) and every dropped row would linger as a duplicate or
+        // an orphan. Clear the ones the sheet no longer bakes and let the top-up
+        // restore the current set.
+        if (config.Version < 44)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (f.TerritoryId != Builtin.DmuTerritory || f.CustomSlots.Count > 0) continue;
+                host.SnapshotFight(f, "before the re-timed sheet rows were cleaned up");
+                PruneStaleBaked(f);
+                // UpdateLines, not ApplySlot: migrations run from the plugin
+                // constructor, off the main thread, and ApplySlot resolves tank
+                // priority - which reads the local player and throws there.
+                if (!string.IsNullOrEmpty(f.Slot)) Builtin.UpdateLines(f, f.Slot);
+            }
+            config.Version = 44;
+            config.Save();
+        }
+    }
+
+    // Drop every line the sheet no longer bakes anywhere. Only untouched sheet
+    // lines go: an edit marks its line Custom (PreserveEdit) and a personal
+    // override marks it Personal, so nothing the user wrote is at risk.
+    //
+    // Matched across ALL slots rather than the line's own, because a tank line
+    // borrowed through a PriorityPhase legitimately lives in the other column's
+    // list - checking one slot would prune it as stale every time.
+    private static void PruneStaleBaked(FightProfile fight)
+    {
+        var baked = new HashSet<(int Time, string Mech, string Action)>();
+        foreach (var slot in Builtin.Slots(fight.TerritoryId))
+            foreach (var b in Builtin.BakedLines(fight.TerritoryId, slot))
+                baked.Add(Key(b));
+
+        static (int, string, string) Key(MitLine l)
+            => ((int)MathF.Round(l.Time * 10f),
+                l.Mechanic.Trim().ToLowerInvariant(),
+                l.Action.Trim().ToLowerInvariant());
+
+        var seen = new HashSet<List<MitLine>>();
+        foreach (var lines in AllLineSets(fight))
+        {
+            // A slot's stash is often the very same list as fight.Lines.
+            if (lines == null || !seen.Add(lines)) continue;
+            lines.RemoveAll(l => l != null && !l.Custom && !l.Personal && !baked.Contains(Key(l)));
+        }
+
+        // A tombstone for a call the sheet dropped would suppress nothing, and
+        // would keep counting toward the "deleted sheet calls" restore prompt.
+        fight.DeletedCalls.RemoveAll(d => !Builtin.Slots(fight.TerritoryId).Any(s =>
+            Builtin.BakedLines(fight.TerritoryId, s).Any(b => Builtin.MatchesTombstone(d, d.Slot, b))));
     }
 
     // A fight's verified windows drop a profile's derived ones.

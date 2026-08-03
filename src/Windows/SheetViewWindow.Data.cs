@@ -10,10 +10,11 @@ using Dalamud.Interface.Windowing;
 
 namespace FrenMits.Windows;
 
-// Sheet View: building the grid and applying edits back.
+// Sheet View: building the grid's rows from the fight, and applying edits back
+// onto the plan. No drawing lives here.
 public partial class SheetViewWindow
 {
-    // ---- data ----
+    // ---- data -------------------------------------------------------------
 
     private static bool MechEquals(string a, string b)
         => string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
@@ -32,8 +33,40 @@ public partial class SheetViewWindow
 
         _isCustom = IsCustomSheet(_fight);
         _slots = _isCustom ? _fight.CustomSlots.ToArray() : Builtin.Slots(_fight.TerritoryId);
-        // Pinned columns ride first, inside the frozen area.
-        _order = Enumerable.Range(0, _slots.Length).OrderBy(i => IsPinnedColumn(i) ? 0 : 1).ToArray();
+        
+        if (_isCustom)
+        {
+            _gridCols = _slots;
+            _gridToSlot = Enumerable.Range(0, _slots.Length).ToArray();
+        }
+        else
+        {
+            var cols = new List<string>();
+            var map = new List<int>();
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                if (_slots[i] == "H1")
+                {
+                    cols.Add("WHM"); map.Add(i);
+                    cols.Add("AST"); map.Add(i);
+                }
+                else if (_slots[i] == "H2")
+                {
+                    cols.Add("SCH"); map.Add(i);
+                    cols.Add("SGE"); map.Add(i);
+                }
+                else
+                {
+                    cols.Add(_slots[i]); map.Add(i);
+                }
+            }
+            _gridCols = cols.ToArray();
+            _gridToSlot = map.ToArray();
+        }
+
+        // Pinned columns (right-click a header) ride first, inside the frozen
+        // area.
+        _order = Enumerable.Range(0, _gridCols.Length).OrderBy(i => IsPinnedColumn(i) ? 0 : 1).ToArray();
         _pinnedCount = _order.Count(IsPinnedColumn);
         _phases = _isCustom ? new() : Builtin.PhaseStarts(_fight.TerritoryId);
         _phaseNotes = _phases
@@ -65,14 +98,20 @@ public partial class SheetViewWindow
             }
             else
             {
-                // The same list object, so an edit keeps the row references.
-                _slotLines[i] = Builtin.BuildLines(_fight.TerritoryId, _slots[i])
-                    .Where(b => !Builtin.IsDeleted(_fight, _slots[i], b)).ToList();
+                // Kept as the SAME list object so a later edit can adopt it into
+                // SavedSlots without breaking the row -> line references. Run
+                // through ApplyGrid so a swapped priority phase shows this
+                // (non-active) column exchanged with its counterpart, same as
+                // the active column already does via ApplySlot.
+                _slotLines[i] = TankPriority.ApplyGrid(_fight, _fight.Slot, _slots[i],
+                    Builtin.BuildLines(_fight.TerritoryId, _slots[i])
+                        .Where(b => !Builtin.IsDeleted(_fight, _slots[i], b)).ToList());
                 _slotBacked[i] = false;
             }
         }
 
-        // Merge slots into rows: the same mechanic within a second.
+        // Merge the slot plans into sheet rows: same mechanic within ~a second is
+        // the same row.
         for (var i = 0; i < _slots.Length; i++)
         {
             foreach (var line in _slotLines[i].OrderBy(l => l.Time))
@@ -85,17 +124,49 @@ public partial class SheetViewWindow
                     row.Cells = NewCellArray();
                     _rows.Add(row);
                 }
-                row.Cells[i].Add(line);
+                
+                row.RawLines.Add(line);
+                
+                for (var c = 0; c < _gridCols.Length; c++)
+                {
+                    if (_gridToSlot[c] == i)
+                    {
+                        if (!_isCustom && line.Jobs.Count > 0)
+                        {
+                            bool show = false;
+                            if (line.Jobs.Contains(_gridCols[c], StringComparer.OrdinalIgnoreCase))
+                                show = true;
+                            else if (IsActiveSlot(i) && line.Jobs.Contains(_plugin.GetActiveJobAbbr(_fight), StringComparer.OrdinalIgnoreCase))
+                                show = true;
+
+                            if (show)
+                                row.Cells[c].Add(line);
+                        }
+                        else
+                        {
+                            row.Cells[c].Add(line);
+                        }
+                    }
+                }
                 row.Time = MathF.Min(row.Time, line.Time);
-                // Job-restricted customs get their own tag, not "edited".
-                row.Edited |= line.Custom && line.Jobs.Count == 0;
+                // Job-restricted customs (the Job extras schedules) don't count
+                // as "edited": they get their own "job extra" tag instead.
+                row.Edited |= line.Personal || (line.Custom && line.Jobs.Count == 0);
             }
         }
 
-        // The same grid straight from the bake, unfiltered.
+        // The same grid straight from the bake (unfiltered): reset anchors,
+        // deleted-detection, and ghost rows all come from here. Resolved the
+        // same way each column's live cells are (ApplySlot for the active
+        // slot, ApplyGrid for the rest), or a swapped priority phase would
+        // diff a resolved live cell against its literal, un-swapped bake and
+        // read as "edited" for no reason.
         for (var i = 0; !_isCustom && i < _slots.Length; i++)
         {
-            foreach (var line in Builtin.BuildLines(_fight.TerritoryId, _slots[i]).OrderBy(l => l.Time))
+            var bakedForSlot = IsActiveSlot(i)
+                ? Builtin.BakedLinesForFight(_fight, _slots[i], includeDeleted: true)
+                : Builtin.BakedLinesForGrid(_fight, _slots[i], includeDeleted: true);
+            foreach (var line in bakedForSlot.OrderBy(l => l.Time))
             {
                 var br = _bakedRows.FirstOrDefault(b =>
                     MathF.Abs(b.Time - line.Time) < 0.9f && MechEquals(b.Mechanic, line.Mechanic));
@@ -105,36 +176,64 @@ public partial class SheetViewWindow
                     br.Cells = NewCellArray();
                     _bakedRows.Add(br);
                 }
-                br.Cells[i].Add(line);
+                
+                for (var c = 0; c < _gridCols.Length; c++)
+                {
+                    if (_gridToSlot[c] == i)
+                    {
+                        if (!_showJobExtra && (line.IsJobExtra || JobExtras.IsAutoExtra(line)))
+                            continue;
+
+                        if (!_isCustom && line.Jobs.Count > 0)
+                        {
+                            bool show = false;
+                            if (line.Jobs.Contains(_gridCols[c], StringComparer.OrdinalIgnoreCase))
+                                show = true;
+                            else if (IsActiveSlot(i) && line.Jobs.Contains(_plugin.GetActiveJobAbbr(_fight), StringComparer.OrdinalIgnoreCase))
+                                show = true;
+
+                            if (show)
+                                br.Cells[c].Add(line);
+                        }
+                        else
+                        {
+                            br.Cells[c].Add(line);
+                        }
+                    }
+                }
                 br.Time = MathF.Min(br.Time, line.Time);
             }
         }
 
-        // Anchor live rows per mechanic in order, not by nearest time.
+        // Anchor live rows to baked instances ORDER-PRESERVINGLY per mechanic,
+        // not by raw nearest time: a row re-timed past the midpoint between two
+        // repeats of one mechanic must still anchor to ITS instance, or reset
+        // would wipe it and its twin would double up.
         var referenced = new HashSet<BakedRow>();
         AnchorRows(referenced);
         foreach (var row in _rows)
         {
             if (row.Bake == null) continue;
-            for (var i = 0; i < _slots.Length && !row.Edited; i++)
-                row.Edited |= row.Bake.Cells[i].Any(b => Builtin.IsDeleted(_fight, _slots[i], b));
+            for (var i = 0; i < _gridCols.Length && !row.Edited; i++)
+                row.Edited |= row.Bake.Cells[i].Any(b => Builtin.IsDeleted(_fight, _slots[_gridToSlot[i]], b));
         }
 
-        // Ghost rows: baked instances no live row carries anymore.
+        // Ghost rows: instances the sheet bakes but no live row carries anymore
+        // (deleted everywhere) - shown dimmed so restore is always one click.
         foreach (var br in _bakedRows)
         {
             if (referenced.Contains(br)) continue;
 
             var carried = false;
-            for (var i = 0; i < _slots.Length && !carried; i++)
-                carried = br.Cells[i].Any(b => _slotLines[i].Any(l =>
+            for (var i = 0; i < _gridCols.Length && !carried; i++)
+                carried = br.Cells[i].Any(b => _slotLines[_gridToSlot[i]].Any(l =>
                     MathF.Abs(l.Time - b.Time) < 0.9f
                     && string.Equals(l.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase)));
             if (carried) continue;
 
             var anyDeleted = false;
-            for (var i = 0; i < _slots.Length && !anyDeleted; i++)
-                anyDeleted = br.Cells[i].Any(b => Builtin.IsDeleted(_fight, _slots[i], b));
+            for (var i = 0; i < _gridCols.Length && !anyDeleted; i++)
+                anyDeleted = br.Cells[i].Any(b => Builtin.IsDeleted(_fight, _slots[_gridToSlot[i]], b));
             if (!anyDeleted) continue;
             _rows.Add(new Row
             {
@@ -147,8 +246,12 @@ public partial class SheetViewWindow
             });
         }
 
-        // Scaffold rows exist before any lines are written in.
-        if (_isCustom && _fight.CustomRows.Count > 0)
+        // Scaffold rows: mechanics that exist before any mit does. Custom
+        // sheets always show these (Build > Add row needs a plannable grid
+        // immediately); a built-in's full mechanic list usually runs well
+        // past what any column actually presses a mit for, so those are
+        // gated behind "show mechanics with no actions".
+        if (_fight.CustomRows.Count > 0 && (_isCustom || C.ShowEmptyMechanics))
             foreach (var cr in _fight.CustomRows)
                 if (!_rows.Any(r => MechEquals(r.Mechanic, cr.Mechanic) && MathF.Abs(r.Time - cr.Time) < 2f))
                     _rows.Add(new Row { Time = cr.Time, Mechanic = cr.Mechanic, Cells = NewCellArray() });
@@ -161,20 +264,22 @@ public partial class SheetViewWindow
                 if (time <= r.Time + 0.5f) ph = name;
             r.Phase = ph.Length > 0 ? ph : (_phases.Count > 0 ? _phases[0].Name : "");
 
-            // On a custom sheet everything is yours.
+            // On a custom sheet everything is yours: no "edited" state exists.
             if (_isCustom) r.Edited = false;
 
-            // A row made only of job-restricted lines is a job extra.
+            // A row made ENTIRELY of job-restricted custom lines is a job extra
+            // (e.g. Nature's Minne riding 1s off its mechanic's row).
             if (r.Ghost || _isCustom) continue;
-            var any = false;
-            var all = true;
-            foreach (var cell in r.Cells)
-                foreach (var l in cell)
-                {
-                    any = true;
-                    if (!(l.Custom && l.Jobs.Count > 0)) all = false;
-                }
-            r.JobExtra = any && all;
+            
+            // A row is purely a Job Extra row if ALL of its source lines are job extras.
+            if (r.RawLines.Count > 0 && r.RawLines.All(l => l.IsJobExtra || JobExtras.IsAutoExtra(l)))
+            {
+                r.JobExtra = true;
+            }
+            else
+            {
+                r.JobExtra = false;
+            }
         }
 
         FindCooldownConflicts();
@@ -197,19 +302,26 @@ public partial class SheetViewWindow
         BuildCarryGhosts(presses);
     }
 
-    // Carry-over ghosts: a dim arrow where a buff still covers.
+    // Carry-over ghosts, like the reference sheets' arrows: an empty cell shows
+    // a dim "-> Name" when a buff pressed on an EARLIER row is still up on this
+    // one (real durations, per part), so while building you can SEE what a hit
+    // is already covered by before adding more.
     private void BuildCarryGhosts(IReadOnlyList<MitPress>? presses)
     {
         foreach (var row in _rows) row.Carry = null;
-        for (var i = 0; i < _slots.Length; i++)
+        for (var c = 0; c < _gridCols.Length; c++)
         {
-            var lines = _slotLines[i].Where(l => l.Enabled).OrderBy(l => l.Time).ToList();
+            var slotIdx = _gridToSlot[c];
+            var lines = _slotLines[slotIdx].Where(l => l.Enabled && (l.Jobs.Count == 0 || l.Jobs.Contains(_gridCols[c], StringComparer.OrdinalIgnoreCase))).OrderBy(l => l.Time).ToList();
             if (lines.Count == 0) continue;
             var start = 0;
             foreach (var row in _rows)
             {
-                if (row.Ghost || row.Cells.Length <= i || row.Cells[i].Count > 0) continue;
-                // Only lines close enough that any buff could still be up.
+                if (row.Ghost || row.Cells.Length <= c) continue;
+                // Only lines close enough that any buff could still be up. The
+                // horizon comes from the duration table rather than a number typed
+                // here, which was 45s - exactly Excogitation's length, so the
+                // longest buff in the game sat right on the edge of being missed.
                 var horizon = Cooldowns.LongestWindow + 5f;
                 while (start < lines.Count && lines[start].Time < row.Time - horizon
                        && lines[start].CoverUntil < row.Time - 0.5f) start++;
@@ -219,6 +331,8 @@ public partial class SheetViewWindow
                     var l = lines[k];
                     foreach (var pm in Cooldowns.PlanMits(l.Action))
                     {
+                        if (Cooldowns.IsNoCarryOver(pm.Name)) continue;
+
                         var end = pm.Duration > 0f ? l.CueTime + pm.Duration : 0f;
                         if (presses != null)
                         {
@@ -232,13 +346,14 @@ public partial class SheetViewWindow
                     }
                 }
                 if (parts == null) continue;
-                row.Carry ??= new string?[_slots.Length];
-                row.Carry[i] = "-> " + string.Join(" + ", parts);
+                row.Carry ??= new List<string>?[_gridCols.Length];
+                row.Carry[c] = parts;
             }
         }
     }
 
-    // Flag a mit used again before its cooldown can be back.
+    // Flag any line whose mit is used again before its cooldown (with charges
+    // honored) can possibly be back, per slot.
     private void FindCooldownConflicts()
     {
         _conflicts.Clear();
@@ -248,7 +363,8 @@ public partial class SheetViewWindow
 
         for (var i = 0; i < _slots.Length; i++)
         {
-            // Abilities in one recast group pool their uses.
+            // Abilities in the same recast GROUP share one timer (Bloodwhetting /
+            // Nascent Flash / Raw Intuition), so group-mates pool their uses.
             var uses = new Dictionary<string, (float Recast, int Charges, List<(float Time, MitLine Line, string Name, string Tag)> Uses)>(StringComparer.OrdinalIgnoreCase);
             foreach (var l in _slotLines[i])
             {
@@ -264,7 +380,8 @@ public partial class SheetViewWindow
                     var key = pm.Family.Length > 0 ? $"family:{pm.Family}" : pm.Name;
                     if (!uses.TryGetValue(key, out var entry))
                         uses[key] = entry = (pm.Recast, pm.Charges, new List<(float, MitLine, string, string)>());
-                    // Cue time, since a per-call offset really moves the press.
+                    // CUE time, not plan time: a per-call offset genuinely moves
+                    // the press, so it must count in the timer math.
                     var tag = MitLine.JobTagFor(l.Action, pm.Name);
                     if (tag.Length == 0 && l.Jobs.Count > 0)
                         tag = string.Join("/", l.Jobs
@@ -278,7 +395,8 @@ public partial class SheetViewWindow
             {
                 list.Sort((a, b) => a.Time.CompareTo(b.Time));
 
-                // Job-tagged variants are different players, so separate timers.
+                // Job-tagged variants are different players' presses: "Party Mit
+                // (GNB/DRK)" and "(WAR/PLD)" never share one timer.
                 var tags = list.Select(u => u.Tag).Where(t2 => t2.Length > 0)
                     .Distinct().ToList();
                 if (tags.Count == 0) { CheckMitTimer(list, recast, charges); continue; }
@@ -290,17 +408,21 @@ public partial class SheetViewWindow
         }
     }
 
-    // Never repeat one message on a line.
+    // Never repeat one message on a line (untagged uses run through several
+    // tag groups, and each group would otherwise re-append the same text).
     private static void AppendOnce(Dictionary<MitLine, string> map, MitLine line, string msg)
     {
         if (!map.TryGetValue(line, out var old)) map[line] = msg;
         else if (!old.Contains(msg, StringComparison.Ordinal)) map[line] = old + "\n" + msg;
     }
 
-    // One timer's uses: press-window hints plus the walk.
+    // One mit timer's worth of uses (same recast group + compatible job tags):
+    // press-window hints plus the top-down feasibility walk.
     private void CheckMitTimer(List<(float Time, MitLine Line, string Name, string Tag)> list, float recast, int charges)
     {
-                // Coverage pushes a press earlier, a reuse caps how late.
+                // Press-window HINTS: coverage pushes the press EARLIER (the
+                // buff must reach the last covered hit), a same-timer reuse
+                // caps how LATE it can go.
                 for (var u = 0; u < list.Count; u++)
                 {
                     var (t, line, name, _) = list[u];
@@ -311,7 +433,8 @@ public partial class SheetViewWindow
                     if (line.CoverUntil > t + 0.5f && pm.Duration > 0f)
                         lo = line.CoverUntil - pm.Duration;
 
-                    // Coverage the buff can't reach even pressed at the hit.
+                    // Coverage the buff can't physically reach even pressed AT
+                    // the hit: that one is wrong on its own, chain or no chain.
                     if (lo > t + 0.5f)
                     {
                         AppendOnce(_conflicts, line,
@@ -328,7 +451,8 @@ public partial class SheetViewWindow
                         if (latest < hi) { hi = latest; squeezedBy = $"{next.Name} at {TimeText(next.Time)}"; }
                     }
 
-                    // Tension with the next press is left to the walk.
+                    // Tension between coverage and the next press is left to
+                    // the walk (the next press may float earlier than its hit).
                     if (lo > hi + 0.5f) continue;
                     if ((lo > float.NegativeInfinity || hi < t - 0.5f) && hi >= 0f)
                     {
@@ -346,7 +470,8 @@ public partial class SheetViewWindow
 
                 if (charges > 1)
                 {
-                    // Serial recharge, like the game: one charge at a time.
+                    // Serial recharge, like the game: charges regenerate one at
+                    // a time, so Oblation @0 and @5 is back at 60 and 120.
                     var max = charges;
                     var avail = max;
                     var nextAt = float.PositiveInfinity; // when a charge next finishes
@@ -383,7 +508,8 @@ public partial class SheetViewWindow
                     return;
                 }
 
-                // Top-down feasibility, the way you'd plan by hand.
+                // Top-down feasibility, first mechanic first - the way you'd
+                // build the plan by hand.
                 var ready = float.NegativeInfinity;
                 var walkPrev = "";
                 foreach (var (t, line, name, _) in list)
@@ -414,7 +540,8 @@ public partial class SheetViewWindow
                 }
     }
 
-    // Pair live rows with baked ones, order-preserving.
+    // Pair each mechanic's live rows with its baked instances, order-preserving
+    // and minimizing total time distance.
     private void AnchorRows(HashSet<BakedRow> referenced)
     {
         const float skipCost = 30f;
@@ -468,12 +595,14 @@ public partial class SheetViewWindow
 
     private List<MitLine>[] NewCellArray()
     {
-        var cells = new List<MitLine>[_slots.Length];
-        for (var k = 0; k < _slots.Length; k++) cells[k] = new List<MitLine>();
+        var cells = new List<MitLine>[_gridCols.Length];
+        for (var k = 0; k < _gridCols.Length; k++) cells[k] = new List<MitLine>();
         return cells;
     }
 
-    // Every commit verifies our references against the plan.
+    // Our cached references would write stale data back if the fight page
+    // replaced a list object, so every commit verifies them first and turns a
+    // mismatch into a harmless "try again".
     private bool PlanChangedElsewhere()
     {
         if (_fight == null) return true;
@@ -496,7 +625,8 @@ public partial class SheetViewWindow
         return true;
     }
 
-    // Adopt a preview slot on first edit, so it persists.
+    // Adopt a bake-preview slot into the profile the first time it's edited, so
+    // the edit persists.
     private void EnsureBacked(int i)
     {
         if (_fight == null || _slotBacked[i]) return;
@@ -520,9 +650,11 @@ public partial class SheetViewWindow
         }
     }
 
-    // ---- edits ----
+    // ---- edits ------------------------------------------------------------
 
-    // Land any edit in progress, since draw order can skip it.
+    // Land any edit still in progress: clicking from a half-typed cell into an
+    // earlier row (or the toolbar) must not drop the text, since draw order can
+    // skip the old editor's commit frame.
     private bool CommitPending()
     {
         var committed = false;
@@ -556,18 +688,26 @@ public partial class SheetViewWindow
                     cr.Time += delta;
         var lines = 0;
         var slots = 0;
-        for (var i = 0; i < _slots.Length; i++)
+        var processedLines = new HashSet<MitLine>();
+        for (var i = 0; i < _gridCols.Length; i++)
         {
             if (row.Cells[i].Count == 0) continue;
-            EnsureBacked(i);
+            var slotIdx = _gridToSlot[i];
+            EnsureBacked(slotIdx);
+            var resort = false;
             foreach (var line in row.Cells[i])
             {
-                Builtin.PreserveEdit(_fight, _slots[i], line);
+                if (!processedLines.Add(line)) continue;
+                Builtin.PreserveEdit(_fight, _slots[slotIdx], line);
                 line.Time += delta;
                 lines++;
+                resort = true;
             }
-            Resort(i);
-            slots++;
+            if (resort)
+            {
+                Resort(slotIdx);
+                slots++;
+            }
         }
         C.Save();
         _dirty = true;
@@ -576,12 +716,14 @@ public partial class SheetViewWindow
 
     private void CommitCell(Row row, int i) => ApplyCellText(row, i, _cellBuf);
 
-    // Enter goes down a row, Tab across to the next column.
+    // Enter = the visible row below (same column); Tab = the next column (same
+    // row).
     private void QueueNeighborEdit(Row row, int i, bool right)
     {
         if (right)
         {
-            // Follows the pin order, so Tab can jump non-adjacently.
+            // Follows the pin/submission order; a hand-dragged display order
+            // isn't readable from ImGui, so Tab may jump non-adjacently there.
             var k = Array.IndexOf(_order, i);
             if (k < 0 || k + 1 >= _order.Length) return; // last column: stay put
             _pendingEdit = (row.Time, row.Mechanic, _order[k + 1]);
@@ -602,66 +744,89 @@ public partial class SheetViewWindow
         if (below != null) _pendingEdit = (below.Time, below.Mechanic, i);
     }
 
-    // Cell edits touch the first line in the cell only.
+    // Cell edits touch the FIRST line in the cell only; a cell holding two real
+    // lines (rare merge of near-simultaneous casts) stacks them and leaves the
+    // second line alone.
     private void ApplyCellText(Row row, int i, string raw)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
+        var slotIdx = _gridToSlot[i];
         var text = raw.Trim();
-        var cell = row.Cells[i];
+        var cell = GetCellLinesForJob(row, i);
 
         if (cell.Count > 0 && text == cell[0].Action.Trim()) return; // no-op
 
-        // Clearing the cell deletes this slot's line, tombstoned.
+        // Clearing the cell = delete this slot's line (tombstoned like a delete
+        // on the fight page, so it stays gone; the undo button restores).
         if (text.Length == 0)
         {
             DeleteCellLine(row, i);
             return;
         }
 
-        PushUndo($"edit {_slots[i]}'s \"{row.Mechanic}\"");
-        EnsureBacked(i);
+        PushUndo($"edit {_slots[slotIdx]}'s \"{row.Mechanic}\"");
+        EnsureBacked(slotIdx);
         if (cell.Count == 0)
         {
-            _slotLines[i].Add(new MitLine
+            var jobs = new List<string>();
+            if (!_isCustom && Jobs.ByAbbreviation(_gridCols[i]) != null)
+                jobs.Add(_gridCols[i]);
+
+            _slotLines[slotIdx].Add(new MitLine
             {
                 Time = row.Time,
                 Mechanic = row.Mechanic,
                 Action = text,
                 Enabled = true,
                 Custom = true,
+                Personal = true,
+                Jobs = jobs,
             });
-            Flash($"Added \"{text}\" for {_slots[i]} at {row.Mechanic} (that slot only).");
+            Flash($"Added \"{text}\" for {_slots[slotIdx]} at {row.Mechanic} (that slot only).");
         }
         else
         {
-            Builtin.PreserveEdit(_fight, _slots[i], cell[0]);
+            Builtin.PreserveEdit(_fight, _slots[slotIdx], cell[0]);
             cell[0].Action = text;
-            Flash($"{_slots[i]}'s mit for \"{row.Mechanic}\" updated (that slot only).");
+            cell[0].Personal = true;
+            if (!_isCustom && Jobs.ByAbbreviation(_gridCols[i]) != null)
+            {
+                if (!cell[0].Jobs.Contains(_gridCols[i], StringComparer.OrdinalIgnoreCase))
+                    cell[0].Jobs.Add(_gridCols[i]);
+            }
+            Flash($"{_slots[slotIdx]}'s mit for \"{row.Mechanic}\" updated (that slot only).");
         }
-        Resort(i);
+        Resort(slotIdx);
         C.Save();
         _dirty = true;
     }
 
-    // Reset one mechanic instance to the baked sheet, every slot.
+    // Reset one mechanic instance to the baked sheet, every slot: precise to the
+    // anchored instance (row.Bake), so neighbors and other instances of the same
+    // mechanic are never touched.
     private void ResetRow(Row row)
     {
         if (_fight == null || AbortIfStale()) return;
         if (row.Bake == null)
         {
-            // No baked instance pairs with this row.
+            // No baked instance pairs with this row: it's an extra instance the
+            // sheet doesn't have, or a leftover edit under a mechanic name the
+            // sheet renamed.
             PushUndo($"remove \"{row.Mechanic}\" (not on the sheet)");
             var removed = 0;
-            for (var i = 0; i < _slots.Length; i++)
+            var processedSlots = new HashSet<int>();
+            for (var i = 0; i < _gridCols.Length; i++)
             {
                 if (row.Cells[i].Count == 0) continue;
-                EnsureBacked(i);
+                var slotIdx = _gridToSlot[i];
+                if (!processedSlots.Add(slotIdx)) continue;
+                EnsureBacked(slotIdx);
                 foreach (var line in row.Cells[i].ToList())
                 {
-                    _slotLines[i].Remove(line);
+                    _slotLines[slotIdx].Remove(line);
                     removed++;
                 }
-                Resort(i);
+                Resort(slotIdx);
             }
             if (removed == 0) { PopUndo(); Flash("This row has no lines to remove."); return; }
             C.Save();
@@ -672,31 +837,48 @@ public partial class SheetViewWindow
 
         PushUndo($"reset \"{row.Mechanic}\"");
         var touched = 0;
-        for (var i = 0; i < _slots.Length; i++)
+        var processedResetSlots = new HashSet<int>();
+        for (var i = 0; i < _gridCols.Length; i++)
         {
-            var slot = _slots[i];
-            var candidates = row.Bake!.Cells[i];
-            if (row.Cells[i].Count == 0 && candidates.Count == 0) continue;
+            var slotIdx = _gridToSlot[i];
+            if (!processedResetSlots.Add(slotIdx)) continue;
+            var slot = _slots[slotIdx];
+            // Since we're resetting the whole slot, we need to gather all cells that map to this slot
+            var slotCells = new List<MitLine>();
+            var bakeCells = new List<MitLine>();
+            for (var j = 0; j < _gridCols.Length; j++)
+            {
+                if (_gridToSlot[j] == slotIdx)
+                {
+                    slotCells.AddRange(row.Cells[j]);
+                    bakeCells.AddRange(row.Bake!.Cells[j]);
+                }
+            }
+            slotCells = slotCells.Distinct().ToList();
+            bakeCells = bakeCells.Distinct().ToList();
+            
+            if (slotCells.Count == 0 && bakeCells.Count == 0) continue;
 
-            // Skip slots already on the sheet, so previews stay unfrozen.
-            var pristine = row.Cells[i].All(l => !l.Custom)
-                && row.Cells[i].Count == candidates.Count
-                && candidates.All(b => row.Cells[i].Any(l => Builtin.SameCall(l, b)))
-                && !_fight.DeletedCalls.Any(d => candidates.Any(b => Builtin.MatchesTombstone(d, slot, b)));
+            // Skip slots already exactly on the sheet, so resetting one row
+            // doesn't freeze untouched preview columns into SavedSlots.
+            var pristine = slotCells.All(l => !l.Custom)
+                && slotCells.Count == bakeCells.Count
+                && bakeCells.All(b => slotCells.Any(l => Builtin.SameCall(l, b)))
+                && !_fight.DeletedCalls.Any(d => bakeCells.Any(b => Builtin.MatchesTombstone(d, slot, b)));
             if (pristine) continue;
 
-            EnsureBacked(i);
-            foreach (var line in row.Cells[i].ToList()) _slotLines[i].Remove(line);
-            foreach (var b in candidates)
+            EnsureBacked(slotIdx);
+            foreach (var line in slotCells) _slotLines[slotIdx].Remove(line);
+            foreach (var b in bakeCells)
             {
                 _fight.DeletedCalls.RemoveAll(d => Builtin.MatchesTombstone(d, slot, b));
-                // Never create a same-moment duplicate of one action.
-                if (!_slotLines[i].Any(l => Builtin.SameCall(l, b)
-                        || (MathF.Abs(l.Time - b.Time) < 0.9f
-                            && string.Equals(l.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))))
-                    _slotLines[i].Add(b);
+                
+                // Aggressively remove any existing copy of this exact action at this time to prevent duplication bugs
+                _slotLines[slotIdx].RemoveAll(l => Builtin.SameCall(l, b) && string.Equals(l.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase));
+                
+                _slotLines[slotIdx].Add(b);
             }
-            Resort(i);
+            Resort(slotIdx);
             touched++;
         }
         if (touched == 0) PopUndo(); // nothing changed; don't log a no-op undo
@@ -721,3 +903,4 @@ public partial class SheetViewWindow
         }
     }
 }
+

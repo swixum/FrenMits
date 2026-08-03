@@ -405,7 +405,7 @@ public class RecapWindow : Window
                 partial.Add($"{e.Mit} {e.Covered.Count}/{party.Count}");
 
         var missing = new List<string>();
-        foreach (var (slot, line) in PlannedLinesNear(fight, t0, _plugin.ActiveJobAbbreviation()))
+        foreach (var (slot, line) in PlannedLinesNear(fight, t0, _plugin.GetActiveJobAbbr(fight)))
             foreach (var pm in Cooldowns.PlanMitsCached(line.Action))
             {
                 if (applied.Contains(pm.Name)) continue;

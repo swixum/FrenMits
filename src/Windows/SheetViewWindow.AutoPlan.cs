@@ -39,7 +39,7 @@ public partial class SheetViewWindow
             return kit.Select(k => (k.Name, Cooldowns.PlanInfo(k.Name)?.Recast is { } r and > 5f ? r : k.Recast)).ToArray();
         return t switch
         {
-            "MT" or "OT" or "T" or "T1" or "T2" or "TANK" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
+            "MT" or "OT" or "T" or "TANK" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
             "D1" or "D2" or "M1" or "M2" or "MELEE" or "D" or "DPS" => new[] { ("Feint", 90f) },
             "D3" or "R1" => new[] { ("Party Mit", 90f) },
             // Casters get Addle and nothing else.
@@ -64,7 +64,7 @@ public partial class SheetViewWindow
     private static bool IsTankColumn(string slot)
     {
         var t = slot.Trim().ToUpperInvariant();
-        return t is "MT" or "OT" or "T" or "T1" or "T2" or "TANK" || TankJobAbbrs.Contains(t);
+        return t is "MT" or "OT" or "T" or "TANK" || TankJobAbbrs.Contains(t);
     }
 
     // Buster generics spelled out for a column named after a job.
@@ -188,9 +188,21 @@ public partial class SheetViewWindow
             return false;
         }
 
-        // Spending this now would steal it from a deadly hit.
-        bool StealsFromDeadly(PlanTool t, float now)
-            => t.Recast >= 55f && deadlyTimes.Any(td => td > now && td < now + t.Recast);
+        // Spending this tool now would steal it from an upcoming harder hit.
+        // For debuff mits (Feint/Addle/Reprisal) specifically: spending on a light
+        // hit wastes it if a harder hit is coming within the recast window.
+        bool StealsFromBetterHit(PlanTool t, float now, int currentEff)
+        {
+            if (t.Recast < 55f) return false;
+            // Always hold for deadly hits.
+            if (deadlyTimes.Any(td => td > now && td < now + t.Recast)) return true;
+            // Also hold debuff mits for harder hits than the current row.
+            if (currentEff < 2 && DebuffMits.Contains(t.Term))
+                return rows.Any(r2 => !r2.Buster && r2.Time > now && r2.Time < now + t.Recast
+                                     && EffHurt(r2) > currentEff && EffHurt(r2) >= 2);
+            return false;
+        }
+        bool StealsFromDeadly(PlanTool t, float now) => StealsFromBetterHit(t, now, 3);
 
         // Bridging: a solo press floats earlier so the recast returns.
         float BuffDur(PlanTool t)
@@ -452,7 +464,7 @@ public partial class SheetViewWindow
                 var satOrder = g
                     .Where(t => CanReach(t, row.Time))
                     .Where(t => !(DebuffMits.Contains(t.Term) && claimed.Contains(t.Term)))
-                    .Where(t => eff >= 2 || !StealsFromDeadly(t, row.Time))
+                    .Where(t => !StealsFromBetterHit(t, row.Time, eff))
                     .Where(t => row.Hurt >= 3 || !HoldForCluster(t, row))
                     .OrderByDescending(t => TickScore(t, row) >= 2 ? TickScore(t, row) : 0)
                     .ThenBy(t => StealsFromDeadly(t, row.Time) ? 1 : 0)

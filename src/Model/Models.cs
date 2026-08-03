@@ -21,6 +21,9 @@ public class FightProfile
 
     // The tank pairing picked for this fight, remembered.
     public string TankPairing { get; set; } = "";
+    
+    // The simulated job picked for this fight, remembered (when UseSetup is unchecked).
+    public string SimulatedJob { get; set; } = "";
 
     // The active slot's lines (what the overlay reads + the line table edits).
     public List<MitLine> Lines { get; set; } = new();
@@ -57,6 +60,10 @@ public class FightProfile
 
     // Downtime windows this fight owns, from an imported log.
     public List<DowntimeWindow> CustomDowntimes { get; set; } = new();
+
+    // PriorityPhase.Start values manually flipped from their auto-resolved
+    // priority-1/priority-2 pick (see TankPriority).
+    public List<float> SwappedPriorityPhases { get; set; } = new();
 
     // Derived, and not serialized so codes don't carry lines twice.
     [Newtonsoft.Json.JsonIgnore]
@@ -174,6 +181,13 @@ public class MitLine
     // True for a line the user added themselves.
     public bool Custom { get; set; }
 
+    // True for a generic baked job extra (e.g. Dismantle).
+    [Newtonsoft.Json.JsonIgnore]
+    public bool IsJobExtra { get; set; }
+
+    // True for a line that is a personal override (not shared in the party plan).
+    public bool Personal { get; set; }
+
     // Per-line offset on the CUE clock: + fires this one call earlier, - later.
     public float OffsetSeconds { get; set; }
 
@@ -199,6 +213,7 @@ public class MitLine
     public bool ShouldSerializeEnabled() => !Enabled;
     public bool ShouldSerializeSound() => !Sound;
     public bool ShouldSerializeCustom() => Custom;
+    public bool ShouldSerializePersonal() => Personal;
     public bool ShouldSerializeOffsetSeconds() => OffsetSeconds != 0f;
     public bool ShouldSerializeOffsetManual() => OffsetManual;
     public bool ShouldSerializeCoverUntil() => CoverUntil != 0f;
@@ -210,9 +225,7 @@ public class MitLine
     public bool ShouldSerializeAction() => !string.IsNullOrEmpty(Action);
 
     public bool AppliesTo(string? jobAbbr)
-        => (Jobs.Count == 0 || (jobAbbr != null && JobListHas(jobAbbr)))
-           // Job gates written inside the action text count too.
-           && (string.IsNullOrEmpty(jobAbbr) || string.IsNullOrWhiteSpace(Action) || ActionFor(jobAbbr).Length > 0);
+        => Jobs.Count == 0 || (jobAbbr != null && JobListHas(jobAbbr));
 
     // A plain loop, since this runs per line per frame.
     private bool JobListHas(string jobAbbr)
@@ -222,94 +235,25 @@ public class MitLine
         return false;
     }
 
-    // The parts of this call that apply to a job, honoring job qualifiers.
-    public string ActionFor(string? jobAbbr)
+    // A detached copy; edits to it never reach the original.
+    public MitLine Clone()
     {
-        if (string.IsNullOrWhiteSpace(Action) || string.IsNullOrEmpty(jobAbbr)) return Action;
-        // Fast path: no parenthesis means no gate to drop.
-        if (Action.IndexOf('(') < 0) return Action;
-        List<string>? kept = null;
-        var dropped = false;
-        foreach (var raw in Action.Split('+'))
-        {
-            var seg = raw.Trim();
-            if (seg.Length == 0) continue;
-            if (SegmentAppliesTo(seg, jobAbbr!)) (kept ??= new()).Add(seg);
-            else dropped = true;
-        }
-        if (!dropped) return Action; // common case: nothing gated, keep verbatim
-        return kept == null ? "" : string.Join(" + ", kept);
+        var c = (MitLine)MemberwiseClone();
+        c.Jobs = new List<string>(Jobs);
+        return c;
     }
 
-    // Derived from the job table, since a second list drifted.
-    private static readonly HashSet<string> JobAbbrs = new(FrenMits.Jobs.Abbreviations, StringComparer.OrdinalIgnoreCase);
+    // With one action per line, the action text is always the full action.
+    public string ActionFor(string? jobAbbr) => Action;
 
-    private static bool SegmentAppliesTo(string segment, string job)
-    {
-        var i = segment.IndexOf('(');
-        while (i >= 0)
-        {
-            var j = segment.IndexOf(')', i + 1);
-            if (j < 0) break;
-            var tokens = segment.Substring(i + 1, j - i - 1).Split('/');
-            var allJobs = tokens.Length > 0;
-            var mine = false;
-            foreach (var t in tokens)
-            {
-                var tok = t.Trim();
-                if (tok.Length == 0 || !JobAbbrs.Contains(tok)) { allJobs = false; break; }
-                if (string.Equals(tok, job, StringComparison.OrdinalIgnoreCase)) mine = true;
-            }
-            if (allJobs && !mine) return false;
-            i = segment.IndexOf('(', j + 1);
-        }
-        return true;
-    }
+    // True when this line has an explicit job restriction.
+    public bool HasJobGate() => Jobs.Count > 0;
 
-    // True when any segment carries a job gate.
-    public bool HasJobGate()
-    {
-        if (string.IsNullOrWhiteSpace(Action) || Action.IndexOf('(') < 0) return false;
-        foreach (var raw in Action.Split('+'))
-        {
-            var seg = raw.Trim();
-            if (seg.Length > 0 && JobGateOf(seg).Length > 0) return true;
-        }
-        return false;
-    }
-
-    // The normalized gate on the segment naming that mit.
+    // The normalized job tag for conflict tracking: the sorted job list, or "".
     public static string JobTagFor(string action, string mit)
     {
-        foreach (var raw in action.Split('+'))
-        {
-            var seg = raw.Trim();
-            if (seg.Length == 0 || seg.IndexOf(mit, StringComparison.OrdinalIgnoreCase) < 0) continue;
-            return JobGateOf(seg);
-        }
-        return "";
-    }
-
-    // The segment's job gate, normalized, or "" when it has none.
-    private static string JobGateOf(string segment)
-    {
-        var i = segment.IndexOf('(');
-        while (i >= 0)
-        {
-            var j = segment.IndexOf(')', i + 1);
-            if (j < 0) break;
-            var tokens = segment.Substring(i + 1, j - i - 1).Split('/');
-            var jobs = new List<string>();
-            var all = tokens.Length > 0;
-            foreach (var t in tokens)
-            {
-                var tok = t.Trim().ToUpperInvariant();
-                if (tok.Length == 0 || !JobAbbrs.Contains(tok)) { all = false; break; }
-                jobs.Add(tok);
-            }
-            if (all) { jobs.Sort(StringComparer.Ordinal); return string.Join("/", jobs); }
-            i = segment.IndexOf('(', j + 1);
-        }
+        // No inline gates in the new model; tags come from the Jobs list
+        // and are handled by the caller.
         return "";
     }
 

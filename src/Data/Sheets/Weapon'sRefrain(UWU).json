@@ -1,0 +1,1732 @@
+{
+  "TerritoryId": 777,
+  "Name": "Weapon's Refrain (UWU)",
+  "Timeline": [
+    {
+      "Time": 9,
+      "Mechanic": "Slipstream + Mistrel Song"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Spiny Plume"
+    },
+    {
+      "Time": 20,
+      "Mechanic": "Mistrel Song"
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Spiny Plume"
+    },
+    {
+      "Time": 24,
+      "Mechanic": "Slipstream + Mistrel Song"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Mistral Shriek"
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I"
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Friction II"
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Aerial Blast"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Mistrel Song"
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Super Cyclone"
+    },
+    {
+      "Time": 150,
+      "Mechanic": "Hellfire"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Vulcan Burst"
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Incinerate"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Infernal Nails"
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Searing Wind and Chains"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)"
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Infernal Surge"
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Hellfire"
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Post Hellfire"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Flaming Crush"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Incinerate"
+    },
+    {
+      "Time": 247,
+      "Mechanic": "Geocrush"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Earthern Fury"
+    },
+    {
+      "Time": 261,
+      "Mechanic": "Rock Slide + Mountain Buster"
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)"
+    },
+    {
+      "Time": 263,
+      "Mechanic": "Tumult (x6)"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Rock Slide + Mountain Buster"
+    },
+    {
+      "Time": 361,
+      "Mechanic": "Rock Slide + Mountain Buster"
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Rock Slide + Mountain Buster"
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Ultima"
+    },
+    {
+      "Time": 472,
+      "Mechanic": "Tank Purge"
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Homing Laser"
+    },
+    {
+      "Time": 486,
+      "Mechanic": "Viscous Aetheroplasm"
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)"
+    },
+    {
+      "Time": 562,
+      "Mechanic": "Mistrel Shriek"
+    },
+    {
+      "Time": 563,
+      "Mechanic": "Homing Laser + Aetheroplasm"
+    },
+    {
+      "Time": 587,
+      "Mechanic": "Mesohigh"
+    },
+    {
+      "Time": 596,
+      "Mechanic": "Searing Wind"
+    },
+    {
+      "Time": 605,
+      "Mechanic": "Mesohigh"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge"
+    },
+    {
+      "Time": 623,
+      "Mechanic": "Homing Laser"
+    },
+    {
+      "Time": 655,
+      "Mechanic": "Mistral Shriek"
+    },
+    {
+      "Time": 661,
+      "Mechanic": "Flaming Crush"
+    },
+    {
+      "Time": 667,
+      "Mechanic": "Tank Purge"
+    },
+    {
+      "Time": 678,
+      "Mechanic": "Ultima"
+    },
+    {
+      "Time": 688,
+      "Mechanic": "Aetheric Boom"
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Primal I"
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Primal II"
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Primal III"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 9,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 9,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 9,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 9,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Spiny Plume",
+      "Slot": "OT",
+      "Action": "90s"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Spiny Plume",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 16,
+      "Mechanic": "Spiny Plume",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 20,
+      "Mechanic": "Mistrel Song",
+      "Slot": "MT",
+      "Action": "120s"
+    },
+    {
+      "Time": 20,
+      "Mechanic": "Mistrel Song",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 20,
+      "Mechanic": "Mistrel Song",
+      "Slot": "OT",
+      "Action": "120s"
+    },
+    {
+      "Time": 20,
+      "Mechanic": "Mistrel Song",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Spiny Plume",
+      "Slot": "OT",
+      "Action": "Reprisal (Grab Spiny)"
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Spiny Plume",
+      "Slot": "H2",
+      "Action": "Spreadlo (OT)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Spiny Plume",
+      "Slot": "H2",
+      "Action": "Haima (OT)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 24,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "MT",
+      "Action": "90s"
+    },
+    {
+      "Time": 24,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 24,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 24,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "OT",
+      "Action": "90s"
+    },
+    {
+      "Time": 24,
+      "Mechanic": "Slipstream + Mistrel Song",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Mistral Shriek",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Mistral Shriek",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Mistral Shriek",
+      "Slot": "H2",
+      "Action": "Zoe Shield",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 42,
+      "Mechanic": "Mistral Shriek",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Slot": "MT",
+      "Action": "Party Mit (GNB/DRK)"
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Friction II",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Friction II",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Aerial Blast",
+      "Slot": "H1",
+      "Action": "GCD Heal and Shield after Feather Rain",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Mistrel Song",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Super Cyclone",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Super Cyclone",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Super Cyclone",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Super Cyclone",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 132,
+      "Mechanic": "Super Cyclone",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 150,
+      "Mechanic": "Hellfire",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 150,
+      "Mechanic": "Hellfire",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 150,
+      "Mechanic": "Hellfire",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Vulcan Burst",
+      "Slot": "H2",
+      "Action": "GCD Shield",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Incinerate",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Infernal Nails",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Infernal Nails",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Infernal Nails",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Infernal Nails",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Searing Wind and Chains",
+      "Slot": "MT",
+      "Action": "Buddy Mit: Searing Wind Healer"
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Searing Wind and Chains",
+      "Slot": "H2",
+      "Action": "Excogitation (Searing Wind Healer)",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Searing Wind and Chains",
+      "Slot": "H2",
+      "Action": "Haima (Searing Wind Healer)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Searing Wind and Chains",
+      "Slot": "M1",
+      "Action": "Second Wind"
+    },
+    {
+      "Time": 181,
+      "Mechanic": "Searing Wind and Chains",
+      "Slot": "M1",
+      "Action": "Bloodbath"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "MT",
+      "Action": "Reprisal (Nails)"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "MT",
+      "Action": "Party Mit (GNB/DRK)"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "OT",
+      "Action": "Party Mit (GNB/DRK)"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 189,
+      "Mechanic": "Infernal Surge (Eruption)",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Infernal Surge",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Infernal Surge",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 194,
+      "Mechanic": "Infernal Surge",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Hellfire",
+      "Slot": "MT",
+      "Action": "Do Not Mitigate!"
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Hellfire",
+      "Slot": "H1",
+      "Action": "GCD Heal and Shield (Do Not Mitigate!)",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Hellfire",
+      "Slot": "M1",
+      "Action": "Do Not Mitigate!"
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Post Hellfire",
+      "Slot": "MT",
+      "Action": "120s"
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Post Hellfire",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Post Hellfire",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Flaming Crush",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Flaming Crush",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Incinerate",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 247,
+      "Mechanic": "Geocrush",
+      "Slot": "H1",
+      "Action": "GCD Heal",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 247,
+      "Mechanic": "Geocrush",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 247,
+      "Mechanic": "Geocrush",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Earthern Fury",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 261,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 263,
+      "Mechanic": "Tumult (x6)",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 263,
+      "Mechanic": "Tumult (x6)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 263,
+      "Mechanic": "Tumult (x6)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 263,
+      "Mechanic": "Tumult (x6)",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 263,
+      "Mechanic": "Tumult (x6)",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "H2",
+      "Action": "Haima (MT)",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 361,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 361,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 361,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "OT",
+      "Action": "90s"
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Ultima",
+      "Slot": "MT",
+      "Action": "LB3"
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Ultima",
+      "Slot": "H1",
+      "Action": "Do Not Heal Until After Tank Purge!",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Ultima",
+      "Slot": "H2",
+      "Action": "Shields Only",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 472,
+      "Mechanic": "Tank Purge",
+      "Slot": "MT",
+      "Action": "Read notes and communicate with your party!"
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Homing Laser",
+      "Slot": "MT",
+      "Action": "Provoke"
+    },
+    {
+      "Time": 481,
+      "Mechanic": "Homing Laser",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 486,
+      "Mechanic": "Viscous Aetheroplasm",
+      "Slot": "MT",
+      "Action": "Kitchen Sink (Optional)"
+    },
+    {
+      "Time": 486,
+      "Mechanic": "Viscous Aetheroplasm",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 486,
+      "Mechanic": "Viscous Aetheroplasm",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)",
+      "Slot": "MT",
+      "Action": "Party Mit (GNB/DRK)"
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 537,
+      "Mechanic": "Tumult (x7)",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 562,
+      "Mechanic": "Mistrel Shriek",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 562,
+      "Mechanic": "Mistrel Shriek",
+      "Slot": "R1",
+      "Action": "Carry Over"
+    },
+    {
+      "Time": 563,
+      "Mechanic": "Homing Laser + Aetheroplasm",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 563,
+      "Mechanic": "Homing Laser + Aetheroplasm",
+      "Slot": "OT",
+      "Action": "Provoke (After Aetheroplasm Applied)"
+    },
+    {
+      "Time": 587,
+      "Mechanic": "Mesohigh",
+      "Slot": "MT",
+      "Action": "Buddy Mit: D3"
+    },
+    {
+      "Time": 587,
+      "Mechanic": "Mesohigh",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 587,
+      "Mechanic": "Mesohigh",
+      "Slot": "R1",
+      "Action": "Second Wind"
+    },
+    {
+      "Time": 596,
+      "Mechanic": "Searing Wind",
+      "Slot": "H2",
+      "Action": "Haima: Searing Wind Healer",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 605,
+      "Mechanic": "Mesohigh",
+      "Slot": "MT",
+      "Action": "Buddy Mit: Searing Wind Healer"
+    },
+    {
+      "Time": 605,
+      "Mechanic": "Mesohigh",
+      "Slot": "H1",
+      "Action": "Heal Yourself!",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Tank Purge",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 623,
+      "Mechanic": "Homing Laser",
+      "Slot": "MT",
+      "Action": "Provoke"
+    },
+    {
+      "Time": 623,
+      "Mechanic": "Homing Laser",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 655,
+      "Mechanic": "Mistral Shriek",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 655,
+      "Mechanic": "Mistral Shriek",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 661,
+      "Mechanic": "Flaming Crush",
+      "Slot": "MT",
+      "Action": "Party Mit (GNB/DRK)"
+    },
+    {
+      "Time": 661,
+      "Mechanic": "Flaming Crush",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 661,
+      "Mechanic": "Flaming Crush",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 667,
+      "Mechanic": "Tank Purge",
+      "Slot": "MT",
+      "Action": "Party Mit (WAR/PLD)"
+    },
+    {
+      "Time": 667,
+      "Mechanic": "Tank Purge",
+      "Slot": "H1",
+      "Action": "GCD Heal and Shield!",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 678,
+      "Mechanic": "Ultima",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 678,
+      "Mechanic": "Ultima",
+      "Slot": "MT",
+      "Action": "LB3"
+    },
+    {
+      "Time": 678,
+      "Mechanic": "Ultima",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 678,
+      "Mechanic": "Ultima",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 678,
+      "Mechanic": "Ultima",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 688,
+      "Mechanic": "Aetheric Boom",
+      "Slot": "MT",
+      "Action": "LB1"
+    },
+    {
+      "Time": 688,
+      "Mechanic": "Aetheric Boom",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 688,
+      "Mechanic": "Aetheric Boom",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 688,
+      "Mechanic": "Aetheric Boom",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 688,
+      "Mechanic": "Aetheric Boom",
+      "Slot": "MT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 688,
+      "Mechanic": "Aetheric Boom",
+      "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Primal I",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Primal I",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Primal I",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Primal II",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Primal II",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Primal II",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Primal II",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Primal II",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Primal III",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Primal III",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Primal III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 11092,
+      "Time": 42,
+      "IsPhase": true,
+      "Label": "P1 Mistral Shriek"
+    },
+    {
+      "Ability": 11080,
+      "Time": 51.4,
+      "IsPhase": false,
+      "Label": "P1 Friction I"
+    },
+    {
+      "Ability": 11080,
+      "Time": 57.5,
+      "IsPhase": false,
+      "Label": "P1 Friction II"
+    },
+    {
+      "Ability": 11093,
+      "Time": 76.9,
+      "IsPhase": false,
+      "Label": "P1 Aerial Blast"
+    },
+    {
+      "Ability": 11102,
+      "Time": 150.2,
+      "IsPhase": true,
+      "Label": "P2 Hellfire"
+    },
+    {
+      "Ability": 11095,
+      "Time": 158.4,
+      "IsPhase": false,
+      "Label": "P2 Vulcan Burst"
+    },
+    {
+      "Ability": 11098,
+      "Time": 188.9,
+      "IsPhase": false,
+      "Label": "P2 Infernal Surge (Eruption)"
+    },
+    {
+      "Ability": 11102,
+      "Time": 213.1,
+      "IsPhase": false,
+      "Label": "P2 Hellfire"
+    },
+    {
+      "Ability": 11101,
+      "Time": 219,
+      "IsPhase": false,
+      "Label": "P2 Flaming Crush"
+    },
+    {
+      "Ability": 11517,
+      "Time": 247.2,
+      "IsPhase": true,
+      "Label": "P3 Geocrush"
+    },
+    {
+      "Ability": 11106,
+      "Time": 260.9,
+      "IsPhase": false,
+      "Label": "P3 Rock Slide + Mountain Buster"
+    },
+    {
+      "Ability": 11107,
+      "Time": 264,
+      "IsPhase": false,
+      "Label": "P3 Rock Slide + Mountain Buster"
+    },
+    {
+      "Ability": 11106,
+      "Time": 361.4,
+      "IsPhase": false,
+      "Label": "P3 Rock Slide + Mountain Buster"
+    },
+    {
+      "Ability": 11147,
+      "Time": 428.7,
+      "IsPhase": true,
+      "Label": "P4 Ultima"
+    },
+    {
+      "Ability": 11143,
+      "Time": 472.5,
+      "IsPhase": true,
+      "Label": "P4 Tank Purge"
+    },
+    {
+      "Ability": 11130,
+      "Time": 485.9,
+      "IsPhase": false,
+      "Label": "P4 Viscous Aetheroplasm"
+    },
+    {
+      "Ability": 11081,
+      "Time": 587.4,
+      "IsPhase": false,
+      "Label": "P4 Mesohigh"
+    },
+    {
+      "Ability": 11081,
+      "Time": 604.8,
+      "IsPhase": false,
+      "Label": "P4 Mesohigh"
+    },
+    {
+      "Ability": 11143,
+      "Time": 607.6,
+      "IsPhase": false,
+      "Label": "P4 Tank Purge"
+    },
+    {
+      "Ability": 11101,
+      "Time": 661.3,
+      "IsPhase": false,
+      "Label": "P4 Flaming Crush"
+    },
+    {
+      "Ability": 11143,
+      "Time": 666.6,
+      "IsPhase": false,
+      "Label": "P4 Tank Purge"
+    },
+    {
+      "Ability": 11147,
+      "Time": 678,
+      "IsPhase": false,
+      "Label": "P4 Ultima"
+    },
+    {
+      "Ability": 11144,
+      "Time": 688.2,
+      "IsPhase": false,
+      "Label": "P4 Aetheric Boom"
+    },
+    {
+      "Ability": 11476,
+      "Time": 729.6,
+      "IsPhase": false,
+      "Label": "P4 Primal I"
+    }
+  ],
+  "PhaseStarts": [
+    {
+      "Time": 21,
+      "Name": "P1"
+    },
+    {
+      "Time": 150,
+      "Name": "P2"
+    },
+    {
+      "Time": 247,
+      "Name": "P3"
+    },
+    {
+      "Time": 429,
+      "Name": "P4"
+    }
+  ],
+  "CustomRows": [
+    {
+      "Time": 42,
+      "Mechanic": "Mistral Shriek",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Friction I",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Aerial Blast",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Mistral Song",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 150,
+      "Mechanic": "Hellfire",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Hellfire",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Earthern Fury",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 261,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Tumult (x8)",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 361,
+      "Mechanic": "Rock Slide + Mountain Buster",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Ultima",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 472,
+      "Mechanic": "Tank Purge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 486,
+      "Mechanic": "Viscous Aetheroplasm",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 562,
+      "Mechanic": "Mistrel Shriek",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 605,
+      "Mechanic": "Mesohigh",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 626,
+      "Mechanic": "Homing Lasers",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 644,
+      "Mechanic": "Mistral Song",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 661,
+      "Mechanic": "Flaming Crush",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 667,
+      "Mechanic": "Tank Purge",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 678,
+      "Mechanic": "Ultima",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 692,
+      "Mechanic": "Aetheroplasm",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 730,
+      "Mechanic": "Primal I",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Primal II",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 769,
+      "Mechanic": "Primal III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": [],
+  "PriorityPhases": []
+}

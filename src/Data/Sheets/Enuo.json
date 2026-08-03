@@ -1,0 +1,2410 @@
+{
+  "TerritoryId": 1362,
+  "Name": "Enuo",
+  "Timeline": [
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain"
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Meltdown"
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Violent Burst"
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Vacuum"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Airy Emptiness"
+    },
+    {
+      "Time": 134,
+      "Mechanic": "Deep Freeze"
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness"
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Demon Eye"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Nothingness"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Lightless World"
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Naught Grows"
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing"
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Shrouded Holy"
+    },
+    {
+      "Time": 354,
+      "Mechanic": "Naught Grows"
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Meltdown"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest"
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Airy Emptiness"
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness"
+    },
+    {
+      "Time": 534,
+      "Mechanic": "Dimension Zero"
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest"
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Naught Grows"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows"
+    },
+    {
+      "Time": 68,
+      "Mechanic": "Naught Grows"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Almagest"
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Burst"
+    },
+    {
+      "Time": 590,
+      "Mechanic": "Passage of Naught"
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst"
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Meteorain"
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught"
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing"
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Voidal Turbulence"
+    },
+    {
+      "Time": 70,
+      "Mechanic": "Great Return to Nothing"
+    },
+    {
+      "Time": 366,
+      "Mechanic": "Dimension Zero"
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Gaze of the Void"
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Naught Hunts"
+    },
+    {
+      "Time": 570,
+      "Mechanic": "Naught Wakes"
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Deep Freeze"
+    },
+    {
+      "Time": 579,
+      "Mechanic": "Passage of Naught"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Meltdown",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 68,
+      "Mechanic": "Naught Grows",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 68,
+      "Mechanic": "Naught Grows",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 70,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 70,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Violent Burst",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Violent Burst",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Vacuum",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Vacuum",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Vacuum",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 134,
+      "Mechanic": "Deep Freeze",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 134,
+      "Mechanic": "Deep Freeze",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Meteorain",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Meteorain",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 175,
+      "Mechanic": "Looming Emptiness",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Demon Eye",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Demon Eye",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Demon Eye",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Nothingness",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Nothingness",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Nothingness",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Nothingness",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Lightless World",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Lightless World",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Lightless World",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Lightless World",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Lightless World",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Almagest",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Naught Grows",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Naught Grows",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Naught Grows",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Shrouded Holy",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Shrouded Holy",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 354,
+      "Mechanic": "Naught Grows",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 354,
+      "Mechanic": "Naught Grows",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 354,
+      "Mechanic": "Naught Grows",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 366,
+      "Mechanic": "Dimension Zero",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 366,
+      "Mechanic": "Dimension Zero",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Meltdown",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Gaze of the Void",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 405,
+      "Mechanic": "Gaze of the Void",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Burst",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Naught Hunts",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Airy Emptiness",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 534,
+      "Mechanic": "Dimension Zero",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 534,
+      "Mechanic": "Dimension Zero",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 534,
+      "Mechanic": "Dimension Zero",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 570,
+      "Mechanic": "Naught Wakes",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 570,
+      "Mechanic": "Naught Wakes",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 579,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 590,
+      "Mechanic": "Passage of Naught",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 590,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 590,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 590,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 590,
+      "Mechanic": "Passage of Naught",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Deep Freeze",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Naught Grows",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Naught Grows",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Naught Grows",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Slot": "R2",
+      "Action": "Addle"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 50049,
+      "Time": 15,
+      "IsPhase": true,
+      "Label": "P1 Meteorain"
+    },
+    {
+      "Ability": 49975,
+      "Time": 30,
+      "IsPhase": false,
+      "Label": "P1 Naught Grows"
+    },
+    {
+      "Ability": 49973,
+      "Time": 39,
+      "IsPhase": false,
+      "Label": "P1 Naught Wakes"
+    },
+    {
+      "Ability": 50040,
+      "Time": 45,
+      "IsPhase": false,
+      "Label": "P1 Meltdown"
+    },
+    {
+      "Ability": 50041,
+      "Time": 51,
+      "IsPhase": false,
+      "Label": "P1 Meltdown"
+    },
+    {
+      "Ability": 49975,
+      "Time": 68,
+      "IsPhase": false,
+      "Label": "P1 Naught Grows"
+    },
+    {
+      "Ability": 50002,
+      "Time": 85,
+      "IsPhase": false,
+      "Label": "P1 Gaze of the Void"
+    },
+    {
+      "Ability": 49994,
+      "Time": 111,
+      "IsPhase": false,
+      "Label": "P1 Vacuum"
+    },
+    {
+      "Ability": 50000,
+      "Time": 117,
+      "IsPhase": false,
+      "Label": "P1 Silent Torrent"
+    },
+    {
+      "Ability": 50043,
+      "Time": 134,
+      "IsPhase": false,
+      "Label": "P1 Deep Freeze"
+    },
+    {
+      "Ability": 50049,
+      "Time": 142,
+      "IsPhase": false,
+      "Label": "P1 Meteorain"
+    },
+    {
+      "Ability": 50010,
+      "Time": 156,
+      "IsPhase": false,
+      "Label": "P1 All for Naught"
+    },
+    {
+      "Ability": 50011,
+      "Time": 175,
+      "IsPhase": false,
+      "Label": "P1 Looming Emptiness"
+    },
+    {
+      "Ability": 50022,
+      "Time": 192,
+      "IsPhase": false,
+      "Label": "P1 Demon Eye"
+    },
+    {
+      "Ability": 50029,
+      "Time": 277,
+      "IsPhase": false,
+      "Label": "P1 Lightless World"
+    },
+    {
+      "Ability": 49972,
+      "Time": 292,
+      "IsPhase": false,
+      "Label": "P1 Almagest"
+    },
+    {
+      "Ability": 49976,
+      "Time": 305,
+      "IsPhase": false,
+      "Label": "P1 Naught Grows"
+    },
+    {
+      "Ability": 49973,
+      "Time": 314,
+      "IsPhase": false,
+      "Label": "P1 Naught Wakes"
+    },
+    {
+      "Ability": 50045,
+      "Time": 339,
+      "IsPhase": false,
+      "Label": "P1 Shrouded Holy"
+    },
+    {
+      "Ability": 49976,
+      "Time": 354,
+      "IsPhase": false,
+      "Label": "P1 Naught Grows"
+    },
+    {
+      "Ability": 50047,
+      "Time": 366,
+      "IsPhase": false,
+      "Label": "P1 Dimension Zero"
+    },
+    {
+      "Ability": 49994,
+      "Time": 379,
+      "IsPhase": false,
+      "Label": "P1 Vacuum"
+    },
+    {
+      "Ability": 50040,
+      "Time": 386,
+      "IsPhase": false,
+      "Label": "P1 Meltdown"
+    },
+    {
+      "Ability": 50000,
+      "Time": 386,
+      "IsPhase": false,
+      "Label": "P1 Silent Torrent"
+    },
+    {
+      "Ability": 50041,
+      "Time": 391,
+      "IsPhase": false,
+      "Label": "P1 Meltdown"
+    },
+    {
+      "Ability": 50002,
+      "Time": 405,
+      "IsPhase": false,
+      "Label": "P1 Gaze of the Void"
+    },
+    {
+      "Ability": 49972,
+      "Time": 438,
+      "IsPhase": false,
+      "Label": "P1 Almagest"
+    },
+    {
+      "Ability": 49973,
+      "Time": 448,
+      "IsPhase": false,
+      "Label": "P1 Naught Wakes"
+    },
+    {
+      "Ability": 49992,
+      "Time": 457,
+      "IsPhase": false,
+      "Label": "P1 Naught Hunts"
+    },
+    {
+      "Ability": 49992,
+      "Time": 496,
+      "IsPhase": false,
+      "Label": "P1 Naught Hunts"
+    },
+    {
+      "Ability": 50047,
+      "Time": 534,
+      "IsPhase": false,
+      "Label": "P1 Dimension Zero"
+    },
+    {
+      "Ability": 49972,
+      "Time": 549,
+      "IsPhase": false,
+      "Label": "P1 Almagest"
+    },
+    {
+      "Ability": 49976,
+      "Time": 561,
+      "IsPhase": false,
+      "Label": "P1 Naught Grows"
+    },
+    {
+      "Ability": 49973,
+      "Time": 570,
+      "IsPhase": false,
+      "Label": "P1 Naught Wakes"
+    },
+    {
+      "Ability": 50043,
+      "Time": 595,
+      "IsPhase": false,
+      "Label": "P1 Deep Freeze"
+    },
+    {
+      "Ability": 49976,
+      "Time": 609,
+      "IsPhase": false,
+      "Label": "P1 Naught Grows"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 15,
+      "Mechanic": "Meteorain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Naught Grows",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 32,
+      "Mechanic": "Return to Nothing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 51,
+      "Mechanic": "Meltdown",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Dense Emptiness",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 68,
+      "Mechanic": "Naught Grows",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 70,
+      "Mechanic": "Great Return to Nothing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Violent Burst",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Burst",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 101,
+      "Mechanic": "Violent Burst",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 102,
+      "Mechanic": "Burst",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Airy Emptiness",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 134,
+      "Mechanic": "Deep Freeze",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Meteorain",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 184,
+      "Mechanic": "Voidal Turbulence",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 185,
+      "Mechanic": "Empty Shadow",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Demon Eye",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 212,
+      "Mechanic": "Voidal Turbulence",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Empty Shadow",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Nothingness",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Lightless World",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Almagest",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Naught Grows",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Great Return to Nothing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Shrouded Holy",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 354,
+      "Mechanic": "Naught Grows",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 356,
+      "Mechanic": "Great Return to Nothing",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 366,
+      "Mechanic": "Dimension Zero",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Meltdown",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Burst",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 415,
+      "Mechanic": "Violent Burst",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 416,
+      "Mechanic": "Burst",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Violent Burst",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Burst",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Almagest",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 484,
+      "Mechanic": "Airy Emptiness",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 523,
+      "Mechanic": "Dense Emptiness",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 534,
+      "Mechanic": "Dimension Zero",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Dimension Zero",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Almagest",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 561,
+      "Mechanic": "Naught Grows",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 563,
+      "Mechanic": "Great Return to Nothing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 595,
+      "Mechanic": "Deep Freeze",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 609,
+      "Mechanic": "Naught Grows",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 611,
+      "Mechanic": "Great Return to Nothing",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

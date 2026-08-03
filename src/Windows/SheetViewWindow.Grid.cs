@@ -21,7 +21,7 @@ public partial class SheetViewWindow
         if (_fight == null) return;
         var sb = new System.Text.StringBuilder();
         sb.Append("Time\tMechanic");
-        foreach (var i in _order) sb.Append('\t').Append(_slots[i]);
+        foreach (var i in _order) sb.Append('\t').Append(_gridCols[i]);
         var anyNotes = _fight.Notes.Count > 0;
         if (anyNotes) sb.Append("\tNotes");
         sb.AppendLine();
@@ -68,7 +68,7 @@ public partial class SheetViewWindow
         return false;
     }
 
-    private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2", "T" };
+    private static readonly string[] TankSlots = { "MT", "OT", "T" };
     private static readonly string[] HealSlots = { "WHM", "AST", "SCH", "SGE", "H1", "H2", "H" };
 
     private static Vector4 RoleColor(string slot)
@@ -107,12 +107,30 @@ public partial class SheetViewWindow
 
     private bool _editorDrawn; // safety net: an open editor whose row got hidden
 
-    private string? _gridJob; // active job, cached once per frame for cell gating
+    private List<MitLine> GetCellLinesForJob(Row row, int i)
+    {
+        var cell = row.Cells[i];
+        
+        // Filter out actions based on the Action Type checkboxes
+        if (!_showPartyMits || !_showPersonalMits)
+        {
+            var filtered = new List<MitLine>();
+            foreach (var l in cell)
+            {
+                var isPartyMit = Cooldowns.PartyMits.Contains(l.Action);
+                if (isPartyMit && !_showPartyMits) continue;
+                if (!isPartyMit && !_showPersonalMits) continue;
+                filtered.Add(l);
+            }
+            return filtered;
+        }
+
+        return cell;
+    }
 
     private void DrawGrid()
     {
         _editorDrawn = false;
-        _gridJob = _plugin.ActiveJobAbbreviation();
         // Hover highlight rides one frame behind the cells.
         _hoverLivePrev = _hoverLive;
         _hoverLive = null;
@@ -124,7 +142,7 @@ public partial class SheetViewWindow
                   | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
         // Settings save by column index, so the id bakes in the layout.
         var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}";
-        if (!ImGui.BeginTable(tableId, 2 + _slots.Length, flags, new Vector2(0, -footerH)))
+        if (!ImGui.BeginTable(tableId, 2 + _gridCols.Length, flags, new Vector2(0, -footerH)))
             return;
 
         // Pinned columns ride frozen, capped for narrow windows.
@@ -132,7 +150,7 @@ public partial class SheetViewWindow
         ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 62);
         ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 240);
         foreach (var i in _order)
-            ImGui.TableSetupColumn(_slots[i], ImGuiTableColumnFlags.WidthFixed, 130);
+            ImGui.TableSetupColumn(_gridCols[i], ImGuiTableColumnFlags.WidthFixed, 130);
 
         // Header row with role colors and a "(you)" tag.
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
@@ -143,37 +161,38 @@ public partial class SheetViewWindow
         foreach (var i in _order)
         {
             ImGui.TableNextColumn();
-            ImGui.PushStyleColor(ImGuiCol.Text, RoleColor(_slots[i]));
-            ImGui.TableHeader(IsActiveSlot(i) ? $"{_slots[i]} (you)" : _slots[i]);
+            var slotIdx = _gridToSlot[i];
+            ImGui.PushStyleColor(ImGuiCol.Text, RoleColor(_gridCols[i]));
+            ImGui.TableHeader(IsYouColumn(i) ? $"{_gridCols[i]} (you)" : _gridCols[i]);
             ImGui.PopStyleColor();
             var headMin = ImGui.GetItemRectMin();
             var headMax = ImGui.GetItemRectMax();
             var pinned = IsPinnedColumn(i);
             if (DelayedHover())
-                ImGui.SetTooltip((IsActiveSlot(i) ? $"{SlotTip(_slots[i])}, your slot." : SlotTip(_slots[i]))
+                ImGui.SetTooltip((IsYouColumn(i) ? $"{SlotTip(_gridCols[i])}, your slot." : SlotTip(_gridCols[i]))
                     + (pinned ? "\nPinned. Right-click to unpin." : "\nRight-click to pin."));
             if (ImGui.BeginPopupContextItem($"##colpin{i}"))
             {
-                if (_isCustom && !IsActiveSlot(i) && ImGui.MenuItem("Make this my column"))
-                    SwitchCustomSlot(i);
+                if (_isCustom && !IsActiveSlot(slotIdx) && ImGui.MenuItem("Make this my column"))
+                    SwitchCustomSlot(slotIdx);
                 if (ImGui.MenuItem(pinned ? "Unpin column" : "Pin column"))
                 {
                     if (pinned)
-                        C.SheetPinnedSlots.RemoveAll(s => string.Equals(s, _slots[i], StringComparison.OrdinalIgnoreCase));
+                        C.SheetPinnedSlots.RemoveAll(s => string.Equals(s, _gridCols[i], StringComparison.OrdinalIgnoreCase));
                     else
-                        C.SheetPinnedSlots.Add(_slots[i]);
+                        C.SheetPinnedSlots.Add(_gridCols[i]);
                     C.Save();
                     CommitPending();
                     _dirty = true;
                 }
                 ImGui.Separator();
-                if (ImGui.MenuItem($"Copy column ({_slots[i]})"))
+                if (ImGui.MenuItem($"Copy column ({_gridCols[i]})"))
                 {
                     _copyColFight = _fight;
-                    _copyColSlot = _slots[i];
+                    _copyColSlot = _slots[slotIdx];
                 }
                 var canPaste = _copyColFight == _fight && _copyColSlot.Length > 0
-                    && !string.Equals(_copyColSlot, _slots[i], StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(_copyColSlot, _slots[slotIdx], StringComparison.OrdinalIgnoreCase)
                     && _slots.Contains(_copyColSlot, StringComparer.OrdinalIgnoreCase);
                 ImGui.BeginDisabled(!canPaste);
                 if (ImGui.MenuItem(canPaste ? $"Paste column ({_copyColSlot}'s plan)" : "Paste column"))
@@ -206,6 +225,14 @@ public partial class SheetViewWindow
         {
             var row = _rows[r];
             if (_phaseFilter.Length > 0 && row.Phase != _phaseFilter) continue;
+            if (!_showJobExtra && row.JobExtra) continue;
+            
+            if (row.Cells.All(c => c.Count == 0))
+            {
+                if (!(_isCustom || C.ShowEmptyMechanics) || !_fight.CustomRows.Any(cr => MechEquals(row.Mechanic, cr.Mechanic)))
+                    continue;
+            }
+
             if (!MatchesFilter(row)) continue;
 
             if (row.Phase != lastPhase)
@@ -217,7 +244,16 @@ public partial class SheetViewWindow
                 ImGui.TableNextColumn();
                 // Accent blue, so the separators pop instead of reading dim.
                 ImGui.TextColored(NoteBlue, Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
-                for (var i = 0; i < _slots.Length; i++) ImGui.TableNextColumn();
+                // On this row for a swapped-priority phase, the toggle sits in
+                // the MT/OT columns themselves - it swaps both at once, not
+                // just the one you happen to be viewing as.
+                var priPhase = _isCustom ? null : TankPriority.PhaseAt(_fight!.TerritoryId, row.Time);
+                foreach (var i in _order)
+                {
+                    ImGui.TableNextColumn();
+                    if (priPhase != null && TankSlots.Contains(_slots[_gridToSlot[i]], StringComparer.OrdinalIgnoreCase))
+                        DrawPriorityPhaseToggle(priPhase, i);
+                }
             }
 
             if (_firstDrawnIdx < 0) _firstDrawnIdx = r;
@@ -264,6 +300,29 @@ public partial class SheetViewWindow
         dl.AddRect(p0, p0 + size + pad * 2f, 0x2EFFFFFF, 5f);
         dl.AddText(p0 + pad, ImGui.GetColorU32(NoteBlue), _stickyTitle);
         dl.PopClipRect();
+    }
+
+    // On a phase whose tank busters follow priority (not literal MT/OT), a
+    // small toggle in the MT/OT columns to flip which physical tank each one
+    // shows - the grid shows both columns at once, so this exchanges them
+    // both, unlike the Fight Editor's toggle which only affects your own seat.
+    private void DrawPriorityPhaseToggle(PriorityPhase phase, int colIdx)
+    {
+        if (_fight == null) return;
+        var swapped = TankPriority.IsSwapped(_fight, phase);
+        ImGui.PushStyleColor(ImGuiCol.Text, swapped ? 0xFF5C9EF5 : ImGui.GetColorU32(ImGuiCol.TextDisabled));
+        var clicked = IconSmallButton(FontAwesomeIcon.Random, $"##priswap{colIdx}");
+        ImGui.PopStyleColor();
+        if (clicked)
+        {
+            TankPriority.SetSwapped(_fight, phase, !swapped);
+            Builtin.ReapplyPriority(_fight);
+            MarkPlanDirty();
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(swapped
+                ? "Priority swapped for this phase - click to go back to the sheet's default MT/OT."
+                : "Tank busters here follow job priority, not MT/OT.\nClick to swap MT and OT for this phase.");
     }
 
     private void DrawTimeCell(Row row)
@@ -415,6 +474,13 @@ public partial class SheetViewWindow
             ImGui.TextDisabled("job extra");
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("A job-specific line at its own time. Nothing is wrong.");
+
+            // A hidden mechanic (a summoner's pet cycle) is the sheet's own
+            // timer rather than a call mixed in from the job-extra schedules,
+            // so there is nothing here to opt out of - offering delete would
+            // only tombstone rows the sheet will keep baking.
+            if (_fight is { } f && Builtin.IsHiddenMechanic(f.TerritoryId, row.Mechanic)) return;
+
             ImGui.SameLine(0, 4);
             if (IconSmallButton(FontAwesomeIcon.Times, "##delextra")) DeleteExtraRow(row);
             if (ImGui.IsItemHovered())
@@ -437,12 +503,30 @@ public partial class SheetViewWindow
         if (_fight == null || row.Ghost || AbortIfStale()) return;
         PushUndo($"delete \"{row.Mechanic}\" job extra");
         var removed = 0;
-        for (var i = 0; i < _slots.Length; i++)
+        var processedSlots = new HashSet<int>();
+        for (var i = 0; i < _gridCols.Length; i++)
         {
             if (row.Cells[i].Count == 0) continue;
-            EnsureBacked(i);
-            foreach (var l in row.Cells[i].ToList()) { _slotLines[i].Remove(l); removed++; }
-            Resort(i);
+            var slotIdx = _gridToSlot[i];
+            if (!processedSlots.Add(slotIdx)) continue;
+            EnsureBacked(slotIdx);
+            foreach (var l in row.Cells[i].ToList())
+            {
+                // Tombstone it, or the auto-mixed extras would just put it
+                // right back next time the fight page (or a zone entry) tops
+                // the lines up.
+                if (JobExtras.IsAutoExtra(l))
+                    _fight.DeletedCalls.Add(new DeletedCall
+                    {
+                        Slot = _slots[slotIdx],
+                        Time = l.Time,
+                        Mechanic = l.Mechanic,
+                        Action = l.Action,
+                    });
+                _slotLines[slotIdx].Remove(l);
+                removed++;
+            }
+            Resort(slotIdx);
         }
         if (removed == 0) { PopUndo(); return; }
         C.Save();
@@ -450,16 +534,38 @@ public partial class SheetViewWindow
         Flash($"\"{row.Mechanic}\" job extra removed. Ctrl+Z brings it back.");
     }
 
+    private bool IsYouColumn(int i)
+    {
+        var col = _gridCols[i];
+        if (Jobs.ByAbbreviation(col) != null)
+        {
+            var activeJob = _fight != null ? _plugin.GetActiveJobAbbr(_fight) : _plugin.ActiveJobAbbreviation();
+            return string.Equals(col, activeJob, StringComparison.OrdinalIgnoreCase);
+        }
+        return IsActiveSlot(_gridToSlot[i]);
+    }
+
+    private string FormatLineText(MitLine l, int i)
+    {
+        var action = l.Action;
+        if (l.Jobs.Count > 0 && Jobs.ByAbbreviation(_gridCols[i]) == null)
+        {
+            return $"{action} ({string.Join("/", l.Jobs)})";
+        }
+        return action;
+    }
+
     private void DrawSlotCell(Row row, int i)
     {
         ImGui.TableNextColumn();
-        if (IsActiveSlot(i)) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, YouCellBg);
+        var slotIdx = _gridToSlot[i];
+        if (IsYouColumn(i)) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, YouCellBg);
 
         if (row.Ghost)
         {
             var baked = row.Bake!.Cells[i];
             if (baked.Count > 0)
-                ImGui.TextDisabled(string.Join(" · ", baked.Select(l => l.Action)));
+                ImGui.TextDisabled(string.Join(" · ", baked.Select(l => FormatLineText(l, i))));
             return;
         }
 
@@ -480,15 +586,25 @@ public partial class SheetViewWindow
             return;
         }
 
-        var cell = row.Cells[i];
-        var first = cell.Count == 0 ? "" : cell[0].Action;
-        // Job extras render as normal text, since they aren't edits.
-        var jobOnly = cell.Count > 0 && cell.All(l => l.Custom && l.Jobs.Count > 0);
-        var custom = !_isCustom && !jobOnly && cell.Any(l => l.Custom);
+        var cell = GetCellLinesForJob(row, i);
+        var carries = row.Carry?[i];
+
+        List<string>? uniqueCarries = null;
+        if (carries != null && carries.Count > 0)
+        {
+            foreach (var cItem in carries)
+            {
+                if (!cell.Any(l => string.Equals(l.Action.Trim(), cItem.Trim(), StringComparison.OrdinalIgnoreCase)))
+                {
+                    uniqueCarries ??= new List<string>();
+                    uniqueCarries.Add(cItem);
+                }
+            }
+        }
+
+        var first = cell.Count == 0 ? "" : FormatLineText(cell[0], i);
+        var jobOnly = cell.Count > 0 && cell.All(JobExtras.IsAutoExtra);
         var off = cell.Count > 0 && cell.All(l => !l.Enabled);
-        // Every line here is another job's press, so dim it.
-        var foreign = !string.IsNullOrEmpty(_gridJob) && cell.Count > 0
-            && cell.All(l => !l.AppliesTo(_gridJob));
 
         // Cooldown conflicts tint red, level problems amber.
         string? warn = null;
@@ -501,51 +617,80 @@ public partial class SheetViewWindow
         if (warn != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, WarnCellBg);
         else if (lvl != null) ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, LevelCellBg);
 
-        // Carry-over ghost: an earlier press still covers this hit.
-        var carry = cell.Count == 0 && row.Carry != null ? row.Carry[i] : null;
+        // Measure how tall the cell will be, then draw the Selectable first (invisible label)
+        // so ImGui registers hover/click beneath our text. We then overdraw colored text on top.
+        var lineCount = cell.Count + (uniqueCarries?.Count ?? 0);
+        if (lineCount == 0) lineCount = 1;
+        var cellWidth = ImGui.GetContentRegionAvail().X;
+        var cellHeight = lineCount * ImGui.GetTextLineHeightWithSpacing();
 
-        // Merged cells stack their lines instead of hiding one.
-        var body = cell.Count > 1 ? string.Join("\n", cell.Select(l => l.Action)) : first;
-        var label = (custom ? "* " : "") + (body.Length == 0 ? carry ?? " " : body) + (off ? "  (off)" : "");
+        var startPos = ImGui.GetCursorScreenPos();
+        var clicked = ImGui.Selectable($"##c{i}", false, ImGuiSelectableFlags.None, new Vector2(cellWidth, cellHeight));
 
-        // Text color: edits orange, ghosts dim, the rest by mit type.
-        var kindCol = C.SheetColorByType && !custom && !off && first.Length > 0
-            ? MitTypes.Color(MitTypes.Classify(first), C) : 0u;
-        var pushed = true;
-        if (custom) ImGui.PushStyleColor(ImGuiCol.Text, EditedColor);
-        else if (carry != null)
-            ImGui.PushStyleColor(ImGuiCol.Text,
-                (ImGui.GetColorU32(ImGuiCol.TextDisabled) & 0x00FFFFFF) | 0x78000000);
-        else if (off || foreign) ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
-        else if (kindCol != 0) ImGui.PushStyleColor(ImGuiCol.Text, kindCol);
-        else pushed = false;
-        var clicked = ImGui.Selectable($"{label}##c{i}", false);
-        if (pushed) ImGui.PopStyleColor();
+        // Now overdraw text on top (cursor is already past the selectable region).
+        var textPos = startPos;
+        var dl = ImGui.GetWindowDrawList();
+        var lineH = ImGui.GetTextLineHeightWithSpacing();
+
+        if (cell.Count > 0)
+        {
+            foreach (var l in cell)
+            {
+                var lineText = FormatLineText(l, i) + (off ? "  (off)" : "");
+                // Job-extra lines (Mantra, Curing Waltz, ...) are an official
+                // merged schedule, not a personal edit, so they don't paint as edited.
+                var lineCustom = !_isCustom && !JobExtras.IsAutoExtra(l) && (l.Custom || l.Personal);
+                var kindCol = C.SheetColorByType && !lineCustom && !off && l.Action.Length > 0
+                    ? MitTypes.Color(MitTypes.Classify(l.Action), C) : 0u;
+                uint textCol;
+                if (lineCustom) textCol = ImGui.ColorConvertFloat4ToU32(EditedColor);
+                else if (off) textCol = ImGui.GetColorU32(ImGuiCol.TextDisabled);
+                else if (kindCol != 0) textCol = kindCol;
+                else textCol = ImGui.GetColorU32(ImGuiCol.Text);
+                dl.AddText(textPos, textCol, lineText);
+                textPos.Y += lineH;
+            }
+        }
+
+        if (uniqueCarries != null && uniqueCarries.Count > 0)
+        {
+            var dimColor = (ImGui.GetColorU32(ImGuiCol.TextDisabled) & 0x00FFFFFF) | 0xB0000000;
+            foreach (var cItem in uniqueCarries)
+            {
+                dl.AddText(textPos, dimColor, $"-> {cItem}");
+                textPos.Y += lineH;
+            }
+        }
+
+        if (cell.Count == 0 && (uniqueCarries == null || uniqueCarries.Count == 0))
+        {
+            // empty — selectable still covers one line height for click target
+        }
 
         if (clicked && !CommitPending())
         {
             _editCellRow = row;
             _editCellSlot = i;
-            _cellBuf = _cellSeed = first;
+            _cellBuf = _cellSeed = cell.Count == 0 ? "" : cell[0].Action;
             _focusPending = true;
         }
+
         if (ImGui.IsItemHovered())
         {
             _hoverRow = row; _hoverLive = row;
+            var tipCarryStr = uniqueCarries != null ? string.Join(" · ", uniqueCarries) : null;
             var tip = cell.Count == 0
-                ? (carry != null
-                    ? $"Still covered: {carry[3..]} from an earlier row is up through this hit.\nClick to add a mit of your own for {_slots[i]}."
-                    : $"Click to add a mit for {_slots[i]} here (that slot only)")
+                ? (tipCarryStr != null
+                    ? $"Still covered: {tipCarryStr} from an earlier row is up through this hit.\nClick to add a mit of your own for {_gridCols[i]}."
+                    : $"Click to add a mit for {_gridCols[i]} here (that slot only)")
                 : cell.Count == 1
-                    ? $"{first}\nClick to edit {_slots[i]}'s mit (that slot only). Clear the text to remove it."
-                    : $"{string.Join("  ·  ", cell.Select(l => l.Action))}\nTwo lines share this moment; "
-                      + "editing changes the first one only. Fine-tune both on the fight page.";
+                    ? $"{first}\n" + (tipCarryStr != null ? $"Still covered: {tipCarryStr} from an earlier row is up through this hit.\n" : "") + $"Click to edit {_gridCols[i]}'s mit (that slot only). Clear the text to remove it."
+                    : $"{string.Join("  ·  ", cell.Select(l => FormatLineText(l, i)))}\n" + (tipCarryStr != null ? $"Still covered: {tipCarryStr} from an earlier row is up through this hit.\n" : "") + "Two lines share this moment; editing changes the first one only. Fine-tune both on the fight page.";
             string? win = null;
             foreach (var l in cell)
                 if (_windows.TryGetValue(l, out var w0))
                     win = win == null ? w0 : win + "\n" + w0;
             if (jobOnly) tip = $"Job extra: only fires for {string.Join("/", cell[0].Jobs)}.\n" + tip;
-            if (foreign) tip = $"Another job's press; it won't fire for you on {_gridJob}.\n" + tip;
             if (win != null) tip = win + "\n\n" + tip;
             if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
             if (lvl != null) tip = lvl + "\n\n" + tip;
@@ -558,7 +703,7 @@ public partial class SheetViewWindow
         if (ImGui.BeginPopupContextItem($"##cellctx{i}"))
         {
             if (ImGui.IsWindowAppearing()) _offsetUndoArmed = true;
-            ImGui.TextDisabled($"{_slots[i]}  ·  {row.Mechanic}");
+            ImGui.TextDisabled($"{_gridCols[i]}  ·  {row.Mechanic}");
             ImGui.Separator();
             if (cell.Count > 0)
             {
@@ -675,7 +820,10 @@ public partial class SheetViewWindow
             _plugin.Snapshots.Save(_fight, "before Reset all columns");
             _fight.SavedSlots.Clear();
             _fight.DeletedCalls.Clear();
-            if (!string.IsNullOrEmpty(_fight.Slot)) Builtin.ResetSlot(_fight, _fight.Slot);
+            if (!string.IsNullOrEmpty(_fight.Slot))
+            {
+                Builtin.ResetSlot(_fight, _fight.Slot);
+            }
             C.Save();
             _dirty = true;
             Flash("Every column reset to the baked sheet. Plan > History (or Ctrl+Z) restores the old plan.");
@@ -692,9 +840,12 @@ public partial class SheetViewWindow
 
     private void DrawSuggestMenu(Row row, int i)
     {
-        var slot = _slots[i];
-        var jobs = TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? TankJobs
-                 : HealSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? HealJobs
+        var gridCol = _gridCols[i];
+        var slotIdx = _gridToSlot[i];
+        var slot = _slots[slotIdx];
+        var jobs = TankSlots.Contains(gridCol, StringComparer.OrdinalIgnoreCase) ? TankJobs
+                 : HealerJobs.Contains(gridCol, StringComparer.OrdinalIgnoreCase) ? new[] { gridCol.ToUpperInvariant() }
+                 : HealSlots.Contains(gridCol, StringComparer.OrdinalIgnoreCase) ? HealJobs
                  : DpsJobs;
         var syncLevel = _fight != null ? Cooldowns.DutySyncLevel(_fight.TerritoryId) : 0;
 
@@ -783,64 +934,81 @@ public partial class SheetViewWindow
     private void DeleteCellLine(Row row, int i)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
-        var cell = row.Cells[i];
+        var slotIdx = _gridToSlot[i];
+        var cell = GetCellLinesForJob(row, i);
         if (cell.Count == 0) return;
-        PushUndo($"delete {_slots[i]}'s \"{row.Mechanic}\" mit");
-        EnsureBacked(i);
+        PushUndo($"delete {_slots[slotIdx]}'s \"{row.Mechanic}\" mit");
+        EnsureBacked(slotIdx);
         var line = cell[0];
         if (!line.Custom)
             _fight.DeletedCalls.Add(new DeletedCall
-            { Slot = _slots[i], Time = line.Time, Mechanic = line.Mechanic, Action = line.Action });
-        _slotLines[i].Remove(line);
-        Resort(i);
+            { Slot = _slots[slotIdx], Time = line.Time, Mechanic = line.Mechanic, Action = line.Action });
+        _slotLines[slotIdx].Remove(line);
+        Resort(slotIdx);
         C.Save();
         _dirty = true;
-        Flash($"{_slots[i]}'s mit for \"{row.Mechanic}\" removed. The undo button on the row brings the sheet's version back.");
+        Flash($"{_slots[slotIdx]}'s mit for \"{row.Mechanic}\" removed. The undo button on the row brings the sheet's version back.");
     }
 
     // Reset one slot's cell to the baked sheet.
     private void ResetCell(Row row, int i)
     {
         if (_fight == null || AbortIfStale()) return;
-        var slot = _slots[i];
+        var slotIdx = _gridToSlot[i];
+        var slot = _slots[slotIdx];
         if (row.Bake == null)
         {
             // No baked pair means the sheet has nothing here, so clear it.
             if (row.Cells[i].Count == 0) { Flash($"{slot} has nothing on this row."); return; }
             PushUndo($"remove {slot}'s \"{row.Mechanic}\"");
-            EnsureBacked(i);
-            foreach (var line in row.Cells[i].ToList()) _slotLines[i].Remove(line);
-            Resort(i);
+            EnsureBacked(slotIdx);
+            foreach (var line in row.Cells[i].ToList()) _slotLines[slotIdx].Remove(line);
+            Resort(slotIdx);
             C.Save();
             _dirty = true;
-            Flash($"{slot}'s \"{row.Mechanic}\" removed: this row isn't on the baked sheet. Undo brings it back.");
             return;
         }
+
         var candidates = row.Bake.Cells[i];
         var pristine = row.Cells[i].All(l => !l.Custom)
             && row.Cells[i].Count == candidates.Count
             && candidates.All(b => row.Cells[i].Any(l => Builtin.SameCall(l, b)))
             && !_fight.DeletedCalls.Any(d => candidates.Any(b => Builtin.MatchesTombstone(d, slot, b)));
-        if (pristine)
-        {
-            Flash($"{slot}'s \"{row.Mechanic}\" already matches the sheet.");
-            return;
-        }
+
+        if (pristine) { Flash($"{slot} is already at the sheet default here."); return; }
+
         PushUndo($"reset {slot}'s \"{row.Mechanic}\"");
-        EnsureBacked(i);
-        foreach (var line in row.Cells[i].ToList()) _slotLines[i].Remove(line);
+        var changed = 0;
+        EnsureBacked(slotIdx);
+
+        // Remove our lines.
+        foreach (var l in row.Cells[i].ToList())
+        {
+            _slotLines[slotIdx].Remove(l);
+            changed++;
+        }
+
+        _fight.DeletedCalls.RemoveAll(d => candidates.Any(b => Builtin.MatchesTombstone(d, slot, b)));
         foreach (var b in candidates)
         {
-            _fight.DeletedCalls.RemoveAll(d => Builtin.MatchesTombstone(d, slot, b));
-            if (!_slotLines[i].Any(l => Builtin.SameCall(l, b)
-                    || (MathF.Abs(l.Time - b.Time) < 0.9f
-                        && string.Equals(l.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))))
-                _slotLines[i].Add(b);
+            _slotLines[slotIdx].Add(new MitLine
+            {
+                Time = b.Time,
+                Mechanic = b.Mechanic,
+                Action = b.Action,
+                Enabled = true,
+                Jobs = new List<string>(b.Jobs),
+            });
+            changed++;
         }
-        Resort(i);
-        C.Save();
-        _dirty = true;
-        Flash($"{slot}'s \"{row.Mechanic}\" reset to the sheet.");
+
+        if (changed > 0)
+        {
+            Resort(slotIdx);
+            C.Save();
+            _dirty = true;
+            Flash($"Reset {slot} for \"{row.Mechanic}\" to the sheet version (that slot only).");
+        }
     }
 
     private static string TimeText(float t) => Fmt.MmssSigned(t);

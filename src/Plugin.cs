@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Command;
@@ -50,8 +50,6 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         pluginInterface.Create<Service>();
-        // Every phase of the load is timed, so a stutter on update can be pinned on one of them.
-        var load = new LoadClock();
 
         Config = LoadConfig();
         Config.Fights ??= new();
@@ -60,11 +58,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Config.LearnedFights ??= new();
         Snapshots = new SnapshotStore(Config);
         FrenMits.Windows.Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
-        load.Mark("config");
 
         // Versioned migrations (v2..v23) live in ConfigMigrations.
         ConfigMigrations.Run(this);
-        load.Mark("migrations");
 
         // Slot names run through the standard on every load.
         var slotsRenamed = false;
@@ -80,6 +76,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         for (var i = Config.SheetPinnedSlots.Count - 1; i > 0; i--)
             if (Config.SheetPinnedSlots.Take(i).Contains(Config.SheetPinnedSlots[i], StringComparer.OrdinalIgnoreCase))
             { Config.SheetPinnedSlots.RemoveAt(i); slotsRenamed = true; }
+        if (slotsRenamed) Config.Save();
 
         // Meter columns from a pre-Replace build carry doubles.
         var colsFixed = Configuration.DedupeMeterColumns(Config.MeterColumns);
@@ -105,15 +102,12 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             else if (f.Name == "Futures Rewritten (Ultimate)") { f.Name = Builtin.Name(Builtin.FruTerritory); seeded = true; }
         }
 
-        // One save covers the rename and seed passes, so the load frame pays it once.
-        if (slotsRenamed || seeded) Config.Save();
+        if (seeded) Config.Save();
 
         AdoptSupersededSheets();
-        load.Mark("seeding");
 
-        // Both unpack in the background, off the game's thread.
+        // The baked duty timelines unpack in the background, off the first frame.
         UniversalTimelines.Warm();
-        Meter.WarmSheets();
 
         // Deferred to the first tick, since both need game state.
 
@@ -151,6 +145,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Windows.AddWindow(MiniSheetWindow);
         Windows.AddWindow(SlotPopupWindow);
         Windows.AddWindow(WhatsNewWindow);
+
+        Config.PlanMutated = () => SheetViewWindow.MarkPlanDirty();
+
         OverlayWindow.IsOpen = true;
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;
@@ -160,7 +157,6 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         RecapButtonWindow.IsOpen = true;
         // Pop the "What's New" panel once after an update with notes.
         WhatsNewWindow.IsOpen = Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
-        load.Mark("windows");
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
@@ -193,9 +189,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         // If this ever logs a second instance, cues would double.
         var n = System.Threading.Interlocked.Increment(ref _liveInstances);
-        // Last mark, so the parts add up to the total rather than leaving a silent remainder.
-        load.Mark("commands");
-        Service.Log.Information($"[FrenMits] init - live instance #{n} - {load.Report()}");
+        Service.Log.Information($"[FrenMits] init - live instance #{n}");
     }
 
     private static int _liveInstances;
@@ -286,10 +280,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
 
         // Opt-in check-in, once per entry, for fights with a sheet.
-        if (Config.ShowSlotPopupOnEntry)
+        var sheetFight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory
+            && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0));
+        
+        if (Config.ShowSlotPopupOnEntry || (Config.UseSetup && sheetFight != null && string.IsNullOrEmpty(sheetFight.Slot)))
         {
-            var sheetFight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory
-                && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0));
             if (sheetFight != null) SlotPopupWindow.OpenFor(sheetFight);
         }
     }
@@ -306,7 +301,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             f.SavedSlots.Clear();
             f.DeletedCalls.Clear();             // a full refresh un-deletes everything
             if (!string.IsNullOrEmpty(f.Slot))
+            {
                 Builtin.ResetSlot(f, f.Slot);   // fresh bake of the active slot
+            }
             else
             {
                 f.Lines.Clear();                // no slot yet: auto-load will bake on zone-in
@@ -409,6 +406,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
 
         var added = Builtin.ApplySlot(fight, slot);
+        // Your job's own kit extras (Mantra, Curing Waltz, ...) ride in here too,
+        // so they're armed for the pull without a manual "Add" click.
+        if (JobExtras.EnsureAutoLines(fight, GetActiveJobAbbr(fight))) added++;
         Config.DmuSlot = fight.Slot;
         Config.Save();
         InvalidateSolverCache();
@@ -416,7 +416,6 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.Log.Information($"FrenMits auto-load: territory {territory}, slot {fight.Slot}, +{added} lines.");
     }
 
-    // Drop the cached windows, so the next frame re-solves them.
     public void InvalidateSolverCache()
     {
         _pressesFight = null;
@@ -443,23 +442,20 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     {
         var roleSlot = Builtin.RoleSlotIn(slots, Config.RoleSelection);
         if (!string.IsNullOrEmpty(roleSlot)) return roleSlot!;
-        if (LocalPlayer is { } p && Jobs.ByRowId(p.ClassJob.RowId) is null) return "";
-        return Builtin.DefaultSlotForJobIn(slots, ActiveJobAbbreviation());
+        if (!string.IsNullOrEmpty(Config.RoleSelection)) return Config.RoleSelection;
+        return Builtin.DefaultSlotForJobIn(slots, ActiveJobAbbreviation(), Config);
     }
 
     // Default slot for a fight with none: the role, else the job.
     private string PreferredDefaultSlot(uint territory)
     {
-        var roleSlot = Builtin.RoleSlot(territory, Config.RoleSelection);
-        if (!string.IsNullOrEmpty(roleSlot)) return roleSlot!;
-        // A player on a job missing from the Jobs table gets no guess.
-        if (LocalPlayer is { } p && Jobs.ByRowId(p.ClassJob.RowId) is null) return "";
-        return Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation());
+        if (!string.IsNullOrEmpty(Config.RoleSelection)) return Config.RoleSelection;
+        return Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation(), Config);
     }
 
     // Local player via the object table, since the property is gone.
     public static Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter? LocalPlayer
-        => Service.ObjectTable[0] as Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter;
+        => Service.ObjectTable?[0] as Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter;
 
     // True while a cutscene plays, so calls are suppressed.
     public static bool InCutscene =>
@@ -678,7 +674,6 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private bool _firstTickDone;
     private bool _wasInDutyPlayback;
-    private int _cooldownGen = -1;
     private DateTime _lastFrameErrLog = DateTime.MinValue;
     public int FrameErrorCount { get; private set; }
     public DateTime LastFrameErrorAt { get; private set; } = DateTime.MinValue;
@@ -714,13 +709,6 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
 
             UpdateCutsceneStuck();
-
-            // A wipe resets every cooldown, so the press log restarts with the pull.
-            if (Timer.Generation != _cooldownGen)
-            {
-                _cooldownGen = Timer.Generation;
-                Cooldowns.ClearPresses();
-            }
 
             // A real pull outranks Test mode.
             var inCombatNow = InCombat;
@@ -875,15 +863,15 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public void OnPhaseAnchor(FightProfile fight, SyncPoint sp)
     {
         if (_phaseTwo || fight.TerritoryId != Builtin.M12sTerritory) return;
-        if (sp.Time < M12sData.Phase2Offset) return;
-        Timer.SetElapsed(Timer.Elapsed - M12sData.Phase2Offset);
+        if (sp.Time < Builtin.M12sPhase2Offset) return;
+        Timer.SetElapsed(Timer.Elapsed - Builtin.M12sPhase2Offset);
         _phaseTwo = true;
         Service.Log.Information($"[FrenMits] Phase 2 latched from anchor '{sp.Label}'.");
     }
 
     // Extra seconds on a fight's clock for the current phase.
     public float PhaseOffsetFor(FightProfile fight)
-        => _phaseTwo && fight.TerritoryId == Builtin.M12sTerritory ? M12sData.Phase2Offset : 0f;
+        => _phaseTwo && fight.TerritoryId == Builtin.M12sTerritory ? Builtin.M12sPhase2Offset : 0f;
 
     // The sheet clock: where the fight actually is on the timeline.
     public float ElapsedFor(FightProfile fight)
@@ -1023,14 +1011,22 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
     }
 
-    // The job the overlay follows: an override, or the live job.
+    // The live job of the local player.
     public string? ActiveJobAbbreviation()
     {
-        if (!string.Equals(Config.JobSelection, "Auto", StringComparison.OrdinalIgnoreCase))
-            return Config.JobSelection;
-
         var job = LocalPlayer?.ClassJob.RowId;
         return job is { } rowId ? Jobs.ByRowId(rowId)?.Abbreviation : null;
+    }
+
+    public string GetActiveJobAbbr(FightProfile fight)
+    {
+        var jobAbbr = ActiveJobAbbreviation() ?? "";
+        if (!Config.UseSetup && !string.IsNullOrEmpty(fight.SimulatedJob))
+        {
+            jobAbbr = fight.SimulatedJob;
+        }
+
+        return jobAbbr;
     }
 
     // Practice: a fight to preview out of its zone.
@@ -1045,7 +1041,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var fight = ActiveFight();
         if (fight == null) return Array.Empty<MitPress>();
 
-        var job = ActiveJobAbbreviation();
+        var job = GetActiveJobAbbr(fight);
         var stamp = fight.Lines.Count;
         unchecked
         {
@@ -1057,10 +1053,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             // Generic terms resolve per job, so the solve is job-specific too.
             stamp = stamp * 31 + (job != null ? StringComparer.OrdinalIgnoreCase.GetHashCode(job) : 0);
         }
-
+        
         if (_pressesFight != fight || _pressesStamp != stamp)
         {
-            var hits = SheetTimeline.Build(fight).Select(r => r.Time).ToList();
+            var hits = SheetTimeline.Build(this, fight).Select(r => r.Time).ToList();
             // "Party Mit" solves as the job's real press, so it reaches the boards.
             _activePresses = TimingSolver.Solve(fight, hits, Config.ShowUseWindows, Config.MaxUseWindowSeconds,
                 text => Cooldowns.PlanMits(Icons.DisplayAction(text, job)));
@@ -1166,8 +1162,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (TimelineLearner.LearnPull(Config, _learnBossNameId, _learnBossName,
                     Sync.LastPullTerritory, CapturedCasts()))
             {
-                // Learning only touches settings, so the plan file stays out of it.
-                Config.SaveSettings();
+                Config.Save();
                 Service.Log.Information(
                     $"[FrenMits] learned timeline updated for \"{_learnBossName}\" from this pull.");
             }
@@ -1247,12 +1242,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     public void Dispose()
     {
-        var clock = new LoadClock();
         // A held change lands now, but a bad write must not skip the unhooking below.
-        try { if (Config.SavePending) Config.SaveSettingsNow(); }
+        try { Config.SaveSettingsNow(); }
         catch (Exception ex) { Swallowed.Report("settings save", ex); }
         Diag.FlushOnDispose();
-        clock.Mark("save");
+        Service.Log.Information($"[FrenMits] dispose - live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;
@@ -1263,19 +1257,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.CommandManager.RemoveHandler(CommandAlias);
 
         _dtr?.Remove();
-        clock.Mark("unhook");
         Meter.Dispose();
         Damage.Dispose();
-        FFLogsClient.Shutdown();
-        clock.Mark("engines");
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();
-        clock.Mark("windows");
         Fonts.Dispose();
-        clock.Mark("fonts");
         Audio.Dispose();
-        clock.Mark("audio");
-        Service.Log.Information($"[FrenMits] dispose - live instances now "
-            + $"{System.Threading.Interlocked.Decrement(ref _liveInstances)} - {clock.Report("dispose")}");
     }
 }

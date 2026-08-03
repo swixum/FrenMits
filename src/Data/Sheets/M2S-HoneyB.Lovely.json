@@ -1,0 +1,2143 @@
+{
+  "TerritoryId": 1228,
+  "Name": "M2S - Honey B. Lovely",
+  "Timeline": [
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey"
+    },
+    {
+      "Time": 18,
+      "Mechanic": "Splash of Venom"
+    },
+    {
+      "Time": 60,
+      "Mechanic": "Stinging Slash"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Honey B. Live: 1st Beat"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture"
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Heartsick"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Killer Sting"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat"
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Heartsore"
+    },
+    {
+      "Time": 329,
+      "Mechanic": "Drop of Venom"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Bee Sting"
+    },
+    {
+      "Time": 394,
+      "Mechanic": "Drop of Venom"
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst"
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale"
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom"
+    },
+    {
+      "Time": 40,
+      "Mechanic": "Drop of Venom"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender"
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline"
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Laceration"
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture"
+    },
+    {
+      "Time": 73,
+      "Mechanic": "Honey B. Live: 1st Beat"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Love Me Tender"
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Laceration"
+    },
+    {
+      "Time": 248,
+      "Mechanic": "Honey B. Live: 2nd Beat"
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Honey B. Finale"
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Poison Sting"
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Laceration"
+    },
+    {
+      "Time": 455,
+      "Mechanic": "Laceration"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 18,
+      "Mechanic": "Splash of Venom",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 40,
+      "Mechanic": "Drop of Venom",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 60,
+      "Mechanic": "Stinging Slash",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 73,
+      "Mechanic": "Honey B. Live: 1st Beat",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 73,
+      "Mechanic": "Honey B. Live: 1st Beat",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Honey B. Live: 1st Beat",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Honey B. Live: 1st Beat",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Honey B. Live: 1st Beat",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Honey B. Live: 1st Beat",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Laceration",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Laceration",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Laceration",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Heartsick",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Heartsick",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Laceration",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 176,
+      "Mechanic": "Laceration",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Killer Sting",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Killer Sting",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 248,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 248,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Heartsore",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Heartsore",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Heartsore",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 329,
+      "Mechanic": "Drop of Venom",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Poison Sting",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 342,
+      "Mechanic": "Poison Sting",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Bee Sting",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Bee Sting",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Bee Sting",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Bee Sting",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Bee Sting",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 394,
+      "Mechanic": "Drop of Venom",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 394,
+      "Mechanic": "Drop of Venom",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Laceration",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Laceration",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Laceration",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 455,
+      "Mechanic": "Laceration",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 455,
+      "Mechanic": "Laceration",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 455,
+      "Mechanic": "Laceration",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 37251,
+      "Time": 11,
+      "IsPhase": true,
+      "Label": "P1 Call Me Honey"
+    },
+    {
+      "Ability": 37252,
+      "Time": 18,
+      "IsPhase": false,
+      "Label": "P1 Splash of Venom"
+    },
+    {
+      "Ability": 37253,
+      "Time": 40,
+      "IsPhase": false,
+      "Label": "P1 Drop of Venom"
+    },
+    {
+      "Ability": 37275,
+      "Time": 60,
+      "IsPhase": false,
+      "Label": "P1 Stinging Slash"
+    },
+    {
+      "Ability": 39972,
+      "Time": 73,
+      "IsPhase": false,
+      "Label": "P1 Honey B. Live: 1st Beat"
+    },
+    {
+      "Ability": 37279,
+      "Time": 103,
+      "IsPhase": false,
+      "Label": "P1 Love Me Tender"
+    },
+    {
+      "Ability": 37283,
+      "Time": 113,
+      "IsPhase": false,
+      "Label": "P1 Fracture"
+    },
+    {
+      "Ability": 37283,
+      "Time": 121,
+      "IsPhase": false,
+      "Label": "P1 Fracture"
+    },
+    {
+      "Ability": 37283,
+      "Time": 125,
+      "IsPhase": false,
+      "Label": "P1 Fracture"
+    },
+    {
+      "Ability": 37283,
+      "Time": 133,
+      "IsPhase": false,
+      "Label": "P1 Fracture"
+    },
+    {
+      "Ability": 39805,
+      "Time": 144,
+      "IsPhase": false,
+      "Label": "P1 Loveseeker"
+    },
+    {
+      "Ability": 37279,
+      "Time": 158,
+      "IsPhase": false,
+      "Label": "P1 Love Me Tender"
+    },
+    {
+      "Ability": 37263,
+      "Time": 195,
+      "IsPhase": false,
+      "Label": "P1 Honey B. Finale"
+    },
+    {
+      "Ability": 37276,
+      "Time": 209,
+      "IsPhase": false,
+      "Label": "P1 Killer Sting"
+    },
+    {
+      "Ability": 37245,
+      "Time": 210,
+      "IsPhase": false,
+      "Label": "P1 Alarm Pheromones"
+    },
+    {
+      "Ability": 39973,
+      "Time": 248,
+      "IsPhase": false,
+      "Label": "P1 Honey B. Live: 2nd Beat"
+    },
+    {
+      "Ability": 39689,
+      "Time": 262,
+      "IsPhase": false,
+      "Label": "P1 Drop of Love"
+    },
+    {
+      "Ability": 37279,
+      "Time": 272,
+      "IsPhase": false,
+      "Label": "P1 Love Me Tender"
+    },
+    {
+      "Ability": 37287,
+      "Time": 276,
+      "IsPhase": false,
+      "Label": "P1 Heart-Struck"
+    },
+    {
+      "Ability": 37283,
+      "Time": 288,
+      "IsPhase": false,
+      "Label": "P1 Fracture"
+    },
+    {
+      "Ability": 39693,
+      "Time": 297,
+      "IsPhase": false,
+      "Label": "P1 Tempting Twist"
+    },
+    {
+      "Ability": 39692,
+      "Time": 297,
+      "IsPhase": false,
+      "Label": "P1 Honey Beeline"
+    },
+    {
+      "Ability": 37263,
+      "Time": 311,
+      "IsPhase": false,
+      "Label": "P1 Honey B. Finale"
+    },
+    {
+      "Ability": 37253,
+      "Time": 329,
+      "IsPhase": false,
+      "Label": "P1 Drop of Venom"
+    },
+    {
+      "Ability": 37245,
+      "Time": 334,
+      "IsPhase": false,
+      "Label": "P1 Alarm Pheromones"
+    },
+    {
+      "Ability": 37268,
+      "Time": 342,
+      "IsPhase": false,
+      "Label": "P1 Poison Sting"
+    },
+    {
+      "Ability": 37288,
+      "Time": 367,
+      "IsPhase": false,
+      "Label": "P1 Bee Sting"
+    },
+    {
+      "Ability": 39974,
+      "Time": 407,
+      "IsPhase": false,
+      "Label": "P1 Honey B. Live: 3rd Beat"
+    },
+    {
+      "Ability": 37283,
+      "Time": 443,
+      "IsPhase": false,
+      "Label": "P1 Fracture"
+    },
+    {
+      "Ability": 37283,
+      "Time": 463,
+      "IsPhase": false,
+      "Label": "P1 Fracture"
+    },
+    {
+      "Ability": 37263,
+      "Time": 485,
+      "IsPhase": false,
+      "Label": "P1 Honey B. Finale"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 11,
+      "Mechanic": "Call Me Honey",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 18,
+      "Mechanic": "Splash of Venom",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Splash of Venom",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Honey Beeline",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 40,
+      "Mechanic": "Drop of Venom",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Drop of Venom",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 60,
+      "Mechanic": "Stinging Slash",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Honey B. Live: 1st Beat",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Outerstage Combo",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 89,
+      "Mechanic": "Laceration",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Laceration",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Love Me Tender",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 113,
+      "Mechanic": "Fracture",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 121,
+      "Mechanic": "Fracture",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 125,
+      "Mechanic": "Fracture",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 133,
+      "Mechanic": "Fracture",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Loveseeker",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Love Me Tender",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 159,
+      "Mechanic": "Heartsick",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 169,
+      "Mechanic": "Centerstage Combo",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 170,
+      "Mechanic": "Laceration",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 195,
+      "Mechanic": "Honey B. Finale",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 209,
+      "Mechanic": "Killer Sting",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Alarm Pheromones",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Honey B. Live: 2nd Beat",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 262,
+      "Mechanic": "Drop of Love",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Love Me Tender",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 276,
+      "Mechanic": "Heart-Struck",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 280,
+      "Mechanic": "Heartsick",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 286,
+      "Mechanic": "Heartsore",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 288,
+      "Mechanic": "Fracture",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 297,
+      "Mechanic": "Tempting Twist",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 297,
+      "Mechanic": "Honey Beeline",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 302,
+      "Mechanic": "Drop of Love",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 311,
+      "Mechanic": "Honey B. Finale",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 329,
+      "Mechanic": "Drop of Venom",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 334,
+      "Mechanic": "Alarm Pheromones",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Poison Sting",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 352,
+      "Mechanic": "Poison Sting",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 357,
+      "Mechanic": "Poison Sting",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Bee Sting",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 389,
+      "Mechanic": "Honey Beeline",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 394,
+      "Mechanic": "Drop of Venom",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 414,
+      "Mechanic": "Honey B. Live: 3rd Beat",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 429,
+      "Mechanic": "Laceration",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 435,
+      "Mechanic": "Laceration",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 437,
+      "Mechanic": "Centerstage Combo",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Outerstage Combo",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 440,
+      "Mechanic": "Big Burst",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 443,
+      "Mechanic": "Fracture",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 448,
+      "Mechanic": "Laceration",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 455,
+      "Mechanic": "Laceration",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 460,
+      "Mechanic": "Big Burst",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Fracture",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Honey B. Finale",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

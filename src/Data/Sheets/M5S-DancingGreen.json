@@ -1,0 +1,2180 @@
+{
+  "TerritoryId": 1257,
+  "Name": "M5S - Dancing Green",
+  "Timeline": [
+    {
+      "Time": 15,
+      "Mechanic": "Deep Cut"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side"
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Celebrate Good Times"
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Funky Floor"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Deep Cut"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Arcady Night Fever"
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!"
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Let's Pose!"
+    },
+    {
+      "Time": 228,
+      "Mechanic": "Flip to B-Side"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Deep Cut"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance"
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Celebrate Good Times"
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!"
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Frogtourage"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn"
+    },
+    {
+      "Time": 28,
+      "Mechanic": "Flip to A-Side"
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side"
+    },
+    {
+      "Time": 87,
+      "Mechanic": "Funky Floor"
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle"
+    },
+    {
+      "Time": 148,
+      "Mechanic": "Ensemble Assemble"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Get Down!"
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times"
+    },
+    {
+      "Time": 466,
+      "Mechanic": "Do the Hustle"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Moonburn"
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix"
+    },
+    {
+      "Time": 55,
+      "Mechanic": "3-Snap Twist & Drop the Needle"
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Let's Dance!"
+    },
+    {
+      "Time": 354,
+      "Mechanic": "3-Snap Twist & Drop the Needle"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 15,
+      "Mechanic": "Deep Cut",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Deep Cut",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 28,
+      "Mechanic": "Flip to A-Side",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 55,
+      "Mechanic": "3-Snap Twist & Drop the Needle",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 55,
+      "Mechanic": "3-Snap Twist & Drop the Needle",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 87,
+      "Mechanic": "Funky Floor",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 87,
+      "Mechanic": "Funky Floor",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 87,
+      "Mechanic": "Funky Floor",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Funky Floor",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Funky Floor",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Funky Floor",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Funky Floor",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Funky Floor",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Deep Cut",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Deep Cut",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Deep Cut",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 148,
+      "Mechanic": "Ensemble Assemble",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Arcady Night Fever",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Get Down!",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Arcady Night Fever",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Arcady Night Fever",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Arcady Night Fever",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Arcady Night Fever",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Let's Dance!",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Let's Pose!",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Let's Pose!",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Let's Pose!",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Let's Pose!",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Let's Pose!",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 228,
+      "Mechanic": "Flip to B-Side",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Deep Cut",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Deep Cut",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 354,
+      "Mechanic": "3-Snap Twist & Drop the Needle",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 354,
+      "Mechanic": "3-Snap Twist & Drop the Needle",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Celebrate Good Times",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Arcady Night Encore",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Frogtourage",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 466,
+      "Mechanic": "Do the Hustle",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Moonburn",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Moonburn",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Moonburn",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Moonburn",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 42787,
+      "Time": 65,
+      "IsPhase": true,
+      "Label": "P1 Celebrate Good Times"
+    },
+    {
+      "Ability": 42787,
+      "Time": 129,
+      "IsPhase": false,
+      "Label": "P1 Celebrate Good Times"
+    },
+    {
+      "Ability": 39474,
+      "Time": 148,
+      "IsPhase": false,
+      "Label": "P1 Ensemble Assemble"
+    },
+    {
+      "Ability": 42848,
+      "Time": 156,
+      "IsPhase": false,
+      "Label": "P1 Arcady Night Fever"
+    },
+    {
+      "Ability": 39908,
+      "Time": 156,
+      "IsPhase": false,
+      "Label": "P1 Get Down!"
+    },
+    {
+      "Ability": 42858,
+      "Time": 183,
+      "IsPhase": false,
+      "Label": "P1 Let's Dance!"
+    },
+    {
+      "Ability": 42863,
+      "Time": 210,
+      "IsPhase": false,
+      "Label": "P1 Let's Pose!"
+    },
+    {
+      "Ability": 42836,
+      "Time": 234,
+      "IsPhase": false,
+      "Label": "P1 Ride the Waves"
+    },
+    {
+      "Ability": 42787,
+      "Time": 292,
+      "IsPhase": false,
+      "Label": "P1 Celebrate Good Times"
+    },
+    {
+      "Ability": 42847,
+      "Time": 303,
+      "IsPhase": false,
+      "Label": "P1 Frogtourage"
+    },
+    {
+      "Ability": 42867,
+      "Time": 318,
+      "IsPhase": false,
+      "Label": "P1 Moonburn"
+    },
+    {
+      "Ability": 42787,
+      "Time": 365,
+      "IsPhase": false,
+      "Label": "P1 Celebrate Good Times"
+    },
+    {
+      "Ability": 39474,
+      "Time": 377,
+      "IsPhase": false,
+      "Label": "P1 Ensemble Assemble"
+    },
+    {
+      "Ability": 41840,
+      "Time": 384,
+      "IsPhase": false,
+      "Label": "P1 Arcady Night Encore"
+    },
+    {
+      "Ability": 39908,
+      "Time": 385,
+      "IsPhase": false,
+      "Label": "P1 Get Down!"
+    },
+    {
+      "Ability": 41872,
+      "Time": 412,
+      "IsPhase": false,
+      "Label": "P1 Let's Dance! Remix"
+    },
+    {
+      "Ability": 42864,
+      "Time": 431,
+      "IsPhase": false,
+      "Label": "P1 Let's Pose!"
+    },
+    {
+      "Ability": 42847,
+      "Time": 450,
+      "IsPhase": false,
+      "Label": "P1 Frogtourage"
+    },
+    {
+      "Ability": 42789,
+      "Time": 466,
+      "IsPhase": false,
+      "Label": "P1 Do the Hustle"
+    },
+    {
+      "Ability": 42867,
+      "Time": 482,
+      "IsPhase": false,
+      "Label": "P1 Moonburn"
+    },
+    {
+      "Ability": 42867,
+      "Time": 498,
+      "IsPhase": false,
+      "Label": "P1 Moonburn"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 15,
+      "Mechanic": "Deep Cut",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 28,
+      "Mechanic": "Flip to A-Side",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 39,
+      "Mechanic": "Play A-Side",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 47,
+      "Mechanic": "Flip to B-Side",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 58,
+      "Mechanic": "Play B-Side",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 65,
+      "Mechanic": "Celebrate Good Times",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 78,
+      "Mechanic": "Disco Infernal",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 87,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 91,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 91,
+      "Mechanic": "Inside Out",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 91,
+      "Mechanic": "Outside In",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 95,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 99,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Flip to A-Side",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 100,
+      "Mechanic": "Flip to B-Side",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 103,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 107,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 115,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 118,
+      "Mechanic": "4-Snap Twist & Drop the Needle",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 119,
+      "Mechanic": "Funky Floor",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 122,
+      "Mechanic": "Play A-Side",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 122,
+      "Mechanic": "Play B-Side",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 129,
+      "Mechanic": "Celebrate Good Times",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 136,
+      "Mechanic": "Deep Cut",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 148,
+      "Mechanic": "Ensemble Assemble",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 156,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 161,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 166,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 171,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 183,
+      "Mechanic": "Let's Dance!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 187,
+      "Mechanic": "Minor Freak Out",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Let's Dance!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 192,
+      "Mechanic": "Minor Freak Out",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Let's Dance!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 197,
+      "Mechanic": "Minor Freak Out",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 202,
+      "Mechanic": "Minor Freak Out",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 210,
+      "Mechanic": "Let's Pose!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 228,
+      "Mechanic": "Flip to B-Side",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Ride the Waves",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 238,
+      "Mechanic": "Ride the Waves",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 244,
+      "Mechanic": "Quarter Beats",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 251,
+      "Mechanic": "Eighth Beats",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Play B-Side",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Deep Cut",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 292,
+      "Mechanic": "Celebrate Good Times",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 303,
+      "Mechanic": "Frogtourage",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 317,
+      "Mechanic": "Quarter Beats",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 318,
+      "Mechanic": "Moonburn",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Disco Infernal",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Back-Up Dance",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 347,
+      "Mechanic": "Back-Up Dance",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Celebrate Good Times",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 377,
+      "Mechanic": "Ensemble Assemble",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 385,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 395,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Get Down!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 420,
+      "Mechanic": "Let's Dance! Remix",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 431,
+      "Mechanic": "Let's Pose!",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Frogtourage",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 466,
+      "Mechanic": "Do the Hustle",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Moonburn",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Back-Up Dance",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Moonburn",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 499,
+      "Mechanic": "Back-Up Dance",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

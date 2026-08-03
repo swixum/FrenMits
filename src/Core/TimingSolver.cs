@@ -16,6 +16,8 @@ public static class TimingSolver
     private const float Grace = 0.8f;
     // The least a press may precede a hit and still apply.
     private const float MinLead = SnapshotLead + ApplyDelay;
+    // The least room to press in that reaching for a bonus hit may leave.
+    private const float MinWindow = 2.5f;
 
     public static IReadOnlyList<MitPress> Solve(FightProfile fight, IReadOnlyList<float> hitTimes,
         bool showUseWindows = true, float maxUseWindowSeconds = 7.5f,
@@ -49,7 +51,11 @@ public static class TimingSolver
         foreach (var line in lines)
         {
             var mits = mitsFor(line.Action).ToList();
-            if (mits.Count == 0) continue;
+            if (mits.Count == 0)
+            {
+                // Fallback for custom actions so they still appear on the timeline.
+                mits.Add(new Cooldowns.PlanMit(line.Action, 0f, 1, line.Action, 1, 0f));
+            }
 
             var iT = Nearest(line.Time);
             var T = hits[iT];
@@ -88,28 +94,37 @@ public static class TimingSolver
                 }
                 var latestByNext = nextHitTime != float.MaxValue ? nextHitTime - (m.Recast > 0f ? m.Recast : 60f) - 3f : float.MaxValue;
 
-                int lo = iT, hi = iT;
-                while (lo - 1 >= 0 && !covered[lo - 1]
-                       && hits[hi] - hits[lo - 1] <= span
-                       && hits[lo - 1] >= ready - 0.01f) lo--;
-                       
-                // Only expand hi if it can actually be covered without shrinking the window below 3s
-                while (hi + 1 < n && !covered[hi + 1]
-                       && hits[hi + 1] - hits[lo] <= span
-                       && MathF.Max(readyFloor, hits[hi + 1] - reach) <= latestByNext - 3f) hi++;
+                // lo stays at the mechanic's own hit — sheet lines are explicitly assigned to
+                // their target; reaching back to earlier mechanics creates incorrect early calls.
+                var lo = iT;
+                var hi = iT;
 
-                var last = hits[hi];
-
-                // Window end: latest possible time to still cover the first hit
+                // Window end: latest you can press and still cover the assigned mechanic.
                 var windowEnd = hits[lo] - MinLead;
                 if (windowEnd > latestByNext) windowEnd = latestByNext;
 
-                // Window start: no earlier than absolute earliest, but keep window at least 3s wide
-                var absoluteEarliest = MathF.Max(readyFloor, last - reach);
-                if (absoluteEarliest > hits[lo] - MinLead) absoluteEarliest = MathF.Max(readyFloor, hits[lo] - MinLead); // clamp to lo
+                // Never demand more room than the window a user allowed, or a
+                // tight Max window duration would block every expansion.
+                var keepOpen = MathF.Min(MinWindow, maxUseWindowSeconds);
 
-                var windowStart = MathF.Min(absoluteEarliest, windowEnd - 3f);
-                if (showUseWindows) windowStart = MathF.Max(windowStart, windowEnd - maxUseWindowSeconds);
+                // Expand hi forward: catch additional hits AFTER the mechanic within
+                // the buff. Each extra hit drags the earliest press later, since the
+                // buff has to still be up when that one lands - so a hit near the far
+                // end of `span` squeezes the window down onto the mechanic this line
+                // was actually assigned to. A bonus hit is not worth leaving no room
+                // to press in, so stop while a usable window remains.
+                while (hi + 1 < n && !covered[hi + 1]
+                       && hits[hi + 1] - hits[lo] <= span
+                       && MathF.Max(readyFloor, hits[hi + 1] - reach) <= latestByNext - 3f
+                       && windowEnd - MathF.Max(readyFloor, hits[hi + 1] - reach) >= keepOpen) hi++;
+
+                var last = hits[hi];
+
+                // Window start: earliest press that still covers all expanded hits.
+                var absoluteEarliest = MathF.Max(readyFloor, last - reach);
+                if (absoluteEarliest > windowEnd) absoluteEarliest = windowEnd; // clamp: can't be later than end
+
+                var windowStart = MathF.Max(absoluteEarliest, windowEnd - maxUseWindowSeconds);
                 if (windowStart > windowEnd) windowStart = windowEnd; // sanity clamp
 
                 if (line.OffsetManual) 

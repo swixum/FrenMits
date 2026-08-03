@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -103,7 +102,18 @@ public class Audio : IDisposable
 
     // ---- the worker ----
 
+    // The outermost frame on this thread. A reload can unload the load context
+    // while the worker is still winding down, and what that throws surfaces at
+    // the frame being entered - too early for a handler inside it to help. Only
+    // a catch out here, one frame up, is guaranteed to see it, and anything that
+    // escapes this thread reaches the runtime's unhandled hook and ends the game.
     private void WorkLoop()
+    {
+        try { Pump(); }
+        catch { /* nothing may escape this thread */ }
+    }
+
+    private void Pump()
     {
         try
         {
@@ -115,7 +125,7 @@ public class Audio : IDisposable
             }
         }
         catch { /* collection torn down on unload */ }
-        finally { try { Cleanup(); } catch { /* nothing may escape this thread */ } }
+        finally { Cleanup(); }
     }
 
     private void Run(Job job)
@@ -163,15 +173,7 @@ public class Audio : IDisposable
         }
         catch { /* ignore */ }
         _voice = null;
-        // If no clip ever played, the player assembly was never loaded; don't force it in now.
-        if (!_playerUsed) return;
-        try { DisposePlayer(); } catch { /* load context already torn down */ }
-    }
-
-    // Separate so a type-load failure surfaces at the call above, where a handler is live.
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void DisposePlayer()
-    {
+        // Disposed through IDisposable, never the real types - see the fields.
         try { _output?.Dispose(); } catch { /* ignore */ }
         try { _reader?.Dispose(); } catch { /* ignore */ }
         try { _readerMs?.Dispose(); } catch { /* ignore */ }
@@ -425,15 +427,18 @@ public class Audio : IDisposable
     // ---- MP3 playback ----
 
     // One shared output, so a new clip stops the old.
-    private NAudio.Wave.WaveOutEvent? _output;
-    private NAudio.Wave.Mp3FileReader? _reader;
+    // Typed as IDisposable so the shutdown path names no NAudio type: naming one
+    // makes the JIT resolve the assembly, which throws once a reload has torn the
+    // load context down. Null fields touch nothing, and a player that did play is
+    // already resident, so neither case needs a load. PlayMp3 below is the only
+    // place the real types appear, and it never runs during shutdown.
+    private IDisposable? _output;
+    private IDisposable? _reader;
     private MemoryStream? _readerMs;
-    private bool _playerUsed;   // lets Cleanup know the player types are resident
 
     // Decodes the MP3 and plays it, non-blocking.
     private void PlayMp3(byte[] mp3, long seq)
     {
-        _playerUsed = true;   // this method compiling is what pulls the player in
         Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");
         try
         {
@@ -448,10 +453,12 @@ public class Audio : IDisposable
             try { _readerMs?.Dispose(); } catch { /* ignore */ }
 
             _readerMs = new MemoryStream(mp3);
-            _reader = new NAudio.Wave.Mp3FileReader(_readerMs);
-            _output = new NAudio.Wave.WaveOutEvent();
-            _output.Init(_reader);
-            _output.Play();
+            var reader = new NAudio.Wave.Mp3FileReader(_readerMs);
+            var output = new NAudio.Wave.WaveOutEvent();
+            output.Init(reader);
+            output.Play();
+            _reader = reader;
+            _output = output;
         }
         catch (Exception ex)
         {

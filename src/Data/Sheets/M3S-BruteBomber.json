@@ -1,0 +1,2159 @@
+{
+  "TerritoryId": 1230,
+  "Name": "M3S - Brute Bomber",
+  "Timeline": [
+    {
+      "Time": 21,
+      "Mechanic": "Knuckle Sandwich"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat"
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat"
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Knuckle Sandwich"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Final Fusedown"
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 283,
+      "Mechanic": "Diveboom"
+    },
+    {
+      "Time": 299,
+      "Mechanic": "Fusefield"
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Mana Explosion"
+    },
+    {
+      "Time": 355,
+      "Mechanic": "Knuckle Sandwich"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught"
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special"
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special"
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Fuses of Fury"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Chain Deathmatch"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Knuckle Sandwich"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe"
+    },
+    {
+      "Time": 531,
+      "Mechanic": "Explosive Rain"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion"
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Barbarous Barrage"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Tag Team"
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Chain Deathmatch"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion"
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist"
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo"
+    },
+    {
+      "Time": 475,
+      "Mechanic": "Diveboom"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Brutal Impact"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Octuple Lariat"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Explosion"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 12,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Octuple Lariat",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Octuple Lariat",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Brutal Impact",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Brutal Impact",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Barbarous Barrage",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Quadruple Lariat",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Tag Team",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Tag Team",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Tag Team",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Tag Team",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Tag Team",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Tag Team",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Chain Deathmatch",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Final Fusedown",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 283,
+      "Mechanic": "Diveboom",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 283,
+      "Mechanic": "Diveboom",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 283,
+      "Mechanic": "Diveboom",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 283,
+      "Mechanic": "Diveboom",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 299,
+      "Mechanic": "Fusefield",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 299,
+      "Mechanic": "Fusefield",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 299,
+      "Mechanic": "Fusefield",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 299,
+      "Mechanic": "Fusefield",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 299,
+      "Mechanic": "Fusefield",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 299,
+      "Mechanic": "Fusefield",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Mana Explosion",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Mana Explosion",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Mana Explosion",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 355,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 355,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 372,
+      "Mechanic": "Doping Draught",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Fuses of Fury",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Fuses of Fury",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Fuses of Fury",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Fuses of Fury",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Fuses of Fury",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 428,
+      "Mechanic": "Fuses of Fury",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Chain Deathmatch",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 475,
+      "Mechanic": "Diveboom",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 475,
+      "Mechanic": "Diveboom",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 475,
+      "Mechanic": "Diveboom",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Knuckle Sandwich",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Fuse or Foe",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 531,
+      "Mechanic": "Explosive Rain",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact",
+      "Slot": "M2",
+      "Action": "Feint"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 37923,
+      "Time": 21,
+      "IsPhase": true,
+      "Label": "P1 Knuckle Sandwich"
+    },
+    {
+      "Ability": 37848,
+      "Time": 38,
+      "IsPhase": false,
+      "Label": "P1 Octuple Lariat"
+    },
+    {
+      "Ability": 37854,
+      "Time": 49,
+      "IsPhase": false,
+      "Label": "P1 Octoboom Dive"
+    },
+    {
+      "Ability": 37883,
+      "Time": 77,
+      "IsPhase": false,
+      "Label": "P1 Barbarous Barrage"
+    },
+    {
+      "Ability": 37886,
+      "Time": 96,
+      "IsPhase": false,
+      "Label": "P1 Murderous Mist"
+    },
+    {
+      "Ability": 37895,
+      "Time": 110,
+      "IsPhase": false,
+      "Label": "P1 Doping Draught"
+    },
+    {
+      "Ability": 37857,
+      "Time": 155,
+      "IsPhase": false,
+      "Label": "P1 Quadroboom Dive"
+    },
+    {
+      "Ability": 37923,
+      "Time": 178,
+      "IsPhase": false,
+      "Label": "P1 Knuckle Sandwich"
+    },
+    {
+      "Ability": 37863,
+      "Time": 196,
+      "IsPhase": false,
+      "Label": "P1 Tag Team"
+    },
+    {
+      "Ability": 37861,
+      "Time": 206,
+      "IsPhase": false,
+      "Label": "P1 Chain Deathmatch"
+    },
+    {
+      "Ability": 39732,
+      "Time": 215,
+      "IsPhase": false,
+      "Label": "P1 Lariat Combo"
+    },
+    {
+      "Ability": 39734,
+      "Time": 219,
+      "IsPhase": false,
+      "Label": "P1 Lariat Combo"
+    },
+    {
+      "Ability": 37850,
+      "Time": 227,
+      "IsPhase": false,
+      "Label": "P1 Quadruple Lariat"
+    },
+    {
+      "Ability": 37894,
+      "Time": 254,
+      "IsPhase": false,
+      "Label": "P1 Final Fusedown"
+    },
+    {
+      "Ability": 37870,
+      "Time": 299,
+      "IsPhase": false,
+      "Label": "P1 Fusefield"
+    },
+    {
+      "Ability": 37871,
+      "Time": 305,
+      "IsPhase": false,
+      "Label": "P1 Bombarian Flame"
+    },
+    {
+      "Ability": 37923,
+      "Time": 355,
+      "IsPhase": false,
+      "Label": "P1 Knuckle Sandwich"
+    },
+    {
+      "Ability": 37927,
+      "Time": 372,
+      "IsPhase": false,
+      "Label": "P1 Doping Draught"
+    },
+    {
+      "Ability": 37899,
+      "Time": 393,
+      "IsPhase": false,
+      "Label": "P1 Bombarian Special"
+    },
+    {
+      "Ability": 37902,
+      "Time": 398,
+      "IsPhase": false,
+      "Label": "P1 Bombarian Special"
+    },
+    {
+      "Ability": 37905,
+      "Time": 404,
+      "IsPhase": false,
+      "Label": "P1 Bombarian Special"
+    },
+    {
+      "Ability": 37907,
+      "Time": 412,
+      "IsPhase": false,
+      "Label": "P1 Bombarian Special"
+    },
+    {
+      "Ability": 37887,
+      "Time": 428,
+      "IsPhase": false,
+      "Label": "P1 Fuses of Fury"
+    },
+    {
+      "Ability": 37863,
+      "Time": 434,
+      "IsPhase": false,
+      "Label": "P1 Tag Team"
+    },
+    {
+      "Ability": 37861,
+      "Time": 444,
+      "IsPhase": false,
+      "Label": "P1 Chain Deathmatch"
+    },
+    {
+      "Ability": 39895,
+      "Time": 459,
+      "IsPhase": false,
+      "Label": "P1 Murderous Mist"
+    },
+    {
+      "Ability": 39917,
+      "Time": 459,
+      "IsPhase": false,
+      "Label": "P1 Lariat Combo"
+    },
+    {
+      "Ability": 39919,
+      "Time": 463,
+      "IsPhase": false,
+      "Label": "P1 Lariat Combo"
+    },
+    {
+      "Ability": 37923,
+      "Time": 498,
+      "IsPhase": false,
+      "Label": "P1 Knuckle Sandwich"
+    },
+    {
+      "Ability": 37891,
+      "Time": 518,
+      "IsPhase": false,
+      "Label": "P1 Fuse or Foe"
+    },
+    {
+      "Ability": 37916,
+      "Time": 527,
+      "IsPhase": false,
+      "Label": "P1 Infernal Spin"
+    },
+    {
+      "Ability": 37910,
+      "Time": 527,
+      "IsPhase": false,
+      "Label": "P1 Explosive Rain"
+    },
+    {
+      "Ability": 37911,
+      "Time": 531,
+      "IsPhase": false,
+      "Label": "P1 Explosive Rain"
+    },
+    {
+      "Ability": 37912,
+      "Time": 535,
+      "IsPhase": false,
+      "Label": "P1 Explosive Rain"
+    },
+    {
+      "Ability": 37915,
+      "Time": 543,
+      "IsPhase": false,
+      "Label": "P1 Explosive Rain"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 12,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 21,
+      "Mechanic": "Knuckle Sandwich",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 38,
+      "Mechanic": "Blazing Lariat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 49,
+      "Mechanic": "Octoboom Dive",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Diveboom",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 61,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 77,
+      "Mechanic": "Barbarous Barrage",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 88,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 94,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 96,
+      "Mechanic": "Murderous Mist",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 110,
+      "Mechanic": "Doping Draught",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 144,
+      "Mechanic": "Blazing Lariat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 155,
+      "Mechanic": "Quadroboom Dive",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Diveboom",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 167,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Knuckle Sandwich",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Chain Deathmatch",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Lariat Combo",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 228,
+      "Mechanic": "Blazing Lariat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 235,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 254,
+      "Mechanic": "Final Fusedown",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 267,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 272,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 283,
+      "Mechanic": "Diveboom",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 310,
+      "Mechanic": "Mana Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 318,
+      "Mechanic": "Mana Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Mana Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 330,
+      "Mechanic": "Mana Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 339,
+      "Mechanic": "Mana Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 355,
+      "Mechanic": "Knuckle Sandwich",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Bombarian Special",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 398,
+      "Mechanic": "Bombarian Special",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 404,
+      "Mechanic": "Bombarian Special",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 412,
+      "Mechanic": "Bombarian Special",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 444,
+      "Mechanic": "Chain Deathmatch",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Murderous Mist",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 459,
+      "Mechanic": "Lariat Combo",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 463,
+      "Mechanic": "Lariat Combo",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 475,
+      "Mechanic": "Diveboom",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 485,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 498,
+      "Mechanic": "Knuckle Sandwich",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 531,
+      "Mechanic": "Explosive Rain",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 535,
+      "Mechanic": "Explosive Rain",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 538,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 544,
+      "Mechanic": "Explosion",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Blazing Lariat",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 556,
+      "Mechanic": "Brutal Impact",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

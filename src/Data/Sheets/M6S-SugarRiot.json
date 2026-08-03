@@ -1,0 +1,2501 @@
+{
+  "TerritoryId": 1259,
+  "Name": "M6S - Sugar Riot",
+  "Timeline": [
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Warm Bomb"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Warm Bomb"
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Sugarscape"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée"
+    },
+    {
+      "Time": 211,
+      "Mechanic": "Warm Bomb"
+    },
+    {
+      "Time": 226,
+      "Mechanic": "Live Painting"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence"
+    },
+    {
+      "Time": 280,
+      "Mechanic": "Unlimited Craving"
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III"
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Single Style"
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural"
+    },
+    {
+      "Time": 469,
+      "Mechanic": "Taste of Thunder"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm"
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Lightning Bolt"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party"
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Mousse Drip"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip"
+    },
+    {
+      "Time": 36,
+      "Mechanic": "Wingmark"
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse"
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée"
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Water III"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Manxome Windersnatch"
+    },
+    {
+      "Time": 316,
+      "Mechanic": "Live Painting"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "I Crave Violence"
+    },
+    {
+      "Time": 415,
+      "Mechanic": "Warm Bomb"
+    },
+    {
+      "Time": 503,
+      "Mechanic": "Lightning Storm"
+    },
+    {
+      "Time": 508,
+      "Mechanic": "Lightning Bolt"
+    },
+    {
+      "Time": 109,
+      "Mechanic": "Layer"
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Crowd Brûlée"
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Pudding Graf"
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Color Riot"
+    },
+    {
+      "Time": 294,
+      "Mechanic": "I Crave Violence"
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Water III"
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Layer"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Warm Bomb",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Warm Bomb",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 36,
+      "Mechanic": "Wingmark",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Warm Bomb",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Warm Bomb",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Warm Bomb",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 92,
+      "Mechanic": "Sugarscape",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 109,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 109,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Crowd Brûlée",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Crowd Brûlée",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Pudding Graf",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Color Riot",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 208,
+      "Mechanic": "Color Riot",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 211,
+      "Mechanic": "Warm Bomb",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 211,
+      "Mechanic": "Warm Bomb",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 226,
+      "Mechanic": "Live Painting",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Water III",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Water III",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Water III",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Water III",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Water III",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 280,
+      "Mechanic": "Unlimited Craving",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 294,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 294,
+      "Mechanic": "I Crave Violence",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 316,
+      "Mechanic": "Live Painting",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "I Crave Violence",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Water III",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Water III",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Single Style",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 415,
+      "Mechanic": "Warm Bomb",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 415,
+      "Mechanic": "Warm Bomb",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 457,
+      "Mechanic": "Layer",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 469,
+      "Mechanic": "Taste of Thunder",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Lightning Bolt",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 503,
+      "Mechanic": "Lightning Storm",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 503,
+      "Mechanic": "Lightning Storm",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 503,
+      "Mechanic": "Lightning Storm",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 508,
+      "Mechanic": "Lightning Bolt",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Mousse Drip",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 42684,
+      "Time": 12,
+      "IsPhase": true,
+      "Label": "P1 Mousse Mural"
+    },
+    {
+      "Ability": 42641,
+      "Time": 23,
+      "IsPhase": false,
+      "Label": "P1 Color Riot"
+    },
+    {
+      "Ability": 42614,
+      "Time": 36,
+      "IsPhase": false,
+      "Label": "P1 Wingmark"
+    },
+    {
+      "Ability": 42645,
+      "Time": 71,
+      "IsPhase": false,
+      "Label": "P1 Sticky Mousse"
+    },
+    {
+      "Ability": 42642,
+      "Time": 82,
+      "IsPhase": false,
+      "Label": "P1 Color Riot"
+    },
+    {
+      "Ability": 42600,
+      "Time": 92,
+      "IsPhase": false,
+      "Label": "P1 Sugarscape"
+    },
+    {
+      "Ability": 42602,
+      "Time": 109,
+      "IsPhase": false,
+      "Label": "P1 Layer"
+    },
+    {
+      "Ability": 42657,
+      "Time": 123,
+      "IsPhase": false,
+      "Label": "P1 Spray Pain"
+    },
+    {
+      "Ability": 42657,
+      "Time": 129,
+      "IsPhase": false,
+      "Label": "P1 Spray Pain"
+    },
+    {
+      "Ability": 42657,
+      "Time": 135,
+      "IsPhase": false,
+      "Label": "P1 Spray Pain"
+    },
+    {
+      "Ability": 42645,
+      "Time": 150,
+      "IsPhase": false,
+      "Label": "P1 Sticky Mousse"
+    },
+    {
+      "Ability": 42604,
+      "Time": 158,
+      "IsPhase": false,
+      "Label": "P1 Layer"
+    },
+    {
+      "Ability": 39468,
+      "Time": 174,
+      "IsPhase": false,
+      "Label": "P1 Spray Pain"
+    },
+    {
+      "Ability": 42677,
+      "Time": 178,
+      "IsPhase": false,
+      "Label": "P1 Pudding Graf"
+    },
+    {
+      "Ability": 42627,
+      "Time": 190,
+      "IsPhase": false,
+      "Label": "P1 Double Style"
+    },
+    {
+      "Ability": 42678,
+      "Time": 191,
+      "IsPhase": false,
+      "Label": "P1 Pudding Graf"
+    },
+    {
+      "Ability": 42684,
+      "Time": 200,
+      "IsPhase": false,
+      "Label": "P1 Mousse Mural"
+    },
+    {
+      "Ability": 42641,
+      "Time": 208,
+      "IsPhase": false,
+      "Label": "P1 Color Riot"
+    },
+    {
+      "Ability": 42661,
+      "Time": 219,
+      "IsPhase": false,
+      "Label": "P1 Soul Sugar"
+    },
+    {
+      "Ability": 42662,
+      "Time": 226,
+      "IsPhase": false,
+      "Label": "P1 Live Painting"
+    },
+    {
+      "Ability": 42673,
+      "Time": 242,
+      "IsPhase": false,
+      "Label": "P1 I Crave Violence"
+    },
+    {
+      "Ability": 42663,
+      "Time": 255,
+      "IsPhase": false,
+      "Label": "P1 Live Painting"
+    },
+    {
+      "Ability": 42673,
+      "Time": 257,
+      "IsPhase": false,
+      "Label": "P1 I Crave Violence"
+    },
+    {
+      "Ability": 37831,
+      "Time": 266,
+      "IsPhase": false,
+      "Label": "P1 Water III"
+    },
+    {
+      "Ability": 37831,
+      "Time": 276,
+      "IsPhase": false,
+      "Label": "P1 Water III"
+    },
+    {
+      "Ability": 42664,
+      "Time": 277,
+      "IsPhase": false,
+      "Label": "P1 Live Painting"
+    },
+    {
+      "Ability": 42673,
+      "Time": 294,
+      "IsPhase": false,
+      "Label": "P1 I Crave Violence"
+    },
+    {
+      "Ability": 42666,
+      "Time": 307,
+      "IsPhase": false,
+      "Label": "P1 Ready Ore Not"
+    },
+    {
+      "Ability": 42673,
+      "Time": 309,
+      "IsPhase": false,
+      "Label": "P1 I Crave Violence"
+    },
+    {
+      "Ability": 42665,
+      "Time": 316,
+      "IsPhase": false,
+      "Label": "P1 Live Painting"
+    },
+    {
+      "Ability": 37831,
+      "Time": 328,
+      "IsPhase": false,
+      "Label": "P1 Water III"
+    },
+    {
+      "Ability": 42673,
+      "Time": 334,
+      "IsPhase": false,
+      "Label": "P1 I Crave Violence"
+    },
+    {
+      "Ability": 37831,
+      "Time": 337,
+      "IsPhase": false,
+      "Label": "P1 Water III"
+    },
+    {
+      "Ability": 37831,
+      "Time": 346,
+      "IsPhase": false,
+      "Label": "P1 Water III"
+    },
+    {
+      "Ability": 42673,
+      "Time": 348,
+      "IsPhase": false,
+      "Label": "P1 I Crave Violence"
+    },
+    {
+      "Ability": 37831,
+      "Time": 356,
+      "IsPhase": false,
+      "Label": "P1 Water III"
+    },
+    {
+      "Ability": 37831,
+      "Time": 365,
+      "IsPhase": false,
+      "Label": "P1 Water III"
+    },
+    {
+      "Ability": 42666,
+      "Time": 391,
+      "IsPhase": false,
+      "Label": "P1 Ready Ore Not"
+    },
+    {
+      "Ability": 39485,
+      "Time": 400,
+      "IsPhase": false,
+      "Label": "P1 Single Style"
+    },
+    {
+      "Ability": 42684,
+      "Time": 421,
+      "IsPhase": false,
+      "Label": "P1 Mousse Mural"
+    },
+    {
+      "Ability": 42595,
+      "Time": 431,
+      "IsPhase": false,
+      "Label": "P1 Sugarscape"
+    },
+    {
+      "Ability": 42648,
+      "Time": 457,
+      "IsPhase": false,
+      "Label": "P1 Layer"
+    },
+    {
+      "Ability": 42653,
+      "Time": 469,
+      "IsPhase": false,
+      "Label": "P1 Taste of Thunder"
+    },
+    {
+      "Ability": 42650,
+      "Time": 476,
+      "IsPhase": false,
+      "Label": "P1 Lightning Bolt"
+    },
+    {
+      "Ability": 42650,
+      "Time": 486,
+      "IsPhase": false,
+      "Label": "P1 Lightning Bolt"
+    },
+    {
+      "Ability": 42650,
+      "Time": 497,
+      "IsPhase": false,
+      "Label": "P1 Lightning Bolt"
+    },
+    {
+      "Ability": 42650,
+      "Time": 508,
+      "IsPhase": false,
+      "Label": "P1 Lightning Bolt"
+    },
+    {
+      "Ability": 42605,
+      "Time": 518,
+      "IsPhase": false,
+      "Label": "P1 Pudding Party"
+    },
+    {
+      "Ability": 42649,
+      "Time": 533,
+      "IsPhase": false,
+      "Label": "P1 Layer"
+    },
+    {
+      "Ability": 42679,
+      "Time": 549,
+      "IsPhase": false,
+      "Label": "P1 Mousse Drip"
+    },
+    {
+      "Ability": 42682,
+      "Time": 559,
+      "IsPhase": false,
+      "Label": "P1 Moussacre"
+    },
+    {
+      "Ability": 42653,
+      "Time": 566,
+      "IsPhase": false,
+      "Label": "P1 Taste of Thunder"
+    },
+    {
+      "Ability": 42614,
+      "Time": 572,
+      "IsPhase": false,
+      "Label": "P1 Wingmark"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 12,
+      "Mechanic": "Mousse Mural",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 25,
+      "Mechanic": "Warm Bomb",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 36,
+      "Mechanic": "Wingmark",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 71,
+      "Mechanic": "Sticky Mousse",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 78,
+      "Mechanic": "Burst",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 85,
+      "Mechanic": "Warm Bomb",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 109,
+      "Mechanic": "Layer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Spray Pain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 129,
+      "Mechanic": "Spray Pain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 135,
+      "Mechanic": "Spray Pain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 142,
+      "Mechanic": "Brûlée",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 150,
+      "Mechanic": "Sticky Mousse",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 157,
+      "Mechanic": "Burst",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 158,
+      "Mechanic": "Layer",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Brûlée",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Spray Pain",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 178,
+      "Mechanic": "Pudding Graf",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 190,
+      "Mechanic": "Double Style",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 191,
+      "Mechanic": "Pudding Graf",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 200,
+      "Mechanic": "Mousse Mural",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 211,
+      "Mechanic": "Warm Bomb",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 219,
+      "Mechanic": "Soul Sugar",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 226,
+      "Mechanic": "Live Painting",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 229,
+      "Mechanic": "Unlimited Craving",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 242,
+      "Mechanic": "I Crave Violence",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Live Painting",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 257,
+      "Mechanic": "I Crave Violence",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 266,
+      "Mechanic": "Water III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 276,
+      "Mechanic": "Water III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 277,
+      "Mechanic": "Live Painting",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 280,
+      "Mechanic": "Unlimited Craving",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Manxome Windersnatch",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 294,
+      "Mechanic": "I Crave Violence",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 307,
+      "Mechanic": "Ready Ore Not",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 309,
+      "Mechanic": "I Crave Violence",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 316,
+      "Mechanic": "Live Painting",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 320,
+      "Mechanic": "Unlimited Craving",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 325,
+      "Mechanic": "Manxome Windersnatch",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 328,
+      "Mechanic": "Water III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 334,
+      "Mechanic": "I Crave Violence",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 337,
+      "Mechanic": "Water III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 346,
+      "Mechanic": "Water III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 348,
+      "Mechanic": "I Crave Violence",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 356,
+      "Mechanic": "Water III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Water III",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 391,
+      "Mechanic": "Ready Ore Not",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 400,
+      "Mechanic": "Single Style",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 415,
+      "Mechanic": "Warm Bomb",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 421,
+      "Mechanic": "Mousse Mural",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 469,
+      "Mechanic": "Taste of Thunder",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 476,
+      "Mechanic": "Lightning Bolt",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Lightning Storm",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 482,
+      "Mechanic": "Levin Drop",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 486,
+      "Mechanic": "Lightning Bolt",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 492,
+      "Mechanic": "Lightning Storm",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 493,
+      "Mechanic": "Levin Drop",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 497,
+      "Mechanic": "Lightning Bolt",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 503,
+      "Mechanic": "Lightning Storm",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 504,
+      "Mechanic": "Levin Drop",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 508,
+      "Mechanic": "Lightning Bolt",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 513,
+      "Mechanic": "Lightning Storm",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 514,
+      "Mechanic": "Levin Drop",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 518,
+      "Mechanic": "Pudding Party",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 549,
+      "Mechanic": "Mousse Drip",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Mousse Drip",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 559,
+      "Mechanic": "Moussacre",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 566,
+      "Mechanic": "Taste of Thunder",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 568,
+      "Mechanic": "Explosion",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 572,
+      "Mechanic": "Wingmark",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

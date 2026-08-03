@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace FrenMits;
 
@@ -29,77 +28,26 @@ public static class CoveredRepeats
             if (!line.Enabled || string.IsNullOrWhiteSpace(line.Action)) continue;
             var ours = !line.Custom && line.Jobs.Count == 0;
 
-            var parts = Split(line.Action);
-            var kept = new List<Part>(parts.Count);
-            foreach (var p in parts)
+            // Each line is now a single action — check if it's already covered.
+            var mit = ours ? BareMit(line.Action, buffsIn) : null;
+            if (mit != null && !Cooldowns.HasCharges(mit)
+                && upUntil.TryGetValue(mit, out var end) && end > line.Time + Slop)
             {
-                var mit = ours ? BareMit(p.Text, buffsIn) : null;
-                // A second charge is a second press.
-                if (mit != null && !Cooldowns.HasCharges(mit)
-                    && upUntil.TryGetValue(mit, out var end) && end > line.Time + Slop)
-                    continue;
-                kept.Add(p);
-            }
-
-            var pressed = kept.Count == parts.Count ? line.Action : Join(kept);
-            if (kept.Count != parts.Count)
-            {
-                if (pressed.Length == 0) drop.Add(line);
-                else line.Action = pressed;
+                drop.Add(line);
                 changed++;
+                continue;
             }
 
             // Only a press the sheet states outright can cover.
-            foreach (var p in kept)
+            if (!Conditional(line.Action))
             {
-                if (Conditional(p.Text)) continue;
-                foreach (var (name, dur) in buffsIn(p.Text))
+                foreach (var (name, dur) in buffsIn(line.Action))
                     upUntil[name] = line.Time + dur;
             }
         }
 
         foreach (var d in drop) lines.Remove(d);
         return changed;
-    }
-
-    // One piece of an action text, with its separator.
-    private readonly record struct Part(char Sep, string Text);
-
-    // Split at the top level, so a job gate stays whole.
-    private static List<Part> Split(string action)
-    {
-        var parts = new List<Part>();
-        var depth = 0;
-        var start = 0;
-        var sep = '\0';
-        for (var i = 0; i < action.Length; i++)
-        {
-            var c = action[i];
-            if (c == '(') depth++;
-            else if (c == ')') { if (depth > 0) depth--; }
-            else if (depth == 0 && (c == '/' || c == '+'))
-            {
-                parts.Add(new Part(sep, action.Substring(start, i - start)));
-                sep = c;
-                start = i + 1;
-            }
-        }
-        parts.Add(new Part(sep, action.Substring(start)));
-        return parts;
-    }
-
-    // Put survivors back behind the separator they arrived with.
-    private static string Join(List<Part> parts)
-    {
-        var sb = new StringBuilder();
-        foreach (var p in parts)
-        {
-            var text = p.Text.Trim();
-            if (text.Length == 0) continue;
-            if (sb.Length > 0) sb.Append(p.Sep == '+' ? " + " : "/");
-            sb.Append(text);
-        }
-        return sb.ToString();
     }
 
     // A part the sheet hedges on, like "If Available".

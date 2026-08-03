@@ -1,0 +1,2286 @@
+{
+  "TerritoryId": 1323,
+  "Name": "M10S - Red Hot / Deep Blue",
+  "Timeline": [
+    {
+      "Time": 15,
+      "Mechanic": "Hot Impact"
+    },
+    {
+      "Time": 41,
+      "Mechanic": "Flame Floater"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno"
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sickest Take-Off"
+    },
+    {
+      "Time": 129,
+      "Mechanic": "Alley-Oop Double-Dip"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Xtreme Spectacular"
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Vertical Plunge"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking"
+    },
+    {
+      "Time": 270,
+      "Mechanic": "Hot Impact"
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno"
+    },
+    {
+      "Time": 308,
+      "Mechanic": "Cutback Blaze"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare"
+    },
+    {
+      "Time": 335,
+      "Mechanic": "Deep Aerial"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave"
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Scathing Steam"
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Xtreme Wave"
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Scathing Steam"
+    },
+    {
+      "Time": 401,
+      "Mechanic": "Divers' Dare"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno"
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell"
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Flame Floater"
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation"
+    },
+    {
+      "Time": 218,
+      "Mechanic": "Insane Air"
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Vertical Blast"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Deep Impact"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Scathing Steam"
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Scathing Steam"
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air"
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Sick Swell"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Sick Swell"
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Divers' Dare"
+    },
+    {
+      "Time": 303,
+      "Mechanic": "Sickest Take-Off"
+    },
+    {
+      "Time": 417,
+      "Mechanic": "Flame Floater"
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sickest Take-Off"
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Xtreme Firesnaking"
+    },
+    {
+      "Time": 162,
+      "Mechanic": "Xtreme Spectacular"
+    }
+  ],
+  "DefaultActions": [
+    {
+      "Time": 15,
+      "Mechanic": "Hot Impact",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Hot Impact",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Hot Impact",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Flame Floater",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 41,
+      "Mechanic": "Flame Floater",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 98,
+      "Mechanic": "Sick Swell",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 129,
+      "Mechanic": "Alley-Oop Double-Dip",
+      "Slot": "MT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 129,
+      "Mechanic": "Alley-Oop Double-Dip",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 129,
+      "Mechanic": "Alley-Oop Double-Dip",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 162,
+      "Mechanic": "Xtreme Spectacular",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Xtreme Spectacular",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Xtreme Spectacular",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Vertical Plunge",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Vertical Plunge",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Vertical Plunge",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 218,
+      "Mechanic": "Insane Air",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 218,
+      "Mechanic": "Insane Air",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Vertical Blast",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Sick Swell",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Sick Swell",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Sick Swell",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 264,
+      "Mechanic": "Sick Swell",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 270,
+      "Mechanic": "Hot Impact",
+      "Slot": "MT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 270,
+      "Mechanic": "Hot Impact",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 303,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 303,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 308,
+      "Mechanic": "Cutback Blaze",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 308,
+      "Mechanic": "Cutback Blaze",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 308,
+      "Mechanic": "Cutback Blaze",
+      "Slot": "OT",
+      "Action": "Buddy Mit"
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Deep Impact",
+      "Slot": "OT",
+      "Action": "Invulnerability"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 335,
+      "Mechanic": "Deep Aerial",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Scathing Steam",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Scathing Steam",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Scathing Steam",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Scathing Steam",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Xtreme Wave",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Scathing Steam",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Scathing Steam",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 401,
+      "Mechanic": "Divers' Dare",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 417,
+      "Mechanic": "Flame Floater",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 417,
+      "Mechanic": "Flame Floater",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Earthly Star",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H1",
+      "Action": "Celestial Opposition",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Whispering Dawn",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Slot": "H2",
+      "Action": "Physis II",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sickest Take-Off",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "MT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "OT",
+      "Action": "Short Mit"
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H1",
+      "Action": "Asylum",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Expedient",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Philosophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Xtreme Firesnaking",
+      "Slot": "H2",
+      "Action": "Fey Illumination",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Xtreme Firesnaking",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Xtreme Firesnaking",
+      "Slot": "M2",
+      "Action": "Feint"
+    }
+  ],
+  "SyncPoints": [
+    {
+      "Ability": 46518,
+      "Time": 15,
+      "IsPhase": true,
+      "Label": "P1 Hot Impact"
+    },
+    {
+      "Ability": 46522,
+      "Time": 30,
+      "IsPhase": false,
+      "Label": "P1 Flame Floater"
+    },
+    {
+      "Ability": 46528,
+      "Time": 53,
+      "IsPhase": false,
+      "Label": "P1 Alley-Oop Inferno"
+    },
+    {
+      "Ability": 46537,
+      "Time": 63,
+      "IsPhase": false,
+      "Label": "P1 Cutback Blaze"
+    },
+    {
+      "Ability": 46530,
+      "Time": 69,
+      "IsPhase": false,
+      "Label": "P1 Pyrotation"
+    },
+    {
+      "Ability": 46520,
+      "Time": 83,
+      "IsPhase": false,
+      "Label": "P1 Divers' Dare"
+    },
+    {
+      "Ability": 46539,
+      "Time": 98,
+      "IsPhase": false,
+      "Label": "P1 Sick Swell"
+    },
+    {
+      "Ability": 46541,
+      "Time": 107,
+      "IsPhase": false,
+      "Label": "P1 Sickest Take-Off"
+    },
+    {
+      "Ability": 46542,
+      "Time": 116,
+      "IsPhase": false,
+      "Label": "P1 Sickest Take-Off"
+    },
+    {
+      "Ability": 46540,
+      "Time": 116,
+      "IsPhase": false,
+      "Label": "P1 Sick Swell"
+    },
+    {
+      "Ability": 46557,
+      "Time": 126,
+      "IsPhase": false,
+      "Label": "P1 Alley-Oop Double-Dip"
+    },
+    {
+      "Ability": 46519,
+      "Time": 137,
+      "IsPhase": false,
+      "Label": "P1 Deep Impact"
+    },
+    {
+      "Ability": 46521,
+      "Time": 145,
+      "IsPhase": false,
+      "Label": "P1 Divers' Dare"
+    },
+    {
+      "Ability": 46553,
+      "Time": 162,
+      "IsPhase": false,
+      "Label": "P1 Xtreme Spectacular"
+    },
+    {
+      "Ability": 46500,
+      "Time": 170,
+      "IsPhase": false,
+      "Label": "P1 Xtreme Spectacular"
+    },
+    {
+      "Ability": 47255,
+      "Time": 196,
+      "IsPhase": false,
+      "Label": "P1 Insane Air"
+    },
+    {
+      "Ability": 47257,
+      "Time": 203,
+      "IsPhase": false,
+      "Label": "P1 Insane Air"
+    },
+    {
+      "Ability": 46520,
+      "Time": 230,
+      "IsPhase": false,
+      "Label": "P1 Divers' Dare"
+    },
+    {
+      "Ability": 45953,
+      "Time": 246,
+      "IsPhase": false,
+      "Label": "P1 Firesnaking"
+    },
+    {
+      "Ability": 45954,
+      "Time": 246,
+      "IsPhase": false,
+      "Label": "P1 Watersnaking"
+    },
+    {
+      "Ability": 46528,
+      "Time": 258,
+      "IsPhase": false,
+      "Label": "P1 Alley-Oop Inferno"
+    },
+    {
+      "Ability": 46560,
+      "Time": 258,
+      "IsPhase": false,
+      "Label": "P1 Reverse Alley-Oop"
+    },
+    {
+      "Ability": 46539,
+      "Time": 264,
+      "IsPhase": false,
+      "Label": "P1 Sick Swell"
+    },
+    {
+      "Ability": 46464,
+      "Time": 270,
+      "IsPhase": false,
+      "Label": "P1 Hot Impact"
+    },
+    {
+      "Ability": 47249,
+      "Time": 276,
+      "IsPhase": false,
+      "Label": "P1 Deep Varial"
+    },
+    {
+      "Ability": 46529,
+      "Time": 281,
+      "IsPhase": false,
+      "Label": "P1 Alley-Oop Inferno"
+    },
+    {
+      "Ability": 46532,
+      "Time": 290,
+      "IsPhase": false,
+      "Label": "P1 Hot Aerial"
+    },
+    {
+      "Ability": 46541,
+      "Time": 293,
+      "IsPhase": false,
+      "Label": "P1 Sickest Take-Off"
+    },
+    {
+      "Ability": 46542,
+      "Time": 303,
+      "IsPhase": false,
+      "Label": "P1 Sickest Take-Off"
+    },
+    {
+      "Ability": 46540,
+      "Time": 303,
+      "IsPhase": false,
+      "Label": "P1 Sick Swell"
+    },
+    {
+      "Ability": 46537,
+      "Time": 308,
+      "IsPhase": false,
+      "Label": "P1 Cutback Blaze"
+    },
+    {
+      "Ability": 46519,
+      "Time": 315,
+      "IsPhase": false,
+      "Label": "P1 Deep Impact"
+    },
+    {
+      "Ability": 46520,
+      "Time": 322,
+      "IsPhase": false,
+      "Label": "P1 Divers' Dare"
+    },
+    {
+      "Ability": 46563,
+      "Time": 335,
+      "IsPhase": false,
+      "Label": "P1 Deep Aerial"
+    },
+    {
+      "Ability": 46533,
+      "Time": 348,
+      "IsPhase": false,
+      "Label": "P1 Xtreme Wave"
+    },
+    {
+      "Ability": 44487,
+      "Time": 350,
+      "IsPhase": false,
+      "Label": "P1 Scathing Steam"
+    },
+    {
+      "Ability": 46536,
+      "Time": 356,
+      "IsPhase": false,
+      "Label": "P1 Xtreme Wave"
+    },
+    {
+      "Ability": 44487,
+      "Time": 375,
+      "IsPhase": false,
+      "Label": "P1 Scathing Steam"
+    },
+    {
+      "Ability": 46535,
+      "Time": 382,
+      "IsPhase": false,
+      "Label": "P1 Xtreme Wave"
+    },
+    {
+      "Ability": 46520,
+      "Time": 401,
+      "IsPhase": false,
+      "Label": "P1 Divers' Dare"
+    },
+    {
+      "Ability": 46539,
+      "Time": 413,
+      "IsPhase": false,
+      "Label": "P1 Sick Swell"
+    },
+    {
+      "Ability": 46548,
+      "Time": 417,
+      "IsPhase": false,
+      "Label": "P1 Flame Floater"
+    },
+    {
+      "Ability": 46528,
+      "Time": 425,
+      "IsPhase": false,
+      "Label": "P1 Alley-Oop Inferno"
+    },
+    {
+      "Ability": 46557,
+      "Time": 431,
+      "IsPhase": false,
+      "Label": "P1 Alley-Oop Double-Dip"
+    },
+    {
+      "Ability": 46541,
+      "Time": 438,
+      "IsPhase": false,
+      "Label": "P1 Sickest Take-Off"
+    },
+    {
+      "Ability": 46486,
+      "Time": 438,
+      "IsPhase": false,
+      "Label": "P1 Freaky Pyrotation"
+    },
+    {
+      "Ability": 46542,
+      "Time": 447,
+      "IsPhase": false,
+      "Label": "P1 Sickest Take-Off"
+    },
+    {
+      "Ability": 46540,
+      "Time": 447,
+      "IsPhase": false,
+      "Label": "P1 Sick Swell"
+    },
+    {
+      "Ability": 46521,
+      "Time": 454,
+      "IsPhase": false,
+      "Label": "P1 Divers' Dare"
+    },
+    {
+      "Ability": 46510,
+      "Time": 470,
+      "IsPhase": false,
+      "Label": "P1 Xtreme Firesnaking"
+    },
+    {
+      "Ability": 46511,
+      "Time": 470,
+      "IsPhase": false,
+      "Label": "P1 Xtreme Watersnaking"
+    }
+  ],
+  "PhaseStarts": [],
+  "CustomRows": [
+    {
+      "Time": 15,
+      "Mechanic": "Hot Impact",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Flame Floater",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 34,
+      "Mechanic": "Flame Floater",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 37,
+      "Mechanic": "Flame Floater",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 41,
+      "Mechanic": "Flame Floater",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 53,
+      "Mechanic": "Alley-Oop Inferno",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 63,
+      "Mechanic": "Cutback Blaze",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pyrotation",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 74,
+      "Mechanic": "Pyrotation",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 83,
+      "Mechanic": "Divers' Dare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 116,
+      "Mechanic": "Sick Swell",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 119,
+      "Mechanic": "Awesome Splash",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 126,
+      "Mechanic": "Alley-Oop Double-Dip",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 129,
+      "Mechanic": "Alley-Oop Double-Dip",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 137,
+      "Mechanic": "Deep Impact",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 145,
+      "Mechanic": "Divers' Dare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 170,
+      "Mechanic": "Xtreme Spectacular",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 174,
+      "Mechanic": "Xtreme Spectacular",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 196,
+      "Mechanic": "Insane Air",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Plunging Snap",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 199,
+      "Mechanic": "Blasting Snap",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Vertical Plunge",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 206,
+      "Mechanic": "Re-Entry Blast",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Plunging Snap",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 213,
+      "Mechanic": "Blasting Snap",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 218,
+      "Mechanic": "Insane Air",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Re-Entry Plunge",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 221,
+      "Mechanic": "Vertical Blast",
+      "Hurt": 2,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 230,
+      "Mechanic": "Divers' Dare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Firesnaking",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 246,
+      "Mechanic": "Watersnaking",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Alley-Oop Inferno",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 258,
+      "Mechanic": "Reverse Alley-Oop",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 270,
+      "Mechanic": "Hot Impact",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Alley-Oop Inferno",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 281,
+      "Mechanic": "Awesome Splash",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 290,
+      "Mechanic": "Hot Aerial",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 294,
+      "Mechanic": "Hot Aerial",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 298,
+      "Mechanic": "Hot Aerial",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 303,
+      "Mechanic": "Sick Swell",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 305,
+      "Mechanic": "Awesome Slab",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 308,
+      "Mechanic": "Cutback Blaze",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 315,
+      "Mechanic": "Deep Impact",
+      "Hurt": 3,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 322,
+      "Mechanic": "Divers' Dare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 335,
+      "Mechanic": "Deep Aerial",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 348,
+      "Mechanic": "Xtreme Wave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Scathing Steam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 356,
+      "Mechanic": "Xtreme Wave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 358,
+      "Mechanic": "Scathing Steam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 365,
+      "Mechanic": "Xtreme Wave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 367,
+      "Mechanic": "Scathing Steam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 373,
+      "Mechanic": "Xtreme Wave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 375,
+      "Mechanic": "Scathing Steam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 382,
+      "Mechanic": "Xtreme Wave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Scathing Steam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 390,
+      "Mechanic": "Xtreme Wave",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 393,
+      "Mechanic": "Scathing Steam",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 401,
+      "Mechanic": "Divers' Dare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 425,
+      "Mechanic": "Alley-Oop Inferno",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 431,
+      "Mechanic": "Alley-Oop Double-Dip",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 434,
+      "Mechanic": "Alley-Oop Double-Dip",
+      "Hurt": 1,
+      "Buster": true,
+      "Enrage": false
+    },
+    {
+      "Time": 438,
+      "Mechanic": "Freaky Pyrotation",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 447,
+      "Mechanic": "Sick Swell",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 450,
+      "Mechanic": "Awesome Slab",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 454,
+      "Mechanic": "Divers' Dare",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Xtreme Firesnaking",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 470,
+      "Mechanic": "Xtreme Watersnaking",
+      "Hurt": 3,
+      "Buster": false,
+      "Enrage": false
+    }
+  ],
+  "BossAnchors": []
+}

@@ -15,14 +15,15 @@ public static class MitTypes
         "shadow wall", "dark mind", "oblation", "the blackest night", "tbn",
         "sentinel", "guardian", "bulwark", "sheltron", "intervention", "hallowed",
         "blackest night",
-        "heart of stone", "heart of corundum", "nebula", "camouflage", "reprisal",
+        "heart of stone", "heart of corundum", "nebula", "camouflage",
         "provoke", "shirk", "thrill of battle", "equilibrium", "tank:", "invuln",
+        "short mit", "buddy mit", "40%", "90s",
     };
 
     // Party-wide raid mitigation and healer party cooldowns.
     private static readonly string[] PartyWords =
     {
-        "feint", "addle", "dismantle", "magick barrier", "tactician", "troubadour",
+        "reprisal", "feint", "addle", "dismantle", "magick barrier", "tactician", "troubadour",
         "shield samba", "improvisation", "divine veil", "passage of arms", "shake it off",
         "heart of light", "dark missionary", "sacred soil", "kerachole", "holos",
         "expedient", "expedience", "desperate measures", "temperance", "divine caress", "neutral sect", "collective",

@@ -49,6 +49,8 @@ public partial class SheetViewWindow : Window
     private bool _wasFocused;
 
     private string[] _slots = Array.Empty<string>();
+    private string[] _gridCols = Array.Empty<string>();
+    private int[] _gridToSlot = Array.Empty<int>();
     private List<MitLine>[] _slotLines = Array.Empty<List<MitLine>>();
     private bool[] _slotBacked = Array.Empty<bool>(); // list already lives in the fight profile
     private List<Row> _rows = new();
@@ -61,11 +63,11 @@ public partial class SheetViewWindow : Window
     private int _pinnedCount;
 
     private bool IsPinnedColumn(int i)
-        => C.SheetPinnedSlots.Contains(_slots[i], StringComparer.OrdinalIgnoreCase);
+        => C.SheetPinnedSlots.Contains(_gridCols[i], StringComparer.OrdinalIgnoreCase);
 
     // A user-made sheet: not built in, with its own layout.
     private static bool IsCustomSheet(FightProfile f)
-        => !Builtin.Has(f.TerritoryId) && f.CustomSlots.Count > 0;
+        => !Builtin.Has(f.TerritoryId) && (f.CustomSlots.Count > 0 || f.CustomRows.Count > 0);
 
     // Set each Rebuild, since custom sheets have no bake.
     private bool _isCustom;
@@ -77,6 +79,29 @@ public partial class SheetViewWindow : Window
     private readonly Dictionary<MitLine, string> _windows = new();
     // Text filter: show only rows whose mechanic or any mit matches.
     private string _filter = "";
+    // Action Type filters
+    private bool _showPartyMits = true;
+    private bool _showPersonalMits = true;
+    // Whole-row filter: job-restricted extras (Mantra, Curing Waltz, ...) mixed
+    // in at their own time, distinct from a shared party-mit row.
+    private bool _showJobExtra = true;
+
+    public bool HasConflict(FightProfile fight, MitLine line, out string reason)
+    {
+        if (_fight != fight)
+        {
+            _fight = fight;
+            _dirty = true;
+        }
+        if (_dirty && !Editing) Rebuild();
+        if (_conflicts.TryGetValue(line, out var r))
+        {
+            reason = r;
+            return true;
+        }
+        reason = "";
+        return false;
+    }
 
     // Search-and-replace popup state.
     private string _replFind = "";
@@ -195,11 +220,12 @@ public partial class SheetViewWindow : Window
         public string Mechanic = "";
         public string Phase = "";
         public List<MitLine>[] Cells = Array.Empty<List<MitLine>>();
+        public List<MitLine> RawLines = new();
         public BakedRow? Bake;      // nearest same-mechanic baked instance
         public bool Edited;
         public bool Ghost;          // baked instance deleted from every slot
         public bool JobExtra;       // every line is a job-restricted custom (e.g. Nature's Minne)
-        public string?[]? Carry;    // per slot: earlier press whose buff still covers this row
+        public List<string>?[]? Carry;   // per column: earlier presses whose buffs still cover this row
     }
 
     private Row? _editTimeRow;

@@ -86,64 +86,7 @@ public partial class ConfigWindow
         return confirmed;
     }
 
-    // Tank slots across every fight's slot list.
-    private static readonly string[] TankSlots = { "MT", "OT", "T1", "T2" };
-    private static bool IsTankSlot(string? slot)
-        => slot != null && TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase);
 
-    // The sheet's tank-buster plan, shown only on a tank slot.
-    private void DrawTankSection(FightProfile fight)
-    {
-        if (!TankMits.Has(fight.TerritoryId)) return;
-        if (!IsTankSlot(fight.Slot)) return;
-        // Check before BeginCard, or an early return corrupts the card.
-        var comps = TankMits.Comps(fight.TerritoryId);
-        if (comps.Length == 0) return;
-
-        // FRU's tank tabs come from its own sheet.
-        var source = fight.TerritoryId == Builtin.FruTerritory ? "from the FRU sheet" : "from Ikuya";
-        BeginCard(FontAwesomeIcon.ShieldAlt, ImGuiColors.TankBlue, "Tank busters", source);
-        ImGui.TextDisabled("Pick your tank pairing, then add your job's tank-buster mit plan. Re-adding replaces it.");
-        // Stored on the profile, so the pick is remembered per fight.
-        var tankComp = Array.IndexOf(comps, fight.TankPairing);
-        if (tankComp < 0) tankComp = 0;
-        ImGui.SetNextItemWidth(140f);
-        if (ImGui.Combo("Tank pairing", ref tankComp, comps, comps.Length))
-        {
-            fight.TankPairing = comps[tankComp];
-            C.Save();
-        }
-
-        var comp = comps[tankComp];
-        var myJob = _plugin.ActiveJobAbbreviation();
-        foreach (var j in TankMits.Jobs(comp))
-        {
-            var entries = TankMits.For(fight.TerritoryId, comp, j);
-            ImGui.SameLine();
-            var label = j == myJob ? $"Add {j} (yours)" : $"Add {j}";
-            if (ImGui.Button($"{label}##tank{j}"))
-            {
-                var merged = new List<MitLine>(fight.Lines);
-                // Replace any existing tank lines for this job, then add fresh.
-                merged.RemoveAll(l => l.Mechanic.StartsWith("Tank:", StringComparison.Ordinal)
-                                      && l.Jobs.Contains(j, StringComparer.OrdinalIgnoreCase));
-                foreach (var e in entries)
-                    merged.Add(new MitLine
-                    {
-                        Time = e.Time,
-                        Mechanic = $"Tank: {e.Mechanic}",
-                        Action = e.Action,
-                        Jobs = new List<string> { j },
-                        Enabled = true,
-                        Custom = true,
-                    });
-                SetFightLines(fight, merged.OrderBy(l => l.Time).ToList());
-                FlashBuiltin($"Added {entries.Length} {j} tank-buster line(s).");
-            }
-        }
-        ImGui.TextDisabled("Lines are tagged to the job, so they only show when you're on it.");
-        EndCard();
-    }
 
     private Vector2 _cardTopLeft;
     private float _cardWidth;
@@ -357,6 +300,39 @@ public partial class ConfigWindow
             ImGui.SameLine(0, 6);
             ImGui.TextColored(ImGuiColors.DalamudYellow, "previewing");
         }
+
+        DrawPriorityPhaseRow(fight, phases);
+    }
+
+    // For any phase whose tank busters follow job priority instead of literal
+    // MT/OT (see PriorityPhase), a toggle to flip which of you is priority 1
+    // when the auto pick (live party job ranking) is wrong or ambiguous.
+    private void DrawPriorityPhaseRow(FightProfile fight, List<(string Name, float Time)> phases)
+    {
+        var priorityOnes = phases
+            .Select(p => (p.Name, Phase: TankPriority.PhaseAt(fight.TerritoryId, p.Time)))
+            .Where(p => p.Phase != null)
+            .ToList();
+        if (priorityOnes.Count == 0) return;
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Tank priority:");
+        Tip("These phases' tank busters follow job priority (ranked, not MT/OT).\nToggle if the auto pick has you backwards.");
+        foreach (var (name, phase) in priorityOnes)
+        {
+            var swapped = TankPriority.IsSwapped(fight, phase!);
+            ImGui.SameLine(0, 4);
+            ImGui.PushStyleColor(ImGuiCol.Button, swapped ? new Vector4(0.36f, 0.62f, 0.96f, 0.4f) : ImGui.GetStyle().Colors[(int)ImGuiCol.Button]);
+            if (ImGui.SmallButton($"{name} {(swapped ? "(swapped)" : "")}##priswap{name}"))
+            {
+                TankPriority.SetSwapped(fight, phase!, !swapped);
+                Builtin.ReapplyPriority(fight);
+                C.Save();
+                _plugin.SheetViewWindow.MarkPlanDirty();
+            }
+            ImGui.PopStyleColor();
+            Tip(swapped ? "Swapped - click to go back to the auto pick." : "Click to swap which of you gets priority 1 here.");
+        }
     }
 
     // Potions: baked windows, or the 2-minute meta for customs.
@@ -366,7 +342,7 @@ public partial class ConfigWindow
             && fight.CustomSlots.Count > 0 && fight.CustomRows.Count > 0;
         if (PotionTimings.BossSlug(fight.TerritoryId) == null && !customPots) return;
 
-        var job = _plugin.ActiveJobAbbreviation();
+        var job = _plugin.GetActiveJobAbbr(fight);
         var stat = PotionTimings.Stat(job);
 
         BeginCard(FontAwesomeIcon.Flask, ImGuiColors.DalamudViolet, "Potions",
@@ -430,14 +406,16 @@ public partial class ConfigWindow
     // Job mitigation: optional job timers from logs.
     private void DrawJobExtrasSection(FightProfile fight)
     {
-        var job = _plugin.ActiveJobAbbreviation();
+        var job = _plugin.GetActiveJobAbbr(fight);
         if (string.IsNullOrEmpty(job)) return; // also lets the compiler see job is non-null below
         // Baked for built-ins, computed from a custom sheet's rows.
         var extras = JobExtras.AllFor(fight, job);
         if (extras.Count == 0) return;
         var custom = JobExtras.For(fight.TerritoryId, job) == null; // no baked zone schedule -> from the sheet
 
-        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job extras", "optional");
+        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job extras", "auto-mixed in");
+        ImGui.TextDisabled("Already mixed into your line list below, at their own time. Delete one there");
+        ImGui.TextDisabled("(or in Sheet View) to drop it for good; these buttons reset it to the default.");
         if (custom)
             ImGui.TextDisabled("Spots picked from this sheet's rows, hardest-graded hits first.");
 
@@ -466,6 +444,8 @@ public partial class ConfigWindow
                     var lines = new List<MitLine>(fight.Lines);
                     lines.RemoveAll(l => l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase)
                         && names.Any(n => l.Action.Contains(n, StringComparison.OrdinalIgnoreCase)));
+                    fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase)
+                        && names.Any(n => d.Action.Contains(n, StringComparison.OrdinalIgnoreCase)));
                     if (grouped)
                         foreach (var b in bursts)
                             lines.Add(new MitLine
@@ -484,28 +464,30 @@ public partial class ConfigWindow
                                 Jobs = new List<string> { job }, Enabled = true, Custom = true, Sound = true,
                             });
                     SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
-                    FlashBuiltin($"Added {(grouped ? bursts.Count : steps.Length)} {job} summon cue(s).");
+                    FlashBuiltin($"Reset to {(grouped ? bursts.Count : steps.Length)} {job} summon cue(s).");
                 }
 
                 ImGui.SameLine(0, 10);
                 ImGui.TextDisabled($"{steps.Length} summons in {bursts.Count} bursts");
-                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Grouped ({bursts.Count})"))
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, $"Grouped ({bursts.Count})"))
                     AddSummons(true);
-                Tip("One cue per burst of three.");
+                Tip("Reset to one cue per burst of three (the auto-mixed default).");
                 ImGui.SameLine();
-                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Singles ({steps.Length})"))
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, $"Singles ({steps.Length})"))
                     AddSummons(false);
-                Tip($"One cue per summon. {job} only.");
+                Tip($"Switch to one cue per summon. {job} only.");
             }
             else
             {
                 ImGui.SameLine(0, 10);
                 ImGui.TextDisabled($"{extra.Lines.Length} casts, spaced to its {extra.Recast:0}s recast");
-                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add {extra.Lines.Length} {extra.Action} line(s)"))
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, $"Reset {extra.Lines.Length} {extra.Action} line(s)"))
                 {
                     var lines = new List<MitLine>(fight.Lines);
                     lines.RemoveAll(l => string.Equals(l.Action, extra.Action, StringComparison.OrdinalIgnoreCase)
                                          && l.Jobs.Contains(job, StringComparer.OrdinalIgnoreCase));
+                    fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(d.Action.Trim(), extra.Action.Trim(), StringComparison.OrdinalIgnoreCase));
                     foreach (var (time, mech) in extra.Lines)
                         lines.Add(new MitLine
                         {
@@ -517,9 +499,9 @@ public partial class ConfigWindow
                             Custom = true,
                         });
                     SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
-                    FlashBuiltin($"Added {extra.Lines.Length} {job} {extra.Action} line(s).");
+                    FlashBuiltin($"Reset {extra.Lines.Length} {job} {extra.Action} line(s) to the default schedule.");
                 }
-                Tip($"Adds {extra.Action}, tagged to {job}.");
+                Tip($"Back to {extra.Action}'s default timing, tagged to {job}. Also un-deletes any you removed.");
             }
 
             ImGui.PopStyleColor(2);
