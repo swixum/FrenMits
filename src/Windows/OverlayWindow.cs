@@ -148,6 +148,8 @@ public class OverlayWindow : Window
                 using (PushFont(C.OverlayFontSizePx))
                 {
                     var w = BoardWidth();
+                    w = FitBoardWidth(w, "Reprisal", 1.4f, true);
+                    w = FitBoardWidth(w, "Feint", 3.2f, true);
                     DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0.28f, Icons.ResolveFromText("Reprisal"), w);
                     ImGui.Dummy(new Vector2(1f, 4f));
                     DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, 0.5f, 0.28f, Icons.ResolveFromText("Feint"), w);
@@ -285,6 +287,13 @@ public class OverlayWindow : Window
             using (PushFont(C.OverlayFontSizePx))
             {
                 var width = BoardWidth();
+                foreach (var call in group)
+                {
+                    var dt = GetDynamicTiming(call, elapsed);
+                    if (dt.Hidden) continue;
+                    width = FitBoardWidth(width, Icons.DisplayAction(call.MitName, job),
+                        MathF.Max(0f, dt.RemNew), dt.RemNew > 0f);
+                }
                 for (var i = 0; i < group.Count; i++)
                 {
                     if (i > 0) ImGui.Dummy(new Vector2(1f, 4f));
@@ -390,6 +399,18 @@ public class OverlayWindow : Window
     private float BoardWidth()
     {
         return MathF.Max(170f, C.ProgressBarWidthPx);
+    }
+
+    // Bars grow to fit their text; the set width is the minimum, so short calls sit still.
+    private float FitBoardWidth(float width, string action, float remaining, bool imminent)
+    {
+        var lineH = ImGui.GetTextLineHeight();
+        var iconW = C.ShowAbilityIcon ? MathF.Round(lineH * Math.Clamp(C.IconScale, 0.4f, 1.5f)) + 8f : 0f;
+        var timeText = imminent ? $"{MathF.Ceiling(remaining):0}s" : "NOW";
+        // The time slot never measures under two digits, so a 10s to 9s tick can't wiggle the bar.
+        var timeW = MathF.Max(ImGui.CalcTextSize(timeText).X, ImGui.CalcTextSize("88s").X);
+        var need = 10f + iconW + ImGui.CalcTextSize(action).X + 24f + timeW + 10f;
+        return MathF.Max(width, MathF.Ceiling(need));
     }
 
     private void DrawBoardCall(string mechanic, string action, float remaining, bool imminent,

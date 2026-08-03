@@ -678,6 +678,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private bool _firstTickDone;
     private bool _wasInDutyPlayback;
+    private int _cooldownGen = -1;
     private DateTime _lastFrameErrLog = DateTime.MinValue;
     public int FrameErrorCount { get; private set; }
     public DateTime LastFrameErrorAt { get; private set; } = DateTime.MinValue;
@@ -713,6 +714,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
 
             UpdateCutsceneStuck();
+
+            // A wipe resets every cooldown, so the press log restarts with the pull.
+            if (Timer.Generation != _cooldownGen)
+            {
+                _cooldownGen = Timer.Generation;
+                Cooldowns.ClearPresses();
+            }
 
             // A real pull outranks Test mode.
             var inCombatNow = InCombat;

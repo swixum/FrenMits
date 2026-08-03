@@ -60,8 +60,22 @@ public unsafe class DamageCapture : IDisposable
     {
         _hook!.Original(casterEntityId, caster, targetPos, header, effects, targetIds);
         // The detour must never disturb packet processing.
-        try { Record(casterEntityId, caster, header, effects, targetIds); }
+        try
+        {
+            NoteOwnPress(casterEntityId, caster, header);
+            Record(casterEntityId, caster, header, effects, targetIds);
+        }
         catch (Exception ex) { Swallowed.Report("damage capture", ex); }
+    }
+
+    // The cooldown press log feeds from here: server-confirmed, and pets count as their owner.
+    private void NoteOwnPress(uint casterEntityId, Character* caster, ActionEffectHandler.Header* header)
+    {
+        if (Plugin.LocalPlayer is not { } me) return;
+        var mine = casterEntityId == me.EntityId
+                   || (caster != null && caster->GameObject.OwnerId == me.EntityId);
+        if (!mine) return;
+        Cooldowns.NotePress(ActionNameOf(header->SpellId));
     }
 
     // Entry types that mean the action connected.

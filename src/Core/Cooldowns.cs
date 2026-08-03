@@ -57,8 +57,8 @@ public static class Cooldowns
         _byName = map;
     }
 
-    // Action text to every id it names, memoized for per-frame callers.
-    private static readonly Dictionary<string, List<uint>> _idsByText = new(StringComparer.Ordinal);
+    // Action text to every tracked name it mentions, memoized for per-frame callers.
+    private static readonly Dictionary<string, List<string>> _namesByText = new(StringComparer.Ordinal);
 
     // Seconds until the soonest mit the text names is ready, or null.
     public static float? Remaining(string? actionText)
@@ -69,35 +69,82 @@ public static class Cooldowns
             EnsureMap();
             if (_byName == null || _byName.Count == 0) return null;
 
-            if (!_idsByText.TryGetValue(actionText!, out var ids))
+            if (!_namesByText.TryGetValue(actionText!, out var names))
             {
                 // Same matching the planner uses.
-                ids = new List<uint>();
+                names = new List<string>();
                 foreach (var kv in _byName)
                 {
                     if (MentionAt(actionText!, kv.Key) >= 0)
                     {
-                        ids.Add(kv.Value);
+                        names.Add(kv.Key);
                     }
                 }
-                _idsByText[actionText!] = ids;
+                _namesByText[actionText!] = names;
             }
-            if (ids.Count == 0) return null;
+            if (names.Count == 0) return null;
 
             // A cell naming several reads as ready when any one of them is.
             float? min = null;
-            foreach (var id in ids)
+            foreach (var name in names)
             {
-                var r = RecastRemaining(id);
-                if (r.HasValue)
-                {
-                    if (min == null || r.Value < min.Value) min = r.Value;
-                }
+                var game = RecastRemaining(_byName[name]);
+                var own = TrackedRemaining(name);
+                // The game read can blank out right after the server confirms a press, so our own log backs it up.
+                float? r = game.HasValue || own > 0f ? MathF.Max(game ?? 0f, own) : null;
+                if (r.HasValue && (min == null || r.Value < min.Value)) min = r.Value;
             }
             return min;
         }
         catch (Exception ex) { Swallowed.Report("cooldown recast read", ex); return null; }
     }
+
+    // ---- our own press log ----
+
+    // Press times per mit, stamped by the action-effect hook.
+    private static readonly Dictionary<string, List<double>> _presses = new(StringComparer.OrdinalIgnoreCase);
+
+    private static double NowSec => Environment.TickCount64 / 1000.0;
+
+    // Called for every action the local player (or their pet) lands.
+    public static void NotePress(string actionName)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(actionName) || PlanInfo(actionName) is not { } info) return;
+            Stamp(info.Name, info);
+            // A shared-cooldown sibling is spent by the same press.
+            if (info.Family.Length > 0)
+                foreach (var kv in SharedFamily)
+                    if (kv.Value == info.Family && !kv.Key.Equals(info.Name, StringComparison.OrdinalIgnoreCase)
+                        && PlanInfo(kv.Key) is { } sib)
+                        Stamp(sib.Name, sib);
+        }
+        catch (Exception ex) { Swallowed.Report("cooldown press note", ex); }
+    }
+
+    private static void Stamp(string name, PlanMit info)
+    {
+        if (!_presses.TryGetValue(name, out var list)) _presses[name] = list = new List<double>();
+        var now = NowSec;
+        list.Add(now);
+        while (list.Count > 0 && now - list[0] > info.Recast) list.RemoveAt(0);
+        while (list.Count > Math.Max(1, info.Charges)) list.RemoveAt(0);
+    }
+
+    // What the press log says remains, 0 while a charge is still free.
+    private static float TrackedRemaining(string name)
+    {
+        if (!_presses.TryGetValue(name, out var list) || list.Count == 0) return 0f;
+        if (PlanInfo(name) is not { } info) return 0f;
+        var now = NowSec;
+        while (list.Count > 0 && now - list[0] > info.Recast) list.RemoveAt(0);
+        if (list.Count < Math.Max(1, info.Charges)) return 0f;
+        return (float)Math.Max(0.0, info.Recast - (now - list[0]));
+    }
+
+    // A wipe resets every cooldown, so a new pull starts the log over.
+    public static void ClearPresses() => _presses.Clear();
 
     // ---- static planning data ----
 
@@ -380,6 +427,12 @@ public static class Cooldowns
         if (am == null) return null;
         var adjusted = am->GetAdjustedActionId(id);
         var total = am->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
+        // An active mit can adjust into a follow-up with no recast (Earthly Star), so the base id keeps the timer.
+        if (total <= 0f && adjusted != id)
+        {
+            adjusted = id;
+            total = am->GetRecastTime(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
+        }
         if (total <= 0f) return null; // no recast group / not on your current job
         var elapsed = am->GetRecastTimeElapsed(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, adjusted);
 
