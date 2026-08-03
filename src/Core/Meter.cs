@@ -384,6 +384,10 @@ public class Meter : IDisposable
     // Run a recorded feed back through the stitch.
     public string Replay(string path)
     {
+        // The replay banks and clears as it goes, so a running pull is off limits.
+        if (_inCombat || Current is { Active: true })
+            return "a pull is running - replay once it ends";
+
         List<MeterFeed.Message> feed;
         try { feed = MeterFeed.Load(path); }
         catch (Exception ex) { return $"could not read that recording: {ex.Message}"; }
@@ -393,30 +397,49 @@ public class Meter : IDisposable
         var keepCombat = _inCombat;
         var keepCutscene = _cutscene;
         var keepBoss = _sawBoss;
+        // The stitch state the next live summary must come back to.
+        var keepCut = _cut;
+        var keepRawIn = _rawIn;
+        var keepRawSeg = _rawSeg;
+        var keepCarry = _carry;
+        var keepStart = _fightStartSec;
+        var keepTitle = _fightTitle;
         MeterFeed.Pause();
         _replaying = true;
-        Clear(keepHistory: true);
-        // A replay starts from nothing, like the recorded pull.
-        _cut = null;
-        _rawIn = null;
-
         var logLines = 0.0;
-        foreach (var m in feed)
+        try
         {
-            _inCombat = m.InCombat;
-            _cutscene = m.Cutscene;
-            _sawBoss = m.SawBoss;
-            logLines = Math.Max(logLines, m.LogLines);
-            OnSummary(MeterFeed.ToEncounter(m));
+            Clear(keepHistory: true);
+            // A replay starts from nothing, like the recorded pull.
+            _cut = null;
+            _rawIn = null;
+
+            foreach (var m in feed)
+            {
+                _inCombat = m.InCombat;
+                _cutscene = m.Cutscene;
+                _sawBoss = m.SawBoss;
+                logLines = Math.Max(logLines, m.LogLines);
+                OnSummary(MeterFeed.ToEncounter(m));
+            }
+        }
+        finally
+        {
+            // Live state comes back whole even if a summary throws mid-replay.
+            _replaying = false;
+            _inCombat = keepCombat;
+            _cutscene = keepCutscene;
+            _sawBoss = keepBoss;
+            _cut = keepCut;
+            _rawIn = keepRawIn;
+            _rawSeg = keepRawSeg;
+            _carry = keepCarry;
+            _fightStartSec = keepStart;
+            _fightTitle = keepTitle;
+            if (wasRecording) MeterFeed.Resume();
         }
 
         var shown = Current?.TotalDamage ?? 0;
-        _replaying = false;
-        _inCombat = keepCombat;
-        _cutscene = keepCutscene;
-        _sawBoss = keepBoss;
-        if (wasRecording) MeterFeed.Resume();
-
         var drift = logLines > 0 ? shown / logLines : 0;
         return $"{feed.Count} summaries: the board makes it {shown / 1e6:0.0}M, "
              + $"the log lines {logLines / 1e6:0.0}M"
@@ -473,7 +496,8 @@ public class Meter : IDisposable
                     }
                     else
                     {
-                        EndSegment(raw);
+                        // The dying segment's own last summary; raw already belongs to the new pull.
+                        EndSegment(_rawSeg);
                         if (_cut != null) raw = Subtract(incoming, _cut);
                     }
                 }
@@ -572,7 +596,7 @@ public class Meter : IDisposable
             copy.Add(new AbilityStat
             {
                 Name = a.Name, Hits = a.Hits, Crits = a.Crits,
-                Dhs = a.Dhs, Damage = a.Damage, Max = a.Max, Over = a.Over,
+                Dhs = a.Dhs, Cdhs = a.Cdhs, Damage = a.Damage, Max = a.Max, Over = a.Over,
                 Id = a.Id, IsStatus = a.IsStatus,
                 Parts = a.Parts is { } parts ? Freeze(parts) : null,
             });
@@ -678,6 +702,9 @@ public class Meter : IDisposable
         if (enc.Rows.Count == 0) return;
         History.Insert(0, enc);
         while (History.Count > MaxHistory) History.RemoveAt(History.Count - 1);
+        // The insert shifted every row down one, so held picks follow their pull.
+        _plugin.MeterWindow.OnHistoryInserted(History.Count);
+        _plugin.MeterHistoryWindow.OnHistoryInserted(History.Count);
     }
 
     // The parser says "Encounter" until it ends, so name it.

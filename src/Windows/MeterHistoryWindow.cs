@@ -127,6 +127,13 @@ public class MeterHistoryWindow : Window
     // Clicking the open row again closes it.
     private void ToggleDetail(int index) => _detail = _detail == index ? NoDetail : index;
 
+    // A new pull banked at index 0, so the open panel follows its pull down.
+    public void OnHistoryInserted(int count)
+    {
+        if (_detail < 0) return;
+        _detail = _detail + 1 < count ? _detail + 1 : NoDetail;
+    }
+
     // Resolves the open row, dropping it if the history moved under us.
     private (MeterEncounter Enc, bool Live)? Detail(Meter m)
     {
@@ -151,6 +158,7 @@ public class MeterHistoryWindow : Window
             C.MeterHistoryDetailHeight = Math.Clamp(DetailHeight() - ImGui.GetIO().MouseDelta.Y, 90f, 700f);
         if (ImGui.IsItemDeactivated()) C.Save();
 
+        EnsureRoster(enc);
         DrawDetailHead(enc, live);
         // Whatever is left above the footer, so the reserve above never has to be exact.
         if (!ImGui.BeginChild("##detailbody", new Vector2(0, -footerH), false)) { ImGui.EndChild(); return; }
@@ -180,8 +188,7 @@ public class MeterHistoryWindow : Window
 
         ImGui.SameLine(0, 10f);
         ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(Theme.V(Theme.Muted),
-            $"{(enc.Duration.Length > 0 ? enc.Duration : "0:00")}  ·  {Total(enc)}");
+        ImGui.TextColored(Theme.V(Theme.Muted), _headLine);
 
         // Closes the panel without giving up the pull on the board.
         var closeW = ImGui.CalcTextSize("Close").X + ImGui.GetStyle().FramePadding.X * 2;
@@ -197,26 +204,64 @@ public class MeterHistoryWindow : Window
 
     private readonly List<MeterCombatant> _roster = new();
 
-    private void DrawRoster(MeterEncounter enc)
+    // Sorted rows and their formatted cells; a banked pull's never change.
+    private MeterEncounter? _rosterFor;
+    private float _rosterSeconds = -1f;
+    private string _headLine = "";
+    private readonly List<(MeterCombatant R, string Name, string[] Cells)> _rosterRows = new();
+
+    // Rebuilds when the pull changes or a live one's clock moves, never per frame.
+    private void EnsureRoster(MeterEncounter enc)
     {
+        if (ReferenceEquals(enc, _rosterFor) && enc.Seconds == _rosterSeconds) return;
+        _rosterFor = enc;
+        _rosterSeconds = enc.Seconds;
+        _headLine = $"{(enc.Duration.Length > 0 ? enc.Duration : "0:00")}  ·  {Total(enc)}";
+
         _roster.Clear();
         foreach (var r in enc.Rows) _roster.Add(r);
-        if (_roster.Count == 0)
-        {
-            ImGui.TextColored(Theme.V(Theme.Muted), "no rows for this pull");
-            return;
-        }
         // Limit break last, since it is the party's and not a player's.
         _roster.Sort((a, b) => a.LimitBreak != b.LimitBreak
             ? a.LimitBreak.CompareTo(b.LimitBreak)
             : b.RDps.CompareTo(a.RDps));
 
+        _rosterRows.Clear();
+        foreach (var r in _roster)
+        {
+            // Roll quality, and the one that pays: both at once. All three flat means nobody counted.
+            var rolled = !r.LimitBreak
+                && (r.CritPct > 0 || r.DirectHitPct > 0 || r.CritDirectHitPct > 0);
+            _rosterRows.Add((r, r.LimitBreak ? "Limit Break" : Who(r), new[]
+            {
+                MeterWindow.Num(r.RDps),
+                MeterWindow.Num(r.Dps),
+                r.DamagePct.Length > 0 ? r.DamagePct : "-",
+                Pct(rolled ? r.CritPct : -1),
+                Pct(rolled ? r.DirectHitPct : -1),
+                Pct(rolled ? r.CritDirectHitPct : -1),
+                MeterWindow.Num(r.Hps),
+                MeterWindow.Num(r.Taken),
+                r.Deaths.ToString(),
+            }));
+        }
+    }
+
+    private void DrawRoster(MeterEncounter enc)
+    {
+        EnsureRoster(enc);
+        if (_rosterRows.Count == 0)
+        {
+            ImGui.TextColored(Theme.V(Theme.Muted), "no rows for this pull");
+            return;
+        }
+
         var numW = ImGui.CalcTextSize("999.9k").X + 6f;
         var pctW = ImGui.CalcTextSize("99.9%").X + 6f;
         var dW = ImGui.CalcTextSize("D").X + 10f;
         var whoW = ImGui.CalcTextSize("Limit Break").X;
-        foreach (var r in _roster)
-            whoW = MathF.Max(whoW, ImGui.CalcTextSize($"{Who(r)} {r.Job}").X);
+        foreach (var (r, name, _) in _rosterRows)
+            whoW = MathF.Max(whoW, ImGui.CalcTextSize(name).X
+                + (r.LimitBreak || r.Job.Length == 0 ? 0f : ImGui.CalcTextSize(r.Job).X + 5f));
         whoW += 10f;
 
         // Every column's width is known here, and the header and the rows below both align
@@ -234,7 +279,7 @@ public class MeterHistoryWindow : Window
         // Explicit height: a scrolling table will not size itself off its rows.
         var style = ImGui.GetStyle();
         var rowH = ImGui.GetTextLineHeight() + style.CellPadding.Y * 2f;
-        var outer = new Vector2(0f, (_roster.Count + 1) * rowH + style.ScrollbarSize + 2f);
+        var outer = new Vector2(0f, (_rosterRows.Count + 1) * rowH + style.ScrollbarSize + 2f);
         if (!ImGui.BeginTable("##detailroster", RosterCols, flags, outer)) return;
         try
         {
@@ -258,32 +303,28 @@ public class MeterHistoryWindow : Window
                 else RightIn(col, ImGui.TableGetColumnName(col), Theme.TextBright);
             }
 
-            foreach (var r in _roster)
+            foreach (var (r, name, cells) in _rosterRows)
             {
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 // The limit break is the party's row, so it reads quieter than a player's.
-                ImGui.TextColored(Theme.V(r.LimitBreak ? Theme.Muted : Theme.TextBright),
-                    r.LimitBreak ? "Limit Break" : Who(r));
+                ImGui.TextColored(Theme.V(r.LimitBreak ? Theme.Muted : Theme.TextBright), name);
                 if (!r.LimitBreak && r.Job.Length > 0)
                 {
                     ImGui.SameLine(0, 5f);
                     ImGui.TextColored(Theme.V(JobTint(r.Job)), r.Job);
                 }
 
-                ImGui.TableNextColumn(); RightIn(1, MeterWindow.Num(r.RDps), Theme.TextBright);
-                ImGui.TableNextColumn(); RightIn(2, MeterWindow.Num(r.Dps), Theme.Muted);
-                ImGui.TableNextColumn(); RightIn(3, r.DamagePct.Length > 0 ? r.DamagePct : "-", Theme.Muted);
-                // Roll quality, and the one that pays: both at once. All three flat means nobody counted.
-                var rolled = !r.LimitBreak
-                    && (r.CritPct > 0 || r.DirectHitPct > 0 || r.CritDirectHitPct > 0);
-                ImGui.TableNextColumn(); RightIn(4, Pct(rolled ? r.CritPct : -1), Theme.Muted);
-                ImGui.TableNextColumn(); RightIn(5, Pct(rolled ? r.DirectHitPct : -1), Theme.Muted);
-                ImGui.TableNextColumn(); RightIn(6, Pct(rolled ? r.CritDirectHitPct : -1), Theme.TextBright);
-                ImGui.TableNextColumn(); RightIn(7, MeterWindow.Num(r.Hps), Theme.Muted);
-                ImGui.TableNextColumn(); RightIn(8, MeterWindow.Num(r.Taken), Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(1, cells[0], Theme.TextBright);
+                ImGui.TableNextColumn(); RightIn(2, cells[1], Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(3, cells[2], Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(4, cells[3], Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(5, cells[4], Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(6, cells[5], Theme.TextBright);
+                ImGui.TableNextColumn(); RightIn(7, cells[6], Theme.Muted);
+                ImGui.TableNextColumn(); RightIn(8, cells[7], Theme.Muted);
                 ImGui.TableNextColumn();
-                RightIn(9, r.Deaths.ToString(), r.Deaths > 0 ? Theme.Danger : Theme.Muted);
+                RightIn(9, cells[8], r.Deaths > 0 ? Theme.Danger : Theme.Muted);
             }
         }
         finally { ImGui.EndTable(); }
@@ -350,7 +391,8 @@ public class MeterHistoryWindow : Window
         if (RowHead("##livepull", _plugin.MeterWindow.HistoryIndex < 0, clock, out var hovered))
         {
             _plugin.MeterWindow.HistoryIndex = -1;
-            ToggleDetail(-1);
+            // An empty live row has nothing to open, and must not arm the panel.
+            if (live != null) ToggleDetail(-1);
         }
 
         ImGui.TableNextColumn();

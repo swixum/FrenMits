@@ -604,7 +604,9 @@ public class RdpsEngine
         if (id == 0) return;
         _names[id] = f[3];
         var owner = Hex(f[6]);
+        // An ownerless re-add on a recycled id must not inherit the old pet's owner.
         if (owner != 0) _owner[id] = owner;
+        else _owner.Remove(id);
         if (Jobs.ByRowId(Hex(f[4])) is not { } job)
         {
             // Ids get reused, so a jobless one is no longer an ally.

@@ -43,6 +43,13 @@ public class MeterWindow : Window
         set => _histIdx = value;
     }
 
+    // A new pull banked at index 0, so a held pick follows its pull down.
+    public void OnHistoryInserted(int count)
+    {
+        if (_histIdx < 0) return;
+        _histIdx = _histIdx + 1 < count ? _histIdx + 1 : -1;
+    }
+
     public override void PreDraw()
     {
         Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
@@ -94,17 +101,21 @@ public class MeterWindow : Window
     private MeterEncounter? View()
     {
         var m = _plugin.Meter;
-        // A fresh pull pulls the meter back to live.
+        // A fresh pull pulls the meter back to live, once; mid-fight browsing sticks.
+        var liveNow = m.Current is { Active: true };
         if (m.Current is { Active: true } live)
         {
-            _histIdx = -1;
+            if (!_wasLive) _histIdx = -1;
             if (_detailFor.Length > 0 && live.Seconds + 1f < _detailSeconds) _detailFor = "";
             _detailSeconds = live.Seconds;
         }
+        _wasLive = liveNow;
         if (_histIdx >= 0 && _histIdx < m.History.Count) return m.History[_histIdx];
         _histIdx = -1;
         return m.Current ?? (C.TestMode ? m.Sample() : null);
     }
+
+    private bool _wasLive;
 
     public override void Draw()
     {
@@ -137,6 +148,14 @@ public class MeterWindow : Window
         if (C.MeterCollapsed)
         {
             DrawCollapsed(enc, dl, wp, ws);
+            // The title picker works collapsed too, so its popup must draw here.
+            PushMenuTheme();
+            if (ImGui.BeginPopup("##meterpulls"))
+            {
+                DrawPullList();
+                ImGui.EndPopup();
+            }
+            PopMenuTheme();
             ContextMenu();
             return;
         }
