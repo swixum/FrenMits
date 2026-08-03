@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -114,7 +115,7 @@ public class Audio : IDisposable
             }
         }
         catch { /* collection torn down on unload */ }
-        finally { Cleanup(); }
+        finally { try { Cleanup(); } catch { /* nothing may escape this thread */ } }
     }
 
     private void Run(Job job)
@@ -162,6 +163,15 @@ public class Audio : IDisposable
         }
         catch { /* ignore */ }
         _voice = null;
+        // If no clip ever played, the player assembly was never loaded; don't force it in now.
+        if (!_playerUsed) return;
+        try { DisposePlayer(); } catch { /* load context already torn down */ }
+    }
+
+    // Separate so a type-load failure surfaces at the call above, where a handler is live.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void DisposePlayer()
+    {
         try { _output?.Dispose(); } catch { /* ignore */ }
         try { _reader?.Dispose(); } catch { /* ignore */ }
         try { _readerMs?.Dispose(); } catch { /* ignore */ }
@@ -418,10 +428,12 @@ public class Audio : IDisposable
     private NAudio.Wave.WaveOutEvent? _output;
     private NAudio.Wave.Mp3FileReader? _reader;
     private MemoryStream? _readerMs;
+    private bool _playerUsed;   // lets Cleanup know the player types are resident
 
     // Decodes the MP3 and plays it, non-blocking.
     private void PlayMp3(byte[] mp3, long seq)
     {
+        _playerUsed = true;   // this method compiling is what pulls the player in
         Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");
         try
         {
