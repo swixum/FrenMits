@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -7,11 +8,11 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace FrenMits;
 
 // Text-to-speech through Windows SAPI or Edge voices.
+// One worker thread owns the speech engine; the game's thread only ever enqueues.
 public class Audio : IDisposable
 {
     // Curated Edge voices, tagged by gender for the UI.
@@ -35,13 +36,17 @@ public class Audio : IDisposable
         ("en-AU-WilliamNeural",     "William (AU)",     false),
     };
 
-    private object? _voice;       // SAPI.SpVoice COM object
+    private sealed record Job(long Seq, string Text, int Rate, int Volume, bool Edge, string Voice, bool ListVoices);
+
+    // Small and lossy on purpose: a full queue drops the cue rather than block a frame.
+    private readonly BlockingCollection<Job> _jobs = new(64);
+    private readonly Thread _worker;
+
+    private object? _voice;       // SAPI.SpVoice COM object, touched only by the worker
     private bool _ttsUnavailable;
     private string _currentVoice = "";
-    private List<string>? _voiceNames;
-
-    // SAPI COM gets touched from several threads, so lock it.
-    private readonly object _sapiLock = new();
+    private volatile List<string>? _voiceNames;
+    private int _voicesRequested;
 
     // Cue ordering: only a newer cue plays.
     private long _speakSeq;
@@ -50,6 +55,12 @@ public class Audio : IDisposable
 
     // Unload cancels any fetch still on the wire.
     private readonly CancellationTokenSource _shutdown = new();
+
+    public Audio()
+    {
+        _worker = new Thread(WorkLoop) { IsBackground = true, Name = "FrenMits.Audio" };
+        _worker.Start();
+    }
 
     // True if seq is the newest cue played.
     private static bool TryAdvance(ref long played, long seq)
@@ -70,76 +81,113 @@ public class Audio : IDisposable
     private readonly LinkedList<string> _edgeOrder = new();
     private const int EdgeCacheMax = 128;
 
-    // Speaks through Edge when useEdge, else SAPI.
+    // Speaks through Edge when useEdge, else SAPI. Never blocks the caller.
     public void Speak(string text, int rate, int volume, bool useEdge, string voice)
     {
         if (_disposed || string.IsNullOrWhiteSpace(text)) return;
-
         var seq = Interlocked.Increment(ref _speakSeq);
+        try { _jobs.TryAdd(new Job(seq, text, rate, volume, useEdge, voice, false)); }
+        catch (InvalidOperationException) { /* closed mid-add on unload */ }
+    }
 
-        if (useEdge)
+    // Names of every installed SAPI voice; filled by the worker, empty until then.
+    public IReadOnlyList<string> VoiceNames()
+    {
+        if (_voiceNames is { } names) return names;
+        if (!_disposed && Interlocked.CompareExchange(ref _voicesRequested, 1, 0) == 0)
+            try { _jobs.TryAdd(new Job(0, "", 0, 0, false, "", ListVoices: true)); }
+            catch (InvalidOperationException) { /* closed mid-add on unload */ }
+        return Array.Empty<string>();
+    }
+
+    // ---- the worker ----
+
+    private void WorkLoop()
+    {
+        try
         {
-            var t = text;
-            var v = voice;
-            // Catch-all so a faulted task can't crash the game.
-            _ = Task.Run(() =>
+            foreach (var job in _jobs.GetConsumingEnumerable())
             {
-                try
+                if (_disposed) break;
+                try { Run(job); }
+                catch { /* one bad cue must not end the voice */ }
+            }
+        }
+        catch { /* collection torn down on unload */ }
+        finally { Cleanup(); }
+    }
+
+    private void Run(Job job)
+    {
+        if (job.ListVoices) { FillVoiceNames(); return; }
+        // A newer cue is already queued behind this one, so skip ahead.
+        if (job.Seq < Interlocked.Read(ref _speakSeq)) return;
+
+        if (job.Edge)
+        {
+            try
+            {
+                var mp3 = GetEdgeWav(job.Text, job.Voice, job.Rate, job.Volume);
+                if (mp3 is { Length: > 64 })
                 {
-                    try
-                    {
-                        var mp3 = GetEdgeWav(t, v, rate, volume);
-                        if (mp3 is { Length: > 64 })
-                        {
-                            if (seq == Interlocked.Read(ref _speakSeq))
-                                LastTtsStatus = $"Online OK - {v}";
-                            PlayMp3(mp3, seq);
-                            return;
-                        }
-                        if (seq == Interlocked.Read(ref _speakSeq))
-                            LastTtsStatus = $"Online: no audio [{_edgeDiag}] - using Windows voice";
-                    }
-                    catch (Exception ex)
-                    {
-                        if (seq == Interlocked.Read(ref _speakSeq))
-                            LastTtsStatus = $"Online failed: {ex.Message} - using Windows voice";
-                        Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
-                    }
-                    SpeakSapi(t, rate, volume, "", seq);   // fallback
+                    if (job.Seq == Interlocked.Read(ref _speakSeq))
+                        LastTtsStatus = $"Online OK - {job.Voice}";
+                    PlayMp3(mp3, job.Seq);
+                    return;
                 }
-                catch { /* never let the background task throw */ }
-            });
+                if (job.Seq == Interlocked.Read(ref _speakSeq))
+                    LastTtsStatus = $"Online: no audio [{_edgeDiag}] - using Windows voice";
+            }
+            catch (Exception ex)
+            {
+                if (job.Seq == Interlocked.Read(ref _speakSeq))
+                    LastTtsStatus = $"Online failed: {ex.Message} - using Windows voice";
+                Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
+            }
+            SpeakSapi(job.Text, job.Rate, job.Volume, "", job.Seq);   // fallback
             return;
         }
 
         LastTtsStatus = "Windows voice";
-        SpeakSapi(text, rate, volume, voice, seq);
+        SpeakSapi(job.Text, job.Rate, job.Volume, job.Voice, job.Seq);
+    }
+
+    // Worker-only from here down: COM and the player live on this one thread.
+    private void Cleanup()
+    {
+        try
+        {
+            if (_voice is not null && Marshal.IsComObject(_voice))
+                Marshal.ReleaseComObject(_voice);
+        }
+        catch { /* ignore */ }
+        _voice = null;
+        try { _output?.Dispose(); } catch { /* ignore */ }
+        try { _reader?.Dispose(); } catch { /* ignore */ }
+        try { _readerMs?.Dispose(); } catch { /* ignore */ }
+        _output = null; _reader = null; _readerMs = null;
     }
 
     // ---- Windows SAPI ----
 
     private void SpeakSapi(string text, int rate, int volume, string voiceName, long seq)
     {
-        if (_ttsUnavailable) return;
+        if (_ttsUnavailable || _disposed) return;
         Service.Log.Information($"[FrenMits] SAPI.Speak '{text}'");
         try
         {
-            lock (_sapiLock)
-            {
-                if (_disposed) return;
-                // A newer cue was asked for, so drop this one.
-                if (seq < Interlocked.Read(ref _speakSeq)) return;
-                if (!TryAdvance(ref _playedSeq, seq)) return; // newer cue already played
+            // A newer cue was asked for, so drop this one.
+            if (seq < Interlocked.Read(ref _speakSeq)) return;
+            if (!TryAdvance(ref _playedSeq, seq)) return; // newer cue already played
 
-                _voice ??= CreateVoice();
-                if (_voice is null) return;
-                dynamic v = _voice;
-                ApplyVoice(v, voiceName);
-                v.Rate = Math.Clamp(rate, -10, 10);
-                v.Volume = Math.Clamp(volume, 0, 100);
-                // Async plus purge: interrupt, then speak.
-                v.Speak(text, 3u);
-            }
+            _voice ??= CreateVoice();
+            if (_voice is null) return;
+            dynamic v = _voice;
+            ApplyVoice(v, voiceName);
+            v.Rate = Math.Clamp(rate, -10, 10);
+            v.Volume = Math.Clamp(volume, 0, 100);
+            // Async plus purge: interrupt, then speak.
+            v.Speak(text, 3u);
         }
         catch (Exception ex)
         {
@@ -147,19 +195,14 @@ public class Audio : IDisposable
         }
     }
 
-    // Names of every installed SAPI voice.
-    public IReadOnlyList<string> VoiceNames()
+    private void FillVoiceNames()
     {
-        if (_voiceNames != null) return _voiceNames;
-        // Fill a local list, then publish it once.
         var names = new List<string>();
         try
         {
-            lock (_sapiLock)
+            _voice ??= CreateVoice();
+            if (_voice is not null)
             {
-                if (_disposed) return names;
-                _voice ??= CreateVoice();
-                if (_voice is null) return names;
                 dynamic v = _voice;
                 dynamic tokens = v.GetVoices();
                 int count = tokens.Count;
@@ -175,7 +218,6 @@ public class Audio : IDisposable
             Service.Log.Warning(ex, "FrenMits: enumerating TTS voices failed");
         }
         _voiceNames = names;
-        return _voiceNames;
     }
 
     private void ApplyVoice(dynamic v, string voiceName)
@@ -219,25 +261,20 @@ public class Audio : IDisposable
     private byte[]? GetEdgeWav(string text, string voice, int rate, int volume)
     {
         var key = $"{voice}|{rate}|{volume}|{text}";
-        lock (_edgeCache)
-            if (_edgeCache.TryGetValue(key, out var hit)) return hit;
+        if (_edgeCache.TryGetValue(key, out var hit)) return hit;
 
         var wav = FetchEdge(text, voice, rate, volume);
-        if (wav != null)
-            lock (_edgeCache)
+        if (wav != null && !_edgeCache.ContainsKey(key))
+        {
+            _edgeCache[key] = wav;
+            _edgeOrder.AddLast(key);
+            if (_edgeOrder.Count > EdgeCacheMax)
             {
-                if (!_edgeCache.ContainsKey(key))
-                {
-                    _edgeCache[key] = wav;
-                    _edgeOrder.AddLast(key);
-                    if (_edgeOrder.Count > EdgeCacheMax)
-                    {
-                        var oldest = _edgeOrder.First!.Value;
-                        _edgeOrder.RemoveFirst();
-                        _edgeCache.Remove(oldest);
-                    }
-                }
+                var oldest = _edgeOrder.First!.Value;
+                _edgeOrder.RemoveFirst();
+                _edgeCache.Remove(oldest);
             }
+        }
         return wav;
     }
 
@@ -378,7 +415,6 @@ public class Audio : IDisposable
     // ---- MP3 playback ----
 
     // One shared output, so a new clip stops the old.
-    private readonly object _playLock = new();
     private NAudio.Wave.WaveOutEvent? _output;
     private NAudio.Wave.Mp3FileReader? _reader;
     private MemoryStream? _readerMs;
@@ -389,24 +425,21 @@ public class Audio : IDisposable
         Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");
         try
         {
-            lock (_playLock)
-            {
-                // Don't resurrect the player after Dispose.
-                if (_disposed) return;
-                // A newer cue already played, so drop this one.
-                if (!TryAdvance(ref _playedSeq, seq)) return;
+            // Don't resurrect the player after Dispose.
+            if (_disposed) return;
+            // A newer cue already played, so drop this one.
+            if (!TryAdvance(ref _playedSeq, seq)) return;
 
-                // Disposing the previous output stops it.
-                try { _output?.Dispose(); } catch { /* ignore */ }
-                try { _reader?.Dispose(); } catch { /* ignore */ }
-                try { _readerMs?.Dispose(); } catch { /* ignore */ }
+            // Disposing the previous output stops it.
+            try { _output?.Dispose(); } catch { /* ignore */ }
+            try { _reader?.Dispose(); } catch { /* ignore */ }
+            try { _readerMs?.Dispose(); } catch { /* ignore */ }
 
-                _readerMs = new MemoryStream(mp3);
-                _reader = new NAudio.Wave.Mp3FileReader(_readerMs);
-                _output = new NAudio.Wave.WaveOutEvent();
-                _output.Init(_reader);
-                _output.Play();
-            }
+            _readerMs = new MemoryStream(mp3);
+            _reader = new NAudio.Wave.Mp3FileReader(_readerMs);
+            _output = new NAudio.Wave.WaveOutEvent();
+            _output.Init(_reader);
+            _output.Play();
         }
         catch (Exception ex)
         {
@@ -417,36 +450,11 @@ public class Audio : IDisposable
 
     public void Dispose()
     {
-        // Flag first so in-flight tasks bail at their next gate.
+        // Flag first so in-flight work bails at its next gate.
         _disposed = true;
         try { _shutdown.Cancel(); } catch { /* ignore */ }
-
-        // Bounded waits: a speak in flight must never hang the game's thread; the GC mops up.
-        if (Monitor.TryEnter(_sapiLock, 250))
-        {
-            try
-            {
-                try
-                {
-                    if (_voice is not null && Marshal.IsComObject(_voice))
-                        Marshal.ReleaseComObject(_voice);
-                }
-                catch { /* ignore */ }
-                _voice = null;
-            }
-            finally { Monitor.Exit(_sapiLock); }
-        }
-
-        if (Monitor.TryEnter(_playLock, 250))
-        {
-            try
-            {
-                try { _output?.Dispose(); } catch { /* ignore */ }
-                try { _reader?.Dispose(); } catch { /* ignore */ }
-                try { _readerMs?.Dispose(); } catch { /* ignore */ }
-                _output = null; _reader = null; _readerMs = null;
-            }
-            finally { Monitor.Exit(_playLock); }
-        }
+        try { _jobs.CompleteAdding(); } catch { /* ignore */ }
+        // Bounded: the worker owns the cleanup and dies with the process if it lags.
+        try { _worker.Join(250); } catch { /* ignore */ }
     }
 }
