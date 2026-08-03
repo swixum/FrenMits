@@ -368,7 +368,7 @@ public class Audio : IDisposable
             }
         }
 
-        try { ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None).GetAwaiter().GetResult(); }
+        try { ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cts.Token).GetAwaiter().GetResult(); }
         catch { /* ignore */ }
 
         var wav = audio.ToArray();
@@ -454,7 +454,12 @@ public class Audio : IDisposable
         _disposed = true;
         try { _shutdown.Cancel(); } catch { /* ignore */ }
         try { _jobs.CompleteAdding(); } catch { /* ignore */ }
-        // Bounded: the worker owns the cleanup and dies with the process if it lags.
-        try { _worker.Join(250); } catch { /* ignore */ }
+        // An idle worker is out in microseconds; a busy one finishes off-thread instead of stalling a frame.
+        try
+        {
+            if (!_worker.Join(25))
+                System.Threading.Tasks.Task.Run(() => { try { _worker.Join(5000); } catch { /* ignore */ } });
+        }
+        catch { /* ignore */ }
     }
 }

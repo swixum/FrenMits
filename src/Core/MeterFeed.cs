@@ -51,7 +51,17 @@ public static class MeterFeed
 
     public static void Record(Message m)
     {
-        if (!Recording || _lines.Count >= MaxLines) return;
+        if (!Recording) return;
+        if (_lines.Count >= MaxLines)
+        {
+            // Say so once, instead of a recording that just quietly ends.
+            if (_lines.Count == MaxLines)
+            {
+                _lines.Add("# capped");
+                Service.Log.Warning("[FrenMits] meter feed recording hit its cap; later summaries are not kept.");
+            }
+            return;
+        }
         var sb = new StringBuilder(256);
         sb.Append(F(m.At)).Append('|').Append(m.Active ? 1 : 0).Append('|')
           .Append(F(m.Seconds)).Append('|').Append(F(m.Damage)).Append('|')

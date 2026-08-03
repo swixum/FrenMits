@@ -1262,9 +1262,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         clock.Mark("engines");
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();
-        Fonts.Dispose();
-        Audio.Dispose();
         clock.Mark("windows");
+        Fonts.Dispose();
+        clock.Mark("fonts");
+        Audio.Dispose();
+        clock.Mark("audio");
         Service.Log.Information($"[FrenMits] dispose - live instances now "
             + $"{System.Threading.Interlocked.Decrement(ref _liveInstances)} - {clock.Report("dispose")}");
     }

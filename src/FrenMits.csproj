@@ -11,9 +11,9 @@
     <RootNamespace>FrenMits</RootNamespace>
     <OutputType>Library</OutputType>
     <!-- Bump on each release, matching repo.json and FrenMits.json. -->
-    <Version>1.0.0.441</Version>
-    <AssemblyVersion>1.0.0.441</AssemblyVersion>
-    <FileVersion>1.0.0.441</FileVersion>
+    <Version>1.0.0.442</Version>
+    <AssemblyVersion>1.0.0.442</AssemblyVersion>
+    <FileVersion>1.0.0.442</FileVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <!-- True so the bundled NAudio assemblies land in the output. -->

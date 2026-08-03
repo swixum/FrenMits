@@ -836,7 +836,8 @@ public class RdpsEngine
     {
         var who = f[7].Length > 0 ? f[7] : _names.TryGetValue(target, out var tn) ? tn : "";
         if (!_names.TryGetValue(owner, out var healer)) healer = "";
-        if (who.Length == 0 || healer.Length == 0) return;
+        // An unnamed healer still lands on the death recap, it just credits nobody.
+        if (who.Length == 0) return;
 
         var room = f.Length > 25 ? Room(f[24], f[25]) : -1;
         var action = f[5].Length > 0 ? f[5] : "Heal";

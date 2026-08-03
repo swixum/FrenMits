@@ -158,6 +158,9 @@ public class MeterWindow : Window
                 ImGui.EndPopup();
             }
             PopMenuTheme();
+            // No rows or tabs draw here, so the state they feed the menu resets.
+            _rowUnderMouse = "";
+            _tabMenuOpen = false;
             ContextMenu();
             return;
         }
@@ -173,6 +176,8 @@ public class MeterWindow : Window
             if (status.Length > 0)
                 BText(dl, wp + new Vector2((ws.X - ImGui.CalcTextSize(status).X) * 0.5f, midY + lineH + 3f),
                     C.MeterSubColor, status);
+            _rowUnderMouse = "";
+            _tabMenuOpen = false;
             ContextMenu();
             return;
         }
@@ -618,6 +623,7 @@ public class MeterWindow : Window
         public string Player = "";
         public int Kind = -1;
         public DateTime At;
+        public long Used;
         public List<AbilityStat>? List;
     }
 
@@ -626,39 +632,62 @@ public class MeterWindow : Window
         new(), new(), new(), new(),
     };
 
+    // Recycling the least recently used slot keeps two live lists from evicting each other every frame.
+    private long _cacheTick;
+
     private List<AbilityStat> Breakdown(MeterEncounter enc, string player, int kind)
     {
-        BreakdownSlot? free = null;
+        BreakdownSlot? lru = null;
         foreach (var s in _breakdowns)
         {
             if (s.List != null && s.Kind == kind && ReferenceEquals(s.Enc, enc) && s.At == _heldAt
                 && string.Equals(s.Player, player, StringComparison.Ordinal))
+            {
+                s.Used = ++_cacheTick;
                 return s.List;
-            if (free == null || (s.List == null && free.List != null)) free = s;
+            }
+            if (lru == null || s.Used < lru.Used) lru = s;
         }
-        var slot = free!;
+        var slot = lru!;
         slot.Enc = enc;
         slot.Player = player;
         slot.Kind = kind;
         slot.At = _heldAt;
+        slot.Used = ++_cacheTick;
         return slot.List = _plugin.Meter.Breakdown(enc, player, kind);
     }
 
-    // The same, for the death list.
-    private object? _deathsEnc;
-    private string _deathsPlayer = "";
-    private DateTime _deathsAt;
-    private List<DeathRecord>? _deathsList;
+    // The same, for the death list; two slots, since the footer tooltip and a Deaths tab can be up at once.
+    private sealed class DeathSlot
+    {
+        public object? Enc;
+        public string Player = "";
+        public DateTime At;
+        public long Used;
+        public List<DeathRecord>? List;
+    }
+
+    private readonly DeathSlot[] _deathSlots = { new(), new() };
 
     private List<DeathRecord> Deaths(MeterEncounter enc, string player)
     {
-        if (_deathsList != null && ReferenceEquals(_deathsEnc, enc) && _deathsAt == _heldAt
-            && string.Equals(_deathsPlayer, player, StringComparison.Ordinal))
-            return _deathsList;
-        _deathsEnc = enc;
-        _deathsPlayer = player;
-        _deathsAt = _heldAt;
-        return _deathsList = player.Length > 0
+        DeathSlot? lru = null;
+        foreach (var s in _deathSlots)
+        {
+            if (s.List != null && ReferenceEquals(s.Enc, enc) && s.At == _heldAt
+                && string.Equals(s.Player, player, StringComparison.Ordinal))
+            {
+                s.Used = ++_cacheTick;
+                return s.List;
+            }
+            if (lru == null || s.Used < lru.Used) lru = s;
+        }
+        var slot = lru!;
+        slot.Enc = enc;
+        slot.Player = player;
+        slot.At = _heldAt;
+        slot.Used = ++_cacheTick;
+        return slot.List = player.Length > 0
             ? _plugin.Meter.Deaths(enc, player)
             : _plugin.Meter.Deaths(enc);
     }
@@ -1150,7 +1179,12 @@ public class MeterWindow : Window
             if (r.LimitBreak) lbRow = r;
             else _sorted.Add(r);
         }
-        _sorted.Sort((a, b) => Metric(b).CompareTo(Metric(a)));
+        // The name tiebreak keeps all-zero views like Deaths from reshuffling every refresh.
+        _sorted.Sort((a, b) =>
+        {
+            var byMetric = Metric(b).CompareTo(Metric(a));
+            return byMetric != 0 ? byMetric : string.CompareOrdinal(a.Name, b.Name);
+        });
 
         _rankW = ImGui.CalcTextSize(_sorted.Count >= 10 ? "88." : "8.").X;
         _nameX = pad + 4f
@@ -2099,7 +2133,11 @@ public class MeterWindow : Window
             });
 
         var rows = new List<MeterCombatant>(enc.Rows);
-        rows.Sort((a, b) => Metric(b).CompareTo(Metric(a)));
+        rows.Sort((a, b) =>
+        {
+            var byMetric = Metric(b).CompareTo(Metric(a));
+            return byMetric != 0 ? byMetric : string.CompareOrdinal(a.Name, b.Name);
+        });
         MeterCombatant? lb = null;
         var rank = 1;
         foreach (var r in rows)
@@ -2123,16 +2161,22 @@ public class MeterWindow : Window
             sb.Append("\nLimit Break  ").Append(Num(lb.Dps)).Append(" DPS");
             if (lb.DamagePct.Length > 0) sb.Append("  ").Append(lb.DamagePct);
         }
-        // A split board copies its healer half too.
+        // A split board copies its healer half too, in the HPS order it shows on screen.
         if (SplitOn)
+        {
+            var heals = new List<MeterCombatant>();
             foreach (var r in rows)
+                if (IsHealer(r))
+                    heals.Add(r);
+            heals.Sort((a, b) => b.Hps.CompareTo(a.Hps));
+            foreach (var r in heals)
             {
-                if (!IsHealer(r)) continue;
                 sb.Append('\n').Append(r.Display.Length > 0 ? r.Display : r.Name)
                     .Append(" (").Append(r.Job).Append(")  ").Append(Num(r.Hps)).Append(" HPS");
                 if (r.Shielded > 0) sb.Append("  ").Append(Num(r.Shielded)).Append(" shielded");
                 if (r.HealedPct.Length > 0) sb.Append("  ").Append(r.HealedPct);
             }
+        }
         ImGui.SetClipboardText(sb.ToString());
     }
 
@@ -2250,7 +2294,8 @@ public class MeterWindow : Window
 
     public static string Num(double v) => v switch
     {
-        >= 1e6 => $"{v / 1e6:0.00}M",
+        // The M line starts where the k line would round up to "1000.0k".
+        >= 999_950 => $"{v / 1e6:0.00}M",
         >= 1000 => $"{v / 1000:0.0}k",
         _ => $"{v:0}",
     };
