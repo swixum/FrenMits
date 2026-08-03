@@ -436,6 +436,9 @@ public class Meter : IDisposable
             _carry = keepCarry;
             _fightStartSec = keepStart;
             _fightTitle = keepTitle;
+            _idleSec = 0f;
+            _idleMarkSec = -1f;
+            _idleMarkDmg = 0;
             if (wasRecording) MeterFeed.Resume();
         }
 
@@ -480,6 +483,7 @@ public class Meter : IDisposable
         if (raw.Active)
         {
             var continuing = SameSegment(restarted, _rawSeg, raw.TotalDamage);
+            if (continuing) AccrueIdle(raw.Seconds, raw.TotalDamage);
             if (!continuing)
             {
                 // A segment ended without its final update, so bank this.
@@ -509,10 +513,12 @@ public class Meter : IDisposable
                     Note($"pull start - parser {raw.Seconds:0}s {raw.TotalDamage / 1e6:0.00}M"
                        + $"{(_cut != null ? " (cut active)" : "")}{(_inCombat ? "" : ", combat off")}");
                 }
+                // A fresh segment starts its idle clock over.
+                ResetIdle(raw.Seconds, raw.TotalDamage);
             }
             SetTitle(raw);
             _rawSeg = raw;
-            Publish(Merge(_carry, raw));
+            Publish(Merge(_carry, Trimmed(raw)));
             return;
         }
 
@@ -521,8 +527,10 @@ public class Meter : IDisposable
         // The segment's final numbers.
         if (_rawSeg is { Active: true })
         {
+            AccrueIdle(raw.Seconds, raw.TotalDamage);
             _rawSeg = raw;
             EndSegment(raw);
+            ResetIdle(raw.Seconds, raw.TotalDamage);
         }
         else
             _rawSeg = raw;
@@ -530,6 +538,8 @@ public class Meter : IDisposable
 
     private void EndSegment(MeterEncounter final)
     {
+        // Banked on the active clock, with the segment's idle time out.
+        final = Trimmed(final);
         var display = Merge(_carry, final);
         // Stitching is the only arithmetic here, and it's opt-in.
         if (C.MeterStitchSegments && _inCombat && _sawBoss)
@@ -685,6 +695,9 @@ public class Meter : IDisposable
         _standing = -1;
         _warnedAt = 0;
         _seenLines = 0;   // the engine's table is cleared below, so its count restarts
+        _idleSec = 0f;
+        _idleMarkSec = -1f;
+        _idleMarkDmg = 0;
         // Clear at fight end, or the lagging feed eats the opener.
         Engine.ClearBreakdown();
     }
@@ -859,12 +872,41 @@ public class Meter : IDisposable
         return b;
     }
 
+    // Parser time spent in a cutscene or downtime this segment; per-second numbers must not count it.
+    private float _idleSec;
+    private float _idleMarkSec = -1f;
+    private double _idleMarkDmg;
+
+    // Idle only counts while nothing lands, so a personal cutscene during a live fight stays counted.
+    public static bool IdleDelta(bool idleNow, float secDelta, double dmgDelta)
+        => idleNow && secDelta > 0f && dmgDelta <= 0.5;
+
+    private void AccrueIdle(float parserSec, double damage)
+    {
+        var idleNow = _cutscene || (!_replaying && _plugin.DowntimeActive);
+        if (_idleMarkSec >= 0f && IdleDelta(idleNow, parserSec - _idleMarkSec, damage - _idleMarkDmg))
+            _idleSec += parserSec - _idleMarkSec;
+        _idleMarkSec = parserSec;
+        _idleMarkDmg = damage;
+    }
+
+    private void ResetIdle(float parserSec, double damage)
+    {
+        _idleSec = 0f;
+        _idleMarkSec = parserSec;
+        _idleMarkDmg = damage;
+    }
+
+    // The same numbers on the active clock only; a copy, so the stitch math upstream keeps the raw clock.
+    private MeterEncounter Trimmed(MeterEncounter enc)
+        => _idleSec < 0.25f ? enc : Subtract(enc, new Baseline { Seconds = _idleSec });
+
     // Close the running fight here and start the next one from zero.
     private void CutHere()
     {
         if (_rawSeg is { Active: true } seg)
         {
-            var display = Merge(_carry, seg);
+            var display = Merge(_carry, Trimmed(seg));
             display.Active = false;
             Materialize(display);
             Publish(display);
