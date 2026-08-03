@@ -449,7 +449,10 @@ public static class ConfigMigrations
         // Curing Waltz by 9s) and every dropped row would linger as a duplicate or
         // an orphan. Clear the ones the sheet no longer bakes and let the top-up
         // restore the current set.
-        if (config.Version < 44)
+        // Only with the sheet on disk: against a missing sheet the prune would
+        // read an empty bake and strip the whole plan. Left unstamped, so the
+        // cleanup still runs once the sheet is back.
+        if (config.Version < 44 && Builtin.Has(Builtin.DmuTerritory))
         {
             foreach (var f in config.Fights)
             {
