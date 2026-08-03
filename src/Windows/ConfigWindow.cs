@@ -528,26 +528,21 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("Role Preferences");
         Tip("Default roles chosen when you play each job type.");
 
-        var rolesLeft = new[]
+        var roles = new (string Label, JobRole[] Types, string[] Opts)[]
         {
             ("Tank", new[] { JobRole.Tank }, new[] { "MT", "OT" }),
-            ("Melee", new[] { JobRole.Melee }, new[] { "M1", "M2" })
-        };
-        var rolesRight = new[]
-        {
             ("Healer", new[] { JobRole.Healer }, new[] { "H1", "H2" }),
-            ("Ranged", new[] { JobRole.PhysicalRanged, JobRole.Caster }, new[] { "R1", "R2" })
+            ("Melee", new[] { JobRole.Melee }, new[] { "M1", "M2" }),
+            ("Ranged", new[] { JobRole.PhysicalRanged, JobRole.Caster }, new[] { "R1", "R2" }),
         };
 
-        for (int i = 0; i < rolesLeft.Length; i++)
-        {
-            var left = rolesLeft[i];
-            DrawRolePrefCombo(left.Item1, left.Item2, left.Item3, 16f, 40f, 50f);
-            
-            ImGui.SameLine(120f);
-            var right = rolesRight[i];
-            DrawRolePrefCombo(right.Item1, right.Item2, right.Item3, ImGui.GetCursorPosX(), 40f, 50f);
-        }
+        // One column, measured: two would push the wider labels off the sidebar.
+        var indent = ImGui.GetCursorPosX() + 8;
+        var labelW = roles.Max(r => ImGui.CalcTextSize(r.Label).X) + ImGui.GetStyle().ItemSpacing.X * 2;
+        var room = ImGui.GetContentRegionAvail().X - 8 - labelW - ImGui.GetStyle().ItemSpacing.X;
+        var comboW = Math.Clamp(room, 44f, 64f);
+        foreach (var (label, types, opts) in roles)
+            DrawRolePrefCombo(label, types, opts, indent, labelW, comboW);
 
         ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
