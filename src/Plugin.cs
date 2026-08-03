@@ -50,6 +50,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         pluginInterface.Create<Service>();
+        // Every phase of the load is timed, so a stutter on update can be pinned on one of them.
+        var load = new LoadClock();
+
+        // The sheets parse off-thread, behind the config read below.
+        Builtin.WarmSheets();
 
         Config = LoadConfig();
         Config.Fights ??= new();
@@ -58,9 +63,11 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Config.LearnedFights ??= new();
         Snapshots = new SnapshotStore(Config);
         FrenMits.Windows.Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
+        load.Mark("config");
 
         // Versioned migrations (v2..v23) live in ConfigMigrations.
         ConfigMigrations.Run(this);
+        load.Mark("migrations");
 
         // Slot names run through the standard on every load.
         var slotsRenamed = false;
@@ -76,7 +83,6 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         for (var i = Config.SheetPinnedSlots.Count - 1; i > 0; i--)
             if (Config.SheetPinnedSlots.Take(i).Contains(Config.SheetPinnedSlots[i], StringComparer.OrdinalIgnoreCase))
             { Config.SheetPinnedSlots.RemoveAt(i); slotsRenamed = true; }
-        if (slotsRenamed) Config.Save();
 
         // Meter columns from a pre-Replace build carry doubles.
         var colsFixed = Configuration.DedupeMeterColumns(Config.MeterColumns);
@@ -102,12 +108,15 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             else if (f.Name == "Futures Rewritten (Ultimate)") { f.Name = Builtin.Name(Builtin.FruTerritory); seeded = true; }
         }
 
-        if (seeded) Config.Save();
+        // One save covers the rename and seed passes, so the load frame pays it once.
+        if (slotsRenamed || seeded) Config.Save();
 
         AdoptSupersededSheets();
+        load.Mark("seeding");
 
-        // The baked duty timelines unpack in the background, off the first frame.
+        // Both unpack in the background, off the game's thread.
         UniversalTimelines.Warm();
+        Meter.WarmSheets();
 
         // Deferred to the first tick, since both need game state.
 
@@ -157,6 +166,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         RecapButtonWindow.IsOpen = true;
         // Pop the "What's New" panel once after an update with notes.
         WhatsNewWindow.IsOpen = Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
+        load.Mark("windows");
 
         Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
@@ -189,7 +199,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         // If this ever logs a second instance, cues would double.
         var n = System.Threading.Interlocked.Increment(ref _liveInstances);
-        Service.Log.Information($"[FrenMits] init - live instance #{n}");
+        // Last mark, so the parts add up to the total rather than leaving a silent remainder.
+        load.Mark("commands");
+        Service.Log.Information($"[FrenMits] init - live instance #{n} - {load.Report()}");
     }
 
     private static int _liveInstances;
@@ -674,6 +686,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private bool _firstTickDone;
     private bool _wasInDutyPlayback;
+    private int _cooldownGen = -1;
     private DateTime _lastFrameErrLog = DateTime.MinValue;
     public int FrameErrorCount { get; private set; }
     public DateTime LastFrameErrorAt { get; private set; } = DateTime.MinValue;
@@ -709,6 +722,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
 
             UpdateCutsceneStuck();
+
+            // A wipe resets every cooldown, so the press log restarts with the pull.
+            if (Timer.Generation != _cooldownGen)
+            {
+                _cooldownGen = Timer.Generation;
+                Cooldowns.ClearPresses();
+            }
 
             // A real pull outranks Test mode.
             var inCombatNow = InCombat;
@@ -1242,11 +1262,12 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     public void Dispose()
     {
+        var clock = new LoadClock();
         // A held change lands now, but a bad write must not skip the unhooking below.
-        try { Config.SaveSettingsNow(); }
+        try { if (Config.SavePending) Config.SaveSettingsNow(); }
         catch (Exception ex) { Swallowed.Report("settings save", ex); }
         Diag.FlushOnDispose();
-        Service.Log.Information($"[FrenMits] dispose - live instances now {System.Threading.Interlocked.Decrement(ref _liveInstances)}");
+        clock.Mark("save");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;
@@ -1257,11 +1278,19 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.CommandManager.RemoveHandler(CommandAlias);
 
         _dtr?.Remove();
+        clock.Mark("unhook");
         Meter.Dispose();
         Damage.Dispose();
+        FFLogsClient.Shutdown();
+        clock.Mark("engines");
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();
+        clock.Mark("windows");
         Fonts.Dispose();
+        clock.Mark("fonts");
         Audio.Dispose();
+        clock.Mark("audio");
+        Service.Log.Information($"[FrenMits] dispose - live instances now "
+            + $"{System.Threading.Interlocked.Decrement(ref _liveInstances)} - {clock.Report("dispose")}");
     }
 }

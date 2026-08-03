@@ -308,6 +308,14 @@ public static class Builtin
 
     private static readonly Dictionary<uint, FightDefinition> _jsonCache = new();
 
+    // Parse every sheet off the game's thread, so the first read doesn't pay for it.
+    public static void WarmSheets()
+        => System.Threading.Tasks.Task.Run(() =>
+        {
+            try { foreach (var f in Fights) LoadJsonDef(f.Territory); }
+            catch (Exception ex) { Swallowed.Report("sheet warm", ex); }
+        });
+
     // Locked: readers can race the first load (worker threads, parallel tests).
     private static FightDefinition? LoadJsonDef(uint territory)
     {
