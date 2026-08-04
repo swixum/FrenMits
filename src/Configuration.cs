@@ -257,6 +257,8 @@ public class Configuration : IPluginConfiguration
     // Hidden, so a split fight can be restitched by hand.
     public bool MeterStitchSegments { get; set; }
     public string MeterSocketAddress { get; set; } = "ws://127.0.0.1:10501/ws";
+    // The ACT steps stay up until someone says they have read them.
+    public bool MeterSetupDone { get; set; }
     public bool MeterLocked { get; set; }
     public bool MeterClickThrough { get; set; }
     public Vector2 MeterPosition { get; set; } = new(0.8f, 0.72f);
