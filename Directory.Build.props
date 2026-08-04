@@ -1,0 +1,12 @@
+<Project>
+
+  <!-- One version for every project here. FrenMits.json and repo.json still
+       carry it literally, and CI stamps the published manifest from the built
+       plugin, so this is the only place the assemblies read it from. -->
+  <PropertyGroup>
+    <Version>1.0.0.451</Version>
+    <AssemblyVersion>1.0.0.451</AssemblyVersion>
+    <FileVersion>1.0.0.451</FileVersion>
+  </PropertyGroup>
+
+</Project>

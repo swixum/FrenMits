@@ -1,0 +1,92 @@
+﻿using System;
+using System.Numerics;
+using Dalamud.Bindings.ImGui;
+
+namespace FrenMits.Ui;
+
+// Small reusable UI pieces shared across the plugin's windows.
+internal static class Widgets
+{
+    private const uint CardBorder = 0xFF2F2724; // #24272F soft panel outline
+
+    // Section header: an accent tab, then a muted label.
+    public static void SectionHeader(string text)
+    {
+        ImGui.Dummy(new Vector2(0, 4));
+        var dl = ImGui.GetWindowDrawList();
+        var p = ImGui.GetCursorScreenPos();
+        var h = ImGui.GetTextLineHeight();
+        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(3, h), Theme.Accent, 2f);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
+        ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), text.ToUpperInvariant());
+        ImGui.Spacing();
+    }
+
+    // Small stat pill: grey label, colored value.
+    public static void Chip(string label, string value, uint valueColor)
+    {
+        var pad = new Vector2(8, 3);
+        var lSz = ImGui.CalcTextSize(label);
+        var vSz = ImGui.CalcTextSize(value);
+        var size = new Vector2(lSz.X + vSz.X + 5 + pad.X * 2, ImGui.GetTextLineHeight() + pad.Y * 2);
+        var p = ImGui.GetCursorScreenPos();
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddRectFilled(p, p + size, Theme.PanelBg, 5f);
+        dl.AddRect(p, p + size, CardBorder, 5f);
+        dl.AddText(p + pad, Theme.Muted, label);
+        dl.AddText(p + pad + new Vector2(lSz.X + 5, 0), valueColor, value);
+        ImGui.Dummy(size);
+    }
+
+    // Clickable Chip, with a hover glow and a lit open state.
+    public static bool ChipButton(string label, string value, uint valueColor, bool open)
+    {
+        var pad = new Vector2(8, 3);
+        var lSz = ImGui.CalcTextSize(label);
+        var vSz = ImGui.CalcTextSize(value);
+        var size = new Vector2(lSz.X + vSz.X + 5 + pad.X * 2, ImGui.GetTextLineHeight() + pad.Y * 2);
+        var p = ImGui.GetCursorScreenPos();
+        var clicked = ImGui.InvisibleButton("##chip_" + label, size);
+        var hovered = ImGui.IsItemHovered();
+        if (hovered) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        var lit = open || hovered;
+        var bg = open ? (valueColor & 0x00FFFFFFu) | 0x33000000u
+               : hovered ? (valueColor & 0x00FFFFFFu) | 0x1A000000u
+               : Theme.PanelBg;
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddRectFilled(p, p + size, bg, 5f);
+        dl.AddRect(p, p + size, lit ? valueColor : CardBorder, 5f, ImDrawFlags.None, lit ? 1.6f : 1f);
+        dl.AddText(p + pad, Theme.Muted, label);
+        dl.AddText(p + pad + new Vector2(lSz.X + 5, 0), valueColor, value);
+        return clicked;
+    }
+
+    // One control: drag to adjust, or click to type a value.
+    public static bool SliderInput(string label, ref float v, float min, float max, string fmt, float width = 150f)
+    {
+        ImGui.SetNextItemWidth(width);
+        var changed = ImGui.DragFloat(label, ref v, MathF.Max(0.001f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
+        return changed;
+    }
+
+    public static bool SliderInput(string label, ref int v, int min, int max, string fmt = "%d", float width = 150f)
+    {
+        ImGui.SetNextItemWidth(width);
+        var changed = ImGui.DragInt(label, ref v, MathF.Max(0.05f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
+        return changed;
+    }
+
+    // Accent-filled button, for a window's primary action.
+    public static bool AccentButton(string label, Vector2 size = default)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, Theme.AccentHover);
+        ImGui.PushStyleColor(ImGuiCol.Text, Theme.AccentText);
+        var clicked = ImGui.Button(label, size);
+        ImGui.PopStyleColor(4);
+        return clicked;
+    }
+}

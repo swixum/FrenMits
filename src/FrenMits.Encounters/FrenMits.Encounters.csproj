@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Encounter data and the algorithms over it. This project deliberately
+       references no Dalamud, Lumina, FFXIVClientStructs or ImGui assembly:
+       that absence is what keeps the dependency graph honest, and the
+       compiler is what enforces it. Anything the client has to supply comes
+       in through a provider the host wires at startup. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x64</Platforms>
+    <AssemblyName>FrenMits.Encounters</AssemblyName>
+    <RootNamespace>FrenMits.Encounters</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Baked per-duty boss timelines (every instanced duty), gzipped JSON.
+         The logical name is load-bearing: UniversalTimelines resolves it off
+         its own assembly, so it must not change. -->
+    <EmbeddedResource Include="universal_timelines.json.gz" LogicalName="FrenMits.universal_timelines.json.gz" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Json.NET only, for the attributes on the persisted models and the
+         timeline resource reader. Dalamud supplies it at runtime. -->
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

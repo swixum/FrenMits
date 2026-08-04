@@ -1,4 +1,4 @@
-name: Build and deploy
+﻿name: Build and deploy
 
 on:
   push:
@@ -60,7 +60,8 @@ jobs:
           # Plugin + manifest + icon + bundled NAudio assemblies (online-voice playback)
           # + the baked fight sheets, loaded from Sheets\ beside the DLL.
           if (-not (Test-Path "$out\Sheets\DancingMad(UMAD).json")) { throw "Sheets missing from build output - the zip would ship a plugin with no fights." }
-          $files = @("$out\FrenMits.dll", "$out\FrenMits.json", "$out\icon.png", "$out\Sheets")
+          if (-not (Test-Path "$out\FrenMits.Encounters.dll")) { throw "FrenMits.Encounters.dll missing - the plugin would install and then fail to load." }
+          $files = @("$out\FrenMits.dll", "$out\FrenMits.Encounters.dll", "$out\FrenMits.json", "$out\icon.png", "$out\Sheets")
           $files += (Get-ChildItem "$out\NAudio*.dll" | ForEach-Object { $_.FullName })
           Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
           # Publicly host the icon for the listing IconUrl.

@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FrenMits.csproj" />
+    <Project Path="src/FrenMits.Encounters/FrenMits.Encounters.csproj" />
+  </Folder>
+</Solution>

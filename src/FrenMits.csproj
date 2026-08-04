@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows7.0</TargetFramework>
@@ -10,10 +10,8 @@
     <AssemblyName>FrenMits</AssemblyName>
     <RootNamespace>FrenMits</RootNamespace>
     <OutputType>Library</OutputType>
-    <!-- Bump on each release, matching repo.json and FrenMits.json. -->
-    <Version>1.0.0.450</Version>
-    <AssemblyVersion>1.0.0.450</AssemblyVersion>
-    <FileVersion>1.0.0.450</FileVersion>
+    <!-- Version lives in Directory.Build.props, shared with FrenMits.Encounters.
+         Bump it there on each release, matching repo.json and FrenMits.json. -->
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <!-- True so the bundled NAudio assemblies land in the output. -->
@@ -23,11 +21,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Its own project; the SDK's **/*.cs glob would otherwise compile it twice. -->
+    <Compile Remove="FrenMits.Encounters\**" />
+    <EmbeddedResource Remove="FrenMits.Encounters\**" />
+    <None Remove="FrenMits.Encounters\**" />
+    <Content Remove="FrenMits.Encounters\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="FrenMits.Encounters\FrenMits.Encounters.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Encounter types are used almost everywhere; the assembly reference is
+         what the compiler enforces, so a per-file using buys nothing. -->
+    <Using Include="FrenMits.Encounters" />
+    <Using Include="FrenMits.Game" />
+    <Using Include="FrenMits.Ui" />
+    <Using Include="FrenMits.Timing" />
+    <Using Include="FrenMits.Meter" />
+    <Using Include="FrenMits.Recap" />
+    <Using Include="FrenMits.Prep" />
+    <Using Include="FrenMits.Cues" />
+    <Using Include="FrenMits.Planning" />
+    <Using Include="FrenMits.Host" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="FrenMits.json" CopyToOutputDirectory="PreserveNewest" />
     <!-- Plugin icon, copied next to the DLL and shipped in the zip. -->
     <None Include="..\images\icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Baked per-duty boss timelines (every instanced duty), gzipped JSON. -->
-    <EmbeddedResource Include="Data\universal_timelines.json.gz" LogicalName="FrenMits.universal_timelines.json.gz" />
     <!-- Relational JSON data for fights -->
     <Content Include="Data\Sheets\**\*.json" CopyToOutputDirectory="PreserveNewest" TargetPath="Sheets\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>

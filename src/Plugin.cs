@@ -1,11 +1,10 @@
-using System;
+﻿using System;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using FrenMits.Windows;
 
 namespace FrenMits;
 
@@ -24,7 +23,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public CueEngine Cues { get; }
     public SyncEngine Sync { get; }
     public DamageCapture Damage { get; }
-    public Meter Meter { get; }
+    public MeterEngine Meter { get; }
     public FFLogsClient FFLogs { get; } = new();
     public MitRecap Recap { get; }
     public SnapshotStore Snapshots { get; }
@@ -50,6 +49,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         pluginInterface.Create<Service>();
+        // Encounter data owns no Dalamud reference, so the host hands it what it
+        // needs here. This block must stay ahead of every warm-up call below.
+        WireEncounters();
         // Every phase of the load is timed, so a stutter on update can be pinned on one of them.
         var load = new LoadClock();
 
@@ -62,7 +64,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         LoadPlans(Config);
         Config.LearnedFights ??= new();
         Snapshots = new SnapshotStore(Config);
-        FrenMits.Windows.Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
+        Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
         load.Mark("config");
 
         // Versioned migrations (v2..v23) live in ConfigMigrations.
@@ -116,14 +118,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
         // Both unpack in the background, off the game's thread.
         UniversalTimelines.Warm();
-        Meter.WarmSheets();
+        MeterEngine.WarmSheets();
 
         // Deferred to the first tick, since both need game state.
 
         Cues = new CueEngine(this, Audio);
         Sync = new SyncEngine(this);
         Damage = new DamageCapture(this);
-        Meter = new Meter(this);
+        Meter = new MeterEngine(this);
         Recap = new MitRecap(this);
         Diag = new Diagnostics(this);
         ConfigWindow = new ConfigWindow(this);
@@ -206,9 +208,87 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
     private static int _liveInstances;
 
+    // Hand the encounter layer everything it needs from the client. It carries
+    // no Dalamud reference of its own, so a miss here is a silent no-op, not a
+    // compile error - keep this called first in the constructor.
+    private static void WireEncounters()
+    {
+        Builtin.SheetsRoot = Service.PluginInterface.AssemblyLocation.DirectoryName
+                             ?? Builtin.SheetsRoot;
+
+        EncounterLog.Info = m => Service.Log?.Information(m);
+        EncounterLog.Warn = m => Service.Log?.Warning(m);
+        EncounterLog.Error = (m, ex) => Service.Log?.Error(ex, m);
+        EncounterLog.Failed = Swallowed.Report;
+
+        UniversalTimelines.DutyNameOf = GameData.DutyName;
+        JobExtras.SyncLevelOf = CooldownTracker.DutySyncLevel;
+        TimingSolver.MitsFor = CooldownTracker.PlanMits;
+        TankPriority.TankJobs = PartyRoster.TankJobs;
+    }
+
+    // Types that changed namespace when the packages landed. Dalamud serialises
+    // plugin configs with TypeNameHandling.Objects, so a single stale $type
+    // throws for the whole document and resets every setting, not just the one
+    // property. Rewriting the file before Dalamud reads it keeps that from
+    // happening once, on the first load after the update.
+    private static readonly (string Old, string New)[] TypeMoves =
+    {
+        ("FrenMits.FightProfile, FrenMits",   "FrenMits.Encounters.FightProfile, FrenMits.Encounters"),
+        ("FrenMits.MitLine, FrenMits",        "FrenMits.Encounters.MitLine, FrenMits.Encounters"),
+        ("FrenMits.SyncPoint, FrenMits",      "FrenMits.Encounters.SyncPoint, FrenMits.Encounters"),
+        ("FrenMits.BossAnchor, FrenMits",     "FrenMits.Encounters.BossAnchor, FrenMits.Encounters"),
+        ("FrenMits.CustomRow, FrenMits",      "FrenMits.Encounters.CustomRow, FrenMits.Encounters"),
+        ("FrenMits.SheetNote, FrenMits",      "FrenMits.Encounters.SheetNote, FrenMits.Encounters"),
+        ("FrenMits.DeletedCall, FrenMits",    "FrenMits.Encounters.DeletedCall, FrenMits.Encounters"),
+        ("FrenMits.DowntimeWindow, FrenMits", "FrenMits.Encounters.DowntimeWindow, FrenMits.Encounters"),
+        ("FrenMits.JobRole, FrenMits",        "FrenMits.Encounters.JobRole, FrenMits.Encounters"),
+        ("FrenMits.LearnedFight, FrenMits",   "FrenMits.Planning.LearnedFight, FrenMits"),
+        ("FrenMits.LearnedCast, FrenMits",    "FrenMits.Planning.LearnedCast, FrenMits"),
+    };
+
+    // Anything still root-namespaced that no rule above covers, so a type we
+    // forgot is logged before the load fails rather than after.
+    private static readonly System.Text.RegularExpressions.Regex StaleRootType =
+        new(@"FrenMits\.[A-Za-z0-9_]+, FrenMits[""\]]",
+            System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    // Types the plugin still declares at the root, which are correct as-is.
+    private static readonly string[] StillAtRoot = { "FrenMits.Configuration," };
+
+    private static void MigrateConfigTypeNames()
+    {
+        try
+        {
+            var file = Service.PluginInterface.ConfigFile;
+            if (file is not { Exists: true }) return;
+            var json = System.IO.File.ReadAllText(file.FullName);
+            if (!TypeMoves.Any(m => json.Contains(m.Old, StringComparison.Ordinal))) return;
+
+            // Keep the pre-move copy: an older build cannot read the rewritten one.
+            System.IO.File.Copy(file.FullName, file.FullName + ".pre-packages.bak", overwrite: true);
+            foreach (var (oldName, newName) in TypeMoves)
+                json = json.Replace(oldName, newName, StringComparison.Ordinal);
+
+            foreach (System.Text.RegularExpressions.Match m in StaleRootType.Matches(json))
+                if (!StillAtRoot.Any(k => m.Value.StartsWith(k, StringComparison.Ordinal)))
+                    Service.Log?.Error($"FrenMits: unmapped config type {m.Value} - the config will not load.");
+
+            System.IO.File.WriteAllText(file.FullName, json);
+            Service.Log?.Information("FrenMits: rewrote config type names for the package split.");
+        }
+        catch (Exception ex)
+        {
+            // A failed rewrite leaves the file untouched, so the usual
+            // corrupt-config path still recovers it.
+            Service.Log?.Error(ex, "FrenMits: config type rewrite failed");
+        }
+    }
+
     // Load defensively: a bad file is kept and saves suppressed.
     private static Configuration LoadConfig()
     {
+        MigrateConfigTypeNames();
         try
         {
             if (Service.PluginInterface.GetPluginConfig() is Configuration cfg)
@@ -455,14 +535,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var roleSlot = Builtin.RoleSlotIn(slots, Config.RoleSelection);
         if (!string.IsNullOrEmpty(roleSlot)) return roleSlot!;
         if (!string.IsNullOrEmpty(Config.RoleSelection)) return Config.RoleSelection;
-        return Builtin.DefaultSlotForJobIn(slots, ActiveJobAbbreviation(), Config);
+        return Builtin.DefaultSlotForJobIn(slots, ActiveJobAbbreviation(), Config.SlotPrefs);
     }
 
     // Default slot for a fight with none: the role, else the job.
     private string PreferredDefaultSlot(uint territory)
     {
         if (!string.IsNullOrEmpty(Config.RoleSelection)) return Config.RoleSelection;
-        return Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation(), Config);
+        return Builtin.DefaultSlotForJob(territory, ActiveJobAbbreviation(), Config.SlotPrefs);
     }
 
     // Local player via the object table, since the property is gone.
@@ -727,7 +807,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             if (Timer.Generation != _cooldownGen)
             {
                 _cooldownGen = Timer.Generation;
-                Cooldowns.ClearPresses();
+                CooldownTracker.ClearPresses();
             }
 
             // A real pull outranks Test mode.
@@ -1076,10 +1156,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         
         if (_pressesFight != fight || _pressesStamp != stamp)
         {
-            var hits = SheetTimeline.Build(this, fight).Select(r => r.Time).ToList();
+            var hits = SheetTimeline.Build(GetActiveJobAbbr(fight), fight).Select(r => r.Time).ToList();
             // "Party Mit" solves as the job's real press, so it reaches the boards.
             _activePresses = TimingSolver.Solve(fight, hits, Config.ShowUseWindows, Config.MaxUseWindowSeconds,
-                text => Cooldowns.PlanMits(Icons.DisplayAction(text, job)));
+                text => CooldownTracker.PlanMits(Icons.DisplayAction(text, job)));
             _pressesFight = fight;
             _pressesStamp = stamp;
         }

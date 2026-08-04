@@ -1,4 +1,4 @@
-# Testing Fren Mits
+﻿# Testing Fren Mits
 
 ## 1. Build it
 
@@ -117,6 +117,27 @@ M6S, DSR P6) and anchors sitting on an ability id the game never telegraphs. The
 are ceilings, not permission: the numbers can't grow, and a pair of ratchet tests
 fail when an entry has been fixed but not deleted.
 
+## 4b. The load and dispose guards
+
+A plugin update runs `Dispose` and the next constructor on the game's thread, so
+anything slow on either path is a freeze the player feels. Both are timed: every
+load and unload logs a line like
+
+```
+[FrenMits] init - live instance #1 - load 99ms (config 63, migrations 8, seeding 10, windows 18, commands 0)
+[FrenMits] dispose - live instances now 0 - dispose 38ms (save 0, unhook 0, engines 2, windows 0, fonts 1, audio 35)
+```
+
+Those come from `LoadClock`; find them in `dalamud.log` when a stutter is
+reported, and mark any new phase you add so the parts still add up.
+
+The protections themselves are pinned by `LoadGuardTests`, which reads the source
+and fails with the reason if one goes missing: the `SavePending` check before the
+dispose-time config write, `FFLogsClient.Shutdown()`, the two off-thread warms,
+the single coalesced load-frame save, the timing report on both paths, and the
+short audio-worker join. Each was a measured freeze at least once. Run the suite
+after any change that touches `Plugin.cs` or `Audio.cs`.
+
 ## 5. Iterate
 
 Edit code → `dotnet build` → Dalamud reloads → re-test. The config persists in
@@ -130,3 +151,17 @@ Edit code → `dotnet build` → Dalamud reloads → re-test. The config persist
 - [ ] Load mits for your slot fills the line table (icons resolve).
 - [ ] In a replay: timer starts on combat, calls fire ~3s early, "Last sync" updates,
       DTR bar shows the next mit, it all resets on wipe.
+
+## Package boundaries
+
+`FrenMits.Encounters` is a separate project with no Dalamud, Lumina,
+FFXIVClientStructs or ImGui reference. That absence is the enforcement, and it
+is worth proving it still fires: add `using Dalamud.Plugin;` to any file under
+`src/FrenMits.Encounters/`, confirm `dotnet build src` fails, and revert. A
+guard never seen to fail is not known to work.
+
+The remaining packages are folders and namespaces only. Nothing enforces their
+edges, so the table in `docs/PACKAGES.md` is the rule and review is the check.
+
+Moving a persisted type needs a matching entry in `Plugin.TypeMoves`; see the
+persisted-types note in `docs/PACKAGES.md` and `tests/ConfigTypeMoveTests.cs`.
