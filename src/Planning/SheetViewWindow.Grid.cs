@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -919,8 +919,10 @@ public partial class SheetViewWindow
         if (!_isCustom)
         {
             _fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, _slots[dst], StringComparison.OrdinalIgnoreCase));
+            // SamePress, not SameCall: a moment can hold several calls, and
+            // tombstoning by row alone would leave the rest to come back.
             foreach (var b in Builtin.BuildLines(_fight.TerritoryId, _slots[dst]))
-                if (!target.Any(l => Builtin.SameCall(l, b)))
+                if (!target.Any(l => Builtin.SamePress(l, b)))
                     _fight.DeletedCalls.Add(new DeletedCall
                     { Slot = _slots[dst], Time = b.Time, Mechanic = b.Mechanic, Action = b.Action });
         }
@@ -972,7 +974,7 @@ public partial class SheetViewWindow
         var candidates = row.Bake.Cells[i];
         var pristine = row.Cells[i].All(l => !l.Custom)
             && row.Cells[i].Count == candidates.Count
-            && candidates.All(b => row.Cells[i].Any(l => Builtin.SameCall(l, b)))
+            && candidates.All(b => row.Cells[i].Any(l => Builtin.SamePress(l, b)))
             && !_fight.DeletedCalls.Any(d => candidates.Any(b => Builtin.MatchesTombstone(d, slot, b)));
 
         if (pristine) { Flash($"{slot} is already at the sheet default here."); return; }

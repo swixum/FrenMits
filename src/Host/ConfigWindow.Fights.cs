@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -315,10 +315,10 @@ public partial class ConfigWindow
         if (fight.Lines.Count != baked.Count) return true;
         foreach (var b in baked)
         {
-            var m = fight.Lines.FirstOrDefault(l => Builtin.SameCall(l, b));
-            if (m == null) return true;
-            if (!string.Equals((m.Action ?? "").Trim(), (b.Action ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
-                return true;
+            // A moment can hold several calls, so pair on the call itself:
+            // pairing by row picked whichever came first and then read the
+            // action mismatch as an edit the user never made.
+            if (!fight.Lines.Any(l => Builtin.SamePress(l, b))) return true;
         }
         return false;
     }

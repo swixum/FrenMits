@@ -438,7 +438,10 @@ public static class Builtin
         return def == null ? new() : new List<BossAnchor>(def.BossAnchors);
     }
 
-    // Two baked lines match when they share a time and mechanic.
+    // Two baked lines land on the same ROW when they share a time and mechanic.
+    // That is a row test, not an identity test: over a thousand moments across
+    // the sheets carry several calls in one column (a tank's "90s + Rampart +
+    // Short Mit" is three lines), so ask SamePress which call you mean.
     public static bool SameCall(MitLine a, MitLine b)
         => MathF.Abs(a.Time - b.Time) < 0.75f
            && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
@@ -474,7 +477,7 @@ public static class Builtin
     // them is the action, so comparing only (time, mechanic) made the top-up
     // treat a saved AST line as proof the WHM line was already there, and that
     // job's column was never filled in.
-    private static bool SamePress(MitLine a, MitLine b)
+    public static bool SamePress(MitLine a, MitLine b)
     {
         if (MathF.Abs(a.Time - b.Time) >= 0.1f) return false;
         if (!string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase))

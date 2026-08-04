@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -910,7 +910,7 @@ public partial class SheetViewWindow
             // doesn't freeze untouched preview columns into SavedSlots.
             var pristine = slotCells.All(l => !l.Custom)
                 && slotCells.Count == bakeCells.Count
-                && bakeCells.All(b => slotCells.Any(l => Builtin.SameCall(l, b)))
+                && bakeCells.All(b => slotCells.Any(l => Builtin.SamePress(l, b)))
                 && !_fight.DeletedCalls.Any(d => bakeCells.Any(b => Builtin.MatchesTombstone(d, slot, b)));
             if (pristine) continue;
 

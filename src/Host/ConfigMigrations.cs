@@ -561,6 +561,24 @@ public static class ConfigMigrations
             config.Version = 48;
             config.Save();
         }
+
+        // v49: v48 matched a renamed mechanic row by letter distance, which is
+        // too blunt - "Negatron Stream" is four letters from "Electron Stream"
+        // and stayed behind as a second, empty row. Match by position instead.
+        if (config.Version < 49)
+        {
+            var renamed = 0;
+            foreach (var f in config.Fights)
+            {
+                if (f.CustomSlots.Count > 0 || !Builtin.Has(f.TerritoryId)) continue;
+                renamed += AdoptTheSheetsMechanicNames(f);
+                renamed += AdoptTheSheetsMechanicNamesOnLines(f);
+            }
+            if (renamed > 0)
+                EncounterLog.Info($"[FrenMits] corrected {renamed} saved mechanic name(s).");
+            config.Version = 49;
+            config.Save();
+        }
     }
 
     // A saved line whose action IS an ungated row on the sheet must not carry a
@@ -590,42 +608,86 @@ public static class ConfigMigrations
         return n;
     }
 
-    // A plan keeps its own copy of the mechanic list, so a sheet whose spelling
-    // was corrected still shows the old name beside the new one as two rows.
+    // A plan keeps its own copy of the mechanic list, and it is only re-seeded
+    // when a column is applied or reset. So a sheet whose name was corrected
+    // leaves the plan showing the old one beside the new one as two rows.
+    //
+    // Matched by position, not by spelling: a plan row the sheet no longer names,
+    // sitting where the sheet names something the plan is missing, IS that row
+    // renamed. Letter distance was too blunt - "Negatron Stream" is four letters
+    // from "Electron Stream" and would have been left behind.
     private static int AdoptTheSheetsMechanicNames(FightProfile f)
     {
         var sheet = Builtin.CustomRows(f.TerritoryId);
         if (sheet.Count == 0) return 0;
+
+        bool Same(string a, string b)
+            => string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
+
         var n = 0;
         foreach (var r in f.CustomRows)
         {
-            if (sheet.Any(s => string.Equals(s.Mechanic.Trim(), r.Mechanic.Trim(),
-                                             StringComparison.OrdinalIgnoreCase))) continue;
-            // Same moment, near-identical name: the sheet's spelling wins.
-            var fixedUp = sheet.Find(s => MathF.Abs(s.Time - r.Time) < 0.9f
-                                          && NearlyTheSameName(s.Mechanic, r.Mechanic));
-            if (fixedUp == null) continue;
-            r.Mechanic = fixedUp.Mechanic;
+            if (sheet.Any(s => Same(s.Mechanic, r.Mechanic))) continue;   // still a real name
+            // A name the plan already carries AT THIS MOMENT is spoken for. The
+            // check has to be per-moment: a mechanic that repeats is renamed
+            // once per instance, and a global check stops after the first.
+            var here = sheet.FindAll(s => MathF.Abs(s.Time - r.Time) < 0.9f
+                                          && !f.CustomRows.Any(x => Same(x.Mechanic, s.Mechanic)
+                                                                    && MathF.Abs(x.Time - s.Time) < 0.9f));
+            // Exactly one candidate, or there is no telling which it became.
+            if (here.Count != 1) continue;
+            r.Mechanic = here[0].Mechanic;
             n++;
         }
         return n;
     }
 
-    // Within a few letters, so "Light of Judgement" adopts "Light of Judgment"
-    // but two different casts at one second never touch each other.
-    private static bool NearlyTheSameName(string a, string b)
+    // The saved CALLS carry the mechanic name too, and a renamed sheet strands
+    // them: they stop pairing with the bake, so they draw their own duplicate
+    // row and the next top-up adds the sheet's copy beside them.
+    private static int AdoptTheSheetsMechanicNamesOnLines(FightProfile f)
     {
-        a = a.Trim(); b = b.Trim();
-        if (Math.Abs(a.Length - b.Length) > 3) return false;
-        var d = new int[a.Length + 1, b.Length + 1];
-        for (var i = 0; i <= a.Length; i++) d[i, 0] = i;
-        for (var j = 0; j <= b.Length; j++) d[0, j] = j;
-        for (var i = 1; i <= a.Length; i++)
-            for (var j = 1; j <= b.Length; j++)
-                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                                   d[i - 1, j - 1] + (char.ToLowerInvariant(a[i - 1])
-                                                      == char.ToLowerInvariant(b[j - 1]) ? 0 : 1));
-        return d[a.Length, b.Length] <= 3;
+        var n = 0;
+        var columns = new List<(string Slot, List<MitLine> Lines)>();
+        if (!string.IsNullOrEmpty(f.Slot)) columns.Add((f.Slot, f.Lines));
+        foreach (var (slot, saved) in f.SavedSlots) columns.Add((slot, saved));
+
+        bool Same(string a, string b)
+            => string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
+
+        foreach (var (slot, lines) in columns)
+        {
+            var baked = Builtin.BuildLines(f.TerritoryId, slot);
+            if (baked.Count == 0) continue;
+            var drop = new List<MitLine>();
+            foreach (var l in lines)
+            {
+                if (string.IsNullOrWhiteSpace(l.Mechanic)) continue;
+                var here = baked.FindAll(b => MathF.Abs(b.Time - l.Time) < 0.9f);
+                if (here.Count == 0) continue;
+                if (here.Any(b => Same(b.Mechanic, l.Mechanic))) continue;
+                // One name at this moment, or there is no telling which it became.
+                var names = here.Select(b => b.Mechanic.Trim())
+                                .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                if (names.Count != 1) continue;
+
+                // A plan can hold the call under BOTH names - the top-up added
+                // the sheet's copy beside the stranded one. Renaming would leave
+                // two identical rows, so let the one already correct stand.
+                var twin = lines.Any(o => !ReferenceEquals(o, l) && !drop.Contains(o)
+                                          && MathF.Abs(o.Time - l.Time) < 0.01f
+                                          && Same(o.Mechanic, names[0])
+                                          && Same(o.Action, l.Action)
+                                          && o.Jobs.Count == l.Jobs.Count
+                                          && !o.Jobs.Except(l.Jobs, StringComparer.OrdinalIgnoreCase).Any());
+                if (twin) { drop.Add(l); continue; }
+
+                l.Mechanic = names[0];
+                n++;
+            }
+            foreach (var d in drop) { lines.Remove(d); n++; }
+        }
+        return n;
     }
 
     // Give an ungated saved line back the gate its sheet row carries. Matched on
