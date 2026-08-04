@@ -613,6 +613,8 @@ public partial class ConfigWindow
         var card = new MeterWindow.SampleView { Rows = 2, Heal = heal, Keys = list, Slots = slots };
         var p = ImGui.GetCursorScreenPos();
         DrawMeterCard(card);
+        // Where the tab carries on, since the handles below move the cursor into the card.
+        var below = ImGui.GetCursorScreenPos();
 
         // Headings are the handles: click drops a column, dragging moves it.
         var lineH = ImGui.GetTextLineHeight();
@@ -635,6 +637,7 @@ public partial class ConfigWindow
             { list.Remove(s.Key); C.SaveSettings(); }
         }
 
+        ImGui.SetCursorScreenPos(below);
         ImGui.TextDisabled("Click a heading to drop it, or drag one to reorder.");
         if (_colDrag != null && _colDragView == view) DragColumn(list, slots, headY, lineH);
     }
