@@ -203,10 +203,21 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var n = System.Threading.Interlocked.Increment(ref _liveInstances);
         // Last mark, so the parts add up to the total rather than leaving a silent remainder.
         load.Mark("commands");
-        Service.Log.Information($"[FrenMits] init - live instance #{n} - {load.Report()}");
+        LogPath($"[FrenMits] init - live instance #{n} - {load.Report()}", load);
     }
 
     private static int _liveInstances;
+
+    // An update runs both of these on the game's thread, so a slow one is a
+    // freeze the user sees. Over budget it logs a warning naming the phase,
+    // which is how the next regression gets found without a bug report.
+    private static void LogPath(string line, LoadClock clock)
+    {
+        if (clock.OverBudget)
+            Service.Log.Warning($"{line} - over budget on the game's thread: {clock.Slowest()}");
+        else
+            Service.Log.Information(line);
+    }
 
     // Hand the encounter layer everything it needs from the client. It carries
     // no Dalamud reference of its own, so a miss here is a silent no-op, not a
@@ -1370,7 +1381,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         clock.Mark("fonts");
         Audio.Dispose();
         clock.Mark("audio");
-        Service.Log.Information($"[FrenMits] dispose - live instances now "
-            + $"{System.Threading.Interlocked.Decrement(ref _liveInstances)} - {clock.Report("dispose")}");
+        LogPath($"[FrenMits] dispose - live instances now "
+            + $"{System.Threading.Interlocked.Decrement(ref _liveInstances)} - {clock.Report("dispose")}", clock);
     }
 }
