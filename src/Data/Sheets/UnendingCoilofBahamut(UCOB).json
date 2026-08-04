@@ -52,7 +52,7 @@
     },
     {
       "Time": 260,
-      "Mechanic": "Calamatous Flame + Blaze"
+      "Mechanic": "Calamitous Flame + Blaze"
     },
     {
       "Time": 271,
@@ -547,7 +547,7 @@
     },
     {
       "Time": 260,
-      "Mechanic": "Calamatous Flame + Blaze",
+      "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
       "Jobs": [
@@ -556,7 +556,7 @@
     },
     {
       "Time": 260,
-      "Mechanic": "Calamatous Flame + Blaze",
+      "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H1",
       "Action": "Collective Unconscious",
       "Jobs": [
@@ -565,7 +565,7 @@
     },
     {
       "Time": 260,
-      "Mechanic": "Calamatous Flame + Blaze",
+      "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H2",
       "Action": "Sacred Soil",
       "Jobs": [
@@ -574,7 +574,7 @@
     },
     {
       "Time": 260,
-      "Mechanic": "Calamatous Flame + Blaze",
+      "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H2",
       "Action": "Kerachole",
       "Jobs": [
@@ -583,7 +583,7 @@
     },
     {
       "Time": 260,
-      "Mechanic": "Calamatous Flame + Blaze",
+      "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "R1",
       "Action": "Party Mit (LB2)"
     },
@@ -984,7 +984,7 @@
       "Time": 517,
       "Mechanic": "Tenstrike Trio",
       "Slot": "H2",
-      "Action": "Sacred Soil (Earthshakers, Gigaflare)",
+      "Action": "Sacred Soil (Earth Shakers, Gigaflare)",
       "Jobs": [
         "SCH"
       ]
@@ -993,7 +993,7 @@
       "Time": 517,
       "Mechanic": "Tenstrike Trio",
       "Slot": "H2",
-      "Action": "Kerachole (Earthshakers, Gigaflare)",
+      "Action": "Kerachole (Earth Shakers, Gigaflare)",
       "Jobs": [
         "SGE"
       ]
