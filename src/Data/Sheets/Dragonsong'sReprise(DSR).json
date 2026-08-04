@@ -7,20 +7,44 @@
       "Mechanic": "Heavenly Heel & Ascalon's Might"
     },
     {
+      "Time": 17,
+      "Mechanic": "Ascalon's Might"
+    },
+    {
       "Time": 30,
       "Mechanic": "Strength of the Ward"
+    },
+    {
+      "Time": 70,
+      "Mechanic": "Ancient Quaga"
     },
     {
       "Time": 80,
       "Mechanic": "Heavenly Heel & Ascalon's Might"
     },
     {
+      "Time": 85,
+      "Mechanic": "Ascalon's Might 2"
+    },
+    {
+      "Time": 123,
+      "Mechanic": "Sancitity of the Ward"
+    },
+    {
       "Time": 165,
       "Mechanic": "Ultimate End"
     },
     {
+      "Time": 186,
+      "Mechanic": "Final Chorus"
+    },
+    {
       "Time": 252,
       "Mechanic": "First Stack"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Soul Tether"
     },
     {
       "Time": 285,
@@ -35,6 +59,14 @@
       "Mechanic": "Orb Pops"
     },
     {
+      "Time": 368,
+      "Mechanic": "Mirage Dives"
+    },
+    {
+      "Time": 384,
+      "Mechanic": "Steep in Rage"
+    },
+    {
       "Time": 410,
       "Mechanic": "Healers"
     },
@@ -47,12 +79,28 @@
       "Mechanic": "Range"
     },
     {
+      "Time": 433,
+      "Mechanic": "Tanks"
+    },
+    {
+      "Time": 436,
+      "Mechanic": "Pure of Heart"
+    },
+    {
+      "Time": 493,
+      "Mechanic": "Wrath of the Heavens"
+    },
+    {
       "Time": 526,
       "Mechanic": "Ancient Quaga"
     },
     {
       "Time": 536,
       "Mechanic": "Heavenly Heel & Ascalon's Might"
+    },
+    {
+      "Time": 554,
+      "Mechanic": "Death of the Heavens"
     },
     {
       "Time": 608,
@@ -63,8 +111,32 @@
       "Mechanic": "Heavenly Heel & Ascalon's Might"
     },
     {
+      "Time": 656,
+      "Mechanic": "Wyrmsbreath I"
+    },
+    {
+      "Time": 676,
+      "Mechanic": "Akh Afah"
+    },
+    {
+      "Time": 690,
+      "Mechanic": "Hallowed Plume I"
+    },
+    {
       "Time": 704,
       "Mechanic": "Wroth Flames"
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Akh Afah"
+    },
+    {
+      "Time": 758,
+      "Mechanic": "Hallowed Plume II"
+    },
+    {
+      "Time": 774,
+      "Mechanic": "Wyrmsbreath II"
     },
     {
       "Time": 790,
@@ -83,72 +155,20 @@
       "Mechanic": "Akh Morn I"
     },
     {
-      "Time": 959,
-      "Mechanic": "Akh Morn II"
-    },
-    {
-      "Time": 1039,
-      "Mechanic": "Akh Morn III"
-    },
-    {
-      "Time": 70,
-      "Mechanic": "Ancient Quaga"
-    },
-    {
-      "Time": 186,
-      "Mechanic": "Final Chorus"
-    },
-    {
-      "Time": 384,
-      "Mechanic": "Steep in Rage"
-    },
-    {
-      "Time": 433,
-      "Mechanic": "Tanks"
-    },
-    {
-      "Time": 676,
-      "Mechanic": "Akh Afah"
-    },
-    {
-      "Time": 745,
-      "Mechanic": "Akh Afah"
-    },
-    {
       "Time": 919,
       "Mechanic": "Gigaflare I"
+    },
+    {
+      "Time": 959,
+      "Mechanic": "Akh Morn II"
     },
     {
       "Time": 999,
       "Mechanic": "Gigaflare II"
     },
     {
-      "Time": 436,
-      "Mechanic": "Pure of Heart"
-    },
-    {
-      "Time": 554,
-      "Mechanic": "Death of the Heavens"
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I"
-    },
-    {
-      "Time": 123,
-      "Mechanic": "Sancitity of the Ward"
-    },
-    {
-      "Time": 368,
-      "Mechanic": "Mirage Dives"
-    },
-    {
-      "Time": 493,
-      "Mechanic": "Wrath of the Heavens"
-    },
-    {
-      "Time": 774,
-      "Mechanic": "Wyrmsbreath II"
+      "Time": 1039,
+      "Mechanic": "Akh Morn III"
     }
   ],
   "DefaultActions": [
@@ -161,160 +181,42 @@
     {
       "Time": 17,
       "Mechanic": "Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Dark Mind",
-      "Jobs": [
-        "DRK"
-      ]
+      "Slot": "MT",
+      "Action": "Invulnerability / Short Mit + Buddy Mit",
+      "Jobs": []
     },
     {
       "Time": 17,
       "Mechanic": "Ascalon's Might",
       "Slot": "OT",
-      "Action": "TBN",
-      "Jobs": [
-        "DRK"
-      ]
+      "Action": "90s + Short Mit + Buddy Mit",
+      "Jobs": []
     },
     {
-      "Time": 17,
-      "Mechanic": "Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Oblation or Buddy Mit (If OT)",
+      "Time": 30,
+      "Mechanic": "Strength of the Ward",
+      "Slot": "H1",
+      "Action": "Liturgy of the Bell",
       "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 17,
-      "Mechanic": "Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Sheltron or Buddy Mit (If OT)",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 17,
-      "Mechanic": "Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Sheltron or Buddy Mit (If OT)",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 17,
-      "Mechanic": "Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Holmgang",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 17,
-      "Mechanic": "Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Heart of Corundum or Buddy Mit (If OT)",
-      "Jobs": [
-        "GNB"
+        "WHM"
       ]
     },
     {
       "Time": 30,
       "Mechanic": "Strength of the Ward",
-      "Slot": "OT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "OT",
-      "Action": "TBN",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
       "Jobs": [
-        "DRK"
+        "AST"
       ]
     },
     {
       "Time": 30,
       "Mechanic": "Strength of the Ward",
-      "Slot": "OT",
-      "Action": "Oblation",
+      "Slot": "H1",
+      "Action": "Temperance",
       "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "OT",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "OT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "MT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "MT",
-      "Action": "Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "MT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "MT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "MT",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 30,
-      "Mechanic": "Strength of the Ward",
-      "Slot": "H2",
-      "Action": "Holos",
-      "Jobs": [
-        "SGE"
+        "WHM"
       ]
     },
     {
@@ -338,41 +240,55 @@
     {
       "Time": 30,
       "Mechanic": "Strength of the Ward",
-      "Slot": "H1",
-      "Action": "Neutral Sect",
+      "Slot": "H2",
+      "Action": "Holos",
       "Jobs": [
-        "AST"
+        "SGE"
       ]
     },
     {
       "Time": 30,
       "Mechanic": "Strength of the Ward",
-      "Slot": "H1",
-      "Action": "Liturgy of the Bell",
-      "Jobs": [
-        "WHM"
-      ]
+      "Slot": "MT",
+      "Action": "Party Mit"
     },
     {
       "Time": 30,
       "Mechanic": "Strength of the Ward",
-      "Slot": "H1",
-      "Action": "Temperance",
-      "Jobs": [
-        "WHM"
-      ]
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Strength of the Ward",
+      "Slot": "MT",
+      "Action": "Short Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Strength of the Ward",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Strength of the Ward",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 30,
+      "Mechanic": "Strength of the Ward",
+      "Slot": "OT",
+      "Action": "Short Mit",
+      "Jobs": []
     },
     {
       "Time": 30,
       "Mechanic": "Strength of the Ward",
       "Slot": "R1",
       "Action": "Party Mit"
-    },
-    {
-      "Time": 70,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "R2",
-      "Action": "Addle"
     },
     {
       "Time": 70,
@@ -429,91 +345,10 @@
       "Action": "Reprisal"
     },
     {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Reprisal"
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Sentinel",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Intervention (Buddy Mit)",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Great Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Camouflage",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Heart of Corundum (Buddy Mit)",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Thrill",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Vengeance",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Nascent (Buddy Mit)",
-      "Jobs": [
-        "WAR"
-      ]
+      "Time": 70,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "R2",
+      "Action": "Addle"
     },
     {
       "Time": 80,
@@ -524,100 +359,37 @@
     {
       "Time": 80,
       "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Dark Mind",
-      "Jobs": [
-        "DRK"
-      ]
+      "Slot": "MT",
+      "Action": "40% + 90s + Short Mit + Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 80,
+      "Mechanic": "Heavenly Heel & Ascalon's Might",
+      "Slot": "MT",
+      "Action": "Reprisal"
     },
     {
       "Time": 80,
       "Mechanic": "Heavenly Heel & Ascalon's Might",
       "Slot": "OT",
-      "Action": "Shadow Wall",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "TBN (Buddy Mit)",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Sentinel",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 80,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Intervention (Buddy Mit)",
-      "Jobs": [
-        "PLD"
-      ]
+      "Action": "40% + 90s + Short Mit + Buddy Mit",
+      "Jobs": []
     },
     {
       "Time": 85,
       "Mechanic": "Ascalon's Might 2",
       "Slot": "OT",
-      "Action": "Nebula",
-      "Jobs": [
-        "GNB"
-      ]
+      "Action": "40% + 90s + Short Mit + Buddy Mit",
+      "Jobs": []
     },
     {
-      "Time": 85,
-      "Mechanic": "Ascalon's Might 2",
-      "Slot": "OT",
-      "Action": "Camouflage",
+      "Time": 123,
+      "Mechanic": "Sancitity of the Ward",
+      "Slot": "H1",
+      "Action": "Macrocosmos",
       "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 85,
-      "Mechanic": "Ascalon's Might 2",
-      "Slot": "OT",
-      "Action": "Heart of Corundum (Buddy Mit)",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 85,
-      "Mechanic": "Ascalon's Might 2",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
+        "AST"
       ]
     },
     {
@@ -642,9 +414,9 @@
       "Time": 123,
       "Mechanic": "Sancitity of the Ward",
       "Slot": "H2",
-      "Action": "Zoe Shields",
+      "Action": "Seraph",
       "Jobs": [
-        "SGE"
+        "SCH"
       ]
     },
     {
@@ -660,49 +432,10 @@
       "Time": 123,
       "Mechanic": "Sancitity of the Ward",
       "Slot": "H2",
-      "Action": "Seraph",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 123,
-      "Mechanic": "Sancitity of the Ward",
-      "Slot": "H1",
-      "Action": "Macrocosmos",
-      "Jobs": [
-        "AST"
-      ]
-    },
-    {
-      "Time": 165,
-      "Mechanic": "Ultimate End",
-      "Slot": "M1",
-      "Action": "Feint"
-    },
-    {
-      "Time": 165,
-      "Mechanic": "Ultimate End",
-      "Slot": "H2",
-      "Action": "Kerachole",
+      "Action": "Zoe Shields",
       "Jobs": [
         "SGE"
       ]
-    },
-    {
-      "Time": 165,
-      "Mechanic": "Ultimate End",
-      "Slot": "H2",
-      "Action": "Sacred Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 165,
-      "Mechanic": "Ultimate End",
-      "Slot": "MT",
-      "Action": "Party Mit"
     },
     {
       "Time": 165,
@@ -725,6 +458,36 @@
     {
       "Time": 165,
       "Mechanic": "Ultimate End",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Ultimate End",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Ultimate End",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Ultimate End",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 165,
+      "Mechanic": "Ultimate End",
       "Slot": "OT",
       "Action": "Reprisal"
     },
@@ -737,17 +500,17 @@
     {
       "Time": 186,
       "Mechanic": "Final Chorus",
-      "Slot": "H2",
-      "Action": "Holos",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
       "Jobs": [
-        "SGE"
+        "AST"
       ]
     },
     {
       "Time": 186,
       "Mechanic": "Final Chorus",
       "Slot": "H2",
-      "Action": "Zoe Shields",
+      "Action": "Holos",
       "Jobs": [
         "SGE"
       ]
@@ -765,6 +528,15 @@
       "Time": 186,
       "Mechanic": "Final Chorus",
       "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 186,
+      "Mechanic": "Final Chorus",
+      "Slot": "H2",
       "Action": "Spreadlo",
       "Jobs": [
         "SCH"
@@ -774,9 +546,9 @@
       "Time": 186,
       "Mechanic": "Final Chorus",
       "Slot": "H2",
-      "Action": "Sacred Soil",
+      "Action": "Zoe Shields",
       "Jobs": [
-        "SCH"
+        "SGE"
       ]
     },
     {
@@ -792,10 +564,10 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 186,
-      "Mechanic": "Final Chorus",
+      "Time": 252,
+      "Mechanic": "First Stack",
       "Slot": "H1",
-      "Action": "Neutral Sect",
+      "Action": "Carry Over (Neutral Sect)",
       "Jobs": [
         "AST"
       ]
@@ -803,10 +575,10 @@
     {
       "Time": 252,
       "Mechanic": "First Stack",
-      "Slot": "H2",
-      "Action": "Sacred Soil",
+      "Slot": "H1",
+      "Action": "Temperance",
       "Jobs": [
-        "SCH"
+        "WHM"
       ]
     },
     {
@@ -830,109 +602,63 @@
     {
       "Time": 252,
       "Mechanic": "First Stack",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 252,
+      "Mechanic": "First Stack",
       "Slot": "M2",
       "Action": "Feint"
     },
     {
       "Time": 252,
       "Mechanic": "First Stack",
-      "Slot": "H1",
-      "Action": "Temperance",
-      "Jobs": [
-        "WHM"
-      ]
+      "Slot": "MT",
+      "Action": "Reprisal"
     },
     {
-      "Time": 252,
-      "Mechanic": "First Stack",
+      "Time": 268,
+      "Mechanic": "Soul Tether",
+      "Slot": "MT",
+      "Action": "Invulnerability",
+      "Jobs": []
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Soul Tether",
+      "Slot": "OT",
+      "Action": "Invulnerability",
+      "Jobs": []
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Second Stack",
       "Slot": "H1",
-      "Action": "Carry Over (Neutral Sect)",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
     },
     {
-      "Time": 252,
-      "Mechanic": "First Stack",
-      "Slot": "MT",
-      "Action": "Reprisal"
-    },
-    {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "OT",
-      "Action": "Hallowed Ground",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "OT",
-      "Action": "Superbolide",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "OT",
-      "Action": "Living Dead",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "MT",
-      "Action": "Superbolide",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "MT",
-      "Action": "Hallowed Ground",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "MT",
-      "Action": "Holmgang",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
       "Time": 285,
       "Mechanic": "Second Stack",
-      "Slot": "OT",
-      "Action": "Reprisal"
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
     },
     {
       "Time": 285,
       "Mechanic": "Second Stack",
       "Slot": "H2",
-      "Action": "Seraph",
+      "Action": "Expedient",
       "Jobs": [
         "SCH"
-      ]
-    },
-    {
-      "Time": 285,
-      "Mechanic": "Second Stack",
-      "Slot": "H2",
-      "Action": "Panhaima",
-      "Jobs": [
-        "SGE"
       ]
     },
     {
@@ -948,7 +674,16 @@
       "Time": 285,
       "Mechanic": "Second Stack",
       "Slot": "H2",
-      "Action": "Sacred Soil (If Available",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Second Stack",
+      "Slot": "H2",
+      "Action": "Sacred Soil (If Available)",
       "Jobs": [
         "SCH"
       ]
@@ -957,34 +692,10 @@
       "Time": 285,
       "Mechanic": "Second Stack",
       "Slot": "H2",
-      "Action": "Expedient",
+      "Action": "Seraph",
       "Jobs": [
         "SCH"
       ]
-    },
-    {
-      "Time": 285,
-      "Mechanic": "Second Stack",
-      "Slot": "H1",
-      "Action": "Collective Unconscious",
-      "Jobs": [
-        "AST"
-      ]
-    },
-    {
-      "Time": 285,
-      "Mechanic": "Second Stack",
-      "Slot": "H1",
-      "Action": "Plenary Indulgence",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
-      "Time": 285,
-      "Mechanic": "Second Stack",
-      "Slot": "MT",
-      "Action": "Party Mit (If Available)"
     },
     {
       "Time": 285,
@@ -995,16 +706,28 @@
     {
       "Time": 285,
       "Mechanic": "Second Stack",
+      "Slot": "MT",
+      "Action": "Party Mit (If Available)"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Second Stack",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 285,
+      "Mechanic": "Second Stack",
       "Slot": "R2",
       "Action": "Addle (If Available)"
     },
     {
       "Time": 318,
       "Mechanic": "Resentment",
-      "Slot": "H2",
-      "Action": "Zoe Shields",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
       "Jobs": [
-        "SGE"
+        "AST"
       ]
     },
     {
@@ -1014,6 +737,15 @@
       "Action": "Kerachole",
       "Jobs": [
         "SGE"
+      ]
+    },
+    {
+      "Time": 318,
+      "Mechanic": "Resentment",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
       ]
     },
     {
@@ -1029,18 +761,9 @@
       "Time": 318,
       "Mechanic": "Resentment",
       "Slot": "H2",
-      "Action": "Sacred Soil",
+      "Action": "Zoe Shields",
       "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 318,
-      "Mechanic": "Resentment",
-      "Slot": "H1",
-      "Action": "Collective Unconscious",
-      "Jobs": [
-        "AST"
+        "SGE"
       ]
     },
     {
@@ -1048,21 +771,6 @@
       "Mechanic": "Resentment",
       "Slot": "MT",
       "Action": "Party Mit (WAR/PLD after bleed expires)"
-    },
-    {
-      "Time": 351,
-      "Mechanic": "Orb Pops",
-      "Slot": "MT",
-      "Action": "Reprisal"
-    },
-    {
-      "Time": 351,
-      "Mechanic": "Orb Pops",
-      "Slot": "H1",
-      "Action": "Plenary Indulgence",
-      "Jobs": [
-        "WHM"
-      ]
     },
     {
       "Time": 351,
@@ -1076,6 +784,21 @@
     {
       "Time": 351,
       "Mechanic": "Orb Pops",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 351,
+      "Mechanic": "Orb Pops",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 351,
+      "Mechanic": "Orb Pops",
       "Slot": "R1",
       "Action": "Party Mit"
     },
@@ -1083,9 +806,9 @@
       "Time": 368,
       "Mechanic": "Mirage Dives",
       "Slot": "H2",
-      "Action": "Seraph",
+      "Action": "Kerachole",
       "Jobs": [
-        "SCH"
+        "SGE"
       ]
     },
     {
@@ -1101,16 +824,16 @@
       "Time": 368,
       "Mechanic": "Mirage Dives",
       "Slot": "H2",
-      "Action": "Kerachole",
+      "Action": "Sacred Soil",
       "Jobs": [
-        "SGE"
+        "SCH"
       ]
     },
     {
       "Time": 368,
       "Mechanic": "Mirage Dives",
       "Slot": "H2",
-      "Action": "Sacred Soil",
+      "Action": "Seraph",
       "Jobs": [
         "SCH"
       ]
@@ -1149,15 +872,6 @@
       "Time": 423,
       "Mechanic": "Melee",
       "Slot": "H1",
-      "Action": "Temperance",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
-      "Time": 423,
-      "Mechanic": "Melee",
-      "Slot": "H1",
       "Action": "Liturgy of the Bell",
       "Jobs": [
         "WHM"
@@ -1175,10 +889,10 @@
     {
       "Time": 423,
       "Mechanic": "Melee",
-      "Slot": "H2",
-      "Action": "Holos",
+      "Slot": "H1",
+      "Action": "Temperance",
       "Jobs": [
-        "SGE"
+        "WHM"
       ]
     },
     {
@@ -1189,6 +903,21 @@
       "Jobs": [
         "SCH"
       ]
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Melee",
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 423,
+      "Mechanic": "Melee",
+      "Slot": "M1",
+      "Action": "Feint"
     },
     {
       "Time": 423,
@@ -1205,12 +934,6 @@
     {
       "Time": 423,
       "Mechanic": "Melee",
-      "Slot": "M1",
-      "Action": "Feint"
-    },
-    {
-      "Time": 423,
-      "Mechanic": "Melee",
       "Slot": "OT",
       "Action": "Buddy Mit (D2)"
     },
@@ -1218,7 +941,7 @@
       "Time": 430,
       "Mechanic": "Range",
       "Slot": "H2",
-      "Action": "Sacred Soil",
+      "Action": "Fey Illumination",
       "Jobs": [
         "SCH"
       ]
@@ -1236,10 +959,16 @@
       "Time": 430,
       "Mechanic": "Range",
       "Slot": "H2",
-      "Action": "Fey Illumination",
+      "Action": "Sacred Soil",
       "Jobs": [
         "SCH"
       ]
+    },
+    {
+      "Time": 430,
+      "Mechanic": "Range",
+      "Slot": "MT",
+      "Action": "Party Mit"
     },
     {
       "Time": 430,
@@ -1254,22 +983,13 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 430,
-      "Mechanic": "Range",
-      "Slot": "MT",
-      "Action": "Party Mit"
-    },
-    {
       "Time": 433,
       "Mechanic": "Tanks",
-      "Slot": "M2",
-      "Action": "Feint"
-    },
-    {
-      "Time": 433,
-      "Mechanic": "Tanks",
-      "Slot": "OT",
-      "Action": "Reprisal"
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
+      ]
     },
     {
       "Time": 433,
@@ -1283,11 +1003,14 @@
     {
       "Time": 433,
       "Mechanic": "Tanks",
-      "Slot": "H1",
-      "Action": "Collective Unconscious",
-      "Jobs": [
-        "AST"
-      ]
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 433,
+      "Mechanic": "Tanks",
+      "Slot": "OT",
+      "Action": "Reprisal"
     },
     {
       "Time": 433,
@@ -1326,7 +1049,7 @@
       "Time": 493,
       "Mechanic": "Wrath of the Heavens",
       "Slot": "H2",
-      "Action": "Zoe Shields",
+      "Action": "Panhaima",
       "Jobs": [
         "SGE"
       ]
@@ -1335,9 +1058,9 @@
       "Time": 493,
       "Mechanic": "Wrath of the Heavens",
       "Slot": "H2",
-      "Action": "Panhaima",
+      "Action": "Seraph",
       "Jobs": [
-        "SGE"
+        "SCH"
       ]
     },
     {
@@ -1353,48 +1076,9 @@
       "Time": 493,
       "Mechanic": "Wrath of the Heavens",
       "Slot": "H2",
-      "Action": "Seraph",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 526,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "H2",
-      "Action": "Sacred Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 526,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "H2",
-      "Action": "Kerachole",
+      "Action": "Zoe Shields",
       "Jobs": [
         "SGE"
-      ]
-    },
-    {
-      "Time": 526,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "M1",
-      "Action": "Feint"
-    },
-    {
-      "Time": 526,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "MT",
-      "Action": "Party Mit (After Proteans)"
-    },
-    {
-      "Time": 526,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "H1",
-      "Action": "Plenary Indulgence",
-      "Jobs": [
-        "WHM"
       ]
     },
     {
@@ -1409,8 +1093,41 @@
     {
       "Time": 526,
       "Mechanic": "Ancient Quaga",
-      "Slot": "R2",
-      "Action": "Addle"
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "M1",
+      "Action": "Feint"
+    },
+    {
+      "Time": 526,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "MT",
+      "Action": "Party Mit (After Proteans)"
     },
     {
       "Time": 526,
@@ -1431,29 +1148,10 @@
       "Action": "Party Mit (After Proteans)"
     },
     {
-      "Time": 536,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Kitchen Sink (Rampart On Quaga Castbar)",
-      "Jobs": [
-        "GNB",
-        "PLD"
-      ]
-    },
-    {
-      "Time": 536,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Reprisal (If Not Warrior)"
-    },
-    {
-      "Time": 536,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Holmgang",
-      "Jobs": [
-        "WAR"
-      ]
+      "Time": 526,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "R2",
+      "Action": "Addle"
     },
     {
       "Time": 536,
@@ -1464,120 +1162,48 @@
     {
       "Time": 536,
       "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Kitchen Sink (Rampart On Quaga Castbar)",
-      "Jobs": [
-        "DRK",
-        "PLD"
-      ]
+      "Slot": "MT",
+      "Action": "Invulnerability / Kitchen Sink + Rampart",
+      "Jobs": []
     },
     {
-      "Time": 539,
+      "Time": 536,
+      "Mechanic": "Heavenly Heel & Ascalon's Might",
+      "Slot": "MT",
+      "Action": "Rampart + Short Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 536,
+      "Mechanic": "Heavenly Heel & Ascalon's Might",
+      "Slot": "MT",
+      "Action": "Reprisal (If Not Warrior)"
+    },
+    {
+      "Time": 536,
+      "Mechanic": "Heavenly Heel & Ascalon's Might",
+      "Slot": "OT",
+      "Action": "Kitchen Sink + Rampart",
+      "Jobs": []
+    },
+    {
+      "Time": 536,
+      "Mechanic": "Heavenly Heel & Ascalon's Might",
+      "Slot": "OT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 536,
       "Mechanic": "Heavenly Heel & Ascalon's Might",
       "Slot": "OT",
       "Action": "Rampart (On Quaga Castbar)"
     },
     {
-      "Time": 539,
+      "Time": 536,
       "Mechanic": "Heavenly Heel & Ascalon's Might",
       "Slot": "OT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "TBN",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Rampart (On Quaga Castbar)",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 539,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "MT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 554,
-      "Mechanic": "Death of the Heavens",
-      "Slot": "H2",
-      "Action": "Holos",
-      "Jobs": [
-        "SGE"
-      ]
-    },
-    {
-      "Time": 554,
-      "Mechanic": "Death of the Heavens",
-      "Slot": "H2",
-      "Action": "Expedient",
-      "Jobs": [
-        "SCH"
-      ]
+      "Action": "Short Mit",
+      "Jobs": []
     },
     {
       "Time": 554,
@@ -1598,46 +1224,22 @@
       ]
     },
     {
-      "Time": 608,
-      "Mechanic": "Ancient Quaga",
+      "Time": 554,
+      "Mechanic": "Death of the Heavens",
       "Slot": "H2",
-      "Action": "Sacred Soil or Spreadlo",
+      "Action": "Expedient",
       "Jobs": [
         "SCH"
       ]
     },
     {
-      "Time": 608,
-      "Mechanic": "Ancient Quaga",
+      "Time": 554,
+      "Mechanic": "Death of the Heavens",
       "Slot": "H2",
-      "Action": "Kerachole",
+      "Action": "Holos",
       "Jobs": [
         "SGE"
       ]
-    },
-    {
-      "Time": 608,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "OT",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 608,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "OT",
-      "Action": "Reprisal"
-    },
-    {
-      "Time": 608,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "R1",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 608,
-      "Mechanic": "Ancient Quaga",
-      "Slot": "M2",
-      "Action": "Feint (With Warrior)"
     },
     {
       "Time": 608,
@@ -1660,7 +1262,49 @@
     {
       "Time": 608,
       "Mechanic": "Ancient Quaga",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "H2",
+      "Action": "Sacred Soil or Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "M2",
+      "Action": "Feint (With Warrior)"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Ancient Quaga",
       "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 608,
+      "Mechanic": "Ancient Quaga",
+      "Slot": "R1",
       "Action": "Party Mit"
     },
     {
@@ -1693,82 +1337,10 @@
     {
       "Time": 656,
       "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "Sentinel",
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
       "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "Sheltron Buddy Mit: Intervention (If Not Shared)",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "Heart of Corundum Buddy Mit: Heart of Corundum (If Not Shared)",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "Shadow Wall",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "TBN",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "Oblation Buddy Mit: TBN",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "OT",
-      "Action": "Oblation (If Not Shared)",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "H2",
-      "Action": "Seraph",
-      "Jobs": [
-        "SCH"
+        "WHM"
       ]
     },
     {
@@ -1783,79 +1355,33 @@
     {
       "Time": 656,
       "Mechanic": "Wyrmsbreath I",
-      "Slot": "MT",
-      "Action": "Vengeance",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "MT",
-      "Action": "Bloodwhetting Buddy Mit: Intervention (If Not Shared)",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "MT",
-      "Action": "Great Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "MT",
-      "Action": "Heart of Corundum Buddy Mit: Heart of Corundum (If Not Shared)",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "MT",
-      "Action": "Sentinel",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "MT",
-      "Action": "Sheltron Buddy Mit: Intervention (If Not Shared)",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 656,
-      "Mechanic": "Wyrmsbreath I",
-      "Slot": "H1",
-      "Action": "Plenary Indulgence",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
-      "Time": 676,
-      "Mechanic": "Akh Afah",
-      "Slot": "OT",
-      "Action": "Reprisal"
-    },
-    {
-      "Time": 676,
-      "Mechanic": "Akh Afah",
       "Slot": "H2",
       "Action": "Seraph",
       "Jobs": [
         "SCH"
+      ]
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Wyrmsbreath I",
+      "Slot": "MT",
+      "Action": "40% + Short Mit + Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 656,
+      "Mechanic": "Wyrmsbreath I",
+      "Slot": "OT",
+      "Action": "40% + Short Mit + Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 676,
+      "Mechanic": "Akh Afah",
+      "Slot": "H1",
+      "Action": "Collective Unconscious",
+      "Jobs": [
+        "AST"
       ]
     },
     {
@@ -1879,155 +1405,31 @@
     {
       "Time": 676,
       "Mechanic": "Akh Afah",
-      "Slot": "H1",
-      "Action": "Collective Unconscious",
-      "Jobs": [
-        "AST"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "OT",
-      "Action": "Dark Mind",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "OT",
-      "Action": "TBN",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "OT",
-      "Action": "Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "OT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "OT",
-      "Action": "Camouflage",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "OT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "MT",
-      "Action": "Thrill",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "MT",
-      "Action": "Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "MT",
-      "Action": "Camouflage",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "MT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "MT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 690,
-      "Mechanic": "Hallowed Plume I",
-      "Slot": "MT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 704,
-      "Mechanic": "Wroth Flames",
       "Slot": "H2",
-      "Action": "Everything"
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
-      "Time": 704,
-      "Mechanic": "Wroth Flames",
-      "Slot": "MT",
+      "Time": 676,
+      "Mechanic": "Akh Afah",
+      "Slot": "OT",
       "Action": "Reprisal"
     },
     {
-      "Time": 704,
-      "Mechanic": "Wroth Flames",
+      "Time": 690,
+      "Mechanic": "Hallowed Plume I",
       "Slot": "MT",
-      "Action": "Party Mit"
+      "Action": "90s + Short Mit",
+      "Jobs": []
     },
     {
-      "Time": 704,
-      "Mechanic": "Wroth Flames",
-      "Slot": "H1",
-      "Action": "Neutral Sect",
-      "Jobs": [
-        "AST"
-      ]
+      "Time": 690,
+      "Mechanic": "Hallowed Plume I",
+      "Slot": "OT",
+      "Action": "90s + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 704,
@@ -2041,8 +1443,17 @@
     {
       "Time": 704,
       "Mechanic": "Wroth Flames",
-      "Slot": "R2",
-      "Action": "Addle (Nidhogg)"
+      "Slot": "H1",
+      "Action": "Neutral Sect",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 704,
+      "Mechanic": "Wroth Flames",
+      "Slot": "H2",
+      "Action": "Everything"
     },
     {
       "Time": 704,
@@ -2053,8 +1464,20 @@
     {
       "Time": 704,
       "Mechanic": "Wroth Flames",
-      "Slot": "R1",
+      "Slot": "M2",
+      "Action": "Feint (Either Hallowed Plume)"
+    },
+    {
+      "Time": 704,
+      "Mechanic": "Wroth Flames",
+      "Slot": "MT",
       "Action": "Party Mit"
+    },
+    {
+      "Time": 704,
+      "Mechanic": "Wroth Flames",
+      "Slot": "MT",
+      "Action": "Reprisal"
     },
     {
       "Time": 704,
@@ -2065,26 +1488,14 @@
     {
       "Time": 704,
       "Mechanic": "Wroth Flames",
-      "Slot": "M2",
-      "Action": "Feint (Either Hallowed Plume)"
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
-      "Time": 745,
-      "Mechanic": "Akh Afah",
-      "Slot": "H2",
-      "Action": "Sacred Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 745,
-      "Mechanic": "Akh Afah",
-      "Slot": "H2",
-      "Action": "Kerachole",
-      "Jobs": [
-        "SGE"
-      ]
+      "Time": 704,
+      "Mechanic": "Wroth Flames",
+      "Slot": "R2",
+      "Action": "Addle (Nidhogg)"
     },
     {
       "Time": 745,
@@ -2098,45 +1509,30 @@
     {
       "Time": 745,
       "Mechanic": "Akh Afah",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Akh Afah",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 745,
+      "Mechanic": "Akh Afah",
       "Slot": "OT",
       "Action": "Reprisal"
     },
     {
       "Time": 758,
       "Mechanic": "Hallowed Plume II",
-      "Slot": "OT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 758,
-      "Mechanic": "Hallowed Plume II",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 758,
-      "Mechanic": "Hallowed Plume II",
-      "Slot": "OT",
-      "Action": "Dark Mind",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 758,
-      "Mechanic": "Hallowed Plume II",
-      "Slot": "OT",
-      "Action": "TBN",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 758,
-      "Mechanic": "Hallowed Plume II",
       "Slot": "MT",
       "Action": "Rampart"
     },
@@ -2144,37 +1540,21 @@
       "Time": 758,
       "Mechanic": "Hallowed Plume II",
       "Slot": "MT",
-      "Action": "Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
+      "Action": "Short Mit",
+      "Jobs": []
     },
     {
       "Time": 758,
       "Mechanic": "Hallowed Plume II",
       "Slot": "OT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
+      "Action": "90s + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 758,
       "Mechanic": "Hallowed Plume II",
-      "Slot": "MT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 758,
-      "Mechanic": "Hallowed Plume II",
-      "Slot": "MT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
+      "Slot": "OT",
+      "Action": "Rampart"
     },
     {
       "Time": 774,
@@ -2186,217 +1566,18 @@
       ]
     },
     {
-      "Time": 777,
+      "Time": 774,
       "Mechanic": "Wyrmsbreath II",
       "Slot": "MT",
-      "Action": "Vengeance",
-      "Jobs": [
-        "WAR"
-      ]
+      "Action": "40% + 90s + Short Mit",
+      "Jobs": []
     },
     {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "MT",
-      "Action": "Thrill",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 777,
+      "Time": 774,
       "Mechanic": "Wyrmsbreath II",
       "Slot": "OT",
-      "Action": "Shadow Wall",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "OT",
-      "Action": "TBN",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "OT",
-      "Action": "Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "OT",
-      "Action": "Sentinel",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "OT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "MT",
-      "Action": "Great Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "MT",
-      "Action": "Camouflage",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "MT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "MT",
-      "Action": "Sentinel",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "MT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "MT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "OT",
-      "Action": "Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 777,
-      "Mechanic": "Wyrmsbreath II",
-      "Slot": "OT",
-      "Action": "Camouflage",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "H2",
-      "Action": "Kerachole",
-      "Jobs": [
-        "SGE"
-      ]
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "H2",
-      "Action": "Sacred Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "H2",
-      "Action": "Seraph",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "MT",
-      "Action": "Reprisal"
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "MT",
-      "Action": "Hallowed Ground",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "MT",
-      "Action": "Holmgang",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "MT",
-      "Action": "Buddy Mit (Vow DPS)",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 790,
-      "Mechanic": "Cauterize",
-      "Slot": "MT",
-      "Action": "Superbolide",
-      "Jobs": [
-        "GNB"
-      ]
+      "Action": "40% + 90s + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 790,
@@ -2419,47 +1600,49 @@
     {
       "Time": 790,
       "Mechanic": "Cauterize",
-      "Slot": "OT",
-      "Action": "Living Dead",
+      "Slot": "H2",
+      "Action": "Kerachole",
       "Jobs": [
-        "DRK"
+        "SGE"
       ]
     },
     {
       "Time": 790,
       "Mechanic": "Cauterize",
-      "Slot": "OT",
-      "Action": "Hallowed Ground",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
       "Jobs": [
-        "PLD"
+        "SCH"
       ]
     },
     {
       "Time": 790,
       "Mechanic": "Cauterize",
-      "Slot": "OT",
-      "Action": "Buddy Mit (Vow DPS)",
+      "Slot": "H2",
+      "Action": "Seraph",
       "Jobs": [
-        "DRK"
+        "SCH"
       ]
     },
     {
       "Time": 790,
       "Mechanic": "Cauterize",
-      "Slot": "OT",
-      "Action": "Buddy Mit (Vow DPS)",
-      "Jobs": [
-        "GNB"
-      ]
+      "Slot": "MT",
+      "Action": "Invulnerability / Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 790,
+      "Mechanic": "Cauterize",
+      "Slot": "MT",
+      "Action": "Reprisal"
     },
     {
       "Time": 790,
       "Mechanic": "Cauterize",
       "Slot": "OT",
-      "Action": "Superbolide",
-      "Jobs": [
-        "GNB"
-      ]
+      "Action": "Invulnerability / Buddy Mit",
+      "Jobs": []
     },
     {
       "Time": 797,
@@ -2512,14 +1695,11 @@
     {
       "Time": 852,
       "Mechanic": "Alternative End",
-      "Slot": "R1",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 852,
-      "Mechanic": "Alternative End",
-      "Slot": "OT",
-      "Action": "Party Mit"
+      "Slot": "H2",
+      "Action": "Holos",
+      "Jobs": [
+        "SGE"
+      ]
     },
     {
       "Time": 852,
@@ -2542,25 +1722,37 @@
     {
       "Time": 852,
       "Mechanic": "Alternative End",
-      "Slot": "H2",
-      "Action": "Holos",
-      "Jobs": [
-        "SGE"
-      ]
+      "Slot": "MT",
+      "Action": "Party Mit"
     },
     {
       "Time": 852,
       "Mechanic": "Alternative End",
-      "Slot": "MT",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 852,
+      "Mechanic": "Alternative End",
+      "Slot": "R1",
       "Action": "Party Mit"
     },
     {
       "Time": 885,
       "Mechanic": "Akh Morn I",
-      "Slot": "H2",
-      "Action": "Panhaima",
+      "Slot": "H1",
+      "Action": "Neutral Sect",
       "Jobs": [
-        "SGE"
+        "AST"
+      ]
+    },
+    {
+      "Time": 885,
+      "Mechanic": "Akh Morn I",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
       ]
     },
     {
@@ -2575,32 +1767,24 @@
     {
       "Time": 885,
       "Mechanic": "Akh Morn I",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 885,
+      "Mechanic": "Akh Morn I",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
       "Time": 885,
       "Mechanic": "Akh Morn I",
-      "Slot": "H1",
-      "Action": "Temperance",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
-      "Time": 885,
-      "Mechanic": "Akh Morn I",
-      "Slot": "H1",
-      "Action": "Neutral Sect",
-      "Jobs": [
-        "AST"
-      ]
-    },
-    {
-      "Time": 885,
-      "Mechanic": "Akh Morn I",
-      "Slot": "R2",
-      "Action": "Addle"
+      "Slot": "MT",
+      "Action": "40% + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 885,
@@ -2609,121 +1793,17 @@
       "Action": "Reprisal"
     },
     {
-      "Time": 892,
+      "Time": 885,
       "Mechanic": "Akh Morn I",
       "Slot": "OT",
-      "Action": "Shadow Wall",
-      "Jobs": [
-        "DRK"
-      ]
+      "Action": "40% + 90s + Short Mit",
+      "Jobs": []
     },
     {
-      "Time": 892,
+      "Time": 885,
       "Mechanic": "Akh Morn I",
-      "Slot": "OT",
-      "Action": "Dark Mind",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "OT",
-      "Action": "Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "OT",
-      "Action": "Sentinel",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "OT",
-      "Action": "Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "OT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "MT",
-      "Action": "Sentinel",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "MT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "MT",
-      "Action": "Great Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "MT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "MT",
-      "Action": "Vengeance",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 892,
-      "Mechanic": "Akh Morn I",
-      "Slot": "MT",
-      "Action": "Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
+      "Slot": "R2",
+      "Action": "Addle"
     },
     {
       "Time": 919,
@@ -2742,12 +1822,6 @@
       "Jobs": [
         "WHM"
       ]
-    },
-    {
-      "Time": 919,
-      "Mechanic": "Gigaflare I",
-      "Slot": "OT",
-      "Action": "Reprisal"
     },
     {
       "Time": 919,
@@ -2774,13 +1848,10 @@
       "Action": "Feint"
     },
     {
-      "Time": 959,
-      "Mechanic": "Akh Morn II",
-      "Slot": "H2",
-      "Action": "Zoe Shields",
-      "Jobs": [
-        "SGE"
-      ]
+      "Time": 919,
+      "Mechanic": "Gigaflare I",
+      "Slot": "OT",
+      "Action": "Reprisal"
     },
     {
       "Time": 959,
@@ -2794,161 +1865,61 @@
     {
       "Time": 959,
       "Mechanic": "Akh Morn II",
+      "Slot": "H2",
+      "Action": "Zoe Shields",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 959,
+      "Mechanic": "Akh Morn II",
+      "Slot": "MT",
+      "Action": "90s + Short Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 959,
+      "Mechanic": "Akh Morn II",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 959,
+      "Mechanic": "Akh Morn II",
+      "Slot": "MT",
+      "Action": "Rampart"
+    },
+    {
+      "Time": 959,
+      "Mechanic": "Akh Morn II",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
       "Time": 959,
       "Mechanic": "Akh Morn II",
-      "Slot": "MT",
+      "Slot": "OT",
+      "Action": "90s + Short Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 959,
+      "Mechanic": "Akh Morn II",
+      "Slot": "OT",
       "Action": "Party Mit"
+    },
+    {
+      "Time": 959,
+      "Mechanic": "Akh Morn II",
+      "Slot": "OT",
+      "Action": "Rampart"
     },
     {
       "Time": 959,
       "Mechanic": "Akh Morn II",
       "Slot": "R1",
       "Action": "Party Mit"
-    },
-    {
-      "Time": 959,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "MT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "MT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "MT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "MT",
-      "Action": "Camouflage",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "MT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Camouflage",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Heart of Corundum",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Dark Mind",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "OT",
-      "Action": "Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "MT",
-      "Action": "Thrill",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 971,
-      "Mechanic": "Akh Morn II",
-      "Slot": "MT",
-      "Action": "Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 999,
-      "Mechanic": "Gigaflare II",
-      "Slot": "R2",
-      "Action": "Addle"
-    },
-    {
-      "Time": 999,
-      "Mechanic": "Gigaflare II",
-      "Slot": "H1",
-      "Action": "Plenary Indulgence",
-      "Jobs": [
-        "WHM"
-      ]
     },
     {
       "Time": 999,
@@ -2971,8 +1942,20 @@
     {
       "Time": 999,
       "Mechanic": "Gigaflare II",
-      "Slot": "OT",
-      "Action": "Reprisal"
+      "Slot": "H1",
+      "Action": "Plenary Indulgence",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 999,
+      "Mechanic": "Gigaflare II",
+      "Slot": "H2",
+      "Action": "Spreadlo",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
       "Time": 999,
@@ -2983,11 +1966,14 @@
     {
       "Time": 999,
       "Mechanic": "Gigaflare II",
-      "Slot": "H2",
-      "Action": "Spreadlo",
-      "Jobs": [
-        "SCH"
-      ]
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 999,
+      "Mechanic": "Gigaflare II",
+      "Slot": "R2",
+      "Action": "Addle"
     },
     {
       "Time": 1039,
@@ -3008,6 +1994,13 @@
       "Time": 1039,
       "Mechanic": "Akh Morn III",
       "Slot": "MT",
+      "Action": "Invulnerability + Kitchen Sink / Kitchen Sink",
+      "Jobs": []
+    },
+    {
+      "Time": 1039,
+      "Mechanic": "Akh Morn III",
+      "Slot": "MT",
       "Action": "Party Mit"
     },
     {
@@ -3020,6 +2013,12 @@
       "Time": 1039,
       "Mechanic": "Akh Morn III",
       "Slot": "OT",
+      "Action": "Kitchen Sink"
+    },
+    {
+      "Time": 1039,
+      "Mechanic": "Akh Morn III",
+      "Slot": "OT",
       "Action": "Party Mit"
     },
     {
@@ -3027,31 +2026,6 @@
       "Mechanic": "Akh Morn III",
       "Slot": "R1",
       "Action": "Party Mit"
-    },
-    {
-      "Time": 1051,
-      "Mechanic": "Akh Morn III",
-      "Slot": "MT",
-      "Action": "Kitchen Sink or Holmgang",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 1051,
-      "Mechanic": "Akh Morn III",
-      "Slot": "OT",
-      "Action": "Kitchen Sink"
-    },
-    {
-      "Time": 1051,
-      "Mechanic": "Akh Morn III",
-      "Slot": "MT",
-      "Action": "Kitchen Sink",
-      "Jobs": [
-        "GNB",
-        "PLD"
-      ]
     }
   ],
   "SyncPoints": [

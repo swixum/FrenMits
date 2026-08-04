@@ -717,19 +717,13 @@
       "Time": 331,
       "Mechanic": "Tempest Wing + Flare Breath + Flatten",
       "Slot": "OT",
-      "Action": "Flare Breath)"
-    },
-    {
-      "Time": 331,
-      "Mechanic": "Tempest Wing + Flare Breath + Flatten",
-      "Slot": "OT",
       "Action": "Provoke (Flatten Castbar)"
     },
     {
       "Time": 331,
       "Mechanic": "Tempest Wing + Flare Breath + Flatten",
       "Slot": "OT",
-      "Action": "Reprisal (Tempest Wing"
+      "Action": "Reprisal (Tempest Wing, Flare Breath)"
     },
     {
       "Time": 352,
@@ -867,19 +861,13 @@
       "Time": 456,
       "Mechanic": "Heavensfall Trio",
       "Slot": "OT",
-      "Action": "Party Mit (Fireball"
-    },
-    {
-      "Time": 456,
-      "Mechanic": "Heavensfall Trio",
-      "Slot": "OT",
-      "Action": "Gigaflare)"
+      "Action": "Party Mit (Fireball, Gigaflare)"
     },
     {
       "Time": 456,
       "Mechanic": "Heavensfall Trio",
       "Slot": "H1",
-      "Action": "Plenary Indulgence (Fireball",
+      "Action": "Plenary Indulgence (Fireball, Gigaflare)",
       "Jobs": [
         "WHM"
       ]
@@ -888,13 +876,7 @@
       "Time": 456,
       "Mechanic": "Heavensfall Trio",
       "Slot": "H1",
-      "Action": "Gigaflare)"
-    },
-    {
-      "Time": 456,
-      "Mechanic": "Heavensfall Trio",
-      "Slot": "H1",
-      "Action": "Collective Unconscious (Fireball",
+      "Action": "Collective Unconscious (Fireball, Gigaflare)",
       "Jobs": [
         "AST"
       ]
@@ -1002,7 +984,7 @@
       "Time": 517,
       "Mechanic": "Tenstrike Trio",
       "Slot": "H2",
-      "Action": "Sacred Soil (Earthshakers",
+      "Action": "Sacred Soil (Earthshakers, Gigaflare)",
       "Jobs": [
         "SCH"
       ]
@@ -1011,13 +993,7 @@
       "Time": 517,
       "Mechanic": "Tenstrike Trio",
       "Slot": "H2",
-      "Action": "Gigaflare)"
-    },
-    {
-      "Time": 517,
-      "Mechanic": "Tenstrike Trio",
-      "Slot": "H2",
-      "Action": "Kerachole (Earthshakers",
+      "Action": "Kerachole (Earthshakers, Gigaflare)",
       "Jobs": [
         "SGE"
       ]

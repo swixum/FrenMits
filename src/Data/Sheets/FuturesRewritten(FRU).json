@@ -7,8 +7,28 @@
       "Mechanic": "Cyclonic Break 1"
     },
     {
+      "Time": 24,
+      "Mechanic": "Powder Mark Trail"
+    },
+    {
+      "Time": 35,
+      "Mechanic": "Utopian Sky"
+    },
+    {
+      "Time": 40,
+      "Mechanic": "Burn Mark"
+    },
+    {
+      "Time": 56,
+      "Mechanic": "Cyclonic Break 2"
+    },
+    {
       "Time": 86,
       "Mechanic": "Burnished Glory 1"
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Fall of Faith (1/2)"
     },
     {
       "Time": 111,
@@ -19,32 +39,116 @@
       "Mechanic": "Burnished Glory 2"
     },
     {
+      "Time": 130,
+      "Mechanic": "Powder Mark Trail"
+    },
+    {
+      "Time": 146,
+      "Mechanic": "Burn Mark"
+    },
+    {
+      "Time": 215,
+      "Mechanic": "Quadruple Slap"
+    },
+    {
       "Time": 236,
       "Mechanic": "Diamond Dust"
+    },
+    {
+      "Time": 255,
+      "Mechanic": "Sinbound Holy"
     },
     {
       "Time": 283,
       "Mechanic": "Hallowed Ray"
     },
     {
+      "Time": 293,
+      "Mechanic": "Mirror Mirror"
+    },
+    {
       "Time": 323,
       "Mechanic": "Banish III"
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Light Rampant"
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Powerful Light"
+    },
+    {
+      "Time": 362,
+      "Mechanic": "Banish III"
+    },
+    {
+      "Time": 370,
+      "Mechanic": "The House of Light"
     },
     {
       "Time": 390,
       "Mechanic": "Absolute Zero"
     },
     {
+      "Time": 500,
+      "Mechanic": "Junction (Transition)"
+    },
+    {
       "Time": 532,
       "Mechanic": "Ultimate Relativity"
+    },
+    {
+      "Time": 544,
+      "Mechanic": "Fire/Dark Set 1/2"
+    },
+    {
+      "Time": 564,
+      "Mechanic": "Set 3 and Rewind"
     },
     {
       "Time": 580,
       "Mechanic": "Shell Crusher"
     },
     {
+      "Time": 588,
+      "Mechanic": "Shockwave Pulsar"
+    },
+    {
+      "Time": 597,
+      "Mechanic": "Black Halo"
+    },
+    {
+      "Time": 625,
+      "Mechanic": "Dark Water 1"
+    },
+    {
+      "Time": 638,
+      "Mechanic": "Dark Eruption"
+    },
+    {
+      "Time": 646,
+      "Mechanic": "Darkest Dance"
+    },
+    {
       "Time": 658,
       "Mechanic": "Shockwave Pulsar"
+    },
+    {
+      "Time": 672,
+      "Mechanic": "Memory's End"
+    },
+    {
+      "Time": 715,
+      "Mechanic": "Darklit Dragonsong"
+    },
+    {
+      "Time": 726,
+      "Mechanic": "The Path of Light"
+    },
+    {
+      "Time": 738,
+      "Mechanic": "Somber Dance"
     },
     {
       "Time": 751,
@@ -53,6 +157,14 @@
     {
       "Time": 776,
       "Mechanic": "Crystallize Time"
+    },
+    {
+      "Time": 791,
+      "Mechanic": "Crystallize Mech"
+    },
+    {
+      "Time": 820,
+      "Mechanic": "Hallowed Wings"
     },
     {
       "Time": 834,
@@ -67,6 +179,10 @@
       "Mechanic": "Akh Morn 1"
     },
     {
+      "Time": 1086,
+      "Mechanic": "Wings Dark and Light"
+    },
+    {
       "Time": 1107,
       "Mechanic": "Polarizing Strikes 1"
     },
@@ -75,40 +191,16 @@
       "Mechanic": "Pandora's Box"
     },
     {
+      "Time": 1154,
+      "Mechanic": "Fulgent Blade 2"
+    },
+    {
       "Time": 1181,
       "Mechanic": "Akh Morn 2"
     },
     {
-      "Time": 1272,
-      "Mechanic": "Akh Morn 3"
-    },
-    {
-      "Time": 350,
-      "Mechanic": "Powerful Light"
-    },
-    {
-      "Time": 370,
-      "Mechanic": "The House of Light"
-    },
-    {
-      "Time": 500,
-      "Mechanic": "Junction (Transition)"
-    },
-    {
-      "Time": 564,
-      "Mechanic": "Set 3 and Rewind"
-    },
-    {
-      "Time": 638,
-      "Mechanic": "Dark Eruption"
-    },
-    {
-      "Time": 715,
-      "Mechanic": "Darklit Dragonsong"
-    },
-    {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings"
+      "Time": 1204,
+      "Mechanic": "Wings Dark and Light"
     },
     {
       "Time": 1220,
@@ -119,70 +211,18 @@
       "Mechanic": "Fulgent Blade 3"
     },
     {
-      "Time": 35,
-      "Mechanic": "Utopian Sky"
-    },
-    {
-      "Time": 106,
-      "Mechanic": "Fall of Faith (1/2)"
-    },
-    {
-      "Time": 293,
-      "Mechanic": "Mirror Mirror"
-    },
-    {
-      "Time": 544,
-      "Mechanic": "Fire/Dark Set 1/2"
-    },
-    {
-      "Time": 726,
-      "Mechanic": "The Path of Light"
-    },
-    {
-      "Time": 791,
-      "Mechanic": "Crystallize Mech"
-    },
-    {
-      "Time": 1154,
-      "Mechanic": "Fulgent Blade 2"
-    },
-    {
-      "Time": 333,
-      "Mechanic": "Light Rampant"
-    },
-    {
-      "Time": 672,
-      "Mechanic": "Memory's End"
-    },
-    {
-      "Time": 56,
-      "Mechanic": "Cyclonic Break 2"
-    },
-    {
-      "Time": 255,
-      "Mechanic": "Sinbound Holy"
-    },
-    {
-      "Time": 362,
-      "Mechanic": "Banish III"
-    },
-    {
-      "Time": 588,
-      "Mechanic": "Shockwave Pulsar"
-    },
-    {
-      "Time": 625,
-      "Mechanic": "Dark Water 1"
+      "Time": 1272,
+      "Mechanic": "Akh Morn 3"
     }
   ],
   "DefaultActions": [
     {
       "Time": 15,
       "Mechanic": "Cyclonic Break 1",
-      "Slot": "H2",
-      "Action": "Spread-Lo",
+      "Slot": "H1",
+      "Action": "CU",
       "Jobs": [
-        "SCH"
+        "AST"
       ]
     },
     {
@@ -197,17 +237,11 @@
     {
       "Time": 15,
       "Mechanic": "Cyclonic Break 1",
-      "Slot": "H1",
-      "Action": "CU",
+      "Slot": "H2",
+      "Action": "Spread-Lo",
       "Jobs": [
-        "AST"
+        "SCH"
       ]
-    },
-    {
-      "Time": 15,
-      "Mechanic": "Cyclonic Break 1",
-      "Slot": "OT",
-      "Action": "Party Mit"
     },
     {
       "Time": 15,
@@ -219,7 +253,13 @@
       "Time": 15,
       "Mechanic": "Cyclonic Break 1",
       "Slot": "MT",
-      "Action": "Rep/Party Mit"
+      "Action": "Reprisal/Party Mit"
+    },
+    {
+      "Time": 15,
+      "Mechanic": "Cyclonic Break 1",
+      "Slot": "OT",
+      "Action": "Party Mit"
     },
     {
       "Time": 15,
@@ -229,29 +269,18 @@
     },
     {
       "Time": 24,
-      "Mechanic": "Powder Mark Trail 1",
+      "Mechanic": "Powder Mark Trail",
       "Slot": "MT",
-      "Action": "Bolide",
-      "Jobs": [
-        "GNB"
-      ]
+      "Action": "Invulnerability",
+      "Jobs": []
     },
     {
-      "Time": 24,
-      "Mechanic": "Powder Mark Trail 1",
-      "Slot": "MT",
-      "Action": "Holmgang",
+      "Time": 35,
+      "Mechanic": "Utopian Sky",
+      "Slot": "H1",
+      "Action": "Confession",
       "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 24,
-      "Mechanic": "Powder Mark Trail 1",
-      "Slot": "MT",
-      "Action": "Hallowed",
-      "Jobs": [
-        "PLD"
+        "WHM"
       ]
     },
     {
@@ -273,76 +302,18 @@
       ]
     },
     {
-      "Time": 35,
-      "Mechanic": "Utopian Sky",
-      "Slot": "H1",
-      "Action": "Confession",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
       "Time": 40,
-      "Mechanic": "Burn Mark 1",
-      "Slot": "OT",
-      "Action": "Rampart, Bulwark",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 40,
-      "Mechanic": "Burn Mark 1",
-      "Slot": "OT",
-      "Action": "Rampart, Dark Mind, TBN",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 40,
-      "Mechanic": "Burn Mark 1",
-      "Slot": "OT",
-      "Action": "Rampart, Bulwark, Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 40,
-      "Mechanic": "Burn Mark 1",
-      "Slot": "OT",
-      "Action": "Rampart, Camo, HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 40,
-      "Mechanic": "Burn Mark 1",
+      "Mechanic": "Burn Mark",
       "Slot": "MT",
-      "Action": "Rampart, Camo, HoC",
-      "Jobs": [
-        "GNB"
-      ]
+      "Action": "90s + Rampart + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 40,
-      "Mechanic": "Burn Mark 1",
-      "Slot": "MT",
-      "Action": "Rampart, Thrill, Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 40,
-      "Mechanic": "Burn Mark 1",
-      "Slot": "MT",
-      "Action": "Rampart, Bulwark, Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
+      "Mechanic": "Burn Mark",
+      "Slot": "OT",
+      "Action": "90s + Rampart + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 56,
@@ -360,6 +331,24 @@
       "Action": "Zoe EukProg/Kera",
       "Jobs": [
         "SGE"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Burnished Glory 1",
+      "Slot": "H1",
+      "Action": "Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 86,
+      "Mechanic": "Burnished Glory 1",
+      "Slot": "H1",
+      "Action": "Macro/CU",
+      "Jobs": [
+        "AST"
       ]
     },
     {
@@ -383,38 +372,14 @@
     {
       "Time": 86,
       "Mechanic": "Burnished Glory 1",
-      "Slot": "R2",
-      "Action": "Addle"
+      "Slot": "M2",
+      "Action": "Feint"
     },
     {
       "Time": 86,
       "Mechanic": "Burnished Glory 1",
       "Slot": "MT",
-      "Action": "Rep"
-    },
-    {
-      "Time": 86,
-      "Mechanic": "Burnished Glory 1",
-      "Slot": "H1",
-      "Action": "Bell",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
-      "Time": 86,
-      "Mechanic": "Burnished Glory 1",
-      "Slot": "H1",
-      "Action": "Macro/CU",
-      "Jobs": [
-        "AST"
-      ]
-    },
-    {
-      "Time": 86,
-      "Mechanic": "Burnished Glory 1",
-      "Slot": "M2",
-      "Action": "Feint"
+      "Action": "Reprisal"
     },
     {
       "Time": 86,
@@ -423,22 +388,10 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 106,
-      "Mechanic": "Fall of Faith (1/2)",
-      "Slot": "H2",
-      "Action": "Fey/Seraph/ism",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 106,
-      "Mechanic": "Fall of Faith (1/2)",
-      "Slot": "H2",
-      "Action": "Panhaima/Sophia",
-      "Jobs": [
-        "SGE"
-      ]
+      "Time": 86,
+      "Mechanic": "Burnished Glory 1",
+      "Slot": "R2",
+      "Action": "Addle"
     },
     {
       "Time": 106,
@@ -459,10 +412,31 @@
       ]
     },
     {
+      "Time": 106,
+      "Mechanic": "Fall of Faith (1/2)",
+      "Slot": "H2",
+      "Action": "Fey/Seraph/ism",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 106,
+      "Mechanic": "Fall of Faith (1/2)",
+      "Slot": "H2",
+      "Action": "Panhaima/Sophia",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
       "Time": 111,
       "Mechanic": "Fall of Faith (3/4)",
-      "Slot": "R1",
-      "Action": "Party Mit"
+      "Slot": "H1",
+      "Action": "Neutral/Sun",
+      "Jobs": [
+        "AST"
+      ]
     },
     {
       "Time": 111,
@@ -485,23 +459,14 @@
     {
       "Time": 111,
       "Mechanic": "Fall of Faith (3/4)",
-      "Slot": "H1",
-      "Action": "Neutral/Sun",
-      "Jobs": [
-        "AST"
-      ]
-    },
-    {
-      "Time": 111,
-      "Mechanic": "Fall of Faith (3/4)",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 121,
-      "Mechanic": "Burnished Glory 2",
-      "Slot": "OT",
-      "Action": "(Late) Rep"
+      "Time": 111,
+      "Mechanic": "Fall of Faith (3/4)",
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
       "Time": 121,
@@ -510,27 +475,6 @@
       "Action": "Temp/Confession/Caress",
       "Jobs": [
         "WHM"
-      ]
-    },
-    {
-      "Time": 121,
-      "Mechanic": "Burnished Glory 2",
-      "Slot": "R1",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 121,
-      "Mechanic": "Burnished Glory 2",
-      "Slot": "M1",
-      "Action": "(Late) Feint"
-    },
-    {
-      "Time": 121,
-      "Mechanic": "Burnished Glory 2",
-      "Slot": "H2",
-      "Action": "Fey/Concit/Soil",
-      "Jobs": [
-        "SCH"
       ]
     },
     {
@@ -545,143 +489,70 @@
     {
       "Time": 121,
       "Mechanic": "Burnished Glory 2",
+      "Slot": "H2",
+      "Action": "Fey/Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 121,
+      "Mechanic": "Burnished Glory 2",
+      "Slot": "M1",
+      "Action": "(Late) Feint"
+    },
+    {
+      "Time": 121,
+      "Mechanic": "Burnished Glory 2",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 130,
-      "Mechanic": "Powder Mark Trail 2",
+      "Time": 121,
+      "Mechanic": "Burnished Glory 2",
       "Slot": "OT",
-      "Action": "Provoke / Buddy Mit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
+      "Action": "(Late) Reprisal"
     },
     {
-      "Time": 130,
-      "Mechanic": "Powder Mark Trail 2",
-      "Slot": "OT",
-      "Action": "Provoke"
+      "Time": 121,
+      "Mechanic": "Burnished Glory 2",
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
       "Time": 130,
-      "Mechanic": "Powder Mark Trail 2",
-      "Slot": "OT",
-      "Action": "Provoke / Buddy Mit: Oblation, TBN",
-      "Jobs": [
-        "DRK"
-      ]
+      "Mechanic": "Powder Mark Trail",
+      "Slot": "MT",
+      "Action": "(Late) 40% + 90s + Rampart + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 130,
-      "Mechanic": "Powder Mark Trail 2",
-      "Slot": "MT",
-      "Action": "*Great Nebula, (Late) Rampart/Camo, HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 130,
-      "Mechanic": "Powder Mark Trail 2",
-      "Slot": "MT",
-      "Action": "*Damnation, (Late) Rampart, Thrill, Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 130,
-      "Mechanic": "Powder Mark Trail 2",
-      "Slot": "MT",
-      "Action": "*Guardian, Bulwark, (Late) Rampart, Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 146,
-      "Mechanic": "Burn Mark 2",
-      "Slot": "MT",
-      "Action": "Rampart, Camo",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 146,
-      "Mechanic": "Burn Mark 2",
-      "Slot": "MT",
-      "Action": "Rampart"
-    },
-    {
-      "Time": 146,
-      "Mechanic": "Burn Mark 2",
-      "Slot": "MT",
-      "Action": "Rampart, Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 146,
-      "Mechanic": "Burn Mark 2",
+      "Mechanic": "Powder Mark Trail",
       "Slot": "OT",
-      "Action": "Guardian, Rampart, Bulwark / Buddy Mit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
+      "Action": "Buddy Mit + Provoke",
+      "Jobs": []
     },
     {
       "Time": 146,
-      "Mechanic": "Burn Mark 2",
-      "Slot": "OT",
-      "Action": "Shadowed Vigil, Rampart, Dark Mind / Buddy Mit: TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
+      "Mechanic": "Burn Mark",
+      "Slot": "MT",
+      "Action": "90s + Rampart + Short Mit",
+      "Jobs": []
     },
     {
       "Time": 146,
-      "Mechanic": "Burn Mark 2",
+      "Mechanic": "Burn Mark",
       "Slot": "OT",
-      "Action": "Great Nebula, Rampart, Camo / Buddy Mit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
+      "Action": "40% + 90s + Rampart + Buddy Mit",
+      "Jobs": []
     },
     {
       "Time": 215,
       "Mechanic": "Quadruple Slap",
       "Slot": "OT",
-      "Action": "Hallowed",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 215,
-      "Mechanic": "Quadruple Slap",
-      "Slot": "OT",
-      "Action": "Living Dead",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 215,
-      "Mechanic": "Quadruple Slap",
-      "Slot": "OT",
-      "Action": "Bolide",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 236,
-      "Mechanic": "Diamond Dust",
-      "Slot": "R2",
-      "Action": "Addle"
+      "Action": "Invulnerability",
+      "Jobs": []
     },
     {
       "Time": 236,
@@ -728,14 +599,20 @@
     {
       "Time": 236,
       "Mechanic": "Diamond Dust",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 236,
+      "Mechanic": "Diamond Dust",
       "Slot": "OT",
       "Action": "Party Mit"
     },
     {
       "Time": 236,
       "Mechanic": "Diamond Dust",
-      "Slot": "MT",
-      "Action": "Rep"
+      "Slot": "R2",
+      "Action": "Addle"
     },
     {
       "Time": 255,
@@ -765,15 +642,6 @@
       "Time": 283,
       "Mechanic": "Hallowed Ray",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
-      "Jobs": [
-        "SGE"
-      ]
-    },
-    {
-      "Time": 283,
-      "Mechanic": "Hallowed Ray",
-      "Slot": "H2",
       "Action": "Concit/Soil",
       "Jobs": [
         "SCH"
@@ -782,8 +650,11 @@
     {
       "Time": 283,
       "Mechanic": "Hallowed Ray",
-      "Slot": "MT",
-      "Action": "Party Mit"
+      "Slot": "H2",
+      "Action": "EukProg/Kera",
+      "Jobs": [
+        "SGE"
+      ]
     },
     {
       "Time": 283,
@@ -794,17 +665,14 @@
     {
       "Time": 283,
       "Mechanic": "Hallowed Ray",
-      "Slot": "OT",
-      "Action": "Rep"
+      "Slot": "MT",
+      "Action": "Party Mit"
     },
     {
-      "Time": 293,
-      "Mechanic": "Mirror Mirror",
-      "Slot": "H1",
-      "Action": "Neutral/Sun",
-      "Jobs": [
-        "AST"
-      ]
+      "Time": 283,
+      "Mechanic": "Hallowed Ray",
+      "Slot": "OT",
+      "Action": "Reprisal"
     },
     {
       "Time": 293,
@@ -818,10 +686,10 @@
     {
       "Time": 293,
       "Mechanic": "Mirror Mirror",
-      "Slot": "H2",
-      "Action": "Panhaima",
+      "Slot": "H1",
+      "Action": "Neutral/Sun",
       "Jobs": [
-        "SGE"
+        "AST"
       ]
     },
     {
@@ -831,6 +699,33 @@
       "Action": "Fey/Seraph",
       "Jobs": [
         "SCH"
+      ]
+    },
+    {
+      "Time": 293,
+      "Mechanic": "Mirror Mirror",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 323,
+      "Mechanic": "Banish III",
+      "Slot": "H1",
+      "Action": "Caress",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 323,
+      "Mechanic": "Banish III",
+      "Slot": "H1",
+      "Action": "Sun",
+      "Jobs": [
+        "AST"
       ]
     },
     {
@@ -860,8 +755,8 @@
     {
       "Time": 323,
       "Mechanic": "Banish III",
-      "Slot": "R2",
-      "Action": "Addle"
+      "Slot": "MT",
+      "Action": "Reprisal Short CD on M1"
     },
     {
       "Time": 323,
@@ -872,34 +767,16 @@
     {
       "Time": 323,
       "Mechanic": "Banish III",
-      "Slot": "MT",
-      "Action": "Rep Short CD on M1"
-    },
-    {
-      "Time": 323,
-      "Mechanic": "Banish III",
-      "Slot": "H1",
-      "Action": "Sun",
-      "Jobs": [
-        "AST"
-      ]
-    },
-    {
-      "Time": 323,
-      "Mechanic": "Banish III",
-      "Slot": "H1",
-      "Action": "Caress",
-      "Jobs": [
-        "WHM"
-      ]
+      "Slot": "R2",
+      "Action": "Addle"
     },
     {
       "Time": 333,
       "Mechanic": "Light Rampant",
-      "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Slot": "H1",
+      "Action": "CU",
       "Jobs": [
-        "SGE"
+        "AST"
       ]
     },
     {
@@ -914,8 +791,26 @@
     {
       "Time": 333,
       "Mechanic": "Light Rampant",
+      "Slot": "H2",
+      "Action": "EukProg/Kera",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Powerful Light",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Bell",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 350,
+      "Mechanic": "Powerful Light",
+      "Slot": "H1",
+      "Action": "Macro",
       "Jobs": [
         "AST"
       ]
@@ -949,24 +844,6 @@
       "Mechanic": "Powerful Light",
       "Slot": "R1",
       "Action": "Party Mit"
-    },
-    {
-      "Time": 350,
-      "Mechanic": "Powerful Light",
-      "Slot": "H1",
-      "Action": "Bell",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
-      "Time": 350,
-      "Mechanic": "Powerful Light",
-      "Slot": "H1",
-      "Action": "Macro",
-      "Jobs": [
-        "AST"
-      ]
     },
     {
       "Time": 362,
@@ -1008,7 +885,7 @@
       "Time": 370,
       "Mechanic": "The House of Light",
       "Slot": "OT",
-      "Action": "Rep"
+      "Action": "Reprisal"
     },
     {
       "Time": 390,
@@ -1031,8 +908,11 @@
     {
       "Time": 390,
       "Mechanic": "Absolute Zero",
-      "Slot": "MT",
-      "Action": "Rep/Party Mit"
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
       "Time": 390,
@@ -1041,15 +921,6 @@
       "Action": "EukProg/Kera",
       "Jobs": [
         "SGE"
-      ]
-    },
-    {
-      "Time": 390,
-      "Mechanic": "Absolute Zero",
-      "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
       ]
     },
     {
@@ -1059,22 +930,10 @@
       "Action": "Feint"
     },
     {
-      "Time": 500,
-      "Mechanic": "Junction (Transition)",
-      "Slot": "H2",
-      "Action": "EukProg/Kera",
-      "Jobs": [
-        "SGE"
-      ]
-    },
-    {
-      "Time": 500,
-      "Mechanic": "Junction (Transition)",
-      "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
+      "Time": 390,
+      "Mechanic": "Absolute Zero",
+      "Slot": "MT",
+      "Action": "Reprisal/Party Mit"
     },
     {
       "Time": 500,
@@ -1088,17 +947,26 @@
     {
       "Time": 500,
       "Mechanic": "Junction (Transition)",
-      "Slot": "OT",
-      "Action": "Party Mit"
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
-      "Time": 532,
-      "Mechanic": "Ultimate Relativity",
+      "Time": 500,
+      "Mechanic": "Junction (Transition)",
       "Slot": "H2",
       "Action": "EukProg/Kera",
       "Jobs": [
         "SGE"
       ]
+    },
+    {
+      "Time": 500,
+      "Mechanic": "Junction (Transition)",
+      "Slot": "OT",
+      "Action": "Party Mit"
     },
     {
       "Time": 532,
@@ -1112,6 +980,15 @@
     {
       "Time": 532,
       "Mechanic": "Ultimate Relativity",
+      "Slot": "H2",
+      "Action": "EukProg/Kera",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 532,
+      "Mechanic": "Ultimate Relativity",
       "Slot": "M1",
       "Action": "Feint"
     },
@@ -1119,7 +996,7 @@
       "Time": 532,
       "Mechanic": "Ultimate Relativity",
       "Slot": "MT",
-      "Action": "Rep/Party Mit"
+      "Action": "Reprisal/Party Mit"
     },
     {
       "Time": 532,
@@ -1190,8 +1067,11 @@
     {
       "Time": 564,
       "Mechanic": "Set 3 and Rewind",
-      "Slot": "OT",
-      "Action": "Rep"
+      "Slot": "H2",
+      "Action": "Concit/Seraphism",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
       "Time": 564,
@@ -1205,17 +1085,17 @@
     {
       "Time": 564,
       "Mechanic": "Set 3 and Rewind",
-      "Slot": "H2",
-      "Action": "Concit/Seraphism",
-      "Jobs": [
-        "SCH"
-      ]
+      "Slot": "OT",
+      "Action": "Reprisal"
     },
     {
       "Time": 580,
       "Mechanic": "Shell Crusher",
-      "Slot": "MT",
-      "Action": "Rep"
+      "Slot": "H1",
+      "Action": "CU",
+      "Jobs": [
+        "AST"
+      ]
     },
     {
       "Time": 580,
@@ -1238,17 +1118,14 @@
     {
       "Time": 580,
       "Mechanic": "Shell Crusher",
-      "Slot": "H1",
-      "Action": "CU",
-      "Jobs": [
-        "AST"
-      ]
+      "Slot": "M2",
+      "Action": "Feint"
     },
     {
       "Time": 580,
       "Mechanic": "Shell Crusher",
-      "Slot": "M2",
-      "Action": "Feint"
+      "Slot": "MT",
+      "Action": "Reprisal"
     },
     {
       "Time": 580,
@@ -1278,52 +1155,14 @@
       "Time": 597,
       "Mechanic": "Black Halo",
       "Slot": "MT",
-      "Action": "*Bolide / Kitchen Sink",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 597,
-      "Mechanic": "Black Halo",
-      "Slot": "MT",
       "Action": "Kitchen Sink"
     },
     {
       "Time": 597,
       "Mechanic": "Black Halo",
       "Slot": "OT",
-      "Action": "Buddy Mit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 597,
-      "Mechanic": "Black Halo",
-      "Slot": "OT",
-      "Action": "Buddy Mit: TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 597,
-      "Mechanic": "Black Halo",
-      "Slot": "OT",
-      "Action": "Buddy Mit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 625,
-      "Mechanic": "Dark Water 1",
-      "Slot": "H2",
-      "Action": "Kera",
-      "Jobs": [
-        "SGE"
-      ]
+      "Action": "Buddy Mit",
+      "Jobs": []
     },
     {
       "Time": 625,
@@ -1335,25 +1174,10 @@
       ]
     },
     {
-      "Time": 638,
-      "Mechanic": "Dark Eruption",
-      "Slot": "OT",
-      "Action": "Rep"
-    },
-    {
-      "Time": 638,
-      "Mechanic": "Dark Eruption",
+      "Time": 625,
+      "Mechanic": "Dark Water 1",
       "Slot": "H2",
-      "Action": "Exped/Spread-Lo",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 638,
-      "Mechanic": "Dark Eruption",
-      "Slot": "H2",
-      "Action": "EukProg",
+      "Action": "Kera",
       "Jobs": [
         "SGE"
       ]
@@ -1368,65 +1192,42 @@
       ]
     },
     {
-      "Time": 646,
-      "Mechanic": "Darkest Dance",
-      "Slot": "MT",
-      "Action": "Buddy Mit: Nascent",
+      "Time": 638,
+      "Mechanic": "Dark Eruption",
+      "Slot": "H2",
+      "Action": "EukProg",
       "Jobs": [
-        "WAR"
+        "SGE"
       ]
+    },
+    {
+      "Time": 638,
+      "Mechanic": "Dark Eruption",
+      "Slot": "H2",
+      "Action": "Exped/Spread-Lo",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 638,
+      "Mechanic": "Dark Eruption",
+      "Slot": "OT",
+      "Action": "Reprisal"
     },
     {
       "Time": 646,
       "Mechanic": "Darkest Dance",
       "Slot": "MT",
-      "Action": "Buddy Mit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 646,
-      "Mechanic": "Darkest Dance",
-      "Slot": "MT",
-      "Action": "Buddy Mit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
+      "Action": "Buddy Mit",
+      "Jobs": []
     },
     {
       "Time": 646,
       "Mechanic": "Darkest Dance",
       "Slot": "OT",
       "Action": "Kitchen Sink",
-      "Jobs": [
-        "DRK",
-        "PLD"
-      ]
-    },
-    {
-      "Time": 646,
-      "Mechanic": "Darkest Dance",
-      "Slot": "OT",
-      "Action": "Living Dead",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 646,
-      "Mechanic": "Darkest Dance",
-      "Slot": "OT",
-      "Action": "Bolide",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 658,
-      "Mechanic": "Shockwave Pulsar",
-      "Slot": "R1",
-      "Action": "Party Mit"
+      "Jobs": []
     },
     {
       "Time": 658,
@@ -1456,7 +1257,13 @@
       "Time": 658,
       "Mechanic": "Shockwave Pulsar",
       "Slot": "MT",
-      "Action": "Rep/Party Mit"
+      "Action": "Reprisal/Party Mit"
+    },
+    {
+      "Time": 658,
+      "Mechanic": "Shockwave Pulsar",
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
       "Time": 658,
@@ -1477,15 +1284,6 @@
       "Time": 672,
       "Mechanic": "Memory's End",
       "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 672,
-      "Mechanic": "Memory's End",
-      "Slot": "H2",
       "Action": "(Early) Holos/Kera",
       "Jobs": [
         "SGE"
@@ -1494,14 +1292,17 @@
     {
       "Time": 672,
       "Mechanic": "Memory's End",
-      "Slot": "R1",
-      "Action": "Party Mit"
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
-      "Time": 715,
-      "Mechanic": "Darklit Dragonsong",
-      "Slot": "OT",
-      "Action": "Rep/Party Mit"
+      "Time": 672,
+      "Mechanic": "Memory's End",
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
       "Time": 715,
@@ -1525,6 +1326,15 @@
       "Time": 715,
       "Mechanic": "Darklit Dragonsong",
       "Slot": "H2",
+      "Action": "Recit Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 715,
+      "Mechanic": "Darklit Dragonsong",
+      "Slot": "H2",
       "Action": "Zoe EukProg/Kera",
       "Jobs": [
         "SGE"
@@ -1533,11 +1343,8 @@
     {
       "Time": 715,
       "Mechanic": "Darklit Dragonsong",
-      "Slot": "H2",
-      "Action": "Recit Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
+      "Slot": "OT",
+      "Action": "Reprisal/Party Mit"
     },
     {
       "Time": 726,
@@ -1560,80 +1367,16 @@
     {
       "Time": 738,
       "Mechanic": "Somber Dance",
-      "Slot": "OT",
-      "Action": "Living Dead",
-      "Jobs": [
-        "DRK"
-      ]
+      "Slot": "MT",
+      "Action": "Invulnerability",
+      "Jobs": []
     },
     {
       "Time": 738,
       "Mechanic": "Somber Dance",
-      "Slot": "MT",
-      "Action": "Holmgang",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 738,
-      "Mechanic": "Somber Dance",
-      "Slot": "MT",
-      "Action": "Bolide",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
       "Slot": "OT",
-      "Action": "Buddy Mit: TBN, Oblation / or (Right After 1st Somber) Rampart, TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "OT",
-      "Action": "Buddy Mit: TBN, Oblation / or (Right After 1st Somber) Rampart, Dark Mind, TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "OT",
-      "Action": "(Right After 1st Somber) Rampart/Camo, HoC / or Buddy Mit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "OT",
-      "Action": "(Right After 1st Somber) Rampart, Bulwark, Sheltron / or Buddy Mit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "OT",
-      "Action": "(Right After 1st Somber) Rampart, Dark Mind, TBN, Oblation / or Buddy Mit: TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "Akh Morn",
-      "Slot": "R1",
-      "Action": "Party Mit"
+      "Action": "Kitchen Sink",
+      "Jobs": []
     },
     {
       "Time": 751,
@@ -1655,96 +1398,35 @@
     },
     {
       "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "MT",
-      "Action": "(Right After 1st Somber) Rampart/Camo, HoC / or Buddy Mit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "MT",
-      "Action": "Buddy Mit: HoC / or (Right After 1st Somber) Rampart/Camo, HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "MT",
-      "Action": "(Right After 1st Somber) Rampart, Sheltron, Bulwark / or Buddy Mit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "7/1 Akh Morn 1",
-      "Slot": "MT",
-      "Action": "Buddy Mit: Nascent / or (Right After 1st Somber) Rampart, Bloodwhetting",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 751,
-      "Mechanic": "Akh Morn",
-      "Slot": "MT",
-      "Action": "Rep"
-    },
-    {
-      "Time": 751,
       "Mechanic": "Akh Morn",
       "Slot": "M1",
       "Action": "Feint (Shiva)"
     },
     {
-      "Time": 776,
-      "Mechanic": "Crystallize Time",
-      "Slot": "H2",
-      "Action": "EukProg/Kera",
-      "Jobs": [
-        "SGE"
-      ]
-    },
-    {
-      "Time": 776,
-      "Mechanic": "Crystallize Time",
-      "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 776,
-      "Mechanic": "Crystallize Time",
+      "Time": 751,
+      "Mechanic": "Akh Morn",
       "Slot": "MT",
-      "Action": "Party Mit"
+      "Action": "(Right After 1st Somber) 90s + Rampart + Short Mit + Buddy Mit",
+      "Jobs": []
     },
     {
-      "Time": 776,
-      "Mechanic": "Crystallize Time",
+      "Time": 751,
+      "Mechanic": "Akh Morn",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 751,
+      "Mechanic": "Akh Morn",
       "Slot": "OT",
-      "Action": "Rep"
+      "Action": "(Right After 1st Somber) 90s + Rampart + Short Mit + Buddy Mit",
+      "Jobs": []
     },
     {
-      "Time": 776,
-      "Mechanic": "Crystallize Time",
-      "Slot": "R2",
-      "Action": "Addle (Gaia)"
-    },
-    {
-      "Time": 776,
-      "Mechanic": "Crystallize Time",
-      "Slot": "H1",
-      "Action": "Confession",
-      "Jobs": [
-        "WHM"
-      ]
+      "Time": 751,
+      "Mechanic": "Akh Morn",
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
       "Time": 776,
@@ -1758,17 +1440,53 @@
     {
       "Time": 776,
       "Mechanic": "Crystallize Time",
+      "Slot": "H1",
+      "Action": "Confession",
+      "Jobs": [
+        "WHM"
+      ]
+    },
+    {
+      "Time": 776,
+      "Mechanic": "Crystallize Time",
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 776,
+      "Mechanic": "Crystallize Time",
+      "Slot": "H2",
+      "Action": "EukProg/Kera",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 776,
+      "Mechanic": "Crystallize Time",
       "Slot": "M2",
       "Action": "Feint (Gaia)"
     },
     {
-      "Time": 791,
-      "Mechanic": "Crystallize Mech",
-      "Slot": "H1",
-      "Action": "Macro",
-      "Jobs": [
-        "AST"
-      ]
+      "Time": 776,
+      "Mechanic": "Crystallize Time",
+      "Slot": "MT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 776,
+      "Mechanic": "Crystallize Time",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 776,
+      "Mechanic": "Crystallize Time",
+      "Slot": "R2",
+      "Action": "Addle (Gaia)"
     },
     {
       "Time": 791,
@@ -1782,10 +1500,10 @@
     {
       "Time": 791,
       "Mechanic": "Crystallize Mech",
-      "Slot": "H2",
-      "Action": "Spread-Lo/Exped/Seraphism",
+      "Slot": "H1",
+      "Action": "Macro",
       "Jobs": [
-        "SCH"
+        "AST"
       ]
     },
     {
@@ -1798,64 +1516,13 @@
       ]
     },
     {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings",
-      "Slot": "MT",
-      "Action": "Guardian",
+      "Time": 791,
+      "Mechanic": "Crystallize Mech",
+      "Slot": "H2",
+      "Action": "Spread-Lo/Exped/Seraphism",
       "Jobs": [
-        "PLD"
+        "SCH"
       ]
-    },
-    {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings",
-      "Slot": "MT",
-      "Action": "Great Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings",
-      "Slot": "MT",
-      "Action": "Damnation, Thrill",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings",
-      "Slot": "OT",
-      "Action": "Guardian",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings",
-      "Slot": "OT",
-      "Action": "Great Nebula",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings",
-      "Slot": "OT",
-      "Action": "Shadowed Vigil, Dark Mind",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 820,
-      "Mechanic": "Hallowed Wings",
-      "Slot": "OT",
-      "Action": "Party Mit"
     },
     {
       "Time": 820,
@@ -1874,114 +1541,32 @@
       "Jobs": [
         "SGE"
       ]
+    },
+    {
+      "Time": 820,
+      "Mechanic": "Hallowed Wings",
+      "Slot": "MT",
+      "Action": "40% + 90s",
+      "Jobs": []
+    },
+    {
+      "Time": 820,
+      "Mechanic": "Hallowed Wings",
+      "Slot": "OT",
+      "Action": "40% + 90s",
+      "Jobs": []
+    },
+    {
+      "Time": 820,
+      "Mechanic": "Hallowed Wings",
+      "Slot": "OT",
+      "Action": "Party Mit"
     },
     {
       "Time": 820,
       "Mechanic": "Hallowed Wings",
       "Slot": "R1",
       "Action": "Party Mit"
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "MT",
-      "Action": "Buddy Mit: Intervention / or Rampart, Bulwark, Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "MT",
-      "Action": "Rampart, Camo, HoC / or Buddy Mit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "MT",
-      "Action": "Rampart, Bloodwhetting / or Buddy Mit: Nascent",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "MT",
-      "Action": "Buddy Mit: HoC / or Rampart, Camo, HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "Akh Morn",
-      "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "Akh Morn",
-      "Slot": "H2",
-      "Action": "EukProg/Kera",
-      "Jobs": [
-        "SGE"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "Akh Morn",
-      "Slot": "MT",
-      "Action": "Rep"
-    },
-    {
-      "Time": 834,
-      "Mechanic": "Akh Morn",
-      "Slot": "M1",
-      "Action": "Feint (Shiva)"
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "OT",
-      "Action": "Buddy Mit: HoC / or Rampart, Camo, HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "OT",
-      "Action": "Buddy Mit: TBN, Oblation / or Rampart, TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "OT",
-      "Action": "Buddy Mit: Intervention / or Rampart, Bulwark, Sheltron",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 834,
-      "Mechanic": "7/1 Akh Morn 2",
-      "Slot": "OT",
-      "Action": "Rampart, TBN, Oblation / or Buddy Mit: TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
     },
     {
       "Time": 834,
@@ -2004,17 +1589,52 @@
     {
       "Time": 834,
       "Mechanic": "Akh Morn",
-      "Slot": "R1",
-      "Action": "Party Mit"
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
-      "Time": 1041,
-      "Mechanic": "Fulgent Blade 1",
-      "Slot": "H1",
-      "Action": "Confession",
+      "Time": 834,
+      "Mechanic": "Akh Morn",
+      "Slot": "H2",
+      "Action": "EukProg/Kera",
       "Jobs": [
-        "WHM"
+        "SGE"
       ]
+    },
+    {
+      "Time": 834,
+      "Mechanic": "Akh Morn",
+      "Slot": "M1",
+      "Action": "Feint (Shiva)"
+    },
+    {
+      "Time": 834,
+      "Mechanic": "Akh Morn",
+      "Slot": "MT",
+      "Action": "90s + Rampart + Short Mit + Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 834,
+      "Mechanic": "Akh Morn",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 834,
+      "Mechanic": "Akh Morn",
+      "Slot": "OT",
+      "Action": "90s + Rampart + Short Mit + Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 834,
+      "Mechanic": "Akh Morn",
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
       "Time": 1041,
@@ -2023,6 +1643,15 @@
       "Action": "CU",
       "Jobs": [
         "AST"
+      ]
+    },
+    {
+      "Time": 1041,
+      "Mechanic": "Fulgent Blade 1",
+      "Slot": "H1",
+      "Action": "Confession",
+      "Jobs": [
+        "WHM"
       ]
     },
     {
@@ -2046,41 +1675,14 @@
     {
       "Time": 1041,
       "Mechanic": "Fulgent Blade 1",
-      "Slot": "MT",
-      "Action": "Rep"
-    },
-    {
-      "Time": 1041,
-      "Mechanic": "Fulgent Blade 1",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
-      "Time": 1068,
-      "Mechanic": "Akh Morn 1",
-      "Slot": "R2",
-      "Action": "Addle"
-    },
-    {
-      "Time": 1068,
-      "Mechanic": "Akh Morn 1",
+      "Time": 1041,
+      "Mechanic": "Fulgent Blade 1",
       "Slot": "MT",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 1068,
-      "Mechanic": "Akh Morn 1",
-      "Slot": "M2",
-      "Action": "Feint"
-    },
-    {
-      "Time": 1068,
-      "Mechanic": "Akh Morn 1",
-      "Slot": "H2",
-      "Action": "Spread-Lo/Soil",
-      "Jobs": [
-        "SCH"
-      ]
+      "Action": "Reprisal"
     },
     {
       "Time": 1068,
@@ -2094,87 +1696,49 @@
     {
       "Time": 1068,
       "Mechanic": "Akh Morn 1",
-      "Slot": "OT",
-      "Action": "Rep"
-    },
-    {
-      "Time": 1086,
-      "Mechanic": "Wings Dark and Light 1",
-      "Slot": "OT",
-      "Action": "Hallowed Ground / Buddy Mit 2nd Hit: Intervention",
+      "Slot": "H2",
+      "Action": "Spread-Lo/Soil",
       "Jobs": [
-        "PLD"
+        "SCH"
       ]
     },
     {
-      "Time": 1086,
-      "Mechanic": "Wings Dark and Light 1",
-      "Slot": "OT",
-      "Action": "Kitchen Sink (TBN 2nd hit)",
-      "Jobs": [
-        "DRK"
-      ]
+      "Time": 1068,
+      "Mechanic": "Akh Morn 1",
+      "Slot": "M2",
+      "Action": "Feint"
     },
     {
-      "Time": 1086,
-      "Mechanic": "Wings Dark and Light 1",
-      "Slot": "OT",
-      "Action": "Kitchen Sink",
-      "Jobs": [
-        "GNB",
-        "PLD"
-      ]
-    },
-    {
-      "Time": 1086,
-      "Mechanic": "Wings Dark and Light 1",
+      "Time": 1068,
+      "Mechanic": "Akh Morn 1",
       "Slot": "MT",
-      "Action": "Kitchen Sink",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 1086,
-      "Mechanic": "Wings Dark and Light 1",
-      "Slot": "MT",
-      "Action": "Holmgang / Buddy Mit 2nd Hit: Nascent",
-      "Jobs": [
-        "WAR"
-      ]
-    },
-    {
-      "Time": 1086,
-      "Mechanic": "Wings Dark and Light 1",
-      "Slot": "MT",
-      "Action": "Hallowed / Buddy Mit 2nd Hit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 1086,
-      "Mechanic": "Wings Dark and Light 1",
-      "Slot": "MT",
-      "Action": "Bolide / Buddy Mit 2nd Hit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 1107,
-      "Mechanic": "Polarizing Strikes 1",
-      "Slot": "OT",
       "Action": "Party Mit"
     },
     {
-      "Time": 1107,
-      "Mechanic": "Polarizing Strikes 1",
-      "Slot": "H1",
-      "Action": "Temp/Caress",
-      "Jobs": [
-        "WHM"
-      ]
+      "Time": 1068,
+      "Mechanic": "Akh Morn 1",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 1068,
+      "Mechanic": "Akh Morn 1",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
+      "Time": 1086,
+      "Mechanic": "Wings Dark and Light",
+      "Slot": "MT",
+      "Action": "Invulnerability + Buddy Mit 2nd Hit",
+      "Jobs": []
+    },
+    {
+      "Time": 1086,
+      "Mechanic": "Wings Dark and Light",
+      "Slot": "OT",
+      "Action": "Kitchen Sink + Buddy Mit 2nd Hit",
+      "Jobs": []
     },
     {
       "Time": 1107,
@@ -2183,6 +1747,15 @@
       "Action": "Neutral/Sun",
       "Jobs": [
         "AST"
+      ]
+    },
+    {
+      "Time": 1107,
+      "Mechanic": "Polarizing Strikes 1",
+      "Slot": "H1",
+      "Action": "Temp/Caress",
+      "Jobs": [
+        "WHM"
       ]
     },
     {
@@ -2206,20 +1779,38 @@
     {
       "Time": 1107,
       "Mechanic": "Polarizing Strikes 1",
-      "Slot": "R1",
+      "Slot": "MT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 1107,
+      "Mechanic": "Polarizing Strikes 1",
+      "Slot": "OT",
       "Action": "Party Mit"
     },
     {
       "Time": 1107,
       "Mechanic": "Polarizing Strikes 1",
-      "Slot": "MT",
-      "Action": "Rep"
+      "Slot": "R1",
+      "Action": "Party Mit"
     },
     {
       "Time": 1142,
       "Mechanic": "Pandora's Box",
-      "Slot": "OT",
-      "Action": "Rep"
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 1142,
+      "Mechanic": "Pandora's Box",
+      "Slot": "H2",
+      "Action": "EukProg/Kera",
+      "Jobs": [
+        "SGE"
+      ]
     },
     {
       "Time": 1142,
@@ -2230,44 +1821,14 @@
     {
       "Time": 1142,
       "Mechanic": "Pandora's Box",
-      "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 1142,
-      "Mechanic": "Pandora's Box",
-      "Slot": "H2",
-      "Action": "EukProg/Kera",
-      "Jobs": [
-        "SGE"
-      ]
-    },
-    {
-      "Time": 1142,
-      "Mechanic": "Pandora's Box",
       "Slot": "MT",
-      "Action": "TANK LB"
+      "Action": "LB3"
     },
     {
-      "Time": 1154,
-      "Mechanic": "Fulgent Blade 2",
-      "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 1154,
-      "Mechanic": "Fulgent Blade 2",
-      "Slot": "H2",
-      "Action": "EukProg/Kera",
-      "Jobs": [
-        "SGE"
-      ]
+      "Time": 1142,
+      "Mechanic": "Pandora's Box",
+      "Slot": "OT",
+      "Action": "Reprisal"
     },
     {
       "Time": 1154,
@@ -2288,22 +1849,22 @@
       ]
     },
     {
-      "Time": 1181,
-      "Mechanic": "Akh Morn 2",
-      "Slot": "R2",
-      "Action": "Addle"
+      "Time": 1154,
+      "Mechanic": "Fulgent Blade 2",
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
-      "Time": 1181,
-      "Mechanic": "Akh Morn 2",
-      "Slot": "MT",
-      "Action": "Rep/Party Mit"
-    },
-    {
-      "Time": 1181,
-      "Mechanic": "Akh Morn 2",
-      "Slot": "M2",
-      "Action": "Feint"
+      "Time": 1154,
+      "Mechanic": "Fulgent Blade 2",
+      "Slot": "H2",
+      "Action": "EukProg/Kera",
+      "Jobs": [
+        "SGE"
+      ]
     },
     {
       "Time": 1181,
@@ -2324,64 +1885,42 @@
       ]
     },
     {
+      "Time": 1181,
+      "Mechanic": "Akh Morn 2",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 1181,
+      "Mechanic": "Akh Morn 2",
+      "Slot": "MT",
+      "Action": "Reprisal/Party Mit"
+    },
+    {
+      "Time": 1181,
+      "Mechanic": "Akh Morn 2",
+      "Slot": "R2",
+      "Action": "Addle"
+    },
+    {
       "Time": 1204,
-      "Mechanic": "Wings Dark and Light 2",
+      "Mechanic": "Wings Dark and Light",
+      "Slot": "MT",
+      "Action": "Buddy Mit 2nd Hit",
+      "Jobs": []
+    },
+    {
+      "Time": 1204,
+      "Mechanic": "Wings Dark and Light",
       "Slot": "MT",
       "Action": "Kitchen Sink"
     },
     {
       "Time": 1204,
-      "Mechanic": "Wings Dark and Light 2",
-      "Slot": "MT",
-      "Action": "Bolide / Buddy Mit 2nd Hit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 1204,
-      "Mechanic": "Wings Dark and Light 2",
+      "Mechanic": "Wings Dark and Light",
       "Slot": "OT",
-      "Action": "Hallowed / Buddy Mit 2nd Hit: Intervention",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 1204,
-      "Mechanic": "Wings Dark and Light 2",
-      "Slot": "OT",
-      "Action": "Kitchen Sink",
-      "Jobs": [
-        "PLD"
-      ]
-    },
-    {
-      "Time": 1204,
-      "Mechanic": "Wings Dark and Light 2",
-      "Slot": "OT",
-      "Action": "Living Dead / Buddy Mit 2nd Hit: TBN, Oblation",
-      "Jobs": [
-        "DRK"
-      ]
-    },
-    {
-      "Time": 1204,
-      "Mechanic": "Wings Dark and Light 2",
-      "Slot": "OT",
-      "Action": "Bolide / Buddy Mit 2nd Hit: HoC",
-      "Jobs": [
-        "GNB"
-      ]
-    },
-    {
-      "Time": 1220,
-      "Mechanic": "Polarizing Strikes 2",
-      "Slot": "H1",
-      "Action": "Temp/Bell/Caress",
-      "Jobs": [
-        "WHM"
-      ]
+      "Action": "Invulnerability + Buddy Mit 2nd Hit",
+      "Jobs": []
     },
     {
       "Time": 1220,
@@ -2395,8 +1934,11 @@
     {
       "Time": 1220,
       "Mechanic": "Polarizing Strikes 2",
-      "Slot": "R1",
-      "Action": "Party Mit"
+      "Slot": "H1",
+      "Action": "Temp/Bell/Caress",
+      "Jobs": [
+        "WHM"
+      ]
     },
     {
       "Time": 1220,
@@ -2423,6 +1965,12 @@
       "Action": "Party Mit"
     },
     {
+      "Time": 1220,
+      "Mechanic": "Polarizing Strikes 2",
+      "Slot": "R1",
+      "Action": "Party Mit"
+    },
+    {
       "Time": 1244,
       "Mechanic": "Fulgent Blade 3",
       "Slot": "H1",
@@ -2443,8 +1991,11 @@
     {
       "Time": 1244,
       "Mechanic": "Fulgent Blade 3",
-      "Slot": "OT",
-      "Action": "Rep"
+      "Slot": "H2",
+      "Action": "Concit/Soil",
+      "Jobs": [
+        "SCH"
+      ]
     },
     {
       "Time": 1244,
@@ -2458,29 +2009,14 @@
     {
       "Time": 1244,
       "Mechanic": "Fulgent Blade 3",
-      "Slot": "H2",
-      "Action": "Concit/Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 1244,
-      "Mechanic": "Fulgent Blade 3",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
-      "Time": 1272,
-      "Mechanic": "Akh Morn 3",
-      "Slot": "M2",
-      "Action": "Feint"
-    },
-    {
-      "Time": 1272,
-      "Mechanic": "Akh Morn 3",
-      "Slot": "R2",
-      "Action": "Addle"
+      "Time": 1244,
+      "Mechanic": "Fulgent Blade 3",
+      "Slot": "OT",
+      "Action": "Reprisal"
     },
     {
       "Time": 1272,
@@ -2503,8 +2039,20 @@
     {
       "Time": 1272,
       "Mechanic": "Akh Morn 3",
+      "Slot": "M2",
+      "Action": "Feint"
+    },
+    {
+      "Time": 1272,
+      "Mechanic": "Akh Morn 3",
       "Slot": "MT",
-      "Action": "Rep/Party Mit"
+      "Action": "Reprisal/Party Mit"
+    },
+    {
+      "Time": 1272,
+      "Mechanic": "Akh Morn 3",
+      "Slot": "R2",
+      "Action": "Addle"
     }
   ],
   "SyncPoints": [
@@ -3708,5 +3256,27 @@
       "Enrage": false
     }
   ],
-  "BossAnchors": []
+  "BossAnchors": [],
+  "PriorityPhases": [
+    {
+      "Start": 730,
+      "End": 745,
+      "JobPriority": [
+        "DRK",
+        "GNB",
+        "WAR",
+        "PLD"
+      ]
+    },
+    {
+      "Start": 1080,
+      "End": 1210,
+      "JobPriority": [
+        "WAR",
+        "PLD",
+        "GNB",
+        "DRK"
+      ]
+    }
+  ]
 }

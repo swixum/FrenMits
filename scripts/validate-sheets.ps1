@@ -1,4 +1,4 @@
-# Validates the baked fight sheets in src/Data/Sheets.
+﻿# Validates the baked fight sheets in src/Data/Sheets.
 #
 # The invariant: every DefaultAction names a real boss cast. A sheet's
 # Timeline is the authoritative list of what the boss does; an action that
@@ -16,8 +16,14 @@
 param(
     [string] $SheetsPath = '',
     # Sheets held to the full invariant. Add a sheet here once it is clean.
-    [string[]] $Strict = @('DancingMad(UMAD)', 'M12S-Lindwurm', 'UnendingCoilofBahamut(UCOB)',
-                           "Weapon'sRefrain(UWU)", 'EpicofAlexander(TEA)', 'TheOmegaProtocol(TOP)')
+    [string[]] $Strict = @('DancingMad(UMAD)', 'Doomtrain', "Dragonsong'sReprise(DSR)", 'Enuo',
+                           'EpicofAlexander(TEA)', 'FuturesRewritten(FRU)',
+                           'M10S-RedHot_DeepBlue', 'M11S-TheTyrant', 'M12S-Lindwurm',
+                           'M1S-BlackCat', 'M2S-HoneyB.Lovely', 'M3S-BruteBomber',
+                           'M4S-WickedThunder', 'M5S-DancingGreen', 'M6S-SugarRiot',
+                           'M7S-BruteAbombinator', 'M8S-HowlingBlade', 'M9S-VampFatale',
+                           'TheOmegaProtocol(TOP)', 'UnendingCoilofBahamut(UCOB)',
+                           "Weapon'sRefrain(UWU)", 'Zelenia')
 )
 
 $ErrorActionPreference = 'Stop'
