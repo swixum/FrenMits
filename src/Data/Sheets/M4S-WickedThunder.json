@@ -48,7 +48,7 @@
     },
     {
       "Time": 266,
-      "Mechanic": "Negatron Stream"
+      "Mechanic": "Electron Stream"
     },
     {
       "Time": 292,
@@ -116,7 +116,7 @@
     },
     {
       "Time": 253,
-      "Mechanic": "Negatron Stream"
+      "Mechanic": "Electron Stream"
     },
     {
       "Time": 264,
@@ -916,7 +916,7 @@
     },
     {
       "Time": 253,
-      "Mechanic": "Negatron Stream",
+      "Mechanic": "Electron Stream",
       "Slot": "OT",
       "Action": "Short Mit"
     },
@@ -982,7 +982,7 @@
     },
     {
       "Time": 266,
-      "Mechanic": "Negatron Stream",
+      "Mechanic": "Electron Stream",
       "Slot": "MT",
       "Action": "Short Mit"
     },
@@ -2012,7 +2012,7 @@
       "Ability": 38361,
       "Time": 253,
       "IsPhase": false,
-      "Label": "P1 Negatron Stream"
+      "Label": "P1 Electron Stream"
     },
     {
       "Ability": 38359,
@@ -2030,7 +2030,7 @@
       "Ability": 38361,
       "Time": 266,
       "IsPhase": false,
-      "Label": "P1 Negatron Stream"
+      "Label": "P1 Electron Stream"
     },
     {
       "Ability": 38360,
@@ -2042,7 +2042,7 @@
       "Ability": 38361,
       "Time": 279,
       "IsPhase": false,
-      "Label": "P1 Negatron Stream"
+      "Label": "P1 Electron Stream"
     },
     {
       "Ability": 38384,
@@ -2396,7 +2396,7 @@
     },
     {
       "Time": 253,
-      "Mechanic": "Negatron Stream",
+      "Mechanic": "Electron Stream",
       "Hurt": 2,
       "Buster": false,
       "Enrage": false
@@ -2417,14 +2417,14 @@
     },
     {
       "Time": 266,
-      "Mechanic": "Negatron Stream",
+      "Mechanic": "Electron Stream",
       "Hurt": 2,
       "Buster": false,
       "Enrage": false
     },
     {
       "Time": 279,
-      "Mechanic": "Negatron Stream",
+      "Mechanic": "Electron Stream",
       "Hurt": 2,
       "Buster": false,
       "Enrage": false

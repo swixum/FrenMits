@@ -190,7 +190,7 @@ public static class Builtin
         "P1" => "All mechanics require shields!\n"
             + "Mitigation for the first Mystery Magic should carry over till the first Double-Trouble Trap unless there is a different usage timing below. "
             + "Targeted mitigation does not work on Wave Cannon, but does apply to Double-Trouble Trap.\n"
-            + "Use mitigation for Light of Judgement late into the castbar so it will cover Hyperdrive.\n"
+            + "Use mitigation for Light of Judgment late into the castbar so it will cover Hyperdrive.\n"
             + "\n"
             + "1) Use your 90s party mitigation as Kefka re-centers to cast the first Graven Image (WAR/PLD can use after Revolting Ruin III finishes).\n"
             + "2) Use your 30s mitigation for the first Mystery Magic after the Graven Image castbar.\n"
@@ -201,7 +201,7 @@ public static class Builtin
             + "\n"
             + "1) Provide single target mitigation and GCD shield both tanks in the phase transition for Ultimate Embrace. Also assist tanks with the last Ultimate Embrace.\n"
             + "2) Prepare Spreadlo either on the OT shortly beforehand or the MT during Ultimate Embrace to assist the tanks.\n"
-            + "3) Use Holos during the first Ultimate Embrace so it is back for Light of Judgement and provides mitigation to the tanks. Alternatively, you can use Holos for the Wings of Destruction + Ultimate Embrace.\n"
+            + "3) Use Holos during the first Ultimate Embrace so it is back for Light of Judgment and provides mitigation to the tanks. Alternatively, you can use Holos for the Wings of Destruction + Ultimate Embrace.\n"
             + "4) Use early to avoid shaking off mitigation if playing WAR.",
 
         "P3" => "All mechanics require shields!\n"

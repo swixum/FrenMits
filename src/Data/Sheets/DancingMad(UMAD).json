@@ -4034,7 +4034,7 @@
       "Ability": 47805,
       "Time": 343,
       "IsPhase": false,
-      "Label": "P2 Light of Judgement"
+      "Label": "P2 Light of Judgment"
     },
     {
       "Ability": 47823,
@@ -4438,7 +4438,7 @@
     },
     {
       "Time": 343,
-      "Mechanic": "Light of Judgement",
+      "Mechanic": "Light of Judgment",
       "Hurt": 3,
       "Buster": false,
       "Enrage": false
@@ -4522,7 +4522,7 @@
     },
     {
       "Time": 554,
-      "Mechanic": "Thunder III",
+      "Mechanic": "Thunder III (3rd Set)",
       "Hurt": 3,
       "Buster": true,
       "Enrage": false
@@ -4564,7 +4564,7 @@
     },
     {
       "Time": 595,
-      "Mechanic": "Thunder III",
+      "Mechanic": "Thunder III (4th Set)",
       "Hurt": 1,
       "Buster": true,
       "Enrage": false

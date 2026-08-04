@@ -32,7 +32,7 @@
     },
     {
       "Time": 214,
-      "Mechanic": "Optomized Meteor (6-1-1)"
+      "Mechanic": "Optimized Meteor (6-1-1)"
     },
     {
       "Time": 290,
@@ -40,7 +40,7 @@
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World"
+      "Mechanic": "Hello, World"
     },
     {
       "Time": 326,
@@ -344,7 +344,7 @@
     },
     {
       "Time": 214,
-      "Mechanic": "Optomized Meteor (6-1-1)",
+      "Mechanic": "Optimized Meteor (6-1-1)",
       "Slot": "H1",
       "Action": "Everything",
       "Jobs": [
@@ -353,13 +353,13 @@
     },
     {
       "Time": 214,
-      "Mechanic": "Optomized Meteor (6-1-1)",
+      "Mechanic": "Optimized Meteor (6-1-1)",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
       "Time": 214,
-      "Mechanic": "Optomized Meteor (6-1-1)",
+      "Mechanic": "Optimized Meteor (6-1-1)",
       "Slot": "R1",
       "Action": "Party Mit"
     },
@@ -374,7 +374,7 @@
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Slot": "H1",
       "Action": "Collective Unconscious",
       "Jobs": [
@@ -383,7 +383,7 @@
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
       "Jobs": [
@@ -392,32 +392,32 @@
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Slot": "MT",
       "Action": "90s + Short Mit",
       "Jobs": []
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Slot": "OT",
       "Action": "Buddy Mit whenever available!"
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Slot": "R2",
       "Action": "Addle"
     },
@@ -2171,7 +2171,7 @@
     },
     {
       "Time": 303,
-      "Mechanic": "Hello World",
+      "Mechanic": "Hello, World",
       "Hurt": 2,
       "Buster": false,
       "Enrage": false

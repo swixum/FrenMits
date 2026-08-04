@@ -140,7 +140,7 @@
     },
     {
       "Time": 794,
-      "Mechanic": "Ahk Morn I"
+      "Mechanic": "Akh Morn I"
     },
     {
       "Time": 817,
@@ -148,7 +148,7 @@
     },
     {
       "Time": 825,
-      "Mechanic": "Ahk Morn II"
+      "Mechanic": "Akh Morn II"
     },
     {
       "Time": 872,
@@ -156,7 +156,7 @@
     },
     {
       "Time": 882,
-      "Mechanic": "Ahk Morn III"
+      "Mechanic": "Akh Morn III"
     },
     {
       "Time": 906,
@@ -164,7 +164,7 @@
     },
     {
       "Time": 906,
-      "Mechanic": "Ahk Morn IV"
+      "Mechanic": "Akh Morn IV"
     },
     {
       "Time": 956,
@@ -1321,13 +1321,13 @@
     },
     {
       "Time": 794,
-      "Mechanic": "Ahk Morn I",
+      "Mechanic": "Akh Morn I",
       "Slot": "MT",
       "Action": "Kitchen Sink"
     },
     {
       "Time": 794,
-      "Mechanic": "Ahk Morn I",
+      "Mechanic": "Akh Morn I",
       "Slot": "OT",
       "Action": "Kitchen Sink"
     },
@@ -1408,15 +1408,15 @@
     },
     {
       "Time": 825,
-      "Mechanic": "Ahk Morn II",
+      "Mechanic": "Akh Morn II",
       "Slot": "MT",
       "Action": "Invulnerability"
     },
     {
       "Time": 825,
-      "Mechanic": "Ahk Morn II",
+      "Mechanic": "Akh Morn II",
       "Slot": "OT",
-      "Action": "Provoke (After Ahk Morn Concludes)"
+      "Action": "Provoke (After Akh Morn Concludes)"
     },
     {
       "Time": 872,
@@ -1474,13 +1474,13 @@
     },
     {
       "Time": 882,
-      "Mechanic": "Ahk Morn III",
+      "Mechanic": "Akh Morn III",
       "Slot": "MT",
-      "Action": "Provoke (After Ahk Morn Concludes)"
+      "Action": "Provoke (After Akh Morn Concludes)"
     },
     {
       "Time": 882,
-      "Mechanic": "Ahk Morn III",
+      "Mechanic": "Akh Morn III",
       "Slot": "OT",
       "Action": "Invulnerability"
     },
@@ -1546,13 +1546,13 @@
     },
     {
       "Time": 906,
-      "Mechanic": "Ahk Morn IV",
+      "Mechanic": "Akh Morn IV",
       "Slot": "MT",
       "Action": "Kitchen Sink"
     },
     {
       "Time": 906,
-      "Mechanic": "Ahk Morn IV",
+      "Mechanic": "Akh Morn IV",
       "Slot": "OT",
       "Action": "Kitchen Sink"
     },

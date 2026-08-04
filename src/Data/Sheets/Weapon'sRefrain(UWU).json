@@ -4,7 +4,7 @@
   "Timeline": [
     {
       "Time": 9,
-      "Mechanic": "Slipstream + Mistrel Song"
+      "Mechanic": "Slipstream + Mistral Song"
     },
     {
       "Time": 16,
@@ -12,7 +12,7 @@
     },
     {
       "Time": 20,
-      "Mechanic": "Mistrel Song"
+      "Mechanic": "Mistral Song"
     },
     {
       "Time": 21,
@@ -20,7 +20,7 @@
     },
     {
       "Time": 24,
-      "Mechanic": "Slipstream + Mistrel Song"
+      "Mechanic": "Slipstream + Mistral Song"
     },
     {
       "Time": 42,
@@ -40,7 +40,7 @@
     },
     {
       "Time": 113,
-      "Mechanic": "Mistrel Song"
+      "Mechanic": "Mistral Song"
     },
     {
       "Time": 132,
@@ -96,7 +96,7 @@
     },
     {
       "Time": 255,
-      "Mechanic": "Earthern Fury"
+      "Mechanic": "Earthen Fury"
     },
     {
       "Time": 261,
@@ -132,7 +132,7 @@
     },
     {
       "Time": 481,
-      "Mechanic": "Homing Laser"
+      "Mechanic": "Homing Lasers"
     },
     {
       "Time": 486,
@@ -144,7 +144,7 @@
     },
     {
       "Time": 562,
-      "Mechanic": "Mistrel Shriek"
+      "Mechanic": "Mistral Shriek"
     },
     {
       "Time": 563,
@@ -168,7 +168,7 @@
     },
     {
       "Time": 623,
-      "Mechanic": "Homing Laser"
+      "Mechanic": "Homing Lasers"
     },
     {
       "Time": 655,
@@ -206,25 +206,25 @@
   "DefaultActions": [
     {
       "Time": 9,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "MT",
       "Action": "90s"
     },
     {
       "Time": 9,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "MT",
       "Action": "Rampart"
     },
     {
       "Time": 9,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "MT",
       "Action": "Short Mit"
     },
     {
       "Time": 9,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "OT",
       "Action": "Rampart"
     },
@@ -248,25 +248,25 @@
     },
     {
       "Time": 20,
-      "Mechanic": "Mistrel Song",
+      "Mechanic": "Mistral Song",
       "Slot": "MT",
       "Action": "120s"
     },
     {
       "Time": 20,
-      "Mechanic": "Mistrel Song",
+      "Mechanic": "Mistral Song",
       "Slot": "MT",
       "Action": "Short Mit"
     },
     {
       "Time": 20,
-      "Mechanic": "Mistrel Song",
+      "Mechanic": "Mistral Song",
       "Slot": "OT",
       "Action": "120s"
     },
     {
       "Time": 20,
-      "Mechanic": "Mistrel Song",
+      "Mechanic": "Mistral Song",
       "Slot": "OT",
       "Action": "Short Mit"
     },
@@ -296,31 +296,31 @@
     },
     {
       "Time": 24,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "MT",
       "Action": "90s"
     },
     {
       "Time": 24,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "MT",
       "Action": "Rampart"
     },
     {
       "Time": 24,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "MT",
       "Action": "Short Mit"
     },
     {
       "Time": 24,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "OT",
       "Action": "90s"
     },
     {
       "Time": 24,
-      "Mechanic": "Slipstream + Mistrel Song",
+      "Mechanic": "Slipstream + Mistral Song",
       "Slot": "OT",
       "Action": "Rampart"
     },
@@ -431,7 +431,7 @@
     },
     {
       "Time": 113,
-      "Mechanic": "Mistrel Song",
+      "Mechanic": "Mistral Song",
       "Slot": "OT",
       "Action": "Reprisal"
     },
@@ -758,7 +758,7 @@
     },
     {
       "Time": 255,
-      "Mechanic": "Earthern Fury",
+      "Mechanic": "Earthen Fury",
       "Slot": "MT",
       "Action": "Reprisal"
     },
@@ -950,13 +950,13 @@
     },
     {
       "Time": 481,
-      "Mechanic": "Homing Laser",
+      "Mechanic": "Homing Lasers",
       "Slot": "MT",
       "Action": "Provoke"
     },
     {
       "Time": 481,
-      "Mechanic": "Homing Laser",
+      "Mechanic": "Homing Lasers",
       "Slot": "OT",
       "Action": "Kitchen Sink"
     },
@@ -1043,13 +1043,13 @@
     },
     {
       "Time": 562,
-      "Mechanic": "Mistrel Shriek",
+      "Mechanic": "Mistral Shriek",
       "Slot": "MT",
       "Action": "Party Mit (WAR/PLD)"
     },
     {
       "Time": 562,
-      "Mechanic": "Mistrel Shriek",
+      "Mechanic": "Mistral Shriek",
       "Slot": "R1",
       "Action": "Carry Over"
     },
@@ -1166,13 +1166,13 @@
     },
     {
       "Time": 623,
-      "Mechanic": "Homing Laser",
+      "Mechanic": "Homing Lasers",
       "Slot": "MT",
       "Action": "Provoke"
     },
     {
       "Time": 623,
-      "Mechanic": "Homing Laser",
+      "Mechanic": "Homing Lasers",
       "Slot": "OT",
       "Action": "Invulnerability"
     },
@@ -1602,7 +1602,7 @@
     },
     {
       "Time": 255,
-      "Mechanic": "Earthern Fury",
+      "Mechanic": "Earthen Fury",
       "Hurt": 1,
       "Buster": false,
       "Enrage": false
@@ -1651,7 +1651,7 @@
     },
     {
       "Time": 562,
-      "Mechanic": "Mistrel Shriek",
+      "Mechanic": "Mistral Shriek",
       "Hurt": 2,
       "Buster": false,
       "Enrage": false

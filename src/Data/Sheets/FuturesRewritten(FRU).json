@@ -64,7 +64,7 @@
     },
     {
       "Time": 293,
-      "Mechanic": "Mirror Mirror"
+      "Mechanic": "Mirror, Mirror"
     },
     {
       "Time": 323,
@@ -694,7 +694,7 @@
     },
     {
       "Time": 293,
-      "Mechanic": "Mirror Mirror",
+      "Mechanic": "Mirror, Mirror",
       "Slot": "H1",
       "Action": "Neutral Sect/Sun Sign",
       "Jobs": [
@@ -703,7 +703,7 @@
     },
     {
       "Time": 293,
-      "Mechanic": "Mirror Mirror",
+      "Mechanic": "Mirror, Mirror",
       "Slot": "H1",
       "Action": "Plenary Indulgence/Temperance",
       "Jobs": [
@@ -712,7 +712,7 @@
     },
     {
       "Time": 293,
-      "Mechanic": "Mirror Mirror",
+      "Mechanic": "Mirror, Mirror",
       "Slot": "H2",
       "Action": "Fey Illumination/Seraph",
       "Jobs": [
@@ -721,7 +721,7 @@
     },
     {
       "Time": 293,
-      "Mechanic": "Mirror Mirror",
+      "Mechanic": "Mirror, Mirror",
       "Slot": "H2",
       "Action": "Panhaima",
       "Jobs": [
