@@ -467,6 +467,74 @@ public static class ConfigMigrations
             config.Version = 44;
             config.Save();
         }
+
+        // v45: an older bake saved built-in lines without their job gate, so a
+        // WHM's plan carried the AST calls too (and SCH carried SGE's). The
+        // grid has nothing to filter on, so both jobs' calls render in both
+        // columns. The sheet has always carried the gate; only the saved copy
+        // lost it, and a saved plan never re-bakes itself.
+        if (config.Version < 45)
+        {
+            var fixedUp = 0;
+            foreach (var f in config.Fights)
+            {
+                if (f.CustomSlots.Count > 0 || string.IsNullOrEmpty(f.Slot)) continue;
+                if (!Builtin.Has(f.TerritoryId)) continue;
+                fixedUp += RestoreLostJobGates(f, f.Slot);
+                foreach (var key in new List<string>(f.SavedSlots.Keys))
+                    fixedUp += RestoreLostJobGates(f, key, f.SavedSlots[key]);
+            }
+            if (fixedUp > 0)
+                EncounterLog.Info($"[FrenMits] restored the job gate on {fixedUp} saved line(s).");
+            config.Version = 45;
+            config.Save();
+        }
+    }
+
+    // Give an ungated saved line back the gate its sheet row carries. Matched on
+    // (time, mechanic) within the slot; where a mechanic has one row per job the
+    // action text picks between them. Anything still ambiguous is left alone.
+    private static int RestoreLostJobGates(FightProfile f, string slot, List<MitLine>? target = null)
+    {
+        var lines = target ?? f.Lines;
+        var baked = Builtin.BuildLines(f.TerritoryId, slot);
+        if (baked.Count == 0) return 0;
+
+        var n = 0;
+        foreach (var l in lines)
+        {
+            if (l.Custom || l.Jobs.Count > 0) continue;
+            var here = baked.FindAll(b => b.Jobs.Count > 0
+                                          && MathF.Abs(b.Time - l.Time) < 0.9f
+                                          && string.Equals(b.Mechanic.Trim(), l.Mechanic.Trim(),
+                                                           StringComparison.OrdinalIgnoreCase));
+            if (here.Count == 0) continue;
+
+            var pick = here.Count == 1
+                ? here[0]
+                : here.Find(b => string.Equals(b.Action.Trim(), l.Action.Trim(), StringComparison.OrdinalIgnoreCase))
+                  ?? here.Find(b => b.Action.Contains(l.Action.Trim(), StringComparison.OrdinalIgnoreCase)
+                                    || l.Action.Contains(b.Action.Trim(), StringComparison.OrdinalIgnoreCase))
+                  // The saved copy may still be written in the sheet's old
+                  // shorthand, so fall back to what each side actually names.
+                  ?? here.Find(b => NamesTheSameMit(b.Action, l.Action));
+            if (pick == null) continue;   // two jobs, no way to tell which - leave it
+
+            l.Jobs = new List<string>(pick.Jobs);
+            n++;
+        }
+        return n;
+    }
+
+    // Do two action cells call for any of the same mit? Resolves shorthand on
+    // both sides, so "CU" and "Collective Unconscious" count as a match.
+    private static bool NamesTheSameMit(string a, string b)
+    {
+        var left = AbilityBook.BuffsIn(a).Select(x => x.Name).ToList();
+        if (left.Count == 0) return false;
+        foreach (var (name, _) in AbilityBook.BuffsIn(b))
+            if (left.Contains(name, StringComparer.OrdinalIgnoreCase)) return true;
+        return false;
     }
 
     // Drop every line the sheet no longer bakes anywhere. Only untouched sheet

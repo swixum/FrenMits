@@ -220,7 +220,7 @@
       "Time": 15,
       "Mechanic": "Cyclonic Break 1",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -229,7 +229,7 @@
       "Time": 15,
       "Mechanic": "Cyclonic Break 1",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -238,7 +238,7 @@
       "Time": 15,
       "Mechanic": "Cyclonic Break 1",
       "Slot": "H2",
-      "Action": "Spread-Lo",
+      "Action": "Spreadlo",
       "Jobs": [
         "SCH"
       ]
@@ -278,7 +278,7 @@
       "Time": 35,
       "Mechanic": "Utopian Sky",
       "Slot": "H1",
-      "Action": "Confession",
+      "Action": "Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -287,7 +287,7 @@
       "Time": 35,
       "Mechanic": "Utopian Sky",
       "Slot": "H2",
-      "Action": "Concit",
+      "Action": "Consolation",
       "Jobs": [
         "SCH"
       ]
@@ -296,7 +296,7 @@
       "Time": 35,
       "Mechanic": "Utopian Sky",
       "Slot": "H2",
-      "Action": "EukProg",
+      "Action": "Eukrasian Prognosis",
       "Jobs": [
         "SGE"
       ]
@@ -319,7 +319,7 @@
       "Time": 56,
       "Mechanic": "Cyclonic Break 2",
       "Slot": "H2",
-      "Action": "Concit/Soil/Exp",
+      "Action": "Consolation/Sacred Soil/Expedient",
       "Jobs": [
         "SCH"
       ]
@@ -328,7 +328,7 @@
       "Time": 56,
       "Mechanic": "Cyclonic Break 2",
       "Slot": "H2",
-      "Action": "Zoe EukProg/Kera",
+      "Action": "Zoe Shields/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -337,7 +337,7 @@
       "Time": 86,
       "Mechanic": "Burnished Glory 1",
       "Slot": "H1",
-      "Action": "Bell",
+      "Action": "Liturgy of the Bell",
       "Jobs": [
         "WHM"
       ]
@@ -346,7 +346,7 @@
       "Time": 86,
       "Mechanic": "Burnished Glory 1",
       "Slot": "H1",
-      "Action": "Macro/CU",
+      "Action": "Macrocosmos/Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -355,7 +355,7 @@
       "Time": 86,
       "Mechanic": "Burnished Glory 1",
       "Slot": "H2",
-      "Action": "(Early) Kera/Holos",
+      "Action": "(Early) Kerachole/Holos",
       "Jobs": [
         "SGE"
       ]
@@ -364,7 +364,7 @@
       "Time": 86,
       "Mechanic": "Burnished Glory 1",
       "Slot": "H2",
-      "Action": "(Early) Soil/Spread-Lo",
+      "Action": "(Early) Sacred Soil/Spreadlo",
       "Jobs": [
         "SCH"
       ]
@@ -397,7 +397,7 @@
       "Time": 106,
       "Mechanic": "Fall of Faith (1/2)",
       "Slot": "H1",
-      "Action": "Neutral",
+      "Action": "Neutral Sect",
       "Jobs": [
         "AST"
       ]
@@ -406,7 +406,7 @@
       "Time": 106,
       "Mechanic": "Fall of Faith (1/2)",
       "Slot": "H1",
-      "Action": "Temp",
+      "Action": "Temperance",
       "Jobs": [
         "WHM"
       ]
@@ -415,7 +415,7 @@
       "Time": 106,
       "Mechanic": "Fall of Faith (1/2)",
       "Slot": "H2",
-      "Action": "Fey/Seraph/ism",
+      "Action": "Fey Illumination/Seraphism",
       "Jobs": [
         "SCH"
       ]
@@ -424,7 +424,7 @@
       "Time": 106,
       "Mechanic": "Fall of Faith (1/2)",
       "Slot": "H2",
-      "Action": "Panhaima/Sophia",
+      "Action": "Panhaima/Philosophia",
       "Jobs": [
         "SGE"
       ]
@@ -433,7 +433,7 @@
       "Time": 111,
       "Mechanic": "Fall of Faith (3/4)",
       "Slot": "H1",
-      "Action": "Neutral/Sun",
+      "Action": "Sun Sign",
       "Jobs": [
         "AST"
       ]
@@ -442,7 +442,7 @@
       "Time": 111,
       "Mechanic": "Fall of Faith (3/4)",
       "Slot": "H2",
-      "Action": "Fey/Consolation/Soil",
+      "Action": "Fey Illumination/Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -451,7 +451,7 @@
       "Time": 111,
       "Mechanic": "Fall of Faith (3/4)",
       "Slot": "H2",
-      "Action": "Kera",
+      "Action": "Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -472,7 +472,7 @@
       "Time": 121,
       "Mechanic": "Burnished Glory 2",
       "Slot": "H1",
-      "Action": "Temp/Confession/Caress",
+      "Action": "Plenary Indulgence/Divine Caress",
       "Jobs": [
         "WHM"
       ]
@@ -481,7 +481,7 @@
       "Time": 121,
       "Mechanic": "Burnished Glory 2",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -490,7 +490,7 @@
       "Time": 121,
       "Mechanic": "Burnished Glory 2",
       "Slot": "H2",
-      "Action": "Fey/Concit/Soil",
+      "Action": "Fey Illumination/Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -558,7 +558,7 @@
       "Time": 236,
       "Mechanic": "Diamond Dust",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -567,7 +567,7 @@
       "Time": 236,
       "Mechanic": "Diamond Dust",
       "Slot": "H1",
-      "Action": "Confession",
+      "Action": "Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -576,7 +576,7 @@
       "Time": 236,
       "Mechanic": "Diamond Dust",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -585,7 +585,7 @@
       "Time": 236,
       "Mechanic": "Diamond Dust",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -618,7 +618,7 @@
       "Time": 255,
       "Mechanic": "Sinbound Holy",
       "Slot": "H2",
-      "Action": "Spread-Lo/Exp",
+      "Action": "Spreadlo/Expedient",
       "Jobs": [
         "SCH"
       ]
@@ -627,7 +627,7 @@
       "Time": 255,
       "Mechanic": "Sinbound Holy",
       "Slot": "H2",
-      "Action": "Zoe EukProg/Holos",
+      "Action": "Zoe Shields/Holos",
       "Jobs": [
         "SGE"
       ]
@@ -642,7 +642,7 @@
       "Time": 283,
       "Mechanic": "Hallowed Ray",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -651,7 +651,7 @@
       "Time": 283,
       "Mechanic": "Hallowed Ray",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -678,7 +678,7 @@
       "Time": 293,
       "Mechanic": "Mirror Mirror",
       "Slot": "H1",
-      "Action": "Confession/Temp",
+      "Action": "Plenary Indulgence/Temperance",
       "Jobs": [
         "WHM"
       ]
@@ -687,7 +687,7 @@
       "Time": 293,
       "Mechanic": "Mirror Mirror",
       "Slot": "H1",
-      "Action": "Neutral/Sun",
+      "Action": "Neutral Sect/Sun Sign",
       "Jobs": [
         "AST"
       ]
@@ -696,7 +696,7 @@
       "Time": 293,
       "Mechanic": "Mirror Mirror",
       "Slot": "H2",
-      "Action": "Fey/Seraph",
+      "Action": "Fey Illumination/Seraph",
       "Jobs": [
         "SCH"
       ]
@@ -714,7 +714,7 @@
       "Time": 323,
       "Mechanic": "Banish III",
       "Slot": "H1",
-      "Action": "Caress",
+      "Action": "Divine Caress",
       "Jobs": [
         "WHM"
       ]
@@ -723,7 +723,7 @@
       "Time": 323,
       "Mechanic": "Banish III",
       "Slot": "H1",
-      "Action": "Sun",
+      "Action": "Sun Sign",
       "Jobs": [
         "AST"
       ]
@@ -732,7 +732,7 @@
       "Time": 323,
       "Mechanic": "Banish III",
       "Slot": "H2",
-      "Action": "Consolation/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -741,7 +741,7 @@
       "Time": 323,
       "Mechanic": "Banish III",
       "Slot": "H2",
-      "Action": "Kera",
+      "Action": "Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -774,7 +774,7 @@
       "Time": 333,
       "Mechanic": "Light Rampant",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -783,7 +783,7 @@
       "Time": 333,
       "Mechanic": "Light Rampant",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -792,7 +792,7 @@
       "Time": 333,
       "Mechanic": "Light Rampant",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -801,7 +801,7 @@
       "Time": 350,
       "Mechanic": "Powerful Light",
       "Slot": "H1",
-      "Action": "Bell",
+      "Action": "Liturgy of the Bell",
       "Jobs": [
         "WHM"
       ]
@@ -810,7 +810,7 @@
       "Time": 350,
       "Mechanic": "Powerful Light",
       "Slot": "H1",
-      "Action": "Macro",
+      "Action": "Macrocosmos",
       "Jobs": [
         "AST"
       ]
@@ -819,7 +819,7 @@
       "Time": 350,
       "Mechanic": "Powerful Light",
       "Slot": "H2",
-      "Action": "Spread-Lo/Seraphism",
+      "Action": "Spreadlo/Seraphism",
       "Jobs": [
         "SCH"
       ]
@@ -828,7 +828,7 @@
       "Time": 350,
       "Mechanic": "Powerful Light",
       "Slot": "H2",
-      "Action": "Zoe EukProg/Sophia",
+      "Action": "Zoe Shields/Philosophia",
       "Jobs": [
         "SGE"
       ]
@@ -849,7 +849,7 @@
       "Time": 362,
       "Mechanic": "Banish III",
       "Slot": "H2",
-      "Action": "Concit/Exp/(Early) Soil",
+      "Action": "Consolation/Expedient/(Early) Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -858,7 +858,7 @@
       "Time": 362,
       "Mechanic": "Banish III",
       "Slot": "H2",
-      "Action": "EukProg/(Early) Kera",
+      "Action": "Eukrasian Prognosis/(Early) Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -867,7 +867,7 @@
       "Time": 370,
       "Mechanic": "The House of Light",
       "Slot": "H2",
-      "Action": "Concit/Exp",
+      "Action": "Consolation/Expedient",
       "Jobs": [
         "SCH"
       ]
@@ -891,7 +891,7 @@
       "Time": 390,
       "Mechanic": "Absolute Zero",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -900,7 +900,7 @@
       "Time": 390,
       "Mechanic": "Absolute Zero",
       "Slot": "H1",
-      "Action": "Confession",
+      "Action": "Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -909,7 +909,7 @@
       "Time": 390,
       "Mechanic": "Absolute Zero",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -918,7 +918,7 @@
       "Time": 390,
       "Mechanic": "Absolute Zero",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -939,7 +939,7 @@
       "Time": 500,
       "Mechanic": "Junction (Transition)",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -948,7 +948,7 @@
       "Time": 500,
       "Mechanic": "Junction (Transition)",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -957,7 +957,7 @@
       "Time": 500,
       "Mechanic": "Junction (Transition)",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -972,7 +972,7 @@
       "Time": 532,
       "Mechanic": "Ultimate Relativity",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -981,7 +981,7 @@
       "Time": 532,
       "Mechanic": "Ultimate Relativity",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1008,7 +1008,7 @@
       "Time": 544,
       "Mechanic": "Fire/Dark Set 1/2",
       "Slot": "H1",
-      "Action": "Neutral",
+      "Action": "Neutral Sect",
       "Jobs": [
         "AST"
       ]
@@ -1017,7 +1017,7 @@
       "Time": 544,
       "Mechanic": "Fire/Dark Set 1/2",
       "Slot": "H1",
-      "Action": "Temp/Confession",
+      "Action": "Temperance/Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -1026,7 +1026,7 @@
       "Time": 544,
       "Mechanic": "Fire/Dark Set 1/2",
       "Slot": "H2",
-      "Action": "EukProg/Holos/Panhaima/Kera",
+      "Action": "Eukrasian Prognosis/Holos/Panhaima/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1035,7 +1035,7 @@
       "Time": 544,
       "Mechanic": "Fire/Dark Set 1/2",
       "Slot": "H2",
-      "Action": "Spread-Lo/Seraph/Soil",
+      "Action": "Spreadlo/Seraph/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1050,7 +1050,7 @@
       "Time": 564,
       "Mechanic": "Set 3 and Rewind",
       "Slot": "H1",
-      "Action": "Caress/Bell",
+      "Action": "Divine Caress/Liturgy of the Bell",
       "Jobs": [
         "WHM"
       ]
@@ -1059,7 +1059,7 @@
       "Time": 564,
       "Mechanic": "Set 3 and Rewind",
       "Slot": "H1",
-      "Action": "Macro/Sun",
+      "Action": "Macrocosmos/Sun Sign",
       "Jobs": [
         "AST"
       ]
@@ -1068,7 +1068,7 @@
       "Time": 564,
       "Mechanic": "Set 3 and Rewind",
       "Slot": "H2",
-      "Action": "Concit/Seraphism",
+      "Action": "Consolation/Seraphism",
       "Jobs": [
         "SCH"
       ]
@@ -1077,7 +1077,7 @@
       "Time": 564,
       "Mechanic": "Set 3 and Rewind",
       "Slot": "H2",
-      "Action": "EukProg/Philosophia",
+      "Action": "Eukrasian Prognosis/Philosophia",
       "Jobs": [
         "SGE"
       ]
@@ -1092,7 +1092,7 @@
       "Time": 580,
       "Mechanic": "Shell Crusher",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -1101,7 +1101,7 @@
       "Time": 580,
       "Mechanic": "Shell Crusher",
       "Slot": "H2",
-      "Action": "Kera",
+      "Action": "Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1110,7 +1110,7 @@
       "Time": 580,
       "Mechanic": "Shell Crusher",
       "Slot": "H2",
-      "Action": "Soil",
+      "Action": "Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1137,7 +1137,7 @@
       "Time": 588,
       "Mechanic": "Shockwave Pulsar",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1146,7 +1146,7 @@
       "Time": 588,
       "Mechanic": "Shockwave Pulsar",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1168,7 +1168,7 @@
       "Time": 625,
       "Mechanic": "Dark Water 1",
       "Slot": "H2",
-      "Action": "Exped/Soil",
+      "Action": "Expedient/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1177,7 +1177,7 @@
       "Time": 625,
       "Mechanic": "Dark Water 1",
       "Slot": "H2",
-      "Action": "Kera",
+      "Action": "Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1186,7 +1186,7 @@
       "Time": 638,
       "Mechanic": "Dark Eruption",
       "Slot": "H1",
-      "Action": "Confession",
+      "Action": "Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -1195,7 +1195,7 @@
       "Time": 638,
       "Mechanic": "Dark Eruption",
       "Slot": "H2",
-      "Action": "EukProg",
+      "Action": "Eukrasian Prognosis",
       "Jobs": [
         "SGE"
       ]
@@ -1204,7 +1204,7 @@
       "Time": 638,
       "Mechanic": "Dark Eruption",
       "Slot": "H2",
-      "Action": "Exped/Spread-Lo",
+      "Action": "Expedient/Spreadlo",
       "Jobs": [
         "SCH"
       ]
@@ -1233,7 +1233,7 @@
       "Time": 658,
       "Mechanic": "Shockwave Pulsar",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1242,7 +1242,7 @@
       "Time": 658,
       "Mechanic": "Shockwave Pulsar",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1275,7 +1275,7 @@
       "Time": 672,
       "Mechanic": "Memory's End",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -1284,7 +1284,7 @@
       "Time": 672,
       "Mechanic": "Memory's End",
       "Slot": "H2",
-      "Action": "(Early) Holos/Kera",
+      "Action": "(Early) Holos/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1293,7 +1293,7 @@
       "Time": 672,
       "Mechanic": "Memory's End",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1308,7 +1308,7 @@
       "Time": 715,
       "Mechanic": "Darklit Dragonsong",
       "Slot": "H1",
-      "Action": "Neutral",
+      "Action": "Neutral Sect",
       "Jobs": [
         "AST"
       ]
@@ -1317,7 +1317,7 @@
       "Time": 715,
       "Mechanic": "Darklit Dragonsong",
       "Slot": "H1",
-      "Action": "Temp",
+      "Action": "Temperance",
       "Jobs": [
         "WHM"
       ]
@@ -1326,7 +1326,7 @@
       "Time": 715,
       "Mechanic": "Darklit Dragonsong",
       "Slot": "H2",
-      "Action": "Recit Concit/Soil",
+      "Action": "Recitation Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1335,7 +1335,7 @@
       "Time": 715,
       "Mechanic": "Darklit Dragonsong",
       "Slot": "H2",
-      "Action": "Zoe EukProg/Kera",
+      "Action": "Zoe Shields/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1350,7 +1350,7 @@
       "Time": 726,
       "Mechanic": "The Path of Light",
       "Slot": "H1",
-      "Action": "Neutral/Sun",
+      "Action": "Sun Sign",
       "Jobs": [
         "AST"
       ]
@@ -1359,7 +1359,7 @@
       "Time": 726,
       "Mechanic": "The Path of Light",
       "Slot": "H1",
-      "Action": "Temp/Caress/Confession",
+      "Action": "Divine Caress/Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -1382,7 +1382,7 @@
       "Time": 751,
       "Mechanic": "Akh Morn",
       "Slot": "H2",
-      "Action": "Concit/Seraph/Soil",
+      "Action": "Consolation/Seraph/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1391,7 +1391,7 @@
       "Time": 751,
       "Mechanic": "Akh Morn",
       "Slot": "H2",
-      "Action": "EukProg/Panhaima/Kera",
+      "Action": "Eukrasian Prognosis/Panhaima/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1432,7 +1432,7 @@
       "Time": 776,
       "Mechanic": "Crystallize Time",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -1441,7 +1441,7 @@
       "Time": 776,
       "Mechanic": "Crystallize Time",
       "Slot": "H1",
-      "Action": "Confession",
+      "Action": "Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -1450,7 +1450,7 @@
       "Time": 776,
       "Mechanic": "Crystallize Time",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1459,7 +1459,7 @@
       "Time": 776,
       "Mechanic": "Crystallize Time",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1492,7 +1492,7 @@
       "Time": 791,
       "Mechanic": "Crystallize Mech",
       "Slot": "H1",
-      "Action": "Bell",
+      "Action": "Liturgy of the Bell",
       "Jobs": [
         "WHM"
       ]
@@ -1501,7 +1501,7 @@
       "Time": 791,
       "Mechanic": "Crystallize Mech",
       "Slot": "H1",
-      "Action": "Macro",
+      "Action": "Macrocosmos",
       "Jobs": [
         "AST"
       ]
@@ -1510,7 +1510,7 @@
       "Time": 791,
       "Mechanic": "Crystallize Mech",
       "Slot": "H2",
-      "Action": "EukProg/Holos/Sophia",
+      "Action": "Eukrasian Prognosis/Holos/Philosophia",
       "Jobs": [
         "SGE"
       ]
@@ -1519,7 +1519,7 @@
       "Time": 791,
       "Mechanic": "Crystallize Mech",
       "Slot": "H2",
-      "Action": "Spread-Lo/Exped/Seraphism",
+      "Action": "Spreadlo/Expedient/Seraphism",
       "Jobs": [
         "SCH"
       ]
@@ -1528,7 +1528,7 @@
       "Time": 820,
       "Mechanic": "Hallowed Wings",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1537,7 +1537,7 @@
       "Time": 820,
       "Mechanic": "Hallowed Wings",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1572,7 +1572,7 @@
       "Time": 834,
       "Mechanic": "Akh Morn",
       "Slot": "H1",
-      "Action": "Confession/Temp/Caress",
+      "Action": "Plenary Indulgence/Temperance/Divine Caress",
       "Jobs": [
         "WHM"
       ]
@@ -1581,7 +1581,7 @@
       "Time": 834,
       "Mechanic": "Akh Morn",
       "Slot": "H1",
-      "Action": "Neutral/Sun/CU",
+      "Action": "Neutral Sect/Sun Sign/Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -1590,7 +1590,7 @@
       "Time": 834,
       "Mechanic": "Akh Morn",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1599,7 +1599,7 @@
       "Time": 834,
       "Mechanic": "Akh Morn",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1640,7 +1640,7 @@
       "Time": 1041,
       "Mechanic": "Fulgent Blade 1",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -1649,7 +1649,7 @@
       "Time": 1041,
       "Mechanic": "Fulgent Blade 1",
       "Slot": "H1",
-      "Action": "Confession",
+      "Action": "Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -1658,7 +1658,7 @@
       "Time": 1041,
       "Mechanic": "Fulgent Blade 1",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1667,7 +1667,7 @@
       "Time": 1041,
       "Mechanic": "Fulgent Blade 1",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1688,7 +1688,7 @@
       "Time": 1068,
       "Mechanic": "Akh Morn 1",
       "Slot": "H2",
-      "Action": "(Early) Holos/EukProg/Kera",
+      "Action": "(Early) Holos/Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1697,7 +1697,7 @@
       "Time": 1068,
       "Mechanic": "Akh Morn 1",
       "Slot": "H2",
-      "Action": "Spread-Lo/Soil",
+      "Action": "Spreadlo/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1744,7 +1744,7 @@
       "Time": 1107,
       "Mechanic": "Polarizing Strikes 1",
       "Slot": "H1",
-      "Action": "Neutral/Sun",
+      "Action": "Neutral Sect/Sun Sign",
       "Jobs": [
         "AST"
       ]
@@ -1753,7 +1753,7 @@
       "Time": 1107,
       "Mechanic": "Polarizing Strikes 1",
       "Slot": "H1",
-      "Action": "Temp/Caress",
+      "Action": "Temperance/Divine Caress",
       "Jobs": [
         "WHM"
       ]
@@ -1762,7 +1762,7 @@
       "Time": 1107,
       "Mechanic": "Polarizing Strikes 1",
       "Slot": "H2",
-      "Action": "Panhaima/Kera",
+      "Action": "Panhaima/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1771,7 +1771,7 @@
       "Time": 1107,
       "Mechanic": "Polarizing Strikes 1",
       "Slot": "H2",
-      "Action": "Seraph/Fey/Exped/Soil",
+      "Action": "Seraph/Fey Illumination/Expedient/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1798,7 +1798,7 @@
       "Time": 1142,
       "Mechanic": "Pandora's Box",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1807,7 +1807,7 @@
       "Time": 1142,
       "Mechanic": "Pandora's Box",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1834,7 +1834,7 @@
       "Time": 1154,
       "Mechanic": "Fulgent Blade 2",
       "Slot": "H1",
-      "Action": "CU",
+      "Action": "Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -1843,7 +1843,7 @@
       "Time": 1154,
       "Mechanic": "Fulgent Blade 2",
       "Slot": "H1",
-      "Action": "Confession",
+      "Action": "Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -1852,7 +1852,7 @@
       "Time": 1154,
       "Mechanic": "Fulgent Blade 2",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1861,7 +1861,7 @@
       "Time": 1154,
       "Mechanic": "Fulgent Blade 2",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1870,7 +1870,7 @@
       "Time": 1181,
       "Mechanic": "Akh Morn 2",
       "Slot": "H2",
-      "Action": "Holos/EukProg/Kera",
+      "Action": "Holos/Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -1879,7 +1879,7 @@
       "Time": 1181,
       "Mechanic": "Akh Morn 2",
       "Slot": "H2",
-      "Action": "Spread-Lo/Soil",
+      "Action": "Spreadlo/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1926,7 +1926,7 @@
       "Time": 1220,
       "Mechanic": "Polarizing Strikes 2",
       "Slot": "H1",
-      "Action": "Neutral/Sun/Macro",
+      "Action": "Neutral Sect/Sun Sign/Macrocosmos",
       "Jobs": [
         "AST"
       ]
@@ -1935,7 +1935,7 @@
       "Time": 1220,
       "Mechanic": "Polarizing Strikes 2",
       "Slot": "H1",
-      "Action": "Temp/Bell/Caress",
+      "Action": "Temperance/Liturgy of the Bell/Divine Caress",
       "Jobs": [
         "WHM"
       ]
@@ -1944,7 +1944,7 @@
       "Time": 1220,
       "Mechanic": "Polarizing Strikes 2",
       "Slot": "H2",
-      "Action": "Panhaima/Sophia",
+      "Action": "Panhaima/Philosophia",
       "Jobs": [
         "SGE"
       ]
@@ -1953,7 +1953,7 @@
       "Time": 1220,
       "Mechanic": "Polarizing Strikes 2",
       "Slot": "H2",
-      "Action": "Seraph/ism/Exped/Fey",
+      "Action": "Seraphism/Expedient/Fey Illumination",
       "Jobs": [
         "SCH"
       ]
@@ -1974,7 +1974,7 @@
       "Time": 1244,
       "Mechanic": "Fulgent Blade 3",
       "Slot": "H1",
-      "Action": "Neutral/CU",
+      "Action": "Neutral Sect/Collective Unconscious",
       "Jobs": [
         "AST"
       ]
@@ -1983,7 +1983,7 @@
       "Time": 1244,
       "Mechanic": "Fulgent Blade 3",
       "Slot": "H1",
-      "Action": "Temp/Confession",
+      "Action": "Temperance/Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
@@ -1992,7 +1992,7 @@
       "Time": 1244,
       "Mechanic": "Fulgent Blade 3",
       "Slot": "H2",
-      "Action": "Concit/Soil",
+      "Action": "Consolation/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -2001,7 +2001,7 @@
       "Time": 1244,
       "Mechanic": "Fulgent Blade 3",
       "Slot": "H2",
-      "Action": "EukProg/Kera",
+      "Action": "Eukrasian Prognosis/Kerachole",
       "Jobs": [
         "SGE"
       ]
@@ -2022,7 +2022,7 @@
       "Time": 1272,
       "Mechanic": "Akh Morn 3",
       "Slot": "H2",
-      "Action": "Spread-Lo/Soil",
+      "Action": "Spreadlo/Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -2031,7 +2031,7 @@
       "Time": 1272,
       "Mechanic": "Akh Morn 3",
       "Slot": "H2",
-      "Action": "Zoe EukProg/Kera",
+      "Action": "Zoe Shields/Kerachole",
       "Jobs": [
         "SGE"
       ]

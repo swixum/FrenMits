@@ -434,7 +434,7 @@
       "Time": 86,
       "Mechanic": "Splash (x6) + Drainage",
       "Slot": "H2",
-      "Action": "Soil",
+      "Action": "Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1580,7 +1580,7 @@
       "Time": 909,
       "Mechanic": "Irresistible Grace",
       "Slot": "H2",
-      "Action": "Soil",
+      "Action": "Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -1694,7 +1694,7 @@
       "Time": 954,
       "Mechanic": "Irresistible Grace",
       "Slot": "H2",
-      "Action": "Soil",
+      "Action": "Sacred Soil",
       "Jobs": [
         "SCH"
       ]

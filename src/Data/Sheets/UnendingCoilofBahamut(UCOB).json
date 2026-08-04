@@ -204,7 +204,7 @@
       "Time": 16,
       "Mechanic": "Fireball I",
       "Slot": "H2",
-      "Action": "Soil (If No Critical Hit)",
+      "Action": "Sacred Soil (If No Critical Hit)",
       "Jobs": [
         "SCH"
       ]
@@ -507,7 +507,7 @@
       "Time": 209,
       "Mechanic": "Thermionic Beam (2nd Quote)",
       "Slot": "H2",
-      "Action": "Soil",
+      "Action": "Sacred Soil",
       "Jobs": [
         "SCH"
       ]
@@ -666,7 +666,7 @@
       "Time": 311,
       "Mechanic": "Quickmarch Trio",
       "Slot": "H2",
-      "Action": "Soil",
+      "Action": "Sacred Soil",
       "Jobs": [
         "SCH"
       ]
