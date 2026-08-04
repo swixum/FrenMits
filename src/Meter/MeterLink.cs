@@ -100,6 +100,11 @@ public class MeterLink : IDisposable
         }
     }
 
+    // Seconds until the next attempt, so a waiting screen can name the wait.
+    public int RetryIn => Status is LinkStatus.Off or LinkStatus.Searching
+        ? Math.Max(0, (int)Math.Ceiling((_nextAttempt - DateTime.UtcNow).TotalSeconds))
+        : 0;
+
     // Drop the link and search again next tick.
     public void RetryNow()
     {

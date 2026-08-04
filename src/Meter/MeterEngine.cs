@@ -1170,15 +1170,36 @@ public class MeterEngine : IDisposable
         if (_rawIn != null) _cut = Snapshot(_rawIn);
     }
 
+    // The link comes first: a dropped link used to report itself as connected.
     public string StatusText => !C.MeterEnabled ? "off"
-        : FeedStale ? "connected, but the parser has stopped sending - reconnecting"
         : Link.Status switch
         {
-            MeterLink.LinkStatus.Ipc => "connected to the parser (in-process)",
-            MeterLink.LinkStatus.Socket => "connected to ACT (WebSocket)",
+            MeterLink.LinkStatus.Ipc => FeedStale ? Quiet : "connected to the parser (in-process)",
+            MeterLink.LinkStatus.Socket => FeedStale ? Quiet : "connected to ACT (WebSocket)",
             MeterLink.LinkStatus.Searching => "searching for a parser...",
             _ => "starting...",
         };
+
+    private const string Quiet = "connected, but the parser has stopped sending - reconnecting";
+
+    // The overlay's empty screen: what is wrong, then what is being done about it.
+    public (string Line, string Note) StatusLines
+    {
+        get
+        {
+            if (!C.MeterEnabled) return ("Fren Meter is off.", "");
+            return Link.Status switch
+            {
+                MeterLink.LinkStatus.Ipc or MeterLink.LinkStatus.Socket =>
+                    FeedStale ? ("Connected, but can't find parser.", RetryNote) : ("", ""),
+                MeterLink.LinkStatus.Searching => ("Can't find the parser.", RetryNote),
+                _ => ("Starting...", ""),
+            };
+        }
+    }
+
+    // Naming the wait, so a still screen doesn't read as a stuck one.
+    private string RetryNote => Link.RetryIn > 0 ? $"Reconnecting in {Link.RetryIn}s" : "Reconnecting...";
 
     public bool Connected => Link.Status is MeterLink.LinkStatus.Ipc or MeterLink.LinkStatus.Socket;
 

@@ -167,15 +167,20 @@ public class MeterWindow : Window
 
         if (enc == null)
         {
-            // Only a missing link is worth a line.
+            // Title, then what is wrong, then what it is doing about it.
             var lineH = ImGui.GetTextLineHeight();
-            var status = _plugin.Meter.Connected ? "" : _plugin.Meter.StatusText;
-            var midY = ws.Y * 0.5f - (status.Length > 0 ? lineH : lineH * 0.5f);
-            BText(dl, wp + new Vector2((ws.X - ImGui.CalcTextSize("Fren Meter").X) * 0.5f, midY),
-                C.MeterTextColor, "Fren Meter");
-            if (status.Length > 0)
-                BText(dl, wp + new Vector2((ws.X - ImGui.CalcTextSize(status).X) * 0.5f, midY + lineH + 3f),
-                    C.MeterSubColor, status);
+            var (line, note) = _plugin.Meter.StatusLines;
+            var count = 1 + (line.Length > 0 ? 1 : 0) + (note.Length > 0 ? 1 : 0);
+            var top = ws.Y * 0.5f - (lineH * count + 4f * (count - 1)) * 0.5f;
+            CenterText(dl, wp, ws.X, top, C.MeterTitleColor, "Fren Meter");
+            if (line.Length > 0)
+            {
+                // The theme's own accent, so an empty board still looks like the meter.
+                top += lineH + 4f;
+                CenterText(dl, wp, ws.X, top, C.MeterAccentColor, Clip(line, ws.X - 12f));
+            }
+            if (note.Length > 0)
+                CenterText(dl, wp, ws.X, top + lineH + 4f, C.MeterSubColor, Clip(note, ws.X - 12f));
             _rowUnderMouse = "";
             _tabMenuOpen = false;
             ContextMenu();
@@ -2205,6 +2210,8 @@ public class MeterWindow : Window
         if (ImGui.MenuItem("Pull history...", "", _plugin.MeterHistoryWindow.IsOpen))
             _plugin.MeterHistoryWindow.Toggle();
         if (ImGui.MenuItem(m.Paused ? "Resume" : "Pause")) m.Paused = !m.Paused;
+        // Offered while the board is empty, which is when it is wanted.
+        if ((!m.Connected || m.FeedStale) && ImGui.MenuItem("Reconnect now")) m.Link.RetryNow();
         if (ImGui.MenuItem(C.MeterCollapsed ? "Expand" : "Collapse")) ToggleCollapsed();
 
         ImGui.Separator();
@@ -2451,6 +2458,10 @@ public class MeterWindow : Window
     // Every piece of text on the meter, honoring the shadow toggle.
     private void BText(ImDrawListPtr dl, Vector2 pos, uint color, string text)
         => OverlayChrome.BoardText(dl, pos, color, text, C.MeterTextShadow);
+
+    // Centered in the window, for the lines on an empty board.
+    private void CenterText(ImDrawListPtr dl, Vector2 wp, float w, float y, uint color, string text)
+        => BText(dl, wp + new Vector2((w - ImGui.CalcTextSize(text).X) * 0.5f, y), color, text);
 
     // A stable color per ability, kept between pulls.
     private static readonly Dictionary<string, uint> TintCache = new(StringComparer.Ordinal);
