@@ -489,6 +489,28 @@ public static class ConfigMigrations
             config.Version = 45;
             config.Save();
         }
+
+        // v46: the top-up matched a saved call on (time, mechanic) alone, so
+        // where a healer pair shares a mechanic the saved line for one job
+        // counted as the other job's line too, and that job's row was never
+        // added. v45 gated what was there; this restores what was missing.
+        if (config.Version < 46)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (f.CustomSlots.Count > 0 || string.IsNullOrEmpty(f.Slot)) continue;
+                if (!Builtin.Has(f.TerritoryId)) continue;
+                var before = f.Lines.Count;
+                // UpdateLines, not ApplySlot: migrations run off the main thread
+                // and ApplySlot resolves tank priority, which reads the player.
+                Builtin.UpdateLines(f, f.Slot);
+                if (f.Lines.Count != before)
+                    EncounterLog.Info($"[FrenMits] {f.Name}: restored "
+                                      + $"{f.Lines.Count - before} missing call(s).");
+            }
+            config.Version = 46;
+            config.Save();
+        }
     }
 
     // Give an ungated saved line back the gate its sheet row carries. Matched on

@@ -468,8 +468,29 @@ public static class Builtin
     // Reconcile a fight's lines with the baked sheet, optionally adding missing calls.
     public static void UpdateLines(FightProfile fight, string slot, bool topUp = true)
     {
+        // One moment can carry several calls: a healer pair is two rows at the
+        // same mechanic, one per job, and a job can be given two buttons. What
+        // separates them is the action, so comparing only (time, mechanic) made
+        // the top-up treat a saved AST line as proof the WHM line was already
+        // there, and that job's column was never filled in.
         bool SameCall(MitLine a, MitLine b)
-            => MathF.Abs(a.Time - b.Time) < 0.1f && string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase);
+        {
+            if (MathF.Abs(a.Time - b.Time) >= 0.1f) return false;
+            if (!string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase))
+                return false;
+            if (string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // A plan saved before a sheet was rewritten still says "Soil" where
+            // the bake now says "Sacred Soil" - same button, same moment, so not
+            // a second call. Text that names no mit at all ("Carry Over") only
+            // ever matches itself.
+            var mine = AbilityBook.BuffsIn(a.Action).Select(x => x.Name).ToList();
+            if (mine.Count == 0) return false;
+            var theirs = AbilityBook.BuffsIn(b.Action).Select(x => x.Name).ToList();
+            return theirs.Count == mine.Count
+                   && mine.All(n => theirs.Contains(n, StringComparer.OrdinalIgnoreCase));
+        }
 
         // A fresh bake never includes calls deleted from this slot.
         List<MitLine> Bake(string s)
