@@ -22,6 +22,23 @@ public partial class SheetViewWindow
     private bool IsActiveSlot(int i)
         => _fight != null && string.Equals(_slots[i], _fight.Slot, StringComparison.OrdinalIgnoreCase);
 
+
+    // Whether a job-gated line belongs in this grid column.
+    //
+    // A built-in grid splits H1 into WHM/AST columns and H2 into SCH/SGE, so a
+    // job-named column speaks for that job and nothing else. The active-slot
+    // fallback exists for columns that name a SLOT rather than a job (custom
+    // sheets, and MT/OT/M1/...), where the only way to know whose line it is is
+    // the player's own job. Letting that fallback run on a job-named column is
+    // what put a WHM's calls in the AST column, and SCH's in SGE's.
+    public static bool ShowsInColumn(IReadOnlyList<string> lineJobs, string column,
+                                       bool isActiveSlot, string? activeJob)
+    {
+        if (lineJobs.Contains(column, StringComparer.OrdinalIgnoreCase)) return true;
+        if (!isActiveSlot || Jobs.ByAbbreviation(column) != null) return false;
+        return !string.IsNullOrEmpty(activeJob)
+               && lineJobs.Contains(activeJob!, StringComparer.OrdinalIgnoreCase);
+    }
     private void Rebuild()
     {
         _dirty = false;
@@ -133,11 +150,8 @@ public partial class SheetViewWindow
                     {
                         if (!_isCustom && line.Jobs.Count > 0)
                         {
-                            bool show = false;
-                            if (line.Jobs.Contains(_gridCols[c], StringComparer.OrdinalIgnoreCase))
-                                show = true;
-                            else if (IsActiveSlot(i) && line.Jobs.Contains(_plugin.GetActiveJobAbbr(_fight), StringComparer.OrdinalIgnoreCase))
-                                show = true;
+                            var show = ShowsInColumn(line.Jobs, _gridCols[c], IsActiveSlot(i),
+                                                     _plugin.GetActiveJobAbbr(_fight));
 
                             if (show)
                                 row.Cells[c].Add(line);
@@ -186,11 +200,8 @@ public partial class SheetViewWindow
 
                         if (!_isCustom && line.Jobs.Count > 0)
                         {
-                            bool show = false;
-                            if (line.Jobs.Contains(_gridCols[c], StringComparer.OrdinalIgnoreCase))
-                                show = true;
-                            else if (IsActiveSlot(i) && line.Jobs.Contains(_plugin.GetActiveJobAbbr(_fight), StringComparer.OrdinalIgnoreCase))
-                                show = true;
+                            var show = ShowsInColumn(line.Jobs, _gridCols[c], IsActiveSlot(i),
+                                                     _plugin.GetActiveJobAbbr(_fight));
 
                             if (show)
                                 br.Cells[c].Add(line);
