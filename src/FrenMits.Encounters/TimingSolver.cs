@@ -24,6 +24,27 @@ public static class TimingSolver
     public static Func<string, IEnumerable<AbilityBook.PlanMit>> MitsFor { get; set; } =
         _ => Array.Empty<AbilityBook.PlanMit>();
 
+    // Which (row, mit) pairs only restate a press still running from an earlier
+    // row. Lines must be in time order.
+    private static HashSet<(MitLine, string)> Lingering(
+        List<MitLine> lines, Func<string, IEnumerable<AbilityBook.PlanMit>> mitsFor)
+    {
+        var keys = new List<(MitLine, string)>();
+        var uses = new List<(string Name, float Time, float Duration, float CoverUntil)>();
+        foreach (var l in lines)
+            foreach (var m in mitsFor(l.Action))
+            {
+                keys.Add((l, m.Name));
+                uses.Add((m.Name, l.Time, m.Duration, l.CoverUntil));
+            }
+
+        var carried = CarryOver.Mark(uses);
+        var set = new HashSet<(MitLine, string)>();
+        for (var i = 0; i < carried.Length; i++)
+            if (carried[i]) set.Add(keys[i]);
+        return set;
+    }
+
     public static IReadOnlyList<MitPress> Solve(FightProfile fight, IReadOnlyList<float> hitTimes,
         bool showUseWindows = true, float maxUseWindowSeconds = 7.5f,
         Func<string, IEnumerable<AbilityBook.PlanMit>>? mitsFor = null)
@@ -53,6 +74,11 @@ public static class TimingSolver
             .Where(l => l.Enabled && !string.IsNullOrWhiteSpace(l.Action))
             .OrderBy(l => l.Time).ToList();
 
+        // Rows that only restate a mit still running from an earlier press. They
+        // are not a second use, so they must not cap how late that press may go
+        // and must not claim the cooldown on their own.
+        var lingering = Lingering(lines, mitsFor);
+
         foreach (var line in lines)
         {
             var mits = mitsFor(line.Action).ToList();
@@ -70,6 +96,9 @@ public static class TimingSolver
                 var dur = m.Duration;
                 var ready = readyAt.GetValueOrDefault(m.Name, -9999f);
                 var readyFloor = MathF.Max(ready, 0f);
+                // The earlier press already spent this cooldown; the row still
+                // produces a press so the call keeps its place on the boards.
+                var restated = lingering.Contains((line, m.Name));
 
                 if (dur <= 0f || !showUseWindows)
                 {
@@ -78,7 +107,7 @@ public static class TimingSolver
                     var wEnd = line.Time;
                     if (line.OffsetManual) { wStart -= line.OffsetSeconds; wEnd -= line.OffsetSeconds; }
                     result.Add(new MitPress(line, m.Name, wStart, wEnd, line.Time, dur));
-                    readyAt[m.Name] = wEnd + (m.Recast > 0f ? m.Recast : 60f);
+                    if (!restated) readyAt[m.Name] = wEnd + (m.Recast > 0f ? m.Recast : 60f);
                     continue;
                 }
 
@@ -91,6 +120,7 @@ public static class TimingSolver
                 float nextHitTime = float.MaxValue;
                 foreach (var nextLine in lines.Where(l => l.Time > line.Time))
                 {
+                    if (lingering.Contains((nextLine, m.Name))) continue;
                     if (mitsFor(nextLine.Action).Any(nm => nm.Name == m.Name))
                     {
                         nextHitTime = nextLine.Time;
@@ -141,7 +171,7 @@ public static class TimingSolver
                 result.Add(new MitPress(line, m.Name, windowStart, windowEnd, T, dur));
                 
                 MarkCovered(windowStart, windowStart + reach);
-                readyAt[m.Name] = windowStart + (m.Recast > 0f ? m.Recast : 60f);
+                if (!restated) readyAt[m.Name] = windowStart + (m.Recast > 0f ? m.Recast : 60f);
             }
         }
 

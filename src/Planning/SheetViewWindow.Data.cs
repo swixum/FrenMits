@@ -427,10 +427,46 @@ public partial class SheetViewWindow
         else if (!old.Contains(msg, StringComparison.Ordinal)) map[line] = old + "\n" + msg;
     }
 
+    // Rows that only restate a mit already running, dropped from the timer walk
+    // and told so in their tooltip. The list must be one player's, in time order.
+    private List<(float Time, MitLine Line, string Name, string Tag)> DropLingering(
+        List<(float Time, MitLine Line, string Name, string Tag)> list)
+    {
+        if (list.Count < 2) return list;
+
+        var uses = list
+            .Select(u => (u.Name, u.Time,
+                          CooldownTracker.PlanMits(u.Line.Action)
+                              .FirstOrDefault(m => string.Equals(m.Name, u.Name, StringComparison.OrdinalIgnoreCase))
+                              .Duration,
+                          u.Line.CoverUntil))
+            .ToList();
+        var carried = CarryOver.Mark(uses);
+
+        var kept = new List<(float Time, MitLine Line, string Name, string Tag)>(list.Count);
+        var pressedAt = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (!carried[i]) { pressedAt[list[i].Name] = list[i].Time; kept.Add(list[i]); continue; }
+            var from = pressedAt.GetValueOrDefault(list[i].Name);
+            AppendOnce(_windows, list[i].Line, MathF.Abs(from - list[i].Time) < 0.5f
+                ? $"{list[i].Name} is already called on another row at this moment; one press covers both."
+                : $"{list[i].Name} is already up here from the press at {TimeText(from)}; "
+                  + "this row is that same press, not a second one.");
+        }
+        return kept;
+    }
+
     // One mit timer's worth of uses (same recast group + compatible job tags):
     // press-window hints plus the top-down feasibility walk.
     private void CheckMitTimer(List<(float Time, MitLine Line, string Name, string Tag)> list, float recast, int charges)
     {
+                // A sheet names a mit again on every mechanic its own buff still
+                // reaches, so those rows are one press, not several. Take them
+                // out before any timer math: a repeat inside the window neither
+                // spends the cooldown nor can be impossible.
+                list = DropLingering(list);
+
                 // Press-window HINTS: coverage pushes the press EARLIER (the
                 // buff must reach the last covered hit), a same-timer reuse
                 // caps how LATE it can go.
