@@ -511,6 +511,29 @@ public static class ConfigMigrations
             config.Version = 46;
             config.Save();
         }
+
+        // v47: the sheets got back the calls they name again while an earlier
+        // press is still running - FRU's Temperance across three mechanics, and
+        // the rest of what the reference sheet carries. A saved plan never
+        // re-bakes itself, and a column you are not standing in never even sees
+        // the active slot's top-up, so hand the new rows to both.
+        if (config.Version < 47)
+        {
+            foreach (var f in config.Fights)
+            {
+                if (f.CustomSlots.Count > 0 || string.IsNullOrEmpty(f.Slot)) continue;
+                if (!Builtin.Has(f.TerritoryId)) continue;
+                var before = f.Lines.Count;
+                Builtin.UpdateLines(f, f.Slot);
+                var added = f.Lines.Count - before;
+                foreach (var (slot, saved) in f.SavedSlots)
+                    added += Builtin.TopUpSaved(f, slot, saved);
+                if (added > 0)
+                    EncounterLog.Info($"[FrenMits] {f.Name}: added {added} call(s) the sheet carries.");
+            }
+            config.Version = 47;
+            config.Save();
+        }
     }
 
     // Give an ungated saved line back the gate its sheet row carries. Matched on

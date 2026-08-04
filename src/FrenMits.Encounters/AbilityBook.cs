@@ -168,6 +168,8 @@ public static class AbilityBook
         ["Philosophia"] = new[] { "Sophia" },
         // "Concit" claims only Consolation.
         ["Consolation"] = new[] { "Concit" },
+        // The sheets name the buff here, not the button that grants it.
+        ["Plenary Indulgence"] = new[] { "Confession" },
     };
 
     // A cell can say outright it is not a press.

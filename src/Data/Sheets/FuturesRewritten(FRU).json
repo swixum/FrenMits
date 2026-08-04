@@ -433,9 +433,18 @@
       "Time": 111,
       "Mechanic": "Fall of Faith (3/4)",
       "Slot": "H1",
-      "Action": "Sun Sign",
+      "Action": "Neutral Sect/Sun Sign",
       "Jobs": [
         "AST"
+      ]
+    },
+    {
+      "Time": 111,
+      "Mechanic": "Fall of Faith (3/4)",
+      "Slot": "H1",
+      "Action": "Temperance",
+      "Jobs": [
+        "WHM"
       ]
     },
     {
@@ -472,7 +481,16 @@
       "Time": 121,
       "Mechanic": "Burnished Glory 2",
       "Slot": "H1",
-      "Action": "Plenary Indulgence/Divine Caress",
+      "Action": "Sun Sign",
+      "Jobs": [
+        "AST"
+      ]
+    },
+    {
+      "Time": 121,
+      "Mechanic": "Burnished Glory 2",
+      "Slot": "H1",
+      "Action": "Temperance/Plenary Indulgence/Divine Caress",
       "Jobs": [
         "WHM"
       ]
@@ -678,18 +696,18 @@
       "Time": 293,
       "Mechanic": "Mirror Mirror",
       "Slot": "H1",
-      "Action": "Plenary Indulgence/Temperance",
+      "Action": "Neutral Sect/Sun Sign",
       "Jobs": [
-        "WHM"
+        "AST"
       ]
     },
     {
       "Time": 293,
       "Mechanic": "Mirror Mirror",
       "Slot": "H1",
-      "Action": "Neutral Sect/Sun Sign",
+      "Action": "Plenary Indulgence/Temperance",
       "Jobs": [
-        "AST"
+        "WHM"
       ]
     },
     {
@@ -796,6 +814,27 @@
       "Jobs": [
         "SGE"
       ]
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Light Rampant",
+      "Slot": "M2",
+      "Action": "Feint",
+      "Jobs": []
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Light Rampant",
+      "Slot": "MT",
+      "Action": "Reprisal",
+      "Jobs": []
+    },
+    {
+      "Time": 333,
+      "Mechanic": "Light Rampant",
+      "Slot": "R2",
+      "Action": "Addle",
+      "Jobs": []
     },
     {
       "Time": 350,
@@ -1152,6 +1191,20 @@
       ]
     },
     {
+      "Time": 588,
+      "Mechanic": "Shockwave Pulsar",
+      "Slot": "M2",
+      "Action": "Feint",
+      "Jobs": []
+    },
+    {
+      "Time": 588,
+      "Mechanic": "Shockwave Pulsar",
+      "Slot": "MT",
+      "Action": "Reprisal",
+      "Jobs": []
+    },
+    {
       "Time": 597,
       "Mechanic": "Black Halo",
       "Slot": "MT",
@@ -1301,8 +1354,29 @@
     {
       "Time": 672,
       "Mechanic": "Memory's End",
+      "Slot": "M1",
+      "Action": "Feint",
+      "Jobs": []
+    },
+    {
+      "Time": 672,
+      "Mechanic": "Memory's End",
+      "Slot": "MT",
+      "Action": "Reprisal",
+      "Jobs": []
+    },
+    {
+      "Time": 672,
+      "Mechanic": "Memory's End",
       "Slot": "R1",
       "Action": "Party Mit"
+    },
+    {
+      "Time": 672,
+      "Mechanic": "Memory's End",
+      "Slot": "R2",
+      "Action": "Addle",
+      "Jobs": []
     },
     {
       "Time": 715,
@@ -1350,7 +1424,7 @@
       "Time": 726,
       "Mechanic": "The Path of Light",
       "Slot": "H1",
-      "Action": "Sun Sign",
+      "Action": "Neutral Sect/Sun Sign",
       "Jobs": [
         "AST"
       ]
@@ -1359,10 +1433,35 @@
       "Time": 726,
       "Mechanic": "The Path of Light",
       "Slot": "H1",
-      "Action": "Divine Caress/Plenary Indulgence",
+      "Action": "Temperance/Divine Caress/Plenary Indulgence",
       "Jobs": [
         "WHM"
       ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "The Path of Light",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "The Path of Light",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 726,
+      "Mechanic": "The Path of Light",
+      "Slot": "OT",
+      "Action": "Reprisal",
+      "Jobs": []
     },
     {
       "Time": 738,
@@ -1572,18 +1671,18 @@
       "Time": 834,
       "Mechanic": "Akh Morn",
       "Slot": "H1",
-      "Action": "Plenary Indulgence/Temperance/Divine Caress",
+      "Action": "Neutral Sect/Sun Sign/Collective Unconscious",
       "Jobs": [
-        "WHM"
+        "AST"
       ]
     },
     {
       "Time": 834,
       "Mechanic": "Akh Morn",
       "Slot": "H1",
-      "Action": "Neutral Sect/Sun Sign/Collective Unconscious",
+      "Action": "Plenary Indulgence/Temperance/Divine Caress",
       "Jobs": [
-        "AST"
+        "WHM"
       ]
     },
     {
@@ -1865,6 +1964,20 @@
       "Jobs": [
         "SGE"
       ]
+    },
+    {
+      "Time": 1154,
+      "Mechanic": "Fulgent Blade 2",
+      "Slot": "M1",
+      "Action": "Feint",
+      "Jobs": []
+    },
+    {
+      "Time": 1154,
+      "Mechanic": "Fulgent Blade 2",
+      "Slot": "OT",
+      "Action": "Reprisal",
+      "Jobs": []
     },
     {
       "Time": 1181,

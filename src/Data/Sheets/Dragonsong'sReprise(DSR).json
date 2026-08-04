@@ -1170,7 +1170,7 @@
       "Time": 536,
       "Mechanic": "Heavenly Heel & Ascalon's Might",
       "Slot": "MT",
-      "Action": "Rampart + Short Mit",
+      "Action": "Short Mit",
       "Jobs": []
     },
     {
@@ -1183,14 +1183,8 @@
       "Time": 536,
       "Mechanic": "Heavenly Heel & Ascalon's Might",
       "Slot": "OT",
-      "Action": "Kitchen Sink + Rampart",
+      "Action": "Kitchen Sink",
       "Jobs": []
-    },
-    {
-      "Time": 536,
-      "Mechanic": "Heavenly Heel & Ascalon's Might",
-      "Slot": "OT",
-      "Action": "Rampart"
     },
     {
       "Time": 536,

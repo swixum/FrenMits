@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -243,7 +243,11 @@ public static class Builtin
     {
         var lines = Bake(territory, slot);
         LineSplit.SplitLineList(lines);
-        CoveredRepeats.Strip(lines);
+        // A mit the sheet names again while its own buff is still up used to be
+        // deleted here as a mistake. It is not one: the reference sheets write
+        // it on purpose, so you can see a hit is already covered. The grid
+        // labels those rows now, so deleting them only threw away what the
+        // sheet was saying.
         // In time order, because a data file need not be.
         return lines.OrderBy(l => l.Time).ToList();
     }
@@ -465,33 +469,51 @@ public static class Builtin
         line.Personal = true; // Edits from the Fights view are personal overrides.
     }
 
+    // One moment can carry several calls: a healer pair is two rows at the same
+    // mechanic, one per job, and a job can be given two buttons. What separates
+    // them is the action, so comparing only (time, mechanic) made the top-up
+    // treat a saved AST line as proof the WHM line was already there, and that
+    // job's column was never filled in.
+    private static bool SamePress(MitLine a, MitLine b)
+    {
+        if (MathF.Abs(a.Time - b.Time) >= 0.1f) return false;
+        if (!string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // A plan saved before a sheet was rewritten still says "Soil" where the
+        // bake now says "Sacred Soil" - same button, same moment, so not a
+        // second call. Text that names no mit at all ("Carry Over") only ever
+        // matches itself.
+        var mine = AbilityBook.BuffsIn(a.Action).Select(x => x.Name).ToList();
+        if (mine.Count == 0) return false;
+        var theirs = AbilityBook.BuffsIn(b.Action).Select(x => x.Name).ToList();
+        return theirs.Count == mine.Count
+               && mine.All(n => theirs.Contains(n, StringComparer.OrdinalIgnoreCase));
+    }
+
+    // Hand a stashed column the calls a sheet has gained since it was put away.
+    // Only the column you are standing in re-bakes itself, so without this a
+    // sheet edit never reaches the other seven.
+    public static int TopUpSaved(FightProfile fight, string slot, List<MitLine> target)
+    {
+        if (target == null || string.IsNullOrEmpty(slot)) return 0;
+        var added = 0;
+        foreach (var b in BuildLines(fight.TerritoryId, slot))
+        {
+            if (IsDeleted(fight, slot, b)) continue;
+            if (target.Any(l => SamePress(l, b))) continue;
+            target.Add(b);
+            added++;
+        }
+        if (added > 0) target.Sort((x, y) => x.Time.CompareTo(y.Time));
+        return added;
+    }
+
     // Reconcile a fight's lines with the baked sheet, optionally adding missing calls.
     public static void UpdateLines(FightProfile fight, string slot, bool topUp = true)
     {
-        // One moment can carry several calls: a healer pair is two rows at the
-        // same mechanic, one per job, and a job can be given two buttons. What
-        // separates them is the action, so comparing only (time, mechanic) made
-        // the top-up treat a saved AST line as proof the WHM line was already
-        // there, and that job's column was never filled in.
-        bool SameCall(MitLine a, MitLine b)
-        {
-            if (MathF.Abs(a.Time - b.Time) >= 0.1f) return false;
-            if (!string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase))
-                return false;
-            if (string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            // A plan saved before a sheet was rewritten still says "Soil" where
-            // the bake now says "Sacred Soil" - same button, same moment, so not
-            // a second call. Text that names no mit at all ("Carry Over") only
-            // ever matches itself.
-            var mine = AbilityBook.BuffsIn(a.Action).Select(x => x.Name).ToList();
-            if (mine.Count == 0) return false;
-            var theirs = AbilityBook.BuffsIn(b.Action).Select(x => x.Name).ToList();
-            return theirs.Count == mine.Count
-                   && mine.All(n => theirs.Contains(n, StringComparer.OrdinalIgnoreCase));
-        }
-
         // A fresh bake never includes calls deleted from this slot.
         List<MitLine> Bake(string s)
             => BuildLines(fight.TerritoryId, s).Where(b => !IsDeleted(fight, s, b)).ToList();
@@ -523,7 +545,7 @@ public static class Builtin
             // The bake minus deletions, so what the slot is entitled to.
             var live = baked.Where(b => !IsDeleted(fight, slot, b)).ToList();
             foreach (var b in live)
-                if (!fight.Lines.Any(l => SameCall(l, b)))
+                if (!fight.Lines.Any(l => SamePress(l, b)))
                 {
                     fight.Lines.Add(b);
                     added++;
@@ -532,7 +554,7 @@ public static class Builtin
             // Drop a line shadowing a baked call, since mits don't repeat.
             fight.Lines.RemoveAll(l =>
                 !string.IsNullOrWhiteSpace(l.Action)
-                && !live.Any(b => SameCall(l, b))
+                && !live.Any(b => SamePress(l, b))
                 && live.Any(b => MathF.Abs(b.Time - l.Time) < 6f
                                  && string.Equals(b.Action.Trim(), l.Action.Trim(),
                                                   StringComparison.OrdinalIgnoreCase)));
@@ -589,7 +611,7 @@ public static class Builtin
             // The bake minus deletions, so what the slot is entitled to.
             var live = Bake(slot);
             foreach (var b in live)
-                if (!fight.Lines.Any(l => SameCall(l, b)))
+                if (!fight.Lines.Any(l => SamePress(l, b)))
                 {
                     fight.Lines.Add(b);
                     added++;
@@ -598,7 +620,7 @@ public static class Builtin
             // Drop a line shadowing a baked call, since mits don't repeat.
             fight.Lines.RemoveAll(l =>
                 !string.IsNullOrWhiteSpace(l.Action)
-                && !live.Any(b => SameCall(l, b))
+                && !live.Any(b => SamePress(l, b))
                 && live.Any(b => MathF.Abs(b.Time - l.Time) < 6f
                                  && string.Equals(b.Action.Trim(), l.Action.Trim(),
                                                   StringComparison.OrdinalIgnoreCase)));
