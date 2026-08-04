@@ -911,6 +911,199 @@ public class MeterWindow : Window
         return keys;
     }
 
+    // ---- the settings page's live sample ----
+
+    // What one settings tab wants out of the sample.
+    public sealed class SampleView
+    {
+        public int Rows = 2;
+        public bool Chrome;                 // header, limit break row, footer
+        public bool Heal;                   // healers first, HPS pinned
+        public List<string>? Keys;          // columns to show; null takes the mode's own
+        public MeterTheme? Theme;           // draw as this theme without saving it
+        // Filled in for the columns tab, which drags these.
+        public List<(string Key, float X0, float X1)>? Slots;
+    }
+
+    public const float SampleGap = 14f;
+
+    // The meter in miniature: same bars, highlight, icons and colors as the overlay.
+    public float DrawSample(ImDrawListPtr dl, Vector2 p, float w, SampleView v)
+    {
+        var enc = _plugin.Meter.Sample();
+        var t = v.Theme;
+        var accent = t?.Accent ?? C.MeterAccentColor;
+        var text = t?.Text ?? C.MeterTextColor;
+        var sub = t?.Sub ?? C.MeterSubColor;
+        var rowCol = t?.Rows ?? C.MeterRowColor;
+        var barStyle = t?.BarStyle ?? C.MeterBarStyle;
+        var jobColors = t?.JobColors ?? C.MeterJobColors;
+        var round = t?.Rounding ?? C.MeterRounding;
+
+        const float pad = 10f;
+        var lineH = ImGui.GetTextLineHeight();
+        // The real row height, so the Height slider moves something here too.
+        var rowH = Math.Clamp(C.MeterBarHeight, 14f, 44f);
+        var gap = C.MeterBarGap;
+        var y = p.Y + pad;
+
+        // Only players, and healers first when the healing view asked.
+        var pool = new List<MeterCombatant>();
+        foreach (var r in enc.Rows)
+            if (!r.LimitBreak) pool.Add(r);
+        if (v.Heal) pool.Sort((a, b) => b.Hps.CompareTo(a.Hps));
+
+        var keys = new List<string>(v.Keys ?? (v.Heal ? C.MeterHealColumns : C.MeterColumns));
+        if (v.Heal && !keys.Contains("hps")) keys.Insert(0, "hps");
+
+        // Header, in the overlay's three flavors.
+        if (v.Chrome && C.MeterHeaderStyle != 2)
+        {
+            // The headline sits top right in both flavors, as it does on the overlay.
+            var main = v.Heal ? $"{Num(enc.TotalHps)} HPS" : $"Raid {Num(enc.RaidRDps)} rDPS";
+            var mainW = ImGui.CalcTextSize(main).X;
+            BText(dl, new Vector2(p.X + w - pad - mainW, y), accent, main);
+            if (C.MeterHeaderStyle == 1)
+            {
+                BText(dl, new Vector2(p.X + pad, y), t?.Text ?? C.MeterTimerColor, enc.Duration);
+                BText(dl, new Vector2(p.X + pad + ImGui.CalcTextSize(enc.Duration).X + 8f, y),
+                    t?.Text ?? C.MeterTitleColor, Clip(enc.Title, w - pad * 2 - mainW - 60f));
+                y += lineH + 5f;
+            }
+            else
+            {
+                BText(dl, new Vector2(p.X + pad, y), t?.Text ?? C.MeterTitleColor,
+                    Clip(enc.Title, w - pad * 2 - mainW - 12f));
+                y += lineH + 2f;
+                BText(dl, new Vector2(p.X + pad, y), t?.Text ?? C.MeterTimerColor, enc.Duration);
+                BText(dl, new Vector2(p.X + pad + ImGui.CalcTextSize(enc.Duration).X, y), sub,
+                    $"  ·  {pool.Count} in party");
+                y += lineH + 4f;
+            }
+        }
+
+        // Columns, right to left, the way the overlay lays them out.
+        var slots = v.Slots ?? new List<(string Key, float X0, float X1)>();
+        slots.Clear();
+        var x = p.X + w - pad;
+        for (var i = keys.Count - 1; i >= 0; i--)
+        {
+            var cw = ColumnWidth(keys[i]);
+            x -= cw;
+            slots.Add((keys[i], x, x + cw));
+            x -= SampleGap;
+        }
+
+        // The columns tab drags these headings, so there they show whatever Display says.
+        var headY = y;
+        var labels = v.Slots != null || (C.MeterColumnHeader && C.MeterHeaderStyle != 2);
+        if (labels)
+        {
+            foreach (var s in slots)
+            {
+                var label = ColumnShort(s.Key);
+                BText(dl, new Vector2(s.X1 - ImGui.CalcTextSize(label).X, y), sub, label);
+            }
+            y += lineH + 3f;
+        }
+
+        // The rank column, sized like the overlay's.
+        var rankW = C.MeterShowRank ? ImGui.CalcTextSize("8.").X + 6f : 0f;
+        var iconW = C.MeterShowJobIcons ? rowH : 0f;
+        var nameLeft = p.X + pad + rankW + iconW;
+        var nameRight = MathF.Max(nameLeft + 30f, x + SampleGap - 6f);
+        // The sample's own metric, not the overlay's current mode.
+        double Shown(MeterCombatant c) => v.Heal ? c.Hps : keys.Contains("dps") && !keys.Contains("rdps") ? c.Dps : c.RDps;
+        var lead = pool.Count > 0 ? Shown(pool[0]) : 0;
+
+        for (var r = 0; r < v.Rows && r < pool.Count; r++)
+        {
+            var c = pool[r];
+            var a = new Vector2(p.X + pad - 3f, y);
+            var b = new Vector2(p.X + w - pad + 3f, y + rowH);
+            dl.AddRectFilled(a, b, rowCol, MathF.Min(round, 6f));
+
+            var frac = lead > 0 ? Math.Clamp((float)(Shown(c) / lead), 0.08f, 1f) : 1f;
+            var rgb = (jobColors && JobColors.TryGetValue(c.Job, out var jc) ? jc : accent) & 0x00FFFFFF;
+            DrawBar(dl, a, (b.X - a.X) * frac, rowH, rgb, a.X + 6f, 1f, barStyle);
+
+            // Row one is yours, so the highlight is never invisible here.
+            if (C.MeterHighlightYou && r == 0)
+            {
+                var hrgb = (t?.Accent ?? C.MeterHighlightColor) & 0x00FFFFFF;
+                var s = C.MeterHighlightStrength;
+                if (C.MeterHighlightStyle is 0 or 1) dl.AddRectFilled(a, b, Fade(hrgb | 0x12000000, s), 4f);
+                if (C.MeterHighlightStyle is 0 or 2) dl.AddRect(a, b, Fade(hrgb | 0x8C000000, s), 4f);
+                if (C.MeterHighlightStyle == 3)
+                    dl.AddRectFilled(a - new Vector2(3f, 0), new Vector2(a.X, b.Y), Fade(hrgb | 0xF2000000, s));
+            }
+
+            var ty = y + (rowH - lineH) * 0.5f;
+            if (C.MeterShowRank) BText(dl, new Vector2(p.X + pad, ty), sub, $"{r + 1}.");
+            if (C.MeterShowJobIcons && Jobs.ByAbbreviation(c.Job) is { } job)
+                Icons.DrawTo(dl, 62100u + job.RowId,
+                    new Vector2(nameLeft - rowH + 2f, y + 2.5f), new Vector2(rowH - 5f, rowH - 5f));
+
+            var who = C.MeterYou && r == 0 ? "You" : ShortName(c.Display);
+            dl.PushClipRect(new Vector2(nameLeft, y), new Vector2(nameRight, b.Y), true);
+            BText(dl, new Vector2(nameLeft, ty), text, who);
+            dl.PopClipRect();
+
+            foreach (var s in slots)
+            {
+                var val = ColumnValue(s.Key, c);
+                BText(dl, new Vector2(s.X1 - ImGui.CalcTextSize(val).X, ty), text, val);
+            }
+            y += rowH + gap;
+        }
+
+        // Only where the headings would have been, or it lands on top of a row.
+        if (keys.Count == 0 && labels)
+            BText(dl, new Vector2(nameLeft, headY), sub, "no numbers, just bars");
+
+        if (v.Chrome && C.MeterLimitBreakRow)
+        {
+            var lbH = MathF.Max(12f, rowH * 0.6f);
+            var a = new Vector2(p.X + pad - 3f, y);
+            dl.AddRectFilled(a, new Vector2(p.X + w - pad + 3f, y + lbH), rowCol, 3f);
+            DrawBar(dl, a, (w - pad * 2 + 6f) * 0.22f, lbH, 0x6ABBE6, a.X + 6f, 0.85f, barStyle);
+            BText(dl, new Vector2(p.X + pad + 2f, y + (lbH - lineH) * 0.5f), text, "Limit Break");
+            y += lbH + gap;
+        }
+
+        if (v.Chrome && (C.MeterFooterDeaths || C.MeterButtons))
+        {
+            y += 2f;
+            if (C.MeterFooterDeaths)
+                BText(dl, new Vector2(p.X + pad, y), sub,
+                    enc.TotalDeaths == 1 ? "1 death" : $"{enc.TotalDeaths} deaths");
+            if (C.MeterButtons)
+            {
+                var bx = p.X + w - pad;
+                foreach (var label in new[] { "Reset", "Pause", "History" })
+                {
+                    var bw = ImGui.CalcTextSize(label).X + 12f;
+                    bx -= bw;
+                    dl.AddRectFilled(new Vector2(bx, y - 2f), new Vector2(bx + bw, y + lineH + 2f),
+                        (sub & 0x00FFFFFFu) | 0x1A000000u, 3f);
+                    BText(dl, new Vector2(bx + 6f, y), sub, label);
+                    bx -= 5f;
+                }
+            }
+            y += lineH;
+        }
+
+        return y + pad - p.Y;
+    }
+
+    // The name style, without needing to know who you are.
+    private string ShortName(string name)
+    {
+        if (C.MeterNameStyle == 0 || !name.Contains(' ')) return name;
+        var parts = name.Split(' ', 2);
+        return C.MeterNameStyle == 1 ? parts[0] : $"{parts[0]} {parts[1][..1]}.";
+    }
+
     // ---- what the settings preview needs to draw a real-looking row ----
 
     // The short heading the meter itself prints.
@@ -1470,7 +1663,7 @@ public class MeterWindow : Window
 
     // One bar in whichever fill style is set.
     private void DrawBar(ImDrawListPtr dl, Vector2 a, float fill, float rowH, uint rgb, float capEndX,
-        float scale = 1f)
+        float scale = 1f, int? styleOverride = null)
     {
         if (fill <= 2f) return;
         var b = new Vector2(a.X + fill, a.Y + rowH);
@@ -1480,7 +1673,7 @@ public class MeterWindow : Window
         var wash = solid ? 0xFF000000u : 0x5C000000u;
         var lead = solid ? 0xFF000000u : 0x8C000000u;
         var trail = solid ? 0x99000000u : 0x26000000u;
-        switch (C.MeterBarStyle)
+        switch (styleOverride ?? C.MeterBarStyle)
         {
             case 1: // glass: solid fill with a shine across the top half
                 dl.AddRectFilled(a, b, Fade(rgb | wash, op), 4f);

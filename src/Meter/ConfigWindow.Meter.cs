@@ -45,6 +45,10 @@ public partial class ConfigWindow
 
     private void DrawMeterDisplayTab()
     {
+        ImGui.Spacing();
+        DrawMeterCard(new MeterWindow.SampleView { Rows = 3, Chrome = true });
+        ImGui.TextDisabled("Every switch below lands here.");
+
         SeparatorText("Placement");
         C.MeterLocked = CfgCheck("Lock position and size", C.MeterLocked);
         Tip("Unlock, then drag the meter or its edges.");
@@ -137,6 +141,10 @@ public partial class ConfigWindow
 
     private void DrawMeterStyleTab()
     {
+        ImGui.Spacing();
+        DrawMeterCard(new MeterWindow.SampleView { Rows = 2 });
+        ImGui.TextDisabled("Row one counts as yours, so the highlight always shows.");
+
         SeparatorText("Bars");
         ImGui.SetNextItemWidth(200f);
         var barStyle = C.MeterBarStyle;
@@ -241,9 +249,15 @@ public partial class ConfigWindow
     private void DrawMeterThemesTab()
     {
         ImGui.Spacing();
-        ImGui.TextDisabled("A theme sets the colors and bar look; tweak anything after in Style.");
+        ImGui.TextDisabled(_themePeek is { } peek
+            ? $"Showing {peek.Name}; let go and it goes back."
+            : "Hover a theme to try it, click to keep it.");
+        ImGui.Spacing();
+        DrawMeterCard(new MeterWindow.SampleView { Rows = 2, Theme = _themePeek });
         ImGui.Spacing();
 
+        // Cleared here, then set again by whichever button is hovered below.
+        _themePeek = null;
         var size = new Vector2(152f, ImGui.GetFrameHeight() + 4f);
         var i = 0;
         foreach (var t in MeterWindow.Themes)
@@ -252,6 +266,9 @@ public partial class ConfigWindow
             DrawThemeButton(t, size);
         }
     }
+
+    // The theme under the cursor, drawn in the card until the cursor leaves.
+    private MeterWindow.MeterTheme? _themePeek;
 
     // A theme's own accent on the button, and a ring around the one in use.
     private void DrawThemeButton(MeterWindow.MeterTheme t, Vector2 size)
@@ -263,6 +280,8 @@ public partial class ConfigWindow
         if (live) ImGui.PushStyleColor(ImGuiCol.Button, 0xFF34271F);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Vector2(0f, 0.5f));
         if (ImGui.Button($"       {t.Name}##theme", size)) MeterWindow.ApplyTheme(C, t);
+        // The card above shows whatever is hovered, next frame.
+        if (ImGui.IsItemHovered() && !live) _themePeek = t;
         ImGui.PopStyleVar();
         if (live) ImGui.PopStyleColor();
 
@@ -563,90 +582,47 @@ public partial class ConfigWindow
         ImGui.PopID();
     }
 
-    private const float SampleGap = 14f;
+    // The sample card, drawn by the meter itself, wherever a tab wants one.
+    private void DrawMeterCard(MeterWindow.SampleView v, float maxW = 430f)
+    {
+        var w = MathF.Min(ImGui.GetContentRegionAvail().X, maxW);
+        var p = ImGui.GetCursorScreenPos();
+        var dl = ImGui.GetWindowDrawList();
+
+        // Content first on its own channel, so the panel can be drawn behind it once
+        // the card's height is known.
+        dl.ChannelsSplit(2);
+        dl.ChannelsSetCurrent(1);
+        var h = _plugin.MeterWindow.DrawSample(dl, p, w, v);
+        dl.ChannelsSetCurrent(0);
+        dl.AddRectFilled(p, p + new Vector2(w, h), Theme.PanelBg, 6f);
+        dl.AddRectFilled(p, p + new Vector2(w, h), v.Theme?.Bg ?? C.MeterBgColor, 6f);
+        dl.AddRect(p, p + new Vector2(w, h),
+            v.Theme is { } t ? (t.Accent & 0x00FFFFFFu) | 0x2E000000u : C.MeterBorderColor, 6f);
+        dl.ChannelsMerge();
+
+        ImGui.SetCursorScreenPos(p);
+        ImGui.Dummy(new Vector2(w, h));
+    }
 
     // Two rows of the real sample pull, drawn with this view's columns.
     private void DrawColumnSample(List<string> list, string view)
     {
-        // The mode pins its own metric on the meter, so the sample shows it too.
-        var keys = new List<string>(list);
-        if (view == "h" && !keys.Contains("hps")) keys.Insert(0, "hps");
-
-        // The healing view is worth nothing showing two dps, so it leads with the healers.
-        var pool = new List<MeterCombatant>();
-        foreach (var c in _plugin.Meter.Sample().Rows)
-            if (!c.LimitBreak) pool.Add(c);
-        if (view == "h") pool.Sort((a, b) => b.Hps.CompareTo(a.Hps));
-
-        var lineH = ImGui.GetTextLineHeight();
-        const float pad = 10f;
-        var rowH = lineH + 7f;
-        var w = MathF.Min(ImGui.GetContentRegionAvail().X, 430f);
-        var h = pad * 2 + lineH + 6f + rowH * 2 + 3f;
-
-        var p = ImGui.GetCursorScreenPos();
-        var dl = ImGui.GetWindowDrawList();
-        dl.AddRectFilled(p, p + new Vector2(w, h), Theme.PanelBg, 6f);
-        dl.AddRectFilled(p, p + new Vector2(w, h), C.MeterBgColor, 6f);
-        dl.AddRect(p, p + new Vector2(w, h), C.MeterBorderColor, 6f);
-
-        // Right to left, the way the meter lays its columns out.
-        var headY = p.Y + pad;
         var slots = new List<(string Key, float X0, float X1)>();
-        var x = p.X + w - pad;
-        for (var i = keys.Count - 1; i >= 0; i--)
-        {
-            var cw = MeterWindow.ColumnWidth(keys[i]);
-            x -= cw;
-            slots.Add((keys[i], x, x + cw));
-            x -= SampleGap;
-        }
-
-        var nameLeft = p.X + pad;
-        var nameRight = MathF.Max(nameLeft + 40f, x + SampleGap - 6f);
-
-        foreach (var s in slots)
-        {
-            var label = MeterWindow.ColumnShort(s.Key);
-            var tw = ImGui.CalcTextSize(label).X;
-            dl.AddText(new Vector2(s.X1 - tw, headY),
-                _colDrag == s.Key ? (C.MeterSubColor & 0x00FFFFFFu) | 0x55000000u : C.MeterSubColor, label);
-        }
-
-        var rowTop = headY + lineH + 6f;
-        var lead = pool.Count > 0 ? (view == "h" ? pool[0].Hps : pool[0].RDps) : 0;
-        for (var r = 0; r < 2 && r < pool.Count; r++)
-        {
-            var c = pool[r];
-            var top = rowTop + r * (rowH + 1f);
-            var mine = view == "h" ? c.Hps : c.RDps;
-            var frac = lead > 0 ? Math.Clamp((float)(mine / lead), 0.08f, 1f) : 1f;
-            var job = MeterWindow.JobColors.TryGetValue(c.Job, out var jc) ? jc : C.MeterAccentColor;
-            dl.AddRectFilled(new Vector2(p.X + pad, top),
-                new Vector2(p.X + pad + (w - pad * 2) * frac, top + rowH),
-                (job & 0x00FFFFFFu) | 0x66000000u, 3f);
-
-            var ty = top + (rowH - lineH) * 0.5f;
-            dl.PushClipRect(new Vector2(nameLeft, top), new Vector2(nameRight, top + rowH), true);
-            dl.AddText(new Vector2(nameLeft + 6f, ty), C.MeterTextColor, c.Display);
-            dl.PopClipRect();
-
-            foreach (var s in slots)
-            {
-                var val = MeterWindow.ColumnValue(s.Key, c);
-                dl.AddText(new Vector2(s.X1 - ImGui.CalcTextSize(val).X, ty), C.MeterTextColor, val);
-            }
-        }
-
-        if (keys.Count == 0)
-            dl.AddText(new Vector2(nameLeft + 6f, headY), C.MeterSubColor, "no numbers, just bars");
+        var heal = view == "h";
+        var card = new MeterWindow.SampleView { Rows = 2, Heal = heal, Keys = list, Slots = slots };
+        var p = ImGui.GetCursorScreenPos();
+        DrawMeterCard(card);
 
         // Headings are the handles: click drops a column, dragging moves it.
+        var lineH = ImGui.GetTextLineHeight();
+        var headY = p.Y + 10f;
         foreach (var s in slots)
         {
             if (!list.Contains(s.Key)) continue;
-            ImGui.SetCursorScreenPos(new Vector2(s.X0 - SampleGap * 0.5f, headY - 3f));
-            ImGui.InvisibleButton($"##head_{s.Key}", new Vector2(s.X1 - s.X0 + SampleGap, lineH + 6f));
+            ImGui.SetCursorScreenPos(new Vector2(s.X0 - MeterWindow.SampleGap * 0.5f, headY - 3f));
+            ImGui.InvisibleButton($"##head_{s.Key}",
+                new Vector2(s.X1 - s.X0 + MeterWindow.SampleGap, lineH + 6f));
             if (ImGui.IsItemHovered())
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
@@ -659,10 +635,7 @@ public partial class ConfigWindow
             { list.Remove(s.Key); C.SaveSettings(); }
         }
 
-        ImGui.SetCursorScreenPos(p);
-        ImGui.Dummy(new Vector2(w, h));
         ImGui.TextDisabled("Click a heading to drop it, or drag one to reorder.");
-
         if (_colDrag != null && _colDragView == view) DragColumn(list, slots, headY, lineH);
     }
 
@@ -679,7 +652,7 @@ public partial class ConfigWindow
         string? over = null;
         var after = false;
         foreach (var s in slots)
-            if (mouse.X >= s.X0 - SampleGap * 0.5f && mouse.X <= s.X1 + SampleGap * 0.5f)
+            if (mouse.X >= s.X0 - MeterWindow.SampleGap * 0.5f && mouse.X <= s.X1 + MeterWindow.SampleGap * 0.5f)
             {
                 over = s.Key;
                 after = mouse.X > (s.X0 + s.X1) * 0.5f;
@@ -691,7 +664,7 @@ public partial class ConfigWindow
             foreach (var s in slots)
                 if (s.Key == over)
                 {
-                    var ix = after ? s.X1 + SampleGap * 0.5f : s.X0 - SampleGap * 0.5f;
+                    var ix = after ? s.X1 + MeterWindow.SampleGap * 0.5f : s.X0 - MeterWindow.SampleGap * 0.5f;
                     fg.AddLine(new Vector2(ix, headY - 3f), new Vector2(ix, headY + lineH + 3f), Theme.Accent, 2f);
                 }
 
