@@ -276,19 +276,8 @@ public partial class ConfigWindow
 
     private void DrawMeterColumnsTab()
     {
-        ImGui.Spacing();
-        ImGui.TextDisabled("Top here is leftmost on the meter; dragging its labels reorders too.");
-        ImGui.Spacing();
-        // Both sides pad to the longer list, so the two boxes sit level.
-        var rows = Math.Max(Math.Max(C.MeterColumns.Count, C.MeterHealColumns.Count), 1);
-        if (ImGui.BeginTable("##metercols", 2, ImGuiTableFlags.SizingStretchSame))
-        {
-            ImGui.TableNextColumn();
-            DrawColumnList("Damage view", C.MeterColumns, "d", rows);
-            ImGui.TableNextColumn();
-            DrawColumnList("Healing view", C.MeterHealColumns, "h", rows);
-            ImGui.EndTable();
-        }
+        DrawColumnView("Damage view", C.MeterColumns, "d");
+        DrawColumnView("Healing view", C.MeterHealColumns, "h");
         ImGui.Spacing();
         ImGui.TextDisabled("Damage taken and Deaths reuse the damage list, each with its own number in front.");
     }
@@ -299,7 +288,8 @@ public partial class ConfigWindow
     {
         // Nothing to explain to someone already connected, but once it's up it stays
         // up for the session, so following the steps ends in a green line, not a blank.
-        if (!C.MeterSetupDone && (_setupCard || !_plugin.Meter.Connected))
+        var card = !C.MeterSetupDone && (_setupCard || !_plugin.Meter.Connected);
+        if (card)
         {
             _setupCard = true;
             DrawMeterSetupCard();
@@ -332,17 +322,13 @@ public partial class ConfigWindow
         if (ImGui.Button("Reconnect")) ReconnectMeter();
         Tip("Drops the link and picks it up again.");
 
-        if (C.MeterSetupDone)
-        {
-            ImGui.SameLine(0, 10);
-            if (ImGui.Button("ACT steps"))
-            {
-                C.MeterSetupDone = false;
-                _setupCard = true;
-                C.SaveSettings();
-            }
-            Tip("Show the three setup steps again.");
-        }
+        // The same steps, always here to check against, once the card is gone.
+        if (card) return;
+        SeparatorText("In ACT");
+        SetupStep(1, "Run ACT, with its FFXIV plugin.");
+        SetupStep(2, "Plugins > OverlayPlugin.dll > WSServer > Start.");
+        SetupStep(3, "Options > Main Table/Encounters > Idle Limit: 180.");
+        ImGui.TextDisabled("Lower than that splits a fight at its own downtime.");
     }
 
     // True once the card has shown this session, so a late connect doesn't yank it away.
@@ -546,90 +532,180 @@ public partial class ConfigWindow
             MeterFlash("That code didn't read as a meter profile.", ok: false);
     }
 
-    // One view's columns, in the order they sit on the meter.
-    private void DrawColumnList(string title, List<string> list, string view, int rows)
+    // One view: a sample of the meter itself, then every column as a checkbox.
+    private void DrawColumnView(string title, List<string> list, string view)
     {
         ImGui.PushID($"mcol_{view}");
         SeparatorText(title);
+        DrawColumnSample(list, view);
 
-        // Edits land after the loop, so the rows drawn this frame stay put.
-        var move = -1;
-        var dir = 0;
-        var drop = -1;
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            ImGui.PushID(i);
-            var on = true;
-            if (GreenCheckbox("##on", ref on)) drop = i;
-            Tip("Take this column off.");
-
-            ImGui.SameLine(0, 8);
-            ImGui.BeginDisabled(i == 0);
-            if (ImGui.ArrowButton("up", ImGuiDir.Up)) { move = i; dir = -1; }
-            ImGui.EndDisabled();
-            ImGui.SameLine(0, 3);
-            ImGui.BeginDisabled(i == list.Count - 1);
-            if (ImGui.ArrowButton("down", ImGuiDir.Down)) { move = i; dir = 1; }
-            ImGui.EndDisabled();
-
-            ImGui.SameLine(0, 8);
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(MeterWindow.ColumnLabel(list[i]));
-            ImGui.PopID();
-        }
-
-        if (list.Count == 0) ImGui.TextDisabled("No numbers, just bars.");
-
-        if (move >= 0)
-        {
-            var j = move + dir;
-            (list[j], list[move]) = (list[move], list[j]);
-            C.SaveSettings();
-        }
-        else if (drop >= 0)
-        {
-            list.RemoveAt(drop);
-            C.SaveSettings();
-        }
-
-        var drawn = Math.Max(list.Count, 1);
-        if (drawn < rows)
-            ImGui.Dummy(new Vector2(0f,
-                (rows - drawn) * (ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.Y)));
-
-        DrawColumnBox(list);
-        ImGui.PopID();
-    }
-
-    // The rest of the columns, boxed so a long list can't take over the tab.
-    private void DrawColumnBox(List<string> list)
-    {
         ImGui.Spacing();
-        ImGui.TextDisabled("Not shown");
-
-        var h = ImGui.GetTextLineHeightWithSpacing() * 5 + ImGui.GetStyle().WindowPadding.Y * 2;
-        ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
-        if (ImGui.BeginChild("##offcols", new Vector2(0, h), true))
+        if (ImGui.BeginTable("##colgrid", 3))
         {
-            var left = 0;
             foreach (var key in MeterWindow.ColumnKeys)
             {
-                if (list.Contains(key)) continue;
-                left++;
-                var on = false;
+                ImGui.TableNextColumn();
+                var on = list.Contains(key);
                 ImGui.PushID(key);
-                // Checked here means "add it", so it lands at the end of the order.
-                if (GreenCheckbox("##off", ref on)) { list.Add(key); C.SaveSettings(); }
+                if (GreenCheckbox("##col", ref on))
+                {
+                    if (on) list.Add(key);   // new ones land on the right
+                    else list.Remove(key);
+                    C.SaveSettings();
+                }
                 ImGui.SameLine(0, 8);
                 ImGui.AlignTextToFramePadding();
                 ImGui.TextUnformatted(MeterWindow.ColumnLabel(key));
                 ImGui.PopID();
             }
-            if (left == 0) ImGui.TextDisabled("Every column is in.");
+            ImGui.EndTable();
         }
-        ImGui.EndChild();
-        ImGui.PopStyleColor();
+        ImGui.PopID();
+    }
+
+    private const float SampleGap = 14f;
+
+    // Two rows of the real sample pull, drawn with this view's columns.
+    private void DrawColumnSample(List<string> list, string view)
+    {
+        // The mode pins its own metric on the meter, so the sample shows it too.
+        var keys = new List<string>(list);
+        if (view == "h" && !keys.Contains("hps")) keys.Insert(0, "hps");
+
+        // The healing view is worth nothing showing two dps, so it leads with the healers.
+        var pool = new List<MeterCombatant>();
+        foreach (var c in _plugin.Meter.Sample().Rows)
+            if (!c.LimitBreak) pool.Add(c);
+        if (view == "h") pool.Sort((a, b) => b.Hps.CompareTo(a.Hps));
+
+        var lineH = ImGui.GetTextLineHeight();
+        const float pad = 10f;
+        var rowH = lineH + 7f;
+        var w = MathF.Min(ImGui.GetContentRegionAvail().X, 430f);
+        var h = pad * 2 + lineH + 6f + rowH * 2 + 3f;
+
+        var p = ImGui.GetCursorScreenPos();
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddRectFilled(p, p + new Vector2(w, h), Theme.PanelBg, 6f);
+        dl.AddRectFilled(p, p + new Vector2(w, h), C.MeterBgColor, 6f);
+        dl.AddRect(p, p + new Vector2(w, h), C.MeterBorderColor, 6f);
+
+        // Right to left, the way the meter lays its columns out.
+        var headY = p.Y + pad;
+        var slots = new List<(string Key, float X0, float X1)>();
+        var x = p.X + w - pad;
+        for (var i = keys.Count - 1; i >= 0; i--)
+        {
+            var cw = MeterWindow.ColumnWidth(keys[i]);
+            x -= cw;
+            slots.Add((keys[i], x, x + cw));
+            x -= SampleGap;
+        }
+
+        var nameLeft = p.X + pad;
+        var nameRight = MathF.Max(nameLeft + 40f, x + SampleGap - 6f);
+
+        foreach (var s in slots)
+        {
+            var label = MeterWindow.ColumnShort(s.Key);
+            var tw = ImGui.CalcTextSize(label).X;
+            dl.AddText(new Vector2(s.X1 - tw, headY),
+                _colDrag == s.Key ? (C.MeterSubColor & 0x00FFFFFFu) | 0x55000000u : C.MeterSubColor, label);
+        }
+
+        var rowTop = headY + lineH + 6f;
+        var lead = pool.Count > 0 ? (view == "h" ? pool[0].Hps : pool[0].RDps) : 0;
+        for (var r = 0; r < 2 && r < pool.Count; r++)
+        {
+            var c = pool[r];
+            var top = rowTop + r * (rowH + 1f);
+            var mine = view == "h" ? c.Hps : c.RDps;
+            var frac = lead > 0 ? Math.Clamp((float)(mine / lead), 0.08f, 1f) : 1f;
+            var job = MeterWindow.JobColors.TryGetValue(c.Job, out var jc) ? jc : C.MeterAccentColor;
+            dl.AddRectFilled(new Vector2(p.X + pad, top),
+                new Vector2(p.X + pad + (w - pad * 2) * frac, top + rowH),
+                (job & 0x00FFFFFFu) | 0x66000000u, 3f);
+
+            var ty = top + (rowH - lineH) * 0.5f;
+            dl.PushClipRect(new Vector2(nameLeft, top), new Vector2(nameRight, top + rowH), true);
+            dl.AddText(new Vector2(nameLeft + 6f, ty), C.MeterTextColor, c.Display);
+            dl.PopClipRect();
+
+            foreach (var s in slots)
+            {
+                var val = MeterWindow.ColumnValue(s.Key, c);
+                dl.AddText(new Vector2(s.X1 - ImGui.CalcTextSize(val).X, ty), C.MeterTextColor, val);
+            }
+        }
+
+        if (keys.Count == 0)
+            dl.AddText(new Vector2(nameLeft + 6f, headY), C.MeterSubColor, "no numbers, just bars");
+
+        // Headings are the handles: click drops a column, dragging moves it.
+        foreach (var s in slots)
+        {
+            if (!list.Contains(s.Key)) continue;
+            ImGui.SetCursorScreenPos(new Vector2(s.X0 - SampleGap * 0.5f, headY - 3f));
+            ImGui.InvisibleButton($"##head_{s.Key}", new Vector2(s.X1 - s.X0 + SampleGap, lineH + 6f));
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                if (_colDrag == null) ImGui.SetTooltip($"{MeterWindow.ColumnLabel(s.Key)} - click to drop, drag to move");
+            }
+            if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left, 4f))
+            { _colDrag = s.Key; _colDragView = view; }
+            // Released on the heading, having never dragged: that's a click.
+            else if (ImGui.IsItemDeactivated() && _colDrag == null && ImGui.IsItemHovered())
+            { list.Remove(s.Key); C.SaveSettings(); }
+        }
+
+        ImGui.SetCursorScreenPos(p);
+        ImGui.Dummy(new Vector2(w, h));
+        ImGui.TextDisabled("Click a heading to drop it, or drag one to reorder.");
+
+        if (_colDrag != null && _colDragView == view) DragColumn(list, slots, headY, lineH);
+    }
+
+    private string? _colDrag;
+    private string _colDragView = "";
+
+    // Ghost label, an insertion mark, and the reorder once the mouse comes up.
+    private void DragColumn(List<string> list, List<(string Key, float X0, float X1)> slots,
+        float headY, float lineH)
+    {
+        if (_colDrag is not { } drag || !list.Contains(drag)) { _colDrag = null; return; }
+
+        var mouse = ImGui.GetMousePos();
+        string? over = null;
+        var after = false;
+        foreach (var s in slots)
+            if (mouse.X >= s.X0 - SampleGap * 0.5f && mouse.X <= s.X1 + SampleGap * 0.5f)
+            {
+                over = s.Key;
+                after = mouse.X > (s.X0 + s.X1) * 0.5f;
+            }
+
+        var fg = ImGui.GetForegroundDrawList();
+        fg.AddText(new Vector2(mouse.X + 10f, mouse.Y - lineH * 0.5f), 0xDDFFFFFF, MeterWindow.ColumnLabel(drag));
+        if (over != null && over != drag)
+            foreach (var s in slots)
+                if (s.Key == over)
+                {
+                    var ix = after ? s.X1 + SampleGap * 0.5f : s.X0 - SampleGap * 0.5f;
+                    fg.AddLine(new Vector2(ix, headY - 3f), new Vector2(ix, headY + lineH + 3f), Theme.Accent, 2f);
+                }
+
+        if (ImGui.IsMouseDown(ImGuiMouseButton.Left)) return;
+
+        if (over != null && over != drag)
+        {
+            list.Remove(drag);
+            var idx = list.IndexOf(over);
+            idx = idx < 0 ? 0 : idx + (after ? 1 : 0);
+            list.Insert(Math.Clamp(idx, 0, list.Count), drag);
+            C.SaveSettings();
+        }
+        _colDrag = null;
     }
 
     private void MeterColor(string label, Func<uint> get, Action<uint> set)

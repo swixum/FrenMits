@@ -911,6 +911,20 @@ public class MeterWindow : Window
         return keys;
     }
 
+    // ---- what the settings preview needs to draw a real-looking row ----
+
+    // The short heading the meter itself prints.
+    public static string ColumnShort(string key) => ColOf(key) is { } c ? c.Label : key;
+
+    // A column's own value for one player, formatted as the meter formats it.
+    public static string ColumnValue(string key, MeterCombatant c) => ColOf(key) is { } col ? col.Text(c) : "";
+
+    // Wide enough for the heading and for the biggest number it holds.
+    public static float ColumnWidth(string key)
+        => ColOf(key) is { } c
+            ? MathF.Max(ImGui.CalcTextSize(c.Label).X, ImGui.CalcTextSize(c.Sample).X)
+            : ImGui.CalcTextSize(key).X;
+
     private static Col? ColOf(string key)
     {
         foreach (var c in AllCols)
