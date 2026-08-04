@@ -534,6 +534,98 @@ public static class ConfigMigrations
             config.Version = 47;
             config.Save();
         }
+
+        // v48: v45 handed a saved line the job gate off ANY gated sheet row at
+        // its mechanic when that row was the only gated one there, without
+        // checking the actions matched. UMAD 5:43 carries a PLD's Passage of
+        // Arms next to the melee's ungated Feint, so the Feint came out gated
+        // to PLD and vanished from every other job's column. Take back a gate
+        // the sheet does not give, and refresh the mechanic names a saved plan
+        // froze before the sheet's spelling was corrected.
+        if (config.Version < 48)
+        {
+            var ungated = 0;
+            var renamed = 0;
+            foreach (var f in config.Fights)
+            {
+                if (f.CustomSlots.Count > 0 || !Builtin.Has(f.TerritoryId)) continue;
+                if (!string.IsNullOrEmpty(f.Slot)) ungated += DropGatesTheSheetDoesNotGive(f, f.Slot, f.Lines);
+                foreach (var (slot, saved) in f.SavedSlots)
+                    ungated += DropGatesTheSheetDoesNotGive(f, slot, saved);
+                renamed += AdoptTheSheetsMechanicNames(f);
+            }
+            if (ungated > 0)
+                EncounterLog.Info($"[FrenMits] freed {ungated} call(s) from a job gate the sheet never gave them.");
+            if (renamed > 0)
+                EncounterLog.Info($"[FrenMits] corrected {renamed} saved mechanic name(s).");
+            config.Version = 48;
+            config.Save();
+        }
+    }
+
+    // A saved line whose action IS an ungated row on the sheet must not carry a
+    // job gate. Only an untouched sheet line is considered: your own edits and
+    // job extras keep whatever they say.
+    private static int DropGatesTheSheetDoesNotGive(FightProfile f, string slot, List<MitLine> lines)
+    {
+        if (string.IsNullOrEmpty(slot)) return 0;
+        var baked = Builtin.BuildLines(f.TerritoryId, slot);
+        if (baked.Count == 0) return 0;
+
+        var n = 0;
+        foreach (var l in lines)
+        {
+            if (l.Custom || l.Personal || l.IsJobExtra || l.Jobs.Count == 0) continue;
+            var here = baked.FindAll(b => MathF.Abs(b.Time - l.Time) < 0.9f
+                                          && string.Equals(b.Mechanic.Trim(), l.Mechanic.Trim(),
+                                                           StringComparison.OrdinalIgnoreCase));
+            // The sheet row this line actually is. If the sheet gates that row
+            // too, the gate is real and stays.
+            var mine = here.Find(b => string.Equals(b.Action.Trim(), l.Action.Trim(),
+                                                    StringComparison.OrdinalIgnoreCase));
+            if (mine == null || mine.Jobs.Count > 0) continue;
+            l.Jobs = new List<string>();
+            n++;
+        }
+        return n;
+    }
+
+    // A plan keeps its own copy of the mechanic list, so a sheet whose spelling
+    // was corrected still shows the old name beside the new one as two rows.
+    private static int AdoptTheSheetsMechanicNames(FightProfile f)
+    {
+        var sheet = Builtin.CustomRows(f.TerritoryId);
+        if (sheet.Count == 0) return 0;
+        var n = 0;
+        foreach (var r in f.CustomRows)
+        {
+            if (sheet.Any(s => string.Equals(s.Mechanic.Trim(), r.Mechanic.Trim(),
+                                             StringComparison.OrdinalIgnoreCase))) continue;
+            // Same moment, near-identical name: the sheet's spelling wins.
+            var fixedUp = sheet.Find(s => MathF.Abs(s.Time - r.Time) < 0.9f
+                                          && NearlyTheSameName(s.Mechanic, r.Mechanic));
+            if (fixedUp == null) continue;
+            r.Mechanic = fixedUp.Mechanic;
+            n++;
+        }
+        return n;
+    }
+
+    // Within a few letters, so "Light of Judgement" adopts "Light of Judgment"
+    // but two different casts at one second never touch each other.
+    private static bool NearlyTheSameName(string a, string b)
+    {
+        a = a.Trim(); b = b.Trim();
+        if (Math.Abs(a.Length - b.Length) > 3) return false;
+        var d = new int[a.Length + 1, b.Length + 1];
+        for (var i = 0; i <= a.Length; i++) d[i, 0] = i;
+        for (var j = 0; j <= b.Length; j++) d[0, j] = j;
+        for (var i = 1; i <= a.Length; i++)
+            for (var j = 1; j <= b.Length; j++)
+                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                                   d[i - 1, j - 1] + (char.ToLowerInvariant(a[i - 1])
+                                                      == char.ToLowerInvariant(b[j - 1]) ? 0 : 1));
+        return d[a.Length, b.Length] <= 3;
     }
 
     // Give an ungated saved line back the gate its sheet row carries. Matched on
@@ -555,15 +647,18 @@ public static class ConfigMigrations
                                                            StringComparison.OrdinalIgnoreCase));
             if (here.Count == 0) continue;
 
-            var pick = here.Count == 1
-                ? here[0]
-                : here.Find(b => string.Equals(b.Action.Trim(), l.Action.Trim(), StringComparison.OrdinalIgnoreCase))
+            // The action has to line up, however few candidates there are. A
+            // mechanic can carry one gated row that is nothing to do with this
+            // line - UMAD 5:43 has a PLD's Passage of Arms beside the melee's
+            // ungated Feint - and handing that gate over hides the call from
+            // everyone but the one job.
+            var pick = here.Find(b => string.Equals(b.Action.Trim(), l.Action.Trim(), StringComparison.OrdinalIgnoreCase))
                   ?? here.Find(b => b.Action.Contains(l.Action.Trim(), StringComparison.OrdinalIgnoreCase)
                                     || l.Action.Contains(b.Action.Trim(), StringComparison.OrdinalIgnoreCase))
                   // The saved copy may still be written in the sheet's old
                   // shorthand, so fall back to what each side actually names.
                   ?? here.Find(b => NamesTheSameMit(b.Action, l.Action));
-            if (pick == null) continue;   // two jobs, no way to tell which - leave it
+            if (pick == null) continue;   // nothing this line matches - leave it
 
             l.Jobs = new List<string>(pick.Jobs);
             n++;
