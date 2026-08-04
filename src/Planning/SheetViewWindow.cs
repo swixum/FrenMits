@@ -134,26 +134,54 @@ public partial class SheetViewWindow : Window
     private static T Clone<T>(T value)
         => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(Newtonsoft.Json.JsonConvert.SerializeObject(value))!;
 
-    private void PushUndo(string label)
+    private void PushUndo(string label) => PushUndo(_fight, label);
+
+    // The fight page shares this stack: one plan, two places to edit it, so an
+    // edit made on either page is undone from either page.
+    public void PushUndo(FightProfile? fight, string label)
     {
-        if (_fight == null) return;
+        if (fight == null) return;
         _undoStack.Add(new PlanSnapshot
         {
-            Fight = _fight,
+            Fight = fight,
             Label = label,
-            Lines = Clone(_fight.Lines),
-            SavedSlots = Clone(_fight.SavedSlots),
-            DeletedCalls = Clone(_fight.DeletedCalls),
-            Notes = Clone(_fight.Notes),
-            CustomRows = Clone(_fight.CustomRows),
-            CustomDowntimes = Clone(_fight.CustomDowntimes),
-            CustomSlots = Clone(_fight.CustomSlots),
-            SyncPoints = Clone(_fight.SyncPoints),
-            BossAnchors = Clone(_fight.BossAnchors),
-            Slot = _fight.Slot,
-            TimerOffset = _fight.TimerOffset,
+            Lines = Clone(fight.Lines),
+            SavedSlots = Clone(fight.SavedSlots),
+            DeletedCalls = Clone(fight.DeletedCalls),
+            Notes = Clone(fight.Notes),
+            CustomRows = Clone(fight.CustomRows),
+            CustomDowntimes = Clone(fight.CustomDowntimes),
+            CustomSlots = Clone(fight.CustomSlots),
+            SyncPoints = Clone(fight.SyncPoints),
+            BossAnchors = Clone(fight.BossAnchors),
+            Slot = fight.Slot,
+            TimerOffset = fight.TimerOffset,
         });
         if (_undoStack.Count > 20) _undoStack.RemoveAt(0);
+    }
+
+    // What this fight's undo would take back, for a page that shows one fight.
+    public string? UndoLabelFor(FightProfile fight)
+    {
+        for (var i = _undoStack.Count - 1; i >= 0; i--)
+            if (_undoStack[i].Fight == fight) return _undoStack[i].Label;
+        return null;
+    }
+
+    // Roll one fight back, skipping any other fight's entries: the fight page
+    // shows a single fight, so undoing another's would come out of nowhere.
+    public string? UndoFor(FightProfile fight)
+    {
+        for (var i = _undoStack.Count - 1; i >= 0; i--)
+        {
+            if (_undoStack[i].Fight != fight) continue;
+            var s = _undoStack[i];
+            _undoStack.RemoveAt(i);
+            if (!C.Fights.Contains(s.Fight)) return null;
+            Restore(s);
+            return s.Label;
+        }
+        return null;
     }
 
     private void PopUndo() // for ops that turn out to be no-ops after pushing
@@ -178,6 +206,13 @@ public partial class SheetViewWindow : Window
             _filter = "";
         }
 
+        Restore(s);
+        _fight = s.Fight;
+        Flash(jumped ? $"Undid: {s.Label} (in {s.Fight.Name})." : $"Undid: {s.Label}.");
+    }
+
+    private void Restore(PlanSnapshot s)
+    {
         s.Fight.Lines = s.Lines;
         s.Fight.SavedSlots = s.SavedSlots;
         s.Fight.DeletedCalls = s.DeletedCalls;
@@ -193,10 +228,8 @@ public partial class SheetViewWindow : Window
         if (!string.IsNullOrEmpty(s.Slot) && s.Fight.SavedSlots.ContainsKey(s.Slot))
             s.Fight.SavedSlots[s.Slot] = s.Fight.Lines;
 
-        _fight = s.Fight;
         C.Save();
         _dirty = true;
-        Flash(jumped ? $"Undid: {s.Label} (in {s.Fight.Name})." : $"Undid: {s.Label}.");
     }
 
     // Sticky-phase pill state, from the top visible row.
@@ -240,6 +273,13 @@ public partial class SheetViewWindow : Window
 
     // Coordinates, not references, since the commit rebuilds rows.
     private (float Time, string Mech, int Slot)? _pendingEdit;
+
+    // The full call editor, opened by double-clicking a cell. Coordinates for
+    // the same reason, one frame apart so a just-typed call is in the rows.
+    private (float Time, string Mech, int Slot)? _cellEditOpening;
+    private (float Time, string Mech, int Slot)? _cellEditAt;
+    private MitLine? _cellEditDraft;   // an empty cell's line, held until it has an action
+    private bool _cellEditUndoArmed;   // one undo entry per opening, not per keystroke
 
     private string _flash = "";
     private DateTime _flashAt;

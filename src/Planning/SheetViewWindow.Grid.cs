@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -575,6 +575,14 @@ public partial class SheetViewWindow
             ImGui.SetNextItemWidth(-1);
             if (_focusPending) { ImGui.SetKeyboardFocusHere(); _focusPending = false; }
             ImGui.InputText("##c", ref _cellBuf, 256);
+            // A second click hands off to the full editor, so the box stays the
+            // fast path: type, Enter or Tab, next cell.
+            if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+            {
+                CommitPending();
+                _cellEditOpening = (row.Time, row.Mechanic, i);
+                return;
+            }
             if (ImGui.IsItemDeactivated())
             {
                 var enter = ImGui.IsKeyPressed(ImGuiKey.Enter, false) || ImGui.IsKeyPressed(ImGuiKey.KeypadEnter, false);
@@ -695,9 +703,19 @@ public partial class SheetViewWindow
             if (off) tip = "Disabled on the fight page (won't be called).\n" + tip;
             if (lvl != null) tip = lvl + "\n\n" + tip;
             if (warn != null) tip = warn + "\n\n" + tip;
+            tip += "\nDouble-click for the full editor.";
             // Warnings show immediately; informational tips wait the beat.
             if (warn != null || lvl != null || DelayedHover()) ImGui.SetTooltip(tip);
         }
+
+        // Opened a frame late, so a call typed into the box is in the rows by now.
+        if (AtCell(_cellEditOpening, row, i))
+        {
+            _cellEditOpening = null;
+            BindCellEditor(row, i);
+            ImGui.OpenPopup($"##celledit{i}");
+        }
+        if (AtCell(_cellEditAt, row, i)) DrawCellEditor(row, i);
 
         // Right-click: quick actions + the per-call offset, sheet-side.
         if (ImGui.BeginPopupContextItem($"##cellctx{i}"))
@@ -930,6 +948,100 @@ public partial class SheetViewWindow
         C.Save();
         _dirty = true;
         Flash($"{_slots[src]}'s plan pasted into {_slots[dst]} (that column only). Ctrl+Z undoes it.");
+    }
+
+    // ---- the full call editor, shared with the fight page ----
+
+    private bool AtCell((float Time, string Mech, int Slot)? at, Row row, int i)
+        => at is { } a && a.Slot == i && MathF.Abs(a.Time - row.Time) < 0.05f
+           && MechEquals(a.Mech, row.Mechanic);
+
+    // Bind the editor to this cell: its call, or a draft for an empty one.
+    private void BindCellEditor(Row row, int i)
+    {
+        _cellEditAt = (row.Time, row.Mechanic, i);
+        _cellEditUndoArmed = true;
+        _cellEditDraft = null;
+        if (GetCellLinesForJob(row, i).Count > 0) return;
+
+        var jobs = new List<string>();
+        if (!_isCustom && Jobs.ByAbbreviation(_gridCols[i]) != null) jobs.Add(_gridCols[i]);
+        _cellEditDraft = new MitLine
+        {
+            Time = row.Time,
+            Mechanic = row.Mechanic,
+            Enabled = true,
+            Custom = true,
+            Personal = true,
+            Jobs = jobs,
+        };
+    }
+
+    private void DrawCellEditor(Row row, int i)
+    {
+        var id = $"##celledit{i}";
+        if (!ImGui.BeginPopup(id))
+        {
+            if (!ImGui.IsPopupOpen(id)) { _cellEditAt = null; _cellEditDraft = null; }
+            return;
+        }
+
+        var fight = _fight;
+        var cell = GetCellLinesForJob(row, i);
+        var line = _cellEditDraft ?? (cell.Count > 0 ? cell[0] : null);
+        if (line == null || fight == null)
+        {
+            ImGui.CloseCurrentPopup();
+            ImGui.EndPopup();
+            _cellEditAt = null;
+            _cellEditDraft = null;
+            return;
+        }
+
+        var slotIdx = _gridToSlot[i];
+        var baked = row.Bake?.Cells[i];
+        MitLineEditor.Draw(line, C, new MitLineEditor.Hooks
+        {
+            Stale = AbortIfStale,
+            BeforeEdit = (l, rewrite) =>
+            {
+                if (_cellEditUndoArmed)
+                {
+                    PushUndo($"edit {_slots[slotIdx]}'s \"{row.Mechanic}\"");
+                    _cellEditUndoArmed = false;
+                }
+                EnsureBacked(slotIdx);
+                // A draft is nobody's sheet call yet, so there is nothing to keep.
+                if (rewrite && _cellEditDraft == null) Builtin.PreserveEdit(fight, _slots[slotIdx], l);
+            },
+            Save = () => { AdoptDraft(row, i, line); C.Save(); _dirty = true; },
+            Delete = () =>
+            {
+                if (_cellEditDraft != null) { _cellEditDraft = null; _cellEditAt = null; }
+                else DeleteCellLine(row, i);
+            },
+            // Offered on a draft too: an empty cell whose sheet call you deleted
+            // is exactly where you want the sheet's version back.
+            Reset = row.Bake != null ? () => ResetCell(row, i) : null,
+            Default = baked is { Count: > 0 } ? baked[0] : null,
+            Job = !_isCustom && Jobs.ByAbbreviation(_gridCols[i]) != null ? _gridCols[i] : null,
+            Context = $"{TimeText(row.Time)}  ·  {row.Mechanic}  ·  {_gridCols[i]}",
+        });
+        ImGui.EndPopup();
+    }
+
+    // A draft joins the slot once it names an action, so opening the editor on
+    // an empty cell and closing it again changes nothing.
+    private void AdoptDraft(Row row, int i, MitLine line)
+    {
+        if (_cellEditDraft != line || string.IsNullOrWhiteSpace(line.Action)) return;
+        var slotIdx = _gridToSlot[i];
+        EnsureBacked(slotIdx);
+        _slotLines[slotIdx].Add(line);
+        Resort(slotIdx);
+        _cellEditDraft = null;
+        // Named as you type, so the text itself would read half-finished.
+        Flash($"Added a call for {_slots[slotIdx]} at {row.Mechanic} (that slot only).");
     }
 
     // Delete this row's line, tombstoned like clearing the text.

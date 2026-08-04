@@ -13,7 +13,12 @@ namespace FrenMits.Host;
 // Settings: the per-call table where a plan is edited.
 public partial class ConfigWindow
 {
-    private string _iconSearch = "";
+    // Armed when an editor opens or a rename starts, spent on the first real
+    // change, so a session of typing is one undo entry.
+    private bool _lineEditUndoArmed;
+    private MitLine? _mechUndoArmed;
+
+    private static string Ellipsis(string s, int max) => s.Length > max ? s[..max] + "..." : s;
 
     class MechanicGroup
     {
@@ -25,15 +30,32 @@ public partial class ConfigWindow
 
     private void DrawLineTable(FightProfile fight)
     {
+        // One shared stack with Sheet View, so either page takes back the
+        // other's edits and there is no second history to reason about.
+        void Undoable(string label) => _plugin.SheetViewWindow.PushUndo(fight, label);
+
         ImGui.TextUnformatted($"Lines ({fight.Lines.Count})");
         if (ImGui.SmallButton("Add Mechanic"))
         {
+            Undoable("add a mechanic");
             var newLine = new MitLine { Custom = true, Personal = true };
             fight.Lines.Add(newLine);
             fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
             _scrollToLine = newLine;
             C.Save();
         }
+
+        ImGui.SameLine();
+        var undoLabel = _plugin.SheetViewWindow.UndoLabelFor(fight);
+        ImGui.BeginDisabled(undoLabel == null);
+        if (ImGui.SmallButton("Undo") && _plugin.SheetViewWindow.UndoFor(fight) is { } undone)
+            FlashBuiltin($"Undid: {undone}.");
+        ImGui.EndDisabled();
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            ImGui.SetTooltip(undoLabel == null
+                ? "Nothing to undo on this fight yet."
+                : $"Undo: {undoLabel}. Shared with Sheet View, so it takes back edits made there too.");
+
         ImGui.SameLine();
         var showEmpty = C.ShowEmptyMechanics;
         if (ImGui.Checkbox("Show Mechanics with No Actions", ref showEmpty))
@@ -55,6 +77,7 @@ public partial class ConfigWindow
             ImGui.SameLine();
             if (ImGui.SmallButton("Restore"))
             {
+                Undoable("restore deleted calls");
                 fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
                 var back = Builtin.ApplySlot(fight, fight.Slot);
                 C.Save();
@@ -81,7 +104,7 @@ public partial class ConfigWindow
         ImGui.TableSetupColumn("##del", ImGuiTableColumnFlags.WidthFixed, 28);
         ImGui.TableHeadersRow();
 
-        MitLine? toDelete = null;
+        var toDelete = new List<MitLine>();
         Action? deferred = null;
         
         // A hidden mechanic names a personal timer (a summoner's pet cycle),
@@ -174,6 +197,7 @@ public partial class ConfigWindow
                     {
                         if (_editTimeLine == repLine && SheetImport.TryParseTime(_editTimeBuf, out var sec) && MathF.Abs(sec - repLine.Time) > 0.001f)
                         {
+                            Undoable($"re-time \"{group.Mechanic}\"");
                             foreach (var l in group.Actions)
                             {
                                 PreserveBakedEdit(fight, l);
@@ -204,8 +228,12 @@ public partial class ConfigWindow
                     ImGui.PushStyleColor(ImGuiCol.Text, 0xFF5C9EF5); // Orange for custom
                     var mechChanged = ImGui.InputText("##mech", ref mech, 256);
                     ImGui.PopStyleColor();
+                    // Armed on focus, spent on the first keystroke: one entry
+                    // for the rename, not one per letter.
+                    if (ImGui.IsItemActivated()) _mechUndoArmed = repLine;
                     if (mechChanged)
                     {
+                        if (_mechUndoArmed == repLine) { Undoable($"rename \"{group.Mechanic}\""); _mechUndoArmed = null; }
                         foreach (var l in group.Actions)
                         {
                             PreserveBakedEdit(fight, l);
@@ -297,151 +325,53 @@ public partial class ConfigWindow
 
                 if (ImGui.BeginPopupContextItem("##actionctx"))
                 {
-                    LineContextItems(fight, line, fight.Lines.IndexOf(line), ref deferred, ref toDelete);
+                    LineContextItems(fight, line, fight.Lines.IndexOf(line), Undoable, ref deferred, toDelete);
                     ImGui.EndPopup();
                 }
 
                 if (ImGui.BeginPopup($"edit_action_{i}"))
                 {
-                    var on = line.Enabled;
-                    if (GreenCheckbox("Enabled", ref on)) { line.Enabled = on; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); }
-                    ImGui.Separator();
-                    
-                    var act = line.Action;
-                    if (ImGui.IsWindowAppearing()) ImGui.SetKeyboardFocusHere();
-                    if (ImGui.InputText("Action", ref act, 256))
-                    {
-                        PreserveBakedEdit(fight, line);
-
-                        line.Action = act;
-                        C.Save();
-                    }
+                    // One undo entry per opening, not per keystroke.
+                    if (ImGui.IsWindowAppearing()) _lineEditUndoArmed = true;
                     var defForLine = DefaultLineFor(fight, line, bakedForSlotAll);
-                    if (defForLine != null && ImGui.BeginPopupContextItem("##actionctx_pop"))
+                    var target = line;
+                    var named = string.IsNullOrWhiteSpace(line.Action) ? group.Mechanic : line.Action;
+                    void ArmedUndo(string verb)
                     {
-                        if (!string.Equals(defForLine.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (ImGui.MenuItem($"Reset action to \"{Ellipsis(defForLine.Action, 40)}\"")) { line.Action = defForLine.Action; C.Save(); }
-                        }
-                        ImGui.EndPopup();
+                        if (!_lineEditUndoArmed) return;
+                        Undoable($"{verb} \"{Ellipsis(named, 28)}\"");
+                        _lineEditUndoArmed = false;
                     }
 
-                    var off = line.OffsetSeconds;
-                    ImGui.SetNextItemWidth(120);
-                    if (ImGui.InputFloat("Offset (s)", ref off, 0.5f, 1f, "%.1f"))
-                    {
-                        line.OffsetSeconds = Math.Clamp(off, -30f, 30f);
-                        line.OffsetManual = line.OffsetSeconds != 0;
-                        C.Save();
-                        _plugin.SheetViewWindow.MarkPlanDirty();
-                    }
-                    if (ImGui.IsItemHovered()) ImGui.SetTooltip("+ earlier, - later.");
-
-                    ImGui.Spacing();
-                    DrawJobsCell(line);
-                    
-                    ImGui.Spacing();
-                    
-                    if (ImGui.TreeNode("Advanced Options"))
-                    {
-                        SeparatorText("Icon");
-                        var resolved = Icons.For(line, _plugin.GetActiveJobAbbr(fight));
-                        Icons.Draw(resolved, new Vector2(40, 40));
-                        ImGui.SameLine();
-                        ImGui.BeginGroup();
-                        ImGui.TextUnformatted(line.IconId != 0 ? $"pinned (#{line.IconId})"
-                            : (resolved != 0 ? "auto (action / status / keyword)" : "none"));
-                        if (ImGui.Button("Use auto")) { line.IconId = 0; C.Save(); }
-                        ImGui.SameLine();
-                        if (ImGui.Button("Potion")) { line.IconId = Icons.PotionIconFor(line); C.Save(); }
-                        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Pin the potion (Gemdraught) icon to this line.");
-                        ImGui.EndGroup();
-
-                        ImGui.SetNextItemWidth(-1);
-                        ImGui.InputTextWithHint("##iconsearch", "search actions & statuses...", ref _iconSearch, 64);
-                        if (!string.IsNullOrWhiteSpace(_iconSearch))
+                    Action? reset = null;
+                    if (!line.Custom && defForLine is { } baked)
+                        reset = () =>
                         {
-                            var n = 0;
-                            foreach (var (name, ic) in Icons.Search(_iconSearch, 40))
-                            {
-                                if (Icons.Button(ic, new Vector2(32, 32), $"##s{ic}_{n}")) { line.IconId = ic; C.Save(); }
-                                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{name}  (#{ic})");
-                                if (++n % 8 != 0) ImGui.SameLine();
-                            }
-                            ImGui.NewLine();
-                        }
-
-                        if (ImGui.TreeNode("Common mechanic icons"))
-                        {
-                            var n = 0;
-                            foreach (var (label, ic) in Icons.Common())
-                            {
-                                if (Icons.Button(ic, new Vector2(32, 32), $"##c{ic}_{n}")) { line.IconId = ic; C.Save(); }
-                                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{label}  (#{ic})");
-                                if (++n % 8 != 0) ImGui.SameLine();
-                            }
-                            ImGui.NewLine();
-                            ImGui.TreePop();
-                        }
-
-                        SeparatorText("Timing & Audio");
-                        
-                        var lead = line.LeadOverride;
-                        ImGui.SetNextItemWidth(120f);
-                        if (ImGui.InputFloat("Show ahead (s)", ref lead, 0.5f, 1f, "%.1f"))
-                        {
-                            line.LeadOverride = MathF.Max(0f, lead);
-                            C.Save();
-                        }
-
-                        var tts = line.Tts;
-                        ImGui.SetNextItemWidth(220f);
-                        if (ImGui.InputText("Speak instead", ref tts, 128)) { line.Tts = tts; C.Save(); }
-                        ImGui.TextDisabled("Empty = speak the action.");
-
-                        var sound = line.Sound;
-                        if (GreenCheckbox("Play audio cue", ref sound)) { line.Sound = sound; C.Save(); }
-
-                        var useColor = line.Color != 0;
-                        if (GreenCheckbox("Custom text color", ref useColor))
-                        {
-                            line.Color = useColor ? 0xFF55FFFF : 0u;
-                            C.Save();
-                        }
-                        if (line.Color != 0)
-                        {
-                            var col = ColorToVec4(line.Color);
-                            if (ImGui.ColorEdit4("Color", ref col)) { line.Color = Vec4ToColor(col); C.Save(); }
-                        }
-                        
-                        ImGui.TreePop();
-                    }
-                    
-                    ImGui.Separator();
-                    if (ImGui.Button("Delete Action", new Vector2(-1, 0)))
-                    {
-                        toDelete = line;
-                        ImGui.CloseCurrentPopup();
-                    }
-                    if (!line.Custom && defForLine != null)
-                    {
-                        if (ImGui.Button("Reset to Default", new Vector2(-1, 0)))
-                        {
-                            OverwriteLine(line, defForLine);
-                            line.Custom = false;
-                            fight.DeletedCalls.RemoveAll(d => MathF.Abs(d.Time - defForLine.Time) < 0.1f && d.Slot == fight.Slot);
+                            ArmedUndo("reset");
+                            OverwriteLine(target, baked);
+                            target.Custom = false;
+                            fight.DeletedCalls.RemoveAll(d => MathF.Abs(d.Time - baked.Time) < 0.1f && d.Slot == fight.Slot);
                             C.Save();
                             _plugin.SheetViewWindow.MarkPlanDirty();
-                            ImGui.CloseCurrentPopup();
-                        }
-                    }
-                    if (ImGui.MenuItem("Delete this action")) toDelete = line;
+                        };
+
+                    MitLineEditor.Draw(line, C, new MitLineEditor.Hooks
+                    {
+                        // Only a rewrite tombstones the sheet's call.
+                        BeforeEdit = (l, rewrite) => { ArmedUndo("edit"); if (rewrite) PreserveBakedEdit(fight, l); },
+                        Save = () => { C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); },
+                        Delete = () => { ArmedUndo("delete"); toDelete.Add(target); },
+                        Default = defForLine,
+                        Job = _plugin.GetActiveJobAbbr(fight),
+                        Context = $"{Fmt.MmssSigned(group.Time)}  ·  {group.Mechanic}",
+                        Reset = reset,
+                    });
                     ImGui.EndPopup();
                 }
                 
                 if (string.IsNullOrWhiteSpace(line.Action) && !ImGui.IsPopupOpen($"edit_action_{i}"))
                 {
-                    toDelete = line;
+                    toDelete.Add(line);
                 }
 
                 ImGui.PopID();
@@ -459,7 +389,14 @@ public partial class ConfigWindow
                     Personal = true,
                     Action = ""
                 };
-                deferred = () => { fight.Lines.Add(newLine); fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList(); _focusNewAction = newLine; C.Save(); };
+                deferred = () =>
+                {
+                    Undoable($"add a call to \"{group.Mechanic}\"");
+                    fight.Lines.Add(newLine);
+                    fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
+                    _focusNewAction = newLine;
+                    C.Save();
+                };
             }
 
             ImGui.TableNextColumn();
@@ -505,6 +442,7 @@ public partial class ConfigWindow
                     {
                         deferred = () =>
                         {
+                            Undoable($"reset \"{group.Mechanic}\"");
                             foreach(var l in group.Actions.Where(a => !JobExtras.IsAutoExtra(a))) { fight.Lines.Remove(l); }
                             foreach(var b in bakedForGroup)
                             {
@@ -529,7 +467,11 @@ public partial class ConfigWindow
                 
                 if (clicked)
                 {
-                    deferred = () => { foreach(var l in group.Actions) toDelete = l; };
+                    deferred = () =>
+                    {
+                        Undoable($"delete \"{group.Mechanic}\"");
+                        toDelete.AddRange(group.Actions);
+                    };
                 }
                 if (ImGui.IsItemHovered()) ImGui.SetTooltip("Delete this mechanic and all its actions");
             }
@@ -540,31 +482,7 @@ public partial class ConfigWindow
         ImGui.EndTable();
 
         deferred?.Invoke();
-        if (toDelete != null)
-        {
-            // Baked lines get a tombstone, so a re-bake can't revive them; a
-            // job-extra line (Mantra, Curing Waltz, ...) needs the same, or
-            // the auto-mix would just put it right back.
-            var isAutoExtra = JobExtras.IsAutoExtra(toDelete);
-            if ((!toDelete.Custom || isAutoExtra) && !string.IsNullOrEmpty(fight.Slot))
-            {
-                fight.DeletedCalls.Add(new DeletedCall
-                {
-                    Slot = fight.Slot,
-                    Time = toDelete.Time,
-                    Mechanic = toDelete.Mechanic,
-                    Action = toDelete.Action,
-                });
-                FlashBuiltin(isAutoExtra
-                    ? "Job extra deleted. It stays out of the auto-mix; Restore (above the table) brings it back."
-                    : "Line deleted. It stays deleted; Restore (above the table) brings it back.");
-            }
-            fight.Lines.Remove(toDelete);
-            // Keep the saved copy in step after a config reload.
-            if (!string.IsNullOrEmpty(fight.Slot))
-                fight.SavedSlots[fight.Slot] = fight.Lines;
-            C.Save();
-        }
+        if (toDelete.Count > 0) DeleteLines(fight, toDelete);
 
         if (!ImGui.IsAnyItemActive())
         {
@@ -580,8 +498,49 @@ public partial class ConfigWindow
         }
     }
 
+    // Drop lines from the plan, tombstoning the ones a re-bake would revive.
+    private void DeleteLines(FightProfile fight, List<MitLine> lines)
+    {
+        var extras = 0;
+        var kept = 0;
+        var seen = new HashSet<MitLine>();
+        foreach (var line in lines)
+        {
+            // A blank line can reach here twice in one frame, from its own
+            // cleanup and from its mechanic's delete: one tombstone is enough.
+            if (!seen.Add(line)) continue;
+            // A job-extra line (Mantra, Curing Waltz, ...) needs a tombstone
+            // too, or the auto-mix would just put it right back.
+            var isAutoExtra = JobExtras.IsAutoExtra(line);
+            if ((!line.Custom || isAutoExtra) && !string.IsNullOrEmpty(fight.Slot))
+            {
+                fight.DeletedCalls.Add(new DeletedCall
+                {
+                    Slot = fight.Slot,
+                    Time = line.Time,
+                    Mechanic = line.Mechanic,
+                    Action = line.Action,
+                });
+                if (isAutoExtra) extras++; else kept++;
+            }
+            fight.Lines.Remove(line);
+        }
+
+        if (extras > 0 || kept > 0)
+            FlashBuiltin(extras > 0 && kept == 0
+                ? "Job extra deleted. It stays out of the auto-mix; Restore (above the table) brings it back."
+                : "Deleted. It stays deleted; Restore (above the table) brings it back.");
+
+        // Keep the saved copy in step after a config reload.
+        if (!string.IsNullOrEmpty(fight.Slot))
+            fight.SavedSlots[fight.Slot] = fight.Lines;
+        C.Save();
+        _plugin.SheetViewWindow.MarkPlanDirty();
+    }
+
     // Right-click menu shared by the editable cells.
-    private void LineContextItems(FightProfile fight, MitLine line, int index, ref Action? deferred, ref MitLine? toDelete)
+    private void LineContextItems(FightProfile fight, MitLine line, int index, Action<string> undoable,
+        ref Action? deferred, List<MitLine> toDelete)
     {
         if (ImGui.MenuItem("Copy action")) _copiedLine = CloneLine(line);
 
@@ -590,16 +549,17 @@ public partial class ConfigWindow
         {
             var clip = CloneLine(_copiedLine);
             var at = index;
-            deferred = () => { fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
+            deferred = () => { undoable("paste a call"); fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
         }
         if (ImGui.MenuItem("Paste below", string.Empty, false, hasCopy) && _copiedLine != null)
         {
             var clip = CloneLine(_copiedLine);
             var at = index + 1;
-            deferred = () => { fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
+            deferred = () => { undoable("paste a call"); fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
         }
         if (ImGui.MenuItem("Paste over this action", string.Empty, false, hasCopy) && _copiedLine != null)
         {
+            undoable($"paste over \"{Ellipsis(line.Action, 28)}\"");
             PreserveBakedEdit(fight, line); // pasting over rewrites time/mechanic
             OverwriteLine(line, _copiedLine);
             deferred = () => { fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList(); _scrollToLine = line; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); };
@@ -610,11 +570,15 @@ public partial class ConfigWindow
         {
             var dup = CloneLine(line);
             var at = index + 1;
-            deferred = () => { fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), dup); C.Save(); };
+            deferred = () => { undoable($"duplicate \"{Ellipsis(line.Action, 28)}\""); fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), dup); C.Save(); };
         }
 
         ImGui.Separator();
-        if (ImGui.MenuItem("Delete action")) toDelete = line;
+        if (ImGui.MenuItem("Delete action"))
+        {
+            undoable($"delete \"{Ellipsis(line.Action, 28)}\"");
+            toDelete.Add(line);
+        }
     }
 
     // An edit breaks a baked line's identity, so tombstone first.
@@ -639,42 +603,4 @@ public partial class ConfigWindow
         target.IconId = src.IconId;
     }
 
-    private void DrawJobsCell(MitLine line)
-    {
-        var label = line.Jobs.Count == 0 ? "All Jobs" : string.Join(",", line.Jobs);
-        if (label.Length > 18) label = label[..16] + "...";
-        if (ImGui.Button(label + "##jobs", new Vector2(-1, 0)))
-            ImGui.OpenPopup("jobspopup");
-
-        if (ImGui.BeginPopup("jobspopup"))
-        {
-            if (ImGui.Button("All jobs")) { line.Jobs.Clear(); C.Save(); }
-
-            foreach (var role in Enum.GetValues<JobRole>())
-            {
-                SeparatorText(RoleLabel(role));
-                var first = true;
-                foreach (var abbr in Jobs.AbbreviationsForRole(role))
-                {
-                    if (!first) ImGui.SameLine();
-                    first = false;
-                    var has = line.Jobs.Contains(abbr, StringComparer.OrdinalIgnoreCase);
-                    if (GreenCheckbox(abbr, ref has))
-                    {
-                        if (has && !line.Jobs.Contains(abbr)) line.Jobs.Add(abbr);
-                        else line.Jobs.RemoveAll(j => string.Equals(j, abbr, StringComparison.OrdinalIgnoreCase));
-                        C.Save();
-                    }
-                }
-                ImGui.SameLine();
-                if (ImGui.SmallButton($"+all##{role}"))
-                {
-                    foreach (var abbr in Jobs.AbbreviationsForRole(role))
-                        if (!line.Jobs.Contains(abbr)) line.Jobs.Add(abbr);
-                    C.Save();
-                }
-            }
-            ImGui.EndPopup();
-        }
-    }
 }

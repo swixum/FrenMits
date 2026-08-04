@@ -237,20 +237,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // The one checkbox style used across the whole config.
-    private static bool GreenCheckbox(string label, ref bool v)
-    {
-        var on = v; // push and pop must use the same flag
-        if (on)
-        {
-            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0xFF5AC832);        // green (ABGR)
-            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, 0xFF6FD647);
-            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, 0xFF5AC832);
-            ImGui.PushStyleColor(ImGuiCol.CheckMark, 0xFFFFFFFF);      // white tick
-        }
-        var changed = ImGui.Checkbox(label, ref v);
-        if (on) ImGui.PopStyleColor(4);
-        return changed;
-    }
+    private static bool GreenCheckbox(string label, ref bool v) => Widgets.GreenCheckbox(label, ref v);
 
     // Tooltip with a hover delay, so sweeping a page stays quiet.
     private static Vector2 _tipPos;

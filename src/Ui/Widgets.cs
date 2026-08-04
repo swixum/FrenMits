@@ -22,6 +22,29 @@ internal static class Widgets
         ImGui.Spacing();
     }
 
+    // The one checkbox style used across the plugin.
+    public static bool GreenCheckbox(string label, ref bool v)
+    {
+        var on = v; // push and pop must use the same flag
+        if (on)
+        {
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, 0xFF5AC832);        // green (ABGR)
+            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, 0xFF6FD647);
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, 0xFF5AC832);
+            ImGui.PushStyleColor(ImGuiCol.CheckMark, 0xFFFFFFFF);      // white tick
+        }
+        var changed = ImGui.Checkbox(label, ref v);
+        if (on) ImGui.PopStyleColor(4);
+        return changed;
+    }
+
+    // Packed color from a picker's floats; Theme.V goes the other way.
+    public static uint ToColor(Vector4 v) =>
+        ((uint)(Math.Clamp(v.W, 0, 1) * 255) << 24) |
+        ((uint)(Math.Clamp(v.Z, 0, 1) * 255) << 16) |
+        ((uint)(Math.Clamp(v.Y, 0, 1) * 255) << 8) |
+        (uint)(Math.Clamp(v.X, 0, 1) * 255);
+
     // Small stat pill: grey label, colored value.
     public static void Chip(string label, string value, uint valueColor)
     {

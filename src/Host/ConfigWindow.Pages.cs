@@ -966,8 +966,6 @@ public partial class ConfigWindow
         return bestHasMatch ? best : null;
     }
 
-    private static string Ellipsis(string s, int max) => s.Length > max ? s[..max] + "..." : s;
-
     private static MitLine CloneLine(MitLine l) => new()
     {
         Time = l.Time, Mechanic = l.Mechanic, Action = l.Action,
@@ -998,9 +996,5 @@ public partial class ConfigWindow
 
     private static Vector4 ColorToVec4(uint abgr) => Theme.V(abgr); // reverse is Vec4ToColor below
 
-    private static uint Vec4ToColor(Vector4 v) =>
-        ((uint)(Math.Clamp(v.W, 0, 1) * 255) << 24) |
-        ((uint)(Math.Clamp(v.Z, 0, 1) * 255) << 16) |
-        ((uint)(Math.Clamp(v.Y, 0, 1) * 255) << 8) |
-        (uint)(Math.Clamp(v.X, 0, 1) * 255);
+    private static uint Vec4ToColor(Vector4 v) => Widgets.ToColor(v);
 }
