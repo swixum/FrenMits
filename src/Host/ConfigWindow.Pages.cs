@@ -668,7 +668,15 @@ public partial class ConfigWindow
             C.UpcomingBoardShowSeverity = CfgCheck("Severity marks (! !! !!!)", C.UpcomingBoardShowSeverity);
             NextColumn();
             C.UpcomingBoardShowType = CfgCheck("Tank buster icon", C.UpcomingBoardShowType);
-            Tip("An orange shield on tank-buster rows.");
+            Tip("An orange shield on tank-buster rows, unless the type chip is on.");
+            ImGui.Spacing();
+            C.UpcomingBoardTypeChip = CfgCheck("Mechanic type chip", C.UpcomingBoardTypeChip);
+            Tip("A tinted tag in its own column: Buster, Raid AOE, Enrage.");
+            NextColumn();
+            ImGui.BeginDisabled(!C.UpcomingBoardTypeChip);
+            C.UpcomingBoardTypeChipShort = CfgCheck("Short chip labels", C.UpcomingBoardTypeChipShort);
+            Tip("TB / AOE / ENR, which gives the mechanic name more room.");
+            ImGui.EndDisabled();
             ImGui.Spacing();
             C.UpcomingBossPosition = CfgCheck("Boss reposition calls", C.UpcomingBossPosition);
             Tip("Counts down to the boss returning to a known spot.");
@@ -761,6 +769,7 @@ public partial class ConfigWindow
         C.UpcomingBoardStripe = true; C.UpcomingBoardDrain = true;
         C.UpcomingBoardShowActions = true; C.UpcomingBoardShowSeverity = true;
         C.UpcomingBoardShowType = true; C.UpcomingBossPosition = true;
+        C.UpcomingBoardTypeChip = true; C.UpcomingBoardTypeChipShort = false;
         C.UpcomingBoardPhases = true;
         C.UpcomingCount = 3; C.UpcomingLookaheadSeconds = 30f;
         C.UpcomingFontSizePx = 20f; C.OverlayColorUpcoming = 0xB0FFFFFF;

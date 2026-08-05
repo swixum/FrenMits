@@ -192,6 +192,8 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingBoardShowActions { get; set; } = true;       // presses under the rows
     public bool UpcomingBoardShowSeverity { get; set; } = true;      // !/!!/!!! marks from graded sheets
     public bool UpcomingBoardShowType { get; set; } = true;          // raidwide / tank-buster icon per row
+    public bool UpcomingBoardTypeChip { get; set; } = true;          // Buster / Raid AOE / Enrage chip per row
+    public bool UpcomingBoardTypeChipShort { get; set; }             // TB / AOE / ENR instead of full labels
     public bool UpcomingBossPosition { get; set; } = true;           // live boss compass position row (North/Middle...)
     public bool UpcomingBoardPhases { get; set; } = true;            // labelled rule where a phase begins
 

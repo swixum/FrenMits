@@ -172,6 +172,17 @@ public class TimelineWindow : Window
     private const uint BoardMuted = 0xFFA89A90;     // muted gray
     private const uint BoardPanelRgb = 0x0014110E;  // Theme.PanelBg, opacity applied on top
 
+    // Type chip (ABGR): text, fill and hairline per hit kind.
+    private const uint ChipBusterText = 0xFFA8D0FF;
+    private const uint ChipBusterFill = 0x334090F0;
+    private const uint ChipBusterEdge = 0x6B4090F0;
+    private const uint ChipRaidText = 0xFFF5EABF;
+    private const uint ChipRaidFill = 0x2BE0C860;
+    private const uint ChipRaidEdge = 0x5CE0C860;
+    private const uint ChipEnrageText = 0xFFC2C2FF;
+    private const uint ChipEnrageFill = 0x334646FF;
+    private const uint ChipEnrageEdge = 0x704646FF;
+
     // The customizable colors, guarded so a zeroed config value falls back to
     // the FrenMits defaults instead of erasing a state.
     private uint AccentCol => C.UpcomingBoardAccentColor != 0 ? C.UpcomingBoardAccentColor : 0xFFF6823B;
@@ -754,6 +765,22 @@ public class TimelineWindow : Window
         // (2.4s, 1.8s...); above that, whole seconds.
         var timeText = isNow ? "NOW" : rem < 3f ? $"{rem:0.0}s" : $"{MathF.Ceiling(rem):0}s";
         var timeW = C.UpcomingBoardTimeText ? ImGui.CalcTextSize(timeText).X : 0f;
+        var timeGap = timeW > 0f ? timeW + 14f : 8f;
+
+        // Type chip: what the hit IS, in a fixed-width column of its own so the
+        // chips line up down the board instead of drifting with the name.
+        var terse = C.UpcomingBoardTypeChipShort;
+        var (chipLabel, chipText, chipFill, chipEdge) = C.UpcomingBoardTypeChip
+            ? TypeChip(kind, hurt, terse)
+            : ("", 0u, 0u, 0u);
+        // Width comes from the widest label, never this row's, or the column wobbles.
+        var chipW = chipLabel.Length == 0 ? 0f
+            : MathF.Ceiling(terse
+                ? MathF.Max(ImGui.CalcTextSize("AOE").X, ImGui.CalcTextSize("ENR").X)
+                : ImGui.CalcTextSize("Raid AOE").X) + 12f;
+        // On a board too narrow to hold both, the mechanic name wins.
+        if (chipW > 0f && p1.X - timeGap - chipW < p0.X + 48f) chipW = 0f;
+        var nameRight = p1.X - timeGap - (chipW > 0f ? chipW + 8f : 0f);
 
         // Row icon, left of the name: the tank-buster shield (toggle), or an
         // always-on marker for an at-risk mit (skull), a lull start (untargetable)
@@ -761,7 +788,7 @@ public class TimelineWindow : Window
         var nameX = p0.X + 10f;
         var showIcon = kind switch
         {
-            2 => C.UpcomingBoardShowType,
+            2 => C.UpcomingBoardShowType && chipW <= 0f, // the chip already says buster
             3 or 4 or 5 or 6 or 8 => true,
             _ => false,
         };
@@ -781,9 +808,21 @@ public class TimelineWindow : Window
             nameX += isz + 6f;
         }
 
-        // Clip the name so a long mechanic can't run under the countdown
-        // (or off the bar, when the countdown text is hidden).
-        dl.PushClipRect(p0, new Vector2(p1.X - (timeW > 0f ? timeW + 14f : 8f), p1.Y), true);
+        if (chipW > 0f)
+        {
+            var chipH = MathF.Min(lineH + 3f, barH - 2f);
+            var cy = p0.Y + barH * 0.5f;
+            var c0 = new Vector2(p1.X - timeGap - chipW, cy - chipH * 0.5f);
+            var c1 = new Vector2(p1.X - timeGap, cy + chipH * 0.5f);
+            dl.AddRectFilled(c0, c1, chipFill, 3f);
+            dl.AddRect(c0, c1, chipEdge, 3f);
+            var labelW = ImGui.CalcTextSize(chipLabel).X;
+            BoardText(dl, new Vector2(c0.X + (chipW - labelW) * 0.5f, cy - lineH * 0.5f), chipText, chipLabel);
+        }
+
+        // Clip the name so a long mechanic can't run under the chip or the
+        // countdown (or off the bar, when the countdown text is hidden).
+        dl.PushClipRect(p0, new Vector2(nameRight, p1.Y), true);
         BoardText(dl, new Vector2(nameX, textY), textCol, name);
         // Severity marks from a graded custom sheet: ! light, !! hurts, !!! deadly.
         if (C.UpcomingBoardShowSeverity && hurt > 0)
@@ -822,10 +861,25 @@ public class TimelineWindow : Window
         ImGui.Dummy(new Vector2(width, barH));
     }
 
+    // The chip a row has earned, or no chip at all. A raidwide has to have been
+    // MEASURED: RowKind falls back to raidwide for any named cast, so without the
+    // grade an ungraded duty timeline would label every spread and cleave on it
+    // "Raid AOE". A buster and an enrage come from a flag or a deliberate name
+    // rule, so those are named on sight.
+    private static (string Label, uint Text, uint Fill, uint Edge) TypeChip(int kind, int hurt, bool terse)
+        => kind switch
+        {
+            1 when hurt > 0 => (terse ? "AOE" : "Raid AOE", ChipRaidText, ChipRaidFill, ChipRaidEdge),
+            2 => (terse ? "TB" : "Buster", ChipBusterText, ChipBusterFill, ChipBusterEdge),
+            9 => (terse ? "ENR" : "Enrage", ChipEnrageText, ChipEnrageFill, ChipEnrageEdge),
+            _ => ("", 0u, 0u, 0u),
+        };
+
     // What kind of hit a row is, for its board icon: 2 = tank buster, 1 =
-    // raidwide (party damage), 0 = no icon.
+    // raidwide (party damage), 9 = enrage, 0 = no icon.
     private static int RowKind(SheetTimeline.MechRow r, bool bareTimer)
     {
+        if (r.Enrage) return 9;
         if (r.Buster) return 2;
         if (r.Hurt > 0) return 1;
         if (bareTimer) return 0;
@@ -834,7 +888,7 @@ public class TimelineWindow : Window
         var n = r.Mechanic;
         // "Cleave" stays off this list: those are usually dodged frontals, not busters.
         if (n.Contains("buster", StringComparison.OrdinalIgnoreCase)) return 2;
-        if (n.Contains("enrage", StringComparison.OrdinalIgnoreCase)) return 0; // lethal, not something you mit
+        if (n.Contains("enrage", StringComparison.OrdinalIgnoreCase)) return 9; // lethal, not something you mit
         return 1; // a named mechanic on a mit board is there because it hits
     }
 

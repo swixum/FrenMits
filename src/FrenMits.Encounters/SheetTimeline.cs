@@ -13,6 +13,7 @@ public static class SheetTimeline
         public string Mechanic = "";
         public int Hurt;    // 0 unknown, 1 light, 2 hurts, 3 deadly (custom sheets)
         public bool Buster; // custom sheets: lands on a tank, not the party
+        public bool Enrage; // the fight's timer running out, not something you mit
         // For rows with no label: the first line's action.
         public string Fallback = "";
         // Set on a boss-reposition row, driving the cyan row kind.
@@ -106,6 +107,7 @@ public static class SheetTimeline
             var row = RowFor(cr.Mechanic, cr.Time, 2f);
             row.Hurt = Math.Max(row.Hurt, cr.Hurt);
             row.Buster |= cr.Buster;
+            row.Enrage |= cr.Enrage;
         }
 
         return rows.OrderBy(r => r.Time).ToList();

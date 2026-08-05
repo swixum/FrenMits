@@ -76,6 +76,13 @@ public partial class SheetViewWindow
          : HealSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? ImGuiColors.HealerGreen
          : ImGuiColors.DPSRed;
 
+    // The hit types worth naming on a planning row, in the board chip's colors
+    // (ABGR); a party hit is the default here and the severity mark already says so.
+    private static (string Tag, uint Color, string Tip) TypeTag(CustomRow r)
+        => r.Enrage ? ("enrage", 0xFF4646FFu, "The fight's timer running out, not something you mit.")
+         : r.Buster ? ("buster", 0xFF4090F0u, "Hits one or two tanks, not the party. Right-click to change.")
+         : ("", 0u, "");
+
     private static readonly Vector4 EditedColor = new(0.96f, 0.62f, 0.36f, 1f);
     private static readonly Vector4 NoteBlue = new(0.42f, 0.66f, 0.96f, 1f);
     private const uint YouCellBg = 0x2233AA33;   // faint green tint (ABGR)
@@ -437,13 +444,12 @@ public partial class SheetViewWindow
         }
         if (_isCustom)
         {
-            // Buster tag: this row is planned by the tank lane.
-            if (CustomRowFor(row) is { Buster: true })
+            // Type tag, matching the board's chip: what this row's hit IS.
+            if (CustomRowFor(row) is { } tr && TypeTag(tr) is var (tag, tagCol, tagTip) && tag.Length > 0)
             {
                 ImGui.SameLine(0, 6);
-                ImGui.TextColored(ImGuiColors.TankBlue, "buster");
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Hits one or two tanks, not the party. Right-click to change.");
+                ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(tagCol), tag);
+                if (ImGui.IsItemHovered()) ImGui.SetTooltip(tagTip);
             }
             // The severity grade, right-click to change.
             if (CustomRowFor(row) is { Hurt: > 0 } gr)
