@@ -18,7 +18,7 @@ public partial class ConfigWindow
     private void DrawMeterPage()
     {
         SeparatorText("Fren Meter");
-        ImGui.TextWrapped("A damage meter fed by ACT, with rDPS computed from the combat log.");
+        ImGui.TextWrapped("A damage meter fed by ACT or IINACT, with rDPS computed from the combat log.");
         ImGui.Spacing();
 
         C.MeterEnabled = CfgCheck("Enable Fren Meter", C.MeterEnabled);
