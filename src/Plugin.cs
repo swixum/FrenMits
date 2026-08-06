@@ -170,11 +170,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         WhatsNewWindow.IsOpen = Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
         load.Mark("windows");
 
-        Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
+        // The long name still works, but only the short one is worth a line in
+        // the installer, and one line is all it gets.
+        Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand) { ShowInHelp = false });
+        Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Open Fren Mits. /fm sheet = the all-slots sheet view, /fm mini = the pocket mit tuner, /fm sync = zero the timer, /fm test = toggle test mode, /fm reset = clear the timer, /fm p4 = practice-jump to a phase."
+            HelpMessage = "Open Fren Mits."
         });
-        Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand));
 
         try
         {
