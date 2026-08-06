@@ -64,8 +64,8 @@ public class CueEngine
                 _windowStarts.Clear();
                 // The earliest of a combined cell's presses, since that is what shows first.
                 foreach (var p in presses)
-                    if (!_windowStarts.TryGetValue(p.SourceLine, out var ws) || p.WindowStart < ws.Start)
-                        _windowStarts[p.SourceLine] = (p.WindowStart, p.HasWindow);
+                    if (!_windowStarts.TryGetValue(p.SourceLine, out var ws) || p.CallAt < ws.Start)
+                        _windowStarts[p.SourceLine] = (p.CallAt, p.HasWindow);
             }
         }
         catch (Exception ex) { Swallowed.Report("cue press windows", ex); }
@@ -76,12 +76,9 @@ public class CueEngine
             if (!line.Enabled || !line.Sound || !line.AppliesTo(job)) continue;
             if (_fired.Contains(line)) continue;
 
-            // A line with no tracked mit keeps its plain cue time, and with it
-            // the plain lead - there is no window for it to be early to.
             var hasWindow = _windowStarts.TryGetValue(line, out var open);
-            var cueAt = hasWindow ? open.Start : line.CueTime;
-            var lead = line.LeadOverride > 0f ? line.LeadOverride
-                : hasWindow && open.Windowed ? c.UseWindowLeadSeconds : c.WarningSeconds;
+            var cueAt = CueMoment(line, hasWindow, open.Start);
+            var lead = LeadFor(c, line, hasWindow, open.Windowed);
             var remaining = cueAt - elapsed; // honors the per-line offset
             if (remaining > lead || remaining < -0.5f) continue;
 
@@ -103,6 +100,25 @@ public class CueEngine
             Fire(c, group, job);
         }
     }
+
+    // An offset names its own moment, so it beats the press window.
+    //
+    // Speaking off the window instead counted the offset twice, because the
+    // window already opens ahead of the row: "Call at window start (+9s)" on a
+    // window opening at 1:31 spoke at 1:22. CueTime is also the only number the
+    // sheet, timeline, mini sheet and editor chip show for that line, so the
+    // voice agreeing with it is the whole contract. Same rule as MitPress.CallAt.
+    //
+    // Everything else still speaks off the window, so voice and overlay open
+    // together; a line with no tracked mit has no window and keeps its own time.
+    public static float CueMoment(MitLine line, bool hasWindow, float windowStart)
+        => hasWindow && !line.HasCallOffset ? windowStart : line.CueTime;
+
+    // An offset call is one exact moment, so it takes the plain lead rather
+    // than the wider one that exists to open together with a window.
+    public static float LeadFor(Configuration c, MitLine line, bool hasWindow, bool windowed)
+        => line.LeadOverride > 0f ? line.LeadOverride
+            : hasWindow && windowed && !line.HasCallOffset ? c.UseWindowLeadSeconds : c.WarningSeconds;
 
     // Due lines bucketed by their sheet second, in order.
     public static List<List<MitLine>> GroupSameMoment(List<MitLine> due)

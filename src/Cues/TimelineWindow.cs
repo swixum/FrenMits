@@ -131,10 +131,10 @@ public class TimelineWindow : Window
                         handlesThisPress = true;
                 if (!handlesThisPress) return false;
                 // Past its own lead it belongs to the main call, not this list.
-                var rem = p.WindowStart - elapsed;
+                var rem = p.CallAt - elapsed;
                 return rem > C.LeadFor(p) && rem <= C.UpcomingLookaheadSeconds;
             })
-            .OrderBy(p => p.WindowStart)
+            .OrderBy(p => p.CallAt)
             .Take(Math.Max(0, C.UpcomingCount))
             .ToList();
 
@@ -149,11 +149,11 @@ public class TimelineWindow : Window
             foreach (var p in upcoming)
             {
                 var l = p.SourceLine;
-                var inSec = (int)MathF.Round(p.WindowStart - elapsed);
+                var inSec = (int)MathF.Round(p.CallAt - elapsed);
                 var name = string.IsNullOrWhiteSpace(p.MitName) ? l.Mechanic : Icons.DisplayAction(p.MitName, job);
                 var icon = C.ShowAbilityIcon ? Icons.ResolveFromText(p.MitName) : 0u;
                 var notReady = C.CooldownAwareCalls
-                    && CooldownTracker.Remaining(p.MitName) is { } cd && cd > (p.WindowStart - elapsed) + 0.5f;
+                    && CooldownTracker.Remaining(p.MitName) is { } cd && cd > (p.CallAt - elapsed) + 0.5f;
                 Row(icon, $"+{inSec}s  ", name + (notReady ? "  (cd)" : ""), notReady);
             }
     }
@@ -440,7 +440,7 @@ public class TimelineWindow : Window
                         handlesThisPress = true;
                 if (!handlesThisPress) continue;
 
-                if (p.WindowStart < elapsed - 6f || p.WindowStart > elapsed + look + 4f) continue;
+                if (p.CallAt < elapsed - 6f || p.CallAt > elapsed + look + 4f) continue;
                 SheetTimeline.MechRow? best = null;
                 var bestGap = 2.5f;
                 foreach (var r in windowRows)
@@ -482,7 +482,7 @@ public class TimelineWindow : Window
         // its warning window on the cue clock, so per-line offsets (a call set
         // to fire early or late) keep the board and the big call in lockstep.
         bool InWindow(MitPress p)
-            => p.WindowStart - elapsed <= C.LeadFor(p);
+            => p.CallAt - elapsed <= C.LeadFor(p);
 
         bool AnyInWindow(List<MitPress> lines)
         {
@@ -997,8 +997,8 @@ public class TimelineWindow : Window
             if (string.IsNullOrWhiteSpace(text)) continue;
             var l = p.SourceLine;
             var col = l.Color != 0 ? l.Color : C.ColorByMitType ? MitColors.Color(MitTypes.Classify(p.MitName, l.Mechanic), C) : 0u;
-            var prep = p.WindowStart < l.Time - 0.5f;
-            if (C.CooldownAwareCalls && CooldownTracker.Remaining(p.MitName) is { } cd && cd > (p.WindowStart - elapsed) + 0.5f)
+            var prep = p.CallAt < l.Time - 0.5f;
+            if (C.CooldownAwareCalls && CooldownTracker.Remaining(p.MitName) is { } cd && cd > (p.CallAt - elapsed) + 0.5f)
             {
                 text += " (cd)";
                 col = 0xFF3C3CF0;

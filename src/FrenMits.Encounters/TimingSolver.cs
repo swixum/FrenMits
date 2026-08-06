@@ -102,12 +102,15 @@ public static class TimingSolver
 
                 if (dur <= 0f || !showUseWindows)
                 {
-                    // Instant/no-duration or disabled dynamic windows
-                    var wStart = line.Time;
-                    var wEnd = line.Time;
-                    if (line.OffsetManual) { wStart -= line.OffsetSeconds; wEnd -= line.OffsetSeconds; }
-                    result.Add(new MitPress(line, m.Name, wStart, wEnd, line.Time, dur));
-                    if (!restated) readyAt[m.Name] = wEnd + (m.Recast > 0f ? m.Recast : 60f);
+                    // Instant/no-duration or disabled dynamic windows.
+                    // No offset applied: a window says when this mit COVERS the
+                    // hit, which the call offset cannot change. The offset moves
+                    // the call, and CueEngine reads it straight off the line.
+                    // The cooldown is booked from the row for the same reason,
+                    // and being the later of the two it never frees a mit early.
+                    var at = line.Time;
+                    result.Add(new MitPress(line, m.Name, at, at, at, dur));
+                    if (!restated) readyAt[m.Name] = at + (m.Recast > 0f ? m.Recast : 60f);
                     continue;
                 }
 
@@ -162,12 +165,12 @@ public static class TimingSolver
                 var windowStart = MathF.Max(absoluteEarliest, windowEnd - maxUseWindowSeconds);
                 if (windowStart > windowEnd) windowStart = windowEnd; // sanity clamp
 
-                if (line.OffsetManual) 
-                { 
-                    windowStart -= line.OffsetSeconds; 
-                    windowEnd -= line.OffsetSeconds; 
-                }
-
+                // The window is a fact about coverage - the span in which this
+                // mit's buff still reaches the hit - so a call offset must not
+                // move it. Shifting it here told the board you could press at
+                // 1:19 for a hit at 1:40 the buff would never reach, and the
+                // voice, which spoke off this window, counted the offset a
+                // second time. The offset lives on the line; CueEngine reads it.
                 result.Add(new MitPress(line, m.Name, windowStart, windowEnd, T, dur));
                 
                 MarkCovered(windowStart, windowStart + reach);

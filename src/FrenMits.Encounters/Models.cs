@@ -201,6 +201,14 @@ public class MitLine
     [Newtonsoft.Json.JsonIgnore]
     public float CueTime => Time - OffsetSeconds;
 
+    // An offset on this line, so CueTime is where the call belongs - voice,
+    // overlay and every countdown alike. Not gated on OffsetManual: the sheet
+    // pill and every board already show CueTime whatever wrote the offset, so
+    // anything reading a different moment is disagreeing with what the user
+    // sees. OffsetManual only tells the solver whose number it is.
+    [Newtonsoft.Json.JsonIgnore]
+    public bool HasCallOffset => OffsetSeconds != 0f;
+
     // Per-line overrides (0 / empty = use the global setting).
     public float LeadOverride { get; set; }   // warning lead seconds; 0 = global
     public string Tts { get; set; } = "";      // custom spoken text; empty = Action

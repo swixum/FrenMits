@@ -122,12 +122,12 @@ public class Configuration : IPluginConfiguration
     // press leads by its own setting.
     public float LeadFor(MitPress p)
         => p.SourceLine.LeadOverride > 0f ? p.SourceLine.LeadOverride
-           : p.HasWindow ? UseWindowLeadSeconds : WarningSeconds;
+           : p.HasWindow && !p.SourceLine.HasCallOffset ? UseWindowLeadSeconds : WarningSeconds;
 
     // How long a call lingers once its moment has passed. A windowed press
     // never lingers: the window IS its time on screen, so holding it past the
     // close would go on saying "press this" after the chance to press it went.
-    public float HoldFor(MitPress p) => p.HasWindow ? 0f : HoldSeconds;
+    public float HoldFor(MitPress p) => p.HasWindow && !p.SourceLine.HasCallOffset ? 0f : HoldSeconds;
 
     // Only run the overlay while in the fight's territory.
     public bool OnlyInTargetTerritory { get; set; } = true;

@@ -39,7 +39,9 @@ public partial class SheetViewWindow
             return kit.Select(k => (k.Name, CooldownTracker.PlanInfo(k.Name)?.Recast is { } r and > 5f ? r : k.Recast)).ToArray();
         return t switch
         {
-            "MT" or "OT" or "T" or "TANK" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
+            // T1/T2 are the tank seats' old names, as D1-D4 below are the dps
+            // seats'. A sheet still carrying them planned nothing at all.
+            "MT" or "OT" or "T1" or "T2" or "T" or "TANK" => new[] { ("Reprisal", 60f), ("Party Mit", 90f) },
             "D1" or "D2" or "M1" or "M2" or "MELEE" or "D" or "DPS" => new[] { ("Feint", 90f) },
             "D3" or "R1" => new[] { ("Party Mit", 90f) },
             // Casters get Addle and nothing else.
@@ -64,7 +66,7 @@ public partial class SheetViewWindow
     private static bool IsTankColumn(string slot)
     {
         var t = slot.Trim().ToUpperInvariant();
-        return t is "MT" or "OT" or "T" or "TANK" || TankJobAbbrs.Contains(t);
+        return t is "MT" or "OT" or "T1" or "T2" or "T" or "TANK" || TankJobAbbrs.Contains(t);
     }
 
     // Buster generics spelled out for a column named after a job.

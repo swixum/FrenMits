@@ -27,7 +27,7 @@ public class OverlayWindow : Window
         {
             var l = lines[i];
             var j = i - 1;
-            while (j >= 0 && lines[j].WindowStart > l.WindowStart) { lines[j + 1] = lines[j]; j--; }
+            while (j >= 0 && lines[j].CallAt > l.CallAt) { lines[j + 1] = lines[j]; j--; }
             lines[j + 1] = l;
         }
     }
@@ -168,7 +168,7 @@ public class OverlayWindow : Window
 
         (float RemNew, float LeadNew, bool Hidden) GetDynamicTiming(MitPress call, float currentElapsed)
         {
-            var rem = call.WindowStart - currentElapsed;
+            var rem = call.CallAt - currentElapsed;
             var lead = LeadFor(call);
 
             // Before the window at all, so a wipe or a resync drops the latch.
@@ -190,7 +190,7 @@ public class OverlayWindow : Window
             var freshDelay = 0f;
             if (cd > 0f)
             {
-                freshDelay = MathF.Max(0f, currentElapsed + cd - call.WindowStart);
+                freshDelay = MathF.Max(0f, currentElapsed + cd - call.CallAt);
             }
 
             // Latch it as the call spawns, so the countdown never jumps after.
@@ -300,7 +300,7 @@ public class OverlayWindow : Window
                     var activeDur = call.WindowEnd - call.WindowStart;
                     var imminent = remaining > 0f;
                     var baseLead = LeadFor(call);
-                    var delay = MathF.Max(0f, remaining - (call.WindowStart - elapsed));
+                    var delay = MathF.Max(0f, remaining - (call.CallAt - elapsed));
                     var totalDur = baseLead + activeDur - delay;
                     var activeRem = call.WindowEnd - elapsed;
                     var barFrac = totalDur > 0.01f ? Math.Clamp(activeRem / totalDur, 0f, 1f) : 0f;
@@ -328,7 +328,7 @@ public class OverlayWindow : Window
                 var activeDur = call.WindowEnd - call.WindowStart;
                 var imminent = remaining > 0f;
                 var baseLead = LeadFor(call);
-                var delay = MathF.Max(0f, remaining - (call.WindowStart - elapsed));
+                var delay = MathF.Max(0f, remaining - (call.CallAt - elapsed));
                 var totalDur = baseLead + activeDur - delay;
                 var activeRem = call.WindowEnd - elapsed;
                 var barFrac = totalDur > 0.01f ? Math.Clamp(activeRem / totalDur, 0f, 1f) : 0f;
@@ -351,7 +351,7 @@ public class OverlayWindow : Window
             var activeDur = call.WindowEnd - call.WindowStart;
             var imminent = remaining > 0f;
             var baseLead = LeadFor(call);
-            var delay = MathF.Max(0f, remaining - (call.WindowStart - elapsed));
+            var delay = MathF.Max(0f, remaining - (call.CallAt - elapsed));
             var totalDur = baseLead + activeDur - delay;
             var activeRem = call.WindowEnd - elapsed;
             var barFrac = totalDur > 0.01f ? Math.Clamp(activeRem / totalDur, 0f, 1f) : 0f;
