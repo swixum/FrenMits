@@ -343,6 +343,16 @@ public partial class ConfigWindow
 
         // The same steps, always here to check against, once the card is gone.
         if (card) return;
+
+        // IINACT first, since Auto reaches for it first.
+        SeparatorText("In IINACT");
+        ImGui.TextDisabled("Nothing to connect: this links straight to it. On its Parser tab:");
+        SetupToggle(1, "Disable Damage Shield Estimates", false, "or shields read zero.");
+        SetupToggle(2, "End encounter automatically after leaving combat", true);
+        SetupStep(3, "Player name: leave it as YOU.");
+        Tip("The parser says YOU and the meter fills your name in.");
+        ImGui.TextDisabled("Writing out the network log file is for uploading logs, not for this.");
+
         SeparatorText("In ACT");
         SetupStep(1, "Run ACT, with its FFXIV plugin.");
         SetupStep(2, "Plugins > OverlayPlugin.dll > WSServer > Start.");
@@ -381,10 +391,23 @@ public partial class ConfigWindow
 
             ImGui.SameLine(0, 12);
             if (ImGui.SmallButton("Got it")) { C.MeterSetupDone = true; C.SaveSettings(); }
-            ImGui.TextDisabled("On IINACT instead? Nothing to set up.");
+            ImGui.TextDisabled("On IINACT instead? It connects itself.");
         }
         ImGui.EndChild();
         ImGui.PopStyleColor();
+    }
+
+    // A step whose whole instruction is one word, so the word carries the color.
+    private static void SetupToggle(int n, string setting, bool on, string why = "")
+    {
+        ImGui.TextColored(Theme.V(Theme.Accent), $"{n}");
+        ImGui.SameLine(0, 10);
+        ImGui.TextUnformatted(setting + ":");
+        ImGui.SameLine(0, 5);
+        ImGui.TextColored(Theme.V(on ? Theme.Good : Theme.Danger), on ? "ON" : "OFF");
+        if (why.Length == 0) return;
+        ImGui.SameLine(0, 5);
+        ImGui.TextDisabled(why);
     }
 
     // A numbered line, the number in the accent color.
