@@ -1025,10 +1025,26 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             return;
         }
 
+        // Rebuilt only when the call or the second changes, not per frame.
+        var secs = (int)MathF.Ceiling(nextRemaining);
+        if (ReferenceEquals(next, _dtrLine) && secs == _dtrSecs
+            && string.Equals(job, _dtrJob, StringComparison.Ordinal))
+        {
+            _dtr.Shown = true;
+            return;
+        }
+        _dtrLine = next;
+        _dtrSecs = secs;
+        _dtrJob = job;
         var label = string.IsNullOrWhiteSpace(next.Action) ? next.Mechanic : next.ActionFor(job);
-        _dtr.Text = $" {label} {(int)MathF.Ceiling(nextRemaining)}s";
+        _dtr.Text = $" {label} {secs}s";
         _dtr.Shown = true;
     }
+
+    // The last server-bar call, so an unchanged frame writes nothing.
+    private MitLine? _dtrLine;
+    private int _dtrSecs = -1;
+    private string? _dtrJob;
 
     private bool _drawErrorLogged;
 

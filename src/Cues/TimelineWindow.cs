@@ -113,32 +113,32 @@ public class TimelineWindow : Window
             return;
         }
 
-        var upcoming = _plugin.ActivePresses()
-            .Where(p => 
-            {
-                var l = p.SourceLine;
-                if (!l.Enabled || !l.AppliesTo(job)) return false;
-                // Resolve the sheet's generic terms to this job's real ability
-                // first. The solver named the press that way (ActivePresses
-                // passes the same resolution), so matching the raw text finds no
-                // mit at all and silently drops every generic call - "Party Mit",
-                // "Buddy Mit", "Invulnerability" - off this list.
-                var jobAction = Icons.DisplayAction(l.ActionFor(job), job);
-                var mitsForJob = CooldownTracker.PlanMitsCached(jobAction);
-                var handlesThisPress = false;
-                for (var i = 0; i < mitsForJob.Count; i++)
-                    if (string.Equals(mitsForJob[i].Name, p.MitName, StringComparison.OrdinalIgnoreCase))
-                        handlesThisPress = true;
-                if (!handlesThisPress) return false;
-                // Past its own lead it belongs to the main call, not this list.
-                var rem = p.CallAt - elapsed;
-                return rem > C.LeadFor(p) && rem <= C.UpcomingLookaheadSeconds;
-            })
-            .OrderBy(p => p.CallAt)
-            .Take(Math.Max(0, C.UpcomingCount))
-            .ToList();
+        // Filled into a reused buffer, since this runs every frame.
+        _upcomingBuf.Clear();
+        foreach (var p in _plugin.ActivePresses())
+        {
+            var l = p.SourceLine;
+            if (!l.Enabled || !l.AppliesTo(job)) continue;
+            // Resolve the sheet's generic terms to this job's real ability
+            // first. The solver named the press that way (ActivePresses
+            // passes the same resolution), so matching the raw text finds no
+            // mit at all and silently drops every generic call - "Party Mit",
+            // "Buddy Mit", "Invulnerability" - off this list.
+            var jobAction = Icons.DisplayAction(l.ActionFor(job), job);
+            var mitsForJob = CooldownTracker.PlanMitsCached(jobAction);
+            var handlesThisPress = false;
+            for (var i = 0; i < mitsForJob.Count; i++)
+                if (string.Equals(mitsForJob[i].Name, p.MitName, StringComparison.OrdinalIgnoreCase))
+                    handlesThisPress = true;
+            if (!handlesThisPress) continue;
+            // Past its own lead it belongs to the main call, not this list.
+            var rem = p.CallAt - elapsed;
+            if (rem > C.LeadFor(p) && rem <= C.UpcomingLookaheadSeconds) _upcomingBuf.Add(p);
+        }
+        StableSortByCallAt(_upcomingBuf);
+        var take = Math.Min(_upcomingBuf.Count, Math.Max(0, C.UpcomingCount));
 
-        if (upcoming.Count == 0)
+        if (take == 0)
         {
             // Keep the window from collapsing to a dot between calls.
             ImGui.Dummy(new Vector2(1f, 1f));
@@ -146,8 +146,9 @@ public class TimelineWindow : Window
         }
 
         using (PushFont(C.UpcomingFontSizePx))
-            foreach (var p in upcoming)
+            for (var u = 0; u < take; u++)
             {
+                var p = _upcomingBuf[u];
                 var l = p.SourceLine;
                 var inSec = (int)MathF.Round(p.CallAt - elapsed);
                 var name = string.IsNullOrWhiteSpace(p.MitName) ? l.Mechanic : Icons.DisplayAction(p.MitName, job);
@@ -279,6 +280,21 @@ public class TimelineWindow : Window
         {
             var rem = r.Time - elapsed;
             if (rem >= -2f && rem <= look) _windowRows.Add(r);
+        }
+    }
+
+    // Scratch for the upcoming list, reused frame to frame.
+    private readonly List<MitPress> _upcomingBuf = new();
+
+    // The same stable insertion sort for presses, for the same reasons.
+    private static void StableSortByCallAt(List<MitPress> presses)
+    {
+        for (var i = 1; i < presses.Count; i++)
+        {
+            var p = presses[i];
+            var j = i - 1;
+            while (j >= 0 && presses[j].CallAt > p.CallAt) { presses[j + 1] = presses[j]; j--; }
+            presses[j + 1] = p;
         }
     }
 

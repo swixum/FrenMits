@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
@@ -57,23 +57,28 @@ public class MiniSheetWindow : Window
         var job = _plugin.GetActiveJobAbbr(fight);
         var elapsed = _plugin.CueClockFor(fight);
         var running = _plugin.Timer.Live;
-        var lines = fight.OrderedLines
-            .Where(l => l.Enabled && l.AppliesTo(job))
-            .OrderBy(l => l.CueTime)
-            .ToList();
+        // Filled into a reused buffer, since this runs every frame.
+        _rows.Clear();
+        foreach (var l in fight.OrderedLines)
+            if (l.Enabled && l.AppliesTo(job)) _rows.Add(l);
+        StableSortByCueTime(_rows);
 
-        if (lines.Count == 0)
+        if (_rows.Count == 0)
         {
             ImGui.TextDisabled("No calls planned for your job here.");
             return;
         }
 
         // Live shows the calls around now, idle the plan from the top.
-        var show = running
-            ? lines.Where(l => l.CueTime <= elapsed).TakeLast(2)
-                   .Concat(lines.Where(l => l.CueTime > elapsed).Take(5))
-                   .ToList()
-            : lines.Take(7).ToList();
+        int start = 0, end = Math.Min(7, _rows.Count);
+        if (running)
+        {
+            var firstFuture = _rows.Count;
+            for (var i = 0; i < _rows.Count; i++)
+                if (_rows[i].CueTime > elapsed) { firstFuture = i; break; }
+            start = Math.Max(0, firstFuture - 2);
+            end = Math.Min(_rows.Count, firstFuture + 5);
+        }
 
         if (ImGui.BeginTable("##minitable", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg))
         {
@@ -81,9 +86,9 @@ public class MiniSheetWindow : Window
             ImGui.TableSetupColumn("call", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("nudge", ImGuiTableColumnFlags.WidthFixed, 96);
 
-            for (var i = 0; i < show.Count; i++)
+            for (var i = start; i < end; i++)
             {
-                var line = show[i];
+                var line = _rows[i];
                 var rem = line.CueTime - elapsed;
                 var past = running && rem <= 0f;
 
@@ -122,6 +127,21 @@ public class MiniSheetWindow : Window
         }
 
         ImGui.TextDisabled(running ? "+ = earlier. Changes apply instantly." : "+ = earlier. Pull to see live countdowns.");
+    }
+
+    // Scratch for the visible rows, reused frame to frame.
+    private readonly List<MitLine> _rows = new();
+
+    // Insertion sort: stable like the OrderBy it replaced, on a handful of rows.
+    private static void StableSortByCueTime(List<MitLine> rows)
+    {
+        for (var i = 1; i < rows.Count; i++)
+        {
+            var r = rows[i];
+            var j = i - 1;
+            while (j >= 0 && rows[j].CueTime > r.CueTime) { rows[j + 1] = rows[j]; j--; }
+            rows[j + 1] = r;
+        }
     }
 
     // A nudge is hand-set, so the solver must leave it alone.
