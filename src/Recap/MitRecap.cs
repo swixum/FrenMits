@@ -15,13 +15,16 @@ public class MitRecap
     private readonly Plugin _plugin;
     private bool _wasRunning;
     private DateTime _lastScan;
-    private readonly HashSet<string> _active = new(StringComparer.OrdinalIgnoreCase); // "source|mit" currently up
-    private readonly Dictionary<string, Applied> _activeRef = new(StringComparer.OrdinalIgnoreCase); // its open log entry
+    // "source|mit" currently up, each holding its open log entry.
+    private readonly Dictionary<string, Applied> _open = new(StringComparer.OrdinalIgnoreCase);
 
     // Damage-down debuffs a full party lands on the boss.
     public static readonly string[] StandardRaidMits = { "Reprisal", "Feint", "Addle", "Dismantle" };
 
-    public sealed record Applied(float Time, string Mit, string Source, MitTypes.Kind Kind, bool OnBoss, uint Icon)
+    // Window is what the status said it had left when it went up, so an interval
+    // whose drop was never seen still ends where it really ended.
+    public sealed record Applied(float Time, string Mit, string Source, MitTypes.Kind Kind, bool OnBoss, uint Icon,
+        float Window = 0f)
     {
         // When it fell off, so grading can ask if it was still up.
         public float End { get; set; } = -1f;
@@ -90,6 +93,7 @@ public class MitRecap
     private readonly Dictionary<string, List<string>> _lastMits = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<(float T, float Pct)>> _hp = new(StringComparer.OrdinalIgnoreCase);
     private string _liveBoss = "";
+    private uint _liveBossHp;
     private float _liveElapsed;
     private Guid _pullId = Guid.NewGuid();
 
@@ -112,8 +116,8 @@ public class MitRecap
             var running = _plugin.Timer.Running;
             if (running && !_wasRunning)
             {
-                Log.Clear(); _active.Clear(); _activeRef.Clear(); Party.Clear(); _deaths.Clear(); _dead.Clear();
-                _jobs.Clear(); _lastMits.Clear(); _hp.Clear(); _liveBoss = "";
+                Log.Clear(); _open.Clear(); Party.Clear(); _deaths.Clear(); _dead.Clear();
+                _jobs.Clear(); _lastMits.Clear(); _hp.Clear(); _liveBoss = ""; _liveBossHp = 0;
                 _pullId = Guid.NewGuid();
                 _plugin.Damage.Clear();
             }
@@ -121,76 +125,132 @@ public class MitRecap
             _wasRunning = running;
             if (!running) return;
 
-            // Mits last seconds, so a few scans a second is plenty.
-            if ((DateTime.UtcNow - _lastScan).TotalSeconds < 0.25) return;
-            _lastScan = DateTime.UtcNow;
-
             var fight = _plugin.ActiveFight();
             var elapsed = fight != null ? _plugin.ElapsedFor(fight) : _plugin.Timer.Elapsed;
             _liveElapsed = elapsed;
-            var now = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var live = new List<Active>();
 
-            foreach (var (src, onBoss, chara) in Sources())
-            {
-                if (onBoss) _liveBoss = chara.Name.ToString();
-                else
-                {
-                    if (!Party.Contains(src)) Party.Add(src);
-                    if (!_jobs.ContainsKey(src) && chara is IPlayerCharacter pc
-                        && Jobs.ByRowId(pc.ClassJob.RowId) is { } ji)
-                        _jobs[src] = ji.Abbreviation;
+            // Server-stamped first: a mit that came and went between two scans
+            // still gets its real window, and a death keeps the instant it happened.
+            DrainFeeds();
 
-                    // Death edge: recorded once per life, with its story.
-                    if (chara.CurrentHp == 0)
-                    {
-                        if (_dead.Add(src)) _deaths.Add(MakeDeath(elapsed, src));
-                        continue;
-                    }
-                    _dead.Remove(src);
-
-                    // Short HP trace feeding the death story.
-                    var pct = chara.MaxHp > 0 ? chara.CurrentHp / (float)chara.MaxHp : 0f;
-                    if (!_hp.TryGetValue(src, out var ring)) ring = _hp[src] = new List<(float, float)>();
-                    ring.Add((elapsed, pct));
-                    if (ring.Count > 48) ring.RemoveAt(0);
-                }
-
-                List<string>? mine = null;
-                if (!onBoss)
-                {
-                    if (!_lastMits.TryGetValue(src, out mine)) mine = _lastMits[src] = new List<string>();
-                    mine.Clear();
-                }
-                foreach (var m in MitsOn(chara, onBoss))
-                {
-                    var key = src + "|" + m.Mit;
-                    now.Add(key);
-                    if (_active.Add(key))
-                    {
-                        var a = new Applied(elapsed, m.Mit, src, m.Kind, onBoss, m.Icon);
-                        Log.Add(a);
-                        _activeRef[key] = a;
-                    }
-                    live.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
-                    mine?.Add(m.Mit);
-                }
-            }
-            // Dropped mits close their interval.
-            foreach (var k in _active)
-                if (!now.Contains(k) && _activeRef.TryGetValue(k, out var gone))
-                {
-                    gone.End = elapsed;
-                    _activeRef.Remove(k);
-                }
-            _active.RemoveWhere(k => !now.Contains(k));
-            _snapLive = live; // kept current, so the wipe snapshot has the boss mits
+            // The scan is the reconcile pass now: it catches what was already up
+            // when the pull started, and closes anything the feed never saw end.
+            if ((DateTime.UtcNow - _lastScan).TotalSeconds < 0.25) return;
+            _lastScan = DateTime.UtcNow;
+            Reconcile(elapsed);
         }
         // Leave a trail, since a recurring failure would end tracking.
         catch (Exception ex) { Swallowed.Report("mit recap tick", ex); }
     }
 
     private List<Active> _snapLive = new();
+
+    // ---- interval bookkeeping ----
+
+    // A mit goes up once per holder; a second sighting is the same window.
+    private void OpenMit(float t, string mit, string source, MitTypes.Kind kind, bool onBoss, uint icon, float window)
+    {
+        var key = source + "|" + mit;
+        if (_open.ContainsKey(key)) return;
+        var a = new Applied(t, mit, source, kind, onBoss, icon, window);
+        Log.Add(a);
+        _open[key] = a;
+    }
+
+    private void CloseMit(float t, string mit, string source)
+    {
+        if (!_open.Remove(source + "|" + mit, out var gone)) return;
+        gone.End = MathF.Max(gone.Time, t);
+    }
+
+    // Statuses and deaths the server stamped, taken in the order they happened.
+    private void DrainFeeds()
+    {
+        var status = _plugin.Damage.StatusFeed;
+        foreach (var s in status)
+        {
+            // Only the four damage-downs mean anything on an enemy.
+            if (s.OnEnemy && !MitStatusBook.IsBossMit(s.Mit)) continue;
+            if (!s.OnEnemy) NoteMember(s.Who);
+            if (s.Applied) OpenMit(s.Time, s.Mit, s.Who, s.Kind, s.OnEnemy, s.Icon, s.Duration);
+            else CloseMit(s.Time, s.Mit, s.Who);
+        }
+        status.Clear();
+
+        var deaths = _plugin.Damage.DeathFeed;
+        foreach (var d in deaths)
+            if (_dead.Add(d.Who)) _deaths.Add(MakeDeath(d.Time, d.Who));
+        deaths.Clear();
+    }
+
+    private void NoteMember(string name)
+    {
+        if (!Party.Contains(name)) Party.Add(name);
+    }
+
+    // The scan pass: fill in what the feed could not have seen, and close
+    // anything that fell off while nobody was listening.
+    private void Reconcile(float elapsed)
+    {
+        var live = new List<Active>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // sources this scan reached
+        var up = new HashSet<string>(StringComparer.OrdinalIgnoreCase);     // "source|mit" still up
+
+        foreach (var (src, onBoss, chara) in Sources())
+        {
+            seen.Add(src);
+            if (onBoss)
+            {
+                // Strictly bigger, so two equal adds cannot swap the name each scan.
+                if (chara.MaxHp > _liveBossHp) { _liveBoss = chara.Name.ToString(); _liveBossHp = chara.MaxHp; }
+            }
+            else
+            {
+                NoteMember(src);
+                if (!_jobs.ContainsKey(src) && chara is IPlayerCharacter pc
+                    && Jobs.ByRowId(pc.ClassJob.RowId) is { } ji)
+                    _jobs[src] = ji.Abbreviation;
+
+                // Death edge: the feed usually got here first, this is the backstop.
+                if (chara.CurrentHp == 0)
+                {
+                    if (_dead.Add(src)) _deaths.Add(MakeDeath(elapsed, src));
+                    continue;
+                }
+                _dead.Remove(src);
+
+                // HP trace feeding the death story, backing the packet samples.
+                var pct = chara.MaxHp > 0 ? chara.CurrentHp / (float)chara.MaxHp : 0f;
+                if (!_hp.TryGetValue(src, out var ring)) ring = _hp[src] = new List<(float, float)>();
+                ring.Add((elapsed, pct));
+                if (ring.Count > 48) ring.RemoveAt(0);
+            }
+
+            List<string>? mine = null;
+            if (!onBoss)
+            {
+                if (!_lastMits.TryGetValue(src, out mine)) mine = _lastMits[src] = new List<string>();
+                mine.Clear();
+            }
+            foreach (var m in MitsOn(chara, onBoss))
+            {
+                up.Add(src + "|" + m.Mit);
+                OpenMit(elapsed, m.Mit, src, m.Kind, onBoss, m.Icon, m.Remaining);
+                live.Add(new Active(m.Icon, m.Mit, src, m.Remaining, m.Kind, onBoss));
+                mine?.Add(m.Mit);
+            }
+        }
+
+        // Only close what this scan could actually have seen: someone who walked
+        // out of range still has their cooldowns running.
+        foreach (var key in _open.Keys.ToList())
+        {
+            var bar = key.IndexOf('|');
+            if (bar <= 0 || !seen.Contains(key[..bar]) || up.Contains(key)) continue;
+            if (_open.Remove(key, out var gone)) gone.End = MathF.Max(gone.Time, elapsed);
+        }
+        _snapLive = live; // kept current, so the wipe snapshot has the boss mits
+    }
 
     // Freeze on pull end and run the after-action analysis.
     private void FinalizePull()
@@ -202,9 +262,13 @@ public class MitRecap
 
     private PullRecap BuildPull(List<Active> snapshot)
     {
-        // Mits still up at the end run their interval to the freeze.
+        // An interval nobody saw end runs to the freeze, or to where the status
+        // itself said it would run out, whichever came first.
         foreach (var a in Log)
-            if (a.End < 0f) a.End = MathF.Max(a.Time, _liveElapsed);
+            if (a.End < 0f)
+                a.End = a.Window > 0f
+                    ? Math.Clamp(a.Time + a.Window, a.Time, MathF.Max(a.Time, _liveElapsed))
+                    : MathF.Max(a.Time, _liveElapsed);
         var pr = new PullRecap
         {
             PullId = _pullId,
@@ -239,6 +303,9 @@ public class MitRecap
 
     // How long after a hit a death still reads as that hit.
     private const float KillingBlowWindow = 8f;
+    // A hit and the death it caused share one packet batch, so they can stamp
+    // the same instant either way round.
+    private const float PacketGrace = 0.05f;
 
     // The death story: the killing blow and what was up for it.
     private Death MakeDeath(float t, string name)
@@ -249,27 +316,43 @@ public class MitRecap
         List<DamageCapture.PlayerHit>? hits = null;
         if (_plugin.Damage.RecentHits.TryGetValue(name, out var ring) && ring.Count > 0)
         {
-            var hit = ring[^1];
-            if (t - hit.Time <= KillingBlowWindow)
+            // The death is stamped by the server and read a frame later, so the
+            // ring can already hold hits from after it. Nothing that landed after
+            // someone died is part of how they died.
+            var over = ring.FindLastIndex(h => h.Time <= t + PacketGrace);
+            if (over >= 0 && t - ring[over].Time <= KillingBlowWindow)
             {
-                killedBy = hit.Action.Length > 0
-                    ? (hit.Amount > 0 ? $"{hit.Action} ({hit.Amount:N0})" : hit.Action)
+                var hit = ring[over];
+                var what = hit.Action.Length > 0 ? hit.Action : hit.OverTime ? "damage over time" : "";
+                killedBy = what.Length > 0
+                    ? (hit.Amount > 0 ? $"{what} ({hit.Amount:N0})" : what)
                     : hit.Amount > 0 ? $"{hit.Amount:N0} damage" : "";
                 // What the hit was calculated against beats a stale scan.
                 had = hit.Mits;
             }
             // The run-in: only hits close enough to be one story.
-            hits = ring.Where(h => t - h.Time <= 12f).ToList();
+            hits = ring.Where(h => h.Time <= t + PacketGrace && t - h.Time <= 12f).ToList();
             if (hits.Count == 0) hits = null;
         }
+
+        // Every HP reading there is, so the drop is measured against the packets
+        // rather than whichever quarter-second the scan happened to land on.
+        var trace = new List<(float T, float Pct)>();
+        if (_hp.TryGetValue(name, out var hpRing))
+            foreach (var s in hpRing)
+                if (s.T <= t) trace.Add(s);
+        if (ring != null)
+            foreach (var h in ring)
+                if (h.MaxHp > 0 && h.Time <= t + PacketGrace) trace.Add((h.Time, h.Hp / (float)h.MaxHp));
         var from = 0f; var secs = 0f;
-        if (_hp.TryGetValue(name, out var hpRing) && hpRing.Count > 0)
+        if (trace.Count > 0)
         {
+            trace.Sort((a, b) => a.T.CompareTo(b.T));
             // The most recent healthy moment, else the best HP seen.
             (float T, float Pct)? healthy = null;
-            for (var i = hpRing.Count - 1; i >= 0; i--)
-                if (hpRing[i].Pct >= 0.7f) { healthy = hpRing[i]; break; }
-            var pick = healthy ?? hpRing.OrderByDescending(x => x.Pct).First();
+            for (var i = trace.Count - 1; i >= 0; i--)
+                if (trace[i].Pct >= 0.7f) { healthy = trace[i]; break; }
+            var pick = healthy ?? trace.OrderByDescending(x => x.Pct).First();
             from = pick.Pct;
             secs = MathF.Max(0.1f, t - pick.T);
         }
@@ -282,12 +365,20 @@ public class MitRecap
         foreach (var h in MitsOn(chara, onBoss: false)) yield return h.Mit;
     }
 
+    // One button, whatever the level it synced to calls it.
+    private static bool SameMit(string a, string b)
+    {
+        if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase)) return true;
+        var fa = AbilityBook.SharedFamily.GetValueOrDefault(a, "");
+        return fa.Length > 0 && string.Equals(fa, AbilityBook.SharedFamily.GetValueOrDefault(b, ""), StringComparison.Ordinal);
+    }
+
     // Follow-ups that only exist inside another cooldown.
     private static readonly HashSet<string> DependentMits = new(StringComparer.OrdinalIgnoreCase)
         { "Divine Caress", "Sun Sign" };
 
     // Party-facing cooldowns that sat unused all pull.
-    private static List<(string Who, string Mit, string Note, uint Icon)> ComputeUnused(PullRecap p)
+    public static List<(string Who, string Mit, string Note, uint Icon)> ComputeUnused(PullRecap p)
     {
         var res = new List<(string, string, string, uint)>();
         try
@@ -304,22 +395,21 @@ public class MitRecap
                 foreach (var mit in kit)
                 {
                     if (DependentMits.Contains(mit)) continue;
-                    if (MitTypes.Classify(mit) != MitTypes.Kind.Party) continue;
+                    if (MitStatusBook.KindOf(mit) != MitTypes.Kind.Party) continue;
                     var recast = CooldownTracker.PlanInfo(mit)?.Recast ?? 0f;
                     if (recast < 45f) continue; // short rollers are never "wasted"
-                    var times = p.Log.Where(a => !a.OnBoss
-                            && string.Equals(a.Mit, mit, StringComparison.OrdinalIgnoreCase))
+                    var times = p.Log.Where(a => !a.OnBoss && SameMit(a.Mit, mit))
                         .Select(a => a.Time).ToList();
                     if (times.Count == 0)
                     {
                         // Only nag once the pull was long enough to use it.
                         if (p.CaptureElapsed >= recast * 0.9f)
-                            res.Add((name, mit, "never used", SampleIcon(mit)));
+                            res.Add((name, mit, "never used", IconFor(mit)));
                     }
                     else
                     {
                         var idle = p.CaptureElapsed - times.Max() - recast;
-                        if (idle >= 20f) res.Add((name, mit, $"was back {(int)idle}s before the end", SampleIcon(mit)));
+                        if (idle >= 20f) res.Add((name, mit, $"was back {(int)idle}s before the end", IconFor(mit)));
                     }
                 }
             }
@@ -332,13 +422,10 @@ public class MitRecap
 
     // ---- plan against actual ----
 
-    // Status names that differ from the planned action.
+    // The log names the button now, so only the upgrade pairs still need a
+    // bridge: a synced job presses the old one where the sheet says the new.
     public static readonly (string StatusPart, string Canon)[] StatusAliases =
     {
-        ("Expedience", "Expedient"), ("Desperate Measures", "Expedient"),
-        ("Blackest Night", "The Blackest Night"),
-        ("Seraphic", "Seraph"),
-        // Upgrade pairs both ways, since a synced job keeps the old.
         ("Damnation", "Vengeance"), ("Vengeance", "Damnation"),
         ("Guardian", "Sentinel"), ("Sentinel", "Guardian"),
         ("Great Nebula", "Nebula"), ("Nebula", "Great Nebula"),
@@ -367,7 +454,8 @@ public class MitRecap
 
     // Damage is decided a beat before the hit, so grade there.
     internal const float SnapshotLead = TimingSolver.SnapshotLead;
-    // Poll slack, since a status is seen up to a scan late.
+    // Slack on both ends of the window: exactly when the server decided a hit
+    // is a beat either side of where the plan says the mechanic lands.
     private const float EdgeGrace = 0.6f;
 
     // Grade the sheet against the pull, press by press.
@@ -385,7 +473,7 @@ public class MitRecap
                 foreach (var pm in CooldownTracker.PlanMits(line.Action))
                 {
                     if (DeltaBlind.Contains(pm.Name)) continue;
-                    if (!(IsBossMit(pm.Name) || IsPartyMit(pm.Name))) continue; // recap can't see it
+                    if (!MitStatusBook.IsTrackedAction(pm.Name)) continue; // recap can't see it
                     if (!CompHas(p, pm.Name)) continue; // nobody here plays it tonight
                     if (planned.Any(x => string.Equals(x.Name, pm.Name, StringComparison.OrdinalIgnoreCase)
                                          && MathF.Abs(x.Time - line.Time) < 3f)) continue;
@@ -395,10 +483,16 @@ public class MitRecap
             if (planned.Count == 0) return;
             planned.Sort((a, b) => a.Time.CompareTo(b.Time));
 
-            // Each mit's applications as intervals, alias-matched.
+            // Each mit's applications as intervals, alias-matched. A party press
+            // logs one entry per member, so the names are resolved once each
+            // rather than thousands of times over.
             var spans = new Dictionary<string, List<(float Start, float End, uint Icon)>>(StringComparer.OrdinalIgnoreCase);
+            var aliases = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
             foreach (var a in p.Log.OrderBy(a => a.Time))
-                foreach (var name in NamesFor(a.Mit).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (!aliases.TryGetValue(a.Mit, out var names))
+                    names = aliases[a.Mit] = NamesFor(a.Mit).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                foreach (var name in names)
                 {
                     if (!spans.TryGetValue(name, out var list)) list = spans[name] = new List<(float, float, uint)>();
                     // Party statuses land per member, but one press is one interval.
@@ -409,6 +503,7 @@ public class MitRecap
                     }
                     list.Add((a.Time, a.End, a.Icon));
                 }
+            }
 
             foreach (var (t, name, mech) in planned)
             {
@@ -416,17 +511,19 @@ public class MitRecap
                 var snap = t - SnapshotLead;
                 spans.TryGetValue(name, out var mine);
 
-                // Boss damage-downs grade off the capture, the ground truth.
-                if (IsBossMit(name) && p.Hits.Count > 0
-                    && NearestHit(p.Hits, t, mech) is { } hit)
+                // The interval is stamped when the server applied the status, so
+                // it answers the only question that matters: was it up at snapshot.
+                if (mine != null && mine.Any(s => s.Start - EdgeGrace <= snap && snap <= s.End + EdgeGrace))
                 {
-                    if ((hit.DebuffMask & DamageCapture.BitOf(name)) != 0) { p.PlanGood++; continue; }
-                    p.PlanProblems.Add(Diagnose(t, snap, name, mech, mine));
+                    p.PlanGood++;
                     continue;
                 }
 
-                // No capture: grade from the interval over the snapshot.
-                if (mine != null && mine.Any(s => s.Start - EdgeGrace <= snap && snap <= s.End + EdgeGrace))
+                // Nothing logged at all: a hit that carried the debuff still proves
+                // it went out, which covers a pull the status feed never reached.
+                if (mine == null && MitStatusBook.IsBossMit(name) && p.Hits.Count > 0
+                    && NearestHit(p.Hits, t, mech) is { } hit
+                    && (hit.DebuffMask & MitStatusBook.BitOf(name)) != 0)
                 {
                     p.PlanGood++;
                     continue;
@@ -465,25 +562,28 @@ public class MitRecap
     private static DamageCapture.EnemyHit? NearestHit(List<DamageCapture.EnemyHit> hits, float t, string mech)
     {
         DamageCapture.EnemyHit? best = null;
-        var bestAbs = float.MaxValue;
+        var bestScore = float.MaxValue;
         foreach (var h in hits)
         {
             var d = MathF.Abs(h.Time - t);
             var named = mech.Length > 0 && h.Action.Length > 0 && SheetTimeline.MechEquals(h.Action, mech);
-            if (d > (named ? 10f : 5f)) continue;
-            if (named) d -= 100f; // a name match outranks any unnamed proximity
-            if (d < bestAbs) { bestAbs = d; best = h; }
+            // An unnamed hit only stands in for a mechanic if it hit the party;
+            // a tank auto lands in the same window and answers for a different caster.
+            if (named ? d > 10f : (d > 4f || h.PlayerTargets < 2)) continue;
+            var score = named ? d - 100f : d; // a name match outranks any unnamed proximity
+            if (score < bestScore) { bestScore = score; best = h; }
         }
         return best;
     }
 
-    // Every planned name a logged status can satisfy.
-    private static IEnumerable<string> NamesFor(string statusName)
+    // Every planned name a logged mit can satisfy.
+    private static IEnumerable<string> NamesFor(string mit)
     {
-        yield return statusName.Trim();
-        foreach (var pm in CooldownTracker.PlanMits(statusName)) yield return pm.Name;
+        var name = mit.Trim();
+        yield return name;
+        foreach (var pm in CooldownTracker.PlanMitsCached(name)) yield return pm.Name;
         foreach (var (part, canon) in StatusAliases)
-            if (statusName.Contains(part, StringComparison.OrdinalIgnoreCase)) yield return canon;
+            if (name.Contains(part, StringComparison.OrdinalIgnoreCase)) yield return canon;
     }
 
     // Whether anyone here plays a job that owns the mit.
@@ -561,31 +661,16 @@ public class MitRecap
     private static readonly string[] SampleBosses =
         { "Dragon-king Thordan", "Golden Bahamut", "The Omega Protocol", "Kefka", "Alexander Prime", "Pandora" };
 
-    // Each job's own defensive cooldowns.
-    private static readonly Dictionary<string, string[]> JobBuffs = new()
+    // A job's kit, by the full name the sample comps are built from. Reading
+    // the one shipped table keeps the preview honest about what the recap sees.
+    private static string[] SampleKit(string jobName)
     {
-        ["Paladin"] = new[] { "Rampart", "Sentinel", "Bulwark", "Holy Sheltron", "Divine Veil", "Passage of Arms", "Intervention" },
-        ["Warrior"] = new[] { "Rampart", "Vengeance", "Thrill of Battle", "Bloodwhetting", "Nascent Flash", "Shake It Off" },
-        ["Dark Knight"] = new[] { "Rampart", "Shadow Wall", "Dark Mind", "Dark Missionary", "The Blackest Night", "Oblation" },
-        ["Gunbreaker"] = new[] { "Rampart", "Camouflage", "Nebula", "Heart of Light", "Heart of Corundum", "Aurora" },
-        ["White Mage"] = new[] { "Temperance", "Divine Caress", "Asylum", "Liturgy of the Bell", "Aquaveil" },
-        ["Scholar"] = new[] { "Sacred Soil", "Expedient", "Fey Illumination", "Whispering Dawn", "Deployment Tactics" },
-        ["Astrologian"] = new[] { "Collective Unconscious", "Neutral Sect", "Sun Sign", "Exaltation", "Macrocosmos" },
-        ["Sage"] = new[] { "Kerachole", "Holos", "Panhaima", "Taurochole", "Krasis" },
-        ["Monk"] = new[] { "Arm's Length", "Second Wind", "Riddle of Earth" },
-        ["Dragoon"] = new[] { "Arm's Length", "Second Wind" },
-        ["Ninja"] = new[] { "Arm's Length", "Second Wind", "Shade Shift" },
-        ["Samurai"] = new[] { "Arm's Length", "Second Wind", "Third Eye" },
-        ["Reaper"] = new[] { "Arm's Length", "Second Wind", "Arcane Crest" },
-        ["Viper"] = new[] { "Arm's Length", "Second Wind" },
-        ["Bard"] = new[] { "Troubadour", "Nature's Minne", "Second Wind" },
-        ["Machinist"] = new[] { "Tactician", "Second Wind" },
-        ["Dancer"] = new[] { "Shield Samba", "Improvisation", "Curing Waltz" },
-        ["Black Mage"] = new[] { "Manaward", "Addle" },
-        ["Summoner"] = new[] { "Addle" },
-        ["Red Mage"] = new[] { "Magick Barrier", "Addle" },
-        ["Pictomancer"] = new[] { "Tempera Coat", "Addle" },
-    };
+        var abbr = Jobs.All.FirstOrDefault(j => string.Equals(j.Name, jobName, StringComparison.OrdinalIgnoreCase))
+            .Abbreviation;
+        return abbr != null && AbilityBook.JobKits.TryGetValue(abbr, out var kit)
+            ? kit
+            : Array.Empty<string>();
+    }
 
     // Fill the recap with a randomized sample pull.
     public void LoadSample()
@@ -614,22 +699,27 @@ public class MitRecap
             var seq = new List<(string mit, string src, bool onBoss)>();
             foreach (var b in landed) { seq.Add((b, "Boss", true)); if (rnd.Next(3) == 0) seq.Add((b, "Boss", true)); }
             foreach (var job in comp)
-                if (JobBuffs.TryGetValue(job, out var buffs))
-                    foreach (var buff in buffs.Where(b => b != "Addle").OrderBy(_ => rnd.Next()).Take(1 + rnd.Next(3)))
-                        seq.Add((buff, job, false));
+                foreach (var buff in SampleKit(job).Where(b => !canProvide.Contains(b))
+                             .OrderBy(_ => rnd.Next()).Take(1 + rnd.Next(3)))
+                    seq.Add((buff, job, false));
 
             var log = new List<Applied>();
             var t = 10f + rnd.Next(8);
             foreach (var (mit, src, onBoss) in seq.OrderBy(_ => rnd.Next()))
             {
                 t += 6 + rnd.Next(20);
-                var kind = MitTypes.Classify(mit);
-                log.Add(new Applied(t, mit, src, kind, onBoss, SampleIcon(mit)));
+                var kind = MitStatusBook.KindOf(mit);
+                var window = AbilityBook.WindowOf(mit);
+                // A sample interval runs its real window, so the preview charts
+                // the same shape a pull would.
+                log.Add(new Applied(t, mit, src, kind, onBoss, SampleIcon(mit), window)
+                    { End = t + (window > 0f ? window : 15f) });
                 // Party buffs emit an entry per member, so coverage previews.
                 if (!onBoss && kind == MitTypes.Kind.Party)
                     foreach (var member in comp.Where(m => m != src).OrderBy(_ => rnd.Next())
                                  .Take(comp.Count - 1 - rnd.Next(0, 3)))
-                        log.Add(new Applied(t + 0.3f, mit, member, kind, false, SampleIcon(mit)));
+                        log.Add(new Applied(t + 0.3f, mit, member, kind, false, SampleIcon(mit), window)
+                            { End = t + 0.3f + (window > 0f ? window : 15f) });
             }
             var sampleLog = log.OrderBy(a => a.Time).ToList();
             var pr = new PullRecap
@@ -695,7 +785,7 @@ public class MitRecap
     // Standard damage-downs that never landed this pull.
     public List<string> NotSeen()
         => StandardRaidMits
-            .Where(s => !LastLog.Any(a => a.OnBoss && a.Mit.Contains(s, StringComparison.OrdinalIgnoreCase)))
+            .Where(s => !LastLog.Any(a => a.OnBoss && string.Equals(a.Mit, s, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
     public bool HasData => History.Count > 0;
@@ -735,7 +825,8 @@ public class MitRecap
                 if (d.Hits is { Count: > 0 })
                     foreach (var h in d.Hits)
                         sb.AppendLine($"      {(int)h.Time / 60}:{(int)h.Time % 60:00}  "
-                            + (h.Action.Length > 0 ? h.Action : "hit")
+                            + (h.Action.Length > 0 ? h.Action : h.OverTime ? "damage over time" : "hit")
+                            + (h.OverTime ? " (tick)" : "")
                             + (h.Amount > 0 ? $"  {h.Amount:N0}" : "")
                             + $"  ({(h.Mits.Length > 0 ? "had " + h.Mits : "nothing up")})");
             }
@@ -769,64 +860,41 @@ public class MitRecap
         return sb.ToString();
     }
 
-    // What we read statuses off: the boss and every player.
-    private IEnumerable<(string source, bool onBoss, IBattleChara chara)> Sources()
+    // What we read statuses off: every enemy worth a damage-down, and every player.
+    private static IEnumerable<(string source, bool onBoss, IBattleChara chara)> Sources()
     {
-        var boss = FindBoss();
-        if (boss != null) yield return ("Boss", true, boss);
+        var playerMaxHp = Plugin.LocalPlayer?.MaxHp ?? 0u;
+        foreach (var o in Service.ObjectTable)
+            // A second target carries its own Reprisal, so it is its own source.
+            if (o is IBattleNpc n && (byte)n.BattleNpcKind == 5 && Plugin.BossSized(n.MaxHp, playerMaxHp))
+                yield return (n.Name.ToString(), true, n);
 
         foreach (var o in Service.ObjectTable)
             if (o is IPlayerCharacter pc && pc.MaxHp > 0)
                 yield return (pc.Name.ToString(), false, pc);
     }
 
-    private static IBattleNpc? FindBoss()
-    {
-        IBattleNpc? boss = null;
-        var playerMaxHp = Plugin.LocalPlayer?.MaxHp ?? 0u;
-        foreach (var o in Service.ObjectTable)
-            if (o is IBattleNpc n && Plugin.BossSized(n.MaxHp, playerMaxHp)
-                && (boss is null || n.MaxHp > boss.MaxHp))
-                boss = n;
-        return boss;
-    }
-
     private readonly record struct Hit(uint Icon, string Mit, float Remaining, MitTypes.Kind Kind);
 
+    // A mit can hold more than one status; the button is what the recap logs.
     private static List<Hit> MitsOn(IBattleChara chara, bool onBoss)
     {
         var list = new List<Hit>();
-        // English, since every status is matched to our own tables.
-        var sheet = GameData.English<Status>();
-        if (sheet == null) return list;
         foreach (var st in chara.StatusList)
         {
             if (st is null || st.StatusId == 0) continue;
-            if (sheet.GetRowOrDefault(st.StatusId) is not { } row) continue;
-            var name = row.Name.ExtractText();
-            if (string.IsNullOrWhiteSpace(name)) continue;
-
-            if (onBoss ? !IsBossMit(name) : !IsPartyMit(name)) continue;
-            list.Add(new Hit((uint)row.Icon, name, MathF.Abs(st.RemainingTime), MitTypes.Classify(name)));
+            if (MitStatusBook.Resolve(st.StatusId) is not { } e) continue;
+            if (onBoss && !MitStatusBook.IsBossMit(e.Mit)) continue;
+            var remaining = MathF.Abs(st.RemainingTime);
+            var at = list.FindIndex(h => string.Equals(h.Mit, e.Mit, StringComparison.OrdinalIgnoreCase));
+            if (at >= 0)
+            {
+                // Two statuses, one button: the window is the longer of them.
+                if (remaining > list[at].Remaining) list[at] = list[at] with { Remaining = remaining };
+                continue;
+            }
+            list.Add(new Hit(e.Icon, e.Mit, remaining, e.Kind));
         }
         return list;
-    }
-
-    private static bool IsBossMit(string name)
-    {
-        foreach (var s in StandardRaidMits)
-            if (name.Contains(s, StringComparison.OrdinalIgnoreCase)) return true;
-        return false;
-    }
-
-    // Mit buffs on players, minus the heals sharing keywords.
-    private static readonly string[] HealNoise = { "medica", "cure", "regen", "benediction", "physis", "asylum" };
-    private static bool IsPartyMit(string name)
-    {
-        if (MitTypes.Classify(name) == MitTypes.Kind.Other) return false;
-        var l = name.ToLowerInvariant();
-        foreach (var h in HealNoise)
-            if (l.Contains(h)) return false;
-        return true;
     }
 }

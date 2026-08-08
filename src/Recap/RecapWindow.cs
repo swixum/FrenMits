@@ -410,7 +410,7 @@ public class RecapWindow : Window
             {
                 if (applied.Contains(pm.Name)) continue;
                 if (MitRecap.DeltaBlind.Contains(pm.Name)) continue;
-                if (MitTypes.Classify(pm.Name) == MitTypes.Kind.Other) continue; // recap can't see it
+                if (!MitStatusBook.IsTrackedAction(pm.Name)) continue; // recap can't see it
                 if (!reported.Add(pm.Name)) continue; // one report per pull, not per adjacent group
                 missing.Add(slot.Length > 0 ? $"{pm.Name} ({slot})" : pm.Name);
             }
@@ -508,7 +508,12 @@ public class RecapWindow : Window
                     ImGui.TextColored(Theme.V(Theme.Muted), Mmss(h.Time));
                     ImGui.SameLine(0, 8);
                     ImGui.TextColored(blow ? Theme.V(Theme.Danger) : Theme.V(Theme.TextBright),
-                        h.Action.Length > 0 ? h.Action : "hit");
+                        h.Action.Length > 0 ? h.Action : h.OverTime ? "damage over time" : "hit");
+                    if (h.OverTime)
+                    {
+                        ImGui.SameLine(0, 5);
+                        ImGui.TextColored(Theme.V(Theme.Muted), "(tick)");
+                    }
                     if (h.Amount > 0)
                     {
                         ImGui.SameLine(0, 8);
@@ -524,7 +529,7 @@ public class RecapWindow : Window
             }
             else
                 ImGui.TextColored(Theme.V(Theme.Muted),
-                    "No hit trail for this death (a dot tick or a fall, or the capture was off).");
+                    "No hit trail for this death (a fall or a vuln, or the capture was off).");
             ImGui.Unindent(26f);
         }
     }

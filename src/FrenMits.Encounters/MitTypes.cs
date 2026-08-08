@@ -29,6 +29,10 @@ public static class MitTypes
         "expedient", "expedience", "desperate measures", "temperance", "divine caress", "neutral sect", "collective",
         "plenary", "fey illumination", "seraph", "panhaima", "philosophia", "zoe",
         "succor", "medica", "deployment", "kerakeia", "liturgy", "macrocosmos",
+        // The shipped sheets call for these by name, so they are party calls
+        // whatever else they also do. Left out, the recap drops every one of
+        // them from the plan check without saying so.
+        "consolation", "asylum", "whispering dawn", "physis",
         "spreadlo", "party mit", "kitchen sink", "sun sign", "seraphism", "barrier",
         "tempera grassa", "earthly star", "celestial opposition",
     };
