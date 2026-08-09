@@ -367,7 +367,7 @@ public partial class ConfigWindow : Window, IDisposable
                 ImGui.TextUnformatted(Widgets.Elide(fight.Name, right - slotW - ImGui.GetCursorPosX()));
                 ImGui.SameLine(0, Theme.S(10f));
                 ImGui.TextColored(
-                    Theme.V(string.IsNullOrEmpty(fight.Slot) ? Theme.Warn : Theme.Accent), slotText);
+                    Theme.V(string.IsNullOrEmpty(fight.Slot) ? Theme.Warn : Theme.RoleColor(fight.Slot)), slotText);
             }
             else
             {
@@ -565,13 +565,14 @@ public partial class ConfigWindow : Window, IDisposable
         SidebarHeading("YOUR SETUP");
 
         // Remove Job dropdown, show Job read-only
-        var liveJob = Plugin.LocalPlayer?.ClassJob.RowId is { } rid ? Jobs.ByRowId(rid)?.Abbreviation : null;
+        var liveInfo = Plugin.LocalPlayer?.ClassJob.RowId is { } rid ? Jobs.ByRowId(rid) : null;
+        var liveJob = liveInfo?.Abbreviation;
         var jobStr = liveJob ?? "[---]";
-        
+
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled("Job:");
         ImGui.SameLine();
-        ImGui.TextColored(Theme.V(liveJob != null ? Theme.Accent : Theme.Muted), jobStr);
+        ImGui.TextColored(Theme.V(liveInfo is { } ji ? Theme.RoleColor(ji.Role) : Theme.Muted), jobStr);
         Tip("Your current job.");
 
         // The seat the plugin would pick, so a preference below shows up at once.
@@ -585,7 +586,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled("Role:");
         ImGui.SameLine();
-        ImGui.TextColored(Theme.V(roleStr != "[---]" ? Theme.Accent : Theme.Muted), roleStr);
+        ImGui.TextColored(Theme.V(roleStr != "[---]" ? Theme.RoleColor(roleStr) : Theme.Muted), roleStr);
         Tip("The role the plugin assigns you based on your party/preferences.");
 
         ImGui.Spacing();
@@ -630,12 +631,15 @@ public partial class ConfigWindow : Window, IDisposable
         if (idx < 0) idx = 0;
 
         ImGui.SetNextItemWidth(comboW);
+        // Both seats share one role, so the whole combo takes its tint.
+        ImGui.PushStyleColor(ImGuiCol.Text, Theme.RoleColor(opts[0]));
         if (ImGui.Combo($"##rolepref{label}", ref idx, opts, opts.Length))
         {
             foreach (var r in roleTypes)
                 C.GlobalRolePreferences[r] = opts[idx];
             C.Save();
         }
+        ImGui.PopStyleColor();
     }
 
     // Both roles are seats of one pair, so the pick already matches.
@@ -1129,10 +1133,16 @@ public partial class ConfigWindow : Window, IDisposable
             .Select(r => C.GlobalRolePreferences.TryGetValue(r, out var p) ? p : "-")
             .ToArray();
         var text = string.Join("  ", picks);
+        var gap = ImGui.CalcTextSize("  ").X;
         Widgets.RowBegin("Select Role", "Change these under Your Setup in the sidebar",
             ImGui.CalcTextSize(text).X, icon: FontAwesomeIcon.Users, iconCol: Theme.Accent);
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(Theme.V(Theme.Accent), text);
+        // Each seat in its role's color, the same tints the sheet columns use.
+        for (var i = 0; i < picks.Length; i++)
+        {
+            if (i > 0) ImGui.SameLine(0, gap);
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextColored(Theme.V(picks[i] == "-" ? Theme.Muted : Theme.RoleColor(picks[i])), picks[i]);
+        }
         Widgets.RowEnd();
     }
 

@@ -63,15 +63,24 @@ public class SlotPopupWindow : Window
             var current = _fight.Slot ?? "";
             var preview = string.IsNullOrEmpty(current) ? "(pick)" : current;
             ImGui.SetNextItemWidth(Theme.S(120f));
-            if (ImGui.BeginCombo("##slotpick", preview))
+            // The picked slot and each option wear their role's tint.
+            var tinted = !string.IsNullOrEmpty(current);
+            if (tinted) ImGui.PushStyleColor(ImGuiCol.Text, Theme.RoleColor(current));
+            var open = ImGui.BeginCombo("##slotpick", preview);
+            if (tinted) ImGui.PopStyleColor();
+            if (open)
             {
                 foreach (var slot in _slots)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, Theme.RoleColor(slot));
                     if (ImGui.Selectable(slot, slot.Equals(current, StringComparison.OrdinalIgnoreCase))
                         && !slot.Equals(current, StringComparison.OrdinalIgnoreCase))
                     {
                         _plugin.SetSlot(_fight, slot);
                         _plugin.SheetViewWindow.MarkPlanDirty(); // background grid follows
                     }
+                    ImGui.PopStyleColor();
+                }
                 ImGui.EndCombo();
             }
 

@@ -76,6 +76,12 @@ internal static class Theme
          : Is(HealSlots, slot) ? 0xFF6AC44F                            // #4FC46A healer green
                                : 0xFF5D64E0;                           // #E0645D dps red
 
+    // The same tints, keyed by a job's role.
+    public static uint RoleColor(FrenMits.Encounters.JobRole role)
+        => role == FrenMits.Encounters.JobRole.Tank ? 0xFFFFA03A
+         : role == FrenMits.Encounters.JobRole.Healer ? 0xFF6AC44F
+                                                      : 0xFF5D64E0;
+
     // The one place packed colors become floats.
     public static Vector4 V(uint abgr) => new(
         (abgr & 0xFF) / 255f, ((abgr >> 8) & 0xFF) / 255f, ((abgr >> 16) & 0xFF) / 255f, ((abgr >> 24) & 0xFF) / 255f);
