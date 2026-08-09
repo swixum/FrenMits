@@ -52,7 +52,7 @@ public partial class ConfigWindow
 
         ImGui.TextUnformatted($"Delete \"{fight.Name}\"?");
         ImGui.PushTextWrapPos(Theme.S(380f));
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Every slot's plan, notes and anchors go with it.");
+        ImGui.TextColored(Theme.V(Theme.Warn), "Every slot's plan, notes and anchors go with it.");
         ImGui.TextDisabled("A snapshot is saved first. To recover it later, recreate a sheet in the same "
                            + "duty, then History > Find this duty's older snapshots.");
         ImGui.PopTextWrapPos();
@@ -102,7 +102,7 @@ public partial class ConfigWindow
         if (!string.IsNullOrEmpty(subtitle))
         {
             ImGui.SameLine(0, Theme.S(10f));
-            ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f), subtitle);
+            ImGui.TextColored(Theme.V(Theme.Heading), subtitle);
         }
         ImGui.Spacing();
     }
@@ -165,7 +165,7 @@ public partial class ConfigWindow
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
             ImGui.SameLine(0, Theme.S(10f));
-            ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
+            ImGui.TextColored(Theme.V(Theme.Warn), _builtinMsg);
         }
         if (fight.SavedSlots.Count > 0 || fight.Lines.Count > 0)
         {
@@ -207,7 +207,7 @@ public partial class ConfigWindow
             return;
 
         ImGui.TextUnformatted($"Empty the {slot} column?");
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Its mits go; the sheet's rows, grades and notes stay.");
+        ImGui.TextColored(Theme.V(Theme.Warn), "Its mits go; the sheet's rows, grades and notes stay.");
         ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
         ImGui.Spacing();
 
@@ -234,7 +234,7 @@ public partial class ConfigWindow
             return;
 
         ImGui.TextUnformatted("Empty every column of this sheet?");
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "All columns' mits go; the rows, grades and notes stay.");
+        ImGui.TextColored(Theme.V(Theme.Warn), "All columns' mits go; the rows, grades and notes stay.");
         ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
         ImGui.Spacing();
 
@@ -306,7 +306,7 @@ public partial class ConfigWindow
             ImGui.SameLine(0, Theme.S(8f));
             if (ImGui.SmallButton("Stop##prac")) { _plugin.StopPractice(); _pracPhase = ""; }
             ImGui.SameLine(0, Theme.S(6f));
-            ImGui.TextColored(ImGuiColors.DalamudYellow, "previewing");
+            ImGui.TextColored(Theme.V(Theme.Warn), "Previewing");
         }
 
         DrawPriorityPhaseRow(fight, phases);
@@ -444,7 +444,7 @@ public partial class ConfigWindow
             : PotionTimings.DefaultsFor(fight.TerritoryId, job);
 
         // Window pills. The job and its stat are in the tooltip, not the row.
-        if (times.Count == 0) ImGui.TextDisabled("no windows");
+        if (times.Count == 0) ImGui.TextDisabled("No windows");
         var firstPill = true;
         foreach (var t in times)
         {
@@ -480,7 +480,7 @@ public partial class ConfigWindow
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
             ImGui.SameLine(0, Theme.S(10f));
-            ImGui.TextColored(ImGuiColors.ParsedGreen, _builtinMsg);
+            ImGui.TextColored(Theme.V(Theme.Good), _builtinMsg);
         }
     }
 
@@ -494,7 +494,7 @@ public partial class ConfigWindow
         if (extras.Count == 0) return;
         var custom = JobExtras.For(fight.TerritoryId, job) == null; // no baked zone schedule -> from the sheet
 
-        BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job extras", "auto-mixed in");
+        BeginCard(FontAwesomeIcon.Shield, Theme.V(Theme.Good), "Job Extras", "Auto-mixed in");
         ImGui.SameLine(0, Theme.S(6f));
         HelpMarker("Already mixed into your line list below, at their own time. Delete one there, or "
                    + "in Sheet View, to drop it for good; these buttons reset it to the default."
@@ -503,7 +503,7 @@ public partial class ConfigWindow
         foreach (var extra in extras)
         {
             ImGui.Spacing();
-            ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {extra.Action}");
+            ImGui.TextColored(Theme.V(Theme.Heading), $"{job} · {extra.Action}");
 
             ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
             ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
@@ -591,7 +591,7 @@ public partial class ConfigWindow
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.ParsedGreen, _builtinMsg);
+            ImGui.TextColored(Theme.V(Theme.Good), _builtinMsg);
         }
         EndCard();
     }
@@ -645,7 +645,7 @@ public partial class ConfigWindow
         ImGui.Spacing();
         ImGui.BeginDisabled(locked); // a built-in's zone is fixed
         var territory = (int)fight.TerritoryId;
-        LabelledWidth("Territory id", 120f);
+        LabelledWidth("Territory Id", 120f);
         // Official zones are refused, since the built-in wins them.
         if (ImGui.InputInt("##territory", ref territory))
         {
@@ -663,7 +663,7 @@ public partial class ConfigWindow
         var zoneName = TerritoryName(fight.TerritoryId);
         if (!string.IsNullOrEmpty(zoneName)) { ImGui.SameLine(); ImGui.TextDisabled(zoneName); }
         if (ImGui.GetTime() < _zoneRejectUntil)
-            ImGui.TextColored(new Vector4(0.95f, 0.75f, 0.35f, 1f), "That zone already has an official sheet - it can't be assigned to a custom fight.");
+            ImGui.TextColored(Theme.V(Theme.Warn), "That zone already has an official sheet - it can't be assigned to a custom fight.");
         ImGui.EndDisabled();
 
         ImGui.TextDisabled("Timer offset now lives at the top of this fight, above the mit sections.");

@@ -63,7 +63,7 @@ public partial class ConfigWindow
         // One title row: the group, how many, then filter and add.
         var frameH = ImGui.GetFrameHeight();
         var headStart = ImGui.GetCursorPos();
-        var (headH, headEnd) = PageTitle(category);
+        var (headH, headEnd) = PageTitle(category, CategoryIcon(category));
 
         ImGui.SetCursorPos(new Vector2(headEnd + Theme.S(10f),
             headStart.Y + (headH - ImGui.GetTextLineHeightWithSpacing()) * 0.5f));
@@ -109,7 +109,7 @@ public partial class ConfigWindow
             {
                 lastEx = ex;
                 ImGui.Spacing();
-                ImGui.TextColored(new Vector4(0.55f, 0.75f, 0.98f, 1f),
+                ImGui.TextColored(UserBlue,
                     ex == uint.MaxValue ? "Other" : ExpansionName(ex));
                 ImGui.Spacing();
             }
@@ -128,7 +128,7 @@ public partial class ConfigWindow
             // drawn: the name is then cut to what is left, so a long one cannot
             // end up under the slot chip or the on switch.
             var hasSheet = official || fight.CustomSlots.Count > 0;
-            var slotTag = !hasSheet ? "" : string.IsNullOrEmpty(fight.Slot) ? "no slot" : fight.Slot;
+            var slotTag = !hasSheet ? "" : string.IsNullOrEmpty(fight.Slot) ? "No slot" : fight.Slot;
 
             // Measured, not guessed: the sheet button is an icon glyph plus frame
             // padding, and a chip is its text plus its own padding. Estimating
@@ -252,7 +252,7 @@ public partial class ConfigWindow
                     if (string.IsNullOrEmpty(fight.Slot))
                     {
                         ImGui.Spacing();
-                        ImGui.TextColored(ImGuiColors.DalamudYellow, "Please select your slot above to view the mitigations timeline.");
+                        ImGui.TextColored(Theme.V(Theme.Warn), "Pick your slot above to see the timeline.");
                         ImGui.Spacing();
                     }
                     else
@@ -482,7 +482,7 @@ public partial class ConfigWindow
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
             ImGui.SameLine(0, Theme.S(10f));
-            ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
+            ImGui.TextColored(Theme.V(Theme.Warn), _builtinMsg);
         }
         if (!HasOverrides(fight)) return;
 
@@ -502,7 +502,7 @@ public partial class ConfigWindow
             return;
 
         ImGui.TextUnformatted("Reset every column to the baked sheet?");
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "All slots' edits and deletions go, including added potion, job and tank lines.");
+        ImGui.TextColored(Theme.V(Theme.Warn), "All slots' edits and deletions go, including added potion, job and tank lines.");
         ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
         ImGui.Spacing();
 

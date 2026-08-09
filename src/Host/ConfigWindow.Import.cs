@@ -46,11 +46,11 @@ public partial class ConfigWindow
         _mechCol = Math.Clamp(_mechCol, 0, cols - 1);
         _actionCol = Math.Clamp(_actionCol, 0, cols - 1);
 
-        LabelledWidth("Time column", 220f);
+        LabelledWidth("Time Column", 220f);
         ImGui.Combo("##imptime", ref _timeCol, colNames, colNames.Length);
-        LabelledWidth("Mechanic column", 220f);
+        LabelledWidth("Mechanic Column", 220f);
         ImGui.Combo("##impmech", ref _mechCol, colNames, colNames.Length);
-        LabelledWidth("Your mit column", 220f);
+        LabelledWidth("Your Mit Column", 220f);
         ImGui.Combo("##impaction", ref _actionCol, colNames, colNames.Length);
 
         var header = _importHeader;

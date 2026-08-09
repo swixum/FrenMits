@@ -344,7 +344,7 @@ public partial class ConfigWindow
                 var actionOverride = (line.Custom && !isAutoExtra) || (DefaultLineFor(fight, line, bakedForSlotAll) is { } d && (!string.Equals(line.Action.Trim(), d.Action.Trim(), StringComparison.OrdinalIgnoreCase) || line.OffsetSeconds != d.OffsetSeconds || !line.Jobs.OrderBy(x=>x).SequenceEqual(d.Jobs.OrderBy(x=>x))));
                 var hasConflict = _plugin.SheetViewWindow.HasConflict(fight, line, out var conflictReason);
                 
-                if (hasConflict) btnColor = ImGui.ColorConvertFloat4ToU32(ImGuiColors.DalamudRed);
+                if (hasConflict) btnColor = Theme.Danger;
                 
                 ImGui.PushStyleColor(ImGuiCol.Button, btnColor);
                 if (actionOverride) ImGui.PushStyleColor(ImGuiCol.Text, 0xFF5C9EF5);

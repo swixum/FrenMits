@@ -464,7 +464,7 @@ public class MeterWindow : Window
             }
         }
         else
-            ImGui.TextDisabled(m.History.Count == 0 ? "no past pulls yet" : "no boss pulls yet");
+            ImGui.TextDisabled(m.History.Count == 0 ? "No past pulls yet" : "No boss pulls yet");
 
         // Trash and anything older than the last few bosses.
         var rest = m.History.Count - _picker.Count;
@@ -1064,7 +1064,7 @@ public class MeterWindow : Window
 
         // Only where the headings would have been, or it lands on top of a row.
         if (keys.Count == 0 && labels)
-            BText(dl, new Vector2(nameLeft, headY), sub, "no numbers, just bars");
+            BText(dl, new Vector2(nameLeft, headY), sub, "No numbers, just bars");
 
         if (v.Chrome && C.MeterLimitBreakRow)
         {
@@ -1901,7 +1901,7 @@ public class MeterWindow : Window
         var got = Breakdown(enc, _detailFor, 7);
         if (given.Count == 0 && got.Count == 0)
         {
-            Empty(dl, w, "no buffs traded");
+            Empty(dl, w, "No buffs traded");
             return;
         }
 
@@ -2033,7 +2033,7 @@ public class MeterWindow : Window
         var list = Deaths(enc, _detailFor);
         if (list.Count == 0)
         {
-            Empty(dl, w, "they made it through");
+            Empty(dl, w, "They made it through");
             return;
         }
 
@@ -2152,7 +2152,7 @@ public class MeterWindow : Window
             if (top.Count > shown)
                 ImGui.TextColored(Theme.V(Theme.Muted), $"+{top.Count - shown} more, click for all");
             else
-                ImGui.TextColored(Theme.V(Theme.Muted), "click for the full breakdown");
+                ImGui.TextColored(Theme.V(Theme.Muted), "Click for the full breakdown");
         }
         ImGui.EndTooltip();
     }

@@ -52,6 +52,11 @@ internal static class Theme
     public static uint Warn => Colorblind ? 0xFF009FE6 : 0xFF3BC0F0;   // #F0C03B amber -> #E69F00 orange
     public static uint Danger => Colorblind ? 0xFFA779CC : 0xFF5050E0; // #E05050 red   -> #CC79A7 reddish-purple
     public static uint DangerHover => Lighten(Danger, 0.22f);
+    public static uint GoodBright => Lighten(Good, 0.3f);              // the just-saved flash
+
+    // Uppercase headings and empty states, a step up from Muted.
+    public const uint Heading = 0xFFB0A398;                            // #98A3B0
+    public const uint NavText = 0xFFD1C4BD;                            // #BDC4D1 sidebar rows at rest
 
     // Consumables: the official star and the potion windows.
     public const uint Gold = 0xFF59D1FA;                               // #FAD159

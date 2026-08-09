@@ -1171,16 +1171,16 @@ public class MeterEngine : IDisposable
     }
 
     // The link comes first: a dropped link used to report itself as connected.
-    public string StatusText => !C.MeterEnabled ? "off"
+    public string StatusText => !C.MeterEnabled ? "Off"
         : Link.Status switch
         {
-            MeterLink.LinkStatus.Ipc => FeedStale ? Quiet : "connected to the parser (in-process)",
-            MeterLink.LinkStatus.Socket => FeedStale ? Quiet : "connected to ACT (WebSocket)",
-            MeterLink.LinkStatus.Searching => "searching for a parser...",
-            _ => "starting...",
+            MeterLink.LinkStatus.Ipc => FeedStale ? Quiet : "Connected to the parser (in-process)",
+            MeterLink.LinkStatus.Socket => FeedStale ? Quiet : "Connected to ACT (WebSocket)",
+            MeterLink.LinkStatus.Searching => "Searching for a parser...",
+            _ => "Starting...",
         };
 
-    private const string Quiet = "connected, but the parser has stopped sending - reconnecting";
+    private const string Quiet = "Connected, but the parser has stopped sending - reconnecting";
 
     // The overlay's empty screen: what is wrong, then what is being done about it.
     public (string Line, string Note) StatusLines

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using FrenMits.Game;
 
 namespace FrenMits.Ui;
 
@@ -263,7 +265,8 @@ internal static class Widgets
     public static bool RowClicked => _rowClicked;
 
     public static void RowBegin(string name, string hint, float ctlWidth, bool changed = false,
-        bool sub = false, float ctlHeight = 0f, bool clickable = false)
+        bool sub = false, float ctlHeight = 0f, bool clickable = false,
+        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0)
     {
         var hasHint = !string.IsNullOrEmpty(hint);
         var rowH = RowHeight(hasHint);
@@ -296,6 +299,7 @@ internal static class Widgets
         _rowIndex++;
 
         var textX = start.X + RowPad + (sub ? Theme.S(17f) : 0f);
+        textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
         ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
         ImGui.TextUnformatted(name);
         if (changed)
@@ -316,6 +320,21 @@ internal static class Widgets
     }
 
     public static void RowEnd() => ImGui.SetCursorPos(_rowNext);
+
+    // A leading icon in a fixed slot, so names beside it still line up.
+    private static float DrawRowIcon(FontAwesomeIcon icon, uint iconCol, float textX, float startY, float rowH)
+    {
+        if (icon == FontAwesomeIcon.None) return 0f;
+        var slot = Theme.S(20f);
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            var ic = icon.ToIconString();
+            var isz = ImGui.CalcTextSize(ic);
+            ImGui.SetCursorPos(new Vector2(textX + (slot - isz.X) * 0.5f, startY + (rowH - isz.Y) * 0.5f));
+            ImGui.TextColored(Theme.V(iconCol == 0 ? Theme.Muted : iconCol), ic);
+        }
+        return slot + Theme.S(7f);
+    }
 
     // A small button carries no vertical padding, so a row of them centers on this.
     public static float SmallHeight => ImGui.GetTextLineHeight();
@@ -339,9 +358,10 @@ internal static class Widgets
     }
 
     // The same row, but clicking anywhere on it flips the box.
-    public static bool RowCheckClick(string name, string hint, ref bool v)
+    public static bool RowCheckClick(string name, string hint, ref bool v,
+        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0)
     {
-        RowBegin(name, hint, ImGui.GetFrameHeight(), clickable: true);
+        RowBegin(name, hint, ImGui.GetFrameHeight(), clickable: true, icon: icon, iconCol: iconCol);
         var hit = GreenCheckbox("##rc" + name, ref v);
         if (_rowClicked) { v = !v; hit = true; }
         RowEnd();
@@ -397,7 +417,8 @@ internal static class Widgets
     }
 
     // A row that opens something else: the whole row is the click target.
-    public static bool RowDoor(string name, string hint)
+    public static bool RowDoor(string name, string hint,
+        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0)
     {
         var hasHint = !string.IsNullOrEmpty(hint);
         var rowH = RowHeight(hasHint);
@@ -415,6 +436,7 @@ internal static class Widgets
         if (ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         var textX = start.X + RowPad;
+        textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
         ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
         ImGui.TextUnformatted(name);
         if (hasHint) { ImGui.SetCursorPosX(textX); ImGui.TextColored(Theme.V(Theme.Muted), hint); }

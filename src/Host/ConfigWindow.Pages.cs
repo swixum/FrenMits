@@ -90,12 +90,13 @@ public partial class ConfigWindow
 
     private void DrawPartyRecapPage()
     {
-        C.RecapEnabled = PageHead("Mit Recap", "After a wipe", C.RecapEnabled);
+        C.RecapEnabled = PageHead("Mit Recap", "After a wipe", C.RecapEnabled,
+            icon: FontAwesomeIcon.ClipboardList);
         if (!C.RecapEnabled) return;
 
         Widgets.ListBegin();
         var locked = C.RecapPopupLocked;
-        if (Widgets.RowCheck("Popup locked", "Unlock to drag it", ref locked))
+        if (Widgets.RowCheck("Popup Locked", "Unlock to drag it", ref locked))
         { C.RecapPopupLocked = locked; _plugin.RecapButtonWindow.RequestReposition(); C.SaveSettings(); }
 
         ButtonRow("Recap window", "The last pull, in a window you can move", "Open", "Sample");
@@ -124,7 +125,8 @@ public partial class ConfigWindow
     private void DrawPrepCheckPage()
     {
         C.PrepCheckEnabled = PageHead("Food & Pot", "Check food before a pull, your pot when it is back",
-            C.PrepCheckEnabled, hasModes: true, reset: () => ResetPage(NavKind.PrepCheck));
+            C.PrepCheckEnabled, hasModes: true, reset: () => ResetPage(NavKind.PrepCheck),
+            icon: FontAwesomeIcon.Utensils);
         if (!C.PrepCheckEnabled) return;
 
         if (AllMode) { DrawPrepAll(); return; }
@@ -134,7 +136,7 @@ public partial class ConfigWindow
         DrawFoodLengthRow();
 
         var pot = C.PrepCheckPotion;
-        if (Widgets.RowCheck("Potion reminder", "Calls it once when it comes back up", ref pot))
+        if (Widgets.RowCheck("Potion Reminder", "Calls it once when it comes back up", ref pot))
         { C.PrepCheckPotion = pot; C.SaveSettings(); }
 
         var pos = C.PrepCheckPosition;
@@ -144,7 +146,7 @@ public partial class ConfigWindow
 
         ImGui.Spacing();
         Widgets.ListBegin();
-        if (Widgets.RowDoor("All settings", "6 more")) SetAllMode(true);
+        if (Widgets.RowDoor("All Settings", "6 more")) SetAllMode(true);
         Widgets.ListEnd();
     }
 
@@ -152,7 +154,7 @@ public partial class ConfigWindow
     // still be holding: crafter food and NQ.
     private void DrawFoodWarnRow()
     {
-        Widgets.RowBegin("Warn me about", "No food is always flagged",
+        Widgets.RowBegin("Warn Me About", "No food is always flagged",
             Widgets.SmallWidth("Crafter", "NQ"), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         if (Widgets.Segment("Crafter##warn", C.PrepCheckWarnWrongFood))
@@ -169,7 +171,7 @@ public partial class ConfigWindow
     private void DrawFoodLengthRow()
     {
         var useFight = C.PrepCheckUseFightLength;
-        Widgets.RowBegin("Running out", "Warn when it won't last the pull",
+        Widgets.RowBegin("Running Out", "Warn when it won't last the pull",
             Widgets.SmallWidth("This fight", "Under") + Theme.S(78f), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         if (Widgets.Segment("This fight##len", useFight)) { C.PrepCheckUseFightLength = true; C.SaveSettings(); }
@@ -193,33 +195,33 @@ public partial class ConfigWindow
         DrawFoodWarnRow();
         DrawFoodLengthRow();
         var ready = C.PrepCheckOnReadyCheck;
-        if (Widgets.RowCheck("On ready check", "Re-check on every ready check", ref ready))
+        if (Widgets.RowCheck("On Ready Check", "Re-check on every ready check", ref ready))
         { C.PrepCheckOnReadyCheck = ready; C.SaveSettings(); }
         var always = C.PrepCheckAlwaysShowFood;
-        if (Widgets.RowCheck("Always show the timer", "Even when the food is fine", ref always))
+        if (Widgets.RowCheck("Always Show the Timer", "Even when the food is fine", ref always))
         { C.PrepCheckAlwaysShowFood = always; C.SaveSettings(); }
         Widgets.ListEnd();
 
         Widgets.GroupLabel("Potion");
         Widgets.ListBegin();
         var pot = C.PrepCheckPotion;
-        if (Widgets.RowCheck("Potion reminder", "Starts once you pot", ref pot))
+        if (Widgets.RowCheck("Potion Reminder", "Starts once you pot", ref pot))
         { C.PrepCheckPotion = pot; C.SaveSettings(); }
         var count = C.PrepCheckPotCountdown;
-        if (Widgets.RowCheck("Count down to it", "Shows \"Pot 1:23\" while it recasts", ref count, sub: true))
+        if (Widgets.RowCheck("Count Down to It", "Shows \"Pot 1:23\" while it recasts", ref count, sub: true))
         { C.PrepCheckPotCountdown = count; C.SaveSettings(); }
         Widgets.ListEnd();
 
         Widgets.GroupLabel("Where and how");
         Widgets.ListBegin();
         var sheets = C.PrepCheckSheetsOnly;
-        if (Widgets.RowCheck("Only fights with a sheet", "", ref sheets))
+        if (Widgets.RowCheck("Only Fights with a Sheet", "", ref sheets))
         { C.PrepCheckSheetsOnly = sheets; C.SaveSettings(); }
         var counts = C.PrepCheckShowCounts;
-        if (Widgets.RowCheck("Show how many are left", "Counts what is in your bags", ref counts))
+        if (Widgets.RowCheck("Show How Many Are Left", "Counts what is in your bags", ref counts))
         { C.PrepCheckShowCounts = counts; C.SaveSettings(); }
         var tts = C.PrepCheckTts;
-        if (Widgets.RowCheck("Speak it", "Uses the Audio page voice", ref tts))
+        if (Widgets.RowCheck("Speak It", "Uses the Audio page voice", ref tts))
         { C.PrepCheckTts = tts; C.SaveSettings(); }
 
         var pos = C.PrepCheckPosition;
@@ -230,7 +232,7 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Locked", "Auto-locks in combat", ref locked))
         { C.PrepCheckLocked = locked; _plugin.PrepWindow.RequestReposition(); C.SaveSettings(); }
         var px = C.PrepCheckFontSizePx;
-        if (Widgets.RowDrag("Text size", "", ref px, 10f, 48f, "%.0f px", 86f))
+        if (Widgets.RowDrag("Text Size", "", ref px, 10f, 48f, "%.0f px", 86f))
         { C.PrepCheckFontSizePx = px; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -240,7 +242,8 @@ public partial class ConfigWindow
     private void DrawCombatTimerPage()
     {
         C.ShowCombatTimer = PageHead("Combat Timer", "Stopwatch of the current pull",
-            C.ShowCombatTimer, reset: () => ResetPage(NavKind.CombatTimer));
+            C.ShowCombatTimer, reset: () => ResetPage(NavKind.CombatTimer),
+            icon: FontAwesomeIcon.Clock);
         if (!C.ShowCombatTimer) return;
 
         DrawTimerSample();
@@ -266,18 +269,18 @@ public partial class ConfigWindow
         }
 
         var px = C.CombatTimerFontSizePx;
-        if (Widgets.RowDrag("Text size", "", ref px, 12f, 120f, "%.0f px", 86f))
+        if (Widgets.RowDrag("Text Size", "", ref px, 12f, 120f, "%.0f px", 86f))
         { C.CombatTimerFontSizePx = px; C.SaveSettings(); }
 
         var col = ColorToVec4(C.CombatTimerColor);
         if (Widgets.RowColor("Color", "", ref col)) { C.CombatTimerColor = Vec4ToColor(col); C.SaveSettings(); }
 
         var bg = C.CombatTimerShowBackground;
-        if (Widgets.RowCheck("Background box", "", ref bg)) { C.CombatTimerShowBackground = bg; C.SaveSettings(); }
+        if (Widgets.RowCheck("Background Box", "", ref bg)) { C.CombatTimerShowBackground = bg; C.SaveSettings(); }
         if (C.CombatTimerShowBackground)
         {
             var bgc = ColorToVec4(C.CombatTimerBackgroundColor);
-            if (Widgets.RowColor("Box color", "Lower the alpha to see through it", ref bgc, sub: true))
+            if (Widgets.RowColor("Box Color", "Lower the alpha to see through it", ref bgc, sub: true))
             { C.CombatTimerBackgroundColor = Vec4ToColor(bgc); C.SaveSettings(); }
         }
         Widgets.ListEnd();
@@ -364,7 +367,8 @@ public partial class ConfigWindow
 
     private void DrawDisplayTab()
     {
-        PageHead("Call Display", "", false, hasMaster: false, hasModes: true, reset: () => ResetPage(NavKind.Display));
+        PageHead("Call Display", "", false, hasMaster: false, hasModes: true, reset: () => ResetPage(NavKind.Display),
+            icon: FontAwesomeIcon.Desktop);
         DrawCallSample();
         ImGui.Spacing();
 
@@ -386,7 +390,7 @@ public partial class ConfigWindow
         { C.OverlayLocked = locked; C.SaveSettings(); }
 
         var warn = C.WarningSeconds;
-        if (Widgets.RowDrag("Show ahead", "How early a call shows", ref warn, 1f, 12f, "%.1fs", 86f))
+        if (Widgets.RowDrag("Show Ahead", "How early a call shows", ref warn, 1f, 12f, "%.1fs", 86f))
         { C.WarningSeconds = warn; C.SaveSettings(); }
 
         // Flagship setting, so it stays on the short page.
@@ -395,7 +399,7 @@ public partial class ConfigWindow
         { C.ShowUseWindows = useWinB; C.SaveSettings(); _plugin.InvalidateSolverCache(); }
 
         var tts = C.TtsEnabled;
-        if (Widgets.RowCheck("Speak it", "The voice is set on the Audio page", ref tts))
+        if (Widgets.RowCheck("Speak It", "The voice is set on the Audio page", ref tts))
         { C.TtsEnabled = tts; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -463,7 +467,7 @@ public partial class ConfigWindow
 
         var style = C.OverlayStyle;
         if (Widgets.RowCombo("Layout", "How the call is drawn", ref style,
-                "Classic\0Board\0Icon + clock\0", 150f))
+                "Classic\0Board\0Icon + Clock\0", 150f))
         { C.OverlayStyle = style; C.SaveSettings(); }
 
         var fam = C.OverlayFontFamily;
@@ -473,7 +477,7 @@ public partial class ConfigWindow
         { C.OverlayFontFamily = fam; C.OverlayFontBold = bold; C.OverlayFontItalic = ital; C.SaveSettings(); }
 
         var px = C.OverlayFontSizePx;
-        if (Widgets.RowDrag("Call size", "", ref px, 12f, 120f, "%.0f px", 86f))
+        if (Widgets.RowDrag("Call Size", "", ref px, 12f, 120f, "%.0f px", 86f))
         { C.OverlayFontSizePx = px; C.SaveSettings(); }
 
         var align = C.OverlayTextAlign;
@@ -491,7 +495,7 @@ public partial class ConfigWindow
         if (C.ShowAbilityIcon)
         {
             var iconScale = C.IconScale;
-            if (Widgets.RowDrag("Icon size", "", ref iconScale, 0.4f, 1.5f, "%.2fx", 86f))
+            if (Widgets.RowDrag("Icon Size", "", ref iconScale, 0.4f, 1.5f, "%.2fx", 86f))
             { C.IconScale = iconScale; C.SaveSettings(); }
         }
         Widgets.ListEnd();
@@ -501,34 +505,34 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var v = C.ShowAbilityIcon;
-        if (Widgets.RowCheck("Ability icon", "Matched from the action name", ref v))
+        if (Widgets.RowCheck("Ability Icon", "Matched from the action name", ref v))
         { C.ShowAbilityIcon = v; C.SaveSettings(); }
 
         v = C.ShowMechanicLine;
-        if (Widgets.RowCheck("Mechanic line", "Second line, the mechanic name", ref v))
+        if (Widgets.RowCheck("Mechanic Line", "Second line, the mechanic name", ref v))
         { C.ShowMechanicLine = v; C.SaveSettings(); }
 
         v = C.TextShadow;
-        if (Widgets.RowCheck("Drop shadow", "Readable over a busy background", ref v))
+        if (Widgets.RowCheck("Drop Shadow", "Readable over a busy background", ref v))
         { C.TextShadow = v; C.SaveSettings(); }
 
         v = C.CooldownAwareCalls;
-        if (Widgets.RowCheck("Cooldown warnings", "Reds out a call still on CD", ref v))
+        if (Widgets.RowCheck("Cooldown Warnings", "Reds out a call still on CD", ref v))
         { C.CooldownAwareCalls = v; C.SaveSettings(); }
 
         v = C.ShowCountdownNumber;
-        if (Widgets.RowCheck("Countdown number", "", ref v)) { C.ShowCountdownNumber = v; C.SaveSettings(); }
+        if (Widgets.RowCheck("Countdown Number", "", ref v)) { C.ShowCountdownNumber = v; C.SaveSettings(); }
 
         v = C.ShowRadialRing;
-        if (Widgets.RowCheck("Radial ring", "Countdown ring on the icon", ref v))
+        if (Widgets.RowCheck("Radial Ring", "Countdown ring on the icon", ref v))
         { C.ShowRadialRing = v; C.SaveSettings(); }
 
         v = C.OverlayCallPanel;
-        if (Widgets.RowCheck("Call panel", "Dark plate behind the call", ref v))
+        if (Widgets.RowCheck("Call Panel", "Dark plate behind the call", ref v))
         { C.OverlayCallPanel = v; C.SaveSettings(); }
 
         v = C.OverlayTextSpark;
-        if (Widgets.RowCheck("Text spark", "Spark that rides the bar across the text", ref v))
+        if (Widgets.RowCheck("Text Spark", "Spark that rides the bar across the text", ref v))
         { C.OverlayTextSpark = v; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -537,7 +541,7 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var c = ColorToVec4(C.OverlayColorImminent);
-        if (Widgets.RowColor("Counting down", "Before the call fires", ref c))
+        if (Widgets.RowColor("Counting Down", "Before the call fires", ref c))
         { C.OverlayColorImminent = Vec4ToColor(c); C.SaveSettings(); }
 
         c = ColorToVec4(C.OverlayColorActive);
@@ -545,11 +549,11 @@ public partial class ConfigWindow
         { C.OverlayColorActive = Vec4ToColor(c); C.SaveSettings(); }
 
         c = ColorToVec4(C.OverlayColorMechanic);
-        if (Widgets.RowColor("Mechanic line", "", ref c))
+        if (Widgets.RowColor("Mechanic Line", "", ref c))
         { C.OverlayColorMechanic = Vec4ToColor(c); C.SaveSettings(); }
 
         var byType = C.ColorByMitType;
-        if (Widgets.RowCheck("By mit type", "Party, tank and personal get their own color", ref byType))
+        if (Widgets.RowCheck("By Mit Type", "Party, tank and personal get their own color", ref byType))
         { C.ColorByMitType = byType; C.SaveSettings(); }
         if (C.ColorByMitType)
         {
@@ -567,11 +571,11 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var warn = C.WarningSeconds;
-        if (Widgets.RowDrag("Show ahead", "How early a call shows", ref warn, 1f, 12f, "%.1fs", 86f))
+        if (Widgets.RowDrag("Show Ahead", "How early a call shows", ref warn, 1f, 12f, "%.1fs", 86f))
         { C.WarningSeconds = warn; C.SaveSettings(); }
 
         var hold = C.HoldSeconds;
-        if (Widgets.RowDrag("Hold on screen", "How long it stays after the hit", ref hold, 0f, 6f, "%.1fs", 86f))
+        if (Widgets.RowDrag("Hold on Screen", "How long it stays after the hit", ref hold, 0f, 6f, "%.1fs", 86f))
         { C.HoldSeconds = hold; C.SaveSettings(); }
 
         var useWin = C.ShowUseWindows;
@@ -580,19 +584,19 @@ public partial class ConfigWindow
         if (C.ShowUseWindows)
         {
             var lead = C.UseWindowLeadSeconds;
-            if (Widgets.RowDrag("Window opens in", "How early the window shows",
+            if (Widgets.RowDrag("Window Opens In", "How early the window shows",
                     ref lead, 0f, 12f, "%.1fs", 86f, sub: true))
             { C.UseWindowLeadSeconds = lead; C.SaveSettings(); }
 
             var maxDur = C.MaxUseWindowSeconds;
-            if (Widgets.RowDrag("Longest window", "Caps the window",
+            if (Widgets.RowDrag("Longest Window", "Caps the window",
                     ref maxDur, 1f, 30f, "%.1fs", 86f, sub: true))
             { C.MaxUseWindowSeconds = maxDur; C.SaveSettings(); }
             if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.InvalidateSolverCache();
         }
 
         var start = C.StartOnCountdown;
-        if (Widgets.RowCheck("Start on countdown", "Runs during the pull countdown", ref start))
+        if (Widgets.RowCheck("Start on Countdown", "Runs during the pull countdown", ref start))
         { C.StartOnCountdown = start; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -610,12 +614,12 @@ public partial class ConfigWindow
         { C.OverlayLocked = locked; C.SaveSettings(); }
 
         var bar = C.ShowProgressBar;
-        if (Widgets.RowCheck("Countdown bar", "", ref bar))
+        if (Widgets.RowCheck("Countdown Bar", "", ref bar))
         { C.ShowProgressBar = bar; C.SaveSettings(); }
         if (C.ShowProgressBar)
         {
             var barH = C.ProgressBarHeight;
-            if (Widgets.RowDrag("Bar height", "", ref barH, 2f, 24f, "%.0f px", 86f, sub: true))
+            if (Widgets.RowDrag("Bar Height", "", ref barH, 2f, 24f, "%.0f px", 86f, sub: true))
             { C.ProgressBarHeight = barH; C.SaveSettings(); }
         }
 
@@ -623,11 +627,11 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Pulse at 1s", "", ref pulse)) { C.PulseWhenImminent = pulse; C.SaveSettings(); }
 
         var box = C.ShowBackground;
-        if (Widgets.RowCheck("Background box", "", ref box)) { C.ShowBackground = box; C.SaveSettings(); }
+        if (Widgets.RowCheck("Background Box", "", ref box)) { C.ShowBackground = box; C.SaveSettings(); }
         if (C.ShowBackground)
         {
             var bg = ColorToVec4(C.BackgroundColor);
-            if (Widgets.RowColor("Box color", "Lower the alpha to see through it", ref bg, sub: true))
+            if (Widgets.RowColor("Box Color", "Lower the alpha to see through it", ref bg, sub: true))
             { C.BackgroundColor = Vec4ToColor(bg); C.SaveSettings(); }
         }
         Widgets.ListEnd();
@@ -637,11 +641,11 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var dtr = C.ShowDtrBar;
-        if (Widgets.RowCheck("Server bar", "Next mit on the server info bar", ref dtr))
+        if (Widgets.RowCheck("Server Bar", "Next mit on the server info bar", ref dtr))
         { C.ShowDtrBar = dtr; C.SaveSettings(); }
 
         var mitBar = C.ShowMitBar;
-        if (Widgets.RowCheck("Active mits bar", "Your mits and the time left on them", ref mitBar))
+        if (Widgets.RowCheck("Active Mits Bar", "Your mits and the time left on them", ref mitBar))
         { C.ShowMitBar = mitBar; C.SaveSettings(); }
         if (C.ShowMitBar)
         {
@@ -649,17 +653,17 @@ public partial class ConfigWindow
             if (Widgets.RowCheck("Locked", "Auto-locks in combat", ref locked, sub: true))
             { C.MitBarLocked = locked; _plugin.MitBarWindow.RequestReposition(); C.SaveSettings(); }
             var mbPx = C.MitBarFontSizePx;
-            if (Widgets.RowDrag("Text size", "", ref mbPx, 10f, 48f, "%.0f px", 86f, sub: true))
+            if (Widgets.RowDrag("Text Size", "", ref mbPx, 10f, 48f, "%.0f px", 86f, sub: true))
             { C.MitBarFontSizePx = mbPx; C.SaveSettings(); }
         }
 
         var fmt = C.HeadlineFormat;
-        Widgets.RowBegin("Call format", "{action} {mechanic} {time} {count} {remaining}", Theme.S(190f));
+        Widgets.RowBegin("Call Format", "{action} {mechanic} {time} {count} {remaining}", Theme.S(190f));
         if (ImGui.InputText("##callformat", ref fmt, 128)) { C.HeadlineFormat = fmt; C.SaveSettings(); }
         Widgets.RowEnd();
 
         var suffix = C.ActiveSuffix;
-        Widgets.RowBegin("NOW suffix", "Added while the call is live", Theme.S(190f));
+        Widgets.RowBegin("NOW Suffix", "Added while the call is live", Theme.S(190f));
         if (ImGui.InputText("##nowsuffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.SaveSettings(); }
         Widgets.RowEnd();
         Widgets.ListEnd();
@@ -669,31 +673,32 @@ public partial class ConfigWindow
 
     private void DrawAppearancePage()
     {
-        PageHead("Appearance", "These windows only", false, hasMaster: false, reset: () => ResetPage(NavKind.Appearance));
+        PageHead("Appearance", "These windows only", false, hasMaster: false, reset: () => ResetPage(NavKind.Appearance),
+            icon: FontAwesomeIcon.Palette);
 
         Widgets.ListBegin();
         DrawAccentRow();
 
         var follow = C.OverlaysFollowAccent;
-        if (Widgets.RowCheck("Overlays follow it", "Off = each overlay keeps its own", ref follow))
+        if (Widgets.RowCheck("Overlays Follow It", "Off = each overlay keeps its own", ref follow))
         { C.OverlaysFollowAccent = follow; C.SaveSettings(); }
 
         var scale = C.UiScale;
-        if (Widgets.RowDrag("UI scale", "Text and spacing in these windows", ref scale, 0.8f, 1.6f, "%.2fx", 96f))
+        if (Widgets.RowDrag("UI Scale", "Text and spacing in these windows", ref scale, 0.8f, 1.6f, "%.2fx", 96f))
         { C.UiScale = scale; Theme.Scale = scale; C.SaveSettings(); }
 
         var cb = C.ColorblindMode;
-        if (Widgets.RowCheck("Colorblind safe", "Swaps red and green for blue and orange", ref cb))
+        if (Widgets.RowCheck("Colorblind Safe", "Swaps red and green for blue and orange", ref cb))
         { C.ColorblindMode = cb; Theme.Colorblind = cb; C.SaveSettings(); }
         Widgets.ListEnd();
 
         Widgets.GroupLabel("Sample");
         Widgets.ListBegin();
         var demo = true;
-        Widgets.RowCheck("A setting", "With its hint underneath", ref demo);
+        Widgets.RowCheck("A Setting", "With its hint underneath", ref demo);
         var demoIdx = 0;
-        Widgets.RowCombo("A value", "", ref demoIdx, "Option\0Another\0", 110f);
-        Widgets.RowBegin("A choice", "", Widgets.SmallWidth("One", "Two", "Three"), ctlHeight: Widgets.SmallHeight);
+        Widgets.RowCombo("A Value", "", ref demoIdx, "Option\0Another\0", 110f);
+        Widgets.RowBegin("A Choice", "", Widgets.SmallWidth("One", "Two", "Three"), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         Widgets.Segment("One##demo", true); ImGui.SameLine();
         Widgets.Segment("Two##demo", false); ImGui.SameLine();
@@ -754,7 +759,8 @@ public partial class ConfigWindow
 
     private void DrawNextMitsPage()
     {
-        C.ShowUpcoming = PageHead("Next Mits", "", C.ShowUpcoming, hasModes: true, reset: () => ResetPage(NavKind.NextMits));
+        C.ShowUpcoming = PageHead("Next Mits", "", C.ShowUpcoming, hasModes: true, reset: () => ResetPage(NavKind.NextMits),
+            icon: FontAwesomeIcon.ShieldAlt);
         if (!C.ShowUpcoming) return;
 
         DrawBoardSample();
@@ -773,7 +779,7 @@ public partial class ConfigWindow
             if (Widgets.RowDragInt("Rows", "How many bars at once", ref rows, 3, 12, "%d", 80f))
             { C.UpcomingBoardRows = rows; C.SaveSettings(); }
             var look = C.UpcomingBoardLookaheadSeconds;
-            if (Widgets.RowDrag("Look ahead", "Bars start full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
+            if (Widgets.RowDrag("Look Ahead", "Bars start full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
             { C.UpcomingBoardLookaheadSeconds = look; C.SaveSettings(); }
         }
         else
@@ -782,7 +788,7 @@ public partial class ConfigWindow
             if (Widgets.RowDragInt("Lines", "How many calls to list", ref lines, 1, 8, "%d", 80f))
             { C.UpcomingCount = lines; C.SaveSettings(); }
             var look = C.UpcomingLookaheadSeconds;
-            if (Widgets.RowDrag("Look ahead", "", ref look, 5f, 90f, "%.0fs", 80f))
+            if (Widgets.RowDrag("Look Ahead", "", ref look, 5f, 90f, "%.0fs", 80f))
             { C.UpcomingLookaheadSeconds = look; C.SaveSettings(); }
         }
 
@@ -833,16 +839,16 @@ public partial class ConfigWindow
             if (Widgets.RowDragInt("Rows", "How many bars at once", ref rows, 3, 12, "%d", 80f))
             { C.UpcomingBoardRows = rows; C.SaveSettings(); }
             var look = C.UpcomingBoardLookaheadSeconds;
-            if (Widgets.RowDrag("Look ahead", "Bars start full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
+            if (Widgets.RowDrag("Look Ahead", "Bars start full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
             { C.UpcomingBoardLookaheadSeconds = look; C.SaveSettings(); }
             var bw = C.UpcomingBoardWidth;
-            if (Widgets.RowDrag("Bar width", "", ref bw, 220f, 560f, "%.0f px", 86f))
+            if (Widgets.RowDrag("Bar Width", "", ref bw, 220f, 560f, "%.0f px", 86f))
             { C.UpcomingBoardWidth = bw; C.SaveSettings(); }
             var px = C.UpcomingFontSizePx;
-            if (Widgets.RowDrag("Text size", "", ref px, 10f, 60f, "%.0f px", 86f))
+            if (Widgets.RowDrag("Text Size", "", ref px, 10f, 60f, "%.0f px", 86f))
             { C.UpcomingFontSizePx = px; C.SaveSettings(); }
             var mine = C.UpcomingBoardOnlyMine;
-            if (Widgets.RowCheck("Only my hits", "Off = the whole fight", ref mine))
+            if (Widgets.RowCheck("Only My Hits", "Off = the whole fight", ref mine))
             { C.UpcomingBoardOnlyMine = mine; C.SaveSettings(); }
         }
         else
@@ -851,13 +857,13 @@ public partial class ConfigWindow
             if (Widgets.RowDragInt("Lines", "How many calls to list", ref lines, 1, 8, "%d", 80f))
             { C.UpcomingCount = lines; C.SaveSettings(); }
             var look = C.UpcomingLookaheadSeconds;
-            if (Widgets.RowDrag("Look ahead", "", ref look, 5f, 90f, "%.0fs", 80f))
+            if (Widgets.RowDrag("Look Ahead", "", ref look, 5f, 90f, "%.0fs", 80f))
             { C.UpcomingLookaheadSeconds = look; C.SaveSettings(); }
             var px = C.UpcomingFontSizePx;
-            if (Widgets.RowDrag("Text size", "", ref px, 10f, 60f, "%.0f px", 86f))
+            if (Widgets.RowDrag("Text Size", "", ref px, 10f, 60f, "%.0f px", 86f))
             { C.UpcomingFontSizePx = px; C.SaveSettings(); }
             var col = ColorToVec4(C.OverlayColorUpcoming);
-            if (Widgets.RowColor("Text color", "", ref col))
+            if (Widgets.RowColor("Text Color", "", ref col))
             { C.OverlayColorUpcoming = Vec4ToColor(col); C.SaveSettings(); }
         }
 
@@ -875,29 +881,29 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var v = C.UpcomingBoardTimeText;
-        if (Widgets.RowCheck("Countdown seconds", "", ref v)) { C.UpcomingBoardTimeText = v; C.SaveSettings(); }
+        if (Widgets.RowCheck("Countdown Seconds", "", ref v)) { C.UpcomingBoardTimeText = v; C.SaveSettings(); }
         v = C.UpcomingBoardShowActions;
-        if (Widgets.RowCheck("Planned mits", "", ref v)) { C.UpcomingBoardShowActions = v; C.SaveSettings(); }
+        if (Widgets.RowCheck("Planned Mits", "", ref v)) { C.UpcomingBoardShowActions = v; C.SaveSettings(); }
         v = C.UpcomingBoardShowSeverity;
         if (Widgets.RowCheck("Severity", "! !! !!! by how hard it hits", ref v))
         { C.UpcomingBoardShowSeverity = v; C.SaveSettings(); }
         v = C.UpcomingBoardTypeChip;
-        if (Widgets.RowCheck("Type chip", "Buster, Raid AOE, Enrage", ref v))
+        if (Widgets.RowCheck("Type Chip", "Buster, Raid AOE, Enrage", ref v))
         { C.UpcomingBoardTypeChip = v; C.SaveSettings(); }
         if (C.UpcomingBoardTypeChip)
         {
             v = C.UpcomingBoardTypeChipShort;
-            if (Widgets.RowCheck("Short labels", "TB / AOE / ENR", ref v, sub: true))
+            if (Widgets.RowCheck("Short Labels", "TB / AOE / ENR", ref v, sub: true))
             { C.UpcomingBoardTypeChipShort = v; C.SaveSettings(); }
         }
         v = C.UpcomingBoardShowType;
-        if (Widgets.RowCheck("Buster icon", "Shield on TB rows", ref v))
+        if (Widgets.RowCheck("Buster Icon", "Shield on TB rows", ref v))
         { C.UpcomingBoardShowType = v; C.SaveSettings(); }
         v = C.UpcomingBossPosition;
-        if (Widgets.RowCheck("Reposition calls", "Counts down to the boss coming back", ref v))
+        if (Widgets.RowCheck("Reposition Calls", "Counts down to the boss coming back", ref v))
         { C.UpcomingBossPosition = v; C.SaveSettings(); }
         v = C.UpcomingBoardPhases;
-        if (Widgets.RowCheck("Phase dividers", "Line at each phase change", ref v))
+        if (Widgets.RowCheck("Phase Dividers", "Line at each phase change", ref v))
         { C.UpcomingBoardPhases = v; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -907,7 +913,7 @@ public partial class ConfigWindow
         Widgets.ListBegin();
         ImGui.BeginDisabled(C.OverlaysFollowAccent);
         var c = ColorToVec4(C.UpcomingBoardAccentColor);
-        if (Widgets.RowColor("Base color", C.OverlaysFollowAccent
+        if (Widgets.RowColor("Base Color", C.OverlaysFollowAccent
                 ? "Held: Appearance has the overlays following the accent"
                 : "Stripe, drain fill, header", ref c))
         { C.UpcomingBoardAccentColor = Vec4ToColor(c); C.Save(); }
@@ -924,26 +930,26 @@ public partial class ConfigWindow
         if (Widgets.RowDragInt("Opacity", "", ref op, 0, 100, "%d%%", 80f))
         { C.UpcomingBoardBgOpacity = op / 100f; C.SaveSettings(); }
         var pad = C.UpcomingBoardBarPad;
-        if (Widgets.RowDrag("Bar thickness", "", ref pad, 2f, 24f, "+%.0f px", 86f))
+        if (Widgets.RowDrag("Bar Thickness", "", ref pad, 2f, 24f, "+%.0f px", 86f))
         { C.UpcomingBoardBarPad = pad; C.SaveSettings(); }
         var gap = C.UpcomingBoardRowGap;
-        if (Widgets.RowDrag("Row spacing", "Below zero overlaps them", ref gap, -8f, 16f, "%.0f px", 86f))
+        if (Widgets.RowDrag("Row Spacing", "Below zero overlaps them", ref gap, -8f, 16f, "%.0f px", 86f))
         { C.UpcomingBoardRowGap = gap; C.SaveSettings(); }
         var rnd = C.UpcomingBoardRounding;
         if (Widgets.RowDrag("Rounding", "", ref rnd, 0f, 12f, "%.0f px", 86f))
         { C.UpcomingBoardRounding = rnd; C.SaveSettings(); }
 
         var v = C.UpcomingBoardStripe;
-        if (Widgets.RowCheck("Left stripe", "", ref v)) { C.UpcomingBoardStripe = v; C.SaveSettings(); }
+        if (Widgets.RowCheck("Left Stripe", "", ref v)) { C.UpcomingBoardStripe = v; C.SaveSettings(); }
         v = C.UpcomingBoardDrain;
-        if (Widgets.RowCheck("Drain toward the hit", "Off = bars fill instead", ref v))
+        if (Widgets.RowCheck("Drain Toward the Hit", "Off = bars fill instead", ref v))
         { C.UpcomingBoardDrain = v; C.SaveSettings(); }
         Widgets.ListEnd();
 
         Widgets.GroupLabel("Header");
         Widgets.ListBegin();
         v = C.UpcomingShowHeader;
-        if (Widgets.RowCheck("Show a header", "", ref v)) { C.UpcomingShowHeader = v; C.SaveSettings(); }
+        if (Widgets.RowCheck("Show a Header", "", ref v)) { C.UpcomingShowHeader = v; C.SaveSettings(); }
         if (C.UpcomingShowHeader)
         {
             Widgets.RowBegin("Show", "", Widgets.SmallWidth("Name", "Clock", "Rule", "Slot", "Sync"),
@@ -968,15 +974,15 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var v = C.UniversalTimelines;
-        if (Widgets.RowCheck("Every duty", "Boss casts in any duty. No mits, no voice.", ref v))
+        if (Widgets.RowCheck("Every Duty", "Boss casts in any duty. No mits, no voice.", ref v))
         { C.UniversalTimelines = v; C.SaveSettings(); }
         v = C.LearnTimelines;
-        if (Widgets.RowCheck("Learn from pulls", "Builds a timeline from your pulls. A sheet always wins.", ref v))
+        if (Widgets.RowCheck("Learn from Pulls", "Builds a timeline from your pulls. A sheet always wins.", ref v))
         { C.LearnTimelines = v; C.SaveSettings(); }
         if (C.LearnedFights.Count > 0)
         {
             var known = C.LearnedFights.Values.OrderByDescending(f => f.LastSeen).ToList();
-            if (Widgets.RowDoor("Learned so far", $"{known.Count} boss{(known.Count == 1 ? "" : "es")}"))
+            if (Widgets.RowDoor("Learned So Far", $"{known.Count} boss{(known.Count == 1 ? "" : "es")}"))
                 _learnedOpen = !_learnedOpen;
         }
         Widgets.ListEnd();
@@ -1020,7 +1026,8 @@ public partial class ConfigWindow
 
     private void DrawAudioTab()
     {
-        C.AudioEnabled = PageHead("Audio", "Once per call, per pull", C.AudioEnabled, hasModes: true);
+        C.AudioEnabled = PageHead("Audio", "Once per call, per pull", C.AudioEnabled, hasModes: true,
+            icon: FontAwesomeIcon.VolumeUp);
         if (!C.AudioEnabled) return;
 
         Widgets.ListBegin();
@@ -1034,7 +1041,7 @@ public partial class ConfigWindow
         Widgets.RowEnd();
 
         var speak = C.TtsEnabled;
-        if (Widgets.RowCheck("Speak the call", "Off = beep only", ref speak))
+        if (Widgets.RowCheck("Speak the Call", "Off = beep only", ref speak))
         { C.TtsEnabled = speak; C.SaveSettings(); }
 
         Widgets.RowBegin("Voices", "Online needs internet, falls back to Windows",
@@ -1053,7 +1060,7 @@ public partial class ConfigWindow
         var vol = C.TtsVolume;
         if (Widgets.RowDragInt("Volume", "", ref vol, 0, 100, "%d", 80f)) { C.TtsVolume = vol; C.SaveSettings(); }
 
-        Widgets.RowBegin("Try it", "", Theme.S(150f) + Widgets.SmallWidth("Speak"));
+        Widgets.RowBegin("Try It", "", Theme.S(150f) + Widgets.SmallWidth("Speak"));
         ImGui.SetNextItemWidth(Theme.S(150f));
         ImGui.InputTextWithHint("##testtext", "Reprisal", ref _ttsTestText, 128);
         ImGui.SameLine(0, Theme.S(6f));
@@ -1066,14 +1073,14 @@ public partial class ConfigWindow
         {
             ImGui.Spacing();
             var ok = status.StartsWith("Online OK") || status == "Windows voice";
-            ImGui.TextColored(ok ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudYellow, status);
+            ImGui.TextColored(Theme.V(ok ? Theme.Good : Theme.Warn), status);
         }
 
         if (!AllMode)
         {
             ImGui.Spacing();
             Widgets.ListBegin();
-            if (Widgets.RowDoor("All settings", "2 more")) SetAllMode(true);
+            if (Widgets.RowDoor("All Settings", "2 more")) SetAllMode(true);
             Widgets.ListEnd();
             return;
         }
@@ -1081,13 +1088,13 @@ public partial class ConfigWindow
         Widgets.GroupLabel("More");
         Widgets.ListBegin();
         var custom = C.TtsCustomVoice;
-        Widgets.RowBegin("Custom voice", "Voice id. Overrides the picker.", Theme.S(190f));
+        Widgets.RowBegin("Custom Voice", "Voice id. Overrides the picker.", Theme.S(190f));
         if (ImGui.InputTextWithHint("##customvoice", "en-US-AvaMultilingualNeural", ref custom, 64))
         { C.TtsCustomVoice = custom; C.SaveSettings(); }
         Widgets.RowEnd();
 
         var gap = C.TtsMinGapSeconds;
-        if (Widgets.RowDrag("Minimum gap", "Skip a repeat within this. 0 = never.",
+        if (Widgets.RowDrag("Minimum Gap", "Skip a repeat within this. 0 = never.",
                 ref gap, 0f, 5f, "%.1fs", 86f))
         { C.TtsMinGapSeconds = gap; C.SaveSettings(); }
         Widgets.ListEnd();

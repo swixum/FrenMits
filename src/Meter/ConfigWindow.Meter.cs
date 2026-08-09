@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 
 namespace FrenMits.Host;
@@ -17,8 +18,8 @@ public partial class ConfigWindow
 
     private void DrawMeterPage()
     {
-        C.MeterEnabled = PageHead("Fren Meter", _plugin.Meter.Connected ? "" : "Not connected",
-            C.MeterEnabled, hasModes: true);
+        C.MeterEnabled = PageHead("Fren Meter", _plugin.Meter.Connected ? "" : "Not Connected",
+            C.MeterEnabled, hasModes: true, icon: FontAwesomeIcon.ChartBar, noteCol: Theme.Warn);
         if (!C.MeterEnabled) return;
 
         DrawMeterHeader(AllMode);
@@ -28,12 +29,12 @@ public partial class ConfigWindow
         DrawMeterShowRow();
 
         var barH = C.MeterBarHeight;
-        if (Widgets.RowDrag("Bar height", "", ref barH, 16f, 44f, "%.0f px", 86f))
+        if (Widgets.RowDrag("Bar Height", "", ref barH, 16f, 44f, "%.0f px", 86f))
         { C.MeterBarHeight = barH; C.SaveSettings(); }
 
         var maxRows = C.MeterMaxRows;
-        if (Widgets.RowDragInt("Rows shown", "Your own row always shows", ref maxRows, 0, 24,
-                maxRows == 0 ? "everyone" : "%d", 86f))
+        if (Widgets.RowDragInt("Rows Shown", "Your own row always shows", ref maxRows, 0, 24,
+                maxRows == 0 ? "Everyone" : "%d", 86f))
         { C.MeterMaxRows = maxRows; C.SaveSettings(); }
 
         var pos = C.MeterPosition;
@@ -47,9 +48,9 @@ public partial class ConfigWindow
 
         ImGui.Spacing();
         Widgets.ListBegin();
-        if (Widgets.RowDoor("All settings", "Rows, bars, text and colors")) SetAllMode(true);
+        if (Widgets.RowDoor("All Settings", "Rows, bars, text and colors")) SetAllMode(true);
         if (Widgets.RowDoor("Columns", "Which numbers each row shows")) { SetAllMode(true); _jumpTab = "Columns"; }
-        if (Widgets.RowDoor("Connection", _plugin.Meter.Connected ? _plugin.Meter.StatusText : "Not connected"))
+        if (Widgets.RowDoor("Connection", _plugin.Meter.Connected ? _plugin.Meter.StatusText : "Not Connected"))
         { SetAllMode(true); _jumpTab = "Connection"; }
         Widgets.ListEnd();
     }
@@ -71,10 +72,10 @@ public partial class ConfigWindow
     private void DrawMeterHeader(bool all)
     {
         var connected = _plugin.Meter.Connected;
-        StatusDot(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, frameAligned: true);
+        StatusDot(Theme.V(connected ? Theme.Good : Theme.Warn), frameAligned: true);
         ImGui.SameLine(0, Theme.S(6f));
         ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow,
+        ImGui.TextColored(Theme.V(connected ? Theme.Good : Theme.Warn),
             _plugin.Meter.StatusText);
 
         DrawMeterProfileControl();
@@ -128,9 +129,9 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Profile");
         ImGui.SameLine(0, Theme.S(8f));
         ImGui.SetNextItemWidth(Theme.S(170f));
-        if (ImGui.BeginCombo("##mprofsel", saved ? active : "(unsaved)"))
+        if (ImGui.BeginCombo("##mprofsel", saved ? active : "(Unsaved)"))
         {
-            if (C.MeterProfiles.Count == 0) ImGui.TextDisabled("none saved yet");
+            if (C.MeterProfiles.Count == 0) ImGui.TextDisabled("None saved yet");
             foreach (var kv in C.MeterProfiles)
                 if (ImGui.Selectable(kv.Key, kv.Key == active))
                     ApplyMeterProfile(kv.Key);
@@ -148,7 +149,7 @@ public partial class ConfigWindow
         if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
         {
             ImGui.SameLine(0, Theme.S(8f));
-            ImGui.TextColored(_meterFlashOk ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, _meterFlash);
+            ImGui.TextColored(Theme.V(_meterFlashOk ? Theme.Good : Theme.Warn), _meterFlash);
         }
     }
 
@@ -161,25 +162,25 @@ public partial class ConfigWindow
 
         var names = C.MeterNameStyle;
         if (Widgets.RowCombo("Names", "How names show on each row", ref names,
-                "Full name\0First name\0First name + initial\0", 170f))
+                "Full Name\0First Name\0First Name + Initial\0", 170f))
         { C.MeterNameStyle = names; C.SaveSettings(); }
 
         var maxRows = C.MeterMaxRows;
-        if (Widgets.RowDragInt("Rows shown", "Your own row always shows", ref maxRows, 0, 24,
-                maxRows == 0 ? "everyone" : "%d", 86f))
+        if (Widgets.RowDragInt("Rows Shown", "Your own row always shows", ref maxRows, 0, 24,
+                maxRows == 0 ? "Everyone" : "%d", 86f))
         { C.MeterMaxRows = maxRows; C.SaveSettings(); }
 
         var refresh = C.MeterRefreshSeconds;
         if (Widgets.RowDrag("Refresh", "How often numbers update. Bars stay smooth.",
-                ref refresh, 0f, 3f, refresh <= 0f ? "every frame" : "%.1f s", 96f))
+                ref refresh, 0f, 3f, refresh <= 0f ? "Every frame" : "%.1f s", 96f))
         { C.MeterRefreshSeconds = refresh; C.SaveSettings(); }
 
         var v = C.MeterShowRank;
-        if (Widgets.RowCheck("Rank numbers", "", ref v)) { C.MeterShowRank = v; C.SaveSettings(); }
+        if (Widgets.RowCheck("Rank Numbers", "", ref v)) { C.MeterShowRank = v; C.SaveSettings(); }
         v = C.MeterShowJobIcons;
-        if (Widgets.RowCheck("Job icons", "", ref v)) { C.MeterShowJobIcons = v; C.SaveSettings(); }
+        if (Widgets.RowCheck("Job Icons", "", ref v)) { C.MeterShowJobIcons = v; C.SaveSettings(); }
         v = C.MeterLimitBreakRow;
-        if (Widgets.RowCheck("Limit break row", "LB bar under the party", ref v))
+        if (Widgets.RowCheck("Limit Break Row", "LB bar under the party", ref v))
         { C.MeterLimitBreakRow = v; C.SaveSettings(); }
         v = C.MeterSplitHealing;
         if (Widgets.RowCheck("Split DPS and HPS", "DPS on top, healer HPS below", ref v))
@@ -194,15 +195,15 @@ public partial class ConfigWindow
         { C.MeterHeaderStyle = header; C.SaveSettings(); }
 
         var v2 = C.MeterShowRaidTotal;
-        if (Widgets.RowCheck("Raid rDPS total", "", ref v2)) { C.MeterShowRaidTotal = v2; C.SaveSettings(); }
+        if (Widgets.RowCheck("Raid rDPS Total", "", ref v2)) { C.MeterShowRaidTotal = v2; C.SaveSettings(); }
         v2 = C.MeterHealingTab;
-        if (Widgets.RowCheck("DPS and HPS tabs", "Right-click a tab to rename it", ref v2))
+        if (Widgets.RowCheck("DPS and HPS Tabs", "Right-click a tab to rename it", ref v2))
         { C.MeterHealingTab = v2; C.SaveSettings(); }
         v2 = C.MeterButtons;
-        if (Widgets.RowCheck("Buttons bar", "History, pause and reset at the bottom", ref v2))
+        if (Widgets.RowCheck("Buttons Bar", "History, pause and reset at the bottom", ref v2))
         { C.MeterButtons = v2; C.SaveSettings(); }
         v2 = C.MeterFooterDeaths;
-        if (Widgets.RowCheck("Death count", "Deaths this pull. Hover for who.", ref v2))
+        if (Widgets.RowCheck("Death Count", "Deaths this pull. Hover for who.", ref v2))
         { C.MeterFooterDeaths = v2; C.SaveSettings(); }
         v2 = C.MeterClickThrough;
         if (Widgets.RowCheck("Click-through", "Mouse passes through, menu included", ref v2))
@@ -212,10 +213,10 @@ public partial class ConfigWindow
         Widgets.GroupLabel("When you click a player");
         Widgets.ListBegin();
         var v3 = C.MeterBreakdownIcons;
-        if (Widgets.RowCheck("Action icons", "Beside each ability", ref v3))
+        if (Widgets.RowCheck("Action Icons", "Beside each ability", ref v3))
         { C.MeterBreakdownIcons = v3; C.SaveSettings(); }
         v3 = C.MeterBreakdownColors;
-        if (Widgets.RowCheck("Color each ability", "Off = job color throughout", ref v3))
+        if (Widgets.RowCheck("Color Each Ability", "Off = job color throughout", ref v3))
         { C.MeterBreakdownColors = v3; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -226,7 +227,7 @@ public partial class ConfigWindow
     {
         var mode = C.MeterShowMode;
         if (Widgets.RowCombo("Show", "When the meter is on screen", ref mode,
-                "Always\0After a pull\0Only in combat\0", 150f))
+                "Always\0After a Pull\0Only in Combat\0", 150f))
         { C.MeterShowMode = mode; C.SaveSettings(); }
         Tip("Always: stays put even with no pull, so a reset cannot hide it.\n"
             + "After a pull: the default; it appears once there is something to show.\n"
@@ -243,7 +244,7 @@ public partial class ConfigWindow
         { C.MeterBarStyle = fill; C.SaveSettings(); }
 
         var v = C.MeterJobColors;
-        if (Widgets.RowCheck("Color by job", "Off = accent on every bar", ref v))
+        if (Widgets.RowCheck("Color by Job", "Off = accent on every bar", ref v))
         { C.MeterJobColors = v; C.SaveSettings(); }
         v = C.MeterBarSolid;
         if (Widgets.RowCheck("Solid", "Full job color, not a wash", ref v))
@@ -291,19 +292,19 @@ public partial class ConfigWindow
         { C.MeterFontSizePx = px; C.SaveSettings(); }
 
         var shadow = C.MeterTextShadow;
-        if (Widgets.RowCheck("Drop shadow", "", ref shadow)) { C.MeterTextShadow = shadow; C.SaveSettings(); }
+        if (Widgets.RowCheck("Drop Shadow", "", ref shadow)) { C.MeterTextShadow = shadow; C.SaveSettings(); }
         Widgets.ListEnd();
 
         Widgets.GroupLabel("Your row");
         Widgets.ListBegin();
         var you = C.MeterYou;
-        if (Widgets.RowCheck("Call your row You", "", ref you)) { C.MeterYou = you; C.SaveSettings(); }
+        if (Widgets.RowCheck("Call Your Row You", "", ref you)) { C.MeterYou = you; C.SaveSettings(); }
         var hi = C.MeterHighlightYou;
-        if (Widgets.RowCheck("Highlight it", "", ref hi)) { C.MeterHighlightYou = hi; C.SaveSettings(); }
+        if (Widgets.RowCheck("Highlight It", "", ref hi)) { C.MeterHighlightYou = hi; C.SaveSettings(); }
         if (C.MeterHighlightYou)
         {
             var style = C.MeterHighlightStyle;
-            if (Widgets.RowCombo("Style", "", ref style, "Wash + outline\0Wash\0Outline\0Side stripe\0", 150f, sub: true))
+            if (Widgets.RowCombo("Style", "", ref style, "Wash + Outline\0Wash\0Outline\0Side Stripe\0", 150f, sub: true))
             { C.MeterHighlightStyle = style; C.SaveSettings(); }
             var strength = C.MeterHighlightStrength;
             if (Widgets.RowDrag("Strength", "", ref strength, 0.2f, 2.5f, "%.2f", 86f, sub: true))
@@ -386,7 +387,7 @@ public partial class ConfigWindow
         SeparatorText("Parser");
         LabelledWidth("Source", 240f);
         var conn = C.MeterConnection;
-        if (ImGui.Combo("##msource", ref conn, "Auto\0Parser plugin\0ACT WebSocket\0"))
+        if (ImGui.Combo("##msource", ref conn, "Auto\0Parser Plugin\0ACT WebSocket\0"))
         { C.MeterConnection = conn; C.SaveSettings(); ReconnectMeter(); }
         Tip("Auto tries the parser plugin, then ACT.");
 

@@ -262,7 +262,7 @@ public class MeterHistoryWindow : Window
         EnsureRoster(enc);
         if (_rosterRows.Count == 0)
         {
-            ImGui.TextColored(Theme.V(Theme.Muted), "no rows for this pull");
+            ImGui.TextColored(Theme.V(Theme.Muted), "No rows for this pull");
             return;
         }
 
@@ -423,7 +423,7 @@ public class MeterHistoryWindow : Window
             live is { TotalDeaths: > 0 } ? Theme.Danger : Theme.Muted);
 
         ImGui.TableNextColumn();
-        ImGui.TextColored(Theme.V(Theme.Muted), "now");
+        ImGui.TextColored(Theme.V(Theme.Muted), "Now");
 
         if (hovered && live is { Rows.Count: > 0 }) TopTooltip(live, "in progress");
     }

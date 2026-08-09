@@ -16,7 +16,7 @@ public partial class ConfigWindow : Window, IDisposable
     private Configuration C => _plugin.Config;
 
     // Official-sheet star color (drawn with the icon font).
-    private static readonly Vector4 GoldStar = new(0.98f, 0.82f, 0.35f, 1f);
+    private static readonly Vector4 GoldStar = Theme.V(Theme.Gold);
     // User-created fight marker color.
     private static readonly Vector4 UserBlue = new(0.55f, 0.75f, 0.98f, 1f);
 
@@ -185,9 +185,9 @@ public partial class ConfigWindow : Window, IDisposable
 
         if (Configuration.SuppressSave)
         {
-            StatusDot(ImGuiColors.DalamudYellow);
+            StatusDot(Theme.V(Theme.Warn));
             ImGui.SameLine(0, Theme.S(6f));
-            ImGui.TextColored(ImGuiColors.DalamudYellow,
+            ImGui.TextColored(Theme.V(Theme.Warn),
                 "Saving is OFF this session (your config file failed to load and was backed up).");
             return;
         }
@@ -195,7 +195,7 @@ public partial class ConfigWindow : Window, IDisposable
         // A drag holds its write until it stops, so say so rather than look stale.
         if (C.SavePending)
         {
-            StatusDot(ImGuiColors.DalamudYellow);
+            StatusDot(Theme.V(Theme.Warn));
             ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextDisabled("Saving your changes...");
             return;
@@ -203,7 +203,7 @@ public partial class ConfigWindow : Window, IDisposable
 
         var last = Configuration.LastSavedAt;
         var recent = last != DateTime.MinValue && (DateTime.Now - last).TotalSeconds < 3;
-        StatusDot(recent ? ImGuiColors.ParsedGreen : ImGuiColors.HealerGreen);
+        StatusDot(Theme.V(recent ? Theme.GoodBright : Theme.Good));
         ImGui.SameLine(0, Theme.S(6f));
         ImGui.TextDisabled(last == DateTime.MinValue
             ? "All changes are saved; nothing to lose on exit."
@@ -247,7 +247,7 @@ public partial class ConfigWindow : Window, IDisposable
         var h = ImGui.GetTextLineHeight();
         dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(Theme.S(3f), h), Theme.Accent, 2f);
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
-        ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), text.ToUpperInvariant());
+        ImGui.TextColored(Theme.V(Theme.Heading), text.ToUpperInvariant());
         ImGui.Spacing();
     }
 
@@ -298,16 +298,16 @@ public partial class ConfigWindow : Window, IDisposable
 
     private static void Dot(bool on, string label)
     {
-        StatusDot(on ? ImGuiColors.HealerGreen : ImGuiColors.DalamudGrey);
+        StatusDot(Theme.V(on ? Theme.Good : Theme.Muted));
         ImGui.SameLine(0, Theme.S(4f));
         ImGui.TextUnformatted(label);
     }
 
     private static void WarnDot(string label)
     {
-        StatusDot(ImGuiColors.DalamudYellow);
+        StatusDot(Theme.V(Theme.Warn));
         ImGui.SameLine(0, Theme.S(4f));
-        ImGui.TextColored(ImGuiColors.DalamudYellow, label);
+        ImGui.TextColored(Theme.V(Theme.Warn), label);
     }
 
     // A filled dot via the draw list, since the font has no circle. Frame-align
@@ -361,7 +361,7 @@ public partial class ConfigWindow : Window, IDisposable
             // The zone's fight leads, since the title bar already says the name.
             if (fight != null)
             {
-                var slotText = string.IsNullOrEmpty(fight.Slot) ? "no slot picked"
+                var slotText = string.IsNullOrEmpty(fight.Slot) ? "No slot picked"
                     : job != null ? $"{fight.Slot} as {job}" : fight.Slot;
                 var slotW = ImGui.CalcTextSize(slotText).X + Theme.S(10f);
                 ImGui.TextUnformatted(Widgets.Elide(fight.Name, right - slotW - ImGui.GetCursorPosX()));
@@ -371,7 +371,7 @@ public partial class ConfigWindow : Window, IDisposable
             }
             else
             {
-                ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f),
+                ImGui.TextColored(Theme.V(Theme.Heading),
                     "No supported fight in this zone");
             }
 
@@ -394,14 +394,14 @@ public partial class ConfigWindow : Window, IDisposable
             if (_plugin.FrameErrorCount > 0 && (DateTime.Now - _plugin.LastFrameErrorAt.ToLocalTime()).TotalMinutes < 5)
             {
                 ImGui.SameLine(0, Theme.S(18f));
-                WarnDot($"internal errors ({_plugin.FrameErrorCount}): check /xllog");
+                WarnDot($"Internal errors ({_plugin.FrameErrorCount}): check /xllog");
             }
             // Anything that failed quietly, like a sheet moving on patch day.
             if (Swallowed.Any)
             {
                 ImGui.SameLine(0, Theme.S(18f));
                 var worst = Swallowed.Worst();
-                WarnDot($"degraded: {worst.Site} (x{worst.Count})");
+                WarnDot($"Degraded: {worst.Site} (x{worst.Count})");
                 if (Widgets.HoveredDelayed())
                 {
                     var tip = new System.Text.StringBuilder(
@@ -464,14 +464,16 @@ public partial class ConfigWindow : Window, IDisposable
         SidebarHeading("ON SCREEN");
         if (NavItem(FontAwesomeIcon.Desktop, "Call Display", _nav == NavKind.Display)) _nav = NavKind.Display;
         if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits", _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
-        if (NavItem(FontAwesomeIcon.ChartBar, "Fren Meter", _nav == NavKind.Meter)) _nav = NavKind.Meter;
+        if (NavItem(FontAwesomeIcon.ChartBar, "Fren Meter", _nav == NavKind.Meter,
+            dot: !C.MeterEnabled ? 0u : _plugin.Meter.Connected ? Theme.Good : Theme.Warn)) _nav = NavKind.Meter;
         if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
         if (NavItem(FontAwesomeIcon.Utensils, "Food & Pot", _nav == NavKind.PrepCheck)) _nav = NavKind.PrepCheck;
         if (NavItem(FontAwesomeIcon.ClipboardList, "Mit Recap", _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
-        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", _nav == NavKind.Audio)) _nav = NavKind.Audio;
+        if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", _nav == NavKind.Audio,
+            dot: C.AudioEnabled ? 0u : Theme.Warn)) _nav = NavKind.Audio;
         if (NavItem(FontAwesomeIcon.Palette, "Appearance", _nav == NavKind.Appearance)) _nav = NavKind.Appearance;
 
         DrawSidebarSetup();
@@ -486,11 +488,11 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         // Muted, so the accent belongs to the selected row alone.
-        ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f), text.ToUpperInvariant());
+        ImGui.TextColored(Theme.V(Theme.Heading), text.ToUpperInvariant());
         ImGui.Spacing();
     }
 
-    private bool NavItem(FontAwesomeIcon icon, string label, bool selected, int? count = null)
+    private bool NavItem(FontAwesomeIcon icon, string label, bool selected, int? count = null, uint dot = 0)
     {
         var startX = ImGui.GetCursorPosX();
         var startY = ImGui.GetCursorPosY();
@@ -504,6 +506,8 @@ public partial class ConfigWindow : Window, IDisposable
         }
         var rowH = Theme.S(27f);
         var clicked = ImGui.Selectable($"##nav-{label}", selected, ImGuiSelectableFlags.None, new Vector2(0, rowH));
+        var navMin = ImGui.GetItemRectMin();
+        var navMax = ImGui.GetItemRectMax();
         if (selected) ImGui.PopStyleColor(2);
         if (selected)
         {
@@ -515,7 +519,7 @@ public partial class ConfigWindow : Window, IDisposable
 
         var endX = ImGui.GetCursorPosX();
         var endY = ImGui.GetCursorPosY();
-        var col = selected ? new Vector4(1f, 1f, 1f, 1f) : new Vector4(0.74f, 0.77f, 0.82f, 1f);
+        var col = selected ? new Vector4(1f, 1f, 1f, 1f) : Theme.V(Theme.NavText);
 
         // Icon (icon font) + label drawn over the selectable row.
         var textY = startY + (rowH - ImGui.GetTextLineHeight()) * 0.5f;
@@ -543,6 +547,11 @@ public partial class ConfigWindow : Window, IDisposable
             ImGui.TextDisabled(txt);
         }
 
+        // A small status dot on the right, where a count would sit.
+        if (dot != 0)
+            ImGui.GetWindowDrawList().AddCircleFilled(
+                new Vector2(navMax.X - Theme.S(12f), (navMin.Y + navMax.Y) * 0.5f), Theme.S(3f), dot);
+
         ImGui.SetCursorPos(new Vector2(endX, endY)); // resume normal flow below the row
         // Picking a page by hand ends any search that was up.
         if (clicked) { _search = ""; _jumpTab = ""; }
@@ -562,7 +571,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled("Job:");
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudYellow, jobStr);
+        ImGui.TextColored(Theme.V(liveJob != null ? Theme.Accent : Theme.Muted), jobStr);
         Tip("Your current job.");
 
         // The seat the plugin would pick, so a preference below shows up at once.
@@ -576,7 +585,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         ImGui.TextDisabled("Role:");
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudYellow, roleStr);
+        ImGui.TextColored(Theme.V(roleStr != "[---]" ? Theme.Accent : Theme.Muted), roleStr);
         Tip("The role the plugin assigns you based on your party/preferences.");
 
         ImGui.Spacing();
@@ -824,7 +833,7 @@ public partial class ConfigWindow : Window, IDisposable
     // accent, so a page reads as a page and not as one more row. Returns how
     // tall the row came out and where the name ends, so whatever shares the
     // line can centre on it and never land on top of it.
-    private (float RowH, float EndX) PageTitle(string name)
+    private (float RowH, float EndX) PageTitle(string name, FontAwesomeIcon icon = FontAwesomeIcon.None)
     {
         var frameH = ImGui.GetFrameHeight();
         // A real font at the bigger size. Scaling the window font would blur it.
@@ -847,27 +856,42 @@ public partial class ConfigWindow : Window, IDisposable
             new Vector2(scr.X + Theme.S(3f), scr.Y + top + sz.Y - Theme.S(2f)),
             Theme.Accent, 2f);
 
-        ImGui.SetCursorPos(new Vector2(start.X + Theme.S(11f), start.Y + top));
+        // The page's emblem, the same one its nav row carries.
+        var textX = start.X + Theme.S(11f);
+        if (icon != FontAwesomeIcon.None)
+        {
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            {
+                var ic = icon.ToIconString();
+                var isz = ImGui.CalcTextSize(ic);
+                ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - isz.Y) * 0.5f));
+                ImGui.TextColored(Theme.V(Theme.Accent), ic);
+                textX += isz.X + Theme.S(8f);
+            }
+        }
+
+        ImGui.SetCursorPos(new Vector2(textX, start.Y + top));
         if (big) using (font!.Push()) ImGui.TextColored(Theme.V(Theme.Accent), name);
         else ImGui.TextColored(Theme.V(Theme.Accent), name);
 
         ImGui.SetCursorPos(start);
-        return (rowH, start.X + Theme.S(11f) + sz.X);
+        return (rowH, textX + sz.X);
     }
 
     private bool PageHead(string name, string note, bool master,
-        bool hasMaster = true, bool hasModes = false, Action? reset = null)
+        bool hasMaster = true, bool hasModes = false, Action? reset = null,
+        FontAwesomeIcon icon = FontAwesomeIcon.None, uint noteCol = 0)
     {
         var frameH = ImGui.GetFrameHeight();
         var start = ImGui.GetCursorPos();
-        var (rowH, endX) = PageTitle(name);
+        var (rowH, endX) = PageTitle(name, icon);
 
         var used = endX;
         if (note.Length > 0)
         {
             var lh = ImGui.GetTextLineHeight();
             ImGui.SetCursorPos(new Vector2(endX + Theme.S(12f), start.Y + (rowH - lh) * 0.5f));
-            ImGui.TextColored(Theme.V(Theme.Muted), note);
+            ImGui.TextColored(Theme.V(noteCol == 0 ? Theme.Muted : noteCol), note);
             used = endX + Theme.S(12f) + ImGui.CalcTextSize(note).X;
         }
 
@@ -961,7 +985,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (noSlots)
         {
             Widgets.ListBegin();
-            if (Widgets.RowDoor("1. Pick your slot", "That column of the sheet becomes yours"))
+            if (Widgets.RowDoor("1. Pick Your Slot", "That column of the sheet becomes yours"))
             { _nav = NavKind.Fights; _navCategory = "Ultimate"; }
             Widgets.RowNote("2. Tick Test, then drag the call where you want it");
             Widgets.RowNote("3. Pull. It runs itself from there");
@@ -970,8 +994,9 @@ public partial class ConfigWindow : Window, IDisposable
         }
 
         Widgets.ListBegin();
-        Widgets.RowBegin("Open sheet view", "Your plan for this zone",
-            Widgets.SmallWidth("Open"), ctlHeight: Widgets.SmallHeight, clickable: true);
+        Widgets.RowBegin("Open Sheet View", "Your plan for this zone",
+            Widgets.SmallWidth("Open"), ctlHeight: Widgets.SmallHeight, clickable: true,
+            icon: FontAwesomeIcon.Table, iconCol: Theme.Accent);
         var openSheet = ImGui.SmallButton("Open##sv") || Widgets.RowClicked;
         Widgets.RowEnd();
         if (openSheet)
@@ -982,13 +1007,15 @@ public partial class ConfigWindow : Window, IDisposable
         }
 
         var test = C.TestMode;
-        if (Widgets.RowCheckClick("Place the overlays", "Shows a sample so you can drag them", ref test))
+        if (Widgets.RowCheckClick("Place the Overlays", "Shows a sample so you can drag them", ref test,
+            FontAwesomeIcon.ArrowsAlt, Theme.Accent))
         { C.TestMode = test; C.Save(); }
 
         if (!C.AudioEnabled)
         {
             var au = C.AudioEnabled;
-            if (Widgets.RowCheckClick("Turn audio back on", "", ref au))
+            if (Widgets.RowCheckClick("Turn Audio Back On", "", ref au,
+                FontAwesomeIcon.VolumeUp, Theme.Warn))
             { C.AudioEnabled = au; C.SaveSettings(); }
         }
 
@@ -1005,19 +1032,19 @@ public partial class ConfigWindow : Window, IDisposable
         var w = (ImGui.GetContentRegionAvail().X - gap) * 0.5f;
         var h = ImGui.GetTextLineHeightWithSpacing() * 3f + Theme.S(9f) * 2f;
 
-        var zoneLine = fight?.Name ?? "No sheet in this zone";
+        var zoneLine = fight?.Name ?? "No Sheet in This Zone";
         var zoneSub = fight == null ? "Nothing is called here"
             : string.IsNullOrEmpty(fight.Slot) ? "No slot picked yet"
             : $"{fight.Slot} as {job ?? "?"} - {fight.Lines.Count} lines";
-        var zoneCol = fight == null ? Theme.V(Theme.Muted)
-            : string.IsNullOrEmpty(fight.Slot) ? Theme.V(Theme.Warn) : Theme.V(Theme.TextBright);
+        var zoneCol = fight != null && string.IsNullOrEmpty(fight.Slot)
+            ? Theme.V(Theme.Warn) : Theme.V(Theme.TextBright);
 
         var on = new List<string>();
         var off = new List<string>();
-        (C.ShowUpcoming ? on : off).Add("next mits");
-        (C.MeterEnabled ? on : off).Add("meter");
-        (C.ShowCombatTimer ? on : off).Add("timer");
-        (C.PrepCheckEnabled ? on : off).Add("food");
+        (C.ShowUpcoming ? on : off).Add("Next Mits");
+        (C.MeterEnabled ? on : off).Add("Meter");
+        (C.ShowCombatTimer ? on : off).Add("Timer");
+        (C.PrepCheckEnabled ? on : off).Add("Food");
 
         var problems = new List<string>();
         if (!C.AudioEnabled) problems.Add("Audio is off");
@@ -1026,24 +1053,31 @@ public partial class ConfigWindow : Window, IDisposable
                                          && string.IsNullOrEmpty(f.Slot));
         if (noSlot > 0) problems.Add($"{noSlot} fight{(noSlot == 1 ? "" : "s")} with no slot");
 
-        if (HomeTile("##t1", w, h, "This zone", zoneLine, zoneCol, zoneSub) && fight != null)
+        if (HomeTile("##t1", w, h, FontAwesomeIcon.MapMarkerAlt, Theme.V(Theme.Accent),
+            "This Zone", zoneLine, zoneCol, zoneSub) && fight != null)
             OpenFightPage(fight);
         Tip(fight == null ? "No sheet here." : "Open this fight.");
         ImGui.SameLine();
-        if (HomeTile("##t2", w, h, "Fren Meter",
-            !C.MeterEnabled ? "Off" : _plugin.Meter.Connected ? "Connected" : "Not connected",
+        if (HomeTile("##t2", w, h, FontAwesomeIcon.ChartBar,
+            Theme.V(!C.MeterEnabled ? Theme.Muted : _plugin.Meter.Connected ? Theme.Good : Theme.Warn),
+            "Fren Meter",
+            !C.MeterEnabled ? "Off" : _plugin.Meter.Connected ? "Connected" : "Not Connected",
             Theme.V(!C.MeterEnabled ? Theme.Muted : _plugin.Meter.Connected ? Theme.Good : Theme.Warn),
             C.MeterEnabled ? _plugin.Meter.StatusText : "Turn it on to see damage")) _nav = NavKind.Meter;
         Tip("Open the meter's settings.");
 
-        if (HomeTile("##t3", w, h, "On screen",
-            on.Count == 0 ? "Just the call" : string.Join(", ", on),
+        if (HomeTile("##t3", w, h, FontAwesomeIcon.Desktop, Theme.V(Theme.Accent),
+            "On Screen",
+            on.Count == 0 ? "Just the Call" : string.Join(", ", on),
             Theme.V(Theme.TextBright),
             off.Count == 0 ? "Everything is on" : "Off: " + string.Join(", ", off))) _nav = NavKind.Display;
         Tip("Open the call display.");
         ImGui.SameLine();
-        if (HomeTile("##t4", w, h, "Needs a look",
-            problems.Count == 0 ? "All good" : problems[0],
+        if (HomeTile("##t4", w, h,
+            problems.Count == 0 ? FontAwesomeIcon.CheckCircle : FontAwesomeIcon.ExclamationTriangle,
+            Theme.V(problems.Count == 0 ? Theme.Good : Theme.Warn),
+            "Needs a Look",
+            problems.Count == 0 ? "All Good" : problems[0],
             Theme.V(problems.Count == 0 ? Theme.Good : Theme.Warn),
             problems.Count > 1 ? string.Join(", ", problems.Skip(1)) : ""))
             _nav = !C.AudioEnabled ? NavKind.Audio : NavKind.Fights;
@@ -1052,7 +1086,8 @@ public partial class ConfigWindow : Window, IDisposable
 
     // Drawn by hand rather than as a child window, so the whole tile is one
     // click target and can show a hover state.
-    private static bool HomeTile(string id, float w, float h, string label, string line, Vector4 lineCol, string sub)
+    private static bool HomeTile(string id, float w, float h, FontAwesomeIcon icon, Vector4 iconCol,
+        string label, string line, Vector4 lineCol, string sub)
     {
         var p = ImGui.GetCursorScreenPos();
         var clicked = ImGui.InvisibleButton(id, new Vector2(w, h));
@@ -1066,7 +1101,18 @@ public partial class ConfigWindow : Window, IDisposable
         var pad = Theme.S(9f);
         var lineH = ImGui.GetTextLineHeightWithSpacing();
         var room = w - pad * 2f;
-        dl.AddText(p + new Vector2(pad, pad), Theme.Muted, Widgets.Elide(label, room));
+
+        // Status-tinted icon in the corner, echoing the sidebar's.
+        var iconW = 0f;
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            var ic = icon.ToIconString();
+            iconW = ImGui.CalcTextSize(ic).X;
+            dl.AddText(p + new Vector2(w - pad - iconW, pad), Widgets.ToColor(iconCol), ic);
+        }
+
+        dl.AddText(p + new Vector2(pad, pad), Theme.Muted,
+            Widgets.Elide(label, room - iconW - Theme.S(6f)));
         dl.AddText(p + new Vector2(pad, pad + lineH), Widgets.ToColor(lineCol), Widgets.Elide(line, room));
         if (sub.Length > 0)
             dl.AddText(p + new Vector2(pad, pad + lineH * 2f), Theme.Muted, Widgets.Elide(sub, room));
@@ -1080,8 +1126,8 @@ public partial class ConfigWindow : Window, IDisposable
             .Select(r => C.GlobalRolePreferences.TryGetValue(r, out var p) ? p : "-")
             .ToArray();
         var text = string.Join("  ", picks);
-        Widgets.RowBegin("Select Role", "Change these under \"Your Setup\" on Nav Pane",
-            ImGui.CalcTextSize(text).X);
+        Widgets.RowBegin("Select Role", "Change these under Your Setup in the sidebar",
+            ImGui.CalcTextSize(text).X, icon: FontAwesomeIcon.Users, iconCol: Theme.Accent);
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.Accent), text);
         Widgets.RowEnd();
