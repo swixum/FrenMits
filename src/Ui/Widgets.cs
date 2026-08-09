@@ -187,12 +187,17 @@ internal static class Widgets
 
     public static void RowLabel(string text)
     {
-        var w = ImGui.CalcTextSize(text).X;
+        // Everything from ## on is an ImGui id, not something to draw. Widgets
+        // strip it themselves; a plain Text call does not.
+        var cut = text.IndexOf("##", StringComparison.Ordinal);
+        var shown = cut >= 0 ? text[..cut] : text;
+
+        var w = ImGui.CalcTextSize(shown).X;
         var e = LabelCols.TryGetValue(_labelScope, out var v) ? v : default;
         LabelCols[_labelScope] = (e.Cur, MathF.Max(e.Next, w));
         ImGui.AlignTextToFramePadding();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(e.Cur, w) - w);
-        ImGui.TextDisabled(text);
+        ImGui.TextDisabled(shown);
         ImGui.SameLine(0, 8f * Theme.Scale);
     }
 
