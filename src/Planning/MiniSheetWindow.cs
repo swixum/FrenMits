@@ -41,6 +41,7 @@ public class MiniSheetWindow : Window
     public override void Draw()
     {
         Theme.PushWidgets();
+        using var uiFont = Widgets.PushUiFont(_plugin.Fonts, Theme.Scale);
         try { DrawBody(); }
         finally { Theme.PopWidgets(); }
     }
@@ -113,13 +114,13 @@ public class MiniSheetWindow : Window
 
                 ImGui.TableNextColumn();
                 if (ImGui.SmallButton("-")) Nudge(line, -0.5f);
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Call 0.5s LATER");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Call 0.5s LATER");
                 ImGui.SameLine(0, 3);
                 var off = line.OffsetSeconds;
                 ImGui.TextColored(off != 0f ? Edited : Dim, off == 0f ? " 0 " : $"{off:+0.#;-0.#}");
                 ImGui.SameLine(0, 3);
                 if (ImGui.SmallButton("+")) Nudge(line, +0.5f);
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Call 0.5s EARLIER");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Call 0.5s EARLIER");
 
                 ImGui.PopID();
             }

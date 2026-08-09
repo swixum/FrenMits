@@ -170,7 +170,7 @@ public partial class SheetViewWindow
         ImGui.SetNextItemWidth(250f);
         if (ImGui.Combo("fight type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
             _newCatTouched = true;
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Which sidebar group the sheet files under.");
 
         // The zone the sheet binds to, by id or by duty name.

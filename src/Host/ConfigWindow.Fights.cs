@@ -123,6 +123,13 @@ public partial class ConfigWindow
             var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
             // Without allow-overlap the header would swallow the star.
             ImGui.SetItemAllowOverlap();
+            var headMin = ImGui.GetItemRectMin();
+            var headMax = ImGui.GetItemRectMax();
+            // The open fight gets the sidebar's accent bar, so selection reads the same everywhere.
+            if (open)
+                ImGui.GetWindowDrawList().AddRectFilled(
+                    new Vector2(headMin.X, headMin.Y + 2f), new Vector2(headMin.X + 3f, headMax.Y - 2f),
+                    Theme.Accent, 2f);
             // A framed tree node indents its label one extra padding.
             ImGui.SameLine(headerStartX + ImGui.GetTreeNodeToLabelSpacing()
                 + ImGui.GetStyle().FramePadding.X + ImGui.CalcTextSize(headerLabel).X + 8f);
@@ -135,10 +142,26 @@ public partial class ConfigWindow
                 if (!official) ImGui.SetWindowFontScale(1f);
             }
             // The tooltip lives on the symbol, so the list stays silent.
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip(official ? "Official sheet." : "User created.");
+            // Your slot, right-aligned: the one thing that decides whether calls fire.
+            var hasSheet = Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0;
+            if (hasSheet)
+            {
+                var slotTag = string.IsNullOrEmpty(fight.Slot) ? "no slot" : fight.Slot;
+                var tagW = ImGui.CalcTextSize(slotTag).X;
+                ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX(),
+                    ImGui.GetContentRegionMax().X - 28f - tagW - 12f));
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextColored(Theme.V(string.IsNullOrEmpty(fight.Slot) ? Theme.Warn : Theme.Accent), slotTag);
+                if (Widgets.HoveredDelayed())
+                    ImGui.SetTooltip(string.IsNullOrEmpty(fight.Slot)
+                        ? "No slot picked yet, so nothing is called for this fight."
+                        : $"Your column for this fight is {fight.Slot}.");
+            }
+
             // Quick jump into Sheet View for any fight that has a sheet.
-            if (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0)
+            if (hasSheet)
             {
                 ImGui.SameLine(ImGui.GetContentRegionMax().X - 28f);
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
@@ -146,7 +169,7 @@ public partial class ConfigWindow
                     if (ImGui.SmallButton(FontAwesomeIcon.Table.ToIconString() + "##opensheet"))
                         _plugin.SheetViewWindow.Open(fight);
                 }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Open in Sheet View");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Open in Sheet View");
             }
 
             if (open)

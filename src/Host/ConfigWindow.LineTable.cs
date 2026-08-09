@@ -51,7 +51,7 @@ public partial class ConfigWindow
         if (ImGui.SmallButton("Undo") && _plugin.SheetViewWindow.UndoFor(fight) is { } undone)
             FlashBuiltin($"Undid: {undone}.");
         ImGui.EndDisabled();
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+        if (Widgets.HoveredDelayed(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(undoLabel == null
                 ? "Nothing to undo on this fight yet."
                 : $"Undo: {undoLabel}. Shared with Sheet View, so it takes back edits made there too.");
@@ -66,7 +66,7 @@ public partial class ConfigWindow
 
         ImGui.SameLine();
         ImGui.TextDisabled("(?)");
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Mechanics group multiple actions together. Official mechanics cannot be renamed.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Mechanics group multiple actions together. Official mechanics cannot be renamed.");
 
         // Deleted sheet calls are remembered, so offer the way back.
         var dead = fight.DeletedCalls.Count(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
@@ -83,7 +83,7 @@ public partial class ConfigWindow
                 C.Save();
                 FlashBuiltin($"Restored {back} deleted sheet call{(back == 1 ? "" : "s")}.");
             }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Restore this slot's deleted calls.");
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Restore this slot's deleted calls.");
         }
 
         var jobAbbr = _plugin.GetActiveJobAbbr(fight);
@@ -207,7 +207,7 @@ public partial class ConfigWindow
                         }
                         if (_editTimeLine == repLine) _editTimeLine = null;
                     }
-                    if (ImGui.IsItemHovered()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds");
+                    if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds");
                 }
             }
 
@@ -321,7 +321,7 @@ public partial class ConfigWindow
                 if (actionOverride) ImGui.PopStyleColor();
                 ImGui.PopStyleColor();
                 
-                if (hasConflict && ImGui.IsItemHovered()) ImGui.SetTooltip(conflictReason);
+                if (hasConflict && Widgets.HoveredDelayed()) ImGui.SetTooltip(conflictReason);
 
                 if (ImGui.BeginPopupContextItem("##actionctx"))
                 {
@@ -454,7 +454,7 @@ public partial class ConfigWindow
                             C.Save(); 
                         };
                     }
-                    if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset this mechanic's actions to default for your slot");
+                    if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Reset this mechanic's actions to default for your slot");
                 }
             }
             else
@@ -473,7 +473,7 @@ public partial class ConfigWindow
                         toDelete.AddRange(group.Actions);
                     };
                 }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Delete this mechanic and all its actions");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Delete this mechanic and all its actions");
             }
 
             ImGui.PopID();

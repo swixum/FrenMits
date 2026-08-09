@@ -390,7 +390,7 @@ public partial class SheetViewWindow
         ImGui.BeginDisabled(_flBusy || _flFightName.Trim().Length == 0);
         if (ImGui.SmallButton("Find top kill")) SearchEncounter();
         ImGui.EndDisabled();
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Loads the current #1 speed kill, ready to import.");
 
         ImGui.TextDisabled("or paste a specific log:");
@@ -410,7 +410,7 @@ public partial class SheetViewWindow
             C.FflogsClientSecret = "";
             C.Save();
         }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Re-enter your FFLogs API client id and secret.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Re-enter your FFLogs API client id and secret.");
 
         if (_flStatus.Length > 0) ImGui.TextDisabled(_flStatus);
 
@@ -451,12 +451,12 @@ public partial class SheetViewWindow
                 ImGui.Checkbox("Set resync anchors", ref _bpAnchors);
                 ImGui.BeginDisabled(!_bpRows);
                 ImGui.Checkbox("Only meaningful mechanics", ref _flMeaningful);
-                if (ImGui.IsItemHovered())
+                if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip("Keep only casts that hit or had a cast bar.");
                 ImGui.EndDisabled();
                 // Untargetable windows come from the silences, not the rows.
                 ImGui.Checkbox("Add untargetable windows", ref _flDowntime);
-                if (ImGui.IsItemHovered())
+                if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip("Turn the log's downtime gaps into untargetable rows.");
                 ImGui.TextDisabled("Their kill's timings become this sheet's skeleton; anchors");
                 ImGui.TextDisabled("snap it to YOUR pulls live. Make sure the log is this duty.");

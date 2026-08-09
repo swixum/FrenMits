@@ -54,9 +54,10 @@ public class RecapWindow : Window
     public override void Draw()
     {
         Theme.PushWidgets();
+        using var uiFont = Widgets.PushUiFont(_plugin.Fonts, Theme.Scale);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f);
-        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 16f);
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(8, 7));
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 16f * Theme.Scale);
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(8, 7) * Theme.Scale);
 
         DrawBody();
 
@@ -86,22 +87,18 @@ public class RecapWindow : Window
             }
             ImGui.Spacing();
             if (Button("Load sample pull")) r.LoadSample();
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Fill the recap with a sample pull.");
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Fill the recap with a sample pull.");
             return;
         }
 
         // ---- header ----
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(Theme.V(Theme.Accent), string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName);
-        if (r.CaptureElapsed > 0)
-        {
-            ImGui.SameLine();
-            ImGui.TextColored(Theme.V(Theme.Muted), $"·  ended {Mmss(r.CaptureElapsed)} in");
-        }
+        Widgets.WindowHeader(
+            string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName,
+            r.CaptureElapsed > 0 ? $"·  ended {Mmss(r.CaptureElapsed)} in" : "");
         var copyW = ImGui.CalcTextSize("Copy").X + ImGui.GetStyle().FramePadding.X * 2;
         ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 12, ImGui.GetContentRegionMax().X - copyW));
         if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy the recap as text.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Copy the recap as text.");
 
         // Pull history: the last few wipes stay browsable.
         if (r.History.Count > 1)
@@ -112,7 +109,7 @@ public class RecapWindow : Window
                 if (ImGui.SmallButton(FontAwesomeIcon.ChevronLeft.ToIconString() + "##pullolder"))
                     r.View = Math.Min(r.View + 1, r.History.Count - 1);
             ImGui.EndDisabled();
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Older pull");
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Older pull");
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.TextColored(Theme.V(Theme.Accent),
@@ -125,7 +122,7 @@ public class RecapWindow : Window
                 if (ImGui.SmallButton(FontAwesomeIcon.ChevronRight.ToIconString() + "##pullnewer"))
                     r.View = Math.Max(0, r.View - 1);
             ImGui.EndDisabled();
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Newer pull");
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Newer pull");
         }
 
         // One chip per question a raid lead asks after a wipe.
@@ -148,7 +145,7 @@ public class RecapWindow : Window
                     _scrollToDeaths = true;
                 }
             }
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip(_deathsOpen ? "Collapse the deaths" : "Expand every death's last hits");
         }
         else
@@ -492,7 +489,7 @@ public class RecapWindow : Window
             if (ImGui.IsItemHovered())
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                ImGui.SetTooltip(open ? "Hide the last hits" : "Show the last hits");
+                Widgets.Tooltip(open ? "Hide the last hits" : "Show the last hits");
                 // Selectable-style wash, so the row reads as one click target.
                 dl.AddRectFilled(rowTop, new Vector2(rowTop.X + rowWidth, rowTop.Y + rowH), 0x14FFFFFFu, 4f);
             }

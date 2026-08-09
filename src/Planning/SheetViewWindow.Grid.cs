@@ -57,8 +57,19 @@ public partial class SheetViewWindow
     private static string TsvCell(string s)
         => s.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
 
+    // Any line in the row whose mit repeats before its cooldown is back.
+    private bool RowHasClash(Row row)
+    {
+        if (row.Ghost) return false;
+        foreach (var cell in row.Cells)
+            foreach (var l in cell)
+                if (_conflicts.ContainsKey(l)) return true;
+        return false;
+    }
+
     private bool MatchesFilter(Row row)
     {
+        if (_clashOnly && !RowHasClash(row)) return false;
         if (_filter.Length == 0) return true;
         if (row.Mechanic.Contains(_filter, StringComparison.OrdinalIgnoreCase)) return true;
         var cells = row.Ghost ? row.Bake!.Cells : row.Cells;
@@ -147,8 +158,9 @@ public partial class SheetViewWindow
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY
                   | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit
                   | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
-        // Settings save by column index, so the id bakes in the layout.
-        var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}";
+        // Settings save by column index, so the id bakes in the layout. The
+        // reset counter rides along: a new id is a table with no saved widths.
+        var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}|{_widthReset}";
         if (!ImGui.BeginTable(tableId, 2 + _gridCols.Length, flags, new Vector2(0, -footerH)))
             return;
 
@@ -160,6 +172,7 @@ public partial class SheetViewWindow
             ImGui.TableSetupColumn(_gridCols[i], ImGuiTableColumnFlags.WidthFixed, 130);
 
         // Header row with role colors and a "(you)" tag.
+        _youColX = null;
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
         ImGui.TableNextColumn();
         _headerY = ImGui.GetCursorScreenPos().Y;
@@ -174,6 +187,8 @@ public partial class SheetViewWindow
             ImGui.PopStyleColor();
             var headMin = ImGui.GetItemRectMin();
             var headMax = ImGui.GetItemRectMax();
+            // Where to frame your own column, once the table has drawn.
+            if (IsYouColumn(i)) _youColX = (headMin.X, headMax.X);
             var pinned = IsPinnedColumn(i);
             if (DelayedHover())
                 ImGui.SetTooltip((IsYouColumn(i) ? $"{SlotTip(_gridCols[i])}, your slot." : SlotTip(_gridCols[i]))
@@ -247,10 +262,13 @@ public partial class SheetViewWindow
                 lastPhase = row.Phase;
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, 0xFF221B17);
+                // An accent band with a bar at its start, so a phase reads as a divider.
+                ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, (Theme.Accent & 0x00FFFFFFu) | 0x2A000000u);
+                var barP = ImGui.GetCursorScreenPos();
+                ImGui.GetWindowDrawList().AddRectFilled(
+                    barP, barP + new Vector2(3f, ImGui.GetTextLineHeight()), Theme.Accent, 1.5f);
                 ImGui.TableNextColumn();
-                // Accent blue, so the separators pop instead of reading dim.
-                ImGui.TextColored(NoteBlue, Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
+                ImGui.TextColored(Theme.V(Theme.Accent), Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
                 // On this row for a swapped-priority phase, the toggle sits in
                 // the MT/OT columns themselves - it swaps both at once, not
                 // just the one you happen to be viewing as.
@@ -279,10 +297,29 @@ public partial class SheetViewWindow
         }
 
         ImGui.EndTable();
+        DrawYouColumnFrame();
         DrawStickyPhasePill();
 
         // An editor whose row was hidden can't deactivate normally.
         if (Editing && !_editorDrawn && !_focusPending) CommitPending();
+    }
+
+    // Screen x range of your own column's header, set while the table draws.
+    private (float Min, float Max)? _youColX;
+
+    // Two accent edges down your column, so it is findable in a wide grid.
+    private void DrawYouColumnFrame()
+    {
+        if (_youColX is not { } x) return;
+        var rectMin = ImGui.GetItemRectMin();   // the table is the last item
+        var rectMax = ImGui.GetItemRectMax();
+        if (x.Max <= rectMin.X || x.Min >= rectMax.X) return;
+
+        var dl = ImGui.GetWindowDrawList();
+        dl.PushClipRect(rectMin, rectMax, true);
+        dl.AddLine(new Vector2(x.Min, rectMin.Y), new Vector2(x.Min, rectMax.Y), Theme.Accent, 2f);
+        dl.AddLine(new Vector2(x.Max, rectMin.Y), new Vector2(x.Max, rectMax.Y), Theme.Accent, 2f);
+        dl.PopClipRect();
     }
 
     // A pill naming the phase you're scrolled into.
@@ -304,8 +341,8 @@ public partial class SheetViewWindow
         var dl = ImGui.GetForegroundDrawList();
         dl.PushClipRect(rectMin, rectMax);
         dl.AddRectFilled(p0, p0 + size + pad * 2f, 0xE619130F, 5f);
-        dl.AddRect(p0, p0 + size + pad * 2f, 0x2EFFFFFF, 5f);
-        dl.AddText(p0 + pad, ImGui.GetColorU32(NoteBlue), _stickyTitle);
+        dl.AddRect(p0, p0 + size + pad * 2f, (Theme.Accent & 0x00FFFFFFu) | 0x66000000u, 5f);
+        dl.AddText(p0 + pad, Theme.Accent, _stickyTitle);
         dl.PopClipRect();
     }
 
@@ -326,7 +363,7 @@ public partial class SheetViewWindow
             Builtin.ReapplyPriority(_fight);
             MarkPlanDirty();
         }
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip(swapped
                 ? "Priority swapped for this phase - click to go back to the sheet's default MT/OT."
                 : "Tank busters here follow job priority, not MT/OT.\nClick to swap MT and OT for this phase.");
@@ -388,7 +425,7 @@ public partial class SheetViewWindow
             ImGui.TextColored(EditedColor, "deleted");
             ImGui.SameLine(0, 4);
             if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Deleted from your plan. Undo restores it.");
             return;
         }
@@ -449,7 +486,7 @@ public partial class SheetViewWindow
             {
                 ImGui.SameLine(0, 6);
                 ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(tagCol), tag);
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip(tagTip);
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip(tagTip);
             }
             // The severity grade, right-click to change.
             if (CustomRowFor(row) is { Hurt: > 0 } gr)
@@ -462,13 +499,13 @@ public partial class SheetViewWindow
                     _ => ("!", 0xFF9BA0A6u),
                 };
                 ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(color), mark);
-                if (ImGui.IsItemHovered())
+                if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip($"Hits {HurtChoices[gr.Hurt]} unmitigated. Right-click to regrade.");
             }
             // Custom rows are all yours, so delete is the only action.
             ImGui.SameLine(0, 6);
             if (IconSmallButton(FontAwesomeIcon.Times, "##delrow")) DeleteCustomRow(row);
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Delete this row (every column). Ctrl+Z brings it back.");
             return;
         }
@@ -478,7 +515,7 @@ public partial class SheetViewWindow
             // A quiet tag: this row is a job schedule at its own time.
             ImGui.SameLine(0, 6);
             ImGui.TextDisabled("job extra");
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("A job-specific line at its own time. Nothing is wrong.");
 
             // A hidden mechanic (a summoner's pet cycle) is the sheet's own
@@ -489,7 +526,7 @@ public partial class SheetViewWindow
 
             ImGui.SameLine(0, 4);
             if (IconSmallButton(FontAwesomeIcon.Times, "##delextra")) DeleteExtraRow(row);
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Remove this job extra (every slot). Ctrl+Z brings it back.");
         }
         else if (row.Edited)
@@ -498,7 +535,7 @@ public partial class SheetViewWindow
             ImGui.TextColored(EditedColor, "edited");
             ImGui.SameLine(0, 4);
             if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Reset this mechanic to the baked sheet, every slot.");
         }
     }

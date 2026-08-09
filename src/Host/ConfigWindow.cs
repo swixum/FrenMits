@@ -71,7 +71,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    private enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter }
+    internal enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter }
     private NavKind _nav = NavKind.Home;
     private string _navCategory = "Ultimate";
 
@@ -113,23 +113,25 @@ public partial class ConfigWindow : Window, IDisposable
     public override void PreDraw()
     {
         Theme.PushWindow();
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 1f);
+        // Only the two this window wants tighter than the theme's defaults.
         ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 6f);
         ImGui.PushStyleVar(ImGuiStyleVar.PopupRounding, 6f);
     }
 
     public override void PostDraw()
     {
-        ImGui.PopStyleVar(4);
+        ImGui.PopStyleVar(2);
         Theme.PopWindow();
     }
 
     public override void Draw()
     {
+        Theme.Accent = C.AccentColor;
+        Theme.Scale = Math.Clamp(C.UiScale, 0.8f, 1.6f);
         Theme.PushWidgets();
+        using var uiFont = Widgets.PushUiFont(_plugin.Fonts, Theme.Scale);
         // Fatter scrollbars (easier to grab) + softer rounded controls.
-        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 18f);
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 18f * Theme.Scale);
         ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 9f);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f);
         ImGui.PushStyleVar(ImGuiStyleVar.GrabRounding, 4f);
@@ -152,7 +154,9 @@ public partial class ConfigWindow : Window, IDisposable
             {
                 ImGui.Spacing();
                 ImGui.Indent(4f);
-                DrawSelectedPage();
+                var searching = DrawSettingsSearch();
+                if (searching) DrawSearchResults();
+                else DrawSelectedPage();
                 ImGui.Unindent(4f);
             }
             ImGui.EndChild();
@@ -214,9 +218,17 @@ public partial class ConfigWindow : Window, IDisposable
         return s < 90 ? $"{(int)s}s ago" : s < 5400 ? $"{(int)(s / 60)}m ago" : $"{(int)(s / 3600)}h ago";
     }
 
-    // Second column of a two-up row: half the page, never on top of a long first label.
+    // The page is too narrow to read two columns of settings.
+    private static bool Narrow => ImGui.GetContentRegionAvail().X < 420f * Theme.Scale;
+
+    // Checkbox grids drop to one column rather than clip their labels.
+    private static int GridCols() => Narrow ? 1 : 2;
+
+    // Second column of a two-up row: half the page, never on top of a long first
+    // label, and its own line once the page is narrow.
     private static void NextColumn()
     {
+        if (Narrow) return;
         var half = ImGui.GetContentRegionMax().X * 0.5f;
         var after = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X + ImGui.GetStyle().ItemSpacing.X * 2;
         ImGui.SameLine(MathF.Max(half, after));
@@ -233,6 +245,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.SameLine(0, 8);
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(label);
+        if (SettingsIndex.IsChanged(C, _nav, label)) Widgets.ChangedPill();
         return v;
     }
 
@@ -240,22 +253,7 @@ public partial class ConfigWindow : Window, IDisposable
     private static bool GreenCheckbox(string label, ref bool v) => Widgets.GreenCheckbox(label, ref v);
 
     // Tooltip with a hover delay, so sweeping a page stays quiet.
-    private static Vector2 _tipPos;
-    private static double _tipSince;
-
-    private static int _tipFrame;
-
-    private static void Tip(string text)
-    {
-        if (!ImGui.IsItemHovered()) return;
-        // The item rect identifies the hovered thing well enough.
-        var pos = ImGui.GetItemRectMin();
-        var now = ImGui.GetTime();
-        var frame = ImGui.GetFrameCount();
-        if (pos != _tipPos || frame - _tipFrame > 2) { _tipPos = pos; _tipSince = now; }
-        _tipFrame = frame;
-        if (now - _tipSince >= 0.35) ImGui.SetTooltip(text);
-    }
+    private static void Tip(string text) => Widgets.Tooltip(text);
 
     // A checkbox in the next cell of a two-column grid.
     private bool GridCheck(string label, bool value, string? tip = null)
@@ -316,7 +314,7 @@ public partial class ConfigWindow : Window, IDisposable
     {
         ImGui.SameLine();
         ImGui.TextDisabled("(?)");
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
         {
             ImGui.BeginTooltip();
             ImGui.PushTextWrapPos(ImGui.GetFontSize() * 28f);
@@ -354,7 +352,7 @@ public partial class ConfigWindow : Window, IDisposable
             if (right > 0) { ImGui.SameLine(); ImGui.SetCursorPosX(right); }
             var test = C.TestMode;
             if (GreenCheckbox("Test", ref test)) { C.TestMode = test; C.Save(); }
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Show a sample call so you can place the overlay.");
 
             // Status dots on the second line.
@@ -375,7 +373,7 @@ public partial class ConfigWindow : Window, IDisposable
                 ImGui.SameLine(0, 18);
                 var worst = Swallowed.Worst();
                 WarnDot($"degraded: {worst.Site} (x{worst.Count})");
-                if (ImGui.IsItemHovered())
+                if (Widgets.HoveredDelayed())
                 {
                     var tip = new System.Text.StringBuilder(
                         "These failed and were skipped rather than crashing:\n");
@@ -448,15 +446,15 @@ public partial class ConfigWindow : Window, IDisposable
 
         // Next frame's width, so no label is clipped once a scrollbar appears.
         var bar = ImGui.GetScrollMaxY() > 0f ? ImGui.GetStyle().ScrollbarSize : 0f;
-        _sidebarW = MathF.Max(SidebarMinWidth, _navNeed + bar);
+        _sidebarW = MathF.Max(SidebarMinWidth * Theme.Scale, _navNeed + bar);
     }
 
     private static void SidebarHeading(string text)
     {
         ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
-        // Cool headings read cleaner against the warm selection.
-        ImGui.TextColored(new Vector4(0.55f, 0.75f, 0.98f, 1f), text);
+        // Muted, so the accent belongs to the selected row alone.
+        ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f), text.ToUpperInvariant());
         ImGui.Spacing();
     }
 
@@ -465,39 +463,53 @@ public partial class ConfigWindow : Window, IDisposable
         var startX = ImGui.GetCursorPosX();
         var startY = ImGui.GetCursorPosY();
 
+        // A wash plus an edge bar, so the accent reads without shouting.
+        var rgb = Theme.Accent & 0x00FFFFFFu;
         if (selected)
         {
-            ImGui.PushStyleColor(ImGuiCol.Header, 0x66F6823B);
-            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0x88F6823B);
+            ImGui.PushStyleColor(ImGuiCol.Header, rgb | 0x2A000000u);
+            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, rgb | 0x3C000000u);
         }
-        var clicked = ImGui.Selectable($"##nav-{label}", selected, ImGuiSelectableFlags.None, new Vector2(0, 27));
+        var rowH = 27f * Theme.Scale;
+        var clicked = ImGui.Selectable($"##nav-{label}", selected, ImGuiSelectableFlags.None, new Vector2(0, rowH));
         if (selected) ImGui.PopStyleColor(2);
+        if (selected)
+        {
+            var min = ImGui.GetItemRectMin();
+            var max = ImGui.GetItemRectMax();
+            ImGui.GetWindowDrawList().AddRectFilled(
+                new Vector2(min.X, min.Y + 2f), new Vector2(min.X + 3f, max.Y - 2f), Theme.Accent, 2f);
+        }
 
         var endX = ImGui.GetCursorPosX();
         var endY = ImGui.GetCursorPosY();
         var col = selected ? new Vector4(1f, 1f, 1f, 1f) : new Vector4(0.74f, 0.77f, 0.82f, 1f);
 
         // Icon (icon font) + label drawn over the selectable row.
+        var textY = startY + (rowH - ImGui.GetTextLineHeight()) * 0.5f;
+        var labelX = startX + 38f * Theme.Scale;
         ImGui.SameLine();
-        ImGui.SetCursorPos(new Vector2(startX + 10, startY + 6));
+        ImGui.SetCursorPos(new Vector2(startX + 12f * Theme.Scale, textY));
         using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
             ImGui.TextColored(col, icon.ToIconString());
         ImGui.SameLine();
-        ImGui.SetCursorPos(new Vector2(startX + 36, startY + 6));
+        ImGui.SetCursorPos(new Vector2(labelX, textY));
         ImGui.TextColored(col, label);
-        // 36 is the icon column; the tail is the right padding plus any count badge.
+        // The tail is the right padding plus any count badge.
         _navNeed = MathF.Max(_navNeed,
-            startX + 36 + ImGui.CalcTextSize(label).X + (count is null ? 12f : 40f));
+            labelX + ImGui.CalcTextSize(label).X + (count is null ? 12f : 40f) * Theme.Scale);
 
         if (count is { } n)
         {
             var txt = n.ToString();
             ImGui.SameLine();
-            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10, startY + 6));
+            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10, textY));
             ImGui.TextDisabled(txt);
         }
 
         ImGui.SetCursorPos(new Vector2(endX, endY)); // resume normal flow below the row
+        // Picking a page by hand ends any search that was up.
+        if (clicked) { _search = ""; _jumpTab = ""; }
         return clicked;
     }
 
@@ -606,6 +618,129 @@ public partial class ConfigWindow : Window, IDisposable
         var last = C.Fights.LastOrDefault(f => Builtin.Has(f.TerritoryId));
         if (last != null) C.DmuSlot = last.Slot;
         FlashBuiltin($"Set every fight to {role}.");
+    }
+
+    // ---- settings search ----
+
+    private string _search = "";
+    // The tab a search result asked for, consumed by the next TabItem call.
+    private string _jumpTab = "";
+
+    // A tab that a search result can open directly, and that offers to put
+    // itself back to defaults once anything on it has moved.
+    private bool TabItem(string label)
+    {
+        var flags = _jumpTab == label ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
+        var open = ImGui.BeginTabItem(label, flags);
+        if (flags != ImGuiTabItemFlags.None) _jumpTab = "";
+        if (open) DrawTabResetBar(label);
+        return open;
+    }
+
+    // Shown only when a tab holds non-default settings.
+    private void DrawTabResetBar(string tab)
+    {
+        var changed = SettingsIndex.ChangedIn(C, _nav, tab);
+        if (changed.Count == 0) return;
+
+        ImGui.Spacing();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(Theme.V(Theme.Accent), $"{changed.Count} changed");
+        ImGui.SameLine(0, 10);
+        if (ImGui.SmallButton($"Reset tab##rst{tab}"))
+        {
+            foreach (var e in changed) e.Reset(C);
+            C.Save();
+            RefreshAfterReset();
+        }
+        if (Widgets.HoveredDelayed())
+            ImGui.SetTooltip("Put every setting on this tab back to its default:\n"
+                             + string.Join("\n", changed.Select(e => "  " + e.Label)));
+        ImGui.Separator();
+    }
+
+    // Anything that caches a setting has to hear about a bulk reset.
+    private void RefreshAfterReset()
+    {
+        Theme.Accent = C.AccentColor;
+        Theme.Colorblind = C.ColorblindMode;
+        Theme.Scale = Math.Clamp(C.UiScale, 0.8f, 1.6f);
+        _plugin.OverlayWindow.RequestReposition();
+        _plugin.TimelineWindow.RequestReposition();
+        _plugin.InvalidateSolverCache();
+    }
+
+    // Which result the keyboard is on, and whether Enter was pressed in the box.
+    private int _searchSel;
+    private bool _searchEntered;
+    private string _searchPrev = "";
+
+    // True while a query is up, so the page gives way to the results.
+    private bool DrawSettingsSearch()
+    {
+        if (_nav == NavKind.Fights) return false;   // that page has its own filter
+
+        ImGui.SetNextItemWidth(MathF.Min(300f * Theme.Scale, ImGui.GetContentRegionAvail().X - 30f));
+        _searchEntered = ImGui.InputTextWithHint("##settingsearch", "Search all settings...", ref _search, 64,
+            ImGuiInputTextFlags.EnterReturnsTrue);
+        if (_search.Length > 0)
+        {
+            ImGui.SameLine(0, 4);
+            if (ImGui.SmallButton("x##clearsearch")) _search = "";
+        }
+        // A new query starts back at the top of the list.
+        if (_search != _searchPrev) { _searchPrev = _search; _searchSel = 0; }
+        ImGui.Spacing();
+        return _search.Trim().Length >= 2;
+    }
+
+    private void DrawSearchResults()
+    {
+        var hits = SettingsIndex.Search(_search);
+        if (hits.Count == 0)
+        {
+            ImGui.TextDisabled($"Nothing matches \"{_search.Trim()}\".");
+            ImGui.TextDisabled("Try a word from the setting, or the page it lives on.");
+            return;
+        }
+
+        // Arrows walk the list, Enter opens, Escape clears.
+        var moved = false;
+        if (ImGui.IsKeyPressed(ImGuiKey.DownArrow, true)) { _searchSel++; moved = true; }
+        if (ImGui.IsKeyPressed(ImGuiKey.UpArrow, true)) { _searchSel--; moved = true; }
+        _searchSel = Math.Clamp(_searchSel, 0, hits.Count - 1);
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape, false)) { _search = ""; _searchSel = 0; return; }
+
+        var go = _searchEntered ? _searchSel : -1;
+
+        ImGui.TextDisabled($"{hits.Count} setting{(hits.Count == 1 ? "" : "s")}   ·   up / down to move, enter to open");
+        ImGui.Spacing();
+        for (var i = 0; i < hits.Count; i++)
+        {
+            var e = hits[i];
+            ImGui.PushID(e.Prop);
+            if (ImGui.Selectable("##hit", i == _searchSel, ImGuiSelectableFlags.None,
+                    new Vector2(0, ImGui.GetTextLineHeightWithSpacing() * 1.6f)))
+                go = i;
+            if (moved && i == _searchSel) ImGui.SetScrollHereY(0.5f);
+            var min = ImGui.GetItemRectMin();
+            var dl = ImGui.GetWindowDrawList();
+            dl.AddText(min + new Vector2(8, 3), Theme.TextBright, e.Label);
+            dl.AddText(min + new Vector2(8, 3 + ImGui.GetTextLineHeight()), Theme.Muted, SettingsIndex.Where(e));
+            if (e.IsChanged(C))
+            {
+                var tag = "changed";
+                var w = ImGui.CalcTextSize(tag).X;
+                dl.AddText(new Vector2(ImGui.GetItemRectMax().X - w - 10f, min.Y + 3), Theme.Accent, tag);
+            }
+            ImGui.PopID();
+        }
+
+        if (go < 0) return;
+        _nav = hits[go].Nav;
+        _jumpTab = hits[go].Tab;
+        _search = "";
+        _searchSel = 0;
     }
 
     private void DrawSelectedPage()

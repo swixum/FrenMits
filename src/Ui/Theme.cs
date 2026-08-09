@@ -7,10 +7,27 @@ namespace FrenMits.Ui;
 internal static class Theme
 {
     // ---- chrome ----
-    public const uint Accent = 0xFFF6823B;       // #3B82F6 blue - interactive things
-    public const uint AccentHover = 0xFFFAA560;   // #60A5FA
+
+    // One color for every interactive thing; the config's picker sets it.
+    public static uint Accent = DefaultAccent;
+    public const uint DefaultAccent = 0xFFF6823B;  // #3B82F6 blue
+    public static uint AccentHover => Lighten(Accent, 0.28f);
     public const uint AccentText = 0xFFFFFFFF;    // white text on the accent
     public const uint PanelBg = 0xFF14110E;       // #0E1114 card background
+
+    // Text and spacing multiplier for the plugin's own windows.
+    public static float Scale = 1f;
+
+    // A lighter shade of a packed color, for hover states.
+    private static uint Lighten(uint abgr, float t)
+    {
+        uint Ch(int shift)
+        {
+            var c = (abgr >> shift) & 0xFF;
+            return (uint)(c + (255 - c) * t) & 0xFF;
+        }
+        return (abgr & 0xFF000000) | (Ch(16) << 16) | (Ch(8) << 8) | Ch(0);
+    }
 
     // ---- text roles ----
     public const uint TextBright = 0xFFECE8E6;    // #E6E8EC primary text
@@ -62,15 +79,16 @@ internal static class Theme
         (ImGuiCol.TabActive,          0xFF634032),
         (ImGuiCol.TabUnfocused,       0xFF241D1A),
         (ImGuiCol.TabUnfocusedActive, 0xFF4A362C),
-        (ImGuiCol.CheckMark,          Accent),
-        (ImGuiCol.SliderGrab,         Accent),
-        (ImGuiCol.SliderGrabActive,   AccentHover),
         (ImGuiCol.Separator,          0xFF2F2724),
         (ImGuiCol.SeparatorHovered,   0xFF50362A),
-        (ImGuiCol.SeparatorActive,    Accent),
         (ImGuiCol.ScrollbarGrab,      0xFF382E2A),
         (ImGuiCol.ScrollbarGrabHovered, 0xFF4C3F3A),
-        (ImGuiCol.ScrollbarGrabActive,  Accent),
+    };
+
+    // Pushed from the live accent, so the picker moves them all at once.
+    private static readonly ImGuiCol[] AccentColors =
+    {
+        ImGuiCol.CheckMark, ImGuiCol.SliderGrab, ImGuiCol.SeparatorActive, ImGuiCol.ScrollbarGrabActive,
     };
 
     // Rounded, so the window doesn't look raw.
@@ -112,13 +130,16 @@ internal static class Theme
     public static void PushWidgets()
     {
         foreach (var (c, v) in WidgetColors) ImGui.PushStyleColor(c, v);
-        foreach (var (s, v) in WidgetVarsF) ImGui.PushStyleVar(s, v);
-        foreach (var (s, v) in WidgetVarsV) ImGui.PushStyleVar(s, v);
+        foreach (var c in AccentColors) ImGui.PushStyleColor(c, Accent);
+        ImGui.PushStyleColor(ImGuiCol.SliderGrabActive, AccentHover);
+        // Padding grows with the text, so a scaled window keeps its proportions.
+        foreach (var (s, v) in WidgetVarsF) ImGui.PushStyleVar(s, v * Scale);
+        foreach (var (s, v) in WidgetVarsV) ImGui.PushStyleVar(s, v * Scale);
     }
 
     public static void PopWidgets()
     {
         ImGui.PopStyleVar(WidgetVarsF.Length + WidgetVarsV.Length);
-        ImGui.PopStyleColor(WidgetColors.Length);
+        ImGui.PopStyleColor(WidgetColors.Length + AccentColors.Length + 1);
     }
 }

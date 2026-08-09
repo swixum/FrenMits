@@ -32,12 +32,12 @@ public partial class ConfigWindow
         ImGui.Spacing();
 
         if (!ImGui.BeginTabBar("##metertabs", ImGuiTabBarFlags.None)) return;
-        if (ImGui.BeginTabItem("Display")) { DrawMeterDisplayTab(); ImGui.EndTabItem(); }
-        if (ImGui.BeginTabItem("Style")) { DrawMeterStyleTab(); ImGui.EndTabItem(); }
-        if (ImGui.BeginTabItem("Themes")) { DrawMeterThemesTab(); ImGui.EndTabItem(); }
-        if (ImGui.BeginTabItem("Columns")) { DrawMeterColumnsTab(); ImGui.EndTabItem(); }
-        if (ImGui.BeginTabItem("Profiles")) { DrawMeterProfiles(); ImGui.EndTabItem(); }
-        if (ImGui.BeginTabItem("Connection")) { DrawMeterConnectionTab(); ImGui.EndTabItem(); }
+        if (TabItem("Display")) { DrawMeterDisplayTab(); ImGui.EndTabItem(); }
+        if (TabItem("Style")) { DrawMeterStyleTab(); ImGui.EndTabItem(); }
+        if (TabItem("Themes")) { DrawMeterThemesTab(); ImGui.EndTabItem(); }
+        if (TabItem("Columns")) { DrawMeterColumnsTab(); ImGui.EndTabItem(); }
+        if (TabItem("Profiles")) { DrawMeterProfiles(); ImGui.EndTabItem(); }
+        if (TabItem("Connection")) { DrawMeterConnectionTab(); ImGui.EndTabItem(); }
         ImGui.EndTabBar();
     }
 
@@ -67,7 +67,7 @@ public partial class ConfigWindow
         { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
 
         SeparatorText("Rows");
-        if (ImGui.BeginTable("##meterrowgrid", 2))
+        if (ImGui.BeginTable("##meterrowgrid", GridCols()))
         {
             C.MeterShowRank = GridCheck("Rank numbers", C.MeterShowRank);
             C.MeterShowJobIcons = GridCheck("Job icons", C.MeterShowJobIcons);
@@ -104,7 +104,7 @@ public partial class ConfigWindow
         { C.MeterHeaderStyle = header; C.SaveSettings(); }
         Tip("Double-click the meter's header to cycle.");
         ImGui.Spacing();
-        if (ImGui.BeginTable("##meterchromegrid", 2))
+        if (ImGui.BeginTable("##meterchromegrid", GridCols()))
         {
             C.MeterShowRaidTotal = GridCheck("Raid rDPS total", C.MeterShowRaidTotal);
             C.MeterHealingTab = GridCheck("DPS / HPS tabs", C.MeterHealingTab, "Right-click a tab to rename it.");
@@ -115,7 +115,7 @@ public partial class ConfigWindow
         }
 
         SeparatorText("When to show");
-        if (ImGui.BeginTable("##metervisgrid", 2))
+        if (ImGui.BeginTable("##metervisgrid", GridCols()))
         {
             C.MeterAlwaysShow = GridCheck("Always on screen", C.MeterAlwaysShow,
                 "Stays put with no pull to show, so a reset cannot hide it.");
@@ -124,7 +124,7 @@ public partial class ConfigWindow
         }
 
         SeparatorText("Breakdown");
-        if (ImGui.BeginTable("##meterbreakgrid", 2))
+        if (ImGui.BeginTable("##meterbreakgrid", GridCols()))
         {
             C.MeterBreakdownIcons = GridCheck("Action icons", C.MeterBreakdownIcons,
                 "Icons beside each ability when you click a player.");
@@ -651,7 +651,8 @@ public partial class ConfigWindow
             if (ImGui.IsItemHovered())
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                if (_colDrag == null) ImGui.SetTooltip($"{MeterWindow.ColumnLabel(s.Key)} - click to drop, drag to move");
+                if (_colDrag == null && Widgets.HoveredDelayed())
+                    ImGui.SetTooltip($"{MeterWindow.ColumnLabel(s.Key)} - click to drop, drag to move");
             }
             if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left, 4f))
             { _colDrag = s.Key; _colDragView = view; }

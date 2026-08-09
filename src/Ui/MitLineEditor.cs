@@ -81,7 +81,7 @@ internal static class MitLineEditor
         ImGui.SameLine(0, gap);
         var on = line.Enabled;
         if (Widgets.GreenCheckbox("##enabled", ref on) && Begin(false)) { line.Enabled = on; Save(); }
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip(line.Enabled ? "Called. Uncheck to keep it here but silent." : "Off: kept, never called.");
 
         if (!string.IsNullOrEmpty(hooks.Context))
@@ -106,7 +106,7 @@ internal static class MitLineEditor
             line.OffsetManual = line.OffsetSeconds != 0; // hand-set timing stays put
             Save();
         }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("+ earlier, - later.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("+ earlier, - later.");
 
         // The number is abstract; the time it lands on is not.
         ImGui.SameLine(0, gap);
@@ -134,7 +134,7 @@ internal static class MitLineEditor
                 line.LeadOverride = MathF.Max(0f, lead);
                 Save();
             }
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Seconds of warning before it. 0 = the lead from Settings.");
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Seconds of warning before it. 0 = the lead from Settings.");
 
             var tts = line.Tts;
             ImGui.AlignTextToFramePadding();
@@ -189,7 +189,7 @@ internal static class MitLineEditor
         if (hooks.Reset != null)
         {
             if (ImGui.Button("Reset", new Vector2(half, 0))) ImGui.OpenPopup("confirmreset");
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Back to the sheet's version of this call.");
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Back to the sheet's version of this call.");
             if (ImGui.BeginPopup("confirmreset"))
             {
                 ImGui.TextUnformatted($"Reset {named} to the sheet?");
@@ -253,7 +253,7 @@ internal static class MitLineEditor
             : ImGui.Button("?##iconbtn", new Vector2(h, h));
         ImGui.PopStyleVar();
         if (clicked) ImGui.OpenPopup("iconpick");
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip(line.IconId != 0 ? $"Pinned icon (#{line.IconId}). Click to change."
                 : resolved != 0 ? "Icon read from the action. Click to pick another."
                 : "No icon for this text. Click to pick one.");
@@ -268,7 +268,7 @@ internal static class MitLineEditor
         if (ImGui.Button("Use auto") && begin(false)) { line.IconId = 0; save(); }
         ImGui.SameLine();
         if (ImGui.Button("Potion") && begin(false)) { line.IconId = Icons.PotionIconFor(line); save(); }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Pin the potion (Gemdraught) icon to this line.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Pin the potion (Gemdraught) icon to this line.");
         ImGui.EndGroup();
 
         ImGui.SetNextItemWidth(280f);
@@ -279,7 +279,7 @@ internal static class MitLineEditor
             foreach (var (name, ic) in Icons.Search(_iconSearch, 40))
             {
                 if (Icons.Button(ic, new Vector2(32, 32), $"##s{ic}_{n}") && begin(false)) { line.IconId = ic; save(); }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{name}  (#{ic})");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip($"{name}  (#{ic})");
                 if (++n % 8 != 0) ImGui.SameLine();
             }
             ImGui.NewLine();
@@ -291,7 +291,7 @@ internal static class MitLineEditor
             foreach (var (label, ic) in Icons.Common())
             {
                 if (Icons.Button(ic, new Vector2(32, 32), $"##c{ic}_{n}") && begin(false)) { line.IconId = ic; save(); }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip($"{label}  (#{ic})");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip($"{label}  (#{ic})");
                 if (++n % 8 != 0) ImGui.SameLine();
             }
             ImGui.NewLine();

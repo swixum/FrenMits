@@ -70,7 +70,7 @@ public partial class ConfigWindow
 
         if (!ImGui.BeginTabBar("##preptabs", ImGuiTabBarFlags.None)) return;
 
-        if (ImGui.BeginTabItem("Food"))
+        if (TabItem("Food"))
         {
             ImGui.Spacing();
             ImGui.TextWrapped("Shown out of combat, and stays up for as long as there's a problem: red for "
@@ -105,7 +105,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Potion"))
+        if (TabItem("Potion"))
         {
             ImGui.Spacing();
             ImGui.TextWrapped("Mid-fight, not pre-pull. It says nothing until it has seen you actually use "
@@ -128,7 +128,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Voice"))
+        if (TabItem("Voice"))
         {
             ImGui.Spacing();
             ImGui.TextWrapped("Each one spoken once, as it appears - never repeated while it sits on screen.");
@@ -147,7 +147,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Placement"))
+        if (TabItem("Placement"))
         {
             ImGui.Spacing();
             var prepLocked = C.PrepCheckLocked;
@@ -187,7 +187,7 @@ public partial class ConfigWindow
 
         if (!ImGui.BeginTabBar("##cttabs", ImGuiTabBarFlags.None)) return;
 
-        if (ImGui.BeginTabItem("Placement"))
+        if (TabItem("Placement"))
         {
             ImGui.Spacing();
             C.CombatTimerLocked = CfgCheck("Lock position (click-through)", C.CombatTimerLocked);
@@ -210,7 +210,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Font"))
+        if (TabItem("Font"))
         {
             ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
@@ -233,7 +233,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Colors"))
+        if (TabItem("Colors"))
         {
             ImGui.Spacing();
             var col = ColorToVec4(C.CombatTimerColor);
@@ -245,7 +245,7 @@ public partial class ConfigWindow
                 ImGui.SameLine(0, 14);
                 var bg = ColorToVec4(C.CombatTimerBackgroundColor);
                 if (ImGui.ColorEdit4("Color##ctbg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.CombatTimerBackgroundColor = Vec4ToColor(bg); C.SaveSettings(); }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
             ImGui.EndTabItem();
         }
@@ -257,12 +257,12 @@ public partial class ConfigWindow
     {
         // One-click reset of everything on this page.
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Reset display")) ResetDisplayDefaults();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Reset every setting on this page to defaults.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Reset every setting on this page to defaults.");
 
         // Tabs by concern, each scoped to the center call.
         if (!ImGui.BeginTabBar("##displaytabs", ImGuiTabBarFlags.None)) return;
 
-        if (ImGui.BeginTabItem("Placement"))
+        if (TabItem("Placement"))
         {
             ImGui.Spacing();
             C.OverlayLocked = CfgCheck("Lock overlay (click-through)", C.OverlayLocked);
@@ -285,7 +285,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Style"))
+        if (TabItem("Style"))
         {
             ImGui.Spacing();
             {
@@ -296,7 +296,7 @@ public partial class ConfigWindow
                 { C.OverlayStyle = style; C.SaveSettings(); }
                 Tip("How the center call is drawn.");
             }
-            if (ImGui.BeginTable("##texttoggles", 2, ImGuiTableFlags.SizingStretchSame))
+            if (ImGui.BeginTable("##texttoggles", GridCols(), ImGuiTableFlags.SizingStretchSame))
             {
                 C.ShowAbilityIcon = GridCheck("Ability icon", C.ShowAbilityIcon,
                     "Matched from the action name; pin one per line with the \"...\" button.");
@@ -328,7 +328,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Font"))
+        if (TabItem("Font"))
         {
             ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
@@ -361,7 +361,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Colors"))
+        if (TabItem("Colors"))
         {
             ImGui.Spacing();
             var imminent = ColorToVec4(C.OverlayColorImminent);
@@ -397,7 +397,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Bar & box"))
+        if (TabItem("Bar & box"))
         {
             ImGui.Spacing();
             C.ShowProgressBar = CfgCheck("Countdown bar under the call", C.ShowProgressBar);
@@ -414,12 +414,12 @@ public partial class ConfigWindow
                 ImGui.SameLine(0, 14);
                 var bg = ColorToVec4(C.BackgroundColor);
                 if (ImGui.ColorEdit4("Color##overlaybg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.BackgroundColor = Vec4ToColor(bg); C.SaveSettings(); }
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Timing"))
+        if (TabItem("Timing"))
         {
             ImGui.Spacing();
             C.StartOnCountdown = Toggle("Start on the pull countdown", C.StartOnCountdown);
@@ -466,7 +466,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Extras"))
+        if (TabItem("Extras"))
         {
             ImGui.Spacing();
             SeparatorText("Extra readouts");
@@ -494,7 +494,82 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
+        if (TabItem("Look")) { DrawLookTab(); ImGui.EndTabItem(); }
+
         ImGui.EndTabBar();
+    }
+
+    // The plugin's own windows: one accent color, one size.
+    private void DrawLookTab()
+    {
+        ImGui.Spacing();
+        SeparatorText("Accent color");
+        ImGui.TextDisabled("Drives every plugin window: selected tabs, sliders, buttons and headers.");
+        ImGui.Spacing();
+
+        var accent = ColorToVec4(C.AccentColor);
+        if (ImGui.ColorEdit4("Accent color", ref accent, ImGuiColorEditFlags.NoInputs))
+        {
+            C.AccentColor = Vec4ToColor(accent);
+            Theme.Accent = C.AccentColor;
+            C.SaveSettings();
+        }
+        if (SettingsIndex.IsChanged(C, NavKind.Display, "Accent color")) Widgets.ChangedPill();
+
+        // One click each, so a color can be tried without opening the picker.
+        ImGui.Spacing();
+        foreach (var (name, col) in AccentPresets)
+        {
+            if (AccentSwatch(name, col)) { C.AccentColor = col; Theme.Accent = col; C.SaveSettings(); }
+            ImGui.SameLine(0, 8);
+        }
+        ImGui.NewLine();
+
+        ImGui.Spacing();
+        if (ImGui.SmallButton("Match the overlays to this"))
+        {
+            C.UpcomingBoardAccentColor = C.AccentColor;
+            C.MeterAccentColor = C.AccentColor;
+            C.Save();
+        }
+        Tip("Points the Next Mits board and the meter at this color too.");
+
+        ImGui.Spacing();
+        SeparatorText("Size");
+        var scale = C.UiScale;
+        if (Widgets.SliderInput("UI scale", ref scale, 0.8f, 1.6f, "%.2fx", width: 220f))
+        {
+            C.UiScale = scale;
+            Theme.Scale = scale;
+            C.SaveSettings();
+        }
+        if (SettingsIndex.IsChanged(C, NavKind.Display, "UI scale")) Widgets.ChangedPill();
+        ImGui.TextDisabled("Text and spacing in the plugin's own windows. The in-game overlays keep");
+        ImGui.TextDisabled("their own text-size sliders, since they sit over the game.");
+    }
+
+    // Packed ABGR, so these read reversed from their hex names.
+    private static readonly (string Name, uint Color)[] AccentPresets =
+    {
+        ("Blue", Theme.DefaultAccent), ("Amber", 0xFF3B88F0), ("Violet", 0xFFF56B9B),
+        ("Teal", 0xFFA8C93B), ("Rose", 0xFF7A5CF0),
+    };
+
+    // A round color chip; returns true when picked.
+    private bool AccentSwatch(string name, uint color)
+    {
+        var size = ImGui.GetFrameHeight();
+        var p = ImGui.GetCursorScreenPos();
+        var clicked = ImGui.InvisibleButton($"##sw{name}", new Vector2(size, size));
+        var hovered = ImGui.IsItemHovered();
+        if (hovered) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        var c = new Vector2(p.X + size * 0.5f, p.Y + size * 0.5f);
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddCircleFilled(c, size * 0.42f, color);
+        if (C.AccentColor == color || hovered)
+            dl.AddCircle(c, size * 0.5f - 1f, hovered ? 0xFFFFFFFF : Theme.TextBright, 0, 2f);
+        if (hovered) ImGui.SetTooltip(name);
+        return clicked;
     }
 
     // ---- Next Mits board ----
@@ -512,7 +587,7 @@ public partial class ConfigWindow
         if (ImGuiComponents.IconButtonWithText(_nextMitsPreview ? FontAwesomeIcon.Stop : FontAwesomeIcon.Play,
                 _nextMitsPreview ? "Stop preview" : "Preview"))
             _nextMitsPreview = !_nextMitsPreview;
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Plays a sample in the real window so you can place it.");
         ImGui.SameLine(0, 8);
         if (ImGui.SmallButton("Reset position"))
@@ -523,7 +598,7 @@ public partial class ConfigWindow
         }
         ImGui.SameLine(0, 8);
         if (ImGui.SmallButton("Reset all")) ResetNextMitsDefaults();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Everything on this page back to the FrenMits defaults.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Everything on this page back to the FrenMits defaults.");
 
         C.TimelineLocked = CfgCheck("Lock the window (click-through)", C.TimelineLocked);
         ImGui.SameLine();
@@ -544,7 +619,7 @@ public partial class ConfigWindow
 
         if (!ImGui.BeginTabBar("##nmtabs", ImGuiTabBarFlags.None)) return;
 
-        if (ImGui.BeginTabItem("Layout"))
+        if (TabItem("Layout"))
         {
             ImGui.Spacing();
             var style = Math.Clamp(C.UpcomingStyle, 0, 1);
@@ -575,7 +650,7 @@ public partial class ConfigWindow
 
                 ImGui.Spacing();
                 C.UpcomingBoardOnlyMine = CfgCheck("Only hits I have a press for", C.UpcomingBoardOnlyMine);
-                if (ImGui.IsItemHovered()) ImGui.SetTooltip("Off shows the whole fight.");
+                if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Off shows the whole fight.");
                 NextColumn();
                 C.UpcomingShowHeader = CfgCheck("Header:", C.UpcomingShowHeader);
                 if (C.UpcomingShowHeader)
@@ -611,7 +686,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (boardStyle && ImGui.BeginTabItem("Look"))
+        if (boardStyle && TabItem("Look"))
         {
             ImGui.Spacing();
             ImGui.AlignTextToFramePadding();
@@ -653,11 +728,11 @@ public partial class ConfigWindow
             C.UpcomingBoardStripe = CfgCheck("Accent stripe on the left edge", C.UpcomingBoardStripe);
             NextColumn();
             C.UpcomingBoardDrain = CfgCheck("Bars drain toward the hit", C.UpcomingBoardDrain);
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Unticked, bars FILL toward the hit instead.");
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Unticked, bars FILL toward the hit instead.");
             ImGui.EndTabItem();
         }
 
-        if (boardStyle && ImGui.BeginTabItem("On the rows"))
+        if (boardStyle && TabItem("On the rows"))
         {
             ImGui.Spacing();
             // Two tidy columns, two controls per row at most.
@@ -686,7 +761,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Every duty"))
+        if (TabItem("Every duty"))
         {
             ImGui.Spacing();
             C.UniversalTimelines = CfgCheck("Run a boss timeline in every duty (no sheet needed)", C.UniversalTimelines);
@@ -751,7 +826,7 @@ public partial class ConfigWindow
     {
         var v = ColorToVec4(get());
         if (ImGui.ColorEdit4(label, ref v, ImGuiColorEditFlags.NoInputs)) { set(Vec4ToColor(v)); C.Save(); }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(help);
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip(help);
     }
 
     // Everything on this page back to the defaults.
@@ -785,7 +860,7 @@ public partial class ConfigWindow
 
         if (!ImGui.BeginTabBar("##audiotabs", ImGuiTabBarFlags.None)) return;
 
-        if (ImGui.BeginTabItem("Voice"))
+        if (TabItem("Voice"))
         {
             ImGui.Spacing();
             C.TtsEnabled = CfgCheck("Speak the action", C.TtsEnabled);
@@ -874,7 +949,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (ImGui.BeginTabItem("Test"))
+        if (TabItem("Test"))
         {
             ImGui.Spacing();
             ImGui.SetNextItemWidth(220f);

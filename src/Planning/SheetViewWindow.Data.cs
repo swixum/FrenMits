@@ -294,6 +294,9 @@ public partial class SheetViewWindow
         }
 
         FindCooldownConflicts();
+        // Counted once here, since the toolbar chip would otherwise walk every
+        // cell of every row on every frame.
+        _clashRowCount = _rows.Count(RowHasClash);
 
         IReadOnlyList<MitPress>? presses = null;
         if (_fight != null)

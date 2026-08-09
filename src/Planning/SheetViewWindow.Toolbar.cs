@@ -103,48 +103,66 @@ public partial class SheetViewWindow
 
         var gradedRows = _fight.CustomRows.Count(r => r.Hurt > 0);
         ImGui.TextUnformatted($"Fill the grid with party cooldowns for {_fight.CustomRows.Count} rows?");
-        ImGui.TextDisabled("Planned the way the official sheets play it: deadly hits stack the whole");
-        ImGui.TextDisabled("party (healers pair big mits), hurts takes about half, light gets one");
-        ImGui.TextDisabled("press, and long cooldowns are saved for the big hits so they line up.");
-        ImGui.TextDisabled("Everything else keeps rolling: a cooldown that is back and not owed to");
-        ImGui.TextDisabled("a deadly hit goes on the next hit, so healer kits never sit unused.");
-        ImGui.TextDisabled("Tooltips are respected: on-damage cooldowns (Liturgy of the Bell,");
-        ImGui.TextDisabled("Panhaima, Macrocosmos) are held for multi-hit strings where they tick.");
-        ImGui.TextDisabled("Reprisal/Feint/Addle are never doubled on one hit; sources rotate instead.");
-        ImGui.TextDisabled("Buster rows get the tanks' own plan: the taker alternates, deadly ones");
-        ImGui.TextDisabled("draw an invuln, the rest Rampart + short mit, co-tank sends Buddy Mit.");
-        ImGui.TextDisabled("Columns named for a job (WHM, SGE, MCH...) plan with that job's real");
-        ImGui.TextDisabled("kit; other role columns (MT, D3...) get terms that speak as each");
-        ImGui.TextDisabled("player's own ability. Recasts always respected; your cells never touched.");
+        ImGui.PushTextWrapPos(500f);
+        ImGui.TextDisabled("Planned the way the official sheets play it: stacked deep on the deadly "
+                           + "hits, spread by recast, and your own cells are never touched.");
+        ImGui.PopTextWrapPos();
+        ImGui.Spacing();
+
+        // A stat row, so the shape of the job lands before any prose.
+        Widgets.Chip("rows", _fight.CustomRows.Count.ToString(), Theme.TextBright);
+        ImGui.SameLine(0, 8);
+        Widgets.Chip("graded", gradedRows.ToString(), gradedRows > 0 ? Theme.Good : Theme.Muted);
+        ImGui.SameLine(0, 8);
+        Widgets.Chip("columns", _fight.CustomSlots.Count.ToString(), Theme.TextBright);
+        ImGui.Spacing();
+
+        // The detail is here for whoever wants it, folded away for everyone else.
+        if (ImGui.TreeNode("How it plans"))
+        {
+            ImGui.PushTextWrapPos(500f);
+            ImGui.TextDisabled("Deadly hits stack the whole party and healers pair big mits. Hurts takes "
+                               + "about half, light gets one press. Long cooldowns are saved for the big hits so "
+                               + "they line up, and anything that is back and not owed to a deadly hit goes on "
+                               + "the next one, so healer kits never sit unused.");
+            ImGui.PopTextWrapPos();
+            ImGui.TreePop();
+        }
+        if (ImGui.TreeNode("Special cases"))
+        {
+            ImGui.PushTextWrapPos(500f);
+            ImGui.TextDisabled("On-damage cooldowns (Liturgy of the Bell, Panhaima, Macrocosmos) are held "
+                               + "for multi-hit strings where they tick. Reprisal, Feint and Addle are never "
+                               + "doubled on one hit; sources rotate instead. Buster rows get the tanks' own "
+                               + "plan: the taker alternates, deadly ones draw an invuln, the rest take Rampart "
+                               + "plus a short mit while the co-tank sends Buddy Mit.");
+            ImGui.TextDisabled("Columns named for a job (WHM, SGE, MCH...) plan with that job's real kit; "
+                               + "other role columns (MT, D3...) get terms that speak as each player's own "
+                               + "ability. Recasts are always respected.");
+            ImGui.PopTextWrapPos();
+            ImGui.TreePop();
+        }
 
         // Healer seats: the four healer jobs' kits barely overlap, so the
         // sheets carry a column per healer JOB.
         var healerCols = GenericHealerCols();
+        ImGui.PushTextWrapPos(500f);
         if (healerCols.Count > 0)
         {
             ImGui.Spacing();
             ImGui.TextColored(ImGuiColors.HealerGreen,
-                "Healer seats become WHM, AST, SCH and SGE columns, like the official");
-            ImGui.TextColored(ImGuiColors.HealerGreen,
-                "sheets: every healer job gets its real cooldowns planned. Pick your");
-            ImGui.TextColored(ImGuiColors.HealerGreen,
-                "own column AFTER planning, from the column headers or fight page.");
+                "Healer seats become WHM, AST, SCH and SGE columns, like the official sheets, so "
+                + "every healer job gets its real cooldowns planned. Pick your own column after "
+                + "planning, from a column header or the fight page.");
         }
         var noKit = _fight.CustomSlots.Where(sl => PoolFor(sl).Length == 0).ToList();
         if (noKit.Count > 0)
             ImGui.TextColored(ImGuiColors.DalamudYellow,
                 $"No kit for: {string.Join(", ", noKit)}. Rename to a job (WHM) or role (H1, D3) to include them.");
-        ImGui.Spacing();
-        if (gradedRows > 0)
-            ImGui.TextDisabled($"{gradedRows} row(s) are graded by how hard they hit (log damage or your own");
-        if (gradedRows > 0)
-            ImGui.TextDisabled("grades); the planner sets stacking depth from the grades on its own.");
-        else
-            ImGui.TextDisabled("Tip: import an FFLogs log and rows get graded by real unmitigated");
         if (gradedRows == 0)
-            ImGui.TextDisabled("damage; graded rows then set their own stacking depth.");
-        ImGui.TextDisabled("Job-specific cooldowns (Dismantle, Curing Waltz, ...) stay optional");
-        ImGui.TextDisabled("extras on the fight page, like the sheet's Extras column.");
+            ImGui.TextDisabled("Tip: import a kill log and rows get graded by real unmitigated damage, "
+                               + "which lets the planner set its own stacking depth.");
+        ImGui.PopTextWrapPos();
         ImGui.Spacing();
 
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
@@ -199,35 +217,16 @@ public partial class SheetViewWindow
         Flash($"{slot} is your column now; the overlay calls that plan.");
     }
 
-    // Short hover delay for informational tooltips on the toolbar sweep path.
-    private static Vector2 _ttPos;
-    private static double _ttSince;
-    private static int _ttFrame;
-
+    // The plugin-wide hover delay, so tooltips here match every other window.
     private static bool DelayedHover(ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
-    {
-        if (!ImGui.IsItemHovered(flags)) return false;
-        // The item rect is a fine identity for "did the hovered thing change";
-        // a frame gap means the mouse left and the delay starts over.
-        var pos = ImGui.GetItemRectMin();
-        var now = ImGui.GetTime();
-        var frame = ImGui.GetFrameCount();
-        if (pos != _ttPos || frame - _ttFrame > 2) { _ttPos = pos; _ttSince = now; }
-        _ttFrame = frame;
-        return now - _ttSince >= 0.35;
-    }
+        => Widgets.HoveredDelayed(flags);
 
     private void DrawToolbar()
     {
         DrawFightPicker();
 
-        // Phase filter: All + one button per phase, like the sheet's tabs.
-        PhaseButton("All", _phaseFilter.Length == 0);
-        foreach (var (name, _) in _phases)
-        {
-            ImGui.SameLine(0, 4);
-            PhaseButton(name, _phaseFilter == name);
-        }
+        // Phase filter, as one segmented control rather than loose buttons.
+        DrawPhaseSegments();
 
         // Text filter across mechanics and mits ("Reprisal" = every Reprisal row).
         ImGui.SameLine(0, 10);
@@ -241,28 +240,12 @@ public partial class SheetViewWindow
             if (ImGui.SmallButton("x##clearfilter")) _filter = "";
         }
 
-        ImGui.SameLine(0, 16);
-        ImGui.Checkbox("Party Mits", ref _showPartyMits);
-        ImGui.SameLine(0, 8);
-        ImGui.Checkbox("Personal/Role Mits", ref _showPersonalMits);
-        ImGui.SameLine(0, 8);
-        ImGui.Checkbox("Show Job Extra", ref _showJobExtra);
-        if (DelayedHover() && !ImGui.IsItemActive())
-            ImGui.SetTooltip("Job-specific extras (Mantra, Curing Waltz, ...) that ride into the plan\non their own, at their own time. Untick to hide their rows.");
+        // What the grid shows, all in one menu instead of four loose checkboxes.
+        ImGui.SameLine(0, 12);
+        DrawViewMenu();
 
         ImGui.SameLine(0, 8);
-        var showEmpty = C.ShowEmptyMechanics;
-        if (ImGui.Checkbox("Empty Mechanics", ref showEmpty))
-        {
-            C.ShowEmptyMechanics = showEmpty;
-            C.Save();
-            _dirty = true;
-        }
-        if (DelayedHover() && !ImGui.IsItemActive())
-            ImGui.SetTooltip("Show mechanics with no mit assigned in any slot (raidwides, autos, ...) as blank reference rows.");
-
-        ImGui.SameLine(0, 8);
-        var filtered = _phaseFilter.Length > 0 || _filter.Length > 0 || !_showJobExtra;
+        var filtered = _phaseFilter.Length > 0 || _filter.Length > 0 || !_showJobExtra || _clashOnly;
         var shown = _rows.Count(r => !r.Ghost
             && (_phaseFilter.Length == 0 || r.Phase == _phaseFilter)
             && (_showJobExtra || !r.JobExtra) && MatchesFilter(r));
@@ -270,10 +253,25 @@ public partial class SheetViewWindow
             ? $"·  {shown} of {_rows.Count(r => !r.Ghost)} mechanics"
             : $"·  {_rows.Count(r => !r.Ghost)} mechanics, {_slots.Length} slots");
 
+        // Cooldown clashes, and a way to see only those rows.
+        if (_clashRowCount > 0 || _clashOnly)
+        {
+            ImGui.SameLine(0, 10);
+            if (Widgets.ChipButton("clashes", _clashRowCount.ToString(), Theme.Danger, _clashOnly))
+            {
+                CommitPending();
+                _clashOnly = !_clashOnly;
+            }
+            if (DelayedHover())
+                ImGui.SetTooltip(_clashOnly
+                    ? "Showing only rows where a mit repeats before its cooldown is back. Click to show them all."
+                    : "Rows where a mit repeats before its cooldown is back. Click to show only those.");
+        }
+
         // The how-to lives here now instead of a permanent footer line.
         ImGui.SameLine(0, 8);
         ImGui.TextDisabled("(?)");
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip(
                 "Click a time to re-time a mechanic for every slot; click a cell to edit that slot only.\n"
                 + "While editing: Enter moves down, Tab moves right. Ctrl+Z undoes any edit.\n"
@@ -315,11 +313,11 @@ public partial class SheetViewWindow
                 if (ImGui.MenuItem("Add row...")) openAddRow = true;
                 if (ImGui.MenuItem("Build from pull...")) openBuildPull = true;
                 if (ImGui.MenuItem("Build from FFLogs...")) openLog = true;
-                if (ImGui.IsItemHovered())
+                if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip("Type a fight name to pull its current top kill, or paste a specific\nlog. Its casts become rows + anchors, graded by real damage.");
                 ImGui.Separator();
                 if (ImGui.MenuItem("Auto-plan mits...")) _openAutoPlan = true;
-                if (ImGui.IsItemHovered())
+                if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip("Fills the grid with party cooldowns for every row: spaced to each\nrecast, rotated across columns, never overwriting your own cells.");
                 ImGui.EndPopup();
             }
@@ -340,32 +338,26 @@ public partial class SheetViewWindow
                 ExportText();
             }
             if (ImGui.MenuItem("Import plan code")) ImportPlan();
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Paste a friend's Share plan code from your clipboard.\nTheir slot is replaced; your other slots are kept.");
             if (ImGui.MenuItem("Replace a mit...")) openReplace = true;
             if (ImGui.MenuItem("Plan history...")) openHistory = true;
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Snapshots taken automatically before imports, replaces and\ncolumn pastes; restore any of them.");
 
             if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
-            if (!_isCustom && ImGui.IsItemHovered())
+            if (!_isCustom && Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Reload EVERY column from the baked sheet: all slots' edits and\ndeletions go, including added potion, job and tank lines.\nA snapshot is saved first; Plan > History restores it.");
             if (ImGui.MenuItem("Open fight page")) _plugin.ConfigWindow.OpenFightPage(_fight!);
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Per-line options, anchors and import tools live there.");
             if (ImGui.MenuItem("Open Mit Tuner")) _plugin.MiniSheetWindow.IsOpen = true;
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("A pocket version for mid-pull use: the calls around now,\neach with +/- nudges for its offset. Also /fm mini.");
             if (_isCustom)
             {
                 ImGui.Separator();
                 if (ImGui.MenuItem("Delete this sheet...")) openDelete = true;
-            }
-            ImGui.Separator();
-            if (ImGui.MenuItem("Color mits by type", "", C.SheetColorByType))
-            {
-                C.SheetColorByType = !C.SheetColorByType;
-                C.Save();
             }
             ImGui.EndPopup();
         }
@@ -423,7 +415,7 @@ public partial class SheetViewWindow
         ImGui.InputTextWithHint("##artime", "time (m:ss or seconds)", ref _rowTime, 16);
         ImGui.SetNextItemWidth(200f);
         ImGui.Combo("hits##arhurt", ref _rowHurt, HurtChoices, HurtChoices.Length);
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("How hard the hit is unmitigated. Auto-plan stacks mitigation deeper\non harder hits; log imports grade this automatically from real damage.");
         var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
         ImGui.BeginDisabled(!okRow);
@@ -459,6 +451,28 @@ public partial class SheetViewWindow
         Flash(message);
     }
 
+    // All + one segment per phase, joined into a single control.
+    private void DrawPhaseSegments()
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1f, ImGui.GetStyle().ItemSpacing.Y));
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0f);
+        PhaseButton("All", _phaseFilter.Length == 0);
+        foreach (var (name, _) in _phases)
+        {
+            ImGui.SameLine();
+            PhaseButton(name, _phaseFilter == name);
+        }
+        ImGui.PopStyleVar(2);
+
+        // One outline around the lot, so it reads as one control.
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
+        ImGui.GetWindowDrawList().AddRect(
+            new Vector2(_segLeft, min.Y), max, Widgets.CardBorder, 4f);
+    }
+
+    private float _segLeft;
+
     private void PhaseButton(string name, bool on)
     {
         if (on)
@@ -475,7 +489,52 @@ public partial class SheetViewWindow
             _phaseFilter = name == "All" ? "" : name;
         }
         if (on) ImGui.PopStyleColor(3);
+        if (name == "All") _segLeft = ImGui.GetItemRectMin().X;
     }
+
+    // Everything that changes what the grid shows, in one place.
+    private void DrawViewMenu()
+    {
+        if (ImGui.SmallButton("View")) ImGui.OpenPopup("##viewmenu");
+        if (DelayedHover())
+            ImGui.SetTooltip("Which rows and mits the grid shows, and how they're colored.");
+        if (!ImGui.BeginPopup("##viewmenu")) return;
+
+        ImGui.MenuItem("Party mits", "", ref _showPartyMits);
+        ImGui.MenuItem("Personal / role mits", "", ref _showPersonalMits);
+        ImGui.MenuItem("Job extras", "", ref _showJobExtra);
+        if (Widgets.HoveredDelayed())
+            ImGui.SetTooltip("Job-specific extras (Mantra, Curing Waltz, ...) that ride into the plan\non their own, at their own time. Untick to hide their rows.");
+
+        var showEmpty = C.ShowEmptyMechanics;
+        if (ImGui.MenuItem("Empty mechanics", "", ref showEmpty))
+        {
+            C.ShowEmptyMechanics = showEmpty;
+            C.Save();
+            _dirty = true;
+        }
+        if (Widgets.HoveredDelayed())
+            ImGui.SetTooltip("Show mechanics with no mit assigned in any slot (raidwides, autos, ...) as blank reference rows.");
+
+        if (ImGui.MenuItem("Color mits by type", "", C.SheetColorByType))
+        {
+            C.SheetColorByType = !C.SheetColorByType;
+            C.Save();
+        }
+
+        ImGui.Separator();
+        if (ImGui.MenuItem("Reset column widths"))
+        {
+            _widthReset++;
+            Flash("Columns back to their standard widths.");
+        }
+        if (Widgets.HoveredDelayed())
+            ImGui.SetTooltip("Undo any column dragging. Double-clicking one edge still fits that column.");
+        ImGui.EndPopup();
+    }
+
+    // Bumped to give the table a fresh id, which drops its saved widths.
+    private int _widthReset;
 
     // Deleting a whole custom sheet: confirmed, snapshotted first, undoable
     // only via History after recreating a sheet in the same duty.
@@ -565,7 +624,7 @@ public partial class SheetViewWindow
                 _snapList = _plugin.Snapshots.List(_fight!.Id)
                     .Concat(_plugin.Snapshots.ListOrphans(_fight.TerritoryId, _fight.Id))
                     .ToList();
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Lists snapshots from sheets you previously deleted in this duty,\nso a deleted sheet can be restored here.");
         }
         ImGui.EndPopup();

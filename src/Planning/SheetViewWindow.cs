@@ -85,6 +85,9 @@ public partial class SheetViewWindow : Window
     // Whole-row filter: job-restricted extras (Mantra, Curing Waltz, ...) mixed
     // in at their own time, distinct from a shared party-mit row.
     private bool _showJobExtra = true;
+    // Whole-row filter: only rows holding a cooldown clash.
+    private bool _clashOnly;
+    private int _clashRowCount;
 
     public bool HasConflict(FightProfile fight, MitLine line, out string reason)
     {
@@ -345,9 +348,12 @@ public partial class SheetViewWindow : Window
 
     public override void Draw()
     {
+        Theme.Accent = C.AccentColor;
+        Theme.Scale = Math.Clamp(C.UiScale, 0.8f, 1.6f);
         Theme.PushWidgets();
+        using var uiFont = Widgets.PushUiFont(_plugin.Fonts, Theme.Scale);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f);
-        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 16f);
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 16f * Theme.Scale);
         try { DrawBody(); }
         finally
         {
@@ -362,9 +368,17 @@ public partial class SheetViewWindow : Window
         if (_fight == null) _fight = PickDefaultFight();
         if (_fight == null)
         {
-            ImGui.TextDisabled("No fight to show yet.");
+            ImGui.TextUnformatted("No sheets yet");
+            ImGui.PushTextWrapPos(460f);
+            ImGui.TextDisabled("A sheet is one fight's mit plan, a column per player. Start from a "
+                               + "built-in fight, or make your own from a pull or a kill log.");
+            ImGui.PopTextWrapPos();
             ImGui.Spacing();
-            if (ImGui.Button("New sheet...")) OpenNewSheetPopup();
+            if (Widgets.AccentButton("New sheet...")) OpenNewSheetPopup();
+            ImGui.SameLine(0, 8);
+            if (ImGui.Button("Add a built-in fight")) _plugin.ConfigWindow.IsOpen = true;
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip("Opens Fren Mits, where the Ultimate, Savage and Extreme lists live.");
             DrawNewSheetPopup();
             return;
         }
@@ -471,7 +485,7 @@ public partial class SheetViewWindow : Window
         ImGui.SetNextItemOpen(C.SheetNotesOpen, ImGuiCond.Always);
         var label = _phaseFilter.Length > 0 ? $"Sheet notes ({_phaseFilter})" : "Sheet notes";
         var open = ImGui.CollapsingHeader($"{label}###sheetnotes");
-        if (ImGui.IsItemHovered())
+        if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Notes from the bottom of each phase tab.");
         if (open != C.SheetNotesOpen) { C.SheetNotesOpen = open; C.Save(); }
         if (!open) return;

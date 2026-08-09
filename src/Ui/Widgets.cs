@@ -7,7 +7,79 @@ namespace FrenMits.Ui;
 // Small reusable UI pieces shared across the plugin's windows.
 internal static class Widgets
 {
-    private const uint CardBorder = 0xFF2F2724; // #24272F soft panel outline
+    public const uint CardBorder = 0xFF2F2724; // #24272F soft panel outline
+
+    // How long the mouse must settle before any tooltip appears.
+    private const double TooltipDelay = 0.35;
+
+    private static Vector2 _tipPos;
+    private static double _tipSince;
+    private static int _tipFrame;
+
+    // True once the mouse has settled here, so sweeping a page stays quiet. The
+    // item rect is identity enough; a frame gap means the delay starts over.
+    public static bool HoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
+    {
+        if (!ImGui.IsItemHovered(flags)) return false;
+        var pos = ImGui.GetItemRectMin();
+        var now = ImGui.GetTime();
+        var frame = ImGui.GetFrameCount();
+        if (pos != _tipPos || frame - _tipFrame > 2) { _tipPos = pos; _tipSince = now; }
+        _tipFrame = frame;
+        return now - _tipSince >= TooltipDelay;
+    }
+
+    // The one tooltip call, so every hint in the plugin waits the same beat.
+    public static void Tooltip(string text)
+    {
+        if (HoveredDelayed()) ImGui.SetTooltip(text);
+    }
+
+    // The window font at the user's UI scale; null at 1x or while it builds.
+    public static IDisposable? PushUiFont(FontManager fonts, float scale)
+    {
+        if (MathF.Abs(scale - 1f) < 0.02f) return null;
+        var handle = fonts.Get(ImGui.GetFontSize() * scale, "Default", false, false);
+        return handle is { Available: true } ? handle.Push() : null;
+    }
+
+    // A pill marking a setting that no longer matches its default. Drawn beside
+    // the last item rather than as one, so its label keeps the hover tooltip.
+    public static void ChangedPill()
+    {
+        var pad = new Vector2(6, 1);
+        var sz = ImGui.CalcTextSize("changed");
+        var p = new Vector2(ImGui.GetItemRectMax().X + 8f, ImGui.GetItemRectMin().Y - pad.Y);
+        var box = sz + pad * 2;
+        var dl = ImGui.GetWindowDrawList();
+        var right = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
+        if (p.X + box.X > right)
+        {
+            // No room for the word: a dot says the same thing.
+            var h = ImGui.GetTextLineHeight();
+            dl.AddCircleFilled(new Vector2(p.X, ImGui.GetItemRectMin().Y + h * 0.5f), 3.5f, Theme.Accent);
+            return;
+        }
+        dl.AddRectFilled(p, p + box, (Theme.Accent & 0x00FFFFFFu) | 0x2A000000u, 4f);
+        dl.AddRect(p, p + box, (Theme.Accent & 0x00FFFFFFu) | 0x99000000u, 4f);
+        dl.AddText(p + pad, Theme.Accent, "changed");
+    }
+
+    // The header every plugin window opens with: an accent bar, a title, and a
+    // muted detail. Right-aligned actions go after it with SameLine.
+    public static void WindowHeader(string title, string detail = "")
+    {
+        var p = ImGui.GetCursorScreenPos();
+        var h = ImGui.GetFrameHeight();
+        ImGui.GetWindowDrawList().AddRectFilled(
+            p + new Vector2(0, 2), p + new Vector2(3, h - 2), Theme.Accent, 2f);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(Theme.V(Theme.Accent), title);
+        if (detail.Length == 0) return;
+        ImGui.SameLine(0, 10);
+        ImGui.TextColored(Theme.V(Theme.Muted), detail);
+    }
 
     // Section header: an accent tab, then a muted label.
     public static void SectionHeader(string text)
@@ -89,7 +161,7 @@ internal static class Widgets
     {
         ImGui.SetNextItemWidth(width);
         var changed = ImGui.DragFloat(label, ref v, MathF.Max(0.001f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
+        if (HoveredDelayed()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
         return changed;
     }
 
@@ -97,7 +169,7 @@ internal static class Widgets
     {
         ImGui.SetNextItemWidth(width);
         var changed = ImGui.DragInt(label, ref v, MathF.Max(0.05f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
+        if (HoveredDelayed()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
         return changed;
     }
 

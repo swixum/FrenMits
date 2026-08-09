@@ -38,10 +38,11 @@ public class MeterHistoryWindow : Window
     public override void Draw()
     {
         Theme.PushWidgets();
+        using var uiFont = Widgets.PushUiFont(_plugin.Fonts, Theme.Scale);
         ImGui.PushStyleColor(ImGuiCol.TableHeaderBg, HeaderBg);
         ImGui.PushStyleColor(ImGuiCol.TableRowBg, 0u);
         ImGui.PushStyleColor(ImGuiCol.TableRowBgAlt, RowAlt);
-        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(8, 4));
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(8, 4) * Theme.Scale);
         try { DrawBody(); }
         finally
         {
@@ -61,6 +62,12 @@ public class MeterHistoryWindow : Window
     {
         var m = _plugin.Meter;
         var style = ImGui.GetStyle();
+
+        Widgets.WindowHeader("Pull history",
+            m.History.Count == 0 ? "nothing recorded yet" : $"{m.History.Count} kept");
+        ImGui.Separator();
+        ImGui.Spacing();
+
         // Frame, spacing, and the rule above the footer.
         var footerH = ImGui.GetFrameHeight() + style.ItemSpacing.Y * 3 + 1f;
 
@@ -589,7 +596,7 @@ public class MeterHistoryWindow : Window
         var clearW = ImGui.CalcTextSize("Clear").X + style.FramePadding.X * 2;
         ImGui.SameLine(MathF.Max(0f, ImGui.GetContentRegionMax().X - clearW));
         if (ImGui.Button("Clear")) ImGui.OpenPopup("##clearhistory");
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Forget every past pull.");
+        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Forget every past pull.");
 
         if (!ImGui.BeginPopup("##clearhistory")) return;
         ImGui.TextUnformatted("Forget every past pull?");

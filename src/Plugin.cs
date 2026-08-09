@@ -65,6 +65,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Config.LearnedFights ??= new();
         Snapshots = new SnapshotStore(Config);
         Theme.Colorblind = Config.ColorblindMode; // status palette follows the setting
+        Theme.Accent = Config.AccentColor;
+        Theme.Scale = Math.Clamp(Config.UiScale, 0.8f, 1.6f);
         load.Mark("config");
 
         // Versioned migrations (v2..v23) live in ConfigMigrations.

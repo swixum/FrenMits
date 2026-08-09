@@ -44,6 +44,12 @@ public class Configuration : IPluginConfiguration
     // Colorblind-safe status colors: an Okabe-Ito set in place of green/amber/red.
     public bool ColorblindMode { get; set; }
 
+    // The one interactive color every plugin window is drawn with.
+    public uint AccentColor { get; set; } = 0xFFF6823B;
+
+    // Text and spacing multiplier for the plugin's own windows.
+    public float UiScale { get; set; } = 1f;
+
     // Learned downtime lengths per territory, keyed by id.
     public Dictionary<string, List<DowntimeWindow>> LearnedDowntimes { get; set; } = new();
 

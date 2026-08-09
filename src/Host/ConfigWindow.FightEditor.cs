@@ -21,7 +21,7 @@ public partial class ConfigWindow
             ImGui.AlignTextToFramePadding();
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Official sheet.");
             ImGui.SameLine(0, 5);
             ImGui.TextUnformatted(fight.Name);
@@ -552,7 +552,7 @@ public partial class ConfigWindow
                     { Start = w.Start, Duration = w.Duration, TargetHp = w.TargetHp, Cutscene = w.Cutscene }).ToList(),
                 });
             }
-            if (ImGui.IsItemHovered())
+            if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("The copy starts disabled.");
             ImGui.SameLine();
         }
