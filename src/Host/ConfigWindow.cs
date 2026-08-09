@@ -1129,8 +1129,10 @@ public partial class ConfigWindow : Window, IDisposable
     // What seat each role takes. The picks themselves live under Your Setup.
     private void DrawSelectRoleRow()
     {
-        var picks = new[] { JobRole.Tank, JobRole.Healer, JobRole.Melee, JobRole.PhysicalRanged }
-            .Select(r => C.GlobalRolePreferences.TryGetValue(r, out var p) ? p : "-")
+        // Unset roles show their default seat, the same one the sidebar combos show.
+        var picks = new[] { (JobRole.Tank, "MT"), (JobRole.Healer, "H1"),
+                (JobRole.Melee, "M1"), (JobRole.PhysicalRanged, "R1") }
+            .Select(s => C.GlobalRolePreferences.TryGetValue(s.Item1, out var p) ? p : s.Item2)
             .ToArray();
         var text = string.Join("  ", picks);
         var gap = ImGui.CalcTextSize("  ").X;
@@ -1141,7 +1143,7 @@ public partial class ConfigWindow : Window, IDisposable
         {
             if (i > 0) ImGui.SameLine(0, gap);
             ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(Theme.V(picks[i] == "-" ? Theme.Muted : Theme.RoleColor(picks[i])), picks[i]);
+            ImGui.TextColored(Theme.V(Theme.RoleColor(picks[i])), picks[i]);
         }
         Widgets.RowEnd();
     }
