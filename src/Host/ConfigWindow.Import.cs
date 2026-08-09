@@ -46,12 +46,12 @@ public partial class ConfigWindow
         _mechCol = Math.Clamp(_mechCol, 0, cols - 1);
         _actionCol = Math.Clamp(_actionCol, 0, cols - 1);
 
-        ImGui.SetNextItemWidth(Theme.S(220f));
-        ImGui.Combo("Time column", ref _timeCol, colNames, colNames.Length);
-        ImGui.SetNextItemWidth(Theme.S(220f));
-        ImGui.Combo("Mechanic column", ref _mechCol, colNames, colNames.Length);
-        ImGui.SetNextItemWidth(Theme.S(220f));
-        ImGui.Combo("Action column (your mit)", ref _actionCol, colNames, colNames.Length);
+        LabelledWidth("Time column", 220f);
+        ImGui.Combo("##imptime", ref _timeCol, colNames, colNames.Length);
+        LabelledWidth("Mechanic column", 220f);
+        ImGui.Combo("##impmech", ref _mechCol, colNames, colNames.Length);
+        LabelledWidth("Your mit column", 220f);
+        ImGui.Combo("##impaction", ref _actionCol, colNames, colNames.Length);
 
         var header = _importHeader;
         if (GreenCheckbox("First row is a header", ref header)) _importHeader = header;

@@ -40,6 +40,21 @@ public class Configuration : IPluginConfiguration
     // id would come back on the next launch and with it the old widths.
     public int SheetWidthReset { get; set; }
 
+    // When the meter is on screen: 0 always, 1 after a pull, 2 only in combat.
+    // The two booleans behind it can contradict each other and the hide one wins,
+    // so nothing sets them directly any more; both are kept so old configs and
+    // shared profiles still load.
+    [Newtonsoft.Json.JsonIgnore]
+    public int MeterShowMode
+    {
+        get => MeterHideOutOfCombat ? 2 : MeterAlwaysShow ? 0 : 1;
+        set
+        {
+            MeterHideOutOfCombat = value == 2;
+            MeterAlwaysShow = value == 0;
+        }
+    }
+
     // A small once-per-entry popup naming your slot for the duty.
     public bool ShowSlotPopupOnEntry { get; set; }
 

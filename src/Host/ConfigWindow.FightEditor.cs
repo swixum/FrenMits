@@ -20,14 +20,14 @@ public partial class ConfigWindow
         if (IsOfficial(fight)) return true;
 
         var name = fight.Name;
-        ImGui.SetNextItemWidth(Theme.S(260f));
-        if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
+        LabelledWidth("Name", 260f);
+        if (ImGui.InputText("##fightname", ref name, 128)) { fight.Name = name; C.Save(); }
         Tip("Times are seconds from the pull.");
 
         var ci = Array.IndexOf(Categories, fight.Category);
         if (ci < 0) ci = Categories.Length - 1;
-        ImGui.SetNextItemWidth(Theme.S(120f));
-        if (ImGui.Combo("Type", ref ci, Categories, Categories.Length))
+        LabelledWidth("Type", 120f);
+        if (ImGui.Combo("##fighttype", ref ci, Categories, Categories.Length))
         {
             fight.Category = Categories[ci];
             C.Save();
@@ -51,9 +51,11 @@ public partial class ConfigWindow
             return false;
 
         ImGui.TextUnformatted($"Delete \"{fight.Name}\"?");
+        ImGui.PushTextWrapPos(Theme.S(380f));
         ImGui.TextColored(ImGuiColors.DalamudYellow, "Every slot's plan, notes and anchors go with it.");
-        ImGui.TextDisabled("A snapshot is saved first. To recover later: recreate a sheet in the");
-        ImGui.TextDisabled("same duty, then History > Find this duty's older snapshots.");
+        ImGui.TextDisabled("A snapshot is saved first. To recover it later, recreate a sheet in the same "
+                           + "duty, then History > Find this duty's older snapshots.");
+        ImGui.PopTextWrapPos();
         ImGui.Spacing();
 
         var confirmed = false;
@@ -493,10 +495,10 @@ public partial class ConfigWindow
         var custom = JobExtras.For(fight.TerritoryId, job) == null; // no baked zone schedule -> from the sheet
 
         BeginCard(FontAwesomeIcon.Shield, ImGuiColors.HealerGreen, "Job extras", "auto-mixed in");
-        ImGui.TextDisabled("Already mixed into your line list below, at their own time. Delete one there");
-        ImGui.TextDisabled("(or in Sheet View) to drop it for good; these buttons reset it to the default.");
-        if (custom)
-            ImGui.TextDisabled("Spots picked from this sheet's rows, hardest-graded hits first.");
+        ImGui.SameLine(0, Theme.S(6f));
+        HelpMarker("Already mixed into your line list below, at their own time. Delete one there, or "
+                   + "in Sheet View, to drop it for good; these buttons reset it to the default."
+                   + (custom ? "\n\nSpots are picked from this sheet's rows, hardest-graded hits first." : ""));
 
         foreach (var extra in extras)
         {
@@ -643,9 +645,9 @@ public partial class ConfigWindow
         ImGui.Spacing();
         ImGui.BeginDisabled(locked); // a built-in's zone is fixed
         var territory = (int)fight.TerritoryId;
-        ImGui.SetNextItemWidth(Theme.S(120f));
+        LabelledWidth("Territory id", 120f);
         // Official zones are refused, since the built-in wins them.
-        if (ImGui.InputInt("Territory id", ref territory))
+        if (ImGui.InputInt("##territory", ref territory))
         {
             var target = (uint)Math.Max(0, territory);
             if (Builtin.Has(target) && target != fight.TerritoryId) _zoneRejectUntil = ImGui.GetTime() + 4;

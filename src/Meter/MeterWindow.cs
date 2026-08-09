@@ -2253,10 +2253,16 @@ public class MeterWindow : Window
                 { C.MeterBreakdownIcons = !C.MeterBreakdownIcons; C.SaveSettings(); }
                 if (ImGui.MenuItem("Color each ability", "", C.MeterBreakdownColors))
                 { C.MeterBreakdownColors = !C.MeterBreakdownColors; C.SaveSettings(); }
-                if (ImGui.MenuItem("Always on screen", "", C.MeterAlwaysShow))
-                { C.MeterAlwaysShow = !C.MeterAlwaysShow; C.SaveSettings(); }
-                if (ImGui.MenuItem("Hide out of combat", "", C.MeterHideOutOfCombat))
-                { C.MeterHideOutOfCombat = !C.MeterHideOutOfCombat; C.SaveSettings(); }
+                ImGui.Separator();
+                // One choice, so the two behind it cannot be set to contradict.
+                if (ImGui.BeginMenu("Show"))
+                {
+                    var mode = C.MeterShowMode;
+                    if (ImGui.MenuItem("Always", "", mode == 0)) { C.MeterShowMode = 0; C.SaveSettings(); }
+                    if (ImGui.MenuItem("After a pull", "", mode == 1)) { C.MeterShowMode = 1; C.SaveSettings(); }
+                    if (ImGui.MenuItem("Only in combat", "", mode == 2)) { C.MeterShowMode = 2; C.SaveSettings(); }
+                    ImGui.EndMenu();
+                }
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Bars"))

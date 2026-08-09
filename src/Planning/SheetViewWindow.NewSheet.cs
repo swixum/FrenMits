@@ -157,8 +157,8 @@ public partial class SheetViewWindow
         {
             ImGui.SetNextItemWidth(Theme.S(250f));
             ImGui.InputTextWithHint("##nscols", "columns, comma-separated (e.g. MT,OT,H1,H2)", ref _newSlotsBuf, 128);
-            ImGui.TextDisabled("Tip: name a column after a job (WHM, MCH...) and Auto-plan");
-            ImGui.TextDisabled("uses that job's real mitigation kit for it.");
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip("Name a column after a job (WHM, MCH...) and Auto-plan uses that\njob's real mitigation kit for it.");
         }
         var slots = TemplateSlots();
         if (slots.Length > 0)
@@ -230,8 +230,10 @@ public partial class SheetViewWindow
         }
         else if (C.Fights.FirstOrDefault(f => f.TerritoryId == terr) is { } already)
         {
-            ImGui.TextDisabled($"\"{already.Name}\" already covers that zone: Create adds these");
-            ImGui.TextDisabled("columns to it (its current lines become your column).");
+            ImGui.PushTextWrapPos(Theme.S(360f));
+            ImGui.TextDisabled($"\"{already.Name}\" already covers that zone. Create adds these columns "
+                               + "to it, and its current lines become your column.");
+            ImGui.PopTextWrapPos();
         }
         else
         {

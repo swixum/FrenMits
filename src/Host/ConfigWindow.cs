@@ -166,9 +166,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PopStyleVar(4);
         Theme.PopWidgets();
 
-        // This frame's widest label sets next frame's column.
-        _labelCol = _labelColNext;
-        _labelColNext = 0f;
+        Widgets.RollLabelCols();
 
         // Toggle returns the new value, so the save runs here.
         if (_toggleDirty)
@@ -289,19 +287,15 @@ public partial class ConfigWindow : Window, IDisposable
     // the same x. Width is measured as the rows draw and applied next frame,
     // the same one-frame settle the sidebar uses.
 
-    private float _labelCol;
-    private float _labelColNext;
+    // The column itself lives in Widgets, so the shared slider helper can use it.
+    private static float _labelCol => Widgets.LabelColWidth;
+    private static void RowLabel(string text) => Widgets.RowLabel(text);
 
-    // Right-aligned label, then the control, at the column edge.
-    private void RowLabel(string text)
+    // A labelled value control: the label leads, ImGui's trailing one is hidden.
+    private static void LabelledWidth(string label, float width)
     {
-        var w = ImGui.CalcTextSize(text).X;
-        _labelColNext = MathF.Max(_labelColNext, w);
-        var col = MathF.Max(_labelCol, w);
-        ImGui.AlignTextToFramePadding();
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + col - w);
-        ImGui.TextDisabled(text);
-        ImGui.SameLine(0, Theme.S(8f));
+        Widgets.RowLabel(label);
+        ImGui.SetNextItemWidth(Theme.S(width));
     }
 
     // An icon in place of a word, right-aligned into the same column.
@@ -700,7 +694,8 @@ public partial class ConfigWindow : Window, IDisposable
         var flags = _jumpTab == label ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
         var open = ImGui.BeginTabItem(label, flags);
         if (flags != ImGuiTabItemFlags.None) _jumpTab = "";
-        if (open) DrawTabResetBar(label);
+        // Each tab sizes its own label column.
+        if (open) { Widgets.LabelScope($"{_nav}/{label}"); DrawTabResetBar(label); }
         return open;
     }
 
@@ -815,6 +810,7 @@ public partial class ConfigWindow : Window, IDisposable
 
     private void DrawSelectedPage()
     {
+        Widgets.LabelScope(_nav.ToString());
         switch (_nav)
         {
             case NavKind.Home: DrawHomePage(); break;

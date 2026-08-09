@@ -215,8 +215,8 @@ public partial class ConfigWindow
             ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
             var fIdx = Math.Max(0, Array.IndexOf(fonts, C.CombatTimerFontFamily));
-            ImGui.SetNextItemWidth(Theme.S(200f));
-            if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.CombatTimerFontFamily = fonts[fIdx]; C.SaveSettings(); }
+            LabelledWidth("Font", 200f);
+            if (ImGui.Combo("##ctfont", ref fIdx, fonts, fonts.Length)) { C.CombatTimerFontFamily = fonts[fIdx]; C.SaveSettings(); }
             ImGui.SameLine(0, Theme.S(12f));
             var bold = C.CombatTimerFontBold;
             if (GreenCheckbox("Bold", ref bold)) { C.CombatTimerFontBold = bold; C.SaveSettings(); }
@@ -289,9 +289,9 @@ public partial class ConfigWindow
         {
             ImGui.Spacing();
             {
-                ImGui.SetNextItemWidth(Theme.S(220f));
+                LabelledWidth("Call style", 220f);
                 var style = C.OverlayStyle;
-                if (ImGui.Combo("Call style", ref style,
+                if (ImGui.Combo("##callstyle", ref style,
                         "Classic (centered text)\0Board (timeline look)\0Icon + clock\0"))
                 { C.OverlayStyle = style; C.SaveSettings(); }
                 Tip("How the center call is drawn.");
@@ -317,12 +317,12 @@ public partial class ConfigWindow
             if (ImGui.TreeNode("Advanced format"))
             {
                 var fmt = C.HeadlineFormat;
-                ImGui.SetNextItemWidth(Theme.S(280f));
-                if (ImGui.InputText("Call format", ref fmt, 128)) { C.HeadlineFormat = fmt; C.SaveSettings(); }
-                ImGui.TextDisabled("Placeholders: {action} {mechanic} {time} {count} {remaining}");
+                LabelledWidth("Call format", 280f);
+                if (ImGui.InputText("##callformat", ref fmt, 128)) { C.HeadlineFormat = fmt; C.SaveSettings(); }
+                HelpMarker("Placeholders: {action} {mechanic} {time} {count} {remaining}");
                 var suffix = C.ActiveSuffix;
-                ImGui.SetNextItemWidth(Theme.S(280f));
-                if (ImGui.InputText("\"NOW\" suffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.SaveSettings(); }
+                LabelledWidth("\"NOW\" suffix", 280f);
+                if (ImGui.InputText("##nowsuffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.SaveSettings(); }
                 ImGui.TreePop();
             }
             ImGui.EndTabItem();
@@ -333,8 +333,8 @@ public partial class ConfigWindow
             ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
             var fIdx = Math.Max(0, Array.IndexOf(fonts, C.OverlayFontFamily));
-            ImGui.SetNextItemWidth(Theme.S(200f));
-            if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.OverlayFontFamily = fonts[fIdx]; C.SaveSettings(); }
+            LabelledWidth("Font", 200f);
+            if (ImGui.Combo("##ovfont", ref fIdx, fonts, fonts.Length)) { C.OverlayFontFamily = fonts[fIdx]; C.SaveSettings(); }
             ImGui.SameLine(0, Theme.S(12f));
             var bold = C.OverlayFontBold;
             if (GreenCheckbox("Bold", ref bold)) { C.OverlayFontBold = bold; C.SaveSettings(); }
@@ -350,8 +350,8 @@ public partial class ConfigWindow
             if (Widgets.SliderInput("Call size", ref callPx, 12f, 120f, "%.0f px")) { C.OverlayFontSizePx = callPx; C.SaveSettings(); }
             ImGui.SameLine(0, Theme.S(18f));
             var align = C.OverlayTextAlign;
-            ImGui.SetNextItemWidth(Theme.S(110f));
-            if (ImGui.Combo("Align", ref align, new[] { "Left", "Center", "Right" }, 3))
+            LabelledWidth("Align", 110f);
+            if (ImGui.Combo("##ovalign", ref align, new[] { "Left", "Center", "Right" }, 3))
             { C.OverlayTextAlign = align; C.SaveSettings(); }
             if (C.ShowAbilityIcon)
             {
@@ -769,18 +769,14 @@ public partial class ConfigWindow
         if (TabItem("Every duty"))
         {
             ImGui.Spacing();
-            C.UniversalTimelines = CfgCheck("Run a boss timeline in every duty (no sheet needed)", C.UniversalTimelines);
-            ImGui.TextDisabled("Dungeons, trials, raids: the board lists the bosses' casts even with no sheet.");
-            ImGui.TextDisabled("No mits, no audio; a real sheet always takes over automatically.");
-
-            ImGui.Spacing();
-            ImGui.Separator();
-            ImGui.Spacing();
+            C.UniversalTimelines = CfgCheck("Run a boss timeline in every duty", C.UniversalTimelines);
+            HelpMarker("Dungeons, trials and raids: the board lists the bosses' casts even with no "
+                       + "sheet. No mits and no audio, and a real sheet always takes over automatically.");
 
             C.LearnTimelines = CfgCheck("Learn a boss's timeline from your own pulls", C.LearnTimelines);
-            ImGui.TextDisabled("Older duties have no baked timeline at all. Here the plugin watches what");
-            ImGui.TextDisabled("the boss casts and builds one itself, so the board fills in next time.");
-            ImGui.TextDisabled("It sharpens with every pull, and a baked timeline always wins.");
+            HelpMarker("Older duties have no baked timeline at all. Here the plugin watches what the "
+                       + "boss casts and builds one itself, so the board fills in next time. It sharpens "
+                       + "with every pull, and a baked timeline always wins.");
 
             if (C.LearnedFights.Count > 0)
             {
@@ -896,8 +892,8 @@ public partial class ConfigWindow
                 var list = Audio.EdgeVoices.Where(v => v.Female == female).ToArray();
                 var names = list.Select(v => v.Name).ToArray();
                 var idx = Math.Max(0, Array.FindIndex(list, v => v.Id == C.TtsEdgeVoice));
-                ImGui.SetNextItemWidth(Theme.S(220f));
-                if (ImGui.Combo("Voice##edge", ref idx, names, names.Length))
+                LabelledWidth("Voice", 220f);
+                if (ImGui.Combo("##edgevoice", ref idx, names, names.Length))
                 {
                     C.TtsEdgeVoice = list[idx].Id;
                     C.Save();
@@ -909,8 +905,8 @@ public partial class ConfigWindow
                 var voices = new List<string> { "System default" };
                 voices.AddRange(_plugin.Audio.VoiceNames());
                 var voiceIndex = string.IsNullOrEmpty(C.TtsVoice) ? 0 : Math.Max(0, voices.IndexOf(C.TtsVoice));
-                ImGui.SetNextItemWidth(Theme.S(280f));
-                if (ImGui.Combo("Voice##sapi", ref voiceIndex, voices.ToArray(), voices.Count))
+                LabelledWidth("Voice", 280f);
+                if (ImGui.Combo("##sapivoice", ref voiceIndex, voices.ToArray(), voices.Count))
                 {
                     C.TtsVoice = voiceIndex == 0 ? "" : voices[voiceIndex];
                     C.Save();

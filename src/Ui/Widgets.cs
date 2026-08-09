@@ -170,19 +170,54 @@ internal static class Widgets
         return clicked;
     }
 
+    // ---- label column ----
+    // ImGui draws a control's label after the widget. For a value control that
+    // reads backwards, so the label is drawn first instead, right-aligned into a
+    // column shared by every row in the same scope. Scoped per tab: one column
+    // for a whole window would be as wide as its longest label everywhere.
+    // Width is measured as rows draw and applied next frame.
+
+    private static readonly Dictionary<string, (float Cur, float Next)> LabelCols = new();
+    private static string _labelScope = "";
+
+    public static void LabelScope(string key) => _labelScope = key;
+
+    public static float LabelColWidth
+        => LabelCols.TryGetValue(_labelScope, out var e) ? e.Cur : 0f;
+
+    public static void RowLabel(string text)
+    {
+        var w = ImGui.CalcTextSize(text).X;
+        var e = LabelCols.TryGetValue(_labelScope, out var v) ? v : default;
+        LabelCols[_labelScope] = (e.Cur, MathF.Max(e.Next, w));
+        ImGui.AlignTextToFramePadding();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(e.Cur, w) - w);
+        ImGui.TextDisabled(text);
+        ImGui.SameLine(0, 8f * Theme.Scale);
+    }
+
+    // Once per frame: this frame's widest label per scope sets next frame's column.
+    public static void RollLabelCols()
+    {
+        foreach (var key in LabelCols.Keys.ToList())
+            LabelCols[key] = (LabelCols[key].Next, 0f);
+    }
+
     // One control: drag to adjust, or click to type a value.
     public static bool SliderInput(string label, ref float v, float min, float max, string fmt, float width = 150f)
     {
+        RowLabel(label);
         ImGui.SetNextItemWidth(width);
-        var changed = ImGui.DragFloat(label, ref v, MathF.Max(0.001f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        var changed = ImGui.DragFloat("##" + label, ref v, MathF.Max(0.001f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
         if (HoveredDelayed()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
         return changed;
     }
 
     public static bool SliderInput(string label, ref int v, int min, int max, string fmt = "%d", float width = 150f)
     {
+        RowLabel(label);
         ImGui.SetNextItemWidth(width);
-        var changed = ImGui.DragInt(label, ref v, MathF.Max(0.05f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        var changed = ImGui.DragInt("##" + label, ref v, MathF.Max(0.05f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
         if (HoveredDelayed()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
         return changed;
     }
