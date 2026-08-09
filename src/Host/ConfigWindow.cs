@@ -166,6 +166,10 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.PopStyleVar(4);
         Theme.PopWidgets();
 
+        // This frame's widest label sets next frame's column.
+        _labelCol = _labelColNext;
+        _labelColNext = 0f;
+
         // Toggle returns the new value, so the save runs here.
         if (_toggleDirty)
         {
@@ -280,6 +284,47 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Collapsible section, true when expanded.
+    // ---- shared label column ----
+    // Labels are right-aligned into one column so every row's control starts at
+    // the same x. Width is measured as the rows draw and applied next frame,
+    // the same one-frame settle the sidebar uses.
+
+    private float _labelCol;
+    private float _labelColNext;
+
+    // Right-aligned label, then the control, at the column edge.
+    private void RowLabel(string text)
+    {
+        var w = ImGui.CalcTextSize(text).X;
+        _labelColNext = MathF.Max(_labelColNext, w);
+        var col = MathF.Max(_labelCol, w);
+        ImGui.AlignTextToFramePadding();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + col - w);
+        ImGui.TextDisabled(text);
+        ImGui.SameLine(0, Theme.S(8f));
+    }
+
+    // An icon in place of a word, right-aligned into the same column.
+    private void RowLabelIcon(FontAwesomeIcon icon, uint color)
+    {
+        float w;
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            w = ImGui.CalcTextSize(icon.ToIconString()).X;
+        var col = MathF.Max(_labelCol, w);
+        ImGui.AlignTextToFramePadding();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + col - w);
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.TextColored(Theme.V(color), icon.ToIconString());
+        ImGui.SameLine(0, Theme.S(8f));
+    }
+
+    // A row that starts in the content column with no label of its own.
+    private void RowIndent()
+    {
+        ImGui.Dummy(new Vector2(MathF.Max(_labelCol, 0f), 1f));
+        ImGui.SameLine(0, Theme.S(8f));
+    }
+
     private static bool Section(string text, bool open = false)
     {
         ImGui.Spacing();

@@ -31,25 +31,67 @@ public partial class ConfigWindow
     // Narrow the table to mechanics holding a cooldown clash.
     private bool _lineClashOnly;
 
-    private void DrawLineTable(FightProfile fight)
+    // Right side of the lines toolbar: what is recoverable, then what you can do.
+    private void DrawLineToolbarActions(FightProfile fight, Action<string> undoable)
     {
-        // One shared stack with Sheet View, so either page takes back the
-        // other's edits and there is no second history to reason about.
-        void Undoable(string label) => _plugin.SheetViewWindow.PushUndo(fight, label);
+        var style = ImGui.GetStyle();
+        float BtnW(string s) => ImGui.CalcTextSize(s).X + style.FramePadding.X * 2f;
 
-        ImGui.TextUnformatted($"Lines ({fight.Lines.Count})");
-        if (ImGui.SmallButton("Add Mechanic"))
+        // Deleted sheet calls are remembered, so offer the way back.
+        var dead = fight.DeletedCalls.Count(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
+        var undoLabel = _plugin.SheetViewWindow.UndoLabelFor(fight);
+
+        var right = BtnW("View") + BtnW("Add") + BtnW("Undo") + style.ItemSpacing.X * 2f;
+        if (dead > 0) right += ImGui.CalcTextSize($"{dead} deleted").X + BtnW("Restore") + style.ItemSpacing.X * 2f;
+        var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(end + Theme.S(12f), ImGui.GetContentRegionMax().X - right));
+
+        if (dead > 0)
         {
-            Undoable("add a mechanic");
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextDisabled($"{dead} deleted");
+            ImGui.SameLine(0, Theme.S(6f));
+            if (ImGui.SmallButton("Restore"))
+            {
+                undoable("restore deleted calls");
+                fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
+                var back = Builtin.ApplySlot(fight, fight.Slot);
+                C.Save();
+                FlashBuiltin($"Restored {back} deleted sheet call{(back == 1 ? "" : "s")}.");
+            }
+            Tip("Put this slot's deleted calls back.");
+            ImGui.SameLine(0, Theme.S(10f));
+        }
+
+        // Display toggles behind a menu, the way Sheet View already does it.
+        if (ImGui.SmallButton("View")) ImGui.OpenPopup("##lineview");
+        Tip("What the table shows.");
+        if (ImGui.BeginPopup("##lineview"))
+        {
+            var showEmpty = C.ShowEmptyMechanics;
+            if (ImGui.MenuItem("Show empty mechanics", "", ref showEmpty))
+            {
+                C.ShowEmptyMechanics = showEmpty;
+                C.Save();
+            }
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip("Mechanics with no mit assigned, as blank reference rows.");
+            ImGui.EndPopup();
+        }
+
+        ImGui.SameLine(0, Theme.S(6f));
+        if (ImGui.SmallButton("Add"))
+        {
+            undoable("add a mechanic");
             var newLine = new MitLine { Custom = true, Personal = true };
             fight.Lines.Add(newLine);
             fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
             _scrollToLine = newLine;
             C.Save();
         }
+        Tip("Add a mechanic. Mechanics group actions together.\nOfficial ones cannot be renamed.");
 
-        ImGui.SameLine();
-        var undoLabel = _plugin.SheetViewWindow.UndoLabelFor(fight);
+        ImGui.SameLine(0, Theme.S(6f));
         ImGui.BeginDisabled(undoLabel == null);
         if (ImGui.SmallButton("Undo") && _plugin.SheetViewWindow.UndoFor(fight) is { } undone)
             FlashBuiltin($"Undid: {undone}.");
@@ -58,36 +100,13 @@ public partial class ConfigWindow
             ImGui.SetTooltip(undoLabel == null
                 ? "Nothing to undo on this fight yet."
                 : $"Undo: {undoLabel}. Shared with Sheet View, so it takes back edits made there too.");
+    }
 
-        ImGui.SameLine();
-        var showEmpty = C.ShowEmptyMechanics;
-        if (ImGui.Checkbox("Show Mechanics with No Actions", ref showEmpty))
-        {
-            C.ShowEmptyMechanics = showEmpty;
-            C.Save();
-        }
-
-        ImGui.SameLine();
-        ImGui.TextDisabled("(?)");
-        if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Mechanics group multiple actions together. Official mechanics cannot be renamed.");
-
-        // Deleted sheet calls are remembered, so offer the way back.
-        var dead = fight.DeletedCalls.Count(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
-        if (dead > 0)
-        {
-            ImGui.SameLine();
-            ImGui.TextDisabled($"• {dead} deleted sheet call{(dead == 1 ? "" : "s")}");
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Restore"))
-            {
-                Undoable("restore deleted calls");
-                fight.DeletedCalls.RemoveAll(d => string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
-                var back = Builtin.ApplySlot(fight, fight.Slot);
-                C.Save();
-                FlashBuiltin($"Restored {back} deleted sheet call{(back == 1 ? "" : "s")}.");
-            }
-            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Restore this slot's deleted calls.");
-        }
+    private void DrawLineTable(FightProfile fight)
+    {
+        // One shared stack with Sheet View, so either page takes back the
+        // other's edits and there is no second history to reason about.
+        void Undoable(string label) => _plugin.SheetViewWindow.PushUndo(fight, label);
 
         var jobAbbr = _plugin.GetActiveJobAbbr(fight);
         var bakedForSlotAll = Builtin.BakedLinesForFight(fight, fight.Slot);
@@ -155,13 +174,16 @@ public partial class ConfigWindow
         var clashGroups = groups.Count(GroupClashes);
         if (_lineClashOnly) groups.RemoveAll(g => !GroupClashes(g));
 
+        // One toolbar: what the list is on the left, what you can do on the right.
         ImGui.Spacing();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextDisabled($"{fight.Lines.Count} line{(fight.Lines.Count == 1 ? "" : "s")}");
+        ImGui.TextUnformatted("Lines");
+        ImGui.SameLine(0, Theme.S(8f));
+        Widgets.Chip("", fight.Lines.Count.ToString(), Theme.TextBright);
         if (clashGroups > 0 || _lineClashOnly)
         {
-            ImGui.SameLine(0, Theme.S(10f));
-            if (Widgets.ChipButton("clashes", clashGroups.ToString(), Theme.Danger, _lineClashOnly))
+            ImGui.SameLine(0, Theme.S(6f));
+            if (Widgets.ChipButton("Clashes", clashGroups.ToString(), Theme.Danger, _lineClashOnly))
                 _lineClashOnly = !_lineClashOnly;
             // Names the slot, since Sheet View's chip counts every column and
             // the two numbers are meant to differ.
@@ -171,6 +193,8 @@ public partial class ConfigWindow
                     ? $"Showing only mechanics with a clash in {scope}. Click to show them all."
                     : $"Mechanics where a mit repeats before its cooldown is back, in {scope}.\nClick to show only those.");
         }
+
+        DrawLineToolbarActions(fight, Undoable);
 
         // Grow to fill, leaving room for the import header..
         var avail = ImGui.GetContentRegionAvail().Y;

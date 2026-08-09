@@ -124,24 +124,26 @@ internal static class Widgets
     private static Vector2 ChipPad => new Vector2(8, 3) * Theme.Scale;
     private static float ChipGap => 5f * Theme.Scale;
 
-    // Label, gap, value, padding both sides.
-    private static Vector2 ChipSize(Vector2 labelSize, Vector2 valueSize)
-        => new(labelSize.X + valueSize.X + ChipGap + ChipPad.X * 2,
+    // Label, gap, value, padding both sides. A value-only chip drops the gap.
+    private static Vector2 ChipSize(Vector2 labelSize, Vector2 valueSize, bool hasLabel)
+        => new(labelSize.X + valueSize.X + (hasLabel ? ChipGap : 0f) + ChipPad.X * 2,
                ImGui.GetTextLineHeight() + ChipPad.Y * 2);
 
-    // Small stat pill: grey label, colored value.
+    // Small stat pill: grey label, colored value. An empty label gives a chip
+    // that is only the number, for where the heading beside it already names it.
     public static void Chip(string label, string value, uint valueColor)
     {
         var pad = ChipPad;
+        var hasLabel = label.Length > 0;
         var lSz = ImGui.CalcTextSize(label);
         var vSz = ImGui.CalcTextSize(value);
-        var size = ChipSize(lSz, vSz);
+        var size = ChipSize(lSz, vSz, hasLabel);
         var p = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
         dl.AddRectFilled(p, p + size, Theme.PanelBg, 5f);
         dl.AddRect(p, p + size, CardBorder, 5f);
-        dl.AddText(p + pad, Theme.Muted, label);
-        dl.AddText(p + pad + new Vector2(lSz.X + ChipGap, 0), valueColor, value);
+        if (hasLabel) dl.AddText(p + pad, Theme.Muted, label);
+        dl.AddText(p + pad + new Vector2(hasLabel ? lSz.X + ChipGap : 0f, 0), valueColor, value);
         ImGui.Dummy(size);
     }
 
@@ -151,7 +153,7 @@ internal static class Widgets
         var pad = ChipPad;
         var lSz = ImGui.CalcTextSize(label);
         var vSz = ImGui.CalcTextSize(value);
-        var size = ChipSize(lSz, vSz);
+        var size = ChipSize(lSz, vSz, label.Length > 0);
         var p = ImGui.GetCursorScreenPos();
         var clicked = ImGui.InvisibleButton("##chip_" + label, size);
         var hovered = ImGui.IsItemHovered();
@@ -210,17 +212,40 @@ internal static class Widgets
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0f);
     }
 
-    public static bool Segment(string label, bool on)
+    public static bool Segment(string label, bool on) => Segment(label, on, Theme.Accent);
+
+    // A lit color of its own, for a segment that means "changed" rather than
+    // "selected": accent says picked, amber says you overrode the auto choice.
+    public static bool Segment(string label, bool on, uint onColor)
     {
         if (on)
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-            ImGui.PushStyleColor(ImGuiCol.Text, Theme.AccentText);
+            ImGui.PushStyleColor(ImGuiCol.Button, onColor);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Lighten(onColor, 0.22f));
+            ImGui.PushStyleColor(ImGuiCol.Text, OnColorText(onColor));
         }
         var clicked = ImGui.SmallButton(label);
         if (on) ImGui.PopStyleColor(3);
         return clicked;
+    }
+
+    private static uint Lighten(uint abgr, float t)
+    {
+        uint Ch(int shift)
+        {
+            var c = (abgr >> shift) & 0xFF;
+            return (uint)(c + (255 - c) * t) & 0xFF;
+        }
+        return (abgr & 0xFF000000) | (Ch(16) << 16) | (Ch(8) << 8) | Ch(0);
+    }
+
+    // Black on a light fill, white on a dark one, so a lit segment stays legible.
+    private static uint OnColorText(uint abgr)
+    {
+        var r = abgr & 0xFF;
+        var g = (abgr >> 8) & 0xFF;
+        var b = (abgr >> 16) & 0xFF;
+        return r * 299 + g * 587 + b * 114 > 140_000 ? 0xFF120E0Du : Theme.AccentText;
     }
 
     public static void SegmentEnd()

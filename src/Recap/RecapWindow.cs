@@ -131,13 +131,13 @@ public class RecapWindow : Window
         // One chip per question a raid lead asks after a wipe.
         ImGui.Dummy(new Vector2(0, Theme.S(2f)));
         var missed = r.NotSeen();
-        Widgets.Chip("raid mits", $"{MitRecap.StandardRaidMits.Length - missed.Count}/{MitRecap.StandardRaidMits.Length}",
+        Widgets.Chip("Raid mits", $"{MitRecap.StandardRaidMits.Length - missed.Count}/{MitRecap.StandardRaidMits.Length}",
             missed.Count == 0 ? Theme.Good : Theme.Warn);
         ImGui.SameLine(0, Theme.S(6f));
         if (r.LastDeaths.Count > 0)
         {
             // Clickable: expands every death into its detail.
-            if (Widgets.ChipButton("deaths", r.LastDeaths.Count.ToString(), Theme.Danger, _deathsOpen))
+            if (Widgets.ChipButton("Deaths", r.LastDeaths.Count.ToString(), Theme.Danger, _deathsOpen))
             {
                 EnsureDeathState(r);
                 _deathsOpen = !_deathsOpen;
@@ -154,16 +154,16 @@ public class RecapWindow : Window
         else
         {
             _deathsOpen = false;
-            Widgets.Chip("deaths", "0", Theme.Good);
+            Widgets.Chip("Deaths", "0", Theme.Good);
         }
         if (r.Shown.PlanTotal > 0)
         {
             ImGui.SameLine(0, Theme.S(6f));
-            Widgets.Chip("on plan", $"{r.Shown.PlanGood}/{r.Shown.PlanTotal}",
+            Widgets.Chip("On plan", $"{r.Shown.PlanGood}/{r.Shown.PlanTotal}",
                 r.Shown.PlanGood == r.Shown.PlanTotal ? Theme.Good : Theme.Warn);
         }
         ImGui.SameLine(0, Theme.S(6f));
-        Widgets.Chip("unused CDs", r.Shown.Unused.Count.ToString(), r.Shown.Unused.Count == 0 ? Theme.Good : Theme.Warn);
+        Widgets.Chip("Unused CDs", r.Shown.Unused.Count.ToString(), r.Shown.Unused.Count == 0 ? Theme.Good : Theme.Warn);
 
         // Missing standard raid mits, spelled out.
         if (missed.Count > 0)

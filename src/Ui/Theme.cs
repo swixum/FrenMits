@@ -53,6 +53,24 @@ internal static class Theme
     public static uint Danger => Colorblind ? 0xFFA779CC : 0xFF5050E0; // #E05050 red   -> #CC79A7 reddish-purple
     public static uint DangerHover => Lighten(Danger, 0.22f);
 
+    // Consumables: the official star and the potion windows.
+    public const uint Gold = 0xFF59D1FA;                               // #FAD159
+
+    // ---- roles ----
+    // Which seat names are which role, shared so the fight list and the sheet
+    // grid classify and tint a column the same way.
+
+    public static readonly string[] TankSlots = { "MT", "OT", "T" };
+    public static readonly string[] HealSlots = { "WHM", "AST", "SCH", "SGE", "H1", "H2", "H" };
+
+    private static bool Is(string[] set, string slot)
+        => System.Array.Exists(set, s => string.Equals(s, slot, System.StringComparison.OrdinalIgnoreCase));
+
+    public static uint RoleColor(string slot)
+        => Is(TankSlots, slot) ? 0xFFFFA03A                            // #3AA0FF tank blue
+         : Is(HealSlots, slot) ? 0xFF6AC44F                            // #4FC46A healer green
+                               : 0xFF5D64E0;                           // #E0645D dps red
+
     // The one place packed colors become floats.
     public static Vector4 V(uint abgr) => new(
         (abgr & 0xFF) / 255f, ((abgr >> 8) & 0xFF) / 255f, ((abgr >> 16) & 0xFF) / 255f, ((abgr >> 24) & 0xFF) / 255f);

@@ -4,9 +4,9 @@
        carry it literally, and CI stamps the published manifest from the built
        plugin, so this is the only place the assemblies read it from. -->
   <PropertyGroup>
-    <Version>1.0.0.489</Version>
-    <AssemblyVersion>1.0.0.489</AssemblyVersion>
-    <FileVersion>1.0.0.489</FileVersion>
+    <Version>1.0.0.490</Version>
+    <AssemblyVersion>1.0.0.490</AssemblyVersion>
+    <FileVersion>1.0.0.490</FileVersion>
   </PropertyGroup>
 
 </Project>

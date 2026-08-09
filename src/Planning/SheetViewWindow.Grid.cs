@@ -79,13 +79,11 @@ public partial class SheetViewWindow
         return false;
     }
 
-    private static readonly string[] TankSlots = { "MT", "OT", "T" };
-    private static readonly string[] HealSlots = { "WHM", "AST", "SCH", "SGE", "H1", "H2", "H" };
+    // One definition of both, shared with the fight list so the pages agree.
+    private static readonly string[] TankSlots = Theme.TankSlots;
+    private static readonly string[] HealSlots = Theme.HealSlots;
 
-    private static Vector4 RoleColor(string slot)
-        => TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? ImGuiColors.TankBlue
-         : HealSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? ImGuiColors.HealerGreen
-         : ImGuiColors.DPSRed;
+    private static Vector4 RoleColor(string slot) => Theme.V(Theme.RoleColor(slot));
 
     // The hit types worth naming on a planning row, in the board chip's colors
     // (ABGR); a party hit is the default here and the severity mark already says so.

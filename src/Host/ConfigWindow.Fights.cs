@@ -169,7 +169,10 @@ public partial class ConfigWindow
                 ImGui.SameLine(MathF.Max(starRight + Theme.S(8f),
                     ImGui.GetContentRegionMax().X - btnW - tagW));
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextColored(Theme.V(string.IsNullOrEmpty(fight.Slot) ? Theme.Warn : Theme.Accent), slotTag);
+                // Role tint, the same one the sheet grid gives that column.
+                ImGui.TextColored(Theme.V(string.IsNullOrEmpty(fight.Slot)
+                    ? Theme.Warn
+                    : Theme.RoleColor(fight.Slot)), slotTag);
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip(string.IsNullOrEmpty(fight.Slot)
                         ? "No slot picked yet, so nothing is called for this fight."
@@ -198,9 +201,10 @@ public partial class ConfigWindow
                 }
                 else
                 {
+                    // Setup row carries the offset, so no separate offset line.
                     if (Builtin.Has(fight.TerritoryId)) DrawBuiltinLoad(fight);
                     else if (fight.CustomSlots.Count > 0) DrawCustomColumnRow(fight);
-                    DrawFightOffsetRow(fight);
+                    else DrawOffsetRow(fight);
                     DrawPracticeRow(fight);
                     // Add-ons live behind one fold, so a fight reads simply.
                     var job = _plugin.GetActiveJobAbbr(fight);
@@ -212,16 +216,12 @@ public partial class ConfigWindow
                         C.Save();
                         _plugin.SheetViewWindow.MarkPlanDirty();
                     }
-                    var hasExtras = PotionTimings.BossSlug(fight.TerritoryId) != null
-                        || (fight.CustomSlots.Count > 0 && fight.CustomRows.Count > 0)
-                        || (!string.IsNullOrEmpty(job) && JobExtras.AllFor(fight, job).Count > 0)
-                        || HasPersonalTimers(fight, job);
-                    if (hasExtras && Section("Extras: potions, job mits", false))
-                    {
-                        DrawPotionsSection(fight);
-                        DrawJobExtrasSection(fight);
-                        DrawPersonalTimersSection(fight);
-                    }
+                    // Potions and personal timers are a row each, so they sit in
+                    // the list with everything else. Job extras keeps its card:
+                    // it is the only one with more than a single control.
+                    DrawPotionsSection(fight);
+                    DrawPersonalTimersSection(fight);
+                    DrawJobExtrasSection(fight);
                     ImGui.Separator();
                     
                     if (string.IsNullOrEmpty(fight.Slot))
@@ -386,14 +386,15 @@ public partial class ConfigWindow
     private void DrawBuiltinLoad(FightProfile fight)
     {
         var slots = Builtin.Slots(fight.TerritoryId);
-        
+
+        RowLabel("Slot");
         var useSetup = C.UseSetup;
-        if (ImGui.Checkbox("Use Your Setup", ref useSetup))
+        if (GreenCheckbox("Auto##usesetup", ref useSetup))
         {
             C.UseSetup = useSetup;
             C.Save();
         }
-        Tip("Automatically pick your slot based on your Job and Role Preferences.");
+        Tip("Pick your slot from your Job and Role Preferences. The header shows which one you got.");
 
         string activeSlot;
         if (C.UseSetup)
@@ -407,6 +408,8 @@ public partial class ConfigWindow
             activeSlot = fight.Slot;
         }
 
+        // Manual: the job being planned as, then the seat. Auto needs neither,
+        // since the header already shows the slot it landed on.
         if (string.IsNullOrEmpty(activeSlot) || !C.UseSetup)
         {
             if (!C.UseSetup)
@@ -414,15 +417,15 @@ public partial class ConfigWindow
                 var simJobIdx = Math.Max(0, Array.IndexOf(Jobs.Abbreviations, fight.SimulatedJob));
                 if (string.IsNullOrEmpty(fight.SimulatedJob) && !string.IsNullOrEmpty(_plugin.ActiveJobAbbreviation()))
                     simJobIdx = Math.Max(0, Array.IndexOf(Jobs.Abbreviations, _plugin.ActiveJobAbbreviation()));
-                
+
+                ImGui.SameLine(0, Theme.S(8f));
                 ImGui.SetNextItemWidth(Theme.S(65f));
                 if (ImGui.Combo("##simjob", ref simJobIdx, Jobs.Abbreviations, Jobs.Abbreviations.Length))
                 {
                     fight.SimulatedJob = Jobs.Abbreviations[simJobIdx];
                     C.Save();
                 }
-                Tip("Simulated Job. Replaces your current job for timeline edits.");
-                ImGui.SameLine();
+                Tip("Plan as this job instead of your current one.");
             }
 
             // Show the fight's active slot, falling back to the first.
@@ -431,35 +434,38 @@ public partial class ConfigWindow
             _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
 
             var slotLabels = slots.Select(SlotLabel).ToArray();
-            ImGui.SetNextItemWidth(Theme.S(170f));
-            if (ImGui.Combo("Your slot", ref _builtinSlot, slotLabels, slotLabels.Length))
+            ImGui.SameLine(0, Theme.S(8f));
+            ImGui.SetNextItemWidth(Theme.S(150f));
+            if (ImGui.Combo("##yourslot", ref _builtinSlot, slotLabels, slotLabels.Length))
                 SelectBuiltinSlot(fight, slots[_builtinSlot]);  // load that slot now
             Tip("Your seat. Each slot keeps its own edits.");
             activeSlot = slots.Length > 0 ? slots[_builtinSlot] : "";
         }
-        else
-        {
-            ImGui.SameLine();
-            ImGui.TextDisabled($"Auto-selected: {SlotLabel(activeSlot)}");
-        }
 
-        var inDuty = Service.ClientState.TerritoryType == fight.TerritoryId;
-        var jobAbbr = _plugin.ActiveJobAbbreviation() ?? "";
-        if (!inDuty && !C.UseSetup && !string.IsNullOrEmpty(fight.SimulatedJob))
-        {
-            jobAbbr = fight.SimulatedJob;
-        }
+        DrawOffsetInline(fight);
+        DrawResetOverrides(fight, activeSlot);
+        DrawResetAllConfirm(fight, activeSlot);
+    }
 
-        if (ImGui.SmallButton("Reset all overrides")) ImGui.OpenPopup("##confirm-resetall");
-        Tip("Reload every column from the sheet. Snapshot saved first.");
+    // Only worth offering once something is actually overridden.
+    private static bool HasOverrides(FightProfile fight)
+        => fight.SavedSlots.Count > 0 || fight.DeletedCalls.Count > 0;
 
+    // Right-aligned on the setup row, and absent on a clean fight.
+    private void DrawResetOverrides(FightProfile fight, string activeSlot)
+    {
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
-            ImGui.SameLine();
+            ImGui.SameLine(0, Theme.S(10f));
             ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
         }
+        if (!HasOverrides(fight)) return;
 
-        DrawResetAllConfirm(fight, activeSlot);
+        var w = ImGui.CalcTextSize("Reset").X + ImGui.GetStyle().FramePadding.X * 2f;
+        var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(end + Theme.S(10f), ImGui.GetContentRegionMax().X - w));
+        if (ImGui.SmallButton("Reset")) ImGui.OpenPopup("##confirm-resetall");
+        Tip("Reload every column from the sheet. A snapshot is saved first.");
     }
 
     // Full reset across every column; snapshot-first and confirmed.
@@ -515,23 +521,39 @@ public partial class ConfigWindow
         ImGui.EndPopup();
     }
 
-    // The fight-wide offset, which shifts every call.
-    private void DrawFightOffsetRow(FightProfile fight)
+    // The fight-wide offset, which shifts every call. Rides on the setup row:
+    // the label leads, and InputFloat's own trailing label is suppressed.
+    private void DrawOffsetInline(FightProfile fight)
+    {
+        ImGui.SameLine(0, Theme.S(18f));
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Offset");
+        ImGui.SameLine(0, Theme.S(8f));
+        DrawOffsetControl(fight);
+    }
+
+    // Its own row, for a fight with no slots to share one with.
+    private void DrawOffsetRow(FightProfile fight)
+    {
+        RowLabel("Offset");
+        DrawOffsetControl(fight);
+    }
+
+    private void DrawOffsetControl(FightProfile fight)
     {
         var offset = fight.TimerOffset;
-        ImGui.SetNextItemWidth(Theme.S(110f));
-        if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f"))
+        ImGui.SetNextItemWidth(Theme.S(104f));
+        if (ImGui.InputFloat("##offset", ref offset, 0.1f, 1f, "%.1f"))
         {
             fight.TimerOffset = Math.Clamp(offset, -30f, 30f);
             C.Save();
         }
-        ImGui.SameLine();
-        ImGui.TextDisabled("+ fires every call earlier, - later. Survives resync.");
         HelpMarker("Shifts when this fight's calls fire: +10 makes every call come 10s sooner, "
-                   + "even with resync on. For one call only, use the ±s column in the line table. "
-                   + "Heads up: a big + shift can swallow calls timed inside the first seconds of a "
-                   + "pull. The timer auto-starts on combat and resets on a wipe / duty end.");
+                   + "even with resync on. Minus is later. For one call only, use the ±s column in "
+                   + "the line table. Heads up: a big + shift can swallow calls timed inside the "
+                   + "first seconds of a pull. The timer auto-starts on combat and resets on a wipe.");
     }
+
 
     // Set when a zone edit is refused, to warn for a few seconds.
     private double _zoneRejectUntil;

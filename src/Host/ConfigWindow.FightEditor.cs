@@ -15,21 +15,9 @@ public partial class ConfigWindow
 {
     private bool DrawFightEditor(FightProfile fight)
     {
-        // Built-in fights are locked, so only user ones can change.
-        if (IsOfficial(fight))
-        {
-            ImGui.AlignTextToFramePadding();
-            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-                ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
-            if (Widgets.HoveredDelayed())
-                ImGui.SetTooltip("Official sheet.");
-            ImGui.SameLine(0, Theme.S(5f));
-            ImGui.TextUnformatted(fight.Name);
-            ImGui.SameLine(0, Theme.S(8f));
-            ImGui.TextDisabled("(official sheet)");
-            Tip("Times are seconds from the pull.");
-            return true;
-        }
+        // Built-in fights are locked, so only user ones can change. The header
+        // row above already carries the name and the star, so nothing to draw.
+        if (IsOfficial(fight)) return true;
 
         var name = fight.Name;
         ImGui.SetNextItemWidth(Theme.S(260f));
@@ -156,9 +144,10 @@ public partial class ConfigWindow
         if (slots.Length == 0) return;
         var idx = Array.FindIndex(slots, s => string.Equals(s, fight.Slot, StringComparison.OrdinalIgnoreCase));
 
-        ImGui.SetNextItemWidth(Theme.S(170f));
+        RowLabel("Slot");
+        ImGui.SetNextItemWidth(Theme.S(150f));
         // No column picked yet shows an empty preview.
-        if (ImGui.Combo("Your slot##customslot", ref idx, slots, slots.Length)
+        if (ImGui.Combo("##customslot", ref idx, slots, slots.Length)
             && idx >= 0 && !string.Equals(slots[idx], fight.Slot, StringComparison.OrdinalIgnoreCase))
         {
             // SetSlot parks the old lines; assigning here would alias them.
@@ -168,18 +157,33 @@ public partial class ConfigWindow
         Tip("Which column is yours.");
         var slot = idx >= 0 ? slots[idx] : slots[0];
 
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Reset this column")) ImGui.OpenPopup("##confirm-customreset");
-        Tip("Clears this column's mits. Snapshot saved first.");
+        DrawOffsetInline(fight);
 
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Reset all columns")) ImGui.OpenPopup("##confirm-customresetall");
-        Tip("Clears every column's mits. Snapshot saved first.");
-
+        // Both resets behind one menu: they are rare and they are destructive.
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
-            ImGui.SameLine();
+            ImGui.SameLine(0, Theme.S(10f));
             ImGui.TextColored(ImGuiColors.DalamudYellow, _builtinMsg);
+        }
+        if (fight.SavedSlots.Count > 0 || fight.Lines.Count > 0)
+        {
+            var w = ImGui.CalcTextSize("Reset").X + ImGui.GetStyle().FramePadding.X * 2f;
+            var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+            ImGui.SameLine(MathF.Max(end + Theme.S(10f), ImGui.GetContentRegionMax().X - w));
+            if (ImGui.SmallButton("Reset")) ImGui.OpenPopup("##customresetmenu");
+            Tip("Clear this column, or every column. A snapshot is saved first.");
+            // A modal cannot be opened from inside a popup, so the choice is
+            // taken here and acted on once the menu has closed.
+            var one = false;
+            var all = false;
+            if (ImGui.BeginPopup("##customresetmenu"))
+            {
+                if (ImGui.MenuItem("This column")) one = true;
+                if (ImGui.MenuItem("Every column")) all = true;
+                ImGui.EndPopup();
+            }
+            if (one) ImGui.OpenPopup("##confirm-customreset");
+            if (all) ImGui.OpenPopup("##confirm-customresetall");
         }
 
         DrawCustomResetConfirm(fight, slot);
@@ -261,12 +265,10 @@ public partial class ConfigWindow
         {
             var rows = fight.CustomRows.OrderBy(r => r.Time).ToList();
             if (rows.Count == 0) return;
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextDisabled("Practice:");
+            RowLabel("Practice");
             Tip("Preview a row's calls. Turns on Test Mode.");
             _pracRowIdx = Math.Clamp(_pracRowIdxs.GetValueOrDefault(fight.Id), 0, rows.Count - 1);
             var labels = rows.Select(r => $"{Mmss(r.Time)}  {r.Mechanic}").ToArray();
-            ImGui.SameLine(0, Theme.S(6f));
             ImGui.SetNextItemWidth(Theme.S(240f));
             ImGui.Combo("##pracrow", ref _pracRowIdx, labels, labels.Length);
             _pracRowIdxs[fight.Id] = _pracRowIdx;
@@ -280,13 +282,11 @@ public partial class ConfigWindow
             return;
         }
 
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextDisabled("Practice:");
+        RowLabel("Practice");
         Tip("Preview a phase's calls. Turns on Test Mode.");
 
         // Which phase is running shows in the fill, which loose buttons never did.
         var previewing = Plugin.PreviewFight == fight && C.TestMode;
-        ImGui.SameLine(0, Theme.S(8f));
         Widgets.SegmentBegin();
         for (var i = 0; i < phases.Count; i++)
         {
@@ -321,11 +321,13 @@ public partial class ConfigWindow
             .ToList();
         if (priorityOnes.Count == 0) return;
 
+        // Rides on the Practice row: both are per-phase, so they read together.
+        ImGui.SameLine(0, Theme.S(18f));
         ImGui.AlignTextToFramePadding();
-        ImGui.TextDisabled("Tank priority:");
-        Tip("These phases' tank busters follow job priority (ranked, not MT/OT).\nToggle if the auto pick has you backwards.");
-
+        ImGui.TextDisabled("Priority");
+        Tip("These phases' tank busters follow job priority (ranked, not MT/OT).\nClick one if the auto pick has you backwards.");
         ImGui.SameLine(0, Theme.S(8f));
+
         Widgets.SegmentBegin();
         var first = true;
         foreach (var (name, phase) in priorityOnes)
@@ -333,14 +335,15 @@ public partial class ConfigWindow
             var swapped = TankPriority.IsSwapped(fight, phase!);
             if (!first) ImGui.SameLine();
             first = false;
-            if (Widgets.Segment($"{name}{(swapped ? " swapped" : "")}###priswap{name}", swapped))
+            // Amber, not accent: this means "you overrode it", not "selected".
+            if (Widgets.Segment($"{name}###priswap{name}", swapped, Theme.Warn))
             {
                 TankPriority.SetSwapped(fight, phase!, !swapped);
                 Builtin.ReapplyPriority(fight);
                 C.Save();
                 _plugin.SheetViewWindow.MarkPlanDirty();
             }
-            Tip(swapped ? "Swapped - click to go back to the auto pick." : "Click to swap which of you gets priority 1 here.");
+            Tip(swapped ? "Swapped. Click to go back to the auto pick." : "Click to swap who gets priority 1 here.");
         }
         Widgets.SegmentEnd();
     }
@@ -369,25 +372,19 @@ public partial class ConfigWindow
             .Where(b => IsPersonalTimer(fight, b, job!)).ToList();
         var name = baked.Count > 0 ? baked[0].Mechanic : "Summon";
 
-        BeginCard(FontAwesomeIcon.Hourglass, UserBlue, $"{job} {name.ToLowerInvariant()} cues",
-            mine.Count > 0 ? $"{mine.Count} on your plan" : "off");
-        ImGui.TextDisabled($"The sheet bakes {job}'s own {name.ToLowerInvariant()} timings in and calls them like any");
-        ImGui.TextDisabled("other line. Untick if you already know your rotation.");
-        ImGui.Spacing();
-
+        // One row: the box is the control, and the box says on or off.
+        RowIndent();
         var on = mine.Count > 0;
-        if (GreenCheckbox($"Call the {name.ToLowerInvariant()} cues##hidcue", ref on))
+        if (GreenCheckbox($"{job} {name.ToLowerInvariant()} cues##hidcue", ref on))
         {
             _plugin.SheetViewWindow.PushUndo(fight, on ? $"restore {name} cues" : $"remove {name} cues");
             if (on) RestorePersonalTimers(fight);
             else RemovePersonalTimers(fight, mine, job!);
             _plugin.SheetViewWindow.MarkPlanDirty();
         }
-        Tip(on
-            ? $"{baked.Count} baked cue(s) for {job}. Untick to take them off this plan for good."
-            : $"Tick to put the sheet's {baked.Count} {job} cue(s) back.");
-
-        EndCard();
+        HelpMarker($"The sheet bakes {job}'s own {name.ToLowerInvariant()} timings in and calls them "
+                   + $"like any other line. {baked.Count} of them. Untick if you already know your "
+                   + "rotation; they come back if you tick it again.");
     }
 
     // A tombstone each, so the sheet's top-up cannot put them back.
@@ -430,13 +427,13 @@ public partial class ConfigWindow
         var job = _plugin.GetActiveJobAbbr(fight);
         var stat = PotionTimings.Stat(job);
 
-        BeginCard(FontAwesomeIcon.Flask, ImGuiColors.DalamudViolet, "Potions",
-            customPots ? "2-minute burst meta" : "top-log windows");
+        // One row: the flask says potions, the gold times say when, Add acts.
+        RowLabelIcon(FontAwesomeIcon.Flask, Theme.Gold);
+        Tip(customPots ? "Potions, on the 2-minute burst meta." : "Potions, on the top logs' windows.");
 
         if (string.IsNullOrEmpty(job) || string.IsNullOrEmpty(stat))
         {
-            ImGui.TextDisabled("Pick your job (top of the sidebar) to see its potion timings.");
-            EndCard();
+            ImGui.TextDisabled("Pick your job in the sidebar to see potion timings.");
             return;
         }
 
@@ -444,21 +441,20 @@ public partial class ConfigWindow
             ? PotionTimings.GenericWindows(fight.CustomRows.Max(r => r.Time))
             : PotionTimings.DefaultsFor(fight.TerritoryId, job);
 
-        // Window pills.
-        ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {stat}");
-        if (times.Count == 0) { ImGui.SameLine(0, Theme.S(10f)); ImGui.TextDisabled("no windows"); }
+        // Window pills. The job and its stat are in the tooltip, not the row.
+        if (times.Count == 0) ImGui.TextDisabled("no windows");
+        var firstPill = true;
         foreach (var t in times)
         {
-            ImGui.SameLine(0, Theme.S(6f));
+            if (!firstPill) ImGui.SameLine(0, Theme.S(6f));
+            firstPill = false;
             TimePill(Mmss(t));
+            Tip($"{job} · {stat}");
         }
 
-        // Add to the timeline.
-        ImGui.Spacing();
+        ImGui.SameLine(0, Theme.S(10f));
         ImGui.BeginDisabled(times.Count == 0);
-        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add {times.Count} potion line(s)"))
+        if (ImGui.SmallButton("Add"))
         {
             var lines = new List<MitLine>(fight.Lines);
             lines.RemoveAll(l => l.Mechanic.StartsWith("Potion", StringComparison.Ordinal)
@@ -476,16 +472,14 @@ public partial class ConfigWindow
             SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
             FlashBuiltin($"Added {times.Count} {job} potion line(s).");
         }
-        ImGui.PopStyleColor(2);
         ImGui.EndDisabled();
-        Tip("Adds them tagged to your job.");
+        Tip($"Adds {times.Count} line(s), tagged to {job}.");
 
         if ((DateTime.Now - _builtinMsgAt).TotalSeconds < 4 && _builtinMsg.Length > 0)
         {
-            ImGui.SameLine();
+            ImGui.SameLine(0, Theme.S(10f));
             ImGui.TextColored(ImGuiColors.ParsedGreen, _builtinMsg);
         }
-        EndCard();
     }
 
     // Job mitigation: optional job timers from logs.

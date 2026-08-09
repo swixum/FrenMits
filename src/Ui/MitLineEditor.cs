@@ -111,7 +111,7 @@ internal static class MitLineEditor
         // The number is abstract; the time it lands on is not.
         ImGui.SameLine(0, gap);
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2f);
-        Widgets.Chip("presses", Fmt.MmssSigned(line.CueTime), moved ? Theme.Accent : Theme.Muted);
+        Widgets.Chip("Presses", Fmt.MmssSigned(line.CueTime), moved ? Theme.Accent : Theme.Muted);
 
         // ---- who ----
         ImGui.AlignTextToFramePadding();

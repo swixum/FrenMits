@@ -110,11 +110,11 @@ public partial class SheetViewWindow
         ImGui.Spacing();
 
         // A stat row, so the shape of the job lands before any prose.
-        Widgets.Chip("rows", _fight.CustomRows.Count.ToString(), Theme.TextBright);
+        Widgets.Chip("Rows", _fight.CustomRows.Count.ToString(), Theme.TextBright);
         ImGui.SameLine(0, Theme.S(8f));
-        Widgets.Chip("graded", gradedRows.ToString(), gradedRows > 0 ? Theme.Good : Theme.Muted);
+        Widgets.Chip("Graded", gradedRows.ToString(), gradedRows > 0 ? Theme.Good : Theme.Muted);
         ImGui.SameLine(0, Theme.S(8f));
-        Widgets.Chip("columns", _fight.CustomSlots.Count.ToString(), Theme.TextBright);
+        Widgets.Chip("Columns", _fight.CustomSlots.Count.ToString(), Theme.TextBright);
         ImGui.Spacing();
 
         // The detail is here for whoever wants it, folded away for everyone else.
@@ -257,7 +257,7 @@ public partial class SheetViewWindow
         if (_clashRowCount > 0 || _clashOnly)
         {
             ImGui.SameLine(0, Theme.S(10f));
-            if (Widgets.ChipButton("clashes", _clashRowCount.ToString(), Theme.Danger, _clashOnly))
+            if (Widgets.ChipButton("Clashes", _clashRowCount.ToString(), Theme.Danger, _clashOnly))
             {
                 CommitPending();
                 _clashOnly = !_clashOnly;
