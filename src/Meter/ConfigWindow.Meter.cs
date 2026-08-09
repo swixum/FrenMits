@@ -121,10 +121,20 @@ public partial class ConfigWindow
     // menu for the rest. Not a tab, since it saves and loads everything else.
     private void DrawMeterProfileControl()
     {
+        // Feedback sits left of the control it reports on, never off the edge.
+        if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
+        {
+            ImGui.SameLine(0, Theme.S(8f));
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextColored(Theme.V(_meterFlashOk ? Theme.Good : Theme.Warn), _meterFlash);
+        }
+
         var active = C.MeterProfileName;
         var saved = active.Length > 0 && C.MeterProfiles.ContainsKey(active);
 
-        var w = Theme.S(210f) + ImGui.CalcTextSize("Profile").X;
+        // Label, combo, gaps and the menu button, all measured.
+        var w = ImGui.CalcTextSize("Profile").X + Theme.S(8f) + Theme.S(170f) + Theme.S(4f)
+              + ImGui.CalcTextSize("...").X + ImGui.GetStyle().FramePadding.X * 2f;
         var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
         ImGui.SameLine(MathF.Max(end + Theme.S(12f), ImGui.GetContentRegionMax().X - w));
         ImGui.AlignTextToFramePadding();
@@ -147,12 +157,6 @@ public partial class ConfigWindow
         if (ImGui.SmallButton("...")) ImGui.OpenPopup("##mprofmenu");
         Tip("Save, rename, delete, share.");
         DrawMeterProfileMenu(active, saved);
-
-        if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
-        {
-            ImGui.SameLine(0, Theme.S(8f));
-            ImGui.TextColored(Theme.V(_meterFlashOk ? Theme.Good : Theme.Warn), _meterFlash);
-        }
     }
 
     // ---- Rows ----

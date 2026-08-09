@@ -903,7 +903,15 @@ public partial class ConfigWindow : Window, IDisposable
         }
 
         var segW = hasModes ? Widgets.ButtonWidth("Basic", "All") + Theme.S(4f) : 0f;
-        var right = segW + (reset != null ? frameH + Theme.S(8f) : 0f) + (hasMaster ? frameH + Theme.S(8f) : 0f);
+        // The reset button is an icon plus side padding, wider than a frame is tall.
+        var resetW = 0f;
+        if (reset != null)
+        {
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                resetW = ImGui.CalcTextSize(FontAwesomeIcon.Undo.ToIconString()).X;
+            resetW += ImGui.GetStyle().FramePadding.X * 2f;
+        }
+        var right = segW + (reset != null ? resetW + Theme.S(8f) : 0f) + (hasMaster ? frameH + Theme.S(8f) : 0f);
         // Never left of the name, whatever it turned out to be.
         ImGui.SetCursorPos(new Vector2(
             MathF.Max(used + Theme.S(12f), ImGui.GetContentRegionMax().X - right),
