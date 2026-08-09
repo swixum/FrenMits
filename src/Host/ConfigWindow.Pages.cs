@@ -31,7 +31,7 @@ public partial class ConfigWindow
     private static bool PositionRow(ref Vector2 pos, Vector2 home)
     {
         var w = Widgets.SmallWidth("Left", "Center", "Right", "Reset") + Theme.S(8f);
-        Widgets.RowBegin("Position", "Drag it on screen, or use these", w, ctlHeight: Widgets.SmallHeight);
+        Widgets.RowBegin("Position", "Drag it in game, or use these", w, ctlHeight: Widgets.SmallHeight);
         var moved = false;
         Widgets.SegmentBegin();
         for (var i = 0; i < XPresets.Length; i++)
@@ -95,7 +95,7 @@ public partial class ConfigWindow
 
         Widgets.ListBegin();
         var locked = C.RecapPopupLocked;
-        if (Widgets.RowCheck("Popup locked", "Unlock, then drag it where you want it", ref locked))
+        if (Widgets.RowCheck("Popup locked", "Unlock to drag it", ref locked))
         { C.RecapPopupLocked = locked; _plugin.RecapButtonWindow.RequestReposition(); C.SaveSettings(); }
 
         ButtonRow("Recap window", "The last pull, in a window you can move", "Open", "Sample");
@@ -152,7 +152,7 @@ public partial class ConfigWindow
     // still be holding: crafter food and NQ.
     private void DrawFoodWarnRow()
     {
-        Widgets.RowBegin("Warn me about", "No food at all is always flagged",
+        Widgets.RowBegin("Warn me about", "No food is always flagged",
             Widgets.SmallWidth("Crafter", "NQ"), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         if (Widgets.Segment("Crafter##warn", C.PrepCheckWarnWrongFood))
@@ -169,7 +169,7 @@ public partial class ConfigWindow
     private void DrawFoodLengthRow()
     {
         var useFight = C.PrepCheckUseFightLength;
-        Widgets.RowBegin("Running out", "Warn when it will not last",
+        Widgets.RowBegin("Running out", "Warn when it won't last the pull",
             Widgets.SmallWidth("This fight", "Under") + Theme.S(78f), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         if (Widgets.Segment("This fight##len", useFight)) { C.PrepCheckUseFightLength = true; C.SaveSettings(); }
@@ -193,7 +193,7 @@ public partial class ConfigWindow
         DrawFoodWarnRow();
         DrawFoodLengthRow();
         var ready = C.PrepCheckOnReadyCheck;
-        if (Widgets.RowCheck("On ready check", "Check again the moment one goes out", ref ready))
+        if (Widgets.RowCheck("On ready check", "Re-check on every ready check", ref ready))
         { C.PrepCheckOnReadyCheck = ready; C.SaveSettings(); }
         var always = C.PrepCheckAlwaysShowFood;
         if (Widgets.RowCheck("Always show the timer", "Even when the food is fine", ref always))
@@ -203,10 +203,10 @@ public partial class ConfigWindow
         Widgets.GroupLabel("Potion");
         Widgets.ListBegin();
         var pot = C.PrepCheckPotion;
-        if (Widgets.RowCheck("Potion reminder", "Waits until it has seen you use one", ref pot))
+        if (Widgets.RowCheck("Potion reminder", "Starts once you pot", ref pot))
         { C.PrepCheckPotion = pot; C.SaveSettings(); }
         var count = C.PrepCheckPotCountdown;
-        if (Widgets.RowCheck("Count down to it", "Shows \"Pot 1:23\" while the recast runs", ref count, sub: true))
+        if (Widgets.RowCheck("Count down to it", "Shows \"Pot 1:23\" while it recasts", ref count, sub: true))
         { C.PrepCheckPotCountdown = count; C.SaveSettings(); }
         Widgets.ListEnd();
 
@@ -216,10 +216,10 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Only fights with a sheet", "", ref sheets))
         { C.PrepCheckSheetsOnly = sheets; C.SaveSettings(); }
         var counts = C.PrepCheckShowCounts;
-        if (Widgets.RowCheck("Show how many are left", "Reads your bags", ref counts))
+        if (Widgets.RowCheck("Show how many are left", "Counts what is in your bags", ref counts))
         { C.PrepCheckShowCounts = counts; C.SaveSettings(); }
         var tts = C.PrepCheckTts;
-        if (Widgets.RowCheck("Speak it", "Uses the voice from the Audio page", ref tts))
+        if (Widgets.RowCheck("Speak it", "Uses the Audio page voice", ref tts))
         { C.PrepCheckTts = tts; C.SaveSettings(); }
 
         var pos = C.PrepCheckPosition;
@@ -253,7 +253,7 @@ public partial class ConfigWindow
         { C.CombatTimerPosition = pos; C.SaveSettings(); _plugin.CombatTimerWindow.RequestReposition(); }
 
         var locked = C.CombatTimerLocked;
-        if (Widgets.RowCheck("Locked", "Click-through; auto-locks in combat", ref locked))
+        if (Widgets.RowCheck("Locked", "Click-through. Locks itself on pull.", ref locked))
         { C.CombatTimerLocked = locked; C.SaveSettings(); }
 
         var fam = C.CombatTimerFontFamily;
@@ -277,117 +277,275 @@ public partial class ConfigWindow
         if (C.CombatTimerShowBackground)
         {
             var bgc = ColorToVec4(C.CombatTimerBackgroundColor);
-            if (Widgets.RowColor("Box color", "Drop the alpha for a see-through box", ref bgc, sub: true))
+            if (Widgets.RowColor("Box color", "Lower the alpha to see through it", ref bgc, sub: true))
             { C.CombatTimerBackgroundColor = Vec4ToColor(bgc); C.SaveSettings(); }
         }
         Widgets.ListEnd();
     }
 
     // ---- previews ----
-    // Small stills of the real overlay, so a colour or a size can be judged here
-    // rather than by alt-tabbing into the game. The scale is relative, not exact.
+    // Small stills of the real overlay, so a color or a size can be judged
+    // here rather than by alt-tabbing into the game. Each line asks the font
+    // manager for a real font at that pixel size: scaling the window font
+    // instead just stretches the glyph atlas, which reads as blurry.
 
-    private static Vector2 SampleBox(float height)
+    // One line at a real pixel size, in the same font the overlay would use.
+    private void SampleLine(Vector2 box, float boxW, ref float y, string text, uint color,
+        float px, string family, bool bold, bool italic, int align = 1, bool shadow = false)
+    {
+        var wide = MeasureAt(text, px, family, bold, italic);
+        var x = align switch
+        {
+            0 => box.X + Theme.S(9f),
+            2 => box.X + boxW - Theme.S(9f) - wide,
+            _ => box.X + (boxW - wide) * 0.5f,
+        };
+        DrawSampleTextAt(new Vector2(x, box.Y + y), text, color, px, family, bold, italic, shadow);
+        y += px;
+    }
+
+    // How wide that text is at that size, without leaving a font pushed.
+    private float MeasureAt(string text, float px, string family, bool bold, bool italic)
+    {
+        var font = _plugin.Fonts.Get(px, family, bold, italic);
+        if (font is not { Available: true }) return ImGui.CalcTextSize(text).X;
+        using (font.Push()) return ImGui.CalcTextSize(text).X;
+    }
+
+    // Drawn straight to the draw list, so it can sit anywhere in the sample.
+    private void DrawSampleTextAt(Vector2 at, string text, uint color, float px,
+        string family, bool bold, bool italic, bool shadow)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var font = _plugin.Fonts.Get(px, family, bold, italic);
+        if (font is { Available: true })
+        {
+            using (font.Push())
+            {
+                if (shadow) dl.AddText(at + new Vector2(1.5f, 1.5f), 0xC0000000, text);
+                dl.AddText(at, color, text);
+            }
+            return;
+        }
+        // Still building, or no such family: the window font, never a stretched one.
+        if (shadow) dl.AddText(at + new Vector2(1.5f, 1.5f), 0xC0000000, text);
+        dl.AddText(at, color, text);
+    }
+
+    // Content first on its own channel, so the panel can be drawn behind it
+    // once the real height is known.
+    private static (Vector2 P, float W, ImDrawListPtr Dl) SampleBegin()
     {
         var w = MathF.Min(ImGui.GetContentRegionAvail().X, Theme.S(430f));
         var p = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
-        dl.AddRectFilled(p, p + new Vector2(w, height), 0xFF0C0907, Theme.S(7f));
-        dl.AddRect(p, p + new Vector2(w, height), Widgets.CardBorder, Theme.S(7f));
-        return new Vector2(w, height);
+        dl.ChannelsSplit(2);
+        dl.ChannelsSetCurrent(1);
+        return (p, w, dl);
     }
 
-    private static void SampleText(Vector2 boxPos, float boxW, float y, string text, uint color, float scale)
+    private static void SampleEnd(Vector2 p, float w, float h, ImDrawListPtr dl, uint boxColor = 0u)
     {
-        ImGui.SetWindowFontScale(scale);
-        var tw = ImGui.CalcTextSize(text).X;
-        ImGui.SetCursorScreenPos(new Vector2(boxPos.X + (boxW - tw) * 0.5f, boxPos.Y + y));
-        ImGui.TextColored(Theme.V(color), text);
-        ImGui.SetWindowFontScale(1f);
+        dl.ChannelsSetCurrent(0);
+        dl.AddRectFilled(p, p + new Vector2(w, h), 0xFF0C0907, Theme.S(7f));
+        // The overlay's own background box, if it is switched on.
+        if (boxColor != 0u) dl.AddRectFilled(p, p + new Vector2(w, h), boxColor, Theme.S(7f));
+        dl.AddRect(p, p + new Vector2(w, h), Widgets.CardBorder, Theme.S(7f));
+        dl.ChannelsMerge();
+        ImGui.SetCursorScreenPos(p);
+        ImGui.Dummy(new Vector2(w, h));
     }
 
     private void DrawTimerSample()
     {
-        var scale = Math.Clamp(C.CombatTimerFontSizePx / 28f, 0.7f, 2.2f);
-        var h = Theme.S(20f) + ImGui.GetTextLineHeight() * scale;
-        var p = ImGui.GetCursorScreenPos();
-        var size = SampleBox(h);
-        SampleText(p, size.X, Theme.S(10f), "07:42", C.CombatTimerColor, scale);
-        ImGui.SetCursorScreenPos(p);
-        ImGui.Dummy(size);
+        var (p, w, dl) = SampleBegin();
+        var pad = Theme.S(9f);
+        var y = pad;
+        SampleLine(p, w, ref y, "07:42", C.CombatTimerColor,
+            Math.Clamp(C.CombatTimerFontSizePx, 12f, 48f),
+            C.CombatTimerFontFamily, C.CombatTimerFontBold, C.CombatTimerFontItalic,
+            1, false);
+        SampleEnd(p, w, y + pad, dl,
+            C.CombatTimerShowBackground ? C.CombatTimerBackgroundColor : 0u);
     }
 
+    // Everything the call overlay can be told to do, drawn here too, so a change
+    // below shows up above without alt-tabbing into the game.
     private void DrawCallSample()
     {
-        var scale = Math.Clamp(C.OverlayFontSizePx / 40f * 1.3f, 0.8f, 2.2f);
-        var lineH = ImGui.GetTextLineHeight();
-        var h = Theme.S(18f) + lineH * scale
-                + (C.ShowMechanicLine ? lineH + Theme.S(2f) : 0f)
-                + (C.ShowProgressBar ? Theme.S(11f) : 0f);
-        var p = ImGui.GetCursorScreenPos();
-        var size = SampleBox(h);
+        var (p, w, dl) = SampleBegin();
+        var pad = Theme.S(9f);
+        var y = pad;
 
-        var y = Theme.S(9f);
-        SampleText(p, size.X, y, "Reprisal  (2.4)", C.OverlayColorImminent, scale);
-        y += lineH * scale + Theme.S(2f);
+        // A mit-typed call takes the party color; Reprisal is the sample.
+        var callColor = C.ColorByMitType ? C.MitColorParty : C.OverlayColorImminent;
+        var px = Math.Clamp(C.OverlayFontSizePx, 12f, 48f);
+        var text = "Reprisal";
+        if (C.ShowCountdownNumber) text += "  2.4";
+        else text += "  (2.4)";
+
+        var iconSz = C.ShowAbilityIcon ? px * Math.Clamp(C.IconScale, 0.4f, 1.5f) : 0f;
+
+        // A plate behind the call, and the board layout draws one by default.
+        var plate = C.OverlayCallPanel || C.OverlayStyle == 1;
+
+        var textW = MeasureAt(text, px, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
+        var blockW = textW + (iconSz > 0f ? iconSz + Theme.S(8f) : 0f);
+        var blockH = MathF.Max(iconSz, px);
+        var x0 = C.OverlayTextAlign switch
+        {
+            0 => p.X + pad,                        // left
+            2 => p.X + w - pad - blockW,           // right
+            _ => p.X + (w - blockW) * 0.5f,        // center
+        };
+
+        if (plate)
+            dl.AddRectFilled(new Vector2(x0 - pad * 0.6f, p.Y + y - pad * 0.4f),
+                new Vector2(x0 + blockW + pad * 0.6f, p.Y + y + blockH + pad * 0.4f),
+                0x66000000, Theme.S(5f));
+
+        if (iconSz > 0f)
+        {
+            var ip = new Vector2(x0, p.Y + y + (blockH - iconSz) * 0.5f);
+            dl.AddRectFilled(ip, ip + new Vector2(iconSz, iconSz), 0xFF3A2E26, Theme.S(4f));
+            dl.AddRect(ip, ip + new Vector2(iconSz, iconSz), 0xFF5E4A3C, Theme.S(4f));
+            if (C.ShowRadialRing)
+                dl.AddCircle(ip + new Vector2(iconSz * 0.5f, iconSz * 0.5f), iconSz * 0.62f,
+                    callColor, 0, MathF.Max(1.5f, iconSz * 0.06f));
+        }
+
+        DrawSampleTextAt(new Vector2(x0 + (iconSz > 0f ? iconSz + Theme.S(8f) : 0f),
+                p.Y + y + (blockH - px) * 0.5f),
+            text, callColor, px, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic, C.TextShadow);
+        y += blockH;
+
         if (C.ShowMechanicLine)
         {
-            SampleText(p, size.X, y, "Cyclonic Break", C.OverlayColorMechanic, 1f);
-            y += lineH + Theme.S(2f);
+            y += Theme.S(3f);
+            var mpx = Math.Clamp(C.OverlayFontSizePx * 0.45f, 11f, 22f);
+            var mw = MeasureAt("Cyclonic Break", mpx, C.OverlayFontFamily, false, false);
+            var mx = C.OverlayTextAlign switch
+            {
+                0 => p.X + pad,
+                2 => p.X + w - pad - mw,
+                _ => p.X + (w - mw) * 0.5f,
+            };
+            DrawSampleTextAt(new Vector2(mx, p.Y + y), "Cyclonic Break", C.OverlayColorMechanic,
+                mpx, C.OverlayFontFamily, false, false, C.TextShadow);
+            y += mpx;
         }
+
         if (C.ShowProgressBar)
         {
-            var dl = ImGui.GetWindowDrawList();
-            var barW = size.X * 0.62f;
-            var x0 = p.X + (size.X - barW) * 0.5f;
+            y += Theme.S(6f);
+            var barW = w * 0.62f;
+            var bx = p.X + (w - barW) * 0.5f;
             var bh = MathF.Max(Theme.S(3f), Theme.S(C.ProgressBarHeight * 0.6f));
-            dl.AddRectFilled(new Vector2(x0, p.Y + y), new Vector2(x0 + barW, p.Y + y + bh), 0xFF302620, bh * 0.5f);
-            dl.AddRectFilled(new Vector2(x0, p.Y + y), new Vector2(x0 + barW * 0.62f, p.Y + y + bh),
-                C.OverlayColorImminent, bh * 0.5f);
+            dl.AddRectFilled(new Vector2(bx, p.Y + y), new Vector2(bx + barW, p.Y + y + bh),
+                0xFF302620, bh * 0.5f);
+            dl.AddRectFilled(new Vector2(bx, p.Y + y), new Vector2(bx + barW * 0.62f, p.Y + y + bh),
+                callColor, bh * 0.5f);
+            if (C.OverlayTextSpark)
+                dl.AddCircleFilled(new Vector2(bx + barW * 0.62f, p.Y + y + bh * 0.5f),
+                    MathF.Max(2f, bh), 0xFFFFFFFF);
+            y += bh;
         }
-        ImGui.SetCursorScreenPos(p);
-        ImGui.Dummy(size);
+
+        SampleEnd(p, w, y + pad, dl, C.ShowBackground ? C.BackgroundColor : 0u);
     }
 
+    // The board, with every row setting it can show honoured.
     private void DrawBoardSample()
     {
-        var rows = 3;
-        var rowH = Theme.S(15f);
-        var gap = Theme.S(4f);
-        var h = Theme.S(12f) + (rowH + gap) * rows;
+        var rows = Math.Clamp(C.UpcomingBoardRows, 3, 12);
+        var px = Math.Clamp(C.UpcomingFontSizePx, 10f, 28f);
+        var rowH = px + Theme.S(Math.Clamp(C.UpcomingBoardBarPad, 2f, 24f)) * 0.55f;
+        var gap = Theme.S(C.UpcomingBoardRowGap);
+        var pad = Theme.S(7f);
+        var phase = C.UpcomingBoardPhases;
+        var phaseH = phase ? ImGui.GetTextLineHeight() + Theme.S(4f) : 0f;
+        var h = pad * 2f + rowH * rows + gap * (rows - 1) + phaseH;
+
+        var w = MathF.Min(ImGui.GetContentRegionAvail().X, Theme.S(430f));
         var p = ImGui.GetCursorScreenPos();
-        var size = SampleBox(h);
         var dl = ImGui.GetWindowDrawList();
 
-        var accent = C.OverlaysFollowAccent ? Theme.Accent : C.UpcomingBoardAccentColor;
-        var fills = new[] { accent, C.UpcomingBoardNextColor, 0xFF3A2E28 };
-        var pcts = new[] { 0.82f, 0.5f, 0.2f };
-        var names = new[] { "Akh Morn", "Morn Afah", "Exaflare" };
-        var mits = new[] { "Temperance", "Reprisal", "Kerachole" };
-        var times = new[] { "0:12", "0:41", "1:08" };
+        var op = (uint)MathF.Round(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24;
+        dl.AddRectFilled(p, p + new Vector2(w, h), op | 0x0C0907u, Theme.S(7f));
+        dl.AddRect(p, p + new Vector2(w, h), Widgets.CardBorder, Theme.S(7f));
 
-        var barW = size.X - Theme.S(16f);
+        var accent = C.OverlaysFollowAccent ? Theme.Accent : C.UpcomingBoardAccentColor;
+        var names = new[] { "Akh Morn", "Morn Afah", "Exaflare", "Hot Wing", "Liquid Heaven",
+                            "Twisting Dive", "Morn Afah", "Bahamut's Claw", "Gigaflare",
+                            "Flare Breath", "Tempest Wing", "Wroth Flames" };
+        var mits = new[] { "Temperance", "Reprisal", "Kerachole", "Feint", "Rampart", "Addle" };
+        var sev = new[] { "!!!", "!!", "!" };
+        var chips = new[] { ("Buster", "TB", 0xFF3AA0FFu), ("Raid AOE", "AOE", 0xFF5D64E0u), ("Enrage", "ENR", 0xFF5050E0u) };
+
+        var barW = w - pad * 2f;
+        var y = p.Y + pad;
         for (var i = 0; i < rows; i++)
         {
-            var y = p.Y + Theme.S(6f) + (rowH + gap) * i;
-            var x0 = p.X + Theme.S(8f);
+            if (phase && i == 2)
+            {
+                var ly = y + Theme.S(2f);
+                dl.AddLine(new Vector2(p.X + pad, ly), new Vector2(p.X + pad + Theme.S(40f), ly), accent);
+                dl.AddText(new Vector2(p.X + pad + Theme.S(46f), y - Theme.S(2f)), Theme.Muted, "Phase 2");
+                y += phaseH;
+            }
+
+            var frac = 1f - i / (float)rows * 0.85f;
+            var fill = i == 0 ? C.UpcomingBoardNowColor : i == 1 ? C.UpcomingBoardNextColor : accent;
+            var x0 = p.X + pad;
             var r = Theme.S(C.UpcomingBoardRounding);
             dl.AddRectFilled(new Vector2(x0, y), new Vector2(x0 + barW, y + rowH), 0xFF241C18, r);
-            dl.AddRectFilled(new Vector2(x0, y), new Vector2(x0 + barW * pcts[i], y + rowH),
-                (fills[i] & 0x00FFFFFFu) | 0x88000000u, r);
+
+            // Draining empties toward the hit; filling does the opposite.
+            var lit = C.UpcomingBoardDrain ? frac : 1f - frac;
+            dl.AddRectFilled(new Vector2(x0, y), new Vector2(x0 + barW * lit, y + rowH),
+                (fill & 0x00FFFFFFu) | 0x88000000u, r);
             if (C.UpcomingBoardStripe)
                 dl.AddRectFilled(new Vector2(x0, y), new Vector2(x0 + Theme.S(2.5f), y + rowH), accent);
-            var ty = y + (rowH - ImGui.GetTextLineHeight()) * 0.5f;
-            dl.AddText(new Vector2(x0 + Theme.S(8f), ty), Theme.TextBright, names[i]);
+
+            var tx = x0 + Theme.S(8f);
+            var ty = y + (rowH - px) * 0.5f;
+            if (C.UpcomingBoardShowType && !C.UpcomingBoardTypeChip && i % 3 == 0)
+            {
+                dl.AddRectFilled(new Vector2(tx, ty + px * 0.15f),
+                    new Vector2(tx + px * 0.7f, ty + px * 0.85f), 0xFF3AA0FF, 2f);
+                tx += px * 0.7f + Theme.S(6f);
+            }
+            if (C.UpcomingBoardTypeChip)
+            {
+                var (full, shortL, col) = chips[i % 3];
+                var label = C.UpcomingBoardTypeChipShort ? shortL : full;
+                var cw = MeasureAt(label, px * 0.8f, "Default", false, false) + Theme.S(8f);
+                dl.AddRectFilled(new Vector2(tx, ty), new Vector2(tx + cw, ty + px),
+                    (col & 0x00FFFFFFu) | 0x44000000u, 3f);
+                DrawSampleTextAt(new Vector2(tx + Theme.S(4f), ty), label, col, px * 0.8f, "Default", false, false, false);
+                tx += cw + Theme.S(6f);
+            }
+
+            var name = names[i % names.Length];
+            if (C.UpcomingBoardShowSeverity) name = sev[i % sev.Length] + " " + name;
+            DrawSampleTextAt(new Vector2(tx, ty), name, Theme.TextBright, px, "Default", false, false, false);
+            tx += MeasureAt(name, px, "Default", false, false) + Theme.S(8f);
+
             if (C.UpcomingBoardShowActions)
-                dl.AddText(new Vector2(x0 + Theme.S(8f) + ImGui.CalcTextSize(names[i]).X + Theme.S(8f), ty),
-                    Theme.Muted, mits[i]);
+                DrawSampleTextAt(new Vector2(tx, ty), mits[i % mits.Length], Theme.Muted, px, "Default", false, false, false);
+
             if (C.UpcomingBoardTimeText)
-                dl.AddText(new Vector2(x0 + barW - Theme.S(8f) - ImGui.CalcTextSize(times[i]).X, ty),
-                    Theme.TextBright, times[i]);
+            {
+                var t = $"{i * 29 / 60}:{i * 29 % 60:00}";
+                var twd = MeasureAt(t, px, "Default", false, false);
+                DrawSampleTextAt(new Vector2(x0 + barW - Theme.S(8f) - twd, ty), t, Theme.TextBright,
+                    px, "Default", false, false, false);
+            }
+            y += rowH + gap;
         }
+
         ImGui.SetCursorScreenPos(p);
-        ImGui.Dummy(size);
+        ImGui.Dummy(new Vector2(w, h));
     }
 
     // ---- Call Display ----
@@ -412,11 +570,11 @@ public partial class ConfigWindow
         { C.OverlayPosition = pos; C.SaveSettings(); _plugin.OverlayWindow.RequestReposition(); }
 
         var locked = C.OverlayLocked;
-        if (Widgets.RowCheck("Locked", "Click-through; auto-locks in combat", ref locked))
+        if (Widgets.RowCheck("Locked", "Click-through. Locks itself on pull.", ref locked))
         { C.OverlayLocked = locked; C.SaveSettings(); }
 
         var warn = C.WarningSeconds;
-        if (Widgets.RowDrag("Show ahead", "How early a call appears", ref warn, 1f, 12f, "%.1fs", 86f))
+        if (Widgets.RowDrag("Show ahead", "How early a call shows", ref warn, 1f, 12f, "%.1fs", 86f))
         { C.WarningSeconds = warn; C.SaveSettings(); }
 
         var tts = C.TtsEnabled;
@@ -454,7 +612,7 @@ public partial class ConfigWindow
     private void DrawLookPresetRow()
     {
         var names = LookPresets.Select(p => p.Name).ToArray();
-        Widgets.RowBegin("Look", "A starting point; All tunes every piece",
+        Widgets.RowBegin("Look", "Changes entire look",
             Widgets.SmallWidth(names), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         for (var i = 0; i < LookPresets.Length; i++)
@@ -487,7 +645,7 @@ public partial class ConfigWindow
         DrawLookPresetRow();
 
         var style = C.OverlayStyle;
-        if (Widgets.RowCombo("Layout", "How the centre call is drawn", ref style,
+        if (Widgets.RowCombo("Layout", "How the call is drawn", ref style,
                 "Classic\0Board\0Icon + clock\0", 150f))
         { C.OverlayStyle = style; C.SaveSettings(); }
 
@@ -530,30 +688,30 @@ public partial class ConfigWindow
         { C.ShowAbilityIcon = v; C.SaveSettings(); }
 
         v = C.ShowMechanicLine;
-        if (Widgets.RowCheck("Mechanic line", "The second line under the call", ref v))
+        if (Widgets.RowCheck("Mechanic line", "Second line, the mechanic name", ref v))
         { C.ShowMechanicLine = v; C.SaveSettings(); }
 
         v = C.TextShadow;
-        if (Widgets.RowCheck("Drop shadow", "Helps over a busy background", ref v))
+        if (Widgets.RowCheck("Drop shadow", "Readable over a busy background", ref v))
         { C.TextShadow = v; C.SaveSettings(); }
 
         v = C.CooldownAwareCalls;
-        if (Widgets.RowCheck("Cooldown warnings", "Reddens a call your mit cannot cover yet", ref v))
+        if (Widgets.RowCheck("Cooldown warnings", "Reds out a call still on CD", ref v))
         { C.CooldownAwareCalls = v; C.SaveSettings(); }
 
         v = C.ShowCountdownNumber;
         if (Widgets.RowCheck("Countdown number", "", ref v)) { C.ShowCountdownNumber = v; C.SaveSettings(); }
 
         v = C.ShowRadialRing;
-        if (Widgets.RowCheck("Radial ring", "A depleting ring around the icon", ref v))
+        if (Widgets.RowCheck("Radial ring", "Countdown ring on the icon", ref v))
         { C.ShowRadialRing = v; C.SaveSettings(); }
 
         v = C.OverlayCallPanel;
-        if (Widgets.RowCheck("Call panel", "A plate behind the call", ref v))
+        if (Widgets.RowCheck("Call panel", "Dark plate behind the call", ref v))
         { C.OverlayCallPanel = v; C.SaveSettings(); }
 
         v = C.OverlayTextSpark;
-        if (Widgets.RowCheck("Text spark", "A mark that crosses the text with the bar", ref v))
+        if (Widgets.RowCheck("Text spark", "Spark that rides the bar across the text", ref v))
         { C.OverlayTextSpark = v; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -574,7 +732,7 @@ public partial class ConfigWindow
         { C.OverlayColorMechanic = Vec4ToColor(c); C.SaveSettings(); }
 
         var byType = C.ColorByMitType;
-        if (Widgets.RowCheck("By mit type", "Party, tank and personal each get a colour", ref byType))
+        if (Widgets.RowCheck("By mit type", "Party, tank and personal get their own color", ref byType))
         { C.ColorByMitType = byType; C.SaveSettings(); }
         if (C.ColorByMitType)
         {
@@ -592,32 +750,32 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var warn = C.WarningSeconds;
-        if (Widgets.RowDrag("Show ahead", "How early a call appears", ref warn, 1f, 12f, "%.1fs", 86f))
+        if (Widgets.RowDrag("Show ahead", "How early a call shows", ref warn, 1f, 12f, "%.1fs", 86f))
         { C.WarningSeconds = warn; C.SaveSettings(); }
 
         var hold = C.HoldSeconds;
-        if (Widgets.RowDrag("Hold on screen", "How long it stays after its time", ref hold, 0f, 6f, "%.1fs", 86f))
+        if (Widgets.RowDrag("Hold on screen", "How long it stays after the hit", ref hold, 0f, 6f, "%.1fs", 86f))
         { C.HoldSeconds = hold; C.SaveSettings(); }
 
         var useWin = C.ShowUseWindows;
-        if (Widgets.RowCheck("Usage window", "A span to press in, for mits with a duration", ref useWin))
+        if (Widgets.RowCheck("Press window", "For mits with a duration, not instants", ref useWin))
         { C.ShowUseWindows = useWin; C.SaveSettings(); _plugin.InvalidateSolverCache(); }
         if (C.ShowUseWindows)
         {
             var lead = C.UseWindowLeadSeconds;
-            if (Widgets.RowDrag("Window opens in", "How early a windowed call appears",
+            if (Widgets.RowDrag("Window opens in", "How early the window shows",
                     ref lead, 0f, 12f, "%.1fs", 86f, sub: true))
             { C.UseWindowLeadSeconds = lead; C.SaveSettings(); }
 
             var maxDur = C.MaxUseWindowSeconds;
-            if (Widgets.RowDrag("Longest window", "Clamps how wide a window may get",
+            if (Widgets.RowDrag("Longest window", "Caps the window",
                     ref maxDur, 1f, 30f, "%.1fs", 86f, sub: true))
             { C.MaxUseWindowSeconds = maxDur; C.SaveSettings(); }
             if (ImGui.IsItemDeactivatedAfterEdit()) _plugin.InvalidateSolverCache();
         }
 
         var start = C.StartOnCountdown;
-        if (Widgets.RowCheck("Start on countdown", "Runs through the pull countdown", ref start))
+        if (Widgets.RowCheck("Start on countdown", "Runs during the pull countdown", ref start))
         { C.StartOnCountdown = start; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -631,11 +789,11 @@ public partial class ConfigWindow
         { C.OverlayPosition = pos; C.SaveSettings(); _plugin.OverlayWindow.RequestReposition(); }
 
         var locked = C.OverlayLocked;
-        if (Widgets.RowCheck("Locked", "Click-through; auto-locks in combat", ref locked))
+        if (Widgets.RowCheck("Locked", "Click-through. Locks itself on pull.", ref locked))
         { C.OverlayLocked = locked; C.SaveSettings(); }
 
         var bar = C.ShowProgressBar;
-        if (Widgets.RowCheck("Countdown bar", "A thin bar under the call", ref bar))
+        if (Widgets.RowCheck("Countdown bar", "", ref bar))
         { C.ShowProgressBar = bar; C.SaveSettings(); }
         if (C.ShowProgressBar)
         {
@@ -652,7 +810,7 @@ public partial class ConfigWindow
         if (C.ShowBackground)
         {
             var bg = ColorToVec4(C.BackgroundColor);
-            if (Widgets.RowColor("Box color", "Drop the alpha for a see-through box", ref bg, sub: true))
+            if (Widgets.RowColor("Box color", "Lower the alpha to see through it", ref bg, sub: true))
             { C.BackgroundColor = Vec4ToColor(bg); C.SaveSettings(); }
         }
         Widgets.ListEnd();
@@ -662,11 +820,11 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var dtr = C.ShowDtrBar;
-        if (Widgets.RowCheck("Server bar", "Next mit on the server-info bar", ref dtr))
+        if (Widgets.RowCheck("Server bar", "Next mit on the server info bar", ref dtr))
         { C.ShowDtrBar = dtr; C.SaveSettings(); }
 
         var mitBar = C.ShowMitBar;
-        if (Widgets.RowCheck("Active mits bar", "Your defensive buffs with seconds left", ref mitBar))
+        if (Widgets.RowCheck("Active mits bar", "Your mits and the time left on them", ref mitBar))
         { C.ShowMitBar = mitBar; C.SaveSettings(); }
         if (C.ShowMitBar)
         {
@@ -700,7 +858,7 @@ public partial class ConfigWindow
         DrawAccentRow();
 
         var follow = C.OverlaysFollowAccent;
-        if (Widgets.RowCheck("Overlays follow it", "Off, each overlay keeps its own", ref follow))
+        if (Widgets.RowCheck("Overlays follow it", "Off = each overlay keeps its own", ref follow))
         { C.OverlaysFollowAccent = follow; C.SaveSettings(); }
 
         var scale = C.UiScale;
@@ -708,7 +866,7 @@ public partial class ConfigWindow
         { C.UiScale = scale; Theme.Scale = scale; C.SaveSettings(); }
 
         var cb = C.ColorblindMode;
-        if (Widgets.RowCheck("Colorblind safe", "Avoids the red and green pairing", ref cb))
+        if (Widgets.RowCheck("Colorblind safe", "Swaps red and green for blue and orange", ref cb))
         { C.ColorblindMode = cb; Theme.Colorblind = cb; C.SaveSettings(); }
         Widgets.ListEnd();
 
@@ -747,7 +905,7 @@ public partial class ConfigWindow
             Theme.Accent = C.AccentColor;
             C.SaveSettings();
         }
-        Tip("Any colour you like.");
+        Tip("Any color you like.");
         Widgets.RowEnd();
     }
 
@@ -798,7 +956,7 @@ public partial class ConfigWindow
             if (Widgets.RowDragInt("Rows", "How many bars at once", ref rows, 3, 12, "%d", 80f))
             { C.UpcomingBoardRows = rows; C.SaveSettings(); }
             var look = C.UpcomingBoardLookaheadSeconds;
-            if (Widgets.RowDrag("Look ahead", "Bars are full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
+            if (Widgets.RowDrag("Look ahead", "Bars start full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
             { C.UpcomingBoardLookaheadSeconds = look; C.SaveSettings(); }
         }
         else
@@ -816,7 +974,7 @@ public partial class ConfigWindow
         { C.TimelinePosition = pos; C.SaveSettings(); _plugin.TimelineWindow.RequestReposition(); }
 
         var locked = C.TimelineLocked;
-        if (Widgets.RowCheck("Locked", "Click-through; auto-locks in combat", ref locked))
+        if (Widgets.RowCheck("Locked", "Click-through. Locks itself on pull.", ref locked))
         { C.TimelineLocked = locked; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -858,7 +1016,7 @@ public partial class ConfigWindow
             if (Widgets.RowDragInt("Rows", "How many bars at once", ref rows, 3, 12, "%d", 80f))
             { C.UpcomingBoardRows = rows; C.SaveSettings(); }
             var look = C.UpcomingBoardLookaheadSeconds;
-            if (Widgets.RowDrag("Look ahead", "Bars are full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
+            if (Widgets.RowDrag("Look ahead", "Bars start full at that edge", ref look, 15f, 180f, "%.0fs", 80f))
             { C.UpcomingBoardLookaheadSeconds = look; C.SaveSettings(); }
             var bw = C.UpcomingBoardWidth;
             if (Widgets.RowDrag("Bar width", "", ref bw, 220f, 560f, "%.0f px", 86f))
@@ -867,7 +1025,7 @@ public partial class ConfigWindow
             if (Widgets.RowDrag("Text size", "", ref px, 10f, 60f, "%.0f px", 86f))
             { C.UpcomingFontSizePx = px; C.SaveSettings(); }
             var mine = C.UpcomingBoardOnlyMine;
-            if (Widgets.RowCheck("Only my hits", "Off shows the whole fight", ref mine))
+            if (Widgets.RowCheck("Only my hits", "Off = the whole fight", ref mine))
             { C.UpcomingBoardOnlyMine = mine; C.SaveSettings(); }
         }
         else
@@ -891,7 +1049,7 @@ public partial class ConfigWindow
         if (NudgeRow(ref pos) || nmoved)
         { C.TimelinePosition = pos; C.SaveSettings(); _plugin.TimelineWindow.RequestReposition(); }
         var locked = C.TimelineLocked;
-        if (Widgets.RowCheck("Locked", "Click-through; auto-locks in combat", ref locked))
+        if (Widgets.RowCheck("Locked", "Click-through. Locks itself on pull.", ref locked))
         { C.TimelineLocked = locked; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -904,7 +1062,7 @@ public partial class ConfigWindow
         v = C.UpcomingBoardShowActions;
         if (Widgets.RowCheck("Planned mits", "", ref v)) { C.UpcomingBoardShowActions = v; C.SaveSettings(); }
         v = C.UpcomingBoardShowSeverity;
-        if (Widgets.RowCheck("Severity", "! !! !!! by how hard the hit is", ref v))
+        if (Widgets.RowCheck("Severity", "! !! !!! by how hard it hits", ref v))
         { C.UpcomingBoardShowSeverity = v; C.SaveSettings(); }
         v = C.UpcomingBoardTypeChip;
         if (Widgets.RowCheck("Type chip", "Buster, Raid AOE, Enrage", ref v))
@@ -916,13 +1074,13 @@ public partial class ConfigWindow
             { C.UpcomingBoardTypeChipShort = v; C.SaveSettings(); }
         }
         v = C.UpcomingBoardShowType;
-        if (Widgets.RowCheck("Buster icon", "A shield on tank-buster rows", ref v))
+        if (Widgets.RowCheck("Buster icon", "Shield on TB rows", ref v))
         { C.UpcomingBoardShowType = v; C.SaveSettings(); }
         v = C.UpcomingBossPosition;
-        if (Widgets.RowCheck("Reposition calls", "Counts down to the boss returning", ref v))
+        if (Widgets.RowCheck("Reposition calls", "Counts down to the boss coming back", ref v))
         { C.UpcomingBossPosition = v; C.SaveSettings(); }
         v = C.UpcomingBoardPhases;
-        if (Widgets.RowCheck("Phase dividers", "A labelled rule where each phase begins", ref v))
+        if (Widgets.RowCheck("Phase dividers", "Line at each phase change", ref v))
         { C.UpcomingBoardPhases = v; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -939,10 +1097,10 @@ public partial class ConfigWindow
         ImGui.EndDisabled();
 
         c = ColorToVec4(C.UpcomingBoardNextColor);
-        if (Widgets.RowColor("Next", "Your next mit's row", ref c))
+        if (Widgets.RowColor("Next", "Your next press", ref c))
         { C.UpcomingBoardNextColor = Vec4ToColor(c); C.Save(); }
         c = ColorToVec4(C.UpcomingBoardNowColor);
-        if (Widgets.RowColor("Now", "The row whose call is firing", ref c))
+        if (Widgets.RowColor("Now", "The press that is live", ref c))
         { C.UpcomingBoardNowColor = Vec4ToColor(c); C.Save(); }
 
         var op = (int)MathF.Round(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 100f);
@@ -952,7 +1110,7 @@ public partial class ConfigWindow
         if (Widgets.RowDrag("Bar thickness", "", ref pad, 2f, 24f, "+%.0f px", 86f))
         { C.UpcomingBoardBarPad = pad; C.SaveSettings(); }
         var gap = C.UpcomingBoardRowGap;
-        if (Widgets.RowDrag("Row spacing", "Below zero overlaps the bars", ref gap, -8f, 16f, "%.0f px", 86f))
+        if (Widgets.RowDrag("Row spacing", "Below zero overlaps them", ref gap, -8f, 16f, "%.0f px", 86f))
         { C.UpcomingBoardRowGap = gap; C.SaveSettings(); }
         var rnd = C.UpcomingBoardRounding;
         if (Widgets.RowDrag("Rounding", "", ref rnd, 0f, 12f, "%.0f px", 86f))
@@ -961,7 +1119,7 @@ public partial class ConfigWindow
         var v = C.UpcomingBoardStripe;
         if (Widgets.RowCheck("Left stripe", "", ref v)) { C.UpcomingBoardStripe = v; C.SaveSettings(); }
         v = C.UpcomingBoardDrain;
-        if (Widgets.RowCheck("Drain toward the hit", "Off fills toward it instead", ref v))
+        if (Widgets.RowCheck("Drain toward the hit", "Off = bars fill instead", ref v))
         { C.UpcomingBoardDrain = v; C.SaveSettings(); }
         Widgets.ListEnd();
 
@@ -993,10 +1151,10 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var v = C.UniversalTimelines;
-        if (Widgets.RowCheck("Every duty", "Lists the boss's casts, no mits and no audio", ref v))
+        if (Widgets.RowCheck("Every duty", "Boss casts in any duty. No mits, no voice.", ref v))
         { C.UniversalTimelines = v; C.SaveSettings(); }
         v = C.LearnTimelines;
-        if (Widgets.RowCheck("Learn from pulls", "Builds a timeline as you go; a real sheet always wins", ref v))
+        if (Widgets.RowCheck("Learn from pulls", "Builds a timeline from your pulls. A sheet always wins.", ref v))
         { C.LearnTimelines = v; C.SaveSettings(); }
         if (C.LearnedFights.Count > 0)
         {
@@ -1059,10 +1217,10 @@ public partial class ConfigWindow
         Widgets.RowEnd();
 
         var speak = C.TtsEnabled;
-        if (Widgets.RowCheck("Speak the call", "Off leaves only the beep", ref speak))
+        if (Widgets.RowCheck("Speak the call", "Off = beep only", ref speak))
         { C.TtsEnabled = speak; C.SaveSettings(); }
 
-        Widgets.RowBegin("Voices", "Online needs internet and falls back to Windows",
+        Widgets.RowBegin("Voices", "Online needs internet, falls back to Windows",
             Widgets.SmallWidth("Online", "Windows"), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         if (Widgets.Segment("Online##eng", C.TtsUseEdge)) { C.TtsUseEdge = true; C.SaveSettings(); }
@@ -1106,13 +1264,13 @@ public partial class ConfigWindow
         Widgets.GroupLabel("More");
         Widgets.ListBegin();
         var custom = C.TtsCustomVoice;
-        Widgets.RowBegin("Custom voice", "An Edge voice id, which beats the picker above", Theme.S(190f));
+        Widgets.RowBegin("Custom voice", "Voice id. Overrides the picker.", Theme.S(190f));
         if (ImGui.InputTextWithHint("##customvoice", "en-US-AvaMultilingualNeural", ref custom, 64))
         { C.TtsCustomVoice = custom; C.SaveSettings(); }
         Widgets.RowEnd();
 
         var gap = C.TtsMinGapSeconds;
-        if (Widgets.RowDrag("Minimum gap", "Skip a cue spoken this recently. 0 never skips.",
+        if (Widgets.RowDrag("Minimum gap", "Skip a repeat within this. 0 = never.",
                 ref gap, 0f, 5f, "%.1fs", 86f))
         { C.TtsMinGapSeconds = gap; C.SaveSettings(); }
         Widgets.ListEnd();

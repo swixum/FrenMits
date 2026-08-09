@@ -833,9 +833,7 @@ public partial class ConfigWindow : Window, IDisposable
             ImGui.TextColored(Theme.V(Theme.Muted), note);
         }
 
-        var segW = hasModes
-            ? ImGui.CalcTextSize("Basic").X + ImGui.CalcTextSize("All").X + st.FramePadding.X * 4f + Theme.S(10f)
-            : 0f;
+        var segW = hasModes ? Widgets.ButtonWidth("Basic", "All") + Theme.S(4f) : 0f;
         var right = segW + (reset != null ? frameH + Theme.S(8f) : 0f) + (hasMaster ? frameH + Theme.S(8f) : 0f);
         // Never left of the name, whatever it turned out to be.
         var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
@@ -843,14 +841,14 @@ public partial class ConfigWindow : Window, IDisposable
 
         if (hasModes)
         {
+            // Frame height, so it sits on the same center line as the reset
+            // button and the switch beside it. A small button is shorter than
+            // both and gets clipped by the line they set.
             var all = AllMode;
-            // Small buttons carry no vertical padding, so nudge them onto the
-            // same centre line as the reset and the switch beside them.
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (frameH - Widgets.SmallHeight) * 0.5f);
             Widgets.SegmentBegin();
-            if (Widgets.Segment("Basic##pm", !all)) SetAllMode(false);
+            if (Widgets.SegmentTall("Basic##pm", !all)) SetAllMode(false);
             ImGui.SameLine();
-            if (Widgets.Segment("All##pm", all)) SetAllMode(true);
+            if (Widgets.SegmentTall("All##pm", all)) SetAllMode(true);
             Widgets.SegmentEnd();
             ImGui.SameLine(0, Theme.S(8f));
         }
@@ -887,7 +885,7 @@ public partial class ConfigWindow : Window, IDisposable
     // what is wrong. Then the handful of things you would do about it.
     private void DrawHomePage()
     {
-        var grey = Theme.V(Theme.Muted);
+        var muted = Theme.V(Theme.Muted);
 
         // Title row.
         var icon = IconWrap();
@@ -901,7 +899,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextUnformatted("Fren Mits");
         ImGui.SameLine(0, Theme.S(8f));
         ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(grey, $"v{Version}");
+        ImGui.TextColored(muted, $"v{Version}");
         var ghW = IconBtnWidth(FontAwesomeIcon.ExternalLinkAlt, "GitHub");
         var lineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
         ImGui.SameLine(MathF.Max(lineEnd + Theme.S(12f), ImGui.GetContentRegionMax().X - ghW));
@@ -926,23 +924,24 @@ public partial class ConfigWindow : Window, IDisposable
 
         Widgets.ListBegin();
         Widgets.RowBegin("Open sheet view", "Your plan for this zone",
-            Widgets.SmallWidth("Open"), ctlHeight: Widgets.SmallHeight);
-        if (ImGui.SmallButton("Open##sv"))
+            Widgets.SmallWidth("Open"), ctlHeight: Widgets.SmallHeight, clickable: true);
+        var openSheet = ImGui.SmallButton("Open##sv") || Widgets.RowClicked;
+        Widgets.RowEnd();
+        if (openSheet)
         {
             var f = _plugin.ActiveFight();
             _plugin.SheetViewWindow.Open(
                 f != null && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) ? f : null);
         }
-        Widgets.RowEnd();
 
         var test = C.TestMode;
-        if (Widgets.RowCheck("Place the overlays", "Draws a sample so you can drag them", ref test))
+        if (Widgets.RowCheckClick("Place the overlays", "Shows a sample so you can drag them", ref test))
         { C.TestMode = test; C.Save(); }
 
         if (!C.AudioEnabled)
         {
             var au = C.AudioEnabled;
-            if (Widgets.RowCheck("Turn audio back on", "It is off right now", ref au))
+            if (Widgets.RowCheckClick("Turn audio back on", "", ref au))
             { C.AudioEnabled = au; C.SaveSettings(); }
         }
 
@@ -957,7 +956,7 @@ public partial class ConfigWindow : Window, IDisposable
         var job = _plugin.ActiveJobAbbreviation();
         var gap = ImGui.GetStyle().ItemSpacing.X;
         var w = (ImGui.GetContentRegionAvail().X - gap) * 0.5f;
-        var h = ImGui.GetTextLineHeightWithSpacing() * 3f + ImGui.GetStyle().WindowPadding.Y * 2f;
+        var h = ImGui.GetTextLineHeightWithSpacing() * 3f + Theme.S(9f) * 2f;
 
         var zoneLine = fight?.Name ?? "No sheet in this zone";
         var zoneSub = fight == null ? "Nothing is called here"
@@ -980,36 +979,51 @@ public partial class ConfigWindow : Window, IDisposable
                                          && string.IsNullOrEmpty(f.Slot));
         if (noSlot > 0) problems.Add($"{noSlot} fight{(noSlot == 1 ? "" : "s")} with no slot");
 
-        HomeTile("##t1", w, h, "This zone", zoneLine, zoneCol, zoneSub);
+        if (HomeTile("##t1", w, h, "This zone", zoneLine, zoneCol, zoneSub) && fight != null)
+            OpenFightPage(fight);
+        Tip(fight == null ? "No sheet here." : "Open this fight.");
         ImGui.SameLine();
-        HomeTile("##t2", w, h, "Fren Meter",
+        if (HomeTile("##t2", w, h, "Fren Meter",
             !C.MeterEnabled ? "Off" : _plugin.Meter.Connected ? "Connected" : "Not connected",
             Theme.V(!C.MeterEnabled ? Theme.Muted : _plugin.Meter.Connected ? Theme.Good : Theme.Warn),
-            C.MeterEnabled ? _plugin.Meter.StatusText : "Turn it on to see damage");
+            C.MeterEnabled ? _plugin.Meter.StatusText : "Turn it on to see damage")) _nav = NavKind.Meter;
+        Tip("Open the meter's settings.");
 
-        HomeTile("##t3", w, h, "On screen",
+        if (HomeTile("##t3", w, h, "On screen",
             on.Count == 0 ? "Just the call" : string.Join(", ", on),
             Theme.V(Theme.TextBright),
-            off.Count == 0 ? "Everything is on" : "Off: " + string.Join(", ", off));
+            off.Count == 0 ? "Everything is on" : "Off: " + string.Join(", ", off))) _nav = NavKind.Display;
+        Tip("Open the call display.");
         ImGui.SameLine();
-        HomeTile("##t4", w, h, "Needs a look",
+        if (HomeTile("##t4", w, h, "Needs a look",
             problems.Count == 0 ? "All good" : problems[0],
             Theme.V(problems.Count == 0 ? Theme.Good : Theme.Warn),
-            problems.Count > 1 ? string.Join(", ", problems.Skip(1)) : "");
+            problems.Count > 1 ? string.Join(", ", problems.Skip(1)) : ""))
+            _nav = !C.AudioEnabled ? NavKind.Audio : NavKind.Fights;
+        Tip(problems.Count == 0 ? "Nothing needs attention." : "Go and fix the first one.");
     }
 
-    private static void HomeTile(string id, float w, float h, string label, string line, Vector4 lineCol, string sub)
+    // Drawn by hand rather than as a child window, so the whole tile is one
+    // click target and can show a hover state.
+    private static bool HomeTile(string id, float w, float h, string label, string line, Vector4 lineCol, string sub)
     {
-        ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
-        if (ImGui.BeginChild(id, new Vector2(w, h), true, ImGuiWindowFlags.NoScrollbar))
-        {
-            var room = ImGui.GetContentRegionAvail().X;
-            ImGui.TextColored(Theme.V(Theme.Muted), Widgets.Elide(label, room));
-            ImGui.TextColored(lineCol, Widgets.Elide(line, room));
-            if (sub.Length > 0) ImGui.TextColored(Theme.V(Theme.Muted), Widgets.Elide(sub, room));
-        }
-        ImGui.EndChild();
-        ImGui.PopStyleColor();
+        var p = ImGui.GetCursorScreenPos();
+        var clicked = ImGui.InvisibleButton(id, new Vector2(w, h));
+        var hot = ImGui.IsItemHovered();
+        if (hot) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddRectFilled(p, p + new Vector2(w, h), hot ? 0xFF1E1A16 : Theme.PanelBg, Theme.S(8f));
+        dl.AddRect(p, p + new Vector2(w, h), hot ? Theme.Accent : Widgets.CardBorder, Theme.S(8f));
+
+        var pad = Theme.S(9f);
+        var lineH = ImGui.GetTextLineHeightWithSpacing();
+        var room = w - pad * 2f;
+        dl.AddText(p + new Vector2(pad, pad), Theme.Muted, Widgets.Elide(label, room));
+        dl.AddText(p + new Vector2(pad, pad + lineH), Widgets.ToColor(lineCol), Widgets.Elide(line, room));
+        if (sub.Length > 0)
+            dl.AddText(p + new Vector2(pad, pad + lineH * 2f), Theme.Muted, Widgets.Elide(sub, room));
+        return clicked;
     }
 
     // What seat each role takes. The picks themselves live under Your Setup.
@@ -1019,7 +1033,7 @@ public partial class ConfigWindow : Window, IDisposable
             .Select(r => C.GlobalRolePreferences.TryGetValue(r, out var p) ? p : "-")
             .ToArray();
         var text = string.Join("  ", picks);
-        Widgets.RowBegin("Select Role", "Change these under Your Setup, bottom left",
+        Widgets.RowBegin("Select Role", "Change these under \"Your Setup\" on Nav Pane",
             ImGui.CalcTextSize(text).X);
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.Accent), text);

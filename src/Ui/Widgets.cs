@@ -129,7 +129,7 @@ internal static class Widgets
         => new(labelSize.X + valueSize.X + (hasLabel ? ChipGap : 0f) + ChipPad.X * 2,
                ImGui.GetTextLineHeight() + ChipPad.Y * 2);
 
-    // Small stat pill: grey label, colored value. An empty label gives a chip
+    // Small stat pill: gray label, colored value. An empty label gives a chip
     // that is only the number, for where the heading beside it already names it.
     public static void Chip(string label, string value, uint valueColor)
     {
@@ -146,6 +146,10 @@ internal static class Widgets
         dl.AddText(p + pad + new Vector2(hasLabel ? lSz.X + ChipGap : 0f, 0), valueColor, value);
         ImGui.Dummy(size);
     }
+
+    // How wide a Chip will be, so a caller can reserve exactly its room.
+    public static float ChipWidth(string label, string value)
+        => ChipSize(ImGui.CalcTextSize(label), ImGui.CalcTextSize(value), label.Length > 0).X;
 
     // Clickable Chip, with a hover glow and a lit open state.
     public static bool ChipButton(string label, string value, uint valueColor, bool open)
@@ -174,7 +178,7 @@ internal static class Widgets
     public static float SwatchChipWidth(string name)
         => ImGui.GetTextLineHeight() * 0.72f + ChipGap + ImGui.CalcTextSize(name).X + ChipPad.X * 2;
 
-    // A chip with a colour square and a name, for picking a saved look.
+    // A chip with a color square and a name, for picking a saved look.
     public static bool SwatchChip(string name, uint color, bool on)
     {
         var pad = ChipPad;
@@ -242,22 +246,30 @@ internal static class Widgets
     }
 
     // The height a row needs: whichever is taller, the control or the text.
+    // Two Text calls advance by a line height AND the item spacing between
+    // them, so reserving two bare line heights clips the hint.
+    private static float RowTextHeight(bool hasHint)
+        => hasHint
+            ? ImGui.GetTextLineHeight() * 2f + ImGui.GetStyle().ItemSpacing.Y
+            : ImGui.GetTextLineHeight();
+
     private static float RowHeight(bool hasHint)
-    {
-        var textH = ImGui.GetTextLineHeight() * (hasHint ? 2f : 1f);
-        return MathF.Max(ImGui.GetFrameHeight(), textH) + Theme.S(6f) * 2f;
-    }
+        => MathF.Max(ImGui.GetFrameHeight(), RowTextHeight(hasHint)) + Theme.S(8f) * 2f;
 
     // Opens a row and leaves the cursor on the control, already sized. Every
     // RowBegin needs a RowEnd, which puts the cursor on the next row.
+    // True when the last clickable row was clicked anywhere but on its control.
+    private static bool _rowClicked;
+    public static bool RowClicked => _rowClicked;
+
     public static void RowBegin(string name, string hint, float ctlWidth, bool changed = false,
-        bool sub = false, float ctlHeight = 0f)
+        bool sub = false, float ctlHeight = 0f, bool clickable = false)
     {
         var hasHint = !string.IsNullOrEmpty(hint);
         var rowH = RowHeight(hasHint);
         // Small buttons are shorter than a frame, so a row of them would sit high.
         var frameH = ctlHeight > 0f ? ctlHeight : ImGui.GetFrameHeight();
-        var textH = ImGui.GetTextLineHeight() * (hasHint ? 2f : 1f);
+        var textH = RowTextHeight(hasHint);
 
         var start = ImGui.GetCursorPos();
         var scr = ImGui.GetCursorScreenPos();
@@ -267,6 +279,17 @@ internal static class Widgets
         var m = ImGui.GetMousePos();
         var hot = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows)
                   && m.X >= scr.X && m.X <= scr.X + width && m.Y >= scr.Y && m.Y <= scr.Y + rowH;
+        // The hit area goes first and allows overlap, so the control on top of
+        // it still takes its own clicks.
+        _rowClicked = false;
+        if (clickable)
+        {
+            _rowClicked = ImGui.InvisibleButton("##hit" + name, new Vector2(width, rowH));
+            if (ImGui.IsItemHovered()) { hot = true; ImGui.SetMouseCursor(ImGuiMouseCursor.Hand); }
+            ImGui.SetItemAllowOverlap();
+            ImGui.SetCursorPos(start);
+        }
+
         if (sub) dl.AddRectFilled(scr, scr + new Vector2(width, rowH), SubBg);
         if (hot) dl.AddRectFilled(scr, scr + new Vector2(width, rowH), RowHover);
         if (_rowIndex > 0) dl.AddLine(scr, scr + new Vector2(width, 0), RowLine);
@@ -294,7 +317,7 @@ internal static class Widgets
 
     public static void RowEnd() => ImGui.SetCursorPos(_rowNext);
 
-    // A small button carries no vertical padding, so a row of them centres on this.
+    // A small button carries no vertical padding, so a row of them centers on this.
     public static float SmallHeight => ImGui.GetTextLineHeight();
 
     // Width of a run of small buttons, for right-aligning them in a row.
@@ -311,6 +334,16 @@ internal static class Widgets
     {
         RowBegin(name, hint, ImGui.GetFrameHeight(), changed, sub);
         var hit = GreenCheckbox("##rc" + name, ref v);
+        RowEnd();
+        return hit;
+    }
+
+    // The same row, but clicking anywhere on it flips the box.
+    public static bool RowCheckClick(string name, string hint, ref bool v)
+    {
+        RowBegin(name, hint, ImGui.GetFrameHeight(), clickable: true);
+        var hit = GreenCheckbox("##rc" + name, ref v);
+        if (_rowClicked) { v = !v; hit = true; }
         RowEnd();
         return hit;
     }
@@ -368,7 +401,7 @@ internal static class Widgets
     {
         var hasHint = !string.IsNullOrEmpty(hint);
         var rowH = RowHeight(hasHint);
-        var textH = ImGui.GetTextLineHeight() * (hasHint ? 2f : 1f);
+        var textH = RowTextHeight(hasHint);
         var lineH = ImGui.GetTextLineHeight();
 
         var start = ImGui.GetCursorPos();
@@ -467,6 +500,30 @@ internal static class Widgets
     }
 
     public static bool Segment(string label, bool on) => Segment(label, on, Theme.Accent);
+
+    // A segment the height of a frame, for a row that also holds a button or a
+    // checkbox. The small version is shorter than both and cannot line up.
+    public static bool SegmentTall(string label, bool on)
+    {
+        if (on)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Lighten(Theme.Accent, 0.22f));
+            ImGui.PushStyleColor(ImGuiCol.Text, OnColorText(Theme.Accent));
+        }
+        var clicked = ImGui.Button(label);
+        if (on) ImGui.PopStyleColor(3);
+        return clicked;
+    }
+
+    // Width of a run of frame-height segments or buttons.
+    public static float ButtonWidth(params string[] labels)
+    {
+        var pad = ImGui.GetStyle().FramePadding.X * 2f;
+        var w = 0f;
+        foreach (var l in labels) w += ImGui.CalcTextSize(l).X + pad + 1f;
+        return w;
+    }
 
     // A lit color of its own, for a segment that means "changed" rather than
     // "selected": accent says picked, amber says you overrode the auto choice.

@@ -41,13 +41,13 @@ public partial class ConfigWindow
         { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
 
         var locked = C.MeterLocked;
-        if (Widgets.RowCheck("Locked", "Position and size; unlock to drag its edges", ref locked))
+        if (Widgets.RowCheck("Locked", "Position and size. Unlock to drag the edges.", ref locked))
         { C.MeterLocked = locked; C.SaveSettings(); }
         Widgets.ListEnd();
 
         ImGui.Spacing();
         Widgets.ListBegin();
-        if (Widgets.RowDoor("All settings", "Rows, bars, text and colours")) SetAllMode(true);
+        if (Widgets.RowDoor("All settings", "Rows, bars, text and colors")) SetAllMode(true);
         if (Widgets.RowDoor("Columns", "Which numbers each row shows")) { SetAllMode(true); _jumpTab = "Columns"; }
         if (Widgets.RowDoor("Connection", _plugin.Meter.Connected ? _plugin.Meter.StatusText : "Not connected"))
         { SetAllMode(true); _jumpTab = "Connection"; }
@@ -160,7 +160,7 @@ public partial class ConfigWindow
         DrawMeterShowRow();
 
         var names = C.MeterNameStyle;
-        if (Widgets.RowCombo("Names", "How party members are named on their row", ref names,
+        if (Widgets.RowCombo("Names", "How names show on each row", ref names,
                 "Full name\0First name\0First name + initial\0", 170f))
         { C.MeterNameStyle = names; C.SaveSettings(); }
 
@@ -170,7 +170,7 @@ public partial class ConfigWindow
         { C.MeterMaxRows = maxRows; C.SaveSettings(); }
 
         var refresh = C.MeterRefreshSeconds;
-        if (Widgets.RowDrag("Refresh", "How long the numbers hold still. Bars keep moving.",
+        if (Widgets.RowDrag("Refresh", "How often numbers update. Bars stay smooth.",
                 ref refresh, 0f, 3f, refresh <= 0f ? "every frame" : "%.1f s", 96f))
         { C.MeterRefreshSeconds = refresh; C.SaveSettings(); }
 
@@ -179,7 +179,7 @@ public partial class ConfigWindow
         v = C.MeterShowJobIcons;
         if (Widgets.RowCheck("Job icons", "", ref v)) { C.MeterShowJobIcons = v; C.SaveSettings(); }
         v = C.MeterLimitBreakRow;
-        if (Widgets.RowCheck("Limit break row", "A short row under the party", ref v))
+        if (Widgets.RowCheck("Limit break row", "LB bar under the party", ref v))
         { C.MeterLimitBreakRow = v; C.SaveSettings(); }
         v = C.MeterSplitHealing;
         if (Widgets.RowCheck("Split DPS and HPS", "DPS on top, healer HPS below", ref v))
@@ -189,7 +189,7 @@ public partial class ConfigWindow
         Widgets.GroupLabel("Around the rows");
         Widgets.ListBegin();
         var header = C.MeterHeaderStyle;
-        if (Widgets.RowCombo("Header", "Double-click the meter's header to cycle", ref header,
+        if (Widgets.RowCombo("Header", "Double-click the header to cycle", ref header,
                 "Full\0Slim\0Hidden\0", 120f))
         { C.MeterHeaderStyle = header; C.SaveSettings(); }
 
@@ -202,10 +202,10 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Buttons bar", "History, pause and reset at the bottom", ref v2))
         { C.MeterButtons = v2; C.SaveSettings(); }
         v2 = C.MeterFooterDeaths;
-        if (Widgets.RowCheck("Death count", "In the footer; hover it for who", ref v2))
+        if (Widgets.RowCheck("Death count", "Deaths this pull. Hover for who.", ref v2))
         { C.MeterFooterDeaths = v2; C.SaveSettings(); }
         v2 = C.MeterClickThrough;
-        if (Widgets.RowCheck("Click-through", "The mouse ignores the meter, menu included", ref v2))
+        if (Widgets.RowCheck("Click-through", "Mouse passes through, menu included", ref v2))
         { C.MeterClickThrough = v2; C.SaveSettings(); }
         Widgets.ListEnd();
 
@@ -215,7 +215,7 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Action icons", "Beside each ability", ref v3))
         { C.MeterBreakdownIcons = v3; C.SaveSettings(); }
         v3 = C.MeterBreakdownColors;
-        if (Widgets.RowCheck("Color each ability", "Off uses the job colour throughout", ref v3))
+        if (Widgets.RowCheck("Color each ability", "Off = job color throughout", ref v3))
         { C.MeterBreakdownColors = v3; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -243,10 +243,10 @@ public partial class ConfigWindow
         { C.MeterBarStyle = fill; C.SaveSettings(); }
 
         var v = C.MeterJobColors;
-        if (Widgets.RowCheck("Color by job", "Off uses the accent for every bar", ref v))
+        if (Widgets.RowCheck("Color by job", "Off = accent on every bar", ref v))
         { C.MeterJobColors = v; C.SaveSettings(); }
         v = C.MeterBarSolid;
-        if (Widgets.RowCheck("Solid", "The job colour, not a wash you see through", ref v))
+        if (Widgets.RowCheck("Solid", "Full job color, not a wash", ref v))
         { C.MeterBarSolid = v; C.SaveSettings(); }
 
         var barH = C.MeterBarHeight;
@@ -270,7 +270,7 @@ public partial class ConfigWindow
         if (NudgeRow(ref pos) || mmoved)
         { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
         var locked = C.MeterLocked;
-        if (Widgets.RowCheck("Locked", "Position and size; unlock to drag its edges", ref locked))
+        if (Widgets.RowCheck("Locked", "Position and size. Unlock to drag the edges.", ref locked))
         { C.MeterLocked = locked; C.SaveSettings(); }
         Widgets.ListEnd();
     }
@@ -337,7 +337,7 @@ public partial class ConfigWindow
         ImGui.BeginDisabled(C.OverlaysFollowAccent);
         MeterColorRow("Accent", C.OverlaysFollowAccent
                 ? "Held: Appearance has the overlays following the accent"
-                : "Totals, and bars when job colours are off",
+                : "Totals, and bars when job colors are off",
             () => C.MeterAccentColor, v => C.MeterAccentColor = v);
         ImGui.EndDisabled();
         MeterColorRow("Background", "", () => C.MeterBgColor, v => C.MeterBgColor = v);

@@ -67,7 +67,7 @@ public partial class ConfigWindow
         Widgets.Chip("", fights.Count.ToString(), Theme.TextBright);
 
         var addW = IconBtnWidth(FontAwesomeIcon.Plus, "Add");
-        var right = Theme.S(150f) + addW + Theme.S(8f);
+        var right = Theme.S(150f) + addW + Theme.S(8f) + Theme.S(4f);
         var lineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
         ImGui.SameLine(MathF.Max(lineEnd + Theme.S(12f), ImGui.GetContentRegionMax().X - right));
         ImGui.SetNextItemWidth(Theme.S(150f));
@@ -123,11 +123,30 @@ public partial class ConfigWindow
             // end up under the slot chip or the on switch.
             var hasSheet = official || fight.CustomSlots.Count > 0;
             var slotTag = !hasSheet ? "" : string.IsNullOrEmpty(fight.Slot) ? "no slot" : fight.Slot;
-            var boxW = ImGui.GetFrameHeight() + Theme.S(6f) + (hasSheet ? Theme.S(26f) : 0f);
-            var tagW = slotTag.Length > 0 ? ImGui.CalcTextSize(slotTag).X + Theme.S(22f) : 0f;
+
+            // Measured, not guessed: the sheet button is an icon glyph plus frame
+            // padding, and a chip is its text plus its own padding. Estimating
+            // either one low pushes the last control off the right edge.
+            var gap = Theme.S(6f);
+            var edge = Theme.S(4f);
+            var checkW = ImGui.GetFrameHeight();
+            var sheetW = 0f;
+            if (hasSheet)
+            {
+                using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+                    sheetW = ImGui.CalcTextSize(FontAwesomeIcon.Table.ToIconString()).X;
+                sheetW += ImGui.GetStyle().FramePadding.X * 2f;
+            }
+            var tagW = slotTag.Length > 0 ? Widgets.ChipWidth("", slotTag) : 0f;
+
+            // Placed from the right edge inwards, so every row ends in one column.
+            var checkX = ImGui.GetContentRegionMax().X - edge - checkW;
+            var sheetX = checkX - (hasSheet ? gap + sheetW : 0f);
+            var tagX = sheetX - (tagW > 0f ? gap + tagW : 0f);
+
             var starW = ImGui.GetTextLineHeight() + Theme.S(8f);
             var labelX = headerStartX + ImGui.GetTreeNodeToLabelSpacing() + ImGui.GetStyle().FramePadding.X;
-            var nameRoom = ImGui.GetContentRegionMax().X - labelX - starW - tagW - boxW - Theme.S(10f);
+            var nameRoom = tagX - labelX - starW - gap;
 
             // An empty label leaves just the arrow, so the star can lead the name.
             var open = ImGui.CollapsingHeader($"###fh-{fight.Id}");
@@ -161,8 +180,7 @@ public partial class ConfigWindow
             var rowEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
             if (slotTag.Length > 0)
             {
-                ImGui.SameLine(MathF.Max(rowEnd + Theme.S(10f),
-                    ImGui.GetContentRegionMax().X - boxW - tagW));
+                ImGui.SameLine(MathF.Max(rowEnd + gap, tagX));
                 Widgets.Chip("", slotTag, string.IsNullOrEmpty(fight.Slot)
                     ? Theme.Warn : Theme.RoleColor(fight.Slot));
                 if (Widgets.HoveredDelayed())
@@ -175,7 +193,7 @@ public partial class ConfigWindow
             // Straight into Sheet View, for any fight that has one.
             if (hasSheet)
             {
-                ImGui.SameLine(MathF.Max(rowEnd + Theme.S(8f), ImGui.GetContentRegionMax().X - boxW));
+                ImGui.SameLine(MathF.Max(rowEnd + gap, sheetX));
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 {
                     if (ImGui.SmallButton(FontAwesomeIcon.Table.ToIconString() + "##opensheet"))
@@ -186,8 +204,7 @@ public partial class ConfigWindow
             }
 
             // On or off, in the same column on every row.
-            ImGui.SameLine(MathF.Max(rowEnd + Theme.S(6f),
-                ImGui.GetContentRegionMax().X - ImGui.GetFrameHeight() - Theme.S(4f)));
+            ImGui.SameLine(MathF.Max(rowEnd + gap, checkX));
             var enabled = fight.Enabled;
             if (GreenCheckbox("##en", ref enabled)) { fight.Enabled = enabled; C.Save(); }
             if (Widgets.HoveredDelayed())

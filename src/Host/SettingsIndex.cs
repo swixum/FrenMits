@@ -93,7 +93,7 @@ internal static class SettingsIndex
         E(ConfigWindow.NavKind.Display, "Colors", "By mit type", nameof(Configuration.ColorByMitType), "party tank personal"),
         E(ConfigWindow.NavKind.Display, "Timing", "Show ahead", nameof(Configuration.WarningSeconds), "lead warning early"),
         E(ConfigWindow.NavKind.Display, "Timing", "Hold on screen", nameof(Configuration.HoldSeconds), "linger"),
-        E(ConfigWindow.NavKind.Display, "Timing", "Usage window", nameof(Configuration.ShowUseWindows), "press span"),
+        E(ConfigWindow.NavKind.Display, "Timing", "Press window", nameof(Configuration.ShowUseWindows), "usage window span duration"),
         E(ConfigWindow.NavKind.Display, "Timing", "Window opens in", nameof(Configuration.UseWindowLeadSeconds), "lead early"),
         E(ConfigWindow.NavKind.Display, "Timing", "Longest window", nameof(Configuration.MaxUseWindowSeconds), "clamp max duration"),
         E(ConfigWindow.NavKind.Display, "Timing", "Start on countdown", nameof(Configuration.StartOnCountdown), "prepull"),
