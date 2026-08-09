@@ -289,264 +289,55 @@ public partial class ConfigWindow
     // manager for a real font at that pixel size: scaling the window font
     // instead just stretches the glyph atlas, which reads as blurry.
 
-    // One line at a real pixel size, in the same font the overlay would use.
-    private void SampleLine(Vector2 box, float boxW, ref float y, string text, uint color,
-        float px, string family, bool bold, bool italic, int align = 1, bool shadow = false)
-    {
-        var wide = MeasureAt(text, px, family, bold, italic);
-        var x = align switch
-        {
-            0 => box.X + Theme.S(9f),
-            2 => box.X + boxW - Theme.S(9f) - wide,
-            _ => box.X + (boxW - wide) * 0.5f,
-        };
-        DrawSampleTextAt(new Vector2(x, box.Y + y), text, color, px, family, bold, italic, shadow);
-        y += px;
-    }
+    // The real overlay, drawn inside a panel here. Anything hand-drawn in this
+    // window would be an imitation, and an imitation drifts the moment the
+    // overlay changes. The meter preview has always worked this way.
+    //
+    // A real child, not a group: the classic call centres itself on the room it
+    // is given, and inside a group that room is the whole page.
 
-    // How wide that text is at that size, without leaving a font pushed.
-    private float MeasureAt(string text, float px, string family, bool bold, bool italic)
-    {
-        var font = _plugin.Fonts.Get(px, family, bold, italic);
-        if (font is not { Available: true }) return ImGui.CalcTextSize(text).X;
-        using (font.Push()) return ImGui.CalcTextSize(text).X;
-    }
+    // Measured as the sample draws, applied next frame. The same one-frame
+    // settle the sidebar and the label column use.
+    private readonly Dictionary<string, float> _sampleH = new();
 
-    // Drawn straight to the draw list, so it can sit anywhere in the sample.
-    private void DrawSampleTextAt(Vector2 at, string text, uint color, float px,
-        string family, bool bold, bool italic, bool shadow)
-    {
-        var dl = ImGui.GetWindowDrawList();
-        var font = _plugin.Fonts.Get(px, family, bold, italic);
-        if (font is { Available: true })
-        {
-            using (font.Push())
-            {
-                if (shadow) dl.AddText(at + new Vector2(1.5f, 1.5f), 0xC0000000, text);
-                dl.AddText(at, color, text);
-            }
-            return;
-        }
-        // Still building, or no such family: the window font, never a stretched one.
-        if (shadow) dl.AddText(at + new Vector2(1.5f, 1.5f), 0xC0000000, text);
-        dl.AddText(at, color, text);
-    }
-
-    // Content first on its own channel, so the panel can be drawn behind it
-    // once the real height is known.
-    private static (Vector2 P, float W, ImDrawListPtr Dl) SampleBegin()
+    private void DrawLiveSample(string key, Action draw)
     {
         var w = MathF.Min(ImGui.GetContentRegionAvail().X, Theme.S(430f));
+        var pad = Theme.S(10f);
+        var h = _sampleH.TryGetValue(key, out var known)
+            ? known
+            : ImGui.GetFrameHeight() * 3f + pad * 2f;
+
         var p = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
-        dl.ChannelsSplit(2);
-        dl.ChannelsSetCurrent(1);
-        return (p, w, dl);
-    }
-
-    private static void SampleEnd(Vector2 p, float w, float h, ImDrawListPtr dl, uint boxColor = 0u)
-    {
-        dl.ChannelsSetCurrent(0);
         dl.AddRectFilled(p, p + new Vector2(w, h), 0xFF0C0907, Theme.S(7f));
-        // The overlay's own background box, if it is switched on.
-        if (boxColor != 0u) dl.AddRectFilled(p, p + new Vector2(w, h), boxColor, Theme.S(7f));
         dl.AddRect(p, p + new Vector2(w, h), Widgets.CardBorder, Theme.S(7f));
-        dl.ChannelsMerge();
+
+        ImGui.SetCursorScreenPos(p);
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, 0u);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(pad, pad));
+        if (ImGui.BeginChild(key, new Vector2(w, h), false,
+                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+        {
+            var top = ImGui.GetCursorScreenPos().Y;
+            ImGui.BeginGroup();
+            draw();
+            ImGui.EndGroup();
+            _sampleH[key] = ImGui.GetItemRectMax().Y - top + pad * 2f;
+        }
+        ImGui.EndChild();
+        ImGui.PopStyleVar();
+        ImGui.PopStyleColor();
+
         ImGui.SetCursorScreenPos(p);
         ImGui.Dummy(new Vector2(w, h));
     }
 
-    private void DrawTimerSample()
-    {
-        var (p, w, dl) = SampleBegin();
-        var pad = Theme.S(9f);
-        var y = pad;
-        SampleLine(p, w, ref y, "07:42", C.CombatTimerColor,
-            Math.Clamp(C.CombatTimerFontSizePx, 12f, 48f),
-            C.CombatTimerFontFamily, C.CombatTimerFontBold, C.CombatTimerFontItalic,
-            1, false);
-        SampleEnd(p, w, y + pad, dl,
-            C.CombatTimerShowBackground ? C.CombatTimerBackgroundColor : 0u);
-    }
+    private void DrawCallSample() => DrawLiveSample("##callsample", _plugin.OverlayWindow.DrawSampleCalls);
 
-    // Everything the call overlay can be told to do, drawn here too, so a change
-    // below shows up above without alt-tabbing into the game.
-    private void DrawCallSample()
-    {
-        var (p, w, dl) = SampleBegin();
-        var pad = Theme.S(9f);
-        var y = pad;
+    private void DrawTimerSample() => DrawLiveSample("##timersample", _plugin.CombatTimerWindow.DrawSampleClock);
 
-        // A mit-typed call takes the party color; Reprisal is the sample.
-        var callColor = C.ColorByMitType ? C.MitColorParty : C.OverlayColorImminent;
-        var px = Math.Clamp(C.OverlayFontSizePx, 12f, 48f);
-        var text = "Reprisal";
-        if (C.ShowCountdownNumber) text += "  2.4";
-        else text += "  (2.4)";
-
-        var iconSz = C.ShowAbilityIcon ? px * Math.Clamp(C.IconScale, 0.4f, 1.5f) : 0f;
-
-        // A plate behind the call, and the board layout draws one by default.
-        var plate = C.OverlayCallPanel || C.OverlayStyle == 1;
-
-        var textW = MeasureAt(text, px, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic);
-        var blockW = textW + (iconSz > 0f ? iconSz + Theme.S(8f) : 0f);
-        var blockH = MathF.Max(iconSz, px);
-        var x0 = C.OverlayTextAlign switch
-        {
-            0 => p.X + pad,                        // left
-            2 => p.X + w - pad - blockW,           // right
-            _ => p.X + (w - blockW) * 0.5f,        // center
-        };
-
-        if (plate)
-            dl.AddRectFilled(new Vector2(x0 - pad * 0.6f, p.Y + y - pad * 0.4f),
-                new Vector2(x0 + blockW + pad * 0.6f, p.Y + y + blockH + pad * 0.4f),
-                0x66000000, Theme.S(5f));
-
-        if (iconSz > 0f)
-        {
-            var ip = new Vector2(x0, p.Y + y + (blockH - iconSz) * 0.5f);
-            dl.AddRectFilled(ip, ip + new Vector2(iconSz, iconSz), 0xFF3A2E26, Theme.S(4f));
-            dl.AddRect(ip, ip + new Vector2(iconSz, iconSz), 0xFF5E4A3C, Theme.S(4f));
-            if (C.ShowRadialRing)
-                dl.AddCircle(ip + new Vector2(iconSz * 0.5f, iconSz * 0.5f), iconSz * 0.62f,
-                    callColor, 0, MathF.Max(1.5f, iconSz * 0.06f));
-        }
-
-        DrawSampleTextAt(new Vector2(x0 + (iconSz > 0f ? iconSz + Theme.S(8f) : 0f),
-                p.Y + y + (blockH - px) * 0.5f),
-            text, callColor, px, C.OverlayFontFamily, C.OverlayFontBold, C.OverlayFontItalic, C.TextShadow);
-        y += blockH;
-
-        if (C.ShowMechanicLine)
-        {
-            y += Theme.S(3f);
-            var mpx = Math.Clamp(C.OverlayFontSizePx * 0.45f, 11f, 22f);
-            var mw = MeasureAt("Cyclonic Break", mpx, C.OverlayFontFamily, false, false);
-            var mx = C.OverlayTextAlign switch
-            {
-                0 => p.X + pad,
-                2 => p.X + w - pad - mw,
-                _ => p.X + (w - mw) * 0.5f,
-            };
-            DrawSampleTextAt(new Vector2(mx, p.Y + y), "Cyclonic Break", C.OverlayColorMechanic,
-                mpx, C.OverlayFontFamily, false, false, C.TextShadow);
-            y += mpx;
-        }
-
-        if (C.ShowProgressBar)
-        {
-            y += Theme.S(6f);
-            var barW = w * 0.62f;
-            var bx = p.X + (w - barW) * 0.5f;
-            var bh = MathF.Max(Theme.S(3f), Theme.S(C.ProgressBarHeight * 0.6f));
-            dl.AddRectFilled(new Vector2(bx, p.Y + y), new Vector2(bx + barW, p.Y + y + bh),
-                0xFF302620, bh * 0.5f);
-            dl.AddRectFilled(new Vector2(bx, p.Y + y), new Vector2(bx + barW * 0.62f, p.Y + y + bh),
-                callColor, bh * 0.5f);
-            if (C.OverlayTextSpark)
-                dl.AddCircleFilled(new Vector2(bx + barW * 0.62f, p.Y + y + bh * 0.5f),
-                    MathF.Max(2f, bh), 0xFFFFFFFF);
-            y += bh;
-        }
-
-        SampleEnd(p, w, y + pad, dl, C.ShowBackground ? C.BackgroundColor : 0u);
-    }
-
-    // The board, with every row setting it can show honoured.
-    private void DrawBoardSample()
-    {
-        var rows = Math.Clamp(C.UpcomingBoardRows, 3, 12);
-        var px = Math.Clamp(C.UpcomingFontSizePx, 10f, 28f);
-        var rowH = px + Theme.S(Math.Clamp(C.UpcomingBoardBarPad, 2f, 24f)) * 0.55f;
-        var gap = Theme.S(C.UpcomingBoardRowGap);
-        var pad = Theme.S(7f);
-        var phase = C.UpcomingBoardPhases;
-        var phaseH = phase ? ImGui.GetTextLineHeight() + Theme.S(4f) : 0f;
-        var h = pad * 2f + rowH * rows + gap * (rows - 1) + phaseH;
-
-        var w = MathF.Min(ImGui.GetContentRegionAvail().X, Theme.S(430f));
-        var p = ImGui.GetCursorScreenPos();
-        var dl = ImGui.GetWindowDrawList();
-
-        var op = (uint)MathF.Round(Math.Clamp(C.UpcomingBoardBgOpacity, 0f, 1f) * 255f) << 24;
-        dl.AddRectFilled(p, p + new Vector2(w, h), op | 0x0C0907u, Theme.S(7f));
-        dl.AddRect(p, p + new Vector2(w, h), Widgets.CardBorder, Theme.S(7f));
-
-        var accent = C.OverlaysFollowAccent ? Theme.Accent : C.UpcomingBoardAccentColor;
-        var names = new[] { "Akh Morn", "Morn Afah", "Exaflare", "Hot Wing", "Liquid Heaven",
-                            "Twisting Dive", "Morn Afah", "Bahamut's Claw", "Gigaflare",
-                            "Flare Breath", "Tempest Wing", "Wroth Flames" };
-        var mits = new[] { "Temperance", "Reprisal", "Kerachole", "Feint", "Rampart", "Addle" };
-        var sev = new[] { "!!!", "!!", "!" };
-        var chips = new[] { ("Buster", "TB", 0xFF3AA0FFu), ("Raid AOE", "AOE", 0xFF5D64E0u), ("Enrage", "ENR", 0xFF5050E0u) };
-
-        var barW = w - pad * 2f;
-        var y = p.Y + pad;
-        for (var i = 0; i < rows; i++)
-        {
-            if (phase && i == 2)
-            {
-                var ly = y + Theme.S(2f);
-                dl.AddLine(new Vector2(p.X + pad, ly), new Vector2(p.X + pad + Theme.S(40f), ly), accent);
-                dl.AddText(new Vector2(p.X + pad + Theme.S(46f), y - Theme.S(2f)), Theme.Muted, "Phase 2");
-                y += phaseH;
-            }
-
-            var frac = 1f - i / (float)rows * 0.85f;
-            var fill = i == 0 ? C.UpcomingBoardNowColor : i == 1 ? C.UpcomingBoardNextColor : accent;
-            var x0 = p.X + pad;
-            var r = Theme.S(C.UpcomingBoardRounding);
-            dl.AddRectFilled(new Vector2(x0, y), new Vector2(x0 + barW, y + rowH), 0xFF241C18, r);
-
-            // Draining empties toward the hit; filling does the opposite.
-            var lit = C.UpcomingBoardDrain ? frac : 1f - frac;
-            dl.AddRectFilled(new Vector2(x0, y), new Vector2(x0 + barW * lit, y + rowH),
-                (fill & 0x00FFFFFFu) | 0x88000000u, r);
-            if (C.UpcomingBoardStripe)
-                dl.AddRectFilled(new Vector2(x0, y), new Vector2(x0 + Theme.S(2.5f), y + rowH), accent);
-
-            var tx = x0 + Theme.S(8f);
-            var ty = y + (rowH - px) * 0.5f;
-            if (C.UpcomingBoardShowType && !C.UpcomingBoardTypeChip && i % 3 == 0)
-            {
-                dl.AddRectFilled(new Vector2(tx, ty + px * 0.15f),
-                    new Vector2(tx + px * 0.7f, ty + px * 0.85f), 0xFF3AA0FF, 2f);
-                tx += px * 0.7f + Theme.S(6f);
-            }
-            if (C.UpcomingBoardTypeChip)
-            {
-                var (full, shortL, col) = chips[i % 3];
-                var label = C.UpcomingBoardTypeChipShort ? shortL : full;
-                var cw = MeasureAt(label, px * 0.8f, "Default", false, false) + Theme.S(8f);
-                dl.AddRectFilled(new Vector2(tx, ty), new Vector2(tx + cw, ty + px),
-                    (col & 0x00FFFFFFu) | 0x44000000u, 3f);
-                DrawSampleTextAt(new Vector2(tx + Theme.S(4f), ty), label, col, px * 0.8f, "Default", false, false, false);
-                tx += cw + Theme.S(6f);
-            }
-
-            var name = names[i % names.Length];
-            if (C.UpcomingBoardShowSeverity) name = sev[i % sev.Length] + " " + name;
-            DrawSampleTextAt(new Vector2(tx, ty), name, Theme.TextBright, px, "Default", false, false, false);
-            tx += MeasureAt(name, px, "Default", false, false) + Theme.S(8f);
-
-            if (C.UpcomingBoardShowActions)
-                DrawSampleTextAt(new Vector2(tx, ty), mits[i % mits.Length], Theme.Muted, px, "Default", false, false, false);
-
-            if (C.UpcomingBoardTimeText)
-            {
-                var t = $"{i * 29 / 60}:{i * 29 % 60:00}";
-                var twd = MeasureAt(t, px, "Default", false, false);
-                DrawSampleTextAt(new Vector2(x0 + barW - Theme.S(8f) - twd, ty), t, Theme.TextBright,
-                    px, "Default", false, false, false);
-            }
-            y += rowH + gap;
-        }
-
-        ImGui.SetCursorScreenPos(p);
-        ImGui.Dummy(new Vector2(w, h));
-    }
+    private void DrawBoardSample() => DrawLiveSample("##boardsample", _plugin.TimelineWindow.DrawSampleBoard);
 
     // ---- Call Display ----
 
@@ -576,6 +367,11 @@ public partial class ConfigWindow
         var warn = C.WarningSeconds;
         if (Widgets.RowDrag("Show ahead", "How early a call shows", ref warn, 1f, 12f, "%.1fs", 86f))
         { C.WarningSeconds = warn; C.SaveSettings(); }
+
+        // Flagship setting, so it stays on the short page.
+        var useWinB = C.ShowUseWindows;
+        if (Widgets.RowCheck("Usage Window", "For mits with a duration, not instants", ref useWinB))
+        { C.ShowUseWindows = useWinB; C.SaveSettings(); _plugin.InvalidateSolverCache(); }
 
         var tts = C.TtsEnabled;
         if (Widgets.RowCheck("Speak it", "The voice is set on the Audio page", ref tts))
@@ -758,7 +554,7 @@ public partial class ConfigWindow
         { C.HoldSeconds = hold; C.SaveSettings(); }
 
         var useWin = C.ShowUseWindows;
-        if (Widgets.RowCheck("Press window", "For mits with a duration, not instants", ref useWin))
+        if (Widgets.RowCheck("Usage Window", "For mits with a duration, not instants", ref useWin))
         { C.ShowUseWindows = useWin; C.SaveSettings(); _plugin.InvalidateSolverCache(); }
         if (C.ShowUseWindows)
         {

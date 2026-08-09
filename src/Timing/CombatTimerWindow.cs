@@ -64,7 +64,15 @@ public class CombatTimerWindow : Window
 
         // Live combat time, or a sample while previewing.
         var secs = C.TestMode && !_plugin.Timer.CombatRunning ? 152f : _plugin.Timer.CombatElapsed;
+        DrawClock(secs);
+    }
 
+    // The clock itself. Public so the settings page draws this rather than an
+    // imitation of it, and the two can never drift apart.
+    public void DrawSampleClock() => DrawClock(462f);
+
+    private void DrawClock(float secs)
+    {
         using var _ = PushFont(C.CombatTimerFontSizePx);
         ImGui.PushStyleColor(ImGuiCol.Text, C.CombatTimerColor);
         ImGui.TextUnformatted(Fmt.MmssFloor(MathF.Max(0f, secs)));

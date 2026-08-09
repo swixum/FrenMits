@@ -1077,6 +1077,10 @@ public class TimelineWindow : Window
     private FightProfile? _previewFight;
     private List<SheetTimeline.MechRow>? _previewRows;
 
+    // The real board, on a synthetic Dancing Mad pull. Public so the Next Mits
+    // page draws this rather than an imitation of it.
+    public void DrawSampleBoard() => DrawDmuSample();
+
     private void DrawDmuSample()
     {
         _previewFight ??= new FightProfile

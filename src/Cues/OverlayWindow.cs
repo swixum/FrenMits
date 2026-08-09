@@ -140,26 +140,7 @@ public class OverlayWindow : Window
 
         if (C.TestMode && !_plugin.Timer.Live)
         {
-            if (C.OverlayStyle == 1)
-                using (PushFont(C.OverlayFontSizePx))
-                {
-                    var w = BoardWidth();
-                    w = FitBoardWidth(w, "Reprisal", 1.4f, true);
-                    w = FitBoardWidth(w, "Feint", 3.2f, true);
-                    DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0.28f, Icons.ResolveFromText("Reprisal"), w);
-                    ImGui.Dummy(new Vector2(1f, 4f));
-                    DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, 0.5f, 0.28f, Icons.ResolveFromText("Feint"), w);
-                }
-            else if (C.OverlayStyle == 2)
-            {
-                var d = IconClockDiameter();
-                DrawIconClock(Icons.ResolveFromText("Reprisal"), "Reprisal", 1.4f, true, C.WarningSeconds, 0.5f, 0.28f, 0, d);
-                ImGui.SameLine(0, 10f);
-                DrawIconClock(Icons.ResolveFromText("Feint"), "Feint", 3.2f, true, C.WarningSeconds, 0.5f, 0.28f, 0, d);
-            }
-            else
-                DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0.28f,
-                    Icons.ResolveFromText("Reprisal"));
+            DrawSampleCalls();
             return;
         }
 
@@ -361,6 +342,37 @@ public class OverlayWindow : Window
             var action = Icons.DisplayAction(call.MitName, job);
             DrawCurrent(call.SourceLine.Mechanic, action, remaining, imminent, call.SourceLine.Color, lead, barFrac, tickFrac, icon);
         }
+    }
+
+    // The test-mode sample, in whichever style is set. Public so the Call
+    // Display page draws the real thing rather than an imitation of it.
+    public void DrawSampleCalls()
+    {
+        if (C.OverlayStyle == 1)
+        {
+            using (PushFont(C.OverlayFontSizePx))
+            {
+                var w = BoardWidth();
+                w = FitBoardWidth(w, "Reprisal", 1.4f, true);
+                w = FitBoardWidth(w, "Feint", 3.2f, true);
+                DrawBoardCall("Wave Cannon", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0.28f,
+                    Icons.ResolveFromText("Reprisal"), w);
+                ImGui.Dummy(new Vector2(1f, 4f));
+                DrawBoardCall("Wave Cannon", "Feint", 3.2f, true, 0, C.WarningSeconds, 0.5f, 0.28f,
+                    Icons.ResolveFromText("Feint"), w);
+            }
+            return;
+        }
+        if (C.OverlayStyle == 2)
+        {
+            var d = IconClockDiameter();
+            DrawIconClock(Icons.ResolveFromText("Reprisal"), "Reprisal", 1.4f, true, C.WarningSeconds, 0.5f, 0.28f, 0, d);
+            ImGui.SameLine(0, 10f);
+            DrawIconClock(Icons.ResolveFromText("Feint"), "Feint", 3.2f, true, C.WarningSeconds, 0.5f, 0.28f, 0, d);
+            return;
+        }
+        DrawCurrent("Reprisal / Feint", "Reprisal", 1.4f, true, 0, C.WarningSeconds, 0.5f, 0.28f,
+            Icons.ResolveFromText("Reprisal"));
     }
 
     // ---- board style ----
