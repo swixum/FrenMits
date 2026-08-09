@@ -107,8 +107,10 @@ public partial class ConfigWindow
             else if (x > 0f) { ImGui.SameLine(0, gap); x += gap; }
             x += w;
 
-            var live = C.MeterAccentColor == t.Accent && C.MeterBgColor == t.Bg
-                && C.MeterRowColor == t.Rows && C.MeterBarStyle == t.BarStyle;
+            // The named theme stays lit once tweaked; exact match covers old configs.
+            var live = C.MeterThemeName.Length > 0 ? C.MeterThemeName == t.Name
+                : C.MeterAccentColor == t.Accent && C.MeterBgColor == t.Bg
+                  && C.MeterRowColor == t.Rows && C.MeterBarStyle == t.BarStyle;
             if (Widgets.SwatchChip(t.Name, t.Accent, live)) MeterWindow.ApplyTheme(C, t);
             if (ImGui.IsItemHovered() && !live) _themePeek = t;
             Tip(live ? "In use." : "Click to keep it; hover shows it above.");
@@ -600,6 +602,8 @@ public partial class ConfigWindow
         if (MeterProfile.Import(C, code))
         {
             C.MeterProfileName = name;
+            // A profile is its own look, so no theme chip stays lit.
+            C.MeterThemeName = "";
             C.SaveSettings();
             _plugin.MeterWindow.RequestReposition();
             MeterFlash($"Profile \"{name}\" applied.");

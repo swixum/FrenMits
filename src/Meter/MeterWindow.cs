@@ -2310,6 +2310,8 @@ public class MeterWindow : Window
                         if (MeterProfile.Import(C, kv.Value))
                         {
                             C.MeterProfileName = kv.Key;
+                            // A profile is its own look, so no theme stays claimed.
+                            C.MeterThemeName = "";
                             C.SaveSettings();
                             RequestReposition();
                         }
@@ -2569,21 +2571,56 @@ public class MeterWindow : Window
         new("Parchment", Rgb(0xB45309), Rgb(0x231A10), Rgb(0x5C4A36), Argb(0xEFF2EADA), Argb(0x1A6B5334), 6f, true, 0),
     };
 
+    // The theme you leave keeps your tweaks, so coming back is not a reset.
+    private static void RememberTheme(Configuration c)
+    {
+        if (c.MeterThemeName.Length == 0) return;
+        c.SavedMeterThemes[c.MeterThemeName] = new Configuration.MeterThemeMemory
+        {
+            Accent = c.MeterAccentColor, Text = c.MeterTextColor, Sub = c.MeterSubColor,
+            Title = c.MeterTitleColor, Timer = c.MeterTimerColor, You = c.MeterYouColor,
+            Highlight = c.MeterHighlightColor, Border = c.MeterBorderColor,
+            Bg = c.MeterBgColor, Rows = c.MeterRowColor, Rounding = c.MeterRounding,
+            JobColors = c.MeterJobColors, BarStyle = c.MeterBarStyle,
+        };
+    }
+
     public static void ApplyTheme(Configuration c, MeterTheme t)
     {
-        c.MeterAccentColor = t.Accent;
-        c.MeterTextColor = t.Text;
-        c.MeterSubColor = t.Sub;
-        c.MeterTitleColor = t.Text;
-        c.MeterTimerColor = t.Text;
-        c.MeterYouColor = t.Accent;
-        c.MeterHighlightColor = t.Accent;
-        c.MeterBorderColor = (t.Accent & 0x00FFFFFF) | 0x2E000000;
-        c.MeterBgColor = t.Bg;
-        c.MeterRowColor = t.Rows;
-        c.MeterRounding = t.Rounding;
-        c.MeterJobColors = t.JobColors;
-        c.MeterBarStyle = t.BarStyle;
+        RememberTheme(c);
+        if (c.SavedMeterThemes.TryGetValue(t.Name, out var m))
+        {
+            c.MeterAccentColor = m.Accent;
+            c.MeterTextColor = m.Text;
+            c.MeterSubColor = m.Sub;
+            c.MeterTitleColor = m.Title;
+            c.MeterTimerColor = m.Timer;
+            c.MeterYouColor = m.You;
+            c.MeterHighlightColor = m.Highlight;
+            c.MeterBorderColor = m.Border;
+            c.MeterBgColor = m.Bg;
+            c.MeterRowColor = m.Rows;
+            c.MeterRounding = m.Rounding;
+            c.MeterJobColors = m.JobColors;
+            c.MeterBarStyle = m.BarStyle;
+        }
+        else
+        {
+            c.MeterAccentColor = t.Accent;
+            c.MeterTextColor = t.Text;
+            c.MeterSubColor = t.Sub;
+            c.MeterTitleColor = t.Text;
+            c.MeterTimerColor = t.Text;
+            c.MeterYouColor = t.Accent;
+            c.MeterHighlightColor = t.Accent;
+            c.MeterBorderColor = (t.Accent & 0x00FFFFFF) | 0x2E000000;
+            c.MeterBgColor = t.Bg;
+            c.MeterRowColor = t.Rows;
+            c.MeterRounding = t.Rounding;
+            c.MeterJobColors = t.JobColors;
+            c.MeterBarStyle = t.BarStyle;
+        }
+        c.MeterThemeName = t.Name;
         c.SaveSettings();
     }
 

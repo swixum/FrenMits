@@ -416,17 +416,42 @@ public partial class ConfigWindow
         new("Loud",    0, true, true, true, true, true, true, true),
     };
 
+    // The named look stays lit even once tweaked; exact match covers old configs.
     private bool IsLook(LookPreset p)
-        => C.OverlayStyle == p.Style && C.ShowAbilityIcon == p.Icon && C.ShowMechanicLine == p.Mech
-           && C.OverlayCallPanel == p.Panel && C.OverlayTextSpark == p.Spark
-           && C.ShowProgressBar == p.Bar && C.ShowCountdownNumber == p.Number
-           && C.PulseWhenImminent == p.Pulse;
+        => C.OverlayLookName.Length > 0 ? C.OverlayLookName == p.Name
+            : C.OverlayStyle == p.Style && C.ShowAbilityIcon == p.Icon && C.ShowMechanicLine == p.Mech
+              && C.OverlayCallPanel == p.Panel && C.OverlayTextSpark == p.Spark
+              && C.ShowProgressBar == p.Bar && C.ShowCountdownNumber == p.Number
+              && C.PulseWhenImminent == p.Pulse;
+
+    // The look you leave keeps your tweaks, so coming back is not a reset.
+    private void RememberLook()
+    {
+        if (C.OverlayLookName.Length == 0) return;
+        C.SavedLooks[C.OverlayLookName] = new Configuration.LookMemory
+        {
+            Style = C.OverlayStyle, Icon = C.ShowAbilityIcon, Mech = C.ShowMechanicLine,
+            Panel = C.OverlayCallPanel, Spark = C.OverlayTextSpark, Bar = C.ShowProgressBar,
+            Number = C.ShowCountdownNumber, Pulse = C.PulseWhenImminent,
+        };
+    }
 
     private void ApplyLook(LookPreset p)
     {
-        C.OverlayStyle = p.Style; C.ShowAbilityIcon = p.Icon; C.ShowMechanicLine = p.Mech;
-        C.OverlayCallPanel = p.Panel; C.OverlayTextSpark = p.Spark; C.ShowProgressBar = p.Bar;
-        C.ShowCountdownNumber = p.Number; C.PulseWhenImminent = p.Pulse;
+        RememberLook();
+        if (C.SavedLooks.TryGetValue(p.Name, out var m))
+        {
+            C.OverlayStyle = m.Style; C.ShowAbilityIcon = m.Icon; C.ShowMechanicLine = m.Mech;
+            C.OverlayCallPanel = m.Panel; C.OverlayTextSpark = m.Spark; C.ShowProgressBar = m.Bar;
+            C.ShowCountdownNumber = m.Number; C.PulseWhenImminent = m.Pulse;
+        }
+        else
+        {
+            C.OverlayStyle = p.Style; C.ShowAbilityIcon = p.Icon; C.ShowMechanicLine = p.Mech;
+            C.OverlayCallPanel = p.Panel; C.OverlayTextSpark = p.Spark; C.ShowProgressBar = p.Bar;
+            C.ShowCountdownNumber = p.Number; C.PulseWhenImminent = p.Pulse;
+        }
+        C.OverlayLookName = p.Name;
         C.Save();
     }
 

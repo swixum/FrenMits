@@ -714,6 +714,9 @@ public partial class ConfigWindow : Window, IDisposable
     private void ResetPage(NavKind nav)
     {
         SettingsIndex.ResetPage(C, nav);
+        // A reset means factory, so remembered preset tweaks go with it.
+        if (nav == NavKind.Display) { C.OverlayLookName = ""; C.SavedLooks.Clear(); }
+        if (nav == NavKind.Meter) { C.MeterThemeName = ""; C.SavedMeterThemes.Clear(); }
         C.Save();
         RefreshAfterReset();
     }

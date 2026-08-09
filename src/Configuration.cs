@@ -378,6 +378,26 @@ public class Configuration : IPluginConfiguration
     public Dictionary<string, string> MeterProfiles { get; set; } = new();
     public string MeterProfileName { get; set; } = "";
 
+    // Preset memory: a look or theme keeps your tweaks for when you come back.
+    public string OverlayLookName { get; set; } = "";
+    public Dictionary<string, LookMemory> SavedLooks { get; set; } = new();
+    public string MeterThemeName { get; set; } = "";
+    public Dictionary<string, MeterThemeMemory> SavedMeterThemes { get; set; } = new();
+
+    public sealed class LookMemory
+    {
+        public int Style;
+        public bool Icon, Mech, Panel, Spark, Bar, Number, Pulse;
+    }
+
+    public sealed class MeterThemeMemory
+    {
+        public uint Accent, Text, Sub, Title, Timer, You, Highlight, Border, Bg, Rows;
+        public float Rounding;
+        public bool JobColors;
+        public int BarStyle;
+    }
+
     // Text templates; placeholders: {action} {mechanic} {time} {count} {remaining}.
     public string HeadlineFormat { get; set; } = "{action} ({remaining})";
     public string ActiveSuffix { get; set; } = "  NOW";
