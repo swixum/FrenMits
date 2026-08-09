@@ -310,15 +310,17 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextColored(ImGuiColors.DalamudYellow, label);
     }
 
-    // A filled dot via the draw list, since the font has no circle.
-    private static void StatusDot(Vector4 color)
+    // A filled dot via the draw list, since the font has no circle. Frame-align
+    // it wherever the text beside it is frame-aligned, or the two sit apart.
+    private static void StatusDot(Vector4 color, bool frameAligned = false)
     {
         var size = ImGui.GetTextLineHeight();
+        var h = frameAligned ? ImGui.GetFrameHeight() : size;
         var pos = ImGui.GetCursorScreenPos();
         ImGui.GetWindowDrawList().AddCircleFilled(
-            new Vector2(pos.X + size * 0.5f, pos.Y + size * 0.55f), size * 0.22f,
-            ImGui.ColorConvertFloat4ToU32(color));
-        ImGui.Dummy(new Vector2(size, size));
+            new Vector2(pos.X + size * 0.5f, pos.Y + (frameAligned ? h * 0.5f : size * 0.55f)),
+            size * 0.22f, ImGui.ColorConvertFloat4ToU32(color));
+        ImGui.Dummy(new Vector2(size, h));
     }
 
     private static void HelpMarker(string text)
@@ -818,26 +820,63 @@ public partial class ConfigWindow : Window, IDisposable
     private void SetAllMode(bool on) => _pageAll[_nav] = on;
 
     // Returns the master switch's value; pass hasMaster false where there is none.
+    // The one page title: an accent bar, then the name a size up and in the
+    // accent, so a page reads as a page and not as one more row. Returns how
+    // tall the row came out and where the name ends, so whatever shares the
+    // line can centre on it and never land on top of it.
+    private (float RowH, float EndX) PageTitle(string name)
+    {
+        var frameH = ImGui.GetFrameHeight();
+        // A real font at the bigger size. Scaling the window font would blur it.
+        var px = MathF.Round(ImGui.GetFontSize() * 1.35f);
+        var font = _plugin.Fonts.Get(px, "Default", false, false);
+        var big = font is { Available: true };
+
+        var start = ImGui.GetCursorPos();
+        var scr = ImGui.GetCursorScreenPos();
+
+        Vector2 sz = default;
+        if (big) using (font!.Push()) sz = ImGui.CalcTextSize(name);
+        else sz = ImGui.CalcTextSize(name);
+
+        var rowH = MathF.Max(sz.Y, frameH);
+        var top = (rowH - sz.Y) * 0.5f;
+
+        ImGui.GetWindowDrawList().AddRectFilled(
+            new Vector2(scr.X, scr.Y + top + Theme.S(2f)),
+            new Vector2(scr.X + Theme.S(3f), scr.Y + top + sz.Y - Theme.S(2f)),
+            Theme.Accent, 2f);
+
+        ImGui.SetCursorPos(new Vector2(start.X + Theme.S(11f), start.Y + top));
+        if (big) using (font!.Push()) ImGui.TextColored(Theme.V(Theme.Accent), name);
+        else ImGui.TextColored(Theme.V(Theme.Accent), name);
+
+        ImGui.SetCursorPos(start);
+        return (rowH, start.X + Theme.S(11f) + sz.X);
+    }
+
     private bool PageHead(string name, string note, bool master,
         bool hasMaster = true, bool hasModes = false, Action? reset = null)
     {
-        var st = ImGui.GetStyle();
         var frameH = ImGui.GetFrameHeight();
+        var start = ImGui.GetCursorPos();
+        var (rowH, endX) = PageTitle(name);
 
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(name);
+        var used = endX;
         if (note.Length > 0)
         {
-            ImGui.SameLine(0, Theme.S(10f));
-            ImGui.AlignTextToFramePadding();
+            var lh = ImGui.GetTextLineHeight();
+            ImGui.SetCursorPos(new Vector2(endX + Theme.S(12f), start.Y + (rowH - lh) * 0.5f));
             ImGui.TextColored(Theme.V(Theme.Muted), note);
+            used = endX + Theme.S(12f) + ImGui.CalcTextSize(note).X;
         }
 
         var segW = hasModes ? Widgets.ButtonWidth("Basic", "All") + Theme.S(4f) : 0f;
         var right = segW + (reset != null ? frameH + Theme.S(8f) : 0f) + (hasMaster ? frameH + Theme.S(8f) : 0f);
         // Never left of the name, whatever it turned out to be.
-        var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
-        ImGui.SameLine(MathF.Max(end + Theme.S(12f), ImGui.GetContentRegionMax().X - right));
+        ImGui.SetCursorPos(new Vector2(
+            MathF.Max(used + Theme.S(12f), ImGui.GetContentRegionMax().X - right),
+            start.Y + (rowH - frameH) * 0.5f));
 
         if (hasModes)
         {
@@ -864,6 +903,7 @@ public partial class ConfigWindow : Window, IDisposable
             if (GreenCheckbox("##pgmaster", ref v)) { master = v; _toggleDirty = true; }
             if (Widgets.HoveredDelayed()) ImGui.SetTooltip(master ? "On. Untick to turn this off." : "Off.");
         }
+        ImGui.SetCursorPos(new Vector2(start.X, start.Y + rowH));
         ImGui.Spacing();
         return master;
     }
@@ -887,24 +927,31 @@ public partial class ConfigWindow : Window, IDisposable
     {
         var muted = Theme.V(Theme.Muted);
 
-        // Title row.
-        var icon = IconWrap();
-        if (icon != null)
+        // Title row, the same shape every other page opens with, with the
+        // plugin's own icon ahead of it since this is the page that greets you.
+        var frameH = ImGui.GetFrameHeight();
+        var headStart = ImGui.GetCursorPos();
+        var logo = IconWrap();
+        if (logo != null)
         {
-            var sz = ImGui.GetFrameHeight();
-            ImGui.Image(icon.Handle, new Vector2(sz, sz));
-            ImGui.SameLine(0, Theme.S(8f));
+            var lsz = ImGui.GetFrameHeight();
+            ImGui.Image(logo.Handle, new Vector2(lsz, lsz));
+            ImGui.SameLine(0, Theme.S(9f));
         }
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Fren Mits");
-        ImGui.SameLine(0, Theme.S(8f));
-        ImGui.AlignTextToFramePadding();
+        var (headH, headEnd) = PageTitle("Fren Mits");
+
+        ImGui.SetCursorPos(new Vector2(headEnd + Theme.S(12f),
+            headStart.Y + (headH - ImGui.GetTextLineHeight()) * 0.5f));
         ImGui.TextColored(muted, $"v{Version}");
+        var used = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+
         var ghW = IconBtnWidth(FontAwesomeIcon.ExternalLinkAlt, "GitHub");
-        var lineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
-        ImGui.SameLine(MathF.Max(lineEnd + Theme.S(12f), ImGui.GetContentRegionMax().X - ghW));
+        ImGui.SetCursorPos(new Vector2(
+            MathF.Max(used + Theme.S(12f), ImGui.GetContentRegionMax().X - ghW),
+            headStart.Y + (headH - frameH) * 0.5f));
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ExternalLinkAlt, "GitHub"))
             Dalamud.Utility.Util.OpenLink("https://github.com/swixum/FrenMits");
+        ImGui.SetCursorPos(new Vector2(headStart.X, headStart.Y + headH));
 
         ImGui.Spacing();
         DrawHomeTiles();

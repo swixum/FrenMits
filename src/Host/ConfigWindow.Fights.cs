@@ -61,19 +61,25 @@ public partial class ConfigWindow
         var fights = C.Fights.Where(f => CategoryOf(f) == category).ToList();
 
         // One title row: the group, how many, then filter and add.
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(category);
-        ImGui.SameLine(0, Theme.S(8f));
+        var frameH = ImGui.GetFrameHeight();
+        var headStart = ImGui.GetCursorPos();
+        var (headH, headEnd) = PageTitle(category);
+
+        ImGui.SetCursorPos(new Vector2(headEnd + Theme.S(10f),
+            headStart.Y + (headH - ImGui.GetTextLineHeightWithSpacing()) * 0.5f));
         Widgets.Chip("", fights.Count.ToString(), Theme.TextBright);
+        var used = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
 
         var addW = IconBtnWidth(FontAwesomeIcon.Plus, "Add");
         var right = Theme.S(150f) + addW + Theme.S(8f) + Theme.S(4f);
-        var lineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
-        ImGui.SameLine(MathF.Max(lineEnd + Theme.S(12f), ImGui.GetContentRegionMax().X - right));
+        ImGui.SetCursorPos(new Vector2(
+            MathF.Max(used + Theme.S(12f), ImGui.GetContentRegionMax().X - right),
+            headStart.Y + (headH - frameH) * 0.5f));
         ImGui.SetNextItemWidth(Theme.S(150f));
         ImGui.InputTextWithHint("##fightfilter", "Filter", ref _fightFilter, 64);
         ImGui.SameLine(0, Theme.S(8f));
         DrawCategoryToolbar(category);
+        ImGui.SetCursorPos(new Vector2(headStart.X, headStart.Y + headH));
         var filter = _fightFilter.Trim();
         ImGui.Spacing();
 

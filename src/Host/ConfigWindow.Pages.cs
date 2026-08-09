@@ -123,7 +123,7 @@ public partial class ConfigWindow
 
     private void DrawPrepCheckPage()
     {
-        C.PrepCheckEnabled = PageHead("Food & Pot", "Bad food before a pull, your pot when it is back",
+        C.PrepCheckEnabled = PageHead("Food & Pot", "Check food before a pull, your pot when it is back",
             C.PrepCheckEnabled, hasModes: true, reset: () => ResetPage(NavKind.PrepCheck));
         if (!C.PrepCheckEnabled) return;
 
@@ -297,16 +297,28 @@ public partial class ConfigWindow
     // is given, and inside a group that room is the whole page.
 
     // Measured as the sample draws, applied next frame. The same one-frame
-    // settle the sidebar and the label column use.
-    private readonly Dictionary<string, float> _sampleH = new();
+    // settle the sidebar and the label column use. Width as well as height:
+    // the overlay sizes itself in real pixels from its own settings
+    // (ProgressBarWidthPx, UpcomingBoardWidth, the call font size) and knows
+    // nothing about this panel, so the panel has to fit itself around it.
+    private readonly Dictionary<string, Vector2> _sampleSize = new();
 
     private void DrawLiveSample(string key, Action draw)
     {
-        var w = MathF.Min(ImGui.GetContentRegionAvail().X, Theme.S(430f));
+        var avail = ImGui.GetContentRegionAvail().X;
         var pad = Theme.S(10f);
-        var h = _sampleH.TryGetValue(key, out var known)
-            ? known
-            : ImGui.GetFrameHeight() * 3f + pad * 2f;
+        var st = ImGui.GetStyle();
+        var known = _sampleSize.TryGetValue(key, out var k)
+            ? k
+            : new Vector2(Theme.S(410f), ImGui.GetFrameHeight() * 3f);
+
+        // Hug the overlay, but never wider than the page. A sample that runs
+        // past its panel reads as broken; one that runs off the page is worse.
+        var w = MathF.Min(avail, MathF.Max(Theme.S(220f), known.X + pad * 2f));
+        // Wider than the page: scroll it rather than cut it, so a big call size
+        // still shows what it really looks like.
+        var scrolls = known.X + pad * 2f > avail + 1f;
+        var h = known.Y + pad * 2f + (scrolls ? st.ScrollbarSize : 0f);
 
         var p = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
@@ -316,14 +328,16 @@ public partial class ConfigWindow
         ImGui.SetCursorScreenPos(p);
         ImGui.PushStyleColor(ImGuiCol.ChildBg, 0u);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(pad, pad));
-        if (ImGui.BeginChild(key, new Vector2(w, h), false,
-                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+        var flags = ImGuiWindowFlags.NoScrollWithMouse
+                    | (scrolls ? ImGuiWindowFlags.HorizontalScrollbar : ImGuiWindowFlags.NoScrollbar);
+        if (ImGui.BeginChild(key, new Vector2(w, h), false, flags))
         {
-            var top = ImGui.GetCursorScreenPos().Y;
+            var origin = ImGui.GetCursorScreenPos();
             ImGui.BeginGroup();
             draw();
             ImGui.EndGroup();
-            _sampleH[key] = ImGui.GetItemRectMax().Y - top + pad * 2f;
+            var max = ImGui.GetItemRectMax();
+            _sampleSize[key] = new Vector2(max.X - origin.X, max.Y - origin.Y);
         }
         ImGui.EndChild();
         ImGui.PopStyleVar();

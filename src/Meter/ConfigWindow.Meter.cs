@@ -71,7 +71,7 @@ public partial class ConfigWindow
     private void DrawMeterHeader(bool all)
     {
         var connected = _plugin.Meter.Connected;
-        StatusDot(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow);
+        StatusDot(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, frameAligned: true);
         ImGui.SameLine(0, Theme.S(6f));
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow,
