@@ -23,9 +23,9 @@ public partial class SheetViewWindow
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Replace a mit across the sheet", 420f);
-        ImGui.SetNextItemWidth(230f);
+        ImGui.SetNextItemWidth(Theme.S(230f));
         ImGui.InputTextWithHint("##rfind", "find (e.g. Vengeance)", ref _replFind, 64);
-        ImGui.SetNextItemWidth(230f);
+        ImGui.SetNextItemWidth(Theme.S(230f));
         ImGui.InputTextWithHint("##rwith", "replace with (e.g. Damnation)", ref _replWith, 64);
         ImGui.Checkbox("My column only", ref _replMineOnly);
 
@@ -48,7 +48,7 @@ public partial class SheetViewWindow
             ImGui.TextDisabled("empty replacement = those calls are DELETED");
 
         ImGui.BeginDisabled(lines == 0);
-        if (ImGui.Button("Replace", new Vector2(120, 0)))
+        if (ImGui.Button("Replace", Theme.Sz(120f)))
         {
             ApplyReplace(find);
             ImGui.CloseCurrentPopup();

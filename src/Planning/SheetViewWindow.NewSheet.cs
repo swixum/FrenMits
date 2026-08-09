@@ -149,13 +149,13 @@ public partial class SheetViewWindow
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("New custom sheet", 380f);
-        ImGui.SetNextItemWidth(250f);
+        ImGui.SetNextItemWidth(Theme.S(250f));
         ImGui.InputTextWithHint("##nsname", "sheet name (usually the fight)", ref _newName, 64);
-        ImGui.SetNextItemWidth(250f);
+        ImGui.SetNextItemWidth(Theme.S(250f));
         ImGui.Combo("##nstpl", ref _newTemplate, SlotTemplates, SlotTemplates.Length);
         if (_newTemplate == 3)
         {
-            ImGui.SetNextItemWidth(250f);
+            ImGui.SetNextItemWidth(Theme.S(250f));
             ImGui.InputTextWithHint("##nscols", "columns, comma-separated (e.g. MT,OT,H1,H2)", ref _newSlotsBuf, 128);
             ImGui.TextDisabled("Tip: name a column after a job (WHM, MCH...) and Auto-plan");
             ImGui.TextDisabled("uses that job's real mitigation kit for it.");
@@ -164,17 +164,17 @@ public partial class SheetViewWindow
         if (slots.Length > 0)
         {
             _newMySlot = Math.Clamp(_newMySlot, 0, slots.Length - 1);
-            ImGui.SetNextItemWidth(250f);
+            ImGui.SetNextItemWidth(Theme.S(250f));
             ImGui.Combo("your column##nsmine", ref _newMySlot, slots, slots.Length);
         }
-        ImGui.SetNextItemWidth(250f);
+        ImGui.SetNextItemWidth(Theme.S(250f));
         if (ImGui.Combo("fight type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
             _newCatTouched = true;
         if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Which sidebar group the sheet files under.");
 
         // The zone the sheet binds to, by id or by duty name.
-        ImGui.SetNextItemWidth(250f);
+        ImGui.SetNextItemWidth(Theme.S(250f));
         ImGui.InputTextWithHint("zone##nszone", "zone id, boss id, or duty name", ref _newZoneBuf, 64);
 
         var buf = _newZoneBuf.Trim();
@@ -243,7 +243,7 @@ public partial class SheetViewWindow
 
         var ok = !zoneBlocked && _newName.Trim().Length > 0 && slots.Length is > 0 and <= 12;
         ImGui.BeginDisabled(!ok);
-        if (ImGui.Button("Create", new Vector2(110, 0)))
+        if (ImGui.Button("Create", Theme.Sz(110f)))
         {
             CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr, NewSheetCategories[_newCat]);
             _openAutoPlan = true; // offer the mit auto-planner right away

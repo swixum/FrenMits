@@ -28,8 +28,8 @@ public class MiniSheetWindow : Window
     public override void PreDraw()
     {
         Theme.PushWindow();
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 8));
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 8) * Theme.Scale);
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4) * Theme.Scale);
     }
 
     public override void PostDraw()
@@ -97,9 +97,9 @@ public class MiniSheetWindow : Window
 
         if (ImGui.BeginTable("##minitable", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg))
         {
-            ImGui.TableSetupColumn("t", ImGuiTableColumnFlags.WidthFixed, 44);
+            ImGui.TableSetupColumn("t", ImGuiTableColumnFlags.WidthFixed, Theme.S(44f));
             ImGui.TableSetupColumn("call", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("nudge", ImGuiTableColumnFlags.WidthFixed, 96);
+            ImGui.TableSetupColumn("nudge", ImGuiTableColumnFlags.WidthFixed, Theme.S(96f));
 
             for (var i = start; i < end; i++)
             {
@@ -129,10 +129,10 @@ public class MiniSheetWindow : Window
                 ImGui.TableNextColumn();
                 if (ImGui.SmallButton("-")) Nudge(line, -0.5f);
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Call 0.5s LATER");
-                ImGui.SameLine(0, 3);
+                ImGui.SameLine(0, Theme.S(3f));
                 var off = line.OffsetSeconds;
                 ImGui.TextColored(off != 0f ? Edited : Dim, off == 0f ? " 0 " : $"{off:+0.#;-0.#}");
-                ImGui.SameLine(0, 3);
+                ImGui.SameLine(0, Theme.S(3f));
                 if (ImGui.SmallButton("+")) Nudge(line, +0.5f);
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Call 0.5s EARLIER");
 

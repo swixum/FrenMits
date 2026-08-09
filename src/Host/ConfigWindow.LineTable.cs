@@ -160,13 +160,16 @@ public partial class ConfigWindow
         ImGui.TextDisabled($"{fight.Lines.Count} line{(fight.Lines.Count == 1 ? "" : "s")}");
         if (clashGroups > 0 || _lineClashOnly)
         {
-            ImGui.SameLine(0, 10);
+            ImGui.SameLine(0, Theme.S(10f));
             if (Widgets.ChipButton("clashes", clashGroups.ToString(), Theme.Danger, _lineClashOnly))
                 _lineClashOnly = !_lineClashOnly;
+            // Names the slot, since Sheet View's chip counts every column and
+            // the two numbers are meant to differ.
+            var scope = string.IsNullOrEmpty(fight.Slot) ? "your plan" : fight.Slot;
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip(_lineClashOnly
-                    ? "Showing only mechanics with a clash. Click to show them all."
-                    : "Mechanics where a mit repeats before its cooldown is back.\nClick to show only those.");
+                    ? $"Showing only mechanics with a clash in {scope}. Click to show them all."
+                    : $"Mechanics where a mit repeats before its cooldown is back, in {scope}.\nClick to show only those.");
         }
 
         // Grow to fill, leaving room for the import header..
@@ -178,10 +181,10 @@ public partial class ConfigWindow
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 70);
-        ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 230);
+        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, Theme.S(70f));
+        ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, Theme.S(230f));
         ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthStretch, 1);
-        ImGui.TableSetupColumn("##del", ImGuiTableColumnFlags.WidthFixed, 28);
+        ImGui.TableSetupColumn("##del", ImGuiTableColumnFlags.WidthFixed, Theme.S(28f));
         ImGui.TableHeadersRow();
 
         // Every clash fixed while the filter is up: say so in the stretched

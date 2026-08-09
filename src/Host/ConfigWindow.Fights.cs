@@ -63,7 +63,7 @@ public partial class ConfigWindow
         SeparatorText($"{category}: {fights.Count} fight{(fights.Count == 1 ? "" : "s")}");
         DrawCategoryToolbar(category);
         // Type-to-narrow, since the list outgrows scrolling fast.
-        ImGui.SetNextItemWidth(240f);
+        ImGui.SetNextItemWidth(Theme.S(240f));
         ImGui.InputTextWithHint("##fightfilter", "Search fights...", ref _fightFilter, 64);
         var filter = _fightFilter.Trim();
         if (filter.Length > 0)
@@ -119,7 +119,21 @@ public partial class ConfigWindow
             // Gold star after the name = official, drawn in the icon font.
             var official = Builtin.Has(fight.TerritoryId);
             var headerStartX = ImGui.GetCursorPosX();
-            var headerLabel = fight.Name;
+
+            // Everything that shares this line, measured before the name is
+            // drawn: the name is then elided to what is left, so a long one
+            // cannot end up underneath the star, the slot tag or the button.
+            var hasSheet = official || fight.CustomSlots.Count > 0;
+            var slotTag = !hasSheet ? "" : string.IsNullOrEmpty(fight.Slot) ? "no slot" : fight.Slot;
+            var btnW = hasSheet ? Theme.S(28f) : 0f;
+            var tagW = slotTag.Length > 0 ? ImGui.CalcTextSize(slotTag).X + Theme.S(14f) : 0f;
+            var starW = ImGui.GetTextLineHeight() + Theme.S(10f);
+            var nameRoom = ImGui.GetContentRegionMax().X - headerStartX
+                           - ImGui.GetTreeNodeToLabelSpacing() - ImGui.GetStyle().FramePadding.X
+                           - starW - tagW - btnW;
+
+            // The ### id ignores the label, so eliding it changes nothing else.
+            var headerLabel = Widgets.Elide(fight.Name, nameRoom);
             var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
             // Without allow-overlap the header would swallow the star.
             ImGui.SetItemAllowOverlap();
@@ -128,7 +142,7 @@ public partial class ConfigWindow
             // The open fight gets the sidebar's accent bar, so selection reads the same everywhere.
             if (open)
                 ImGui.GetWindowDrawList().AddRectFilled(
-                    new Vector2(headMin.X, headMin.Y + 2f), new Vector2(headMin.X + 3f, headMax.Y - 2f),
+                    new Vector2(headMin.X, headMin.Y + 2f), new Vector2(headMin.X + Theme.S(3f), headMax.Y - 2f),
                     Theme.Accent, 2f);
             // A framed tree node indents its label one extra padding.
             ImGui.SameLine(headerStartX + ImGui.GetTreeNodeToLabelSpacing()
@@ -144,14 +158,16 @@ public partial class ConfigWindow
             // The tooltip lives on the symbol, so the list stays silent.
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip(official ? "Official sheet." : "User created.");
+
+            // Measured off the star itself, so the tag never lands on it. The
+            // cursor is back at the line start by now and would not have said.
+            var starRight = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+
             // Your slot, right-aligned: the one thing that decides whether calls fire.
-            var hasSheet = Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0;
-            if (hasSheet)
+            if (slotTag.Length > 0)
             {
-                var slotTag = string.IsNullOrEmpty(fight.Slot) ? "no slot" : fight.Slot;
-                var tagW = ImGui.CalcTextSize(slotTag).X;
-                ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX(),
-                    ImGui.GetContentRegionMax().X - 28f - tagW - 12f));
+                ImGui.SameLine(MathF.Max(starRight + Theme.S(8f),
+                    ImGui.GetContentRegionMax().X - btnW - tagW));
                 ImGui.AlignTextToFramePadding();
                 ImGui.TextColored(Theme.V(string.IsNullOrEmpty(fight.Slot) ? Theme.Warn : Theme.Accent), slotTag);
                 if (Widgets.HoveredDelayed())
@@ -163,7 +179,7 @@ public partial class ConfigWindow
             // Quick jump into Sheet View for any fight that has a sheet.
             if (hasSheet)
             {
-                ImGui.SameLine(ImGui.GetContentRegionMax().X - 28f);
+                ImGui.SameLine(ImGui.GetContentRegionMax().X - btnW);
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 {
                     if (ImGui.SmallButton(FontAwesomeIcon.Table.ToIconString() + "##opensheet"))
@@ -174,7 +190,7 @@ public partial class ConfigWindow
 
             if (open)
             {
-                ImGui.Indent(10f);
+                ImGui.Indent(Theme.S(10f));
                 _selectedFight = C.Fights.IndexOf(fight); // drives the per-line options popup
                 if (!DrawFightEditor(fight))
                 {
@@ -223,7 +239,7 @@ public partial class ConfigWindow
                     DrawImportSection(fight);
                     DrawAdvancedFightSettings(fight);
                 }
-                ImGui.Unindent(10f);
+                ImGui.Unindent(Theme.S(10f));
             }
 
             ImGui.PopID();
@@ -399,7 +415,7 @@ public partial class ConfigWindow
                 if (string.IsNullOrEmpty(fight.SimulatedJob) && !string.IsNullOrEmpty(_plugin.ActiveJobAbbreviation()))
                     simJobIdx = Math.Max(0, Array.IndexOf(Jobs.Abbreviations, _plugin.ActiveJobAbbreviation()));
                 
-                ImGui.SetNextItemWidth(65f);
+                ImGui.SetNextItemWidth(Theme.S(65f));
                 if (ImGui.Combo("##simjob", ref simJobIdx, Jobs.Abbreviations, Jobs.Abbreviations.Length))
                 {
                     fight.SimulatedJob = Jobs.Abbreviations[simJobIdx];
@@ -415,7 +431,7 @@ public partial class ConfigWindow
             _builtinSlot = Math.Clamp(_builtinSlot, 0, slots.Length - 1);
 
             var slotLabels = slots.Select(SlotLabel).ToArray();
-            ImGui.SetNextItemWidth(170f);
+            ImGui.SetNextItemWidth(Theme.S(170f));
             if (ImGui.Combo("Your slot", ref _builtinSlot, slotLabels, slotLabels.Length))
                 SelectBuiltinSlot(fight, slots[_builtinSlot]);  // load that slot now
             Tip("Your seat. Each slot keeps its own edits.");
@@ -459,10 +475,10 @@ public partial class ConfigWindow
         ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
         ImGui.Spacing();
 
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Reset every column", new Vector2(180, 0)))
+        if (Widgets.DangerButton("Reset every column", Theme.Sz(180f)))
         {
             _plugin.Snapshots.Save(fight, "before Reset all columns");
             fight.SavedSlots.Clear();
@@ -487,13 +503,13 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Resetting will discard this slot's changes and load the baked sheet fresh.");
         ImGui.Separator();
 
-        if (Widgets.DangerButton("Reset and lose my edits", new Vector2(220, 0)))
+        if (Widgets.DangerButton("Reset and lose my edits", Theme.Sz(220f)))
         {
             ResetBuiltinSlot(fight, slot);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();
-        if (ImGui.Button("Cancel", new Vector2(100, 0)))
+        if (ImGui.Button("Cancel", Theme.Sz(100f)))
             ImGui.CloseCurrentPopup();
 
         ImGui.EndPopup();
@@ -503,7 +519,7 @@ public partial class ConfigWindow
     private void DrawFightOffsetRow(FightProfile fight)
     {
         var offset = fight.TimerOffset;
-        ImGui.SetNextItemWidth(110f);
+        ImGui.SetNextItemWidth(Theme.S(110f));
         if (ImGui.InputFloat("Timer offset (s)", ref offset, 0.1f, 1f, "%.1f"))
         {
             fight.TimerOffset = Math.Clamp(offset, -30f, 30f);

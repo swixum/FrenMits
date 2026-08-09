@@ -26,7 +26,7 @@ public partial class ConfigWindow
 
         var connected = _plugin.Meter.Connected;
         StatusDot(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow);
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         ImGui.TextColored(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow,
             _plugin.Meter.StatusText);
         ImGui.Spacing();
@@ -52,17 +52,17 @@ public partial class ConfigWindow
         SeparatorText("Placement");
         C.MeterLocked = CfgCheck("Lock position and size", C.MeterLocked);
         Tip("Unlock, then drag the meter or its edges.");
-        ImGui.SameLine(0, 18);
+        ImGui.SameLine(0, Theme.S(18f));
         C.MeterClickThrough = CfgCheck("Click-through", C.MeterClickThrough);
         Tip("Mouse ignores the meter, menu included; turn it back off here.");
-        ImGui.SameLine(0, 18);
+        ImGui.SameLine(0, Theme.S(18f));
         C.MeterCollapsed = CfgCheck("Collapsed", C.MeterCollapsed);
         Tip("Rolled up to its header; the chevron on the meter does this too.");
 
         var pos = C.MeterPosition;
         if (Widgets.SliderInput("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
         { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
-        ImGui.SameLine(0, 18);
+        ImGui.SameLine(0, Theme.S(18f));
         if (Widgets.SliderInput("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
         { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
 
@@ -81,7 +81,7 @@ public partial class ConfigWindow
         }
 
         ImGui.Spacing();
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         var names = C.MeterNameStyle;
         if (ImGui.Combo("Names", ref names, "Full name\0First name\0First name + initial\0"))
         { C.MeterNameStyle = names; C.SaveSettings(); }
@@ -98,7 +98,7 @@ public partial class ConfigWindow
         Tip("How long the numbers hold still. Bars keep moving.");
 
         SeparatorText("Header and footer");
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         var header = C.MeterHeaderStyle;
         if (ImGui.Combo("Header", ref header, "Full\0Slim\0Hidden\0"))
         { C.MeterHeaderStyle = header; C.SaveSettings(); }
@@ -146,25 +146,25 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Row one counts as yours, so the highlight always shows.");
 
         SeparatorText("Bars");
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         var barStyle = C.MeterBarStyle;
         if (ImGui.Combo("Fill", ref barStyle, "Flat\0Glass\0Gradient\0Outline\0Minimal\0"))
         { C.MeterBarStyle = barStyle; C.SaveSettings(); }
 
         C.MeterJobColors = CfgCheck("Color by job", C.MeterJobColors);
         Tip("Off = every bar uses the accent color.");
-        ImGui.SameLine(0, 18);
+        ImGui.SameLine(0, Theme.S(18f));
         C.MeterBarSolid = CfgCheck("Solid bars", C.MeterBarSolid);
         Tip("Fill bars with the job color instead of a wash you can see through.");
 
         var barH = C.MeterBarHeight;
         if (Widgets.SliderInput("Height", ref barH, 16f, 44f, "%.0f px")) { C.MeterBarHeight = barH; C.SaveSettings(); }
-        ImGui.SameLine(0, 18);
+        ImGui.SameLine(0, Theme.S(18f));
         var gap = C.MeterBarGap;
         if (Widgets.SliderInput("Spacing", ref gap, 0f, 10f, "%.0f px")) { C.MeterBarGap = gap; C.SaveSettings(); }
         var round = C.MeterRounding;
         if (Widgets.SliderInput("Rounding", ref round, 0f, 14f, "%.0f px")) { C.MeterRounding = round; C.SaveSettings(); }
-        ImGui.SameLine(0, 18);
+        ImGui.SameLine(0, Theme.S(18f));
         var barOp = C.MeterBarOpacity;
         if (Widgets.SliderInput("Opacity", ref barOp, 0.2f, 1.6f, "%.2f"))
         { C.MeterBarOpacity = barOp; C.SaveSettings(); }
@@ -172,7 +172,7 @@ public partial class ConfigWindow
         SeparatorText("Your row");
         C.MeterHighlightYou = CfgCheck("Highlight your row", C.MeterHighlightYou);
         ImGui.BeginDisabled(!C.MeterHighlightYou);
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         var hl = C.MeterHighlightStyle;
         if (ImGui.Combo("Highlight", ref hl, "Wash + outline\0Wash\0Outline\0Side stripe\0"))
         { C.MeterHighlightStyle = hl; C.SaveSettings(); }
@@ -184,9 +184,9 @@ public partial class ConfigWindow
         SeparatorText("Text");
         var fonts = FontManager.FamilyNames;
         var fIdx = Math.Max(0, Array.IndexOf(fonts, C.MeterFontFamily));
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         if (ImGui.Combo("Font", ref fIdx, fonts, fonts.Length)) { C.MeterFontFamily = fonts[fIdx]; C.SaveSettings(); }
-        ImGui.SameLine(0, 12);
+        ImGui.SameLine(0, Theme.S(12f));
         var bold = C.MeterFontBold;
         if (GreenCheckbox("Bold", ref bold)) { C.MeterFontBold = bold; C.SaveSettings(); }
         ImGui.SameLine();
@@ -199,7 +199,7 @@ public partial class ConfigWindow
         }
         var px = C.MeterFontSizePx;
         if (Widgets.SliderInput("Size", ref px, 11f, 26f, "%.0f px")) { C.MeterFontSizePx = px; C.SaveSettings(); }
-        ImGui.SameLine(0, 18);
+        ImGui.SameLine(0, Theme.S(18f));
         C.MeterTextShadow = CfgCheck("Drop shadow", C.MeterTextShadow);
 
         SeparatorText("Colors");
@@ -213,8 +213,10 @@ public partial class ConfigWindow
             ImGui.TableNextColumn();
             ImGui.BeginDisabled(C.OverlaysFollowAccent);
             MeterColor("Accent", () => C.MeterAccentColor, v => C.MeterAccentColor = v);
+            TipHeld(C.OverlaysFollowAccent
+                ? "Held: Display > Look has the overlays following the plugin accent."
+                : "Totals, and bars when job colors are off.");
             ImGui.EndDisabled();
-            Tip("Totals, and bars when job colors are off.");
             ImGui.TableNextColumn();
             MeterColor("Title", () => C.MeterTitleColor, v => C.MeterTitleColor = v);
             Tip("The encounter name.");
@@ -264,7 +266,7 @@ public partial class ConfigWindow
         var i = 0;
         foreach (var t in MeterWindow.Themes)
         {
-            if (i++ % 3 != 0) ImGui.SameLine(0, 8);
+            if (i++ % 3 != 0) ImGui.SameLine(0, Theme.S(8f));
             DrawThemeButton(t, size);
         }
     }
@@ -317,7 +319,7 @@ public partial class ConfigWindow
         }
 
         SeparatorText("Parser");
-        ImGui.SetNextItemWidth(240f);
+        ImGui.SetNextItemWidth(Theme.S(240f));
         var conn = C.MeterConnection;
         if (ImGui.Combo("Source", ref conn, "Auto\0Parser plugin\0ACT WebSocket\0"))
         { C.MeterConnection = conn; C.SaveSettings(); ReconnectMeter(); }
@@ -325,7 +327,7 @@ public partial class ConfigWindow
 
         if (C.MeterConnection != 1)
         {
-            ImGui.SetNextItemWidth(300f);
+            ImGui.SetNextItemWidth(Theme.S(300f));
             var addr = C.MeterSocketAddress;
             if (ImGui.InputText("WebSocket address", ref addr, 128))
             { C.MeterSocketAddress = addr; C.SaveSettings(); }
@@ -391,7 +393,7 @@ public partial class ConfigWindow
             if (connected) ImGui.TextColored(Theme.V(Theme.Good), "Connected. Nothing else to do.");
             else ImGui.TextDisabled("Leave ACT running; this finds it on its own.");
 
-            ImGui.SameLine(0, 12);
+            ImGui.SameLine(0, Theme.S(12f));
             if (ImGui.SmallButton("Got it")) { C.MeterSetupDone = true; C.SaveSettings(); }
             ImGui.TextDisabled("On IINACT instead? It connects itself.");
         }
@@ -403,12 +405,12 @@ public partial class ConfigWindow
     private static void SetupToggle(int n, string setting, bool on, string why = "")
     {
         ImGui.TextColored(Theme.V(Theme.Accent), $"{n}");
-        ImGui.SameLine(0, 10);
+        ImGui.SameLine(0, Theme.S(10f));
         ImGui.TextUnformatted(setting + ":");
-        ImGui.SameLine(0, 5);
+        ImGui.SameLine(0, Theme.S(5f));
         ImGui.TextColored(Theme.V(on ? Theme.Good : Theme.Danger), on ? "ON" : "OFF");
         if (why.Length == 0) return;
-        ImGui.SameLine(0, 5);
+        ImGui.SameLine(0, Theme.S(5f));
         ImGui.TextDisabled(why);
     }
 
@@ -416,7 +418,7 @@ public partial class ConfigWindow
     private static void SetupStep(int n, string text)
     {
         ImGui.TextColored(Theme.V(Theme.Accent), $"{n}");
-        ImGui.SameLine(0, 10);
+        ImGui.SameLine(0, Theme.S(10f));
         ImGui.TextUnformatted(text);
     }
 
@@ -446,8 +448,8 @@ public partial class ConfigWindow
         SeparatorText("Saved looks");
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted("Profile");
-        ImGui.SameLine(0, 8);
-        ImGui.SetNextItemWidth(220f);
+        ImGui.SameLine(0, Theme.S(8f));
+        ImGui.SetNextItemWidth(Theme.S(220f));
         if (ImGui.BeginCombo("##mprofsel", saved ? active : "(unsaved)"))
         {
             foreach (var kv in C.MeterProfiles)
@@ -458,9 +460,9 @@ public partial class ConfigWindow
 
         if (saved)
         {
-            ImGui.SameLine(0, 8);
+            ImGui.SameLine(0, Theme.S(8f));
             ImGui.TextDisabled("changes save into it automatically");
-            ImGui.SameLine(0, 8);
+            ImGui.SameLine(0, Theme.S(8f));
             // Two-click delete so one stray click can't eat a profile.
             if ((DateTime.Now - _meterDeleteAt).TotalSeconds < 3)
             {
@@ -475,9 +477,9 @@ public partial class ConfigWindow
             else if (ImGui.SmallButton("Delete")) _meterDeleteAt = DateTime.Now;
 
             if (_meterRenameFor != active) { _meterRenameFor = active; _meterRenameBuf = active; }
-            ImGui.SetNextItemWidth(180f);
+            ImGui.SetNextItemWidth(Theme.S(180f));
             ImGui.InputTextWithHint("##mprofrename", "rename this one", ref _meterRenameBuf, 48);
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             if (ImGui.SmallButton("Rename"))
             {
                 var name = _meterRenameBuf.Trim();
@@ -494,9 +496,9 @@ public partial class ConfigWindow
             }
         }
 
-        ImGui.SetNextItemWidth(180f);
+        ImGui.SetNextItemWidth(Theme.S(180f));
         ImGui.InputTextWithHint("##mprofnew", "new profile name", ref _meterNameBuf, 48);
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         if (ImGui.Button("Save as profile"))
         {
             var name = _meterNameBuf.Trim();
@@ -519,13 +521,13 @@ public partial class ConfigWindow
             ImGui.SetClipboardText(MeterProfile.Export(C));
             MeterFlash("Code copied to clipboard.");
         }
-        ImGui.SameLine(0, 10);
+        ImGui.SameLine(0, Theme.S(10f));
         if (ImGui.Button("Import from clipboard"))
             ImportMeterProfile(ImGui.GetClipboardText());
 
-        ImGui.SetNextItemWidth(320f);
+        ImGui.SetNextItemWidth(Theme.S(320f));
         ImGui.InputText("##mprofilecode", ref _meterProfileBuf, 4096);
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         if (ImGui.Button("Import")) ImportMeterProfile(_meterProfileBuf);
 
         if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
@@ -597,7 +599,7 @@ public partial class ConfigWindow
                     else list.Remove(key);
                     C.SaveSettings();
                 }
-                ImGui.SameLine(0, 8);
+                ImGui.SameLine(0, Theme.S(8f));
                 ImGui.AlignTextToFramePadding();
                 ImGui.TextUnformatted(MeterWindow.ColumnLabel(key));
                 ImGui.PopID();

@@ -35,6 +35,11 @@ public class Configuration : IPluginConfiguration
     // The fight Sheet View last showed, so it reopens where you left off.
     public string LastSheetFightId { get; set; } = "";
 
+    // Bumped by "Reset column widths". It rides in the grid's table id, so a
+    // bump hands ImGui a table it has no saved widths for. Stored, or the old
+    // id would come back on the next launch and with it the old widths.
+    public int SheetWidthReset { get; set; }
+
     // A small once-per-entry popup naming your slot for the duty.
     public bool ShowSlotPopupOnEntry { get; set; }
 

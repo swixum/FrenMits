@@ -35,7 +35,7 @@ public class RecapButtonWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Border, Theme.Accent);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.5f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 10));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 10) * Theme.Scale);
 
         OverlayChrome.ApplyPosition(C.RecapPopupPosition, C.RecapPopupLocked, ref _applyPos);
     }
@@ -67,8 +67,8 @@ public class RecapButtonWindow : Window
         var dl = ImGui.GetWindowDrawList();
         var p = ImGui.GetCursorScreenPos();
         var h = ImGui.GetTextLineHeight();
-        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(3, h), Theme.Accent, 2f);
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
+        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(Theme.S(3f), h), Theme.Accent, 2f);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Theme.S(10f));
         ImGui.TextColored(Theme.V(Theme.Accent), "Mit Recap ready");
 
         ImGui.Spacing();

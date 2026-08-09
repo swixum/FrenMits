@@ -32,7 +32,7 @@ public partial class SheetViewWindow : Window
     public override void PreDraw()
     {
         Theme.PushWindow();
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 10));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 10) * Theme.Scale);
     }
 
     public override void PostDraw()
@@ -369,13 +369,13 @@ public partial class SheetViewWindow : Window
         if (_fight == null)
         {
             ImGui.TextUnformatted("No sheets yet");
-            ImGui.PushTextWrapPos(460f);
+            ImGui.PushTextWrapPos(Theme.S(460f));
             ImGui.TextDisabled("A sheet is one fight's mit plan, a column per player. Start from a "
                                + "built-in fight, or make your own from a pull or a kill log.");
             ImGui.PopTextWrapPos();
             ImGui.Spacing();
             if (Widgets.AccentButton("New sheet...")) OpenNewSheetPopup();
-            ImGui.SameLine(0, 8);
+            ImGui.SameLine(0, Theme.S(8f));
             if (ImGui.Button("Add a built-in fight")) _plugin.ConfigWindow.IsOpen = true;
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Opens Fren Mits, where the Ultimate, Savage and Extreme lists live.");
@@ -394,7 +394,7 @@ public partial class SheetViewWindow : Window
                 foreach (var s in _fight.CustomSlots)
                 {
                     if (ImGui.Button(s)) PickCustomSlot(s);
-                    ImGui.SameLine(0, 6);
+                    ImGui.SameLine(0, Theme.S(6f));
                 }
                 ImGui.NewLine();
             }
@@ -513,7 +513,7 @@ public partial class SheetViewWindow : Window
         var fights = C.Fights.Where(Sheetable).ToList();
         if (fights.Count == 0) return;
 
-        ImGui.SetNextItemWidth(230f);
+        ImGui.SetNextItemWidth(Theme.S(230f));
         // Sized to the longest name plus its tag, and height-capped.
         var nameW = ImGui.CalcTextSize("+ New sheet...").X;
         foreach (var f in fights) nameW = MathF.Max(nameW, ImGui.CalcTextSize(f.Name).X);

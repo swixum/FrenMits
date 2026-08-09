@@ -195,14 +195,14 @@ internal static class MitLineEditor
                 ImGui.TextUnformatted($"Reset {named} to the sheet?");
                 ImGui.TextDisabled("Your wording, timing and jobs for it go.");
                 ImGui.Spacing();
-                if (ImGui.Button("Reset it", new Vector2(110, 0)))
+                if (ImGui.Button("Reset it", Theme.Sz(110f)))
                 {
                     hooks.Reset();
                     closeEditor = true;
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("Cancel", new Vector2(110, 0))) ImGui.CloseCurrentPopup();
+                if (ImGui.Button("Cancel", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
                 ImGui.SetItemDefaultFocus();
                 ImGui.EndPopup();
             }
@@ -218,7 +218,7 @@ internal static class MitLineEditor
                 ? "It stays gone through sheet updates. Reset brings it back."
                 : "Nothing else calls it back.");
             ImGui.Spacing();
-            var go = Widgets.DangerOutlineButton("Delete it", new Vector2(110, 0));
+            var go = Widgets.DangerOutlineButton("Delete it", Theme.Sz(110f));
             if (go)
             {
                 hooks.Delete?.Invoke();
@@ -226,7 +226,7 @@ internal static class MitLineEditor
                 ImGui.CloseCurrentPopup();
             }
             ImGui.SameLine();
-            if (ImGui.Button("Cancel", new Vector2(110, 0))) ImGui.CloseCurrentPopup();
+            if (ImGui.Button("Cancel", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
             ImGui.SetItemDefaultFocus();
             ImGui.EndPopup();
         }
@@ -240,7 +240,7 @@ internal static class MitLineEditor
     private static void DrawIconButton(MitLine line, Hooks hooks, float h, Func<bool, bool> begin, Action save)
     {
         var resolved = Icons.For(line, hooks.Job);
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(3, 3));
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(3, 3) * Theme.Scale);
         var clicked = resolved != 0
             ? Icons.Button(resolved, new Vector2(h - 6f, h - 6f), "##iconbtn")
             : ImGui.Button("?##iconbtn", new Vector2(h, h));
@@ -253,7 +253,7 @@ internal static class MitLineEditor
 
         if (!ImGui.BeginPopup("iconpick")) return;
 
-        Icons.Draw(resolved, new Vector2(40, 40));
+        Icons.Draw(resolved, new Vector2(40, 40) * Theme.Scale);
         ImGui.SameLine();
         ImGui.BeginGroup();
         ImGui.TextDisabled(line.IconId != 0 ? $"pinned (#{line.IconId})"
@@ -264,14 +264,14 @@ internal static class MitLineEditor
         if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Pin the potion (Gemdraught) icon to this line.");
         ImGui.EndGroup();
 
-        ImGui.SetNextItemWidth(280f);
+        ImGui.SetNextItemWidth(Theme.S(280f));
         ImGui.InputTextWithHint("##iconsearch", "search actions & statuses...", ref _iconSearch, 64);
         if (!string.IsNullOrWhiteSpace(_iconSearch))
         {
             var n = 0;
             foreach (var (name, ic) in Icons.Search(_iconSearch, 40))
             {
-                if (Icons.Button(ic, new Vector2(32, 32), $"##s{ic}_{n}") && begin(false)) { line.IconId = ic; save(); }
+                if (Icons.Button(ic, new Vector2(32, 32) * Theme.Scale, $"##s{ic}_{n}") && begin(false)) { line.IconId = ic; save(); }
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip($"{name}  (#{ic})");
                 if (++n % 8 != 0) ImGui.SameLine();
             }
@@ -283,7 +283,7 @@ internal static class MitLineEditor
             var n = 0;
             foreach (var (label, ic) in Icons.Common())
             {
-                if (Icons.Button(ic, new Vector2(32, 32), $"##c{ic}_{n}") && begin(false)) { line.IconId = ic; save(); }
+                if (Icons.Button(ic, new Vector2(32, 32) * Theme.Scale, $"##c{ic}_{n}") && begin(false)) { line.IconId = ic; save(); }
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip($"{label}  (#{ic})");
                 if (++n % 8 != 0) ImGui.SameLine();
             }

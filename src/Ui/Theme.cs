@@ -18,6 +18,16 @@ internal static class Theme
     // Text and spacing multiplier for the plugin's own windows.
     public static float Scale = 1f;
 
+    // A designed pixel length at the user's UI scale. Every hardcoded width in
+    // the plugin's own windows goes through this, or the text outgrows the box
+    // it sits in once the scale is turned up. The game overlays are not scaled
+    // here; they each carry their own text-size slider.
+    public static float S(float px) => px * Scale;
+
+    // A button or item size in designed pixels. A zero stays zero, so the
+    // "let ImGui decide this axis" convention still works.
+    public static Vector2 Sz(float w, float h = 0f) => new(S(w), h == 0f ? 0f : S(h));
+
     // A lighter shade of a packed color, for hover states.
     private static uint Lighten(uint abgr, float t)
     {

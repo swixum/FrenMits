@@ -23,22 +23,22 @@ public partial class ConfigWindow
                 ImGui.TextColored(GoldStar, FontAwesomeIcon.Star.ToIconString());
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Official sheet.");
-            ImGui.SameLine(0, 5);
+            ImGui.SameLine(0, Theme.S(5f));
             ImGui.TextUnformatted(fight.Name);
-            ImGui.SameLine(0, 8);
+            ImGui.SameLine(0, Theme.S(8f));
             ImGui.TextDisabled("(official sheet)");
             Tip("Times are seconds from the pull.");
             return true;
         }
 
         var name = fight.Name;
-        ImGui.SetNextItemWidth(260f);
+        ImGui.SetNextItemWidth(Theme.S(260f));
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
         Tip("Times are seconds from the pull.");
 
         var ci = Array.IndexOf(Categories, fight.Category);
         if (ci < 0) ci = Categories.Length - 1;
-        ImGui.SetNextItemWidth(120f);
+        ImGui.SetNextItemWidth(Theme.S(120f));
         if (ImGui.Combo("Type", ref ci, Categories, Categories.Length))
         {
             fight.Category = Categories[ci];
@@ -69,10 +69,10 @@ public partial class ConfigWindow
         ImGui.Spacing();
 
         var confirmed = false;
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Delete", new Vector2(120, 0)))
+        if (Widgets.DangerButton("Delete", Theme.Sz(120f)))
         {
             _plugin.Snapshots.Save(fight, "before delete");
             confirmed = true;
@@ -86,6 +86,9 @@ public partial class ConfigWindow
 
     private Vector2 _cardTopLeft;
     private float _cardWidth;
+    // Remembered rather than recomputed, so the unindent matches the indent
+    // even if the scale slider moved between the two.
+    private float _cardIndent;
 
     // Begin a styled card; every BeginCard needs an EndCard.
     private void BeginCard(FontAwesomeIcon icon, Vector4 iconColor, string title, string subtitle = "")
@@ -98,16 +101,17 @@ public partial class ConfigWindow
         dl.ChannelsSplit(2);
         dl.ChannelsSetCurrent(1); // content on the foreground channel
 
-        ImGui.Indent(12f);
-        ImGui.Dummy(new Vector2(0, 6));
+        _cardIndent = Theme.S(12f);
+        ImGui.Indent(_cardIndent);
+        ImGui.Dummy(new Vector2(0, Theme.S(6f)));
         using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
             ImGui.TextColored(iconColor, icon.ToIconString());
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(title);
         if (!string.IsNullOrEmpty(subtitle))
         {
-            ImGui.SameLine(0, 10);
+            ImGui.SameLine(0, Theme.S(10f));
             ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f), subtitle);
         }
         ImGui.Spacing();
@@ -115,15 +119,16 @@ public partial class ConfigWindow
 
     private void EndCard()
     {
-        ImGui.Dummy(new Vector2(0, 8));
-        ImGui.Unindent(12f);
+        ImGui.Dummy(new Vector2(0, Theme.S(8f)));
+        ImGui.Unindent(_cardIndent);
 
         var dl = ImGui.GetWindowDrawList();
         var min = _cardTopLeft;
         var max = new Vector2(_cardTopLeft.X + _cardWidth, ImGui.GetCursorScreenPos().Y);
         dl.ChannelsSetCurrent(0); // background channel
         dl.AddRectFilled(min, max, Theme.PanelBg, 8f);
-        dl.AddRectFilled(min + new Vector2(0, 8), new Vector2(min.X + 3, max.Y - 8), Theme.Accent);
+        dl.AddRectFilled(min + new Vector2(0, Theme.S(8f)),
+            new Vector2(min.X + Theme.S(3f), max.Y - Theme.S(8f)), Theme.Accent);
         dl.ChannelsMerge();
         ImGui.Spacing();
     }
@@ -132,7 +137,7 @@ public partial class ConfigWindow
     private static void TimePill(string text)
     {
         var dl = ImGui.GetWindowDrawList();
-        var pad = new Vector2(8, 3);
+        var pad = new Vector2(8, 3) * Theme.Scale;
         var sz = ImGui.CalcTextSize(text);
         var p = ImGui.GetCursorScreenPos();
         var box = sz + pad * 2;
@@ -151,7 +156,7 @@ public partial class ConfigWindow
         if (slots.Length == 0) return;
         var idx = Array.FindIndex(slots, s => string.Equals(s, fight.Slot, StringComparison.OrdinalIgnoreCase));
 
-        ImGui.SetNextItemWidth(170f);
+        ImGui.SetNextItemWidth(Theme.S(170f));
         // No column picked yet shows an empty preview.
         if (ImGui.Combo("Your slot##customslot", ref idx, slots, slots.Length)
             && idx >= 0 && !string.Equals(slots[idx], fight.Slot, StringComparison.OrdinalIgnoreCase))
@@ -200,10 +205,10 @@ public partial class ConfigWindow
         ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
         ImGui.Spacing();
 
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Empty this column", new Vector2(160, 0)))
+        if (Widgets.DangerButton("Empty this column", Theme.Sz(160f)))
         {
             _plugin.Snapshots.Save(fight, $"before reset {slot}");
             ClearCustomColumn(fight, slot);
@@ -227,10 +232,10 @@ public partial class ConfigWindow
         ImGui.TextDisabled("A snapshot is saved first; Sheet View > Plan > History restores it.");
         ImGui.Spacing();
 
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Empty every column", new Vector2(170, 0)))
+        if (Widgets.DangerButton("Empty every column", Theme.Sz(170f)))
         {
             _plugin.Snapshots.Save(fight, "before reset all columns");
             fight.Lines.Clear();
@@ -261,15 +266,15 @@ public partial class ConfigWindow
             Tip("Preview a row's calls. Turns on Test Mode.");
             _pracRowIdx = Math.Clamp(_pracRowIdxs.GetValueOrDefault(fight.Id), 0, rows.Count - 1);
             var labels = rows.Select(r => $"{Mmss(r.Time)}  {r.Mechanic}").ToArray();
-            ImGui.SameLine(0, 6);
-            ImGui.SetNextItemWidth(240f);
+            ImGui.SameLine(0, Theme.S(6f));
+            ImGui.SetNextItemWidth(Theme.S(240f));
             ImGui.Combo("##pracrow", ref _pracRowIdx, labels, labels.Length);
             _pracRowIdxs[fight.Id] = _pracRowIdx;
-            ImGui.SameLine(0, 4);
+            ImGui.SameLine(0, Theme.S(4f));
             if (ImGui.SmallButton("Go##pracrow")) _plugin.PracticeJump(fight, rows[_pracRowIdx].Time);
             if (Plugin.PreviewFight == fight && C.TestMode)
             {
-                ImGui.SameLine(0, 8);
+                ImGui.SameLine(0, Theme.S(8f));
                 if (ImGui.SmallButton("Stop##pracrow")) _plugin.StopPractice();
             }
             return;
@@ -281,7 +286,7 @@ public partial class ConfigWindow
 
         // Which phase is running shows in the fill, which loose buttons never did.
         var previewing = Plugin.PreviewFight == fight && C.TestMode;
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         Widgets.SegmentBegin();
         for (var i = 0; i < phases.Count; i++)
         {
@@ -296,9 +301,9 @@ public partial class ConfigWindow
         Widgets.SegmentEnd();
         if (previewing)
         {
-            ImGui.SameLine(0, 8);
+            ImGui.SameLine(0, Theme.S(8f));
             if (ImGui.SmallButton("Stop##prac")) { _plugin.StopPractice(); _pracPhase = ""; }
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(ImGuiColors.DalamudYellow, "previewing");
         }
 
@@ -320,7 +325,7 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Tank priority:");
         Tip("These phases' tank busters follow job priority (ranked, not MT/OT).\nToggle if the auto pick has you backwards.");
 
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         Widgets.SegmentBegin();
         var first = true;
         foreach (var (name, phase) in priorityOnes)
@@ -441,10 +446,10 @@ public partial class ConfigWindow
 
         // Window pills.
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), $"{job} · {stat}");
-        if (times.Count == 0) { ImGui.SameLine(0, 10); ImGui.TextDisabled("no windows"); }
+        if (times.Count == 0) { ImGui.SameLine(0, Theme.S(10f)); ImGui.TextDisabled("no windows"); }
         foreach (var t in times)
         {
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             TimePill(Mmss(t));
         }
 
@@ -547,7 +552,7 @@ public partial class ConfigWindow
                     FlashBuiltin($"Reset to {(grouped ? bursts.Count : steps.Length)} {job} summon cue(s).");
                 }
 
-                ImGui.SameLine(0, 10);
+                ImGui.SameLine(0, Theme.S(10f));
                 ImGui.TextDisabled($"{steps.Length} summons in {bursts.Count} bursts");
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, $"Grouped ({bursts.Count})"))
                     AddSummons(true);
@@ -559,7 +564,7 @@ public partial class ConfigWindow
             }
             else
             {
-                ImGui.SameLine(0, 10);
+                ImGui.SameLine(0, Theme.S(10f));
                 ImGui.TextDisabled($"{extra.Lines.Length} casts, spaced to its {extra.Recast:0}s recast");
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, $"Reset {extra.Lines.Length} {extra.Action} line(s)"))
                 {
@@ -599,7 +604,7 @@ public partial class ConfigWindow
     private void DrawAdvancedFightSettings(FightProfile fight)
     {
         if (!Section("Manage & advanced")) return;
-        ImGui.Indent(10f);
+        ImGui.Indent(Theme.S(10f));
 
         var locked = IsOfficial(fight);
         if (!locked)  // a duplicate built-in would be a locked same-zone copy
@@ -644,7 +649,7 @@ public partial class ConfigWindow
         ImGui.Spacing();
         ImGui.BeginDisabled(locked); // a built-in's zone is fixed
         var territory = (int)fight.TerritoryId;
-        ImGui.SetNextItemWidth(120f);
+        ImGui.SetNextItemWidth(Theme.S(120f));
         // Official zones are refused, since the built-in wins them.
         if (ImGui.InputInt("Territory id", ref territory))
         {
@@ -667,7 +672,7 @@ public partial class ConfigWindow
 
         ImGui.TextDisabled("Timer offset now lives at the top of this fight, above the mit sections.");
 
-        ImGui.Unindent(10f);
+        ImGui.Unindent(Theme.S(10f));
     }
 
     // Reassign lines while keeping the saved slot copy in sync.

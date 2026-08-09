@@ -62,7 +62,7 @@ public class SlotPopupWindow : Window
             // No slot yet must show as "(pick)", never as the first entry.
             var current = _fight.Slot ?? "";
             var preview = string.IsNullOrEmpty(current) ? "(pick)" : current;
-            ImGui.SetNextItemWidth(120f);
+            ImGui.SetNextItemWidth(Theme.S(120f));
             if (ImGui.BeginCombo("##slotpick", preview))
             {
                 foreach (var slot in _slots)
@@ -76,7 +76,7 @@ public class SlotPopupWindow : Window
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("OK", new Vector2(50, 0))) 
+            if (ImGui.Button("OK", Theme.Sz(50f))) 
             {
                 if (_rememberPref && !string.IsNullOrEmpty(current))
                 {

@@ -113,12 +113,13 @@ public partial class SheetViewWindow
             return ImGui.SmallButton(icon.ToIconString() + id);
     }
 
-    // Popup header: a dim title plus a right-aligned X.
+    // Popup header: a dim title plus a right-aligned X. Width is a designed
+    // one, so callers pass the same number whatever the UI scale.
     private static void PopupHeader(string title, float width)
     {
         ImGui.TextDisabled(title);
-        var titleEnd = ImGui.GetItemRectSize().X + 24f;
-        ImGui.SameLine(MathF.Max(width - 22f, titleEnd));
+        var titleEnd = ImGui.GetItemRectSize().X + Theme.S(24f);
+        ImGui.SameLine(MathF.Max(Theme.S(width - 22f), titleEnd));
         if (IconSmallButton(FontAwesomeIcon.Times, "##closepopup"))
             ImGui.CloseCurrentPopup();
     }
@@ -160,16 +161,16 @@ public partial class SheetViewWindow
                   | ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable;
         // Settings save by column index, so the id bakes in the layout. The
         // reset counter rides along: a new id is a table with no saved widths.
-        var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}|{_widthReset}";
+        var tableId = $"##sheetgrid|{_fight!.Id}|{string.Join(",", _order)}|{C.SheetWidthReset}";
         if (!ImGui.BeginTable(tableId, 2 + _gridCols.Length, flags, new Vector2(0, -footerH)))
             return;
 
         // Pinned columns ride frozen, capped for narrow windows.
         ImGui.TableSetupScrollFreeze(2 + Math.Min(4, _pinnedCount), 1);
-        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 62);
-        ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 240);
+        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, Theme.S(62f));
+        ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, Theme.S(240f));
         foreach (var i in _order)
-            ImGui.TableSetupColumn(_gridCols[i], ImGuiTableColumnFlags.WidthFixed, 130);
+            ImGui.TableSetupColumn(_gridCols[i], ImGuiTableColumnFlags.WidthFixed, Theme.S(130f));
 
         // Header row with role colors and a "(you)" tag.
         _youColX = null;
@@ -266,7 +267,7 @@ public partial class SheetViewWindow
                 ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, (Theme.Accent & 0x00FFFFFFu) | 0x2A000000u);
                 var barP = ImGui.GetCursorScreenPos();
                 ImGui.GetWindowDrawList().AddRectFilled(
-                    barP, barP + new Vector2(3f, ImGui.GetTextLineHeight()), Theme.Accent, 1.5f);
+                    barP, barP + new Vector2(Theme.S(3f), ImGui.GetTextLineHeight()), Theme.Accent, 1.5f);
                 ImGui.TableNextColumn();
                 ImGui.TextColored(Theme.V(Theme.Accent), Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
                 // On this row for a swapped-priority phase, the toggle sits in
@@ -317,8 +318,8 @@ public partial class SheetViewWindow
 
         var dl = ImGui.GetWindowDrawList();
         dl.PushClipRect(rectMin, rectMax, true);
-        dl.AddLine(new Vector2(x.Min, rectMin.Y), new Vector2(x.Min, rectMax.Y), Theme.Accent, 2f);
-        dl.AddLine(new Vector2(x.Max, rectMin.Y), new Vector2(x.Max, rectMax.Y), Theme.Accent, 2f);
+        dl.AddLine(new Vector2(x.Min, rectMin.Y), new Vector2(x.Min, rectMax.Y), Theme.Accent, Theme.S(2f));
+        dl.AddLine(new Vector2(x.Max, rectMin.Y), new Vector2(x.Max, rectMax.Y), Theme.Accent, Theme.S(2f));
         dl.PopClipRect();
     }
 
@@ -331,7 +332,7 @@ public partial class SheetViewWindow
         var rectMin = ImGui.GetItemRectMin(); // the table is the last item
         var rectMax = ImGui.GetItemRectMax();
         var size = ImGui.CalcTextSize(_stickyTitle);
-        var pad = new Vector2(8f, 3f);
+        var pad = new Vector2(8f, 3f) * Theme.Scale;
         var headerH = ImGui.GetTextLineHeight() + ImGui.GetStyle().CellPadding.Y * 2f + 4f;
         var p0 = new Vector2(rectMax.X - size.X - pad.X * 2f - 24f, rectMin.Y + headerH + 6f);
         // Tiny window: don't cover the frozen columns.
@@ -399,7 +400,7 @@ public partial class SheetViewWindow
         }
         else
         {
-            if (row.Edited) { ImGui.TextColored(EditedColor, "*"); ImGui.SameLine(0, 3); }
+            if (row.Edited) { ImGui.TextColored(EditedColor, "*"); ImGui.SameLine(0, Theme.S(3f)); }
             if (ImGui.Selectable(TimeText(row.Time) + "##time", false) && !CommitPending())
             {
                 _editTimeRow = row;
@@ -421,9 +422,9 @@ public partial class SheetViewWindow
         if (row.Ghost)
         {
             ImGui.TextDisabled(row.Mechanic);
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(EditedColor, "deleted");
-            ImGui.SameLine(0, 4);
+            ImGui.SameLine(0, Theme.S(4f));
             if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Deleted from your plan. Undo restores it.");
@@ -446,7 +447,7 @@ public partial class SheetViewWindow
                 _noteUndoArmed = true; // one undo entry per editing session
             }
             ImGui.TextDisabled($"Note: {row.Mechanic}");
-            if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84)))
+            if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84) * Theme.Scale))
                 SaveNote(row, _noteBuf);
             ImGui.TextDisabled("Saved as you type. Clear the text to remove the note.");
             // Custom rows grade the hit here, and Auto-plan reads it.
@@ -457,7 +458,7 @@ public partial class SheetViewWindow
                 ImGui.TextDisabled("Hits:");
                 for (var h = 0; h < HurtChoices.Length; h++)
                 {
-                    ImGui.SameLine(0, 6);
+                    ImGui.SameLine(0, Theme.S(6f));
                     if (ImGui.RadioButton($"{HurtChoices[h]}##hurt{h}", cr.Hurt == h) && cr.Hurt != h)
                     {
                         cr.Hurt = h;
@@ -476,7 +477,7 @@ public partial class SheetViewWindow
         }
         if (NoteFor(row) != null)
         {
-            ImGui.SameLine(0, 5);
+            ImGui.SameLine(0, Theme.S(5f));
             IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
         }
         if (_isCustom)
@@ -484,14 +485,14 @@ public partial class SheetViewWindow
             // Type tag, matching the board's chip: what this row's hit IS.
             if (CustomRowFor(row) is { } tr && TypeTag(tr) is var (tag, tagCol, tagTip) && tag.Length > 0)
             {
-                ImGui.SameLine(0, 6);
+                ImGui.SameLine(0, Theme.S(6f));
                 ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(tagCol), tag);
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip(tagTip);
             }
             // The severity grade, right-click to change.
             if (CustomRowFor(row) is { Hurt: > 0 } gr)
             {
-                ImGui.SameLine(0, 6);
+                ImGui.SameLine(0, Theme.S(6f));
                 var (mark, color) = gr.Hurt switch
                 {
                     3 => ("!!!", 0xFF4444E0u),
@@ -503,7 +504,7 @@ public partial class SheetViewWindow
                     ImGui.SetTooltip($"Hits {HurtChoices[gr.Hurt]} unmitigated. Right-click to regrade.");
             }
             // Custom rows are all yours, so delete is the only action.
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             if (IconSmallButton(FontAwesomeIcon.Times, "##delrow")) DeleteCustomRow(row);
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Delete this row (every column). Ctrl+Z brings it back.");
@@ -513,7 +514,7 @@ public partial class SheetViewWindow
         if (row.JobExtra && !row.Edited)
         {
             // A quiet tag: this row is a job schedule at its own time.
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextDisabled("job extra");
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("A job-specific line at its own time. Nothing is wrong.");
@@ -524,16 +525,16 @@ public partial class SheetViewWindow
             // only tombstone rows the sheet will keep baking.
             if (_fight is { } f && Builtin.IsHiddenMechanic(f.TerritoryId, row.Mechanic)) return;
 
-            ImGui.SameLine(0, 4);
+            ImGui.SameLine(0, Theme.S(4f));
             if (IconSmallButton(FontAwesomeIcon.Times, "##delextra")) DeleteExtraRow(row);
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Remove this job extra (every slot). Ctrl+Z brings it back.");
         }
         else if (row.Edited)
         {
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(EditedColor, "edited");
-            ImGui.SameLine(0, 4);
+            ImGui.SameLine(0, Theme.S(4f));
             if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Reset this mechanic to the baked sheet, every slot.");
@@ -770,7 +771,7 @@ public partial class SheetViewWindow
             {
                 var line = cell[0];
                 var offset = line.OffsetSeconds;
-                ImGui.SetNextItemWidth(110f);
+                ImGui.SetNextItemWidth(Theme.S(110f));
                 // Clamped, and not flagged Custom, since a nudge isn't a rewrite.
                 if (ImGui.InputFloat("call offset (s)", ref offset, 0.5f, 1f, "%.1f") && !AbortIfStale())
                 {
@@ -870,10 +871,10 @@ public partial class SheetViewWindow
         ImGui.TextDisabled("A snapshot is saved first; Plan > History (or Ctrl+Z) restores it.");
         ImGui.Spacing();
 
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Reset every column", new Vector2(180, 0)) && _fight != null)
+        if (Widgets.DangerButton("Reset every column", Theme.Sz(180f)) && _fight != null)
         {
             PushUndo("reset every column");
             _plugin.Snapshots.Save(_fight, "before Reset all columns");
@@ -1186,9 +1187,9 @@ public partial class SheetViewWindow
         var note = _hoverRow != null ? NoteFor(_hoverRow) : null;
         if (note == null) return;
         IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         ImGui.TextUnformatted($"{_hoverRow!.Mechanic}:");
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         var text = note.Text.Replace('\n', ' ');
         ImGui.TextDisabled(text.Length > 220 ? text[..220] + "..." : text);
         if (ImGui.IsItemHovered() && note.Text.Length > 220) ImGui.SetTooltip(note.Text);

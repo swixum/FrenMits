@@ -42,7 +42,7 @@ public class RecapWindow : Window
         Theme.PushWindow();
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 1f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 12));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 12) * Theme.Scale);
     }
 
     public override void PostDraw()
@@ -96,7 +96,10 @@ public class RecapWindow : Window
             string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName,
             r.CaptureElapsed > 0 ? $"·  ended {Mmss(r.CaptureElapsed)} in" : "");
         var copyW = ImGui.CalcTextSize("Copy").X + ImGui.GetStyle().FramePadding.X * 2;
-        ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 12, ImGui.GetContentRegionMax().X - copyW));
+        // Off the header's last item, not the cursor, or a long boss name ends
+        // up with the button drawn across it.
+        var headEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(headEnd + Theme.S(12f), ImGui.GetContentRegionMax().X - copyW));
         if (Button("Copy")) ImGui.SetClipboardText(r.ToText());
         if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Copy the recap as text.");
 
@@ -126,11 +129,11 @@ public class RecapWindow : Window
         }
 
         // One chip per question a raid lead asks after a wipe.
-        ImGui.Dummy(new Vector2(0, 2));
+        ImGui.Dummy(new Vector2(0, Theme.S(2f)));
         var missed = r.NotSeen();
         Widgets.Chip("raid mits", $"{MitRecap.StandardRaidMits.Length - missed.Count}/{MitRecap.StandardRaidMits.Length}",
             missed.Count == 0 ? Theme.Good : Theme.Warn);
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         if (r.LastDeaths.Count > 0)
         {
             // Clickable: expands every death into its detail.
@@ -155,11 +158,11 @@ public class RecapWindow : Window
         }
         if (r.Shown.PlanTotal > 0)
         {
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             Widgets.Chip("on plan", $"{r.Shown.PlanGood}/{r.Shown.PlanTotal}",
                 r.Shown.PlanGood == r.Shown.PlanTotal ? Theme.Good : Theme.Warn);
         }
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         Widgets.Chip("unused CDs", r.Shown.Unused.Count.ToString(), r.Shown.Unused.Count == 0 ? Theme.Good : Theme.Warn);
 
         // Missing standard raid mits, spelled out.
@@ -173,8 +176,8 @@ public class RecapWindow : Window
         Widgets.SectionHeader("Coverage timeline");
         DrawScrubber(r);
         ImGui.TextColored(Theme.V(Theme.Muted), "tall & green = more mit up · dips = thin ·");
-        ImGui.SameLine(0, 5); ImGui.TextColored(Theme.V(Theme.Danger), "red = deaths");
-        ImGui.SameLine(0, 6); ImGui.TextColored(Theme.V(Theme.Muted),
+        ImGui.SameLine(0, Theme.S(5f)); ImGui.TextColored(Theme.V(Theme.Danger), "red = deaths");
+        ImGui.SameLine(0, Theme.S(6f)); ImGui.TextColored(Theme.V(Theme.Muted),
             r.LastDeaths.Count > 0 ? "(click one to inspect) · hover to inspect" : "· hover to inspect");
 
         // Plan vs. actual: the sheet graded against the pull.
@@ -190,17 +193,17 @@ public class RecapWindow : Window
             var plh = ImGui.GetTextLineHeight();
             foreach (var h in r.Shown.PlanProblems.Take(10))
             {
-                if (h.Icon != 0) { Icons.Draw(h.Icon, new Vector2(plh, plh)); ImGui.SameLine(0, 6); }
+                if (h.Icon != 0) { Icons.Draw(h.Icon, new Vector2(plh, plh)); ImGui.SameLine(0, Theme.S(6f)); }
                 ImGui.TextColored(h.Missed ? Theme.V(Theme.Danger) : Theme.V(Theme.Warn), h.Mit);
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted), $"· {(int)h.Time / 60}:{(int)h.Time % 60:00} ·");
                 // The verdict is the payload, so it reads in full ink.
                 var verdict = h.Why.Length > 0 ? h.Why : h.Missed ? "never went out" : $"{h.Delta:0}s late";
-                ImGui.SameLine(0, 4);
+                ImGui.SameLine(0, Theme.S(4f));
                 ImGui.TextColored(h.Why.Length > 0 ? Theme.V(Theme.TextBright) : Theme.V(Theme.Muted), verdict);
                 if (h.Mechanic.Length > 0)
                 {
-                    ImGui.SameLine(0, 4);
+                    ImGui.SameLine(0, Theme.S(4f));
                     ImGui.TextColored(Theme.V(Theme.Muted), $"· {h.Mechanic}");
                 }
             }
@@ -217,7 +220,7 @@ public class RecapWindow : Window
             var lh = ImGui.GetTextLineHeight();
             foreach (var (who, mit, note, icon) in r.Shown.Unused.Take(4))
             {
-                if (icon != 0) { Icons.Draw(icon, new Vector2(lh, lh)); ImGui.SameLine(0, 6); }
+                if (icon != 0) { Icons.Draw(icon, new Vector2(lh, lh)); ImGui.SameLine(0, Theme.S(6f)); }
                 ImGui.TextColored(Theme.V(Theme.Warn), mit);
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted), $"· {who} · {note}");
@@ -232,7 +235,7 @@ public class RecapWindow : Window
             Widgets.SectionHeader("Still up at the end");
             foreach (var m in r.Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
             {
-                if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, 6); }
+                if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, Theme.S(6f)); }
                 var col = MitColors.Color(m.Kind, C);
                 ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), m.Mit);
                 ImGui.SameLine();
@@ -241,7 +244,7 @@ public class RecapWindow : Window
         }
 
         // Full per-mechanic detail, collapsed by default.
-        ImGui.Dummy(new Vector2(0, 2));
+        ImGui.Dummy(new Vector2(0, Theme.S(2f)));
         if (!ImGui.CollapsingHeader("Timeline details")) return;
         ImGui.TextColored(Theme.V(Theme.Muted), "mit colors:");
         foreach (var (kind, label) in new[]
@@ -266,8 +269,8 @@ public class RecapWindow : Window
                 new Vector2(0, 0)))
         {
             ImGui.TableSetupScrollFreeze(0, 1);
-            ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 52);
-            ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 150);
+            ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, Theme.S(52f));
+            ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, Theme.S(150f));
             ImGui.TableSetupColumn("Mits", ImGuiTableColumnFlags.WidthStretch, 1);
             ImGui.TableHeadersRow();
 
@@ -300,21 +303,21 @@ public class RecapWindow : Window
                 foreach (var e in group)
                 {
                     // Three mits a line, so heavy mechanics don't clip.
-                    if (n > 0 && n % 3 != 0) { ImGui.SameLine(0, 2); ImGui.TextColored(Theme.V(Theme.Muted), " · "); ImGui.SameLine(0, 2); }
+                    if (n > 0 && n % 3 != 0) { ImGui.SameLine(0, Theme.S(2f)); ImGui.TextColored(Theme.V(Theme.Muted), " · "); ImGui.SameLine(0, Theme.S(2f)); }
                     n++;
-                    if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ih, ih)); ImGui.SameLine(0, 4); }
+                    if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ih, ih)); ImGui.SameLine(0, Theme.S(4f)); }
                     var col = MitColors.Color(e.Kind, C);
                     ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), e.Mit);
 
                     if (e.OnBoss)
                     {
-                        ImGui.SameLine(0, 4);
+                        ImGui.SameLine(0, Theme.S(4f));
                         ImGui.TextColored(Theme.V(Theme.Muted), "(boss)");
                     }
                     else if (e.Kind == MitTypes.Kind.Party && party.Count is > 1 and <= 8)
                     {
                         // Coverage only for party buffs, and only on an 8-man count.
-                        ImGui.SameLine(0, 4);
+                        ImGui.SameLine(0, Theme.S(4f));
                         var full = e.Covered.Count >= party.Count;
                         ImGui.TextColored(full ? Theme.V(Theme.Good) : Theme.V(Theme.Warn),
                             $"{e.Covered.Count}/{party.Count}");
@@ -330,7 +333,7 @@ public class RecapWindow : Window
                                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                                     ImGui.TextColored(rowCol,
                                         (hit ? FontAwesomeIcon.Check : FontAwesomeIcon.Times).ToIconString());
-                                ImGui.SameLine(0, 5);
+                                ImGui.SameLine(0, Theme.S(5f));
                                 ImGui.TextColored(rowCol, name);
                             }
                             ImGui.EndTooltip();
@@ -338,7 +341,7 @@ public class RecapWindow : Window
                     }
                     else if (e.Covered.Count == 1)
                     {
-                        ImGui.SameLine(0, 4);
+                        ImGui.SameLine(0, Theme.S(4f));
                         ImGui.TextColored(Theme.V(Theme.Muted), e.Covered[0]);
                     }
                 }
@@ -351,7 +354,7 @@ public class RecapWindow : Window
                     var d = deaths[dIdx++];
                     using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                         ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
-                    ImGui.SameLine(0, 5);
+                    ImGui.SameLine(0, Theme.S(5f));
                     ImGui.TextColored(Theme.V(Theme.Danger), d.Name);
                     var story = new List<string>();
                     if (d.FromPct > 0f && d.Seconds > 0f)
@@ -462,19 +465,19 @@ public class RecapWindow : Window
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(Theme.V(Theme.Muted),
                     (open ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight).ToIconString());
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(Theme.V(Theme.Danger), d.Name);
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(Theme.V(Theme.Muted), Mmss(d.Time));
             var story = new List<string>();
             if (d.FromPct > 0f && d.Seconds > 0f)
                 story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
             if (d.KilledBy.Length > 0) story.Add("killed by " + d.KilledBy);
             story.Add(d.Had.Length > 0 ? "had " + d.Had : "nothing up");
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.PushTextWrapPos(0f);
             ImGui.TextColored(Theme.V(Theme.Muted), "· " + string.Join(" · ", story));
             ImGui.PopTextWrapPos();
@@ -495,7 +498,7 @@ public class RecapWindow : Window
             }
             if (!open) continue;
 
-            ImGui.Indent(26f);
+            ImGui.Indent(Theme.S(26f));
             if (d.Hits is { Count: > 0 } hits)
             {
                 for (var j = 0; j < hits.Count; j++)
@@ -503,20 +506,20 @@ public class RecapWindow : Window
                     var h = hits[j];
                     var blow = j == hits.Count - 1 && d.KilledBy.Length > 0;
                     ImGui.TextColored(Theme.V(Theme.Muted), Mmss(h.Time));
-                    ImGui.SameLine(0, 8);
+                    ImGui.SameLine(0, Theme.S(8f));
                     ImGui.TextColored(blow ? Theme.V(Theme.Danger) : Theme.V(Theme.TextBright),
                         h.Action.Length > 0 ? h.Action : h.OverTime ? "damage over time" : "hit");
                     if (h.OverTime)
                     {
-                        ImGui.SameLine(0, 5);
+                        ImGui.SameLine(0, Theme.S(5f));
                         ImGui.TextColored(Theme.V(Theme.Muted), "(tick)");
                     }
                     if (h.Amount > 0)
                     {
-                        ImGui.SameLine(0, 8);
+                        ImGui.SameLine(0, Theme.S(8f));
                         ImGui.TextColored(Theme.V(Theme.TextBright), h.Amount.ToString("N0"));
                     }
-                    ImGui.SameLine(0, 8);
+                    ImGui.SameLine(0, Theme.S(8f));
                     ImGui.PushTextWrapPos(0f);
                     ImGui.TextColored(Theme.V(Theme.Muted),
                         "· " + (h.Mits.Length > 0 ? "had " + h.Mits : "nothing up")
@@ -527,7 +530,7 @@ public class RecapWindow : Window
             else
                 ImGui.TextColored(Theme.V(Theme.Muted),
                     "No hit trail for this death (a fall or a vuln, or the capture was off).");
-            ImGui.Unindent(26f);
+            ImGui.Unindent(Theme.S(26f));
         }
     }
 
@@ -699,18 +702,18 @@ public class RecapWindow : Window
             ImGui.Spacing();
             foreach (var e in up)
             {
-                if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, 5); }
+                if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, Theme.S(5f)); }
                 ImGui.TextColored(Theme.V(e.OnBoss ? LaneBoss : LaneParty), e.Mit);
-                if (e.OnBoss) { ImGui.SameLine(0, 4); ImGui.TextColored(Theme.V(Theme.Muted), "(boss)"); }
+                if (e.OnBoss) { ImGui.SameLine(0, Theme.S(4f)); ImGui.TextColored(Theme.V(Theme.Muted), "(boss)"); }
             }
         }
         foreach (var d in r.LastDeaths.Where(d => MathF.Abs(d.Time - t) < 3f))
         {
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 ImGui.TextColored(Theme.V(Theme.Danger), FontAwesomeIcon.SkullCrossbones.ToIconString());
-            ImGui.SameLine(0, 5);
+            ImGui.SameLine(0, Theme.S(5f));
             ImGui.TextColored(Theme.V(Theme.Danger), d.Name + " died");
-            ImGui.SameLine(0, 5);
+            ImGui.SameLine(0, Theme.S(5f));
             ImGui.TextColored(Theme.V(Theme.Muted), "· click to inspect");
         }
         ImGui.EndTooltip();

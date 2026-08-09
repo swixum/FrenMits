@@ -152,11 +152,11 @@ public partial class ConfigWindow : Window, IDisposable
             if (ImGui.BeginChild("##page", new Vector2(0, 0), false))
             {
                 ImGui.Spacing();
-                ImGui.Indent(4f);
+                ImGui.Indent(Theme.S(4f));
                 var searching = DrawSettingsSearch();
                 if (searching) DrawSearchResults();
                 else DrawSelectedPage();
-                ImGui.Unindent(4f);
+                ImGui.Unindent(Theme.S(4f));
             }
             ImGui.EndChild();
         }
@@ -185,7 +185,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (Configuration.SuppressSave)
         {
             StatusDot(ImGuiColors.DalamudYellow);
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(ImGuiColors.DalamudYellow,
                 "Saving is OFF this session (your config file failed to load and was backed up).");
             return;
@@ -195,7 +195,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (C.SavePending)
         {
             StatusDot(ImGuiColors.DalamudYellow);
-            ImGui.SameLine(0, 6);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextDisabled("Saving your changes...");
             return;
         }
@@ -203,7 +203,7 @@ public partial class ConfigWindow : Window, IDisposable
         var last = Configuration.LastSavedAt;
         var recent = last != DateTime.MinValue && (DateTime.Now - last).TotalSeconds < 3;
         StatusDot(recent ? ImGuiColors.ParsedGreen : ImGuiColors.HealerGreen);
-        ImGui.SameLine(0, 6);
+        ImGui.SameLine(0, Theme.S(6f));
         ImGui.TextDisabled(last == DateTime.MinValue
             ? "All changes are saved; nothing to lose on exit."
             : recent
@@ -241,7 +241,7 @@ public partial class ConfigWindow : Window, IDisposable
     {
         var v = value;
         if (GreenCheckbox($"##tg_{label}", ref v)) _toggleDirty = true;
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(label);
         return v;
@@ -252,6 +252,10 @@ public partial class ConfigWindow : Window, IDisposable
 
     // Tooltip with a hover delay, so sweeping a page stays quiet.
     private static void Tip(string text) => Widgets.Tooltip(text);
+
+    // For a control inside BeginDisabled: hover is ignored by default, which
+    // would hide the one hint that says why it is held.
+    private static void TipHeld(string text) => Widgets.TooltipWhenHeld(text);
 
     // A checkbox in the next cell of a two-column grid.
     private bool GridCheck(string label, bool value, string? tip = null)
@@ -269,7 +273,7 @@ public partial class ConfigWindow : Window, IDisposable
         var dl = ImGui.GetWindowDrawList();
         var p = ImGui.GetCursorScreenPos();
         var h = ImGui.GetTextLineHeight();
-        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(3, h), Theme.Accent, 2f);
+        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(Theme.S(3f), h), Theme.Accent, 2f);
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), text.ToUpperInvariant());
         ImGui.Spacing();
@@ -286,14 +290,14 @@ public partial class ConfigWindow : Window, IDisposable
     private static void Dot(bool on, string label)
     {
         StatusDot(on ? ImGuiColors.HealerGreen : ImGuiColors.DalamudGrey);
-        ImGui.SameLine(0, 4);
+        ImGui.SameLine(0, Theme.S(4f));
         ImGui.TextUnformatted(label);
     }
 
     private static void WarnDot(string label)
     {
         StatusDot(ImGuiColors.DalamudYellow);
-        ImGui.SameLine(0, 4);
+        ImGui.SameLine(0, Theme.S(4f));
         ImGui.TextColored(ImGuiColors.DalamudYellow, label);
     }
 
@@ -335,18 +339,24 @@ public partial class ConfigWindow : Window, IDisposable
             // Accent bar down the left edge of the panel.
             var dl = ImGui.GetWindowDrawList();
             var wp = ImGui.GetWindowPos();
-            dl.AddRectFilled(wp, wp + new Vector2(3, ImGui.GetWindowHeight()), Theme.Accent);
+            dl.AddRectFilled(wp, wp + new Vector2(Theme.S(3f), ImGui.GetWindowHeight()), Theme.Accent);
+
+            // The Test control's room, reserved before anything else is drawn:
+            // measuring it first is what lets the name be cut to fit.
+            var right = ImGui.GetWindowWidth()
+                - (ImGui.CalcTextSize("Test").X + ImGui.GetFrameHeight()
+                   + ImGui.GetStyle().ItemInnerSpacing.X + ImGui.GetStyle().WindowPadding.X + Theme.S(12f));
 
             // The zone's fight leads, since the title bar already says the name.
             if (fight != null)
             {
-                ImGui.TextUnformatted(fight.Name);
-                ImGui.SameLine(0, 10);
-                if (string.IsNullOrEmpty(fight.Slot))
-                    ImGui.TextColored(Theme.V(Theme.Warn), "no slot picked");
-                else
-                    ImGui.TextColored(Theme.V(Theme.Accent),
-                        job != null ? $"{fight.Slot} as {job}" : fight.Slot);
+                var slotText = string.IsNullOrEmpty(fight.Slot) ? "no slot picked"
+                    : job != null ? $"{fight.Slot} as {job}" : fight.Slot;
+                var slotW = ImGui.CalcTextSize(slotText).X + Theme.S(10f);
+                ImGui.TextUnformatted(Widgets.Elide(fight.Name, right - slotW - ImGui.GetCursorPosX()));
+                ImGui.SameLine(0, Theme.S(10f));
+                ImGui.TextColored(
+                    Theme.V(string.IsNullOrEmpty(fight.Slot) ? Theme.Warn : Theme.Accent), slotText);
             }
             else
             {
@@ -354,11 +364,10 @@ public partial class ConfigWindow : Window, IDisposable
                     "No supported fight in this zone");
             }
 
-            // Right-aligned quick action, measured rather than hardcoded.
-            var right = ImGui.GetWindowWidth()
-                - (ImGui.CalcTextSize("Test").X + ImGui.GetFrameHeight()
-                   + ImGui.GetStyle().ItemInnerSpacing.X + ImGui.GetStyle().WindowPadding.X + 12f);
-            if (right > 0) { ImGui.SameLine(); ImGui.SetCursorPosX(right); }
+            // Never left of what was just drawn, whatever the name turned out to be.
+            var lineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+            ImGui.SameLine(0, 0);
+            ImGui.SetCursorPosX(MathF.Max(right, lineEnd + Theme.S(10f)));
             var test = C.TestMode;
             if (GreenCheckbox("Test", ref test)) { C.TestMode = test; C.Save(); }
             if (Widgets.HoveredDelayed())
@@ -366,20 +375,20 @@ public partial class ConfigWindow : Window, IDisposable
 
             // Status dots on the second line.
             Dot(job != null, $"Job: {job ?? "?"}");
-            ImGui.SameLine(0, 18);
+            ImGui.SameLine(0, Theme.S(18f));
             Dot(running, running ? $"Timer: {_plugin.Timer.Elapsed:0.0}s" : "Timer: idle");
             // These appear only when they need attention.
-            if (!C.AudioEnabled) { ImGui.SameLine(0, 18); WarnDot("Audio off"); }
-            if (!C.EnableSync) { ImGui.SameLine(0, 18); WarnDot("Resync off"); }
+            if (!C.AudioEnabled) { ImGui.SameLine(0, Theme.S(18f)); WarnDot("Audio off"); }
+            if (!C.EnableSync) { ImGui.SameLine(0, Theme.S(18f)); WarnDot("Resync off"); }
             if (_plugin.FrameErrorCount > 0 && (DateTime.Now - _plugin.LastFrameErrorAt.ToLocalTime()).TotalMinutes < 5)
             {
-                ImGui.SameLine(0, 18);
+                ImGui.SameLine(0, Theme.S(18f));
                 WarnDot($"internal errors ({_plugin.FrameErrorCount}): check /xllog");
             }
             // Anything that failed quietly, like a sheet moving on patch day.
             if (Swallowed.Any)
             {
-                ImGui.SameLine(0, 18);
+                ImGui.SameLine(0, Theme.S(18f));
                 var worst = Swallowed.Worst();
                 WarnDot($"degraded: {worst.Site} (x{worst.Count})");
                 if (Widgets.HoveredDelayed())
@@ -479,7 +488,7 @@ public partial class ConfigWindow : Window, IDisposable
             ImGui.PushStyleColor(ImGuiCol.Header, rgb | 0x2A000000u);
             ImGui.PushStyleColor(ImGuiCol.HeaderHovered, rgb | 0x3C000000u);
         }
-        var rowH = 27f * Theme.Scale;
+        var rowH = Theme.S(27f);
         var clicked = ImGui.Selectable($"##nav-{label}", selected, ImGuiSelectableFlags.None, new Vector2(0, rowH));
         if (selected) ImGui.PopStyleColor(2);
         if (selected)
@@ -487,7 +496,7 @@ public partial class ConfigWindow : Window, IDisposable
             var min = ImGui.GetItemRectMin();
             var max = ImGui.GetItemRectMax();
             ImGui.GetWindowDrawList().AddRectFilled(
-                new Vector2(min.X, min.Y + 2f), new Vector2(min.X + 3f, max.Y - 2f), Theme.Accent, 2f);
+                new Vector2(min.X, min.Y + 2f), new Vector2(min.X + Theme.S(3f), max.Y - 2f), Theme.Accent, 2f);
         }
 
         var endX = ImGui.GetCursorPosX();
@@ -496,9 +505,9 @@ public partial class ConfigWindow : Window, IDisposable
 
         // Icon (icon font) + label drawn over the selectable row.
         var textY = startY + (rowH - ImGui.GetTextLineHeight()) * 0.5f;
-        var labelX = startX + 38f * Theme.Scale;
+        var labelX = startX + Theme.S(38f);
         ImGui.SameLine();
-        ImGui.SetCursorPos(new Vector2(startX + 12f * Theme.Scale, textY));
+        ImGui.SetCursorPos(new Vector2(startX + Theme.S(12f), textY));
         using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
             ImGui.TextColored(col, icon.ToIconString());
         ImGui.SameLine();
@@ -506,13 +515,17 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextColored(col, label);
         // The tail is the right padding plus any count badge.
         _navNeed = MathF.Max(_navNeed,
-            labelX + ImGui.CalcTextSize(label).X + (count is null ? 12f : 40f) * Theme.Scale);
+            labelX + ImGui.CalcTextSize(label).X + Theme.S(count is null ? 12f : 40f));
 
         if (count is { } n)
         {
             var txt = n.ToString();
             ImGui.SameLine();
-            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - 10, textY));
+            // Never left of the label, so a long one pushes the badge instead
+            // of having the badge drawn across it.
+            var badgeX = MathF.Max(labelX + ImGui.CalcTextSize(label).X + Theme.S(8f),
+                ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(txt).X - Theme.S(10f));
+            ImGui.SetCursorPos(new Vector2(badgeX, textY));
             ImGui.TextDisabled(txt);
         }
 
@@ -655,7 +668,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.Accent), $"{changed.Count} off default");
-        ImGui.SameLine(0, 10);
+        ImGui.SameLine(0, Theme.S(10f));
         if (ImGui.SmallButton($"Reset tab##rst{tab}"))
         {
             foreach (var e in changed) e.Reset(C);
@@ -695,7 +708,7 @@ public partial class ConfigWindow : Window, IDisposable
             ImGuiInputTextFlags.EnterReturnsTrue);
         if (_search.Length > 0)
         {
-            ImGui.SameLine(0, 4);
+            ImGui.SameLine(0, Theme.S(4f));
             if (ImGui.SmallButton("x##clearsearch")) _search = "";
         }
         // A new query starts back at the top of the list.
@@ -734,9 +747,17 @@ public partial class ConfigWindow : Window, IDisposable
                 go = i;
             if (moved && i == _searchSel) ImGui.SetScrollHereY(0.5f);
             var min = ImGui.GetItemRectMin();
+            var max = ImGui.GetItemRectMax();
             var dl = ImGui.GetWindowDrawList();
-            dl.AddText(min + new Vector2(8, 3), Theme.TextBright, e.Label);
-            dl.AddText(min + new Vector2(8, 3 + ImGui.GetTextLineHeight()), Theme.Muted, SettingsIndex.Where(e));
+            // Two lines centered in the row, and each cut to the row's width so
+            // a long label cannot run out past the selection.
+            var textX = Theme.S(8f);
+            var room = max.X - min.X - textX * 2f;
+            var lineH = ImGui.GetTextLineHeight();
+            var top = min.Y + (max.Y - min.Y - lineH * 2f) * 0.5f;
+            dl.AddText(new Vector2(min.X + textX, top), Theme.TextBright, Widgets.Elide(e.Label, room));
+            dl.AddText(new Vector2(min.X + textX, top + lineH), Theme.Muted,
+                Widgets.Elide(SettingsIndex.Where(e), room));
             ImGui.PopID();
         }
 
@@ -786,13 +807,13 @@ public partial class ConfigWindow : Window, IDisposable
         var accent = Theme.V(Theme.Accent);
         var grey = new Vector4(0.55f, 0.59f, 0.66f, 1f);
 
-        ImGui.Dummy(new Vector2(0, 10));
+        ImGui.Dummy(new Vector2(0, Theme.S(10f)));
 
         // The logo, or a glyph shield if it didn't load.
         var icon = IconWrap();
         if (icon != null)
         {
-            const float sz = 112f;
+            var sz = Theme.S(112f);
             Center(sz);
             ImGui.Image(icon.Handle, new Vector2(sz, sz));
         }
@@ -807,7 +828,7 @@ public partial class ConfigWindow : Window, IDisposable
             }
 
         // Title (big crisp font) + tagline.
-        var titleFont = _plugin.Fonts.Get(34f, "Default", false, false);
+        var titleFont = _plugin.Fonts.Get(Theme.S(34f), "Default", false, false);
         if (titleFont is { Available: true })
             using (titleFont.Push())
             {
@@ -820,36 +841,55 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.TextColored(grey, "It's mits with frens.");
 
         // Accent divider.
-        ImGui.Dummy(new Vector2(0, 8));
+        ImGui.Dummy(new Vector2(0, Theme.S(8f)));
         var dl = ImGui.GetWindowDrawList();
         var cy = ImGui.GetCursorScreenPos().Y;
-        var cx = ImGui.GetWindowPos().X + ImGui.GetWindowWidth() * 0.5f;
-        dl.AddRectFilled(new Vector2(cx - 60, cy), new Vector2(cx + 60, cy + 2), Theme.Accent, 1f);
-        ImGui.Dummy(new Vector2(0, 14));
+        // Centered on the content, like everything else on this page: the window
+        // width ignores the page indent and would sit the rule slightly off.
+        var cx = ImGui.GetCursorScreenPos().X + ImGui.GetContentRegionAvail().X * 0.5f;
+        var half = Theme.S(60f);
+        dl.AddRectFilled(new Vector2(cx - half, cy), new Vector2(cx + half, cy + Theme.S(2f)), Theme.Accent, 1f);
+        ImGui.Dummy(new Vector2(0, Theme.S(14f)));
 
         // First-run steps, gone once any fight has a slot picked.
         if (!C.Fights.Any(f => !string.IsNullOrEmpty(f.Slot)))
         {
-            var cardW = MathF.Max(220f, MathF.Min(430f, ImGui.GetContentRegionAvail().X - 20f));
+            var cardW = MathF.Max(Theme.S(220f),
+                MathF.Min(Theme.S(430f), ImGui.GetContentRegionAvail().X - Theme.S(20f)));
+            // The panel is painted behind the text once its real height is
+            // known, so however many lines the steps wrap to, none are cut off.
             Center(cardW);
-            ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
-            if (ImGui.BeginChild("##firstrun",
-                    new Vector2(cardW, ImGui.GetTextLineHeightWithSpacing() * 9f + 24f), true))
+            var cardPad = Theme.S(12f);
+            var cardMin = ImGui.GetCursorScreenPos();
+            var cardDl = ImGui.GetWindowDrawList();
+            cardDl.ChannelsSplit(2);
+            cardDl.ChannelsSetCurrent(1);
+
+            ImGui.SetCursorScreenPos(cardMin + new Vector2(cardPad, cardPad));
+            ImGui.BeginGroup();
+            ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + cardW - cardPad * 2f);
+            ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "Get started");
+            ImGui.TextWrapped("1. Pick your job in the sidebar (or leave it on Auto).");
+            ImGui.TextWrapped("2. Open your fight and choose \"Your slot\": that column of the mit sheet becomes yours.");
+            ImGui.TextWrapped("3. Tick Test (top right) and drag the call display where you want it. It switches off by itself when you pull.");
+            ImGui.PopTextWrapPos();
+            ImGui.Spacing();
+            if (ImGui.SmallButton("Take me to the fights"))
             {
-                ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "Get started");
-                ImGui.TextWrapped("1. Pick your job in the sidebar (or leave it on Auto).");
-                ImGui.TextWrapped("2. Open your fight and choose \"Your slot\": that column of the mit sheet becomes yours.");
-                ImGui.TextWrapped("3. Tick Test (top right) and drag the call display where you want it. It switches off by itself when you pull.");
-                ImGui.Spacing();
-                if (ImGui.SmallButton("Take me to the fights"))
-                {
-                    _nav = NavKind.Fights;
-                    _navCategory = "Ultimate";
-                }
+                _nav = NavKind.Fights;
+                _navCategory = "Ultimate";
             }
-            ImGui.EndChild();
-            ImGui.PopStyleColor();
-            ImGui.Dummy(new Vector2(0, 10));
+            ImGui.EndGroup();
+
+            var cardMax = new Vector2(cardMin.X + cardW, ImGui.GetItemRectMax().Y + cardPad);
+            cardDl.ChannelsSetCurrent(0);
+            cardDl.AddRectFilled(cardMin, cardMax, Theme.PanelBg, Theme.S(8f));
+            cardDl.AddRect(cardMin, cardMax, Widgets.CardBorder, Theme.S(8f));
+            cardDl.ChannelsMerge();
+
+            // Put the cursor below the panel, since the group ended inside it.
+            ImGui.SetCursorScreenPos(new Vector2(cardMin.X, cardMax.Y));
+            ImGui.Dummy(new Vector2(0, Theme.S(10f)));
         }
 
         // Action row: just GitHub.
@@ -859,7 +899,7 @@ public partial class ConfigWindow : Window, IDisposable
             Dalamud.Utility.Util.OpenLink("https://github.com/swixum/FrenMits");
 
         // Version, centered below.
-        ImGui.Dummy(new Vector2(0, 6));
+        ImGui.Dummy(new Vector2(0, Theme.S(6f)));
         var ver = $"v{Version}";
         Center(ImGui.CalcTextSize(ver).X);
         ImGui.TextDisabled(ver);

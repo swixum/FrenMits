@@ -96,14 +96,14 @@ public partial class SheetViewWindow
             ImGui.TextDisabled("rows; then Build > Auto-plan mits fills every column with cooldowns");
             ImGui.TextDisabled("that line up: spaced to their recasts, spread across the party.");
             ImGui.Spacing();
-            if (ImGui.Button("Got it", new Vector2(110, 0))) ImGui.CloseCurrentPopup();
+            if (ImGui.Button("Got it", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
             ImGui.EndPopup();
             return;
         }
 
         var gradedRows = _fight.CustomRows.Count(r => r.Hurt > 0);
         ImGui.TextUnformatted($"Fill the grid with party cooldowns for {_fight.CustomRows.Count} rows?");
-        ImGui.PushTextWrapPos(500f);
+        ImGui.PushTextWrapPos(Theme.S(500f));
         ImGui.TextDisabled("Planned the way the official sheets play it: stacked deep on the deadly "
                            + "hits, spread by recast, and your own cells are never touched.");
         ImGui.PopTextWrapPos();
@@ -111,16 +111,16 @@ public partial class SheetViewWindow
 
         // A stat row, so the shape of the job lands before any prose.
         Widgets.Chip("rows", _fight.CustomRows.Count.ToString(), Theme.TextBright);
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         Widgets.Chip("graded", gradedRows.ToString(), gradedRows > 0 ? Theme.Good : Theme.Muted);
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         Widgets.Chip("columns", _fight.CustomSlots.Count.ToString(), Theme.TextBright);
         ImGui.Spacing();
 
         // The detail is here for whoever wants it, folded away for everyone else.
         if (ImGui.TreeNode("How it plans"))
         {
-            ImGui.PushTextWrapPos(500f);
+            ImGui.PushTextWrapPos(Theme.S(500f));
             ImGui.TextDisabled("Deadly hits stack the whole party and healers pair big mits. Hurts takes "
                                + "about half, light gets one press. Long cooldowns are saved for the big hits so "
                                + "they line up, and anything that is back and not owed to a deadly hit goes on "
@@ -130,7 +130,7 @@ public partial class SheetViewWindow
         }
         if (ImGui.TreeNode("Special cases"))
         {
-            ImGui.PushTextWrapPos(500f);
+            ImGui.PushTextWrapPos(Theme.S(500f));
             ImGui.TextDisabled("On-damage cooldowns (Liturgy of the Bell, Panhaima, Macrocosmos) are held "
                                + "for multi-hit strings where they tick. Reprisal, Feint and Addle are never "
                                + "doubled on one hit; sources rotate instead. Buster rows get the tanks' own "
@@ -146,7 +146,7 @@ public partial class SheetViewWindow
         // Healer seats: the four healer jobs' kits barely overlap, so the
         // sheets carry a column per healer JOB.
         var healerCols = GenericHealerCols();
-        ImGui.PushTextWrapPos(500f);
+        ImGui.PushTextWrapPos(Theme.S(500f));
         if (healerCols.Count > 0)
         {
             ImGui.Spacing();
@@ -167,7 +167,7 @@ public partial class SheetViewWindow
 
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-        if (ImGui.Button("Plan mits", new Vector2(110, 0)))
+        if (ImGui.Button("Plan mits", Theme.Sz(110f)))
         {
             PushUndo("auto-plan mits");
             _plugin.Snapshots.Save(_fight, "before auto-plan");
@@ -187,7 +187,7 @@ public partial class SheetViewWindow
         }
         ImGui.PopStyleColor(2);
         ImGui.SameLine();
-        if (ImGui.Button("Not now", new Vector2(110, 0))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Not now", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
         ImGui.EndPopup();
     }
 
@@ -229,22 +229,22 @@ public partial class SheetViewWindow
         DrawPhaseSegments();
 
         // Text filter across mechanics and mits ("Reprisal" = every Reprisal row).
-        ImGui.SameLine(0, 10);
-        ImGui.SetNextItemWidth(140f);
+        ImGui.SameLine(0, Theme.S(10f));
+        ImGui.SetNextItemWidth(Theme.S(140f));
         ImGui.InputTextWithHint("##sheetfilter", "filter...", ref _filter, 64);
         if (DelayedHover() && !ImGui.IsItemActive())
             ImGui.SetTooltip("Show only rows whose mechanic or any slot's mit contains this text.");
         if (_filter.Length > 0)
         {
-            ImGui.SameLine(0, 2);
+            ImGui.SameLine(0, Theme.S(2f));
             if (ImGui.SmallButton("x##clearfilter")) _filter = "";
         }
 
         // What the grid shows, all in one menu instead of four loose checkboxes.
-        ImGui.SameLine(0, 12);
+        ImGui.SameLine(0, Theme.S(12f));
         DrawViewMenu();
 
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         var filtered = _phaseFilter.Length > 0 || _filter.Length > 0 || !_showJobExtra || _clashOnly;
         var shown = _rows.Count(r => !r.Ghost
             && (_phaseFilter.Length == 0 || r.Phase == _phaseFilter)
@@ -256,20 +256,22 @@ public partial class SheetViewWindow
         // Cooldown clashes, and a way to see only those rows.
         if (_clashRowCount > 0 || _clashOnly)
         {
-            ImGui.SameLine(0, 10);
+            ImGui.SameLine(0, Theme.S(10f));
             if (Widgets.ChipButton("clashes", _clashRowCount.ToString(), Theme.Danger, _clashOnly))
             {
                 CommitPending();
                 _clashOnly = !_clashOnly;
             }
+            // Says "every column", since the fight page counts your slot alone
+            // and the two numbers are meant to differ.
             if (DelayedHover())
                 ImGui.SetTooltip(_clashOnly
-                    ? "Showing only rows where a mit repeats before its cooldown is back. Click to show them all."
-                    : "Rows where a mit repeats before its cooldown is back. Click to show only those.");
+                    ? "Showing only rows where a mit repeats before its cooldown is back, across every column.\nClick to show them all."
+                    : "Rows where a mit repeats before its cooldown is back, across every column.\nClick to show only those.");
         }
 
         // The how-to lives here now instead of a permanent footer line.
-        ImGui.SameLine(0, 8);
+        ImGui.SameLine(0, Theme.S(8f));
         ImGui.TextDisabled("(?)");
         if (Widgets.HoveredDelayed())
             ImGui.SetTooltip(
@@ -280,11 +282,17 @@ public partial class SheetViewWindow
                 + "Drag column edges to resize (double-click to fit) or drag headers to reorder.\n"
                 + "Right-click cells, mechanics and column headers; most tools live there.");
 
-        // Right side: Undo | Build (custom sheets) | Plan | Share plan.
-        var rightW = ImGui.CalcTextSize("Undo").X + ImGui.CalcTextSize("Plan").X
-                   + ImGui.CalcTextSize("Share plan").X + 96f
-                   + (_isCustom ? ImGui.CalcTextSize("Build").X + 32f : 0f);
-        ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 8f, ImGui.GetContentRegionMax().X - rightW));
+        // Right side: Undo | Build (custom sheets) | Plan | Share plan. Measured
+        // off the real frame padding, so the block lands right at any scale.
+        var tbStyle = ImGui.GetStyle();
+        float BtnW(string s) => ImGui.CalcTextSize(s).X + tbStyle.FramePadding.X * 2f;
+        var rightW = BtnW("Undo") + BtnW("Plan") + BtnW("Share plan")
+                   + (_isCustom ? BtnW("Build") + tbStyle.ItemSpacing.X : 0f)
+                   + tbStyle.ItemSpacing.X * 3f;
+        // Off the last item, not the cursor: the cursor is back at the line
+        // start by now, which would let this block sit on top of the left side.
+        var tbLineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(tbLineEnd + Theme.S(8f), ImGui.GetContentRegionMax().X - rightW));
         ImGui.BeginDisabled(_undoStack.Count == 0);
         if (ImGui.SmallButton("Undo")) Undo();
         ImGui.EndDisabled();
@@ -411,17 +419,17 @@ public partial class SheetViewWindow
         if (!ImGui.BeginPopupModal("##addrow", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
         PopupHeader("Add a row", 320f);
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         ImGui.InputTextWithHint("##armech", "mechanic name", ref _rowMech, 64);
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         ImGui.InputTextWithHint("##artime", "time (m:ss or seconds)", ref _rowTime, 16);
-        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(Theme.S(200f));
         ImGui.Combo("hits##arhurt", ref _rowHurt, HurtChoices, HurtChoices.Length);
         if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("How hard the hit is unmitigated. Auto-plan stacks mitigation deeper\non harder hits; log imports grade this automatically from real damage.");
         var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
         ImGui.BeginDisabled(!okRow);
-        if (ImGui.Button("Add row", new Vector2(110, 0)))
+        if (ImGui.Button("Add row", Theme.Sz(110f)))
         {
             SheetImport.TryParseTime(_rowTime, out var t);
             AddCustomRow(_rowMech.Trim(), t, _rowHurt);
@@ -508,16 +516,15 @@ public partial class SheetViewWindow
         ImGui.Separator();
         if (ImGui.MenuItem("Reset column widths"))
         {
-            _widthReset++;
+            // Saved, so the reset is still in force after a restart.
+            C.SheetWidthReset++;
+            C.SaveSettings();
             Flash("Columns back to their standard widths.");
         }
         if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Undo any column dragging. Double-clicking one edge still fits that column.");
         ImGui.EndPopup();
     }
-
-    // Bumped to give the table a fresh id, which drops its saved widths.
-    private int _widthReset;
 
     // Deleting a whole custom sheet: confirmed, snapshotted first, undoable
     // only via History after recreating a sheet in the same duty.
@@ -534,10 +541,10 @@ public partial class SheetViewWindow
         ImGui.TextDisabled("then History > Find this duty's older snapshots.");
         ImGui.Spacing();
 
-        if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Delete", new Vector2(120, 0)))
+        if (Widgets.DangerButton("Delete", Theme.Sz(120f)))
         {
             var f = _fight!;
             _plugin.Snapshots.Save(f, "before delete");
@@ -576,7 +583,7 @@ public partial class SheetViewWindow
         if (_snapList.Count == 0)
         {
             ImGui.TextUnformatted("No snapshots");
-            ImGui.PushTextWrapPos(420f);
+            ImGui.PushTextWrapPos(Theme.S(420f));
             ImGui.TextDisabled("One is saved automatically before every import, replace, column paste "
                                + "and sheet refresh, so there is always a way back.");
             ImGui.PopTextWrapPos();
@@ -584,9 +591,9 @@ public partial class SheetViewWindow
         foreach (var s in _snapList)
         {
             ImGui.TextUnformatted($"{s.When:MMM d, h:mm tt}");
-            ImGui.SameLine(0, 8);
+            ImGui.SameLine(0, Theme.S(8f));
             ImGui.TextDisabled(s.Reason);
-            ImGui.SameLine(0, 12);
+            ImGui.SameLine(0, Theme.S(12f));
             if (ImGui.SmallButton($"Restore##{s.File}"))
             {
                 CommitPending();

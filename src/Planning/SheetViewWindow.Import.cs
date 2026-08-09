@@ -48,12 +48,12 @@ public partial class SheetViewWindow
         if (casts.Count == 0)
         {
             ImGui.TextUnformatted("No pulls recorded");
-            ImGui.PushTextWrapPos(430f);
+            ImGui.PushTextWrapPos(Theme.S(430f));
             ImGui.TextDisabled("Rows are built from casts seen in a real pull, and they are recorded "
                                + "automatically. One short wipe is enough.");
             ImGui.PopTextWrapPos();
             ImGui.Spacing();
-            if (ImGui.Button("Build from a kill log instead", new Vector2(220, 0)))
+            if (ImGui.Button("Build from a kill log instead", Theme.Sz(220f)))
             {
                 ImGui.CloseCurrentPopup();
                 _openLogAfterPull = true;
@@ -69,7 +69,7 @@ public partial class SheetViewWindow
             ImGui.TextDisabled("Replaces this fight's existing cast anchors.");
 
         ImGui.BeginDisabled(!_bpRows && !_bpAnchors);
-        if (ImGui.Button("Build", new Vector2(110, 0)))
+        if (ImGui.Button("Build", Theme.Sz(110f)))
         {
             BuildFromPull(casts, _bpRows, _bpAnchors);
             ImGui.CloseCurrentPopup();
@@ -379,12 +379,12 @@ public partial class SheetViewWindow
                 + "and the secret is saved encrypted (it only unlocks on your Windows account).");
             if (ImGui.SmallButton("Open fflogs.com/api/clients"))
                 Dalamud.Utility.Util.OpenLink("https://www.fflogs.com/api/clients");
-            ImGui.SetNextItemWidth(300f);
+            ImGui.SetNextItemWidth(Theme.S(300f));
             ImGui.InputTextWithHint("##flid", "client id", ref _flIdBuf, 128);
-            ImGui.SetNextItemWidth(300f);
+            ImGui.SetNextItemWidth(Theme.S(300f));
             ImGui.InputTextWithHint("##flsecret", "client secret", ref _flSecretBuf, 128, ImGuiInputTextFlags.Password);
             ImGui.BeginDisabled(_flIdBuf.Trim().Length == 0 || _flSecretBuf.Trim().Length == 0);
-            if (ImGui.Button("Save credentials", new Vector2(160, 0)))
+            if (ImGui.Button("Save credentials", Theme.Sz(160f)))
             {
                 C.FflogsClientId = _flIdBuf.Trim();
                 C.FflogsClientSecret = _flSecretBuf.Trim();
@@ -396,17 +396,21 @@ public partial class SheetViewWindow
         }
 
         // Fastest path to a skeleton: type the fight name.
-        ImGui.SetNextItemWidth(320f);
+        ImGui.SetNextItemWidth(Theme.S(320f));
         ImGui.InputTextWithHint("##flfightname", "fight name (e.g. Futures Rewritten) - pulls the top kill", ref _flFightName, 128);
         ImGui.SameLine();
         ImGui.BeginDisabled(_flBusy || _flFightName.Trim().Length == 0);
         if (ImGui.SmallButton("Find top kill")) SearchEncounter();
+        // Held while it is busy or unnamed, which is when the hint matters most.
+        Widgets.TooltipWhenHeld(_flBusy
+            ? "Working on the last request."
+            : _flFightName.Trim().Length == 0
+                ? "Type a fight name first."
+                : "Loads the current #1 speed kill, ready to import.");
         ImGui.EndDisabled();
-        if (Widgets.HoveredDelayed())
-            ImGui.SetTooltip("Loads the current #1 speed kill, ready to import.");
 
         ImGui.TextDisabled("or paste a specific log:");
-        ImGui.SetNextItemWidth(320f);
+        ImGui.SetNextItemWidth(Theme.S(320f));
         ImGui.InputTextWithHint("##flurl", "FFLogs report link (or code)", ref _flUrl, 256);
         ImGui.SameLine();
         ImGui.BeginDisabled(_flBusy || FFLogsClient.ParseReportCode(_flUrl) == null);
@@ -431,7 +435,7 @@ public partial class SheetViewWindow
             var labels = fights.Select(f =>
                 $"#{f.Id}  {f.Name}  {(f.Kill ? "KILL" : "wipe")}  {(int)f.DurationSec / 60}:{(int)f.DurationSec % 60:00}").ToArray();
             _flPick = Math.Clamp(_flPick, 0, fights.Count - 1);
-            ImGui.SetNextItemWidth(320f);
+            ImGui.SetNextItemWidth(Theme.S(320f));
             if (ImGui.Combo("##flfight", ref _flPick, labels, labels.Length))
             {
                 _flCasts = null; // picked a different fight: refetch its casts
@@ -453,7 +457,7 @@ public partial class SheetViewWindow
                 }
                 if (_flBusy)
                     ImGui.TextDisabled("Loading casts...");
-                else if (ImGui.Button("Reload casts", new Vector2(120, 0)))
+                else if (ImGui.Button("Reload casts", Theme.Sz(120f)))
                     FetchCasts(picked);
             }
             else
@@ -463,8 +467,9 @@ public partial class SheetViewWindow
                 ImGui.Checkbox("Set resync anchors", ref _bpAnchors);
                 ImGui.BeginDisabled(!_bpRows);
                 ImGui.Checkbox("Only meaningful mechanics", ref _flMeaningful);
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip("Keep only casts that hit or had a cast bar.");
+                Widgets.TooltipWhenHeld(_bpRows
+                    ? "Keep only casts that hit or had a cast bar."
+                    : "Held: tick \"Add mechanic rows\" first.");
                 ImGui.EndDisabled();
                 // Untargetable windows come from the silences, not the rows.
                 ImGui.Checkbox("Add untargetable windows", ref _flDowntime);
@@ -473,7 +478,7 @@ public partial class SheetViewWindow
                 ImGui.TextDisabled("Their kill's timings become this sheet's skeleton; anchors");
                 ImGui.TextDisabled("snap it to YOUR pulls live. Make sure the log is this duty.");
                 ImGui.BeginDisabled(!_bpRows && !_bpAnchors && !_flDowntime);
-                if (ImGui.Button("Import", new Vector2(120, 0)))
+                if (ImGui.Button("Import", Theme.Sz(120f)))
                 {
                     var events = SiftEvents(_flCasts.OrderBy(c => c.Time)
                         .Select(c => (c.AbilityId, c.Time, Anchorable: c.HasCastBar)), _flNames);

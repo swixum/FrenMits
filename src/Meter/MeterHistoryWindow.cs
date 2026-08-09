@@ -26,7 +26,7 @@ public class MeterHistoryWindow : Window
     public override void PreDraw()
     {
         Theme.PushWindow();
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 12));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 12) * Theme.Scale);
     }
 
     public override void PostDraw()
@@ -184,7 +184,7 @@ public class MeterHistoryWindow : Window
         ImGui.TextColored(Theme.V(Theme.TextBright), enc.Title.Length > 0 ? enc.Title : "Encounter");
         PullTag(enc.Boss || (live && _plugin.Meter.SawBoss), !live || !enc.Active, padded: true);
 
-        ImGui.SameLine(0, 8f);
+        ImGui.SameLine(0, Theme.S(8f));
         ImGui.AlignTextToFramePadding();
         if (live && enc.Active) Pill("in progress", Theme.Accent);
         else
@@ -193,13 +193,17 @@ public class MeterHistoryWindow : Window
             Pill(outcome.Length > 0 ? outcome : "unknown", outcome.Length > 0 ? Tint(enc) : Theme.Muted);
         }
 
-        ImGui.SameLine(0, 10f);
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(Theme.V(Theme.Muted), _headLine);
-
         // Closes the panel without giving up the pull on the board.
         var closeW = ImGui.CalcTextSize("Close").X + ImGui.GetStyle().FramePadding.X * 2;
-        ImGui.SameLine(MathF.Max(0f, ImGui.GetContentRegionMax().X - closeW));
+
+        // The summary line is cut to what is left, so it cannot run under Close.
+        ImGui.SameLine(0, Theme.S(10f));
+        ImGui.AlignTextToFramePadding();
+        var headRoom = ImGui.GetContentRegionMax().X - closeW - ImGui.GetCursorPosX() - Theme.S(10f);
+        ImGui.TextColored(Theme.V(Theme.Muted), Widgets.Elide(_headLine, headRoom));
+
+        var headEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(headEnd + Theme.S(10f), ImGui.GetContentRegionMax().X - closeW));
         if (ImGui.Button("Close")) _detail = NoDetail;
         ImGui.Separator();
     }
@@ -318,7 +322,7 @@ public class MeterHistoryWindow : Window
                 ImGui.TextColored(Theme.V(r.LimitBreak ? Theme.Muted : Theme.TextBright), name);
                 if (!r.LimitBreak && r.Job.Length > 0)
                 {
-                    ImGui.SameLine(0, 5f);
+                    ImGui.SameLine(0, Theme.S(5f));
                     ImGui.TextColored(Theme.V(JobTint(r.Job)), r.Job);
                 }
 
@@ -366,11 +370,11 @@ public class MeterHistoryWindow : Window
             if (d.At > 0f)
             {
                 ImGui.TextColored(Theme.V(Theme.Muted), Fmt.MmssFloor(d.At));
-                ImGui.SameLine(0, 8f);
+                ImGui.SameLine(0, Theme.S(8f));
             }
             ImGui.TextColored(Theme.V(Theme.Danger), d.Name);
             if (d.Killer.Length == 0) continue;
-            ImGui.SameLine(0, 6f);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(Theme.V(Theme.Muted),
                 d.KillingBlow > 0 ? $"to {d.Killer} ({d.KillingBlow:N0})" : $"to {d.Killer}");
         }
@@ -464,7 +468,7 @@ public class MeterHistoryWindow : Window
     private static void PullTag(bool boss, bool settled, bool padded = false)
     {
         if (!boss && !settled) return;
-        ImGui.SameLine(0, 5f);
+        ImGui.SameLine(0, Theme.S(5f));
         if (padded) ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(boss ? Theme.Accent : Theme.Muted), boss ? "(Boss)" : "(Trash)");
     }
@@ -543,11 +547,11 @@ public class MeterHistoryWindow : Window
         {
             var r = _top[i];
             ImGui.TextColored(Theme.V(Theme.Muted), $"{i + 1}.");
-            ImGui.SameLine(0, 5);
+            ImGui.SameLine(0, Theme.S(5f));
             ImGui.TextColored(Theme.V(Theme.TextBright), Who(r));
             if (r.Job.Length > 0)
             {
-                ImGui.SameLine(0, 5);
+                ImGui.SameLine(0, Theme.S(5f));
                 ImGui.TextColored(Theme.V(JobTint(r.Job)), r.Job);
             }
             ImGui.SameLine(nameW + 18f);
@@ -583,18 +587,19 @@ public class MeterHistoryWindow : Window
         // The split, since the meter's own picker only offers the bosses.
         var bosses = 0;
         foreach (var h in m.History) if (h.Boss) bosses++;
-        ImGui.SameLine(0, 6f);
+        ImGui.SameLine(0, Theme.S(6f));
         ImGui.TextColored(Theme.V(Theme.Muted), "·");
-        ImGui.SameLine(0, 6f);
+        ImGui.SameLine(0, Theme.S(6f));
         ImGui.TextColored(Theme.V(Theme.Accent), $"{bosses} boss");
         if (bosses < m.History.Count)
         {
-            ImGui.SameLine(0, 6f);
+            ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(Theme.V(Theme.Muted), $"· {m.History.Count - bosses} trash");
         }
 
         var clearW = ImGui.CalcTextSize("Clear").X + style.FramePadding.X * 2;
-        ImGui.SameLine(MathF.Max(0f, ImGui.GetContentRegionMax().X - clearW));
+        var countEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(countEnd + Theme.S(10f), ImGui.GetContentRegionMax().X - clearW));
         if (ImGui.Button("Clear")) ImGui.OpenPopup("##clearhistory");
         if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Forget every past pull.");
 

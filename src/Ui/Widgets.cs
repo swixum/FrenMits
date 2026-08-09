@@ -30,10 +30,14 @@ internal static class Widgets
     }
 
     // The one tooltip call, so every hint in the plugin waits the same beat.
-    public static void Tooltip(string text)
+    public static void Tooltip(string text, ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
     {
-        if (HoveredDelayed()) ImGui.SetTooltip(text);
+        if (HoveredDelayed(flags)) ImGui.SetTooltip(text);
     }
+
+    // A hint on a control that is currently held: the reason it cannot be
+    // touched is exactly when it is worth reading, so hover still counts.
+    public static void TooltipWhenHeld(string text) => Tooltip(text, ImGuiHoveredFlags.AllowWhenDisabled);
 
     // The window font at the user's UI scale; null at 1x or while it builds.
     public static IDisposable? PushUiFont(FontManager fonts, float scale)
@@ -50,8 +54,8 @@ internal static class Widgets
         var p = ImGui.GetCursorScreenPos();
         var h = ImGui.GetFrameHeight();
         ImGui.GetWindowDrawList().AddRectFilled(
-            p + new Vector2(0, 2), p + new Vector2(3, h - 2), Theme.Accent, 2f);
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
+            p + new Vector2(0, 2), p + new Vector2(Theme.S(3f), h - 2), Theme.Accent, 2f);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Theme.S(10f));
         ImGui.AlignTextToFramePadding();
         ImGui.TextColored(Theme.V(Theme.Accent), title);
         if (detail.Length == 0) return;
@@ -59,15 +63,36 @@ internal static class Widgets
         ImGui.TextColored(Theme.V(Theme.Muted), detail);
     }
 
+    // Text cut to a pixel width, with an ellipsis when it had to be cut. Used
+    // where a name shares its line with right-aligned furniture: eliding is the
+    // one way a long name cannot end up drawn underneath it.
+    public static string Elide(string text, float maxWidth)
+    {
+        if (text.Length == 0 || maxWidth <= 0f) return text;
+        if (ImGui.CalcTextSize(text).X <= maxWidth) return text;
+        const string tail = "...";
+        var room = maxWidth - ImGui.CalcTextSize(tail).X;
+        if (room <= 0f) return tail;
+        // Binary search the longest prefix that fits, so the cut is by pixels
+        // rather than by a character count that is wrong in every other font.
+        int lo = 0, hi = text.Length;
+        while (lo < hi)
+        {
+            var mid = (lo + hi + 1) / 2;
+            if (ImGui.CalcTextSize(text[..mid]).X <= room) lo = mid; else hi = mid - 1;
+        }
+        return lo <= 0 ? tail : text[..lo].TrimEnd() + tail;
+    }
+
     // Section header: an accent tab, then a muted label.
     public static void SectionHeader(string text)
     {
-        ImGui.Dummy(new Vector2(0, 4));
+        ImGui.Dummy(new Vector2(0, Theme.S(4f)));
         var dl = ImGui.GetWindowDrawList();
         var p = ImGui.GetCursorScreenPos();
         var h = ImGui.GetTextLineHeight();
-        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(3, h), Theme.Accent, 2f);
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
+        dl.AddRectFilled(p + new Vector2(0, 1), p + new Vector2(Theme.S(3f), h), Theme.Accent, 2f);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Theme.S(10f));
         ImGui.TextColored(new Vector4(0.62f, 0.66f, 0.72f, 1f), text.ToUpperInvariant());
         ImGui.Spacing();
     }
@@ -95,29 +120,38 @@ internal static class Widgets
         ((uint)(Math.Clamp(v.Y, 0, 1) * 255) << 8) |
         (uint)(Math.Clamp(v.X, 0, 1) * 255);
 
+    // Chip padding tracks the text, like every other framed thing here.
+    private static Vector2 ChipPad => new Vector2(8, 3) * Theme.Scale;
+    private static float ChipGap => 5f * Theme.Scale;
+
+    // Label, gap, value, padding both sides.
+    private static Vector2 ChipSize(Vector2 labelSize, Vector2 valueSize)
+        => new(labelSize.X + valueSize.X + ChipGap + ChipPad.X * 2,
+               ImGui.GetTextLineHeight() + ChipPad.Y * 2);
+
     // Small stat pill: grey label, colored value.
     public static void Chip(string label, string value, uint valueColor)
     {
-        var pad = new Vector2(8, 3);
+        var pad = ChipPad;
         var lSz = ImGui.CalcTextSize(label);
         var vSz = ImGui.CalcTextSize(value);
-        var size = new Vector2(lSz.X + vSz.X + 5 + pad.X * 2, ImGui.GetTextLineHeight() + pad.Y * 2);
+        var size = ChipSize(lSz, vSz);
         var p = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
         dl.AddRectFilled(p, p + size, Theme.PanelBg, 5f);
         dl.AddRect(p, p + size, CardBorder, 5f);
         dl.AddText(p + pad, Theme.Muted, label);
-        dl.AddText(p + pad + new Vector2(lSz.X + 5, 0), valueColor, value);
+        dl.AddText(p + pad + new Vector2(lSz.X + ChipGap, 0), valueColor, value);
         ImGui.Dummy(size);
     }
 
     // Clickable Chip, with a hover glow and a lit open state.
     public static bool ChipButton(string label, string value, uint valueColor, bool open)
     {
-        var pad = new Vector2(8, 3);
+        var pad = ChipPad;
         var lSz = ImGui.CalcTextSize(label);
         var vSz = ImGui.CalcTextSize(value);
-        var size = new Vector2(lSz.X + vSz.X + 5 + pad.X * 2, ImGui.GetTextLineHeight() + pad.Y * 2);
+        var size = ChipSize(lSz, vSz);
         var p = ImGui.GetCursorScreenPos();
         var clicked = ImGui.InvisibleButton("##chip_" + label, size);
         var hovered = ImGui.IsItemHovered();
@@ -130,7 +164,7 @@ internal static class Widgets
         dl.AddRectFilled(p, p + size, bg, 5f);
         dl.AddRect(p, p + size, lit ? valueColor : CardBorder, 5f, ImDrawFlags.None, lit ? 1.6f : 1f);
         dl.AddText(p + pad, Theme.Muted, label);
-        dl.AddText(p + pad + new Vector2(lSz.X + 5, 0), valueColor, value);
+        dl.AddText(p + pad + new Vector2(lSz.X + ChipGap, 0), valueColor, value);
         return clicked;
     }
 
