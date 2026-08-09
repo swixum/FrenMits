@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "Author": "swix",
     "Name": "Fren Mits",
@@ -7,8 +7,8 @@
     "Description": "It's mits with frens.",
     "Tags": ["mitigation", "mit", "timeline", "ultimate", "savage"],
     "DalamudApiLevel": 15,
-    "AssemblyVersion": "1.0.0.80",
-    "TestingAssemblyVersion": "1.0.0.80",
+    "AssemblyVersion": "2.0.0.0",
+    "TestingAssemblyVersion": "2.0.0.0",
     "RepoUrl": "https://github.com/swixum/FrenMits",
     "ApplicableVersion": "any",
     "IconUrl": "https://swixum.github.io/FrenMits/icon.png",

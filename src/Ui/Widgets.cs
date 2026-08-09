@@ -170,6 +170,239 @@ internal static class Widgets
         return clicked;
     }
 
+    // How wide a SwatchChip will be, so a run of them can wrap.
+    public static float SwatchChipWidth(string name)
+        => ImGui.GetTextLineHeight() * 0.72f + ChipGap + ImGui.CalcTextSize(name).X + ChipPad.X * 2;
+
+    // A chip with a colour square and a name, for picking a saved look.
+    public static bool SwatchChip(string name, uint color, bool on)
+    {
+        var pad = ChipPad;
+        var sq = ImGui.GetTextLineHeight() * 0.72f;
+        var tSz = ImGui.CalcTextSize(name);
+        var size = new Vector2(sq + ChipGap + tSz.X + pad.X * 2, ImGui.GetTextLineHeight() + pad.Y * 2);
+        var p = ImGui.GetCursorScreenPos();
+        var clicked = ImGui.InvisibleButton("##sc" + name, size);
+        var hovered = ImGui.IsItemHovered();
+        if (hovered) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddRectFilled(p, p + size, on ? (Theme.Accent & 0x00FFFFFFu) | 0x2A000000u
+            : hovered ? 0xFF241D1A : Theme.PanelBg, 5f);
+        dl.AddRect(p, p + size, on ? Theme.Accent : CardBorder, 5f);
+        var sy = p.Y + (size.Y - sq) * 0.5f;
+        dl.AddRectFilled(new Vector2(p.X + pad.X, sy), new Vector2(p.X + pad.X + sq, sy + sq), color, 2f);
+        dl.AddText(new Vector2(p.X + pad.X + sq + ChipGap, p.Y + pad.Y), Theme.TextBright, name);
+        return clicked;
+    }
+
+    // ---- setting rows ----
+    // One shape for every setting: the name on the left, a quiet hint under it,
+    // and one control right-aligned into a single column. Rows sit inside a
+    // ListBegin/ListEnd pair, which paints the panel behind them once the run's
+    // height is known.
+
+    private const uint RowLine = 0xFF1F1916;   // #16191F hairline between rows
+    private const uint RowHover = 0xFF191310;  // #101319 hover wash
+    private const uint ListBg = 0xFF110D0B;    // #0B0D11 panel behind a run
+    private const uint SubBg = 0xFF0F0C0A;     // #0A0C0F an indented child row
+
+    private static Vector2 _listTop;
+    private static float _listW;
+    private static int _rowIndex;
+    private static Vector2 _rowNext;
+
+    private static float RowPad => Theme.S(11f);
+
+    public static void ListBegin()
+    {
+        _listTop = ImGui.GetCursorScreenPos();
+        _listW = ImGui.GetContentRegionAvail().X;
+        _rowIndex = 0;
+        var dl = ImGui.GetWindowDrawList();
+        dl.ChannelsSplit(2);
+        dl.ChannelsSetCurrent(1);   // rows on the foreground channel
+    }
+
+    public static void ListEnd()
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var max = new Vector2(_listTop.X + _listW, ImGui.GetCursorScreenPos().Y);
+        dl.ChannelsSetCurrent(0);
+        dl.AddRectFilled(_listTop, max, ListBg, Theme.S(8f));
+        dl.AddRect(_listTop, max, CardBorder, Theme.S(8f));
+        dl.ChannelsMerge();
+    }
+
+    // A small uppercase heading over a run of rows.
+    public static void GroupLabel(string text)
+    {
+        ImGui.Dummy(new Vector2(0, Theme.S(6f)));
+        ImGui.TextColored(Theme.V(Theme.Muted), text.ToUpperInvariant());
+        ImGui.Dummy(new Vector2(0, Theme.S(1f)));
+    }
+
+    // The height a row needs: whichever is taller, the control or the text.
+    private static float RowHeight(bool hasHint)
+    {
+        var textH = ImGui.GetTextLineHeight() * (hasHint ? 2f : 1f);
+        return MathF.Max(ImGui.GetFrameHeight(), textH) + Theme.S(6f) * 2f;
+    }
+
+    // Opens a row and leaves the cursor on the control, already sized. Every
+    // RowBegin needs a RowEnd, which puts the cursor on the next row.
+    public static void RowBegin(string name, string hint, float ctlWidth, bool changed = false,
+        bool sub = false, float ctlHeight = 0f)
+    {
+        var hasHint = !string.IsNullOrEmpty(hint);
+        var rowH = RowHeight(hasHint);
+        // Small buttons are shorter than a frame, so a row of them would sit high.
+        var frameH = ctlHeight > 0f ? ctlHeight : ImGui.GetFrameHeight();
+        var textH = ImGui.GetTextLineHeight() * (hasHint ? 2f : 1f);
+
+        var start = ImGui.GetCursorPos();
+        var scr = ImGui.GetCursorScreenPos();
+        var width = ImGui.GetContentRegionAvail().X;
+        var dl = ImGui.GetWindowDrawList();
+
+        var m = ImGui.GetMousePos();
+        var hot = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows)
+                  && m.X >= scr.X && m.X <= scr.X + width && m.Y >= scr.Y && m.Y <= scr.Y + rowH;
+        if (sub) dl.AddRectFilled(scr, scr + new Vector2(width, rowH), SubBg);
+        if (hot) dl.AddRectFilled(scr, scr + new Vector2(width, rowH), RowHover);
+        if (_rowIndex > 0) dl.AddLine(scr, scr + new Vector2(width, 0), RowLine);
+        _rowIndex++;
+
+        var textX = start.X + RowPad + (sub ? Theme.S(17f) : 0f);
+        ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
+        ImGui.TextUnformatted(name);
+        if (changed)
+        {
+            var d = ImGui.GetItemRectMax();
+            var mid = (ImGui.GetItemRectMin().Y + d.Y) * 0.5f;
+            dl.AddCircleFilled(new Vector2(d.X + Theme.S(7f), mid), Theme.S(2.5f), Theme.Accent);
+        }
+        if (hasHint)
+        {
+            ImGui.SetCursorPosX(textX);
+            ImGui.TextColored(Theme.V(Theme.Muted), hint);
+        }
+
+        ImGui.SetCursorPos(new Vector2(start.X + width - RowPad - ctlWidth, start.Y + (rowH - frameH) * 0.5f));
+        ImGui.SetNextItemWidth(ctlWidth);
+        _rowNext = new Vector2(start.X, start.Y + rowH);
+    }
+
+    public static void RowEnd() => ImGui.SetCursorPos(_rowNext);
+
+    // A small button carries no vertical padding, so a row of them centres on this.
+    public static float SmallHeight => ImGui.GetTextLineHeight();
+
+    // Width of a run of small buttons, for right-aligning them in a row.
+    public static float SmallWidth(params string[] labels)
+    {
+        var pad = ImGui.GetStyle().FramePadding.X * 2f;
+        var w = 0f;
+        foreach (var l in labels) w += ImGui.CalcTextSize(l).X + pad + Theme.S(3f);
+        return w;
+    }
+
+    // A row whose control is the plugin's checkbox, on the right like every other.
+    public static bool RowCheck(string name, string hint, ref bool v, bool changed = false, bool sub = false)
+    {
+        RowBegin(name, hint, ImGui.GetFrameHeight(), changed, sub);
+        var hit = GreenCheckbox("##rc" + name, ref v);
+        RowEnd();
+        return hit;
+    }
+
+    public static bool RowDrag(string name, string hint, ref float v, float min, float max,
+        string fmt, float width = 100f, bool changed = false, bool sub = false)
+    {
+        RowBegin(name, hint, Theme.S(width), changed, sub);
+        var hit = ImGui.DragFloat("##rd" + name, ref v, MathF.Max(0.001f, (max - min) / 200f),
+            min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        Tooltip("Drag, or double-click to type.");
+        RowEnd();
+        return hit;
+    }
+
+    public static bool RowDragInt(string name, string hint, ref int v, int min, int max,
+        string fmt = "%d", float width = 100f, bool changed = false, bool sub = false)
+    {
+        RowBegin(name, hint, Theme.S(width), changed, sub);
+        var hit = ImGui.DragInt("##ri" + name, ref v, MathF.Max(0.05f, (max - min) / 200f),
+            min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
+        Tooltip("Drag, or double-click to type.");
+        RowEnd();
+        return hit;
+    }
+
+    public static bool RowCombo(string name, string hint, ref int idx, string items,
+        float width = 150f, bool changed = false, bool sub = false)
+    {
+        RowBegin(name, hint, Theme.S(width), changed, sub);
+        var hit = ImGui.Combo("##rk" + name, ref idx, items);
+        RowEnd();
+        return hit;
+    }
+
+    public static bool RowCombo(string name, string hint, ref int idx, string[] items,
+        float width = 150f, bool changed = false, bool sub = false)
+    {
+        RowBegin(name, hint, Theme.S(width), changed, sub);
+        var hit = ImGui.Combo("##rk" + name, ref idx, items, items.Length);
+        RowEnd();
+        return hit;
+    }
+
+    public static bool RowColor(string name, string hint, ref Vector4 col, bool changed = false, bool sub = false)
+    {
+        RowBegin(name, hint, ImGui.GetFrameHeight(), changed, sub);
+        var hit = ImGui.ColorEdit4("##rw" + name, ref col, ImGuiColorEditFlags.NoInputs);
+        RowEnd();
+        return hit;
+    }
+
+    // A row that opens something else: the whole row is the click target.
+    public static bool RowDoor(string name, string hint)
+    {
+        var hasHint = !string.IsNullOrEmpty(hint);
+        var rowH = RowHeight(hasHint);
+        var textH = ImGui.GetTextLineHeight() * (hasHint ? 2f : 1f);
+        var lineH = ImGui.GetTextLineHeight();
+
+        var start = ImGui.GetCursorPos();
+        var scr = ImGui.GetCursorScreenPos();
+        var width = ImGui.GetContentRegionAvail().X;
+        if (_rowIndex > 0)
+            ImGui.GetWindowDrawList().AddLine(scr, scr + new Vector2(width, 0), RowLine);
+        _rowIndex++;
+
+        var hit = ImGui.Selectable("##door" + name, false, ImGuiSelectableFlags.None, new Vector2(width, rowH));
+        if (ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+
+        var textX = start.X + RowPad;
+        ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
+        ImGui.TextUnformatted(name);
+        if (hasHint) { ImGui.SetCursorPosX(textX); ImGui.TextColored(Theme.V(Theme.Muted), hint); }
+
+        var chev = ">";
+        ImGui.SetCursorPos(new Vector2(start.X + width - RowPad - ImGui.CalcTextSize(chev).X,
+            start.Y + (rowH - lineH) * 0.5f));
+        ImGui.TextColored(Theme.V(Theme.Muted), chev);
+
+        ImGui.SetCursorPos(new Vector2(start.X, start.Y + rowH));
+        return hit;
+    }
+
+    // A row of text only, for a note or a status line inside a list.
+    public static void RowNote(string text)
+    {
+        RowBegin(text, "", 0f);
+        ImGui.Dummy(Vector2.Zero);
+        RowEnd();
+    }
+
     // ---- label column ----
     // ImGui draws a control's label after the widget. For a value control that
     // reads backwards, so the label is drawn first instead, right-aligned into a
@@ -206,25 +439,6 @@ internal static class Widgets
     {
         foreach (var key in LabelCols.Keys.ToList())
             LabelCols[key] = (LabelCols[key].Next, 0f);
-    }
-
-    // One control: drag to adjust, or click to type a value.
-    public static bool SliderInput(string label, ref float v, float min, float max, string fmt, float width = 150f)
-    {
-        RowLabel(label);
-        ImGui.SetNextItemWidth(width);
-        var changed = ImGui.DragFloat("##" + label, ref v, MathF.Max(0.001f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
-        if (HoveredDelayed()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
-        return changed;
-    }
-
-    public static bool SliderInput(string label, ref int v, int min, int max, string fmt = "%d", float width = 150f)
-    {
-        RowLabel(label);
-        ImGui.SetNextItemWidth(width);
-        var changed = ImGui.DragInt("##" + label, ref v, MathF.Max(0.05f, (max - min) / 200f), min, max, fmt, ImGuiSliderFlags.AlwaysClamp);
-        if (HoveredDelayed()) ImGui.SetTooltip("Drag to adjust; double-click to type.");
-        return changed;
     }
 
     // Accent-filled button, for a window's primary action.

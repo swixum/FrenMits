@@ -17,23 +17,58 @@ public partial class ConfigWindow
 
     private void DrawMeterPage()
     {
-        C.MeterEnabled = CfgCheck("Enable Fren Meter", C.MeterEnabled);
-        Tip("A damage meter fed by ACT or IINACT, with rDPS computed from the combat log.");
+        C.MeterEnabled = PageHead("Fren Meter", _plugin.Meter.Connected ? "" : "Not connected",
+            C.MeterEnabled, hasModes: true);
         if (!C.MeterEnabled) return;
 
-        DrawMeterHeader();
+        DrawMeterHeader(AllMode);
+        if (AllMode) { DrawMeterAll(); return; }
 
+        Widgets.ListBegin();
+        DrawMeterShowRow();
+
+        var barH = C.MeterBarHeight;
+        if (Widgets.RowDrag("Bar height", "", ref barH, 16f, 44f, "%.0f px", 86f))
+        { C.MeterBarHeight = barH; C.SaveSettings(); }
+
+        var maxRows = C.MeterMaxRows;
+        if (Widgets.RowDragInt("Rows shown", "Your own row always shows", ref maxRows, 0, 24,
+                maxRows == 0 ? "everyone" : "%d", 86f))
+        { C.MeterMaxRows = maxRows; C.SaveSettings(); }
+
+        var pos = C.MeterPosition;
+        if (PositionRow(ref pos, MeterHome))
+        { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
+
+        var locked = C.MeterLocked;
+        if (Widgets.RowCheck("Locked", "Position and size; unlock to drag its edges", ref locked))
+        { C.MeterLocked = locked; C.SaveSettings(); }
+        Widgets.ListEnd();
+
+        ImGui.Spacing();
+        Widgets.ListBegin();
+        if (Widgets.RowDoor("All settings", "Rows, bars, text and colours")) SetAllMode(true);
+        if (Widgets.RowDoor("Columns", "Which numbers each row shows")) { SetAllMode(true); _jumpTab = "Columns"; }
+        if (Widgets.RowDoor("Connection", _plugin.Meter.Connected ? _plugin.Meter.StatusText : "Not connected"))
+        { SetAllMode(true); _jumpTab = "Connection"; }
+        Widgets.ListEnd();
+    }
+
+    private void DrawMeterAll()
+    {
         if (!ImGui.BeginTabBar("##metertabs", ImGuiTabBarFlags.None)) return;
-        if (TabItem("Meter")) { DrawMeterDisplayTab(); ImGui.EndTabItem(); }
-        if (TabItem("Look")) { DrawMeterLookTab(); ImGui.EndTabItem(); }
+        if (TabItem("Rows")) { DrawMeterRowsTab(); ImGui.EndTabItem(); }
+        if (TabItem("Bars")) { DrawMeterBarsTab(); ImGui.EndTabItem(); }
+        if (TabItem("Text")) { DrawMeterTextTab(); ImGui.EndTabItem(); }
+        if (TabItem("Colors")) { DrawMeterColorsTab(); ImGui.EndTabItem(); }
         if (TabItem("Columns")) { DrawMeterColumnsTab(); ImGui.EndTabItem(); }
         if (TabItem("Connection")) { DrawMeterConnectionTab(); ImGui.EndTabItem(); }
         ImGui.EndTabBar();
     }
 
-    // Status, the profile being edited, and the one preview. It sits above the
-    // tabs so it never redraws or moves, and every tab edits the meter you see.
-    private void DrawMeterHeader()
+    // Status, the profile being edited, the one preview and the themes. It sits
+    // above everything so it never moves, and each tab edits the meter you see.
+    private void DrawMeterHeader(bool all)
     {
         var connected = _plugin.Meter.Connected;
         StatusDot(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow);
@@ -44,9 +79,39 @@ public partial class ConfigWindow
 
         DrawMeterProfileControl();
         ImGui.Spacing();
-        // The peek is set by a theme button below, so it lands here next frame.
+        // The peek is set by a theme chip below, so it lands here next frame.
         DrawMeterCard(new MeterWindow.SampleView { Rows = 3, Chrome = true, Theme = _themePeek });
+        // Themes are a starting point, so they go once you are past presets.
+        if (!all)
+        {
+            ImGui.Spacing();
+            DrawMeterThemeChips();
+        }
         ImGui.Spacing();
+    }
+
+    // Right under the preview, since that is what they change. Sixteen of them,
+    // so the run wraps rather than running off the side of the page.
+    private void DrawMeterThemeChips()
+    {
+        // Cleared here, then set again by whichever chip is hovered below.
+        _themePeek = null;
+        var gap = Theme.S(5f);
+        var room = ImGui.GetContentRegionAvail().X;
+        var x = 0f;
+        foreach (var t in MeterWindow.Themes)
+        {
+            var w = Widgets.SwatchChipWidth(t.Name);
+            if (x > 0f && x + gap + w > room) x = 0f;
+            else if (x > 0f) { ImGui.SameLine(0, gap); x += gap; }
+            x += w;
+
+            var live = C.MeterAccentColor == t.Accent && C.MeterBgColor == t.Bg
+                && C.MeterRowColor == t.Rows && C.MeterBarStyle == t.BarStyle;
+            if (Widgets.SwatchChip(t.Name, t.Accent, live)) MeterWindow.ApplyTheme(C, t);
+            if (ImGui.IsItemHovered() && !live) _themePeek = t;
+            Tip(live ? "In use." : "Click to keep it; hover shows it above.");
+        }
     }
 
     // Right-aligned on the status line: the saved look you are editing, and a
@@ -87,82 +152,72 @@ public partial class ConfigWindow
         }
     }
 
-    // ---- Display ----
+    // ---- Rows ----
 
-    private void DrawMeterDisplayTab()
+    private void DrawMeterRowsTab()
     {
-        SeparatorText("Window");
-        C.MeterLocked = CfgCheck("Lock position and size", C.MeterLocked);
-        Tip("Unlock, then drag the meter or its edges.\nTest mode in the page header fills it with a sample pull to place against.");
-        ImGui.SameLine(0, Theme.S(18f));
-        C.MeterClickThrough = CfgCheck("Click-through", C.MeterClickThrough);
-        Tip("Mouse ignores the meter, menu included; turn it back off here.");
-
-        var pos = C.MeterPosition;
-        if (Widgets.SliderInput("Horizontal", ref pos.X, 0f, 1f, "%.2f"))
-        { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
-        ImGui.SameLine(0, Theme.S(18f));
-        if (Widgets.SliderInput("Vertical", ref pos.Y, 0f, 1f, "%.2f"))
-        { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
-
+        Widgets.ListBegin();
         DrawMeterShowRow();
 
-        SeparatorText("Rows");
-        if (ImGui.BeginTable("##meterrowgrid", GridCols()))
-        {
-            C.MeterShowRank = GridCheck("Rank numbers", C.MeterShowRank);
-            C.MeterShowJobIcons = GridCheck("Job icons", C.MeterShowJobIcons);
-            C.MeterLimitBreakRow = GridCheck("Limit break row", C.MeterLimitBreakRow,
-                "A short row under the party.");
-            C.MeterSplitHealing = GridCheck("Split DPS/HPS", C.MeterSplitHealing,
-                "DPS on top, healer HPS below.");
-            ImGui.EndTable();
-        }
-
-        ImGui.Spacing();
-        LabelledWidth("Names", 200f);
         var names = C.MeterNameStyle;
-        if (ImGui.Combo("##mnames", ref names, "Full name\0First name\0First name + initial\0"))
+        if (Widgets.RowCombo("Names", "How party members are named on their row", ref names,
+                "Full name\0First name\0First name + initial\0", 170f))
         { C.MeterNameStyle = names; C.SaveSettings(); }
-        Tip("How party members are named on their row. Yours can say \"You\" instead, on the Look tab.");
 
         var maxRows = C.MeterMaxRows;
-        if (Widgets.SliderInput("Rows shown", ref maxRows, 0, 24, maxRows == 0 ? "everyone" : "%d"))
+        if (Widgets.RowDragInt("Rows shown", "Your own row always shows", ref maxRows, 0, 24,
+                maxRows == 0 ? "everyone" : "%d", 86f))
         { C.MeterMaxRows = maxRows; C.SaveSettings(); }
-        Tip("Your own row always shows.");
 
         var refresh = C.MeterRefreshSeconds;
-        if (Widgets.SliderInput("Number refresh", ref refresh, 0f, 3f,
-                refresh <= 0f ? "every frame" : "%.1f s"))
+        if (Widgets.RowDrag("Refresh", "How long the numbers hold still. Bars keep moving.",
+                ref refresh, 0f, 3f, refresh <= 0f ? "every frame" : "%.1f s", 96f))
         { C.MeterRefreshSeconds = refresh; C.SaveSettings(); }
-        Tip("How long the numbers hold still. Bars keep moving.");
 
-        SeparatorText("Header and footer");
-        LabelledWidth("Header", 200f);
+        var v = C.MeterShowRank;
+        if (Widgets.RowCheck("Rank numbers", "", ref v)) { C.MeterShowRank = v; C.SaveSettings(); }
+        v = C.MeterShowJobIcons;
+        if (Widgets.RowCheck("Job icons", "", ref v)) { C.MeterShowJobIcons = v; C.SaveSettings(); }
+        v = C.MeterLimitBreakRow;
+        if (Widgets.RowCheck("Limit break row", "A short row under the party", ref v))
+        { C.MeterLimitBreakRow = v; C.SaveSettings(); }
+        v = C.MeterSplitHealing;
+        if (Widgets.RowCheck("Split DPS and HPS", "DPS on top, healer HPS below", ref v))
+        { C.MeterSplitHealing = v; C.SaveSettings(); }
+        Widgets.ListEnd();
+
+        Widgets.GroupLabel("Around the rows");
+        Widgets.ListBegin();
         var header = C.MeterHeaderStyle;
-        if (ImGui.Combo("##mheader", ref header, "Full\0Slim\0Hidden\0"))
+        if (Widgets.RowCombo("Header", "Double-click the meter's header to cycle", ref header,
+                "Full\0Slim\0Hidden\0", 120f))
         { C.MeterHeaderStyle = header; C.SaveSettings(); }
-        Tip("Double-click the meter's header to cycle.");
-        ImGui.Spacing();
-        if (ImGui.BeginTable("##meterchromegrid", GridCols()))
-        {
-            C.MeterShowRaidTotal = GridCheck("Raid rDPS total", C.MeterShowRaidTotal);
-            C.MeterHealingTab = GridCheck("DPS / HPS tabs", C.MeterHealingTab, "Right-click a tab to rename it.");
-            C.MeterButtons = GridCheck("Buttons bar", C.MeterButtons, "History, pause and reset at the bottom.");
-            C.MeterFooterDeaths = GridCheck("Death count", C.MeterFooterDeaths,
-                "The pull's deaths in the footer; hover it for who.");
-            ImGui.EndTable();
-        }
 
-        SeparatorText("Breakdown");
-        if (ImGui.BeginTable("##meterbreakgrid", GridCols()))
-        {
-            C.MeterBreakdownIcons = GridCheck("Action icons", C.MeterBreakdownIcons,
-                "Icons beside each ability when you click a player.");
-            C.MeterBreakdownColors = GridCheck("Color each ability", C.MeterBreakdownColors,
-                "Off = the player's job color throughout.");
-            ImGui.EndTable();
-        }
+        var v2 = C.MeterShowRaidTotal;
+        if (Widgets.RowCheck("Raid rDPS total", "", ref v2)) { C.MeterShowRaidTotal = v2; C.SaveSettings(); }
+        v2 = C.MeterHealingTab;
+        if (Widgets.RowCheck("DPS and HPS tabs", "Right-click a tab to rename it", ref v2))
+        { C.MeterHealingTab = v2; C.SaveSettings(); }
+        v2 = C.MeterButtons;
+        if (Widgets.RowCheck("Buttons bar", "History, pause and reset at the bottom", ref v2))
+        { C.MeterButtons = v2; C.SaveSettings(); }
+        v2 = C.MeterFooterDeaths;
+        if (Widgets.RowCheck("Death count", "In the footer; hover it for who", ref v2))
+        { C.MeterFooterDeaths = v2; C.SaveSettings(); }
+        v2 = C.MeterClickThrough;
+        if (Widgets.RowCheck("Click-through", "The mouse ignores the meter, menu included", ref v2))
+        { C.MeterClickThrough = v2; C.SaveSettings(); }
+        Widgets.ListEnd();
+
+        Widgets.GroupLabel("When you click a player");
+        Widgets.ListBegin();
+        var v3 = C.MeterBreakdownIcons;
+        if (Widgets.RowCheck("Action icons", "Beside each ability", ref v3))
+        { C.MeterBreakdownIcons = v3; C.SaveSettings(); }
+        v3 = C.MeterBreakdownColors;
+        if (Widgets.RowCheck("Color each ability", "Off uses the job colour throughout", ref v3))
+        { C.MeterBreakdownColors = v3; C.SaveSettings(); }
+        Widgets.ListEnd();
     }
 
     // One choice instead of two checkboxes that could contradict: the old pair
@@ -170,164 +225,135 @@ public partial class ConfigWindow
     private void DrawMeterShowRow()
     {
         var mode = C.MeterShowMode;
-        LabelledWidth("Show", 200f);
-        if (ImGui.Combo("##mshow", ref mode, "Always\0After a pull\0Only in combat\0"))
+        if (Widgets.RowCombo("Show", "When the meter is on screen", ref mode,
+                "Always\0After a pull\0Only in combat\0", 150f))
         { C.MeterShowMode = mode; C.SaveSettings(); }
         Tip("Always: stays put even with no pull, so a reset cannot hide it.\n"
             + "After a pull: the default; it appears once there is something to show.\n"
             + "Only in combat: gone a few seconds after the fight ends.");
     }
 
-    // ---- Style ----
+    // ---- Bars ----
 
-    private void DrawMeterLookTab()
+    private void DrawMeterBarsTab()
     {
-        DrawMeterThemesRow();
+        Widgets.ListBegin();
+        var fill = C.MeterBarStyle;
+        if (Widgets.RowCombo("Fill", "", ref fill, "Flat\0Glass\0Gradient\0Outline\0Minimal\0", 130f))
+        { C.MeterBarStyle = fill; C.SaveSettings(); }
 
-        SeparatorText("Bars");
-        LabelledWidth("Fill", 200f);
-        var barStyle = C.MeterBarStyle;
-        if (ImGui.Combo("##mfill", ref barStyle, "Flat\0Glass\0Gradient\0Outline\0Minimal\0"))
-        { C.MeterBarStyle = barStyle; C.SaveSettings(); }
-
-        C.MeterJobColors = CfgCheck("Color by job", C.MeterJobColors);
-        Tip("Off = every bar uses the accent color.");
-        ImGui.SameLine(0, Theme.S(18f));
-        C.MeterBarSolid = CfgCheck("Solid bars", C.MeterBarSolid);
-        Tip("Fill bars with the job color instead of a wash you can see through.");
+        var v = C.MeterJobColors;
+        if (Widgets.RowCheck("Color by job", "Off uses the accent for every bar", ref v))
+        { C.MeterJobColors = v; C.SaveSettings(); }
+        v = C.MeterBarSolid;
+        if (Widgets.RowCheck("Solid", "The job colour, not a wash you see through", ref v))
+        { C.MeterBarSolid = v; C.SaveSettings(); }
 
         var barH = C.MeterBarHeight;
-        if (Widgets.SliderInput("Height", ref barH, 16f, 44f, "%.0f px")) { C.MeterBarHeight = barH; C.SaveSettings(); }
-        ImGui.SameLine(0, Theme.S(18f));
+        if (Widgets.RowDrag("Height", "", ref barH, 16f, 44f, "%.0f px", 86f))
+        { C.MeterBarHeight = barH; C.SaveSettings(); }
         var gap = C.MeterBarGap;
-        if (Widgets.SliderInput("Spacing", ref gap, 0f, 10f, "%.0f px")) { C.MeterBarGap = gap; C.SaveSettings(); }
+        if (Widgets.RowDrag("Spacing", "", ref gap, 0f, 10f, "%.0f px", 86f))
+        { C.MeterBarGap = gap; C.SaveSettings(); }
         var round = C.MeterRounding;
-        if (Widgets.SliderInput("Rounding", ref round, 0f, 14f, "%.0f px")) { C.MeterRounding = round; C.SaveSettings(); }
-        ImGui.SameLine(0, Theme.S(18f));
+        if (Widgets.RowDrag("Rounding", "", ref round, 0f, 14f, "%.0f px", 86f))
+        { C.MeterRounding = round; C.SaveSettings(); }
         var barOp = C.MeterBarOpacity;
-        if (Widgets.SliderInput("Opacity", ref barOp, 0.2f, 1.6f, "%.2f"))
+        if (Widgets.RowDrag("Opacity", "", ref barOp, 0.2f, 1.6f, "%.2f", 86f))
         { C.MeterBarOpacity = barOp; C.SaveSettings(); }
+        Widgets.ListEnd();
 
-        SeparatorText("Yours");
-        C.MeterHighlightYou = CfgCheck("Highlight your row", C.MeterHighlightYou);
-        ImGui.SameLine(0, Theme.S(18f));
-        C.MeterYou = CfgCheck("Call your row \"You\"", C.MeterYou);
-        ImGui.BeginDisabled(!C.MeterHighlightYou);
-        LabelledWidth("Style", 200f);
-        var hl = C.MeterHighlightStyle;
-        if (ImGui.Combo("##mhlstyle", ref hl, "Wash + outline\0Wash\0Outline\0Side stripe\0"))
-        { C.MeterHighlightStyle = hl; C.SaveSettings(); }
-        TipHeld(C.MeterHighlightYou ? "How your own row is marked out." : "Held: turn the highlight on first.");
-        var hlStr = C.MeterHighlightStrength;
-        if (Widgets.SliderInput("Strength", ref hlStr, 0.2f, 2.5f, "%.2f"))
-        { C.MeterHighlightStrength = hlStr; C.SaveSettings(); }
-        ImGui.EndDisabled();
-
-        SeparatorText("Text");
-        var fonts = FontManager.FamilyNames;
-        var fIdx = Math.Max(0, Array.IndexOf(fonts, C.MeterFontFamily));
-        LabelledWidth("Font", 200f);
-        if (ImGui.Combo("##mfont", ref fIdx, fonts, fonts.Length)) { C.MeterFontFamily = fonts[fIdx]; C.SaveSettings(); }
-        ImGui.SameLine(0, Theme.S(12f));
-        var bold = C.MeterFontBold;
-        if (GreenCheckbox("Bold", ref bold)) { C.MeterFontBold = bold; C.SaveSettings(); }
-        ImGui.SameLine();
-        var italic = C.MeterFontItalic;
-        if (GreenCheckbox("Italic", ref italic)) { C.MeterFontItalic = italic; C.SaveSettings(); }
-        if (C.MeterFontFamily == "Default" && (C.MeterFontBold || C.MeterFontItalic))
-        {
-            ImGui.SameLine();
-            ImGui.TextDisabled("(pick a font)");
-        }
-        var px = C.MeterFontSizePx;
-        if (Widgets.SliderInput("Size", ref px, 11f, 26f, "%.0f px")) { C.MeterFontSizePx = px; C.SaveSettings(); }
-        ImGui.SameLine(0, Theme.S(18f));
-        C.MeterTextShadow = CfgCheck("Drop shadow", C.MeterTextShadow);
-
-        // Grouped by what each one paints. Four of them are white by default, so
-        // an undifferentiated grid gives you no way to tell them apart.
-        SeparatorText("Colors");
-        RowLabel("Text");
-        MeterColor("Names", () => C.MeterTextColor, v => C.MeterTextColor = v);
-        Tip("Party member names on their rows.");
-        ImGui.SameLine(0, Theme.S(14f));
-        MeterColor("Details", () => C.MeterSubColor, v => C.MeterSubColor = v);
-        Tip("Ranks, labels, secondary columns.");
-        ImGui.SameLine(0, Theme.S(14f));
-        MeterColor("Title", () => C.MeterTitleColor, v => C.MeterTitleColor = v);
-        Tip("The encounter name.");
-        ImGui.SameLine(0, Theme.S(14f));
-        MeterColor("Timer", () => C.MeterTimerColor, v => C.MeterTimerColor = v);
-        Tip("The encounter clock.");
-
-        RowLabel("Yours");
-        MeterColor("Name", () => C.MeterYouColor, v => C.MeterYouColor = v);
-        Tip("Your own name in the list.");
-        ImGui.SameLine(0, Theme.S(14f));
-        MeterColor("Highlight", () => C.MeterHighlightColor, v => C.MeterHighlightColor = v);
-        Tip("The wash over your row.");
-
-        RowLabel("Window");
-        ImGui.BeginDisabled(C.OverlaysFollowAccent);
-        MeterColor("Accent", () => C.MeterAccentColor, v => C.MeterAccentColor = v);
-        TipHeld(C.OverlaysFollowAccent
-            ? "Held: Display > Look has the overlays following the plugin accent."
-            : "Totals, and bars when job colors are off.");
-        ImGui.EndDisabled();
-        ImGui.SameLine(0, Theme.S(14f));
-        MeterColor("Background", () => C.MeterBgColor, v => C.MeterBgColor = v);
-        ImGui.SameLine(0, Theme.S(14f));
-        MeterColor("Rows", () => C.MeterRowColor, v => C.MeterRowColor = v);
-        Tip("The bar backgrounds.");
-        ImGui.SameLine(0, Theme.S(14f));
-        MeterColor("Border", () => C.MeterBorderColor, v => C.MeterBorderColor = v);
-        Tip("Alpha to zero hides it.");
+        Widgets.GroupLabel("Where it sits");
+        Widgets.ListBegin();
+        var pos = C.MeterPosition;
+        var mmoved = PositionRow(ref pos, MeterHome);
+        if (NudgeRow(ref pos) || mmoved)
+        { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
+        var locked = C.MeterLocked;
+        if (Widgets.RowCheck("Locked", "Position and size; unlock to drag its edges", ref locked))
+        { C.MeterLocked = locked; C.SaveSettings(); }
+        Widgets.ListEnd();
     }
 
-    // ---- Themes ----
+    // ---- Text ----
 
-    private void DrawMeterThemesRow()
+    private void DrawMeterTextTab()
     {
-        SeparatorText("Themes");
-        ImGui.TextDisabled(_themePeek is { } peek
-            ? $"Showing {peek.Name}; let go and it goes back."
-            : "Hover one to try it in the preview above, click to keep it.");
-        ImGui.Spacing();
+        Widgets.ListBegin();
+        var fam = C.MeterFontFamily;
+        var bold = C.MeterFontBold;
+        var ital = C.MeterFontItalic;
+        if (FontRow(ref fam, ref bold, ref ital))
+        { C.MeterFontFamily = fam; C.MeterFontBold = bold; C.MeterFontItalic = ital; C.SaveSettings(); }
 
-        // Cleared here, then set again by whichever button is hovered below.
-        _themePeek = null;
-        var size = new Vector2(Theme.S(152f), ImGui.GetFrameHeight() + Theme.S(4f));
-        var i = 0;
-        foreach (var t in MeterWindow.Themes)
+        var px = C.MeterFontSizePx;
+        if (Widgets.RowDrag("Size", "", ref px, 11f, 26f, "%.0f px", 86f))
+        { C.MeterFontSizePx = px; C.SaveSettings(); }
+
+        var shadow = C.MeterTextShadow;
+        if (Widgets.RowCheck("Drop shadow", "", ref shadow)) { C.MeterTextShadow = shadow; C.SaveSettings(); }
+        Widgets.ListEnd();
+
+        Widgets.GroupLabel("Your row");
+        Widgets.ListBegin();
+        var you = C.MeterYou;
+        if (Widgets.RowCheck("Call your row You", "", ref you)) { C.MeterYou = you; C.SaveSettings(); }
+        var hi = C.MeterHighlightYou;
+        if (Widgets.RowCheck("Highlight it", "", ref hi)) { C.MeterHighlightYou = hi; C.SaveSettings(); }
+        if (C.MeterHighlightYou)
         {
-            if (i++ % 3 != 0) ImGui.SameLine(0, Theme.S(8f));
-            DrawThemeButton(t, size);
+            var style = C.MeterHighlightStyle;
+            if (Widgets.RowCombo("Style", "", ref style, "Wash + outline\0Wash\0Outline\0Side stripe\0", 150f, sub: true))
+            { C.MeterHighlightStyle = style; C.SaveSettings(); }
+            var strength = C.MeterHighlightStrength;
+            if (Widgets.RowDrag("Strength", "", ref strength, 0.2f, 2.5f, "%.2f", 86f, sub: true))
+            { C.MeterHighlightStrength = strength; C.SaveSettings(); }
         }
+        Widgets.ListEnd();
+    }
+
+    // ---- Colors ----
+    // Grouped by what each one paints. Four are white by default, so a flat grid
+    // gives you no way to tell them apart.
+
+    private void DrawMeterColorsTab()
+    {
+        Widgets.GroupLabel("Text");
+        Widgets.ListBegin();
+        MeterColorRow("Names", "Party member names on their rows", () => C.MeterTextColor, v => C.MeterTextColor = v);
+        MeterColorRow("Details", "Ranks, labels, secondary columns", () => C.MeterSubColor, v => C.MeterSubColor = v);
+        MeterColorRow("Title", "The encounter name", () => C.MeterTitleColor, v => C.MeterTitleColor = v);
+        MeterColorRow("Timer", "The encounter clock", () => C.MeterTimerColor, v => C.MeterTimerColor = v);
+        Widgets.ListEnd();
+
+        Widgets.GroupLabel("Yours");
+        Widgets.ListBegin();
+        MeterColorRow("Name", "Your own name in the list", () => C.MeterYouColor, v => C.MeterYouColor = v);
+        MeterColorRow("Highlight", "The wash over your row", () => C.MeterHighlightColor, v => C.MeterHighlightColor = v);
+        Widgets.ListEnd();
+
+        Widgets.GroupLabel("Window");
+        Widgets.ListBegin();
+        ImGui.BeginDisabled(C.OverlaysFollowAccent);
+        MeterColorRow("Accent", C.OverlaysFollowAccent
+                ? "Held: Appearance has the overlays following the accent"
+                : "Totals, and bars when job colours are off",
+            () => C.MeterAccentColor, v => C.MeterAccentColor = v);
+        ImGui.EndDisabled();
+        MeterColorRow("Background", "", () => C.MeterBgColor, v => C.MeterBgColor = v);
+        MeterColorRow("Rows", "The bar backgrounds", () => C.MeterRowColor, v => C.MeterRowColor = v);
+        MeterColorRow("Border", "Alpha to zero hides it", () => C.MeterBorderColor, v => C.MeterBorderColor = v);
+        Widgets.ListEnd();
+    }
+
+    private void MeterColorRow(string name, string hint, Func<uint> get, Action<uint> set)
+    {
+        var col = ColorToVec4(get());
+        if (Widgets.RowColor(name, hint, ref col)) { set(Vec4ToColor(col)); C.SaveSettings(); }
     }
 
     // The theme under the cursor, drawn in the card until the cursor leaves.
     private MeterWindow.MeterTheme? _themePeek;
-
-    // A theme's own accent on the button, and a ring around the one in use.
-    private void DrawThemeButton(MeterWindow.MeterTheme t, Vector2 size)
-    {
-        var live = C.MeterAccentColor == t.Accent && C.MeterBgColor == t.Bg
-            && C.MeterRowColor == t.Rows && C.MeterBarStyle == t.BarStyle;
-        var p = ImGui.GetCursorScreenPos();
-
-        if (live) ImGui.PushStyleColor(ImGuiCol.Button, 0xFF34271F);
-        ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Vector2(0f, 0.5f));
-        if (ImGui.Button($"       {t.Name}##theme", size)) MeterWindow.ApplyTheme(C, t);
-        // The card above shows whatever is hovered, next frame.
-        if (ImGui.IsItemHovered() && !live) _themePeek = t;
-        ImGui.PopStyleVar();
-        if (live) ImGui.PopStyleColor();
-
-        var dl = ImGui.GetWindowDrawList();
-        var mid = p.Y + size.Y * 0.5f;
-        dl.AddRectFilled(new Vector2(p.X + 9f, mid - 7f), new Vector2(p.X + 22f, mid + 7f), t.Accent, 3f);
-        if (live) dl.AddRect(p, p + size, Theme.Accent, 5f, ImDrawFlags.None, 1.5f);
-    }
 
     // ---- Columns ----
 
@@ -740,13 +766,6 @@ public partial class ConfigWindow
             C.SaveSettings();
         }
         _colDrag = null;
-    }
-
-    private void MeterColor(string label, Func<uint> get, Action<uint> set)
-    {
-        var col = ColorToVec4(get());
-        if (ImGui.ColorEdit4($"{label}##meter", ref col, ImGuiColorEditFlags.NoInputs))
-        { set(Vec4ToColor(col)); C.SaveSettings(); }
     }
 
     // Drop the link; the next tick reconnects with new settings.

@@ -71,7 +71,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    internal enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter }
+    internal enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter, Appearance }
     private NavKind _nav = NavKind.Home;
     private string _navCategory = "Ultimate";
 
@@ -153,8 +153,7 @@ public partial class ConfigWindow : Window, IDisposable
             {
                 ImGui.Spacing();
                 ImGui.Indent(Theme.S(4f));
-                var searching = DrawSettingsSearch();
-                if (searching) DrawSearchResults();
+                if (Searching) DrawSearchResults();
                 else DrawSelectedPage();
                 ImGui.Unindent(Theme.S(4f));
             }
@@ -219,22 +218,6 @@ public partial class ConfigWindow : Window, IDisposable
         return s < 90 ? $"{(int)s}s ago" : s < 5400 ? $"{(int)(s / 60)}m ago" : $"{(int)(s / 3600)}h ago";
     }
 
-    // The page is too narrow to read two columns of settings.
-    private static bool Narrow => ImGui.GetContentRegionAvail().X < 420f * Theme.Scale;
-
-    // Checkbox grids drop to one column rather than clip their labels.
-    private static int GridCols() => Narrow ? 1 : 2;
-
-    // Second column of a two-up row: half the page, never on top of a long first
-    // label, and its own line once the page is narrow.
-    private static void NextColumn()
-    {
-        if (Narrow) return;
-        var half = ImGui.GetContentRegionMax().X * 0.5f;
-        var after = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X + ImGui.GetStyle().ItemSpacing.X * 2;
-        ImGui.SameLine(MathF.Max(half, after));
-    }
-
     // Config-bound checkbox that saves on change.
     private bool CfgCheck(string label, bool value) => Toggle(label, value);
 
@@ -254,19 +237,6 @@ public partial class ConfigWindow : Window, IDisposable
 
     // Tooltip with a hover delay, so sweeping a page stays quiet.
     private static void Tip(string text) => Widgets.Tooltip(text);
-
-    // For a control inside BeginDisabled: hover is ignored by default, which
-    // would hide the one hint that says why it is held.
-    private static void TipHeld(string text) => Widgets.TooltipWhenHeld(text);
-
-    // A checkbox in the next cell of a two-column grid.
-    private bool GridCheck(string label, bool value, string? tip = null)
-    {
-        ImGui.TableNextColumn();
-        value = Toggle(label, value);
-        if (tip != null) Tip(tip);
-        return value;
-    }
 
     // Section header with an accent bar and uppercase label.
     private static void SeparatorText(string text)
@@ -465,6 +435,7 @@ public partial class ConfigWindow : Window, IDisposable
     private void DrawSidebar()
     {
         _navNeed = 0f;
+        DrawSidebarSearch();
         if (NavItem(FontAwesomeIcon.Home, "Home", _nav == NavKind.Home)) _nav = NavKind.Home;
 
         ImGui.Spacing();
@@ -478,9 +449,6 @@ public partial class ConfigWindow : Window, IDisposable
                 _navCategory = cat;
             }
         }
-
-        ImGui.Spacing();
-        SidebarHeading("TOOLS");
         // Sheet View is a window, so the nav item opens it.
         if (NavItem(FontAwesomeIcon.Table, "Sheet View", false))
         {
@@ -488,16 +456,21 @@ public partial class ConfigWindow : Window, IDisposable
             _plugin.SheetViewWindow.Open(
                 fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
         }
-        if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits & Timeline", _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
-        if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
-        if (NavItem(FontAwesomeIcon.ClipboardList, "Party Mit Recap", _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
+
+        // Grouped by where the thing shows up, not by what kind of thing it is.
+        ImGui.Spacing();
+        SidebarHeading("ON SCREEN");
+        if (NavItem(FontAwesomeIcon.Desktop, "Call Display", _nav == NavKind.Display)) _nav = NavKind.Display;
+        if (NavItem(FontAwesomeIcon.ShieldAlt, "Next Mits", _nav == NavKind.NextMits)) _nav = NavKind.NextMits;
         if (NavItem(FontAwesomeIcon.ChartBar, "Fren Meter", _nav == NavKind.Meter)) _nav = NavKind.Meter;
+        if (NavItem(FontAwesomeIcon.Clock, "Combat Timer", _nav == NavKind.CombatTimer)) _nav = NavKind.CombatTimer;
         if (NavItem(FontAwesomeIcon.Utensils, "Food & Pot", _nav == NavKind.PrepCheck)) _nav = NavKind.PrepCheck;
+        if (NavItem(FontAwesomeIcon.ClipboardList, "Mit Recap", _nav == NavKind.PartyRecap)) _nav = NavKind.PartyRecap;
 
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
-        if (NavItem(FontAwesomeIcon.Desktop, "Display", _nav == NavKind.Display)) _nav = NavKind.Display;
         if (NavItem(FontAwesomeIcon.VolumeUp, "Audio", _nav == NavKind.Audio)) _nav = NavKind.Audio;
+        if (NavItem(FontAwesomeIcon.Palette, "Appearance", _nav == NavKind.Appearance)) _nav = NavKind.Appearance;
 
         DrawSidebarSetup();
 
@@ -692,33 +665,46 @@ public partial class ConfigWindow : Window, IDisposable
     private bool TabItem(string label)
     {
         var flags = _jumpTab == label ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
-        var open = ImGui.BeginTabItem(label, flags);
+        // A dot on the tab says something inside it is off its default. The ###
+        // keeps the id fixed, so the dot appearing does not reselect the tab.
+        var changed = SettingsIndex.ChangedIn(C, _nav, label);
+        // A middle dot, since the icon font is not in play on a tab label.
+        var shown = changed.Count > 0 ? $"{label} ·###{label}" : $"{label}###{label}";
+        var open = ImGui.BeginTabItem(shown, flags);
         if (flags != ImGuiTabItemFlags.None) _jumpTab = "";
+        if (changed.Count > 0 && Widgets.HoveredDelayed())
+            ImGui.SetTooltip($"{changed.Count} setting{(changed.Count == 1 ? "" : "s")} changed here");
         // Each tab sizes its own label column.
-        if (open) { Widgets.LabelScope($"{_nav}/{label}"); DrawTabResetBar(label); }
+        if (open) { Widgets.LabelScope($"{_nav}/{label}"); DrawTabResetBar(label, changed); }
         return open;
     }
 
-    // Shown only when a tab holds non-default settings.
-    private void DrawTabResetBar(string tab)
+    // One short line, and only on a tab you have actually changed.
+    private void DrawTabResetBar(string tab, List<SettingsIndex.Entry> changed)
     {
-        var changed = SettingsIndex.ChangedIn(C, _nav, tab);
-        if (changed.Count == 0) return;
+        if (changed.Count == 0) { ImGui.Spacing(); return; }
 
         ImGui.Spacing();
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(Theme.V(Theme.Accent), $"{changed.Count} off default");
-        ImGui.SameLine(0, Theme.S(10f));
-        if (ImGui.SmallButton($"Reset tab##rst{tab}"))
+        var w = ImGui.CalcTextSize("Reset").X + ImGui.GetStyle().FramePadding.X * 2f;
+        ImGui.SameLine(MathF.Max(0f, ImGui.GetContentRegionMax().X - w));
+        if (ImGui.SmallButton($"Reset##rst{tab}"))
         {
             foreach (var e in changed) e.Reset(C);
             C.Save();
             RefreshAfterReset();
         }
         if (Widgets.HoveredDelayed())
-            ImGui.SetTooltip("Put every setting on this tab back to its default:\n"
+            ImGui.SetTooltip("Put this tab back to its defaults:\n"
                              + string.Join("\n", changed.Select(e => "  " + e.Label)));
-        ImGui.Separator();
+        ImGui.Spacing();
+    }
+
+    // Everything on one page back to how it ships.
+    private void ResetPage(NavKind nav)
+    {
+        SettingsIndex.ResetPage(C, nav);
+        C.Save();
+        RefreshAfterReset();
     }
 
     // Anything that caches a setting has to hear about a bulk reset.
@@ -737,25 +723,19 @@ public partial class ConfigWindow : Window, IDisposable
     private bool _searchEntered;
     private string _searchPrev = "";
 
-    // True while a query is up, so the page gives way to the results.
-    private bool DrawSettingsSearch()
+    // One fixed place for the box, so no page shifts down a line to make room.
+    private void DrawSidebarSearch()
     {
-        // Home is a splash and Fights has its own filter; neither wants this bar.
-        if (_nav is NavKind.Home or NavKind.Fights) return false;
-
-        ImGui.SetNextItemWidth(MathF.Min(300f * Theme.Scale, ImGui.GetContentRegionAvail().X - 30f));
-        _searchEntered = ImGui.InputTextWithHint("##settingsearch", "Search all settings...", ref _search, 64,
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - Theme.S(2f));
+        _searchEntered = ImGui.InputTextWithHint("##settingsearch", "Search", ref _search, 64,
             ImGuiInputTextFlags.EnterReturnsTrue);
-        if (_search.Length > 0)
-        {
-            ImGui.SameLine(0, Theme.S(4f));
-            if (ImGui.SmallButton("x##clearsearch")) _search = "";
-        }
         // A new query starts back at the top of the list.
         if (_search != _searchPrev) { _searchPrev = _search; _searchSel = 0; }
         ImGui.Spacing();
-        return _search.Trim().Length >= 2;
     }
+
+    // True while a query is up, so the page gives way to the results.
+    private bool Searching => _search.Trim().Length >= 2;
 
     private void DrawSearchResults()
     {
@@ -804,6 +784,8 @@ public partial class ConfigWindow : Window, IDisposable
         if (go < 0) return;
         _nav = hits[go].Nav;
         _jumpTab = hits[go].Tab;
+        // A setting that lives on a tab only exists once the page shows everything.
+        if (_jumpTab.Length > 0) _pageAll[_nav] = true;
         _search = "";
         _searchSel = 0;
     }
@@ -821,11 +803,74 @@ public partial class ConfigWindow : Window, IDisposable
             case NavKind.CombatTimer: DrawCombatTimerPage(); break;
             case NavKind.PrepCheck: DrawPrepCheckPage(); break;
             case NavKind.Meter: DrawMeterPage(); break;
+            case NavKind.Appearance: DrawAppearancePage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }
 
-    private string Version => typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+    // ---- page header ----
+    // Every page opens with the same row, so the master switch, the reset and
+    // the Basic / All choice are always in the same three pixels.
+
+    // Which pages are showing everything. Not saved: a page opens simple.
+    private readonly Dictionary<NavKind, bool> _pageAll = new();
+    private bool AllMode => _pageAll.TryGetValue(_nav, out var v) && v;
+    private void SetAllMode(bool on) => _pageAll[_nav] = on;
+
+    // Returns the master switch's value; pass hasMaster false where there is none.
+    private bool PageHead(string name, string note, bool master,
+        bool hasMaster = true, bool hasModes = false, Action? reset = null)
+    {
+        var st = ImGui.GetStyle();
+        var frameH = ImGui.GetFrameHeight();
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted(name);
+        if (note.Length > 0)
+        {
+            ImGui.SameLine(0, Theme.S(10f));
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextColored(Theme.V(Theme.Muted), note);
+        }
+
+        var segW = hasModes
+            ? ImGui.CalcTextSize("Basic").X + ImGui.CalcTextSize("All").X + st.FramePadding.X * 4f + Theme.S(10f)
+            : 0f;
+        var right = segW + (reset != null ? frameH + Theme.S(8f) : 0f) + (hasMaster ? frameH + Theme.S(8f) : 0f);
+        // Never left of the name, whatever it turned out to be.
+        var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(end + Theme.S(12f), ImGui.GetContentRegionMax().X - right));
+
+        if (hasModes)
+        {
+            var all = AllMode;
+            // Small buttons carry no vertical padding, so nudge them onto the
+            // same centre line as the reset and the switch beside them.
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (frameH - Widgets.SmallHeight) * 0.5f);
+            Widgets.SegmentBegin();
+            if (Widgets.Segment("Basic##pm", !all)) SetAllMode(false);
+            ImGui.SameLine();
+            if (Widgets.Segment("All##pm", all)) SetAllMode(true);
+            Widgets.SegmentEnd();
+            ImGui.SameLine(0, Theme.S(8f));
+        }
+        if (reset != null)
+        {
+            if (ImGuiComponents.IconButton("##pgreset", FontAwesomeIcon.Undo)) reset();
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Put this page back to the defaults.");
+            ImGui.SameLine(0, Theme.S(8f));
+        }
+        if (hasMaster)
+        {
+            var v = master;
+            if (GreenCheckbox("##pgmaster", ref v)) { master = v; _toggleDirty = true; }
+            if (Widgets.HoveredDelayed()) ImGui.SetTooltip(master ? "On. Untick to turn this off." : "Off.");
+        }
+        ImGui.Spacing();
+        return master;
+    }
+
+    private string Version => typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "2.0.0.0";
 
     // Approximate width of an icon button, for centering.
     private float IconBtnWidth(FontAwesomeIcon icon, string text)
@@ -837,113 +882,148 @@ public partial class ConfigWindow : Window, IDisposable
         return iw + st.ItemInnerSpacing.X + ImGui.CalcTextSize(text).X + st.FramePadding.X * 2f;
     }
 
+    // Home answers the four things you would otherwise go looking for: the
+    // fight you are in, whether the meter is up, what is drawn on screen, and
+    // what is wrong. Then the handful of things you would do about it.
     private void DrawHomePage()
     {
-        void Center(float w)
-        {
-            var x = (ImGui.GetContentRegionAvail().X - w) * 0.5f;
-            if (x > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + x);
-        }
+        var grey = Theme.V(Theme.Muted);
 
-        var accent = Theme.V(Theme.Accent);
-        var grey = new Vector4(0.55f, 0.59f, 0.66f, 1f);
-
-        ImGui.Dummy(new Vector2(0, Theme.S(10f)));
-
-        // The logo, or a glyph shield if it didn't load.
+        // Title row.
         var icon = IconWrap();
         if (icon != null)
         {
-            var sz = Theme.S(112f);
-            Center(sz);
+            var sz = ImGui.GetFrameHeight();
             ImGui.Image(icon.Handle, new Vector2(sz, sz));
+            ImGui.SameLine(0, Theme.S(8f));
         }
-        else
-            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
-            {
-                ImGui.SetWindowFontScale(2.6f);
-                var s = FontAwesomeIcon.Shield.ToIconString();
-                Center(ImGui.CalcTextSize(s).X);
-                ImGui.TextColored(accent, s);
-                ImGui.SetWindowFontScale(1f);
-            }
-
-        // Title (big crisp font) + tagline.
-        var titleFont = _plugin.Fonts.Get(Theme.S(34f), "Default", false, false);
-        if (titleFont is { Available: true })
-            using (titleFont.Push())
-            {
-                Center(ImGui.CalcTextSize("Fren Mits").X);
-                ImGui.TextUnformatted("Fren Mits");
-            }
-        else { Center(ImGui.CalcTextSize("Fren Mits").X); ImGui.TextUnformatted("Fren Mits"); }
-
-        Center(ImGui.CalcTextSize("It's mits with frens.").X);
-        ImGui.TextColored(grey, "It's mits with frens.");
-
-        // Accent divider.
-        ImGui.Dummy(new Vector2(0, Theme.S(8f)));
-        var dl = ImGui.GetWindowDrawList();
-        var cy = ImGui.GetCursorScreenPos().Y;
-        // Centered on the content, like everything else on this page: the window
-        // width ignores the page indent and would sit the rule slightly off.
-        var cx = ImGui.GetCursorScreenPos().X + ImGui.GetContentRegionAvail().X * 0.5f;
-        var half = Theme.S(60f);
-        dl.AddRectFilled(new Vector2(cx - half, cy), new Vector2(cx + half, cy + Theme.S(2f)), Theme.Accent, 1f);
-        ImGui.Dummy(new Vector2(0, Theme.S(14f)));
-
-        // First-run steps, gone once any fight has a slot picked.
-        if (!C.Fights.Any(f => !string.IsNullOrEmpty(f.Slot)))
-        {
-            var cardW = MathF.Max(Theme.S(220f),
-                MathF.Min(Theme.S(430f), ImGui.GetContentRegionAvail().X - Theme.S(20f)));
-            // The panel is painted behind the text once its real height is
-            // known, so however many lines the steps wrap to, none are cut off.
-            Center(cardW);
-            var cardPad = Theme.S(12f);
-            var cardMin = ImGui.GetCursorScreenPos();
-            var cardDl = ImGui.GetWindowDrawList();
-            cardDl.ChannelsSplit(2);
-            cardDl.ChannelsSetCurrent(1);
-
-            ImGui.SetCursorScreenPos(cardMin + new Vector2(cardPad, cardPad));
-            ImGui.BeginGroup();
-            ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + cardW - cardPad * 2f);
-            ImGui.TextColored(new Vector4(0.42f, 0.66f, 0.96f, 1f), "Get started");
-            ImGui.TextWrapped("1. Pick your job in the sidebar (or leave it on Auto).");
-            ImGui.TextWrapped("2. Open your fight and choose \"Your slot\": that column of the mit sheet becomes yours.");
-            ImGui.TextWrapped("3. Tick Test (top right) and drag the call display where you want it. It switches off by itself when you pull.");
-            ImGui.PopTextWrapPos();
-            ImGui.Spacing();
-            if (ImGui.SmallButton("Take me to the fights"))
-            {
-                _nav = NavKind.Fights;
-                _navCategory = "Ultimate";
-            }
-            ImGui.EndGroup();
-
-            var cardMax = new Vector2(cardMin.X + cardW, ImGui.GetItemRectMax().Y + cardPad);
-            cardDl.ChannelsSetCurrent(0);
-            cardDl.AddRectFilled(cardMin, cardMax, Theme.PanelBg, Theme.S(8f));
-            cardDl.AddRect(cardMin, cardMax, Widgets.CardBorder, Theme.S(8f));
-            cardDl.ChannelsMerge();
-
-            // Put the cursor below the panel, since the group ended inside it.
-            ImGui.SetCursorScreenPos(new Vector2(cardMin.X, cardMax.Y));
-            ImGui.Dummy(new Vector2(0, Theme.S(10f)));
-        }
-
-        // Action row: just GitHub.
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Fren Mits");
+        ImGui.SameLine(0, Theme.S(8f));
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(grey, $"v{Version}");
         var ghW = IconBtnWidth(FontAwesomeIcon.ExternalLinkAlt, "GitHub");
-        Center(ghW);
+        var lineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(lineEnd + Theme.S(12f), ImGui.GetContentRegionMax().X - ghW));
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ExternalLinkAlt, "GitHub"))
             Dalamud.Utility.Util.OpenLink("https://github.com/swixum/FrenMits");
 
-        // Version, centered below.
-        ImGui.Dummy(new Vector2(0, Theme.S(6f)));
-        var ver = $"v{Version}";
-        Center(ImGui.CalcTextSize(ver).X);
-        ImGui.TextDisabled(ver);
+        ImGui.Spacing();
+        DrawHomeTiles();
+        ImGui.Spacing();
+
+        var noSlots = !C.Fights.Any(f => !string.IsNullOrEmpty(f.Slot));
+        if (noSlots)
+        {
+            Widgets.ListBegin();
+            if (Widgets.RowDoor("1. Pick your slot", "That column of the sheet becomes yours"))
+            { _nav = NavKind.Fights; _navCategory = "Ultimate"; }
+            Widgets.RowNote("2. Tick Test, then drag the call where you want it");
+            Widgets.RowNote("3. Pull. It runs itself from there");
+            Widgets.ListEnd();
+            ImGui.Spacing();
+        }
+
+        Widgets.ListBegin();
+        Widgets.RowBegin("Open sheet view", "Your plan for this zone",
+            Widgets.SmallWidth("Open"), ctlHeight: Widgets.SmallHeight);
+        if (ImGui.SmallButton("Open##sv"))
+        {
+            var f = _plugin.ActiveFight();
+            _plugin.SheetViewWindow.Open(
+                f != null && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) ? f : null);
+        }
+        Widgets.RowEnd();
+
+        var test = C.TestMode;
+        if (Widgets.RowCheck("Place the overlays", "Draws a sample so you can drag them", ref test))
+        { C.TestMode = test; C.Save(); }
+
+        if (!C.AudioEnabled)
+        {
+            var au = C.AudioEnabled;
+            if (Widgets.RowCheck("Turn audio back on", "It is off right now", ref au))
+            { C.AudioEnabled = au; C.SaveSettings(); }
+        }
+
+        DrawSelectRoleRow();
+        Widgets.ListEnd();
+    }
+
+    // Four tiles, two up. Each is a label, a line that matters, and a detail.
+    private void DrawHomeTiles()
+    {
+        var fight = _plugin.ActiveFight();
+        var job = _plugin.ActiveJobAbbreviation();
+        var gap = ImGui.GetStyle().ItemSpacing.X;
+        var w = (ImGui.GetContentRegionAvail().X - gap) * 0.5f;
+        var h = ImGui.GetTextLineHeightWithSpacing() * 3f + ImGui.GetStyle().WindowPadding.Y * 2f;
+
+        var zoneLine = fight?.Name ?? "No sheet in this zone";
+        var zoneSub = fight == null ? "Nothing is called here"
+            : string.IsNullOrEmpty(fight.Slot) ? "No slot picked yet"
+            : $"{fight.Slot} as {job ?? "?"} - {fight.Lines.Count} lines";
+        var zoneCol = fight == null ? Theme.V(Theme.Muted)
+            : string.IsNullOrEmpty(fight.Slot) ? Theme.V(Theme.Warn) : Theme.V(Theme.TextBright);
+
+        var on = new List<string>();
+        var off = new List<string>();
+        (C.ShowUpcoming ? on : off).Add("next mits");
+        (C.MeterEnabled ? on : off).Add("meter");
+        (C.ShowCombatTimer ? on : off).Add("timer");
+        (C.PrepCheckEnabled ? on : off).Add("food");
+
+        var problems = new List<string>();
+        if (!C.AudioEnabled) problems.Add("Audio is off");
+        if (!C.EnableSync) problems.Add("Resync is off");
+        var noSlot = C.Fights.Count(f => (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0)
+                                         && string.IsNullOrEmpty(f.Slot));
+        if (noSlot > 0) problems.Add($"{noSlot} fight{(noSlot == 1 ? "" : "s")} with no slot");
+
+        HomeTile("##t1", w, h, "This zone", zoneLine, zoneCol, zoneSub);
+        ImGui.SameLine();
+        HomeTile("##t2", w, h, "Fren Meter",
+            !C.MeterEnabled ? "Off" : _plugin.Meter.Connected ? "Connected" : "Not connected",
+            Theme.V(!C.MeterEnabled ? Theme.Muted : _plugin.Meter.Connected ? Theme.Good : Theme.Warn),
+            C.MeterEnabled ? _plugin.Meter.StatusText : "Turn it on to see damage");
+
+        HomeTile("##t3", w, h, "On screen",
+            on.Count == 0 ? "Just the call" : string.Join(", ", on),
+            Theme.V(Theme.TextBright),
+            off.Count == 0 ? "Everything is on" : "Off: " + string.Join(", ", off));
+        ImGui.SameLine();
+        HomeTile("##t4", w, h, "Needs a look",
+            problems.Count == 0 ? "All good" : problems[0],
+            Theme.V(problems.Count == 0 ? Theme.Good : Theme.Warn),
+            problems.Count > 1 ? string.Join(", ", problems.Skip(1)) : "");
+    }
+
+    private static void HomeTile(string id, float w, float h, string label, string line, Vector4 lineCol, string sub)
+    {
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
+        if (ImGui.BeginChild(id, new Vector2(w, h), true, ImGuiWindowFlags.NoScrollbar))
+        {
+            var room = ImGui.GetContentRegionAvail().X;
+            ImGui.TextColored(Theme.V(Theme.Muted), Widgets.Elide(label, room));
+            ImGui.TextColored(lineCol, Widgets.Elide(line, room));
+            if (sub.Length > 0) ImGui.TextColored(Theme.V(Theme.Muted), Widgets.Elide(sub, room));
+        }
+        ImGui.EndChild();
+        ImGui.PopStyleColor();
+    }
+
+    // What seat each role takes. The picks themselves live under Your Setup.
+    private void DrawSelectRoleRow()
+    {
+        var picks = new[] { JobRole.Tank, JobRole.Healer, JobRole.Melee, JobRole.PhysicalRanged }
+            .Select(r => C.GlobalRolePreferences.TryGetValue(r, out var p) ? p : "-")
+            .ToArray();
+        var text = string.Join("  ", picks);
+        Widgets.RowBegin("Select Role", "Change these under Your Setup, bottom left",
+            ImGui.CalcTextSize(text).X);
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(Theme.V(Theme.Accent), text);
+        Widgets.RowEnd();
     }
 
     // ---- Display tab ----

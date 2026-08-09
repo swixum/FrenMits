@@ -597,9 +597,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         }
     }
 
-    // The running assembly version, e.g. "1.0.0.121".
+    // The running assembly version, e.g. "2.0.0.1".
     public static string PluginVersion =>
-        typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+        typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "2.0.0.0";
 
     // Inside an instanced duty, as opposed to the open world.
     public static bool InDuty =>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -60,17 +60,21 @@ public partial class ConfigWindow
     {
         var fights = C.Fights.Where(f => CategoryOf(f) == category).ToList();
 
-        SeparatorText($"{category}: {fights.Count} fight{(fights.Count == 1 ? "" : "s")}");
+        // One title row: the group, how many, then filter and add.
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted(category);
+        ImGui.SameLine(0, Theme.S(8f));
+        Widgets.Chip("", fights.Count.ToString(), Theme.TextBright);
+
+        var addW = IconBtnWidth(FontAwesomeIcon.Plus, "Add");
+        var right = Theme.S(150f) + addW + Theme.S(8f);
+        var lineEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(lineEnd + Theme.S(12f), ImGui.GetContentRegionMax().X - right));
+        ImGui.SetNextItemWidth(Theme.S(150f));
+        ImGui.InputTextWithHint("##fightfilter", "Filter", ref _fightFilter, 64);
+        ImGui.SameLine(0, Theme.S(8f));
         DrawCategoryToolbar(category);
-        // Type-to-narrow, since the list outgrows scrolling fast.
-        ImGui.SetNextItemWidth(Theme.S(240f));
-        ImGui.InputTextWithHint("##fightfilter", "Search fights...", ref _fightFilter, 64);
         var filter = _fightFilter.Trim();
-        if (filter.Length > 0)
-        {
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Clear##fightfilter")) { _fightFilter = ""; filter = ""; }
-        }
         ImGui.Spacing();
 
         if (filter.Length > 0)
@@ -110,32 +114,23 @@ public partial class ConfigWindow
             DrawReorderGrip(fights, i);
             ImGui.SameLine();
 
-            // Enable toggle + an expandable dropdown per fight.
-            var enabled = fight.Enabled;
-            if (GreenCheckbox("##en", ref enabled)) { fight.Enabled = enabled; C.Save(); }
-            ImGui.SameLine();
-
             if (fight.Id == _expandFightId) { ImGui.SetNextItemOpen(true); _expandFightId = ""; }
-            // Gold star after the name = official, drawn in the icon font.
             var official = Builtin.Has(fight.TerritoryId);
             var headerStartX = ImGui.GetCursorPosX();
 
             // Everything that shares this line, measured before the name is
-            // drawn: the name is then elided to what is left, so a long one
-            // cannot end up underneath the star, the slot tag or the button.
+            // drawn: the name is then cut to what is left, so a long one cannot
+            // end up under the slot chip or the on switch.
             var hasSheet = official || fight.CustomSlots.Count > 0;
             var slotTag = !hasSheet ? "" : string.IsNullOrEmpty(fight.Slot) ? "no slot" : fight.Slot;
-            var btnW = hasSheet ? Theme.S(28f) : 0f;
-            var tagW = slotTag.Length > 0 ? ImGui.CalcTextSize(slotTag).X + Theme.S(14f) : 0f;
-            var starW = ImGui.GetTextLineHeight() + Theme.S(10f);
-            var nameRoom = ImGui.GetContentRegionMax().X - headerStartX
-                           - ImGui.GetTreeNodeToLabelSpacing() - ImGui.GetStyle().FramePadding.X
-                           - starW - tagW - btnW;
+            var boxW = ImGui.GetFrameHeight() + Theme.S(6f) + (hasSheet ? Theme.S(26f) : 0f);
+            var tagW = slotTag.Length > 0 ? ImGui.CalcTextSize(slotTag).X + Theme.S(22f) : 0f;
+            var starW = ImGui.GetTextLineHeight() + Theme.S(8f);
+            var labelX = headerStartX + ImGui.GetTreeNodeToLabelSpacing() + ImGui.GetStyle().FramePadding.X;
+            var nameRoom = ImGui.GetContentRegionMax().X - labelX - starW - tagW - boxW - Theme.S(10f);
 
-            // The ### id ignores the label, so eliding it changes nothing else.
-            var headerLabel = Widgets.Elide(fight.Name, nameRoom);
-            var open = ImGui.CollapsingHeader($"{headerLabel}###fh-{fight.Id}");
-            // Without allow-overlap the header would swallow the star.
+            // An empty label leaves just the arrow, so the star can lead the name.
+            var open = ImGui.CollapsingHeader($"###fh-{fight.Id}");
             ImGui.SetItemAllowOverlap();
             var headMin = ImGui.GetItemRectMin();
             var headMax = ImGui.GetItemRectMax();
@@ -144,9 +139,9 @@ public partial class ConfigWindow
                 ImGui.GetWindowDrawList().AddRectFilled(
                     new Vector2(headMin.X, headMin.Y + 2f), new Vector2(headMin.X + Theme.S(3f), headMax.Y - 2f),
                     Theme.Accent, 2f);
-            // A framed tree node indents its label one extra padding.
-            ImGui.SameLine(headerStartX + ImGui.GetTreeNodeToLabelSpacing()
-                + ImGui.GetStyle().FramePadding.X + ImGui.CalcTextSize(headerLabel).X + 8f);
+
+            // Star, then the name. A category mark reads before the thing it marks.
+            ImGui.SameLine(labelX);
             ImGui.AlignTextToFramePadding();
             using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
             {
@@ -155,41 +150,48 @@ public partial class ConfigWindow
                     (official ? FontAwesomeIcon.Star : FontAwesomeIcon.User).ToIconString());
                 if (!official) ImGui.SetWindowFontScale(1f);
             }
-            // The tooltip lives on the symbol, so the list stays silent.
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip(official ? "Official sheet." : "User created.");
 
-            // Measured off the star itself, so the tag never lands on it. The
-            // cursor is back at the line start by now and would not have said.
-            var starRight = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+            ImGui.SameLine(0, Theme.S(8f));
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextUnformatted(Widgets.Elide(fight.Name, nameRoom));
 
-            // Your slot, right-aligned: the one thing that decides whether calls fire.
+            // Your slot: the one thing that decides whether calls fire.
+            var rowEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
             if (slotTag.Length > 0)
             {
-                ImGui.SameLine(MathF.Max(starRight + Theme.S(8f),
-                    ImGui.GetContentRegionMax().X - btnW - tagW));
-                ImGui.AlignTextToFramePadding();
-                // Role tint, the same one the sheet grid gives that column.
-                ImGui.TextColored(Theme.V(string.IsNullOrEmpty(fight.Slot)
-                    ? Theme.Warn
-                    : Theme.RoleColor(fight.Slot)), slotTag);
+                ImGui.SameLine(MathF.Max(rowEnd + Theme.S(10f),
+                    ImGui.GetContentRegionMax().X - boxW - tagW));
+                Widgets.Chip("", slotTag, string.IsNullOrEmpty(fight.Slot)
+                    ? Theme.Warn : Theme.RoleColor(fight.Slot));
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip(string.IsNullOrEmpty(fight.Slot)
                         ? "No slot picked yet, so nothing is called for this fight."
                         : $"Your column for this fight is {fight.Slot}.");
+                rowEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
             }
 
-            // Quick jump into Sheet View for any fight that has a sheet.
+            // Straight into Sheet View, for any fight that has one.
             if (hasSheet)
             {
-                ImGui.SameLine(ImGui.GetContentRegionMax().X - btnW);
+                ImGui.SameLine(MathF.Max(rowEnd + Theme.S(8f), ImGui.GetContentRegionMax().X - boxW));
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 {
                     if (ImGui.SmallButton(FontAwesomeIcon.Table.ToIconString() + "##opensheet"))
                         _plugin.SheetViewWindow.Open(fight);
                 }
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Open in Sheet View");
+                rowEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
             }
+
+            // On or off, in the same column on every row.
+            ImGui.SameLine(MathF.Max(rowEnd + Theme.S(6f),
+                ImGui.GetContentRegionMax().X - ImGui.GetFrameHeight() - Theme.S(4f)));
+            var enabled = fight.Enabled;
+            if (GreenCheckbox("##en", ref enabled)) { fight.Enabled = enabled; C.Save(); }
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip(enabled ? "On. Untick to skip this fight." : "Off. Nothing is called here.");
 
             if (open)
             {
@@ -284,7 +286,7 @@ public partial class ConfigWindow
     // One menu, since a button row grows every tier.
     private void DrawCategoryToolbar(string category)
     {
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add fight"))
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add"))
             ImGui.OpenPopup("##addfight");
         if (!ImGui.BeginPopup("##addfight")) return;
 
