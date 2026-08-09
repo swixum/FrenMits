@@ -21,31 +21,76 @@ public partial class ConfigWindow
         Tip("A damage meter fed by ACT or IINACT, with rDPS computed from the combat log.");
         if (!C.MeterEnabled) return;
 
+        DrawMeterHeader();
+
+        if (!ImGui.BeginTabBar("##metertabs", ImGuiTabBarFlags.None)) return;
+        if (TabItem("Meter")) { DrawMeterDisplayTab(); ImGui.EndTabItem(); }
+        if (TabItem("Look")) { DrawMeterLookTab(); ImGui.EndTabItem(); }
+        if (TabItem("Columns")) { DrawMeterColumnsTab(); ImGui.EndTabItem(); }
+        if (TabItem("Connection")) { DrawMeterConnectionTab(); ImGui.EndTabItem(); }
+        ImGui.EndTabBar();
+    }
+
+    // Status, the profile being edited, and the one preview. It sits above the
+    // tabs so it never redraws or moves, and every tab edits the meter you see.
+    private void DrawMeterHeader()
+    {
         var connected = _plugin.Meter.Connected;
         StatusDot(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow);
         ImGui.SameLine(0, Theme.S(6f));
+        ImGui.AlignTextToFramePadding();
         ImGui.TextColored(connected ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow,
             _plugin.Meter.StatusText);
-        ImGui.Spacing();
 
-        if (!ImGui.BeginTabBar("##metertabs", ImGuiTabBarFlags.None)) return;
-        if (TabItem("Display")) { DrawMeterDisplayTab(); ImGui.EndTabItem(); }
-        if (TabItem("Style")) { DrawMeterStyleTab(); ImGui.EndTabItem(); }
-        if (TabItem("Themes")) { DrawMeterThemesTab(); ImGui.EndTabItem(); }
-        if (TabItem("Columns")) { DrawMeterColumnsTab(); ImGui.EndTabItem(); }
-        if (TabItem("Profiles")) { DrawMeterProfiles(); ImGui.EndTabItem(); }
-        if (TabItem("Connection")) { DrawMeterConnectionTab(); ImGui.EndTabItem(); }
-        ImGui.EndTabBar();
+        DrawMeterProfileControl();
+        ImGui.Spacing();
+        // The peek is set by a theme button below, so it lands here next frame.
+        DrawMeterCard(new MeterWindow.SampleView { Rows = 3, Chrome = true, Theme = _themePeek });
+        ImGui.Spacing();
+    }
+
+    // Right-aligned on the status line: the saved look you are editing, and a
+    // menu for the rest. Not a tab, since it saves and loads everything else.
+    private void DrawMeterProfileControl()
+    {
+        var active = C.MeterProfileName;
+        var saved = active.Length > 0 && C.MeterProfiles.ContainsKey(active);
+
+        var w = Theme.S(210f) + ImGui.CalcTextSize("Profile").X;
+        var end = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        ImGui.SameLine(MathF.Max(end + Theme.S(12f), ImGui.GetContentRegionMax().X - w));
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Profile");
+        ImGui.SameLine(0, Theme.S(8f));
+        ImGui.SetNextItemWidth(Theme.S(170f));
+        if (ImGui.BeginCombo("##mprofsel", saved ? active : "(unsaved)"))
+        {
+            if (C.MeterProfiles.Count == 0) ImGui.TextDisabled("none saved yet");
+            foreach (var kv in C.MeterProfiles)
+                if (ImGui.Selectable(kv.Key, kv.Key == active))
+                    ApplyMeterProfile(kv.Key);
+            ImGui.EndCombo();
+        }
+        Tip(saved
+            ? "Your changes save into this profile as you make them."
+            : "This look is not saved to a profile yet.");
+
+        ImGui.SameLine(0, Theme.S(4f));
+        if (ImGui.SmallButton("...")) ImGui.OpenPopup("##mprofmenu");
+        Tip("Save, rename, delete, share.");
+        DrawMeterProfileMenu(active, saved);
+
+        if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
+        {
+            ImGui.SameLine(0, Theme.S(8f));
+            ImGui.TextColored(_meterFlashOk ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, _meterFlash);
+        }
     }
 
     // ---- Display ----
 
     private void DrawMeterDisplayTab()
     {
-        ImGui.Spacing();
-        DrawMeterCard(new MeterWindow.SampleView { Rows = 3, Chrome = true });
-        ImGui.TextDisabled("Every switch below lands here.");
-
         SeparatorText("Window");
         C.MeterLocked = CfgCheck("Lock position and size", C.MeterLocked);
         Tip("Unlock, then drag the meter or its edges.\nTest mode in the page header fills it with a sample pull to place against.");
@@ -79,7 +124,7 @@ public partial class ConfigWindow
         var names = C.MeterNameStyle;
         if (ImGui.Combo("##mnames", ref names, "Full name\0First name\0First name + initial\0"))
         { C.MeterNameStyle = names; C.SaveSettings(); }
-        Tip("How party members are named on their row. Yours can say \"You\" instead, on the Style tab.");
+        Tip("How party members are named on their row. Yours can say \"You\" instead, on the Look tab.");
 
         var maxRows = C.MeterMaxRows;
         if (Widgets.SliderInput("Rows shown", ref maxRows, 0, 24, maxRows == 0 ? "everyone" : "%d"))
@@ -135,11 +180,9 @@ public partial class ConfigWindow
 
     // ---- Style ----
 
-    private void DrawMeterStyleTab()
+    private void DrawMeterLookTab()
     {
-        ImGui.Spacing();
-        DrawMeterCard(new MeterWindow.SampleView { Rows = 2 });
-        ImGui.TextDisabled("Row one counts as yours, so the highlight always shows.");
+        DrawMeterThemesRow();
 
         SeparatorText("Bars");
         LabelledWidth("Fill", 200f);
@@ -243,19 +286,17 @@ public partial class ConfigWindow
 
     // ---- Themes ----
 
-    private void DrawMeterThemesTab()
+    private void DrawMeterThemesRow()
     {
-        ImGui.Spacing();
+        SeparatorText("Themes");
         ImGui.TextDisabled(_themePeek is { } peek
             ? $"Showing {peek.Name}; let go and it goes back."
-            : "Hover a theme to try it, click to keep it.");
-        ImGui.Spacing();
-        DrawMeterCard(new MeterWindow.SampleView { Rows = 2, Theme = _themePeek });
+            : "Hover one to try it in the preview above, click to keep it.");
         ImGui.Spacing();
 
         // Cleared here, then set again by whichever button is hovered below.
         _themePeek = null;
-        var size = new Vector2(152f, ImGui.GetFrameHeight() + 4f);
+        var size = new Vector2(Theme.S(152f), ImGui.GetFrameHeight() + Theme.S(4f));
         var i = 0;
         foreach (var t in MeterWindow.Themes)
         {
@@ -448,47 +489,37 @@ public partial class ConfigWindow
 
     // ---- Profiles ----
 
-    private void DrawMeterProfiles()
+    // Everything that is not "which profile am I on", behind one menu.
+    private void DrawMeterProfileMenu(string active, bool saved)
     {
-        var active = C.MeterProfileName;
-        var saved = active.Length > 0 && C.MeterProfiles.ContainsKey(active);
+        if (!ImGui.BeginPopup("##mprofmenu")) return;
 
-        SeparatorText("Saved looks");
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Profile");
-        ImGui.SameLine(0, Theme.S(8f));
-        ImGui.SetNextItemWidth(Theme.S(220f));
-        if (ImGui.BeginCombo("##mprofsel", saved ? active : "(unsaved)"))
+        ImGui.SetNextItemWidth(Theme.S(180f));
+        ImGui.InputTextWithHint("##mprofnew", "new profile name", ref _meterNameBuf, 48);
+        ImGui.SameLine(0, Theme.S(6f));
+        if (ImGui.Button("Save as"))
         {
-            foreach (var kv in C.MeterProfiles)
-                if (ImGui.Selectable(kv.Key, kv.Key == active))
-                    ApplyMeterProfile(kv.Key);
-            ImGui.EndCombo();
+            var name = _meterNameBuf.Trim();
+            if (name.Length == 0) MeterFlash("Give the profile a name first.", ok: false);
+            else
+            {
+                C.MeterProfiles[name] = MeterProfile.Export(C);
+                C.MeterProfileName = name;
+                C.SaveSettings();
+                _meterNameBuf = "";
+                MeterFlash($"Saved as \"{name}\".");
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         if (saved)
         {
-            ImGui.SameLine(0, Theme.S(8f));
-            ImGui.TextDisabled("changes save into it automatically");
-            ImGui.SameLine(0, Theme.S(8f));
-            // Two-click delete so one stray click can't eat a profile.
-            if ((DateTime.Now - _meterDeleteAt).TotalSeconds < 3)
-            {
-                if (ImGui.SmallButton("Sure?"))
-                {
-                    C.MeterProfiles.Remove(active);
-                    C.MeterProfileName = "";
-                    C.SaveSettings();
-                    MeterFlash("Profile deleted.");
-                }
-            }
-            else if (ImGui.SmallButton("Delete")) _meterDeleteAt = DateTime.Now;
-
+            ImGui.Separator();
             if (_meterRenameFor != active) { _meterRenameFor = active; _meterRenameBuf = active; }
             ImGui.SetNextItemWidth(Theme.S(180f));
             ImGui.InputTextWithHint("##mprofrename", "rename this one", ref _meterRenameBuf, 48);
             ImGui.SameLine(0, Theme.S(6f));
-            if (ImGui.SmallButton("Rename"))
+            if (ImGui.Button("Rename"))
             {
                 var name = _meterRenameBuf.Trim();
                 if (name.Length == 0 || (C.MeterProfiles.ContainsKey(name) && name != active))
@@ -502,38 +533,38 @@ public partial class ConfigWindow
                     MeterFlash("Profile renamed.");
                 }
             }
-        }
 
-        ImGui.SetNextItemWidth(Theme.S(180f));
-        ImGui.InputTextWithHint("##mprofnew", "new profile name", ref _meterNameBuf, 48);
-        ImGui.SameLine(0, Theme.S(6f));
-        if (ImGui.Button("Save as profile"))
-        {
-            var name = _meterNameBuf.Trim();
-            if (name.Length == 0) MeterFlash("Give the profile a name first.", ok: false);
-            else
+            // Two-click delete so one stray click cannot eat a profile.
+            if ((DateTime.Now - _meterDeleteAt).TotalSeconds < 3)
             {
-                C.MeterProfiles[name] = MeterProfile.Export(C);
-                C.MeterProfileName = name;
-                C.SaveSettings();
-                _meterNameBuf = "";
-                MeterFlash($"Saved as \"{name}\".");
+                Widgets.PushDangerOutline();
+                if (ImGui.Button("Sure? Delete it"))
+                {
+                    C.MeterProfiles.Remove(active);
+                    C.MeterProfileName = "";
+                    C.SaveSettings();
+                    MeterFlash("Profile deleted.");
+                    ImGui.CloseCurrentPopup();
+                }
+                Widgets.PopDanger();
             }
+            else if (ImGui.Button("Delete")) _meterDeleteAt = DateTime.Now;
         }
 
-        SeparatorText("Share");
+        ImGui.Separator();
         if (ImGui.Button("Copy share code"))
         {
             ImGui.SetClipboardText(MeterProfile.Export(C));
             MeterFlash("Code copied to clipboard.");
         }
-        ImGui.SameLine(0, Theme.S(10f));
+        Tip("A code carries the whole layout and look.");
+        ImGui.SameLine(0, Theme.S(6f));
         if (ImGui.Button("Import from clipboard"))
+        {
             ImportMeterProfile(ImGui.GetClipboardText());
-
-
-        if (_meterFlash.Length > 0 && (DateTime.Now - _meterFlashAt).TotalSeconds < 4)
-            ImGui.TextColored(_meterFlashOk ? ImGuiColors.HealerGreen : ImGuiColors.DalamudYellow, _meterFlash);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndPopup();
     }
 
     private void ApplyMeterProfile(string name)

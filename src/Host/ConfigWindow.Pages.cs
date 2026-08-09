@@ -210,7 +210,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (TabItem("Font"))
+        if (TabItem("Look"))
         {
             ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
@@ -230,11 +230,8 @@ public partial class ConfigWindow
             }
             var px = C.CombatTimerFontSizePx;
             if (Widgets.SliderInput("Text size", ref px, 12f, 120f, "%.0f px")) { C.CombatTimerFontSizePx = px; C.SaveSettings(); }
-            ImGui.EndTabItem();
-        }
 
-        if (TabItem("Colors"))
-        {
+            SeparatorText("Colors");
             ImGui.Spacing();
             var col = ColorToVec4(C.CombatTimerColor);
             if (ImGui.ColorEdit4("Text color", ref col, ImGuiColorEditFlags.NoInputs)) { C.CombatTimerColor = Vec4ToColor(col); C.SaveSettings(); }
@@ -247,6 +244,7 @@ public partial class ConfigWindow
                 if (ImGui.ColorEdit4("Color##ctbg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.CombatTimerBackgroundColor = Vec4ToColor(bg); C.SaveSettings(); }
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
+
             ImGui.EndTabItem();
         }
 
@@ -285,7 +283,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (TabItem("Style"))
+        if (TabItem("Look"))
         {
             ImGui.Spacing();
             {
@@ -325,11 +323,8 @@ public partial class ConfigWindow
                 if (ImGui.InputText("##nowsuffix", ref suffix, 64)) { C.ActiveSuffix = suffix; C.SaveSettings(); }
                 ImGui.TreePop();
             }
-            ImGui.EndTabItem();
-        }
 
-        if (TabItem("Font"))
-        {
+            SeparatorText("Font");
             ImGui.Spacing();
             var fonts = FontManager.FamilyNames;
             var fIdx = Math.Max(0, Array.IndexOf(fonts, C.OverlayFontFamily));
@@ -358,11 +353,9 @@ public partial class ConfigWindow
                 var iconScale = C.IconScale;
                 if (Widgets.SliderInput("Icon size", ref iconScale, 0.4f, 1.5f, "%.2fx")) { C.IconScale = iconScale; C.SaveSettings(); }
             }
-            ImGui.EndTabItem();
-        }
 
-        if (TabItem("Colors"))
-        {
+
+            SeparatorText("Colors");
             ImGui.Spacing();
             var imminent = ColorToVec4(C.OverlayColorImminent);
             if (ImGui.ColorEdit4("Counting down", ref imminent, ImGuiColorEditFlags.NoInputs)) { C.OverlayColorImminent = Vec4ToColor(imminent); C.SaveSettings(); }
@@ -394,11 +387,9 @@ public partial class ConfigWindow
                 var personal = ColorToVec4(C.MitColorPersonal);
                 if (ImGui.ColorEdit4("Personal", ref personal, ImGuiColorEditFlags.NoInputs)) { C.MitColorPersonal = Vec4ToColor(personal); C.SaveSettings(); }
             }
-            ImGui.EndTabItem();
-        }
 
-        if (TabItem("Bar & box"))
-        {
+
+            SeparatorText("Bar & box");
             ImGui.Spacing();
             C.ShowProgressBar = CfgCheck("Countdown bar under the call", C.ShowProgressBar);
             if (C.ShowProgressBar)
@@ -416,6 +407,7 @@ public partial class ConfigWindow
                 if (ImGui.ColorEdit4("Color##overlaybg", ref bg, ImGuiColorEditFlags.NoInputs)) { C.BackgroundColor = Vec4ToColor(bg); C.SaveSettings(); }
                 if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Drag the alpha channel down for a translucent box.");
             }
+
             ImGui.EndTabItem();
         }
 
@@ -494,7 +486,7 @@ public partial class ConfigWindow
             ImGui.EndTabItem();
         }
 
-        if (TabItem("Look")) { DrawLookTab(); ImGui.EndTabItem(); }
+        if (TabItem("Theme")) { DrawLookTab(); ImGui.EndTabItem(); }
 
         ImGui.EndTabBar();
     }
@@ -732,11 +724,8 @@ public partial class ConfigWindow
             NextColumn();
             C.UpcomingBoardDrain = CfgCheck("Bars drain toward the hit", C.UpcomingBoardDrain);
             if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Unticked, bars FILL toward the hit instead.");
-            ImGui.EndTabItem();
-        }
 
-        if (boardStyle && TabItem("On the rows"))
-        {
+            SeparatorText("On the rows");
             ImGui.Spacing();
             // Two tidy columns, two controls per row at most.
             C.UpcomingBoardTimeText = CfgCheck("Countdown seconds", C.UpcomingBoardTimeText);
@@ -763,6 +752,7 @@ public partial class ConfigWindow
             ImGui.Spacing();
             C.UpcomingBoardPhases = CfgCheck("Phase dividers", C.UpcomingBoardPhases);
             Tip("A labelled rule where each phase begins.");
+
             ImGui.EndTabItem();
         }
 
