@@ -305,32 +305,39 @@ public partial class ConfigWindow
 
     private void DrawLiveSample(string key, Action draw)
     {
-        var avail = ImGui.GetContentRegionAvail().X;
+        var w = ImGui.GetContentRegionAvail().X;
         var pad = Theme.S(10f);
         var st = ImGui.GetStyle();
+        // Starts narrow on purpose: with no slack the overlay cannot centre
+        // itself inside the measurement, so the first frame reads its true
+        // width and the second is exact. Starting wide would chase its tail,
+        // because the classic call and the compact list both centre on the
+        // room they are given.
         var known = _sampleSize.TryGetValue(key, out var k)
             ? k
-            : new Vector2(Theme.S(410f), ImGui.GetFrameHeight() * 3f);
+            : new Vector2(Theme.S(60f), ImGui.GetFrameHeight() * 2f);
 
-        // Hug the overlay, but never wider than the page. A sample that runs
-        // past its panel reads as broken; one that runs off the page is worse.
-        var w = MathF.Min(avail, MathF.Max(Theme.S(220f), known.X + pad * 2f));
-        // Wider than the page: scroll it rather than cut it, so a big call size
-        // still shows what it really looks like.
-        var scrolls = known.X + pad * 2f > avail + 1f;
-        var h = known.Y + pad * 2f + (scrolls ? st.ScrollbarSize : 0f);
+        var inner = w - pad * 2f;
+        var childW = MathF.Min(inner, MathF.Max(Theme.S(40f), known.X));
+        var scrolls = known.X > inner + 1f;
+        var bar = scrolls ? st.ScrollbarSize : 0f;
+        var childH = known.Y + 1f;
+        var h = childH + pad * 2f + bar;
 
         var p = ImGui.GetCursorScreenPos();
         var dl = ImGui.GetWindowDrawList();
         dl.AddRectFilled(p, p + new Vector2(w, h), 0xFF0C0907, Theme.S(7f));
         dl.AddRect(p, p + new Vector2(w, h), Widgets.CardBorder, Theme.S(7f));
 
-        ImGui.SetCursorScreenPos(p);
+        // The child is exactly as wide as the overlay and sits in the middle of
+        // the panel. Centring the box rather than the content keeps the ones
+        // that centre themselves from being pushed twice.
+        ImGui.SetCursorScreenPos(new Vector2(p.X + (w - childW) * 0.5f, p.Y + pad));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, 0u);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(pad, pad));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         var flags = ImGuiWindowFlags.NoScrollWithMouse
                     | (scrolls ? ImGuiWindowFlags.HorizontalScrollbar : ImGuiWindowFlags.NoScrollbar);
-        if (ImGui.BeginChild(key, new Vector2(w, h), false, flags))
+        if (ImGui.BeginChild(key, new Vector2(childW, childH + bar), false, flags))
         {
             var origin = ImGui.GetCursorScreenPos();
             ImGui.BeginGroup();
