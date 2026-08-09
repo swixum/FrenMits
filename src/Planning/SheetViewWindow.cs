@@ -374,9 +374,9 @@ public partial class SheetViewWindow : Window
                                + "built-in fight, or make your own from a pull or a kill log.");
             ImGui.PopTextWrapPos();
             ImGui.Spacing();
-            if (Widgets.AccentButton("New sheet...")) OpenNewSheetPopup();
+            if (Widgets.AccentButton("New Sheet...")) OpenNewSheetPopup();
             ImGui.SameLine(0, Theme.S(8f));
-            if (ImGui.Button("Add a built-in fight")) _plugin.ConfigWindow.IsOpen = true;
+            if (ImGui.Button("Add a Built-in Fight")) _plugin.ConfigWindow.IsOpen = true;
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Opens Fren Mits, where the Ultimate, Savage and Extreme lists live.");
             DrawNewSheetPopup();

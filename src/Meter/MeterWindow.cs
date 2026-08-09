@@ -2198,7 +2198,7 @@ public class MeterWindow : Window
             var mode = C.MeterMode;
             if (ImGui.MenuItem("Damage", "", mode == 0)) { C.MeterMode = 0; C.SaveSettings(); }
             if (ImGui.MenuItem("Healing", "", mode == 1)) { C.MeterMode = 1; C.SaveSettings(); }
-            if (ImGui.MenuItem("Damage taken", "", mode == 2)) { C.MeterMode = 2; C.SaveSettings(); }
+            if (ImGui.MenuItem("Damage Taken", "", mode == 2)) { C.MeterMode = 2; C.SaveSettings(); }
             if (ImGui.MenuItem("Deaths", "", mode == 3)) { C.MeterMode = 3; C.SaveSettings(); }
             ImGui.EndMenu();
         }
@@ -2207,11 +2207,11 @@ public class MeterWindow : Window
             DrawPullList();
             ImGui.EndMenu();
         }
-        if (ImGui.MenuItem("Pull history...", "", _plugin.MeterHistoryWindow.IsOpen))
+        if (ImGui.MenuItem("Pull History...", "", _plugin.MeterHistoryWindow.IsOpen))
             _plugin.MeterHistoryWindow.Toggle();
         if (ImGui.MenuItem(m.Paused ? "Resume" : "Pause")) m.Paused = !m.Paused;
         // Offered while the board is empty, which is when it is wanted.
-        if ((!m.Connected || m.FeedStale) && ImGui.MenuItem("Reconnect now")) m.Link.RetryNow();
+        if ((!m.Connected || m.FeedStale) && ImGui.MenuItem("Reconnect Now")) m.Link.RetryNow();
         if (ImGui.MenuItem(C.MeterCollapsed ? "Expand" : "Collapse")) ToggleCollapsed();
 
         ImGui.Separator();
@@ -2234,24 +2234,24 @@ public class MeterWindow : Window
             }
             if (ImGui.BeginMenu("Display"))
             {
-                if (ImGui.MenuItem("Rank numbers", "", C.MeterShowRank)) { C.MeterShowRank = !C.MeterShowRank; C.SaveSettings(); }
-                if (ImGui.MenuItem("Job icons", "", C.MeterShowJobIcons)) { C.MeterShowJobIcons = !C.MeterShowJobIcons; C.SaveSettings(); }
-                if (ImGui.MenuItem("Column labels", "", C.MeterColumnHeader)) { C.MeterColumnHeader = !C.MeterColumnHeader; C.SaveSettings(); }
-                if (ImGui.MenuItem("Raid total", "", C.MeterShowRaidTotal)) { C.MeterShowRaidTotal = !C.MeterShowRaidTotal; C.SaveSettings(); }
+                if (ImGui.MenuItem("Rank Numbers", "", C.MeterShowRank)) { C.MeterShowRank = !C.MeterShowRank; C.SaveSettings(); }
+                if (ImGui.MenuItem("Job Icons", "", C.MeterShowJobIcons)) { C.MeterShowJobIcons = !C.MeterShowJobIcons; C.SaveSettings(); }
+                if (ImGui.MenuItem("Column Labels", "", C.MeterColumnHeader)) { C.MeterColumnHeader = !C.MeterColumnHeader; C.SaveSettings(); }
+                if (ImGui.MenuItem("Raid Total", "", C.MeterShowRaidTotal)) { C.MeterShowRaidTotal = !C.MeterShowRaidTotal; C.SaveSettings(); }
                 if (ImGui.MenuItem("\"You\" instead of your name", "", C.MeterYou)) { C.MeterYou = !C.MeterYou; C.SaveSettings(); }
-                if (ImGui.MenuItem("Highlight your row", "", C.MeterHighlightYou)) { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
-                if (ImGui.MenuItem("Buttons bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
-                if (ImGui.MenuItem("Healing tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
-                if (ImGui.MenuItem("Death count", "", C.MeterFooterDeaths))
+                if (ImGui.MenuItem("Highlight Your Row", "", C.MeterHighlightYou)) { C.MeterHighlightYou = !C.MeterHighlightYou; C.SaveSettings(); }
+                if (ImGui.MenuItem("Buttons Bar", "", C.MeterButtons)) { C.MeterButtons = !C.MeterButtons; C.SaveSettings(); }
+                if (ImGui.MenuItem("Healing Tab", "", C.MeterHealingTab)) { C.MeterHealingTab = !C.MeterHealingTab; C.SaveSettings(); }
+                if (ImGui.MenuItem("Death Count", "", C.MeterFooterDeaths))
                 { C.MeterFooterDeaths = !C.MeterFooterDeaths; C.SaveSettings(); }
-                if (ImGui.MenuItem("Limit break row", "", C.MeterLimitBreakRow))
+                if (ImGui.MenuItem("Limit Break Row", "", C.MeterLimitBreakRow))
                 { C.MeterLimitBreakRow = !C.MeterLimitBreakRow; C.SaveSettings(); }
                 if (ImGui.MenuItem("Split DPS/HPS", "", C.MeterSplitHealing))
                 { C.MeterSplitHealing = !C.MeterSplitHealing; C.SaveSettings(); }
-                if (ImGui.MenuItem("Drop shadow", "", C.MeterTextShadow)) { C.MeterTextShadow = !C.MeterTextShadow; C.SaveSettings(); }
-                if (ImGui.MenuItem("Breakdown icons", "", C.MeterBreakdownIcons))
+                if (ImGui.MenuItem("Drop Shadow", "", C.MeterTextShadow)) { C.MeterTextShadow = !C.MeterTextShadow; C.SaveSettings(); }
+                if (ImGui.MenuItem("Breakdown Icons", "", C.MeterBreakdownIcons))
                 { C.MeterBreakdownIcons = !C.MeterBreakdownIcons; C.SaveSettings(); }
-                if (ImGui.MenuItem("Color each ability", "", C.MeterBreakdownColors))
+                if (ImGui.MenuItem("Color Each Ability", "", C.MeterBreakdownColors))
                 { C.MeterBreakdownColors = !C.MeterBreakdownColors; C.SaveSettings(); }
                 ImGui.Separator();
                 // One choice, so the two behind it cannot be set to contradict.
@@ -2259,8 +2259,8 @@ public class MeterWindow : Window
                 {
                     var mode = C.MeterShowMode;
                     if (ImGui.MenuItem("Always", "", mode == 0)) { C.MeterShowMode = 0; C.SaveSettings(); }
-                    if (ImGui.MenuItem("After a pull", "", mode == 1)) { C.MeterShowMode = 1; C.SaveSettings(); }
-                    if (ImGui.MenuItem("Only in combat", "", mode == 2)) { C.MeterShowMode = 2; C.SaveSettings(); }
+                    if (ImGui.MenuItem("After a Pull", "", mode == 1)) { C.MeterShowMode = 1; C.SaveSettings(); }
+                    if (ImGui.MenuItem("Only in Combat", "", mode == 2)) { C.MeterShowMode = 2; C.SaveSettings(); }
                     ImGui.EndMenu();
                 }
                 ImGui.EndMenu();
@@ -2284,7 +2284,7 @@ public class MeterWindow : Window
                 if (ImGui.MenuItem("Wash + outline", "", hl == 0)) { C.MeterHighlightStyle = 0; C.SaveSettings(); }
                 if (ImGui.MenuItem("Wash", "", hl == 1)) { C.MeterHighlightStyle = 1; C.SaveSettings(); }
                 if (ImGui.MenuItem("Outline", "", hl == 2)) { C.MeterHighlightStyle = 2; C.SaveSettings(); }
-                if (ImGui.MenuItem("Side stripe", "", hl == 3)) { C.MeterHighlightStyle = 3; C.SaveSettings(); }
+                if (ImGui.MenuItem("Side Stripe", "", hl == 3)) { C.MeterHighlightStyle = 3; C.SaveSettings(); }
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Header"))
@@ -2319,7 +2319,7 @@ public class MeterWindow : Window
             }
             ImGui.EndMenu();
         }
-        if (ImGui.MenuItem("Lock position", "", C.MeterLocked)) { C.MeterLocked = !C.MeterLocked; C.SaveSettings(); }
+        if (ImGui.MenuItem("Lock Position", "", C.MeterLocked)) { C.MeterLocked = !C.MeterLocked; C.SaveSettings(); }
         if (ImGui.MenuItem("Click-through", "", C.MeterClickThrough))
         {
             // This takes the menu with it, so the config page returns it.
@@ -2327,8 +2327,8 @@ public class MeterWindow : Window
             C.SaveSettings();
         }
         ImGui.Separator();
-        if (ImGui.MenuItem("Copy summary")) CopySummary();
-        if (ImGui.MenuItem("Clear data")) { m.ClearAll(); _histIdx = -1; }
+        if (ImGui.MenuItem("Copy Summary")) CopySummary();
+        if (ImGui.MenuItem("Clear Data")) { m.ClearAll(); _histIdx = -1; }
         if (ImGui.MenuItem("Settings...")) _plugin.ConfigWindow.OpenMeterPage();
 
         ImGui.EndPopup();
@@ -2603,7 +2603,7 @@ public class MeterWindow : Window
         "healed" => "Healed total",
         "dshield" => "Damage shielded",
         "overheal" => "Overheal %",
-        "taken" => "Damage taken",
+        "taken" => "Damage Taken",
         "deaths" => "Deaths",
         _ => key,
     };

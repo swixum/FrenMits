@@ -57,7 +57,7 @@ public class MiniSheetWindow : Window
                                + "duty has no sheet yet.");
             ImGui.PopTextWrapPos();
             ImGui.Spacing();
-            if (Widgets.AccentButton("Make a sheet for this duty"))
+            if (Widgets.AccentButton("Make a Sheet for This Duty"))
                 _plugin.SheetViewWindow.Open(null);
             return;
         }

@@ -69,7 +69,7 @@ public partial class ConfigWindow
         if (ImGui.BeginPopup("##lineview"))
         {
             var showEmpty = C.ShowEmptyMechanics;
-            if (ImGui.MenuItem("Show empty mechanics", "", ref showEmpty))
+            if (ImGui.MenuItem("Show Empty Mechanics", "", ref showEmpty))
             {
                 C.ShowEmptyMechanics = showEmpty;
                 C.Save();
@@ -607,22 +607,22 @@ public partial class ConfigWindow
     private void LineContextItems(FightProfile fight, MitLine line, int index, Action<string> undoable,
         ref Action? deferred, List<MitLine> toDelete)
     {
-        if (ImGui.MenuItem("Copy action")) _copiedLine = CloneLine(line);
+        if (ImGui.MenuItem("Copy Action")) _copiedLine = CloneLine(line);
 
         var hasCopy = _copiedLine != null;
-        if (ImGui.MenuItem("Paste above", string.Empty, false, hasCopy) && _copiedLine != null)
+        if (ImGui.MenuItem("Paste Above", string.Empty, false, hasCopy) && _copiedLine != null)
         {
             var clip = CloneLine(_copiedLine);
             var at = index;
             deferred = () => { undoable("paste a call"); fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
         }
-        if (ImGui.MenuItem("Paste below", string.Empty, false, hasCopy) && _copiedLine != null)
+        if (ImGui.MenuItem("Paste Below", string.Empty, false, hasCopy) && _copiedLine != null)
         {
             var clip = CloneLine(_copiedLine);
             var at = index + 1;
             deferred = () => { undoable("paste a call"); fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), clip); C.Save(); };
         }
-        if (ImGui.MenuItem("Paste over this action", string.Empty, false, hasCopy) && _copiedLine != null)
+        if (ImGui.MenuItem("Paste Over This Action", string.Empty, false, hasCopy) && _copiedLine != null)
         {
             undoable($"paste over \"{Ellipsis(line.Action, 28)}\"");
             PreserveBakedEdit(fight, line); // pasting over rewrites time/mechanic
@@ -631,7 +631,7 @@ public partial class ConfigWindow
         }
 
         ImGui.Separator();
-        if (ImGui.MenuItem("Duplicate action"))
+        if (ImGui.MenuItem("Duplicate Action"))
         {
             var dup = CloneLine(line);
             var at = index + 1;
@@ -639,7 +639,7 @@ public partial class ConfigWindow
         }
 
         ImGui.Separator();
-        if (ImGui.MenuItem("Delete action"))
+        if (ImGui.MenuItem("Delete Action"))
         {
             undoable($"delete \"{Ellipsis(line.Action, 28)}\"");
             toDelete.Add(line);

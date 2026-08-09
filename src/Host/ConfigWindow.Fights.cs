@@ -316,15 +316,15 @@ public partial class ConfigWindow
         // A blank fight in an official zone would be a locked duplicate.
         var zone = Service.ClientState.TerritoryType;
         if (Builtin.Has(zone))
-            ImGui.MenuItem("New blank fight (this zone has an official sheet)", false);
-        else if (ImGui.MenuItem("New blank fight (this zone)"))
+            ImGui.MenuItem("New Blank Fight (this zone has an official sheet)", false);
+        else if (ImGui.MenuItem("New Blank Fight (this zone)"))
             AddFight(new FightProfile
             {
                 Name = "New fight",
                 TerritoryId = zone,
                 Category = category,
             });
-        if (ImGui.MenuItem("Paste fight code from clipboard")) ImportFightFromClipboard();
+        if (ImGui.MenuItem("Paste Fight Code from Clipboard")) ImportFightFromClipboard();
 
         var presets = Builtin.Fights
             .Where(f => f.Category == category && C.Fights.All(x => x.TerritoryId != f.Territory))
@@ -509,7 +509,7 @@ public partial class ConfigWindow
         if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Reset every column", Theme.Sz(180f)))
+        if (Widgets.DangerButton("Reset Every Column", Theme.Sz(180f)))
         {
             _plugin.Snapshots.Save(fight, "before Reset all columns");
             fight.SavedSlots.Clear();
@@ -534,7 +534,7 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Resetting will discard this slot's changes and load the baked sheet fresh.");
         ImGui.Separator();
 
-        if (Widgets.DangerButton("Reset and lose my edits", Theme.Sz(220f)))
+        if (Widgets.DangerButton("Reset and Lose My Edits", Theme.Sz(220f)))
         {
             ResetBuiltinSlot(fight, slot);
             ImGui.CloseCurrentPopup();

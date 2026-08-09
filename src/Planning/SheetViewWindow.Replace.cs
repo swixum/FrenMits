@@ -27,7 +27,7 @@ public partial class SheetViewWindow
         ImGui.InputTextWithHint("##rfind", "find (e.g. Vengeance)", ref _replFind, 64);
         ImGui.SetNextItemWidth(Theme.S(230f));
         ImGui.InputTextWithHint("##rwith", "replace with (e.g. Damnation)", ref _replWith, 64);
-        ImGui.Checkbox("My column only", ref _replMineOnly);
+        ImGui.Checkbox("My Column Only", ref _replMineOnly);
 
         var find = _replFind.Trim();
         var with = _replWith.Trim();
@@ -45,7 +45,7 @@ public partial class SheetViewWindow
             : lines == 0 ? "no matches"
             : $"will change {lines} line(s) across {slots} slot(s)");
         if (string.IsNullOrWhiteSpace(_replWith) && lines > 0)
-            ImGui.TextDisabled("empty replacement = those calls are DELETED");
+            ImGui.TextDisabled("Empty replacement = those calls are DELETED");
 
         ImGui.BeginDisabled(lines == 0);
         if (ImGui.Button("Replace", Theme.Sz(120f)))

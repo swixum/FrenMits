@@ -195,7 +195,7 @@ internal static class MitLineEditor
                 ImGui.TextUnformatted($"Reset {named} to the sheet?");
                 ImGui.TextDisabled("Your wording, timing and jobs for it go.");
                 ImGui.Spacing();
-                if (ImGui.Button("Reset it", Theme.Sz(110f)))
+                if (ImGui.Button("Reset It", Theme.Sz(110f)))
                 {
                     hooks.Reset();
                     closeEditor = true;
@@ -218,7 +218,7 @@ internal static class MitLineEditor
                 ? "It stays gone through sheet updates. Reset brings it back."
                 : "Nothing else calls it back.");
             ImGui.Spacing();
-            var go = Widgets.DangerOutlineButton("Delete it", Theme.Sz(110f));
+            var go = Widgets.DangerOutlineButton("Delete It", Theme.Sz(110f));
             if (go)
             {
                 hooks.Delete?.Invoke();
@@ -256,9 +256,9 @@ internal static class MitLineEditor
         Icons.Draw(resolved, new Vector2(40, 40) * Theme.Scale);
         ImGui.SameLine();
         ImGui.BeginGroup();
-        ImGui.TextDisabled(line.IconId != 0 ? $"pinned (#{line.IconId})"
-            : resolved != 0 ? "auto (action / status / keyword)" : "none");
-        if (ImGui.Button("Use auto") && begin(false)) { line.IconId = 0; save(); }
+        ImGui.TextDisabled(line.IconId != 0 ? $"Pinned (#{line.IconId})"
+            : resolved != 0 ? "Auto (action / status / keyword)" : "None");
+        if (ImGui.Button("Use Auto") && begin(false)) { line.IconId = 0; save(); }
         ImGui.SameLine();
         if (ImGui.Button("Potion") && begin(false)) { line.IconId = Icons.PotionIconFor(line); save(); }
         if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Pin the potion (Gemdraught) icon to this line.");
@@ -311,14 +311,14 @@ internal static class MitLineEditor
     // Job filter: a button naming the current pick, opening role checkboxes.
     private static void DrawJobs(MitLine line, Func<bool, bool> begin, Action save)
     {
-        var label = line.Jobs.Count == 0 ? "All jobs" : string.Join(",", line.Jobs);
+        var label = line.Jobs.Count == 0 ? "All Jobs" : string.Join(",", line.Jobs);
         if (label.Length > 24) label = label[..22] + "...";
         if (ImGui.Button(label + "##jobs", new Vector2(_fieldW, 0)))
             ImGui.OpenPopup("jobspopup");
 
         if (!ImGui.BeginPopup("jobspopup")) return;
 
-        if (ImGui.Button("All jobs") && begin(false)) { line.Jobs.Clear(); save(); }
+        if (ImGui.Button("All Jobs") && begin(false)) { line.Jobs.Clear(); save(); }
 
         foreach (var role in Enum.GetValues<JobRole>())
         {

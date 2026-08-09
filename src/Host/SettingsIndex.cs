@@ -237,7 +237,7 @@ internal static class SettingsIndex
         E(ConfigWindow.NavKind.Meter, "Colors", "Background", nameof(Configuration.MeterBgColor), "window"),
         E(ConfigWindow.NavKind.Meter, "Colors", "Rows", nameof(Configuration.MeterRowColor), "bar background"),
         E(ConfigWindow.NavKind.Meter, "Colors", "Border", nameof(Configuration.MeterBorderColor), "outline"),
-        E(ConfigWindow.NavKind.Meter, "Columns", "Column labels", nameof(Configuration.MeterColumnHeader), "header"),
+        E(ConfigWindow.NavKind.Meter, "Columns", "Column Labels", nameof(Configuration.MeterColumnHeader), "header"),
         E(ConfigWindow.NavKind.Meter, "Connection", "Source", nameof(Configuration.MeterConnection), "act iinact parser websocket"),
         E(ConfigWindow.NavKind.Meter, "Connection", "Address", nameof(Configuration.MeterSocketAddress), "ws wss port"),
 

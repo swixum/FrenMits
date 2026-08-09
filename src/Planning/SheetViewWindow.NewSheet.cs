@@ -158,7 +158,7 @@ public partial class SheetViewWindow
             ImGui.SetNextItemWidth(Theme.S(250f));
             ImGui.InputTextWithHint("##nscols", "columns, comma-separated (e.g. MT,OT,H1,H2)", ref _newSlotsBuf, 128);
             if (Widgets.HoveredDelayed())
-                ImGui.SetTooltip("Name a column after a job (WHM, MCH...) and Auto-plan uses that\njob's real mitigation kit for it.");
+                ImGui.SetTooltip("Name a column after a job (WHM, MCH...) and Auto-Plan uses that\njob's real mitigation kit for it.");
         }
         var slots = TemplateSlots();
         if (slots.Length > 0)
@@ -185,7 +185,7 @@ public partial class SheetViewWindow
             // Name search: picking a match drops its zone id into the field.
             var matches = SearchDuties(buf, 40);
             if (matches.Count == 0)
-                ImGui.TextDisabled("no duty matches that name");
+                ImGui.TextDisabled("No duty matches that name");
             else
             {
                 var h = MathF.Min(150f, matches.Count * ImGui.GetTextLineHeightWithSpacing() + 10f);
@@ -200,7 +200,7 @@ public partial class SheetViewWindow
         else if (terr == 0)
         {
             // A zone-less sheet can never fire, and re-imports would stack.
-            ImGui.TextColored(ImGuiColors.DalamudYellow,
+            ImGui.TextColored(Theme.V(Theme.Warn),
                 "You're not in a duty. Type the duty's name or zone id above.");
             zoneBlocked = true;
         }
@@ -210,7 +210,7 @@ public partial class SheetViewWindow
             var byBoss = BossDuties(terr);
             if (byBoss.Count > 0)
             {
-                ImGui.TextDisabled("that boss id belongs to:");
+                ImGui.TextDisabled("That boss id belongs to:");
                 var h = MathF.Min(150f, byBoss.Count * ImGui.GetTextLineHeightWithSpacing() + 10f);
                 if (ImGui.BeginChild("##nsblist", new Vector2(356f, h), true))
                     foreach (var (t, name) in byBoss)
@@ -219,12 +219,12 @@ public partial class SheetViewWindow
                 ImGui.EndChild();
             }
             else
-                ImGui.TextColored(ImGuiColors.DalamudYellow, $"{terr} is not a zone id or boss id.");
+                ImGui.TextColored(Theme.V(Theme.Warn), $"{terr} is not a zone id or boss id.");
             zoneBlocked = true;
         }
         else if (Builtin.Has(terr))
         {
-            ImGui.TextColored(ImGuiColors.DalamudYellow,
+            ImGui.TextColored(Theme.V(Theme.Warn),
                 "That zone already has an official sheet; edit that one instead.");
             zoneBlocked = true;
         }

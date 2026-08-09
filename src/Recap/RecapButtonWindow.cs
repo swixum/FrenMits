@@ -73,8 +73,8 @@ public class RecapButtonWindow : Window
 
         ImGui.Spacing();
 
-        // Accent "View recap" button.
-        if (Widgets.AccentButton("View recap"))
+        // Accent "View Recap" button.
+        if (Widgets.AccentButton("View Recap"))
             _plugin.RecapWindow.IsOpen = !_plugin.RecapWindow.IsOpen; // toggle: click again to close
 
         ImGui.SameLine();
@@ -83,7 +83,7 @@ public class RecapButtonWindow : Window
         {
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(Theme.V(Theme.Muted), "drag to move");
+            ImGui.TextColored(Theme.V(Theme.Muted), "Drag to move");
         }
 
         ImGui.PopStyleVar();

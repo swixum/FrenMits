@@ -86,7 +86,7 @@ public class RecapWindow : Window
                 ImGui.TextColored(Theme.V(Theme.Muted), "Party Mit Recap page of the FrenMits settings.");
             }
             ImGui.Spacing();
-            if (Button("Load sample pull")) r.LoadSample();
+            if (Button("Load Sample Pull")) r.LoadSample();
             if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Fill the recap with a sample pull.");
             return;
         }
@@ -175,7 +175,7 @@ public class RecapWindow : Window
         // Coverage timeline: the whole pull as one chart, deaths marked.
         Widgets.SectionHeader("Coverage timeline");
         DrawScrubber(r);
-        ImGui.TextColored(Theme.V(Theme.Muted), "tall & green = more mit up · dips = thin ·");
+        ImGui.TextColored(Theme.V(Theme.Muted), "Tall & green = more mit up · dips = thin ·");
         ImGui.SameLine(0, Theme.S(5f)); ImGui.TextColored(Theme.V(Theme.Danger), "red = deaths");
         ImGui.SameLine(0, Theme.S(6f)); ImGui.TextColored(Theme.V(Theme.Muted),
             r.LastDeaths.Count > 0 ? "(click one to inspect) · hover to inspect" : "· hover to inspect");
@@ -245,8 +245,8 @@ public class RecapWindow : Window
 
         // Full per-mechanic detail, collapsed by default.
         ImGui.Dummy(new Vector2(0, Theme.S(2f)));
-        if (!ImGui.CollapsingHeader("Timeline details")) return;
-        ImGui.TextColored(Theme.V(Theme.Muted), "mit colors:");
+        if (!ImGui.CollapsingHeader("Timeline Details")) return;
+        ImGui.TextColored(Theme.V(Theme.Muted), "Mit colors:");
         foreach (var (kind, label) in new[]
                  {
                      (MitTypes.Kind.Party, "party"), (MitTypes.Kind.Tank, "tank"),

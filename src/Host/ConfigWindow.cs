@@ -613,7 +613,7 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         var ask = C.ShowSlotPopupOnEntry;
-        if (GreenCheckbox("Ask on duty entry", ref ask)) { C.ShowSlotPopupOnEntry = ask; C.Save(); }
+        if (GreenCheckbox("Ask on Duty Entry", ref ask)) { C.ShowSlotPopupOnEntry = ask; C.Save(); }
         Tip("A popup on entry showing which slot is yours.");
     }
 

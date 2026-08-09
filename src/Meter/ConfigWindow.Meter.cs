@@ -362,7 +362,7 @@ public partial class ConfigWindow
     {
         ImGui.Spacing();
         // Arrived from the Display tab: it is about columns, so it lives with them.
-        C.MeterColumnHeader = CfgCheck("Column labels", C.MeterColumnHeader);
+        C.MeterColumnHeader = CfgCheck("Column Labels", C.MeterColumnHeader);
         Tip("A heading row above the bars, naming each column.");
         ImGui.Spacing();
         ImGui.TextDisabled("Click a heading to drop it, or drag one to reorder.");
@@ -456,7 +456,7 @@ public partial class ConfigWindow
             else ImGui.TextDisabled("Leave ACT running; this finds it on its own.");
 
             ImGui.SameLine(0, Theme.S(12f));
-            if (ImGui.SmallButton("Got it")) { C.MeterSetupDone = true; C.SaveSettings(); }
+            if (ImGui.SmallButton("Got It")) { C.MeterSetupDone = true; C.SaveSettings(); }
             ImGui.TextDisabled("On IINACT instead? It connects itself.");
         }
         ImGui.EndChild();
@@ -524,7 +524,7 @@ public partial class ConfigWindow
         ImGui.SetNextItemWidth(Theme.S(180f));
         ImGui.InputTextWithHint("##mprofnew", "new profile name", ref _meterNameBuf, 48);
         ImGui.SameLine(0, Theme.S(6f));
-        if (ImGui.Button("Save as"))
+        if (ImGui.Button("Save As"))
         {
             var name = _meterNameBuf.Trim();
             if (name.Length == 0) MeterFlash("Give the profile a name first.", ok: false);
@@ -579,14 +579,14 @@ public partial class ConfigWindow
         }
 
         ImGui.Separator();
-        if (ImGui.Button("Copy share code"))
+        if (ImGui.Button("Copy Share Code"))
         {
             ImGui.SetClipboardText(MeterProfile.Export(C));
             MeterFlash("Code copied to clipboard.");
         }
         Tip("A code carries the whole layout and look.");
         ImGui.SameLine(0, Theme.S(6f));
-        if (ImGui.Button("Import from clipboard"))
+        if (ImGui.Button("Import from Clipboard"))
         {
             ImportMeterProfile(ImGui.GetClipboardText());
             ImGui.CloseCurrentPopup();

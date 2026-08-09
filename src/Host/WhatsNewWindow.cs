@@ -29,7 +29,7 @@ public class WhatsNewWindow : Window
 
     public override void Draw()
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "What's new");
+        ImGui.TextColored(Theme.V(Theme.Good), "What's New");
         ImGui.TextDisabled($"Fren Mits v{Plugin.PluginVersion}");
         ImGui.Separator();
         ImGui.Spacing();
@@ -49,7 +49,7 @@ public class WhatsNewWindow : Window
 
         ImGui.Spacing();
         ImGui.Separator();
-        if (ImGui.Button("Got it", new Vector2(120, 0)))
+        if (ImGui.Button("Got It", new Vector2(120, 0)))
             Dismiss();
     }
 

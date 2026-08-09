@@ -17,7 +17,7 @@ public partial class ConfigWindow
 
     private void DrawImportSection(FightProfile fight)
     {
-        if (!ImGui.CollapsingHeader("Import from a sheet (paste rows)"))
+        if (!ImGui.CollapsingHeader("Import from a Sheet (paste rows)"))
             return;
 
         ImGui.TextWrapped("Copy rows straight out of Google Sheets / Excel and paste below. "
@@ -54,12 +54,12 @@ public partial class ConfigWindow
         ImGui.Combo("##impaction", ref _actionCol, colNames, colNames.Length);
 
         var header = _importHeader;
-        if (GreenCheckbox("First row is a header", ref header)) _importHeader = header;
+        if (GreenCheckbox("First Row Is a Header", ref header)) _importHeader = header;
 
         ImGui.TextUnformatted("Assign imported lines to:");
         ImGui.RadioButton("Everyone", ref _importJobMode, 0); ImGui.SameLine();
-        ImGui.RadioButton("My selected job", ref _importJobMode, 1); ImGui.SameLine();
-        ImGui.RadioButton("Pick below", ref _importJobMode, 2);
+        ImGui.RadioButton("My Selected Job", ref _importJobMode, 1); ImGui.SameLine();
+        ImGui.RadioButton("Pick Below", ref _importJobMode, 2);
 
         var pickedJobs = new List<string>();
         if (_importJobMode == 2)
@@ -102,7 +102,7 @@ public partial class ConfigWindow
             Jobs = pickedJobs
         };
 
-        if (ImGui.Button("Add to current mits"))
+        if (ImGui.Button("Add to Current Mits"))
         {
             if (_importJobMode == 1 && pickedJobs.Count == 0)
             {

@@ -99,7 +99,7 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Popup Locked", "Unlock to drag it", ref locked))
         { C.RecapPopupLocked = locked; _plugin.RecapButtonWindow.RequestReposition(); C.SaveSettings(); }
 
-        ButtonRow("Recap window", "The last pull, in a window you can move", "Open", "Sample");
+        ButtonRow("Recap Window", "The last pull, in a window you can move", "Open", "Sample");
         if (ImGui.SmallButton("Open##recap")) _plugin.RecapWindow.IsOpen = true;
         ImGui.SameLine(0, Theme.S(4f));
         if (ImGui.SmallButton("Sample##recap"))

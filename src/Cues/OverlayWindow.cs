@@ -117,12 +117,12 @@ public class OverlayWindow : Window
         // Right-click menu, only while the overlay takes the mouse.
         if (ImGui.BeginPopupContextWindow("##fmoverlayctx"))
         {
-            if (ImGui.MenuItem("Lock position", "", C.OverlayLocked))
+            if (ImGui.MenuItem("Lock Position", "", C.OverlayLocked))
             {
                 C.OverlayLocked = !C.OverlayLocked;
                 C.SaveSettings();
             }
-            if (ImGui.MenuItem("Open settings"))
+            if (ImGui.MenuItem("Open Settings"))
             {
                 _plugin.ConfigWindow.IsOpen = true;
                 _plugin.ConfigWindow.BringToFront();

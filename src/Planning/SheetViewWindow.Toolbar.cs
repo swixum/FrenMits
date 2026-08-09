@@ -82,7 +82,7 @@ public partial class SheetViewWindow
         if (!ImGui.BeginPopupModal("##autoplan", ref stay,
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
-        PopupHeader("Auto-plan mits", 520f);
+        PopupHeader("Auto-Plan Mits", 520f);
         if (_fight == null || !_isCustom)
         {
             ImGui.CloseCurrentPopup();
@@ -92,11 +92,11 @@ public partial class SheetViewWindow
         if (_fight.CustomRows.Count == 0)
         {
             ImGui.TextUnformatted("Want the mits planned for you? Add the mechanics first.");
-            ImGui.TextDisabled("Build > Add row (or Build from pull / Build from FFLogs) creates the");
-            ImGui.TextDisabled("rows; then Build > Auto-plan mits fills every column with cooldowns");
+            ImGui.TextDisabled("Build > Add Row (or Build from Pull / Build from FFLogs) creates the");
+            ImGui.TextDisabled("rows; then Build > Auto-Plan Mits fills every column with cooldowns");
             ImGui.TextDisabled("that line up: spaced to their recasts, spread across the party.");
             ImGui.Spacing();
-            if (ImGui.Button("Got it", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
+            if (ImGui.Button("Got It", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
             ImGui.EndPopup();
             return;
         }
@@ -150,14 +150,14 @@ public partial class SheetViewWindow
         if (healerCols.Count > 0)
         {
             ImGui.Spacing();
-            ImGui.TextColored(ImGuiColors.HealerGreen,
+            ImGui.TextColored(Theme.V(Theme.Good),
                 "Healer seats become WHM, AST, SCH and SGE columns, like the official sheets, so "
                 + "every healer job gets its real cooldowns planned. Pick your own column after "
                 + "planning, from a column header or the fight page.");
         }
         var noKit = _fight.CustomSlots.Where(sl => PoolFor(sl).Length == 0).ToList();
         if (noKit.Count > 0)
-            ImGui.TextColored(ImGuiColors.DalamudYellow,
+            ImGui.TextColored(Theme.V(Theme.Warn),
                 $"No kit for: {string.Join(", ", noKit)}. Rename to a job (WHM) or role (H1, D3) to include them.");
         if (gradedRows == 0)
             ImGui.TextDisabled("Tip: import a kill log and rows get graded by real unmitigated damage, "
@@ -167,7 +167,7 @@ public partial class SheetViewWindow
 
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-        if (ImGui.Button("Plan mits", Theme.Sz(110f)))
+        if (ImGui.Button("Plan Mits", Theme.Sz(110f)))
         {
             PushUndo("auto-plan mits");
             _plugin.Snapshots.Save(_fight, "before auto-plan");
@@ -187,7 +187,7 @@ public partial class SheetViewWindow
         }
         ImGui.PopStyleColor(2);
         ImGui.SameLine();
-        if (ImGui.Button("Not now", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("Not Now", Theme.Sz(110f))) ImGui.CloseCurrentPopup();
         ImGui.EndPopup();
     }
 
@@ -286,7 +286,7 @@ public partial class SheetViewWindow
         // off the real frame padding, so the block lands right at any scale.
         var tbStyle = ImGui.GetStyle();
         float BtnW(string s) => ImGui.CalcTextSize(s).X + tbStyle.FramePadding.X * 2f;
-        var rightW = BtnW("Undo") + BtnW("Plan") + BtnW("Share plan")
+        var rightW = BtnW("Undo") + BtnW("Plan") + BtnW("Share Plan")
                    + (_isCustom ? BtnW("Build") + tbStyle.ItemSpacing.X : 0f)
                    + tbStyle.ItemSpacing.X * 3f;
         // Off the last item, not the cursor: the cursor is back at the line
@@ -320,13 +320,13 @@ public partial class SheetViewWindow
                 ImGui.SetTooltip("Grow this sheet: add rows by hand, from your own pulls, or from an FFLogs kill.");
             if (ImGui.BeginPopup("##buildmenu"))
             {
-                if (ImGui.MenuItem("Add row...")) openAddRow = true;
-                if (ImGui.MenuItem("Build from pull...")) openBuildPull = true;
+                if (ImGui.MenuItem("Add Row...")) openAddRow = true;
+                if (ImGui.MenuItem("Build from Pull...")) openBuildPull = true;
                 if (ImGui.MenuItem("Build from FFLogs...")) openLog = true;
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip("Type a fight name to pull its current top kill, or paste a specific\nlog. Its casts become rows + anchors, graded by real damage.");
                 ImGui.Separator();
-                if (ImGui.MenuItem("Auto-plan mits...")) _openAutoPlan = true;
+                if (ImGui.MenuItem("Auto-Plan Mits...")) _openAutoPlan = true;
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip("Fills the grid with party cooldowns for every row: spaced to each\nrecast, rotated across columns, never overwriting your own cells.");
                 ImGui.EndPopup();
@@ -341,24 +341,24 @@ public partial class SheetViewWindow
         {
             // Land any half-typed edit first, so the clipboard never captures
             // a pre-edit grid.
-            if (ImGui.MenuItem("Export as text"))
+            if (ImGui.MenuItem("Export as Text"))
             {
                 CommitPending();
                 if (_dirty) Rebuild();
                 ExportText();
             }
-            if (ImGui.MenuItem("Import plan code")) ImportPlan();
+            if (ImGui.MenuItem("Import Plan Code")) ImportPlan();
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Paste a friend's Share plan code from your clipboard.\nTheir slot is replaced; your other slots are kept.");
-            if (ImGui.MenuItem("Replace a mit...")) openReplace = true;
-            if (ImGui.MenuItem("Plan history...")) openHistory = true;
+            if (ImGui.MenuItem("Replace a Mit...")) openReplace = true;
+            if (ImGui.MenuItem("Plan History...")) openHistory = true;
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Snapshots taken automatically before imports, replaces and\ncolumn pastes; restore any of them.");
 
-            if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
+            if (!_isCustom && ImGui.MenuItem("Reset All Columns...")) _openResetAll = true;
             if (!_isCustom && Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Reload EVERY column from the baked sheet: all slots' edits and\ndeletions go, including added potion, job and tank lines.\nA snapshot is saved first; Plan > History restores it.");
-            if (ImGui.MenuItem("Open fight page")) _plugin.ConfigWindow.OpenFightPage(_fight!);
+            if (ImGui.MenuItem("Open Fight Page")) _plugin.ConfigWindow.OpenFightPage(_fight!);
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Per-line options, anchors and import tools live there.");
             if (ImGui.MenuItem("Open Mit Tuner")) _plugin.MiniSheetWindow.IsOpen = true;
@@ -367,7 +367,7 @@ public partial class SheetViewWindow
             if (_isCustom)
             {
                 ImGui.Separator();
-                if (ImGui.MenuItem("Delete this sheet...")) openDelete = true;
+                if (ImGui.MenuItem("Delete This Sheet...")) openDelete = true;
             }
             ImGui.EndPopup();
         }
@@ -375,7 +375,7 @@ public partial class SheetViewWindow
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-        if (ImGui.SmallButton("Share plan")) SharePlan();
+        if (ImGui.SmallButton("Share Plan")) SharePlan();
         ImGui.PopStyleColor(2);
         if (DelayedHover())
             ImGui.SetTooltip("Copy the whole plan as a clipboard code. Friends use Plan > Import plan code\n(or the fight page); it updates their fight in place (their slot's plan).");
@@ -426,10 +426,10 @@ public partial class SheetViewWindow
         ImGui.SetNextItemWidth(Theme.S(200f));
         ImGui.Combo("hits##arhurt", ref _rowHurt, HurtChoices, HurtChoices.Length);
         if (Widgets.HoveredDelayed())
-            ImGui.SetTooltip("How hard the hit is unmitigated. Auto-plan stacks mitigation deeper\non harder hits; log imports grade this automatically from real damage.");
+            ImGui.SetTooltip("How hard the hit is unmitigated. Auto-Plan stacks mitigation deeper\non harder hits; log imports grade this automatically from real damage.");
         var okRow = _rowMech.Trim().Length > 0 && SheetImport.TryParseTime(_rowTime, out _);
         ImGui.BeginDisabled(!okRow);
-        if (ImGui.Button("Add row", Theme.Sz(110f)))
+        if (ImGui.Button("Add Row", Theme.Sz(110f)))
         {
             SheetImport.TryParseTime(_rowTime, out var t);
             AddCustomRow(_rowMech.Trim(), t, _rowHurt);
@@ -491,14 +491,14 @@ public partial class SheetViewWindow
             ImGui.SetTooltip("Which rows and mits the grid shows, and how they're colored.");
         if (!ImGui.BeginPopup("##viewmenu")) return;
 
-        ImGui.MenuItem("Party mits", "", ref _showPartyMits);
+        ImGui.MenuItem("Party Mits", "", ref _showPartyMits);
         ImGui.MenuItem("Personal / role mits", "", ref _showPersonalMits);
-        ImGui.MenuItem("Job extras", "", ref _showJobExtra);
+        ImGui.MenuItem("Job Extras", "", ref _showJobExtra);
         if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Job-specific extras (Mantra, Curing Waltz, ...) that ride into the plan\non their own, at their own time. Untick to hide their rows.");
 
         var showEmpty = C.ShowEmptyMechanics;
-        if (ImGui.MenuItem("Empty mechanics", "", ref showEmpty))
+        if (ImGui.MenuItem("Empty Mechanics", "", ref showEmpty))
         {
             C.ShowEmptyMechanics = showEmpty;
             C.Save();
@@ -507,14 +507,14 @@ public partial class SheetViewWindow
         if (Widgets.HoveredDelayed())
             ImGui.SetTooltip("Show mechanics with no mit assigned in any slot (raidwides, autos, ...) as blank reference rows.");
 
-        if (ImGui.MenuItem("Color mits by type", "", C.SheetColorByType))
+        if (ImGui.MenuItem("Color Mits by Type", "", C.SheetColorByType))
         {
             C.SheetColorByType = !C.SheetColorByType;
             C.Save();
         }
 
         ImGui.Separator();
-        if (ImGui.MenuItem("Reset column widths"))
+        if (ImGui.MenuItem("Reset Column Widths"))
         {
             // Saved, so the reset is still in force after a restart.
             C.SheetWidthReset++;
@@ -536,9 +536,9 @@ public partial class SheetViewWindow
             return;
 
         ImGui.TextUnformatted($"Delete \"{_fight!.Name}\"?");
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Every column's plan, rows, notes and learned anchors go with it.");
+        ImGui.TextColored(Theme.V(Theme.Warn), "Every column's plan, rows, notes and learned anchors go with it.");
         ImGui.TextDisabled("A snapshot is saved first. To recover: recreate a sheet in this duty,");
-        ImGui.TextDisabled("then History > Find this duty's older snapshots.");
+        ImGui.TextDisabled("then History > Find This Duty's Older Snapshots.");
         ImGui.Spacing();
 
         if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
@@ -572,7 +572,7 @@ public partial class SheetViewWindow
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("Plan snapshots (this fight)", 440f);
-        if (ImGui.SmallButton("Snapshot now"))
+        if (ImGui.SmallButton("Snapshot Now"))
         {
             _plugin.Snapshots.Save(_fight!, "manual snapshot");
             _snapList = _plugin.Snapshots.List(_fight!.Id);
@@ -610,7 +610,7 @@ public partial class SheetViewWindow
         if (_isCustom)
         {
             ImGui.Spacing();
-            if (ImGui.SmallButton("Find this duty's older snapshots"))
+            if (ImGui.SmallButton("Find This Duty's Older Snapshots"))
                 _snapList = _plugin.Snapshots.List(_fight!.Id)
                     .Concat(_plugin.Snapshots.ListOrphans(_fight.TerritoryId, _fight.Id))
                     .ToList();

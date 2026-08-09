@@ -194,7 +194,7 @@ public partial class SheetViewWindow
                     + (pinned ? "\nPinned. Right-click to unpin." : "\nRight-click to pin."));
             if (ImGui.BeginPopupContextItem($"##colpin{i}"))
             {
-                if (_isCustom && !IsActiveSlot(slotIdx) && ImGui.MenuItem("Make this my column"))
+                if (_isCustom && !IsActiveSlot(slotIdx) && ImGui.MenuItem("Make This My Column"))
                     SwitchCustomSlot(slotIdx);
                 if (ImGui.MenuItem(pinned ? "Unpin column" : "Pin column"))
                 {
@@ -421,7 +421,7 @@ public partial class SheetViewWindow
         {
             ImGui.TextDisabled(row.Mechanic);
             ImGui.SameLine(0, Theme.S(6f));
-            ImGui.TextColored(EditedColor, "deleted");
+            ImGui.TextColored(EditedColor, "Deleted");
             ImGui.SameLine(0, Theme.S(4f));
             if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
             if (Widgets.HoveredDelayed())
@@ -448,7 +448,7 @@ public partial class SheetViewWindow
             if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84) * Theme.Scale))
                 SaveNote(row, _noteBuf);
             ImGui.TextDisabled("Saved as you type. Clear the text to remove the note.");
-            // Custom rows grade the hit here, and Auto-plan reads it.
+            // Custom rows grade the hit here, and Auto-Plan reads it.
             if (_isCustom && CustomRowFor(row) is { } cr)
             {
                 ImGui.Separator();
@@ -463,9 +463,9 @@ public partial class SheetViewWindow
                         C.Save();
                     }
                 }
-                ImGui.TextDisabled("Auto-plan depth: deadly 3 mits, hurts 2, light 1.");
+                ImGui.TextDisabled("Auto-Plan depth: deadly 3 mits, hurts 2, light 1.");
                 var tb = cr.Buster;
-                if (ImGui.Checkbox("Tank buster (tanks' own plan, not party mits)", ref tb))
+                if (ImGui.Checkbox("Tank Buster (tanks' own plan, not party mits)", ref tb))
                 {
                     cr.Buster = tb;
                     C.Save();
@@ -513,7 +513,7 @@ public partial class SheetViewWindow
         {
             // A quiet tag: this row is a job schedule at its own time.
             ImGui.SameLine(0, Theme.S(6f));
-            ImGui.TextDisabled("job extra");
+            ImGui.TextDisabled("Job extra");
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("A job-specific line at its own time. Nothing is wrong.");
 
@@ -531,7 +531,7 @@ public partial class SheetViewWindow
         else if (row.Edited)
         {
             ImGui.SameLine(0, Theme.S(6f));
-            ImGui.TextColored(EditedColor, "edited");
+            ImGui.TextColored(EditedColor, "Edited");
             ImGui.SameLine(0, Theme.S(4f));
             if (IconSmallButton(FontAwesomeIcon.Undo, "##reset")) ResetRow(row);
             if (Widgets.HoveredDelayed())
@@ -830,8 +830,8 @@ public partial class SheetViewWindow
                     }
                 }
                 ImGui.Separator();
-                if (ImGui.MenuItem("Copy mit")) _cellClip = line.Action;
-                if (ImGui.MenuItem("Delete this mit")) DeleteCellLine(row, i);
+                if (ImGui.MenuItem("Copy Mit")) _cellClip = line.Action;
+                if (ImGui.MenuItem("Delete This Mit")) DeleteCellLine(row, i);
             }
             if (_isCustom && cell.Count == 0 && ImGui.BeginMenu("Suggest a mit"))
             {
@@ -844,8 +844,8 @@ public partial class SheetViewWindow
                     : "Paste mit"))
                 ApplyCellText(row, i, _cellClip);
             ImGui.EndDisabled();
-            if (ImGui.MenuItem("Reset this cell to the sheet")) ResetCell(row, i);
-            if (!_isCustom && ImGui.MenuItem("Reset all columns...")) _openResetAll = true;
+            if (ImGui.MenuItem("Reset This Cell to the Sheet")) ResetCell(row, i);
+            if (!_isCustom && ImGui.MenuItem("Reset All Columns...")) _openResetAll = true;
             ImGui.EndPopup();
         }
     }
@@ -865,14 +865,14 @@ public partial class SheetViewWindow
             return;
 
         ImGui.TextUnformatted("Reset every column to the baked sheet?");
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "All slots' edits and deletions go, including added potion, job and tank lines.");
+        ImGui.TextColored(Theme.V(Theme.Warn), "All slots' edits and deletions go, including added potion, job and tank lines.");
         ImGui.TextDisabled("A snapshot is saved first; Plan > History (or Ctrl+Z) restores it.");
         ImGui.Spacing();
 
         if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Reset every column", Theme.Sz(180f)) && _fight != null)
+        if (Widgets.DangerButton("Reset Every Column", Theme.Sz(180f)) && _fight != null)
         {
             PushUndo("reset every column");
             _plugin.Snapshots.Save(_fight, "before Reset all columns");
@@ -926,7 +926,7 @@ public partial class SheetViewWindow
                 ImGui.EndDisabled();
                 any = true;
             }
-            if (!any) ImGui.TextDisabled("nothing available");
+            if (!any) ImGui.TextDisabled("Nothing available");
             ImGui.EndMenu();
         }
     }
@@ -1178,7 +1178,7 @@ public partial class SheetViewWindow
 
         if ((DateTime.Now - _flashAt).TotalSeconds < 4.5 && _flash.Length > 0)
         {
-            ImGui.TextColored(ImGuiColors.ParsedGreen, _flash);
+            ImGui.TextColored(Theme.V(Theme.Good), _flash);
             return;
         }
 

@@ -54,7 +54,7 @@ public partial class ConfigWindow
         ImGui.PushTextWrapPos(Theme.S(380f));
         ImGui.TextColored(Theme.V(Theme.Warn), "Every slot's plan, notes and anchors go with it.");
         ImGui.TextDisabled("A snapshot is saved first. To recover it later, recreate a sheet in the same "
-                           + "duty, then History > Find this duty's older snapshots.");
+                           + "duty, then History > Find This Duty's Older Snapshots.");
         ImGui.PopTextWrapPos();
         ImGui.Spacing();
 
@@ -180,8 +180,8 @@ public partial class ConfigWindow
             var all = false;
             if (ImGui.BeginPopup("##customresetmenu"))
             {
-                if (ImGui.MenuItem("This column")) one = true;
-                if (ImGui.MenuItem("Every column")) all = true;
+                if (ImGui.MenuItem("This Column")) one = true;
+                if (ImGui.MenuItem("Every Column")) all = true;
                 ImGui.EndPopup();
             }
             if (one) ImGui.OpenPopup("##confirm-customreset");
@@ -214,7 +214,7 @@ public partial class ConfigWindow
         if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Empty this column", Theme.Sz(160f)))
+        if (Widgets.DangerButton("Empty This Column", Theme.Sz(160f)))
         {
             _plugin.Snapshots.Save(fight, $"before reset {slot}");
             ClearCustomColumn(fight, slot);
@@ -241,7 +241,7 @@ public partial class ConfigWindow
         if (ImGui.Button("Cancel", Theme.Sz(120f))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        if (Widgets.DangerButton("Empty every column", Theme.Sz(170f)))
+        if (Widgets.DangerButton("Empty Every Column", Theme.Sz(170f)))
         {
             _plugin.Snapshots.Save(fight, "before reset all columns");
             fight.Lines.Clear();
@@ -637,9 +637,9 @@ public partial class ConfigWindow
                 ImGui.SetTooltip("The copy starts disabled.");
             ImGui.SameLine();
         }
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Upload, "Export to clipboard")) ExportFight(fight);
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Upload, "Export to Clipboard")) ExportFight(fight);
         ImGui.SameLine();
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Download, "Import from clipboard")) ImportFightFromClipboard();
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Download, "Import from Clipboard")) ImportFightFromClipboard();
         Tip("Share the fight as a clipboard code.");
 
         ImGui.Spacing();

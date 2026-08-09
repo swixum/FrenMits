@@ -53,7 +53,7 @@ public partial class SheetViewWindow
                                + "automatically. One short wipe is enough.");
             ImGui.PopTextWrapPos();
             ImGui.Spacing();
-            if (ImGui.Button("Build from a kill log instead", Theme.Sz(220f)))
+            if (ImGui.Button("Build from a Kill Log Instead", Theme.Sz(220f)))
             {
                 ImGui.CloseCurrentPopup();
                 _openLogAfterPull = true;
@@ -63,8 +63,8 @@ public partial class SheetViewWindow
         }
 
         ImGui.TextUnformatted($"{casts.Count} casts captured from the last pull.");
-        ImGui.Checkbox("Add mechanic rows", ref _bpRows);
-        ImGui.Checkbox("Set resync anchors", ref _bpAnchors);
+        ImGui.Checkbox("Add Mechanic Rows", ref _bpRows);
+        ImGui.Checkbox("Set Resync Anchors", ref _bpAnchors);
         if (_bpAnchors)
             ImGui.TextDisabled("Replaces this fight's existing cast anchors.");
 
@@ -384,7 +384,7 @@ public partial class SheetViewWindow
             ImGui.SetNextItemWidth(Theme.S(300f));
             ImGui.InputTextWithHint("##flsecret", "client secret", ref _flSecretBuf, 128, ImGuiInputTextFlags.Password);
             ImGui.BeginDisabled(_flIdBuf.Trim().Length == 0 || _flSecretBuf.Trim().Length == 0);
-            if (ImGui.Button("Save credentials", Theme.Sz(160f)))
+            if (ImGui.Button("Save Credentials", Theme.Sz(160f)))
             {
                 C.FflogsClientId = _flIdBuf.Trim();
                 C.FflogsClientSecret = _flSecretBuf.Trim();
@@ -400,7 +400,7 @@ public partial class SheetViewWindow
         ImGui.InputTextWithHint("##flfightname", "fight name (e.g. Futures Rewritten) - pulls the top kill", ref _flFightName, 128);
         ImGui.SameLine();
         ImGui.BeginDisabled(_flBusy || _flFightName.Trim().Length == 0);
-        if (ImGui.SmallButton("Find top kill")) SearchEncounter();
+        if (ImGui.SmallButton("Find Top Kill")) SearchEncounter();
         // Held while it is busy or unnamed, which is when the hint matters most.
         Widgets.TooltipWhenHeld(_flBusy
             ? "Working on the last request."
@@ -409,7 +409,7 @@ public partial class SheetViewWindow
                 : "Loads the current #1 speed kill, ready to import.");
         ImGui.EndDisabled();
 
-        ImGui.TextDisabled("or paste a specific log:");
+        ImGui.TextDisabled("Or paste a specific log:");
         ImGui.SetNextItemWidth(Theme.S(320f));
         ImGui.InputTextWithHint("##flurl", "FFLogs report link (or code)", ref _flUrl, 256);
         ImGui.SameLine();
@@ -457,22 +457,22 @@ public partial class SheetViewWindow
                 }
                 if (_flBusy)
                     ImGui.TextDisabled("Loading casts...");
-                else if (ImGui.Button("Reload casts", Theme.Sz(120f)))
+                else if (ImGui.Button("Reload Casts", Theme.Sz(120f)))
                     FetchCasts(picked);
             }
             else
             {
                 ImGui.TextUnformatted($"{_flCasts.Count} enemy casts loaded.");
-                ImGui.Checkbox("Add mechanic rows", ref _bpRows);
-                ImGui.Checkbox("Set resync anchors", ref _bpAnchors);
+                ImGui.Checkbox("Add Mechanic Rows", ref _bpRows);
+                ImGui.Checkbox("Set Resync Anchors", ref _bpAnchors);
                 ImGui.BeginDisabled(!_bpRows);
-                ImGui.Checkbox("Only meaningful mechanics", ref _flMeaningful);
+                ImGui.Checkbox("Only Meaningful Mechanics", ref _flMeaningful);
                 Widgets.TooltipWhenHeld(_bpRows
                     ? "Keep only casts that hit or had a cast bar."
                     : "Held: tick \"Add mechanic rows\" first.");
                 ImGui.EndDisabled();
                 // Untargetable windows come from the silences, not the rows.
-                ImGui.Checkbox("Add untargetable windows", ref _flDowntime);
+                ImGui.Checkbox("Add Untargetable Windows", ref _flDowntime);
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip("Turn the log's downtime gaps into untargetable rows.");
                 ImGui.TextDisabled("Their kill's timings become this sheet's skeleton; anchors");
