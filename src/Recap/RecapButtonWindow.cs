@@ -59,6 +59,7 @@ public class RecapButtonWindow : Window
     public override void Draw()
     {
         Theme.PushWidgets();
+        using var uiFont = Widgets.PushUiFont(_plugin.Fonts, Theme.Scale);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 5f);
         SavePositionIfDragged();
 

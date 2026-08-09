@@ -366,7 +366,7 @@ public class OverlayWindow : Window
     // ---- board style ----
 
     // Board palette, on the same config keys as the board itself.
-    private uint BoardAccent => C.UpcomingBoardAccentColor != 0 ? C.UpcomingBoardAccentColor : 0xFFF6823B;
+    private uint BoardAccent => C.BoardAccent != 0 ? C.BoardAccent : Theme.DefaultAccent;
     private uint BoardNow => C.UpcomingBoardNowColor != 0 ? C.UpcomingBoardNowColor : 0xFF64DC64;
     private const uint BoardBright = 0xFFECE8E6;
     private const uint BoardMuted = 0xFFA89A90;

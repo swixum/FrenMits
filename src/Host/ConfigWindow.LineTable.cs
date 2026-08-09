@@ -89,6 +89,19 @@ public partial class ConfigWindow
         var jobAbbr = _plugin.GetActiveJobAbbr(fight);
         var bakedForSlotAll = Builtin.BakedLinesForFight(fight, fight.Slot);
 
+        // The same two numbers Sheet View shows, since it is the same plan.
+        var clashLines = fight.Lines.Count(l => _plugin.SheetViewWindow.HasConflict(fight, l, out _));
+        ImGui.Spacing();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled($"{fight.Lines.Count} line{(fight.Lines.Count == 1 ? "" : "s")}");
+        if (clashLines > 0)
+        {
+            ImGui.SameLine(0, 10);
+            Widgets.Chip("clashes", clashLines.ToString(), Theme.Danger);
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip("Lines whose mit repeats before its cooldown is back.\nThe red cells below are the ones.");
+        }
+
         // Grow to fill, leaving room for the import header..
         var avail = ImGui.GetContentRegionAvail().Y;
         var tableH = MathF.Max(200f, avail - ImGui.GetFrameHeightWithSpacing() - 8f);
@@ -460,10 +473,12 @@ public partial class ConfigWindow
             else
             {
                 bool clicked = false;
+                Widgets.PushDangerOutline();
                 using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
                 {
                     clicked = ImGui.SmallButton(Dalamud.Interface.FontAwesomeIcon.Times.ToIconString() + "##delgrp");
                 }
+                Widgets.PopDanger();
                 
                 if (clicked)
                 {

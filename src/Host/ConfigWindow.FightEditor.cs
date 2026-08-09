@@ -36,22 +36,21 @@ public partial class ConfigWindow
         if (ImGui.InputText("Name", ref name, 128)) { fight.Name = name; C.Save(); }
         Tip("Times are seconds from the pull.");
 
-        var ci = Array.IndexOf(FightTypes, fight.Category);
-        if (ci < 0) ci = FightTypes.Length - 1;
+        var ci = Array.IndexOf(Categories, fight.Category);
+        if (ci < 0) ci = Categories.Length - 1;
         ImGui.SetNextItemWidth(120f);
-        if (ImGui.Combo("Type", ref ci, FightTypes, FightTypes.Length))
+        if (ImGui.Combo("Type", ref ci, Categories, Categories.Length))
         {
-            fight.Category = FightTypes[ci];
+            fight.Category = Categories[ci];
             C.Save();
         }
         Tip("Which sidebar group this fight files under.");
 
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2A2AB0);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3A3AC8);
+        Widgets.PushDanger();
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.TrashAlt, "Delete"))
             ImGui.OpenPopup("##delfight");
-        ImGui.PopStyleColor(2);
+        Widgets.PopDanger();
         return !DrawDeleteFightConfirm(fight);
     }
 
@@ -73,15 +72,12 @@ public partial class ConfigWindow
         if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2222C8);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3333DD);
-        if (ImGui.Button("Delete", new Vector2(120, 0)))
+        if (Widgets.DangerButton("Delete", new Vector2(120, 0)))
         {
             _plugin.Snapshots.Save(fight, "before delete");
             confirmed = true;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
         ImGui.EndPopup();
         return confirmed;
     }
@@ -207,9 +203,7 @@ public partial class ConfigWindow
         if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
-        if (ImGui.Button("Empty this column", new Vector2(160, 0)))
+        if (Widgets.DangerButton("Empty this column", new Vector2(160, 0)))
         {
             _plugin.Snapshots.Save(fight, $"before reset {slot}");
             ClearCustomColumn(fight, slot);
@@ -218,7 +212,6 @@ public partial class ConfigWindow
             FlashBuiltin($"{slot} emptied. History restores the old plan.");
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
         ImGui.EndPopup();
     }
 
@@ -237,9 +230,7 @@ public partial class ConfigWindow
         if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
-        if (ImGui.Button("Empty every column", new Vector2(170, 0)))
+        if (Widgets.DangerButton("Empty every column", new Vector2(170, 0)))
         {
             _plugin.Snapshots.Save(fight, "before reset all columns");
             fight.Lines.Clear();
@@ -249,12 +240,13 @@ public partial class ConfigWindow
             FlashBuiltin("Every column emptied. History restores the old plan.");
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
         ImGui.EndPopup();
     }
 
     private int _pracRowIdx;
     private readonly Dictionary<string, int> _pracRowIdxs = new(); // per fight; headers can co-exist
+    // The phase a preview was started from, so its segment reads as lit.
+    private string _pracPhase = "";
 
     // Practice: a row of phase-jump buttons for this fight.
     private void DrawPracticeRow(FightProfile fight)
@@ -286,17 +278,26 @@ public partial class ConfigWindow
         ImGui.AlignTextToFramePadding();
         ImGui.TextDisabled("Practice:");
         Tip("Preview a phase's calls. Turns on Test Mode.");
+
+        // Which phase is running shows in the fill, which loose buttons never did.
+        var previewing = Plugin.PreviewFight == fight && C.TestMode;
+        ImGui.SameLine(0, 8);
+        Widgets.SegmentBegin();
         for (var i = 0; i < phases.Count; i++)
         {
-            ImGui.SameLine(0, 4);
-            if (ImGui.SmallButton($"{phases[i].Name}##prac{i}"))
+            if (i > 0) ImGui.SameLine();
+            if (Widgets.Segment($"{phases[i].Name}##prac{i}", previewing && _pracPhase == phases[i].Name))
+            {
+                _pracPhase = phases[i].Name;
                 _plugin.PracticeJump(fight, phases[i].Time);
+            }
             Tip($"Preview from {(int)phases[i].Time / 60}:{(int)phases[i].Time % 60:00}.");
         }
-        if (Plugin.PreviewFight == fight && C.TestMode)
+        Widgets.SegmentEnd();
+        if (previewing)
         {
             ImGui.SameLine(0, 8);
-            if (ImGui.SmallButton("Stop##prac")) _plugin.StopPractice();
+            if (ImGui.SmallButton("Stop##prac")) { _plugin.StopPractice(); _pracPhase = ""; }
             ImGui.SameLine(0, 6);
             ImGui.TextColored(ImGuiColors.DalamudYellow, "previewing");
         }
@@ -318,21 +319,25 @@ public partial class ConfigWindow
         ImGui.AlignTextToFramePadding();
         ImGui.TextDisabled("Tank priority:");
         Tip("These phases' tank busters follow job priority (ranked, not MT/OT).\nToggle if the auto pick has you backwards.");
+
+        ImGui.SameLine(0, 8);
+        Widgets.SegmentBegin();
+        var first = true;
         foreach (var (name, phase) in priorityOnes)
         {
             var swapped = TankPriority.IsSwapped(fight, phase!);
-            ImGui.SameLine(0, 4);
-            ImGui.PushStyleColor(ImGuiCol.Button, swapped ? new Vector4(0.36f, 0.62f, 0.96f, 0.4f) : ImGui.GetStyle().Colors[(int)ImGuiCol.Button]);
-            if (ImGui.SmallButton($"{name} {(swapped ? "(swapped)" : "")}##priswap{name}"))
+            if (!first) ImGui.SameLine();
+            first = false;
+            if (Widgets.Segment($"{name}{(swapped ? " swapped" : "")}###priswap{name}", swapped))
             {
                 TankPriority.SetSwapped(fight, phase!, !swapped);
                 Builtin.ReapplyPriority(fight);
                 C.Save();
                 _plugin.SheetViewWindow.MarkPlanDirty();
             }
-            ImGui.PopStyleColor();
             Tip(swapped ? "Swapped - click to go back to the auto pick." : "Click to swap which of you gets priority 1 here.");
         }
+        Widgets.SegmentEnd();
     }
 
     // Potions: baked windows, or the 2-minute meta for customs.

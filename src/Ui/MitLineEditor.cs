@@ -209,11 +209,8 @@ internal static class MitLineEditor
             ImGui.SameLine(0, gap);
         }
 
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E1A2A);        // #2A1A1E, a red that still reads as a button
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF26213A); // #3A2126
-        ImGui.PushStyleColor(ImGuiCol.Text, Theme.Danger);
-        if (ImGui.Button("Delete", new Vector2(hooks.Reset != null ? half : _totalW, 0))) ImGui.OpenPopup("confirmdel");
-        ImGui.PopStyleColor(3);
+        if (Widgets.DangerOutlineButton("Delete", new Vector2(hooks.Reset != null ? half : _totalW, 0)))
+            ImGui.OpenPopup("confirmdel");
         if (ImGui.BeginPopup("confirmdel"))
         {
             ImGui.TextUnformatted($"Delete {named}?");
@@ -221,11 +218,7 @@ internal static class MitLineEditor
                 ? "It stays gone through sheet updates. Reset brings it back."
                 : "Nothing else calls it back.");
             ImGui.Spacing();
-            ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E1A2A);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF26213A);
-            ImGui.PushStyleColor(ImGuiCol.Text, Theme.Danger);
-            var go = ImGui.Button("Delete it", new Vector2(110, 0));
-            ImGui.PopStyleColor(3);
+            var go = Widgets.DangerOutlineButton("Delete it", new Vector2(110, 0));
             if (go)
             {
                 hooks.Delete?.Invoke();

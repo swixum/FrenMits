@@ -211,7 +211,9 @@ public partial class ConfigWindow
             MeterColor("Details", () => C.MeterSubColor, v => C.MeterSubColor = v);
             Tip("Ranks, labels, secondary columns.");
             ImGui.TableNextColumn();
+            ImGui.BeginDisabled(C.OverlaysFollowAccent);
             MeterColor("Accent", () => C.MeterAccentColor, v => C.MeterAccentColor = v);
+            ImGui.EndDisabled();
             Tip("Totals, and bars when job colors are off.");
             ImGui.TableNextColumn();
             MeterColor("Title", () => C.MeterTitleColor, v => C.MeterTitleColor = v);

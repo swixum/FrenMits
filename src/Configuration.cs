@@ -45,10 +45,21 @@ public class Configuration : IPluginConfiguration
     public bool ColorblindMode { get; set; }
 
     // The one interactive color every plugin window is drawn with.
-    public uint AccentColor { get; set; } = 0xFFF6823B;
+    public uint AccentColor { get; set; } = Ui.Theme.DefaultAccent;
 
     // Text and spacing multiplier for the plugin's own windows.
     public float UiScale { get; set; } = 1f;
+
+    // In-game overlays take the accent above instead of their own. Off by
+    // default, so an existing board keeps whatever color it was set to.
+    public bool OverlaysFollowAccent { get; set; }
+
+    // What the Next Mits board and the meter actually draw with.
+    [Newtonsoft.Json.JsonIgnore]
+    public uint BoardAccent => OverlaysFollowAccent ? AccentColor : UpcomingBoardAccentColor;
+
+    [Newtonsoft.Json.JsonIgnore]
+    public uint MeterAccent => OverlaysFollowAccent ? AccentColor : MeterAccentColor;
 
     // Learned downtime lengths per territory, keyed by id.
     public Dictionary<string, List<DowntimeWindow>> LearnedDowntimes { get; set; } = new();
@@ -186,7 +197,7 @@ public class Configuration : IPluginConfiguration
     public bool UpcomingBoardOnlyMine { get; set; }
 
     // Board appearance (all defaults = the FrenMits look).
-    public uint UpcomingBoardAccentColor { get; set; } = 0xFFF6823B; // stripe/fill/header (FrenMits blue)
+    public uint UpcomingBoardAccentColor { get; set; } = Ui.Theme.DefaultAccent; // stripe/fill/header (FrenMits blue)
     public uint UpcomingBoardNextColor { get; set; } = 0xFF28BEFF;   // your next press (gold)
     public uint UpcomingBoardNowColor { get; set; } = 0xFF64DC64;    // press it now (green)
     public float UpcomingBoardBgOpacity { get; set; } = 0.85f;       // bar background opacity
@@ -314,16 +325,16 @@ public class Configuration : IPluginConfiguration
     public float MeterBarGap { get; set; } = 3f;
     public float MeterRounding { get; set; } = 5f;
     public bool MeterJobColors { get; set; } = true;
-    public uint MeterAccentColor { get; set; } = 0xFFF6823B;
+    public uint MeterAccentColor { get; set; } = Ui.Theme.DefaultAccent;
     public uint MeterTextColor { get; set; } = 0xFFFFFFFF;    // names and lead values
     public uint MeterSubColor { get; set; } = 0xFFFFFFFF;     // ranks, labels, other columns
     public uint MeterBgColor { get; set; } = 0xB80D0A09;      // window, alpha included
     public uint MeterRowColor { get; set; } = 0x17FFFFFF;     // bar background
-    public uint MeterYouColor { get; set; } = 0xFFF6823B;     // your name in the list
+    public uint MeterYouColor { get; set; } = Ui.Theme.DefaultAccent;     // your name in the list
     public uint MeterTimerColor { get; set; } = 0xFFFFFFFF;   // the encounter clock
-    public uint MeterHighlightColor { get; set; } = 0xFFF6823B; // the wash over your row
+    public uint MeterHighlightColor { get; set; } = Ui.Theme.DefaultAccent; // the wash over your row
     public uint MeterTitleColor { get; set; } = 0xFFFFFFFF;   // the encounter name
-    public uint MeterBorderColor { get; set; } = 0x2EF6823B;  // the window edge
+    public uint MeterBorderColor { get; set; } = (Ui.Theme.DefaultAccent & 0x00FFFFFF) | 0x2E000000; // the window edge
     public int MeterHighlightStyle { get; set; }              // 0 wash + outline, 1 wash, 2 outline, 3 stripe
     public float MeterHighlightStrength { get; set; } = 1f;
     public float MeterBarOpacity { get; set; } = 1f;

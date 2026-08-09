@@ -41,6 +41,7 @@ internal static class Theme
     public static uint Good => Colorblind ? 0xFF739E00 : 0xFF4FB45A;   // #5AB44F green -> #009E73 bluish-green
     public static uint Warn => Colorblind ? 0xFF009FE6 : 0xFF3BC0F0;   // #F0C03B amber -> #E69F00 orange
     public static uint Danger => Colorblind ? 0xFFA779CC : 0xFF5050E0; // #E05050 red   -> #CC79A7 reddish-purple
+    public static uint DangerHover => Lighten(Danger, 0.22f);
 
     // The one place packed colors become floats.
     public static Vector4 V(uint abgr) => new(

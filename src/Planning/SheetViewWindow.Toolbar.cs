@@ -300,6 +300,8 @@ public partial class SheetViewWindow
         var openAddRow = false;
         var openBuildPull = false;
         var openLog = false;
+        // The "no pulls yet" state offers the log route; it opens out here.
+        if (_openLogAfterPull) { _openLogAfterPull = false; openLog = true; }
         var openDelete = false;
 
         if (_isCustom)
@@ -454,42 +456,23 @@ public partial class SheetViewWindow
     // All + one segment per phase, joined into a single control.
     private void DrawPhaseSegments()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1f, ImGui.GetStyle().ItemSpacing.Y));
-        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0f);
+        Widgets.SegmentBegin();
         PhaseButton("All", _phaseFilter.Length == 0);
         foreach (var (name, _) in _phases)
         {
             ImGui.SameLine();
             PhaseButton(name, _phaseFilter == name);
         }
-        ImGui.PopStyleVar(2);
-
-        // One outline around the lot, so it reads as one control.
-        var min = ImGui.GetItemRectMin();
-        var max = ImGui.GetItemRectMax();
-        ImGui.GetWindowDrawList().AddRect(
-            new Vector2(_segLeft, min.Y), max, Widgets.CardBorder, 4f);
+        Widgets.SegmentEnd();
     }
-
-    private float _segLeft;
 
     private void PhaseButton(string name, bool on)
     {
-        if (on)
-        {
-            ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
-            ImGui.PushStyleColor(ImGuiCol.Text, Theme.AccentText);
-        }
-        if (ImGui.SmallButton($"{name}###ph{name}"))
-        {
-            // Land any open editor BEFORE the filter hides its row, or the edit
-            // state would linger unseen (blocking rebuilds) until a later click.
-            CommitPending();
-            _phaseFilter = name == "All" ? "" : name;
-        }
-        if (on) ImGui.PopStyleColor(3);
-        if (name == "All") _segLeft = ImGui.GetItemRectMin().X;
+        if (!Widgets.Segment($"{name}###ph{name}", on)) return;
+        // Land any open editor BEFORE the filter hides its row, or the edit
+        // state would linger unseen (blocking rebuilds) until a later click.
+        CommitPending();
+        _phaseFilter = name == "All" ? "" : name;
     }
 
     // Everything that changes what the grid shows, in one place.
@@ -554,9 +537,7 @@ public partial class SheetViewWindow
         if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF2222C8);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF3333DD);
-        if (ImGui.Button("Delete", new Vector2(120, 0)))
+        if (Widgets.DangerButton("Delete", new Vector2(120, 0)))
         {
             var f = _fight!;
             _plugin.Snapshots.Save(f, "before delete");
@@ -568,7 +549,6 @@ public partial class SheetViewWindow
             ImGui.CloseCurrentPopup();
             Flash($"\"{f.Name}\" deleted. A snapshot was kept.");
         }
-        ImGui.PopStyleColor(2);
         ImGui.EndPopup();
     }
 
@@ -595,8 +575,11 @@ public partial class SheetViewWindow
 
         if (_snapList.Count == 0)
         {
-            ImGui.TextDisabled("None yet. Snapshots are taken automatically before");
-            ImGui.TextDisabled("imports, replaces, column pastes and sheet refreshes.");
+            ImGui.TextUnformatted("No snapshots");
+            ImGui.PushTextWrapPos(420f);
+            ImGui.TextDisabled("One is saved automatically before every import, replace, column paste "
+                               + "and sheet refresh, so there is always a way back.");
+            ImGui.PopTextWrapPos();
         }
         foreach (var s in _snapList)
         {

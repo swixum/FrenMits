@@ -525,13 +525,13 @@ public partial class ConfigWindow
         ImGui.NewLine();
 
         ImGui.Spacing();
-        if (ImGui.SmallButton("Match the overlays to this"))
-        {
-            C.UpcomingBoardAccentColor = C.AccentColor;
-            C.MeterAccentColor = C.AccentColor;
-            C.Save();
-        }
-        Tip("Points the Next Mits board and the meter at this color too.");
+        C.OverlaysFollowAccent = Toggle("Overlays follow this color", C.OverlaysFollowAccent);
+        Tip("The Next Mits board and the meter take this accent instead of their own.");
+        ImGui.Indent(24f);
+        ImGui.TextDisabled(C.OverlaysFollowAccent
+            ? "Their own accent pickers are held while this is on."
+            : "Each keeps the accent set on its own page.");
+        ImGui.Unindent(24f);
 
         ImGui.Spacing();
         SeparatorText("Size");
@@ -690,8 +690,12 @@ public partial class ConfigWindow
             ImGui.AlignTextToFramePadding();
             ImGui.TextDisabled("Colors");
             ImGui.SameLine(0, 12);
-            BoardColor("Accent", "The board's base color: stripe, drain fill, header.",
+            ImGui.BeginDisabled(C.OverlaysFollowAccent);
+            BoardColor("Accent", C.OverlaysFollowAccent
+                    ? "Held: Display > Look has the overlays following the plugin accent."
+                    : "The board's base color: stripe, drain fill, header.",
                 () => C.UpcomingBoardAccentColor, v => C.UpcomingBoardAccentColor = v);
+            ImGui.EndDisabled();
             ImGui.SameLine(0, 14);
             BoardColor("Next", "Your next mit's row (gold by default).",
                 () => C.UpcomingBoardNextColor, v => C.UpcomingBoardNextColor = v);
@@ -701,7 +705,7 @@ public partial class ConfigWindow
             ImGui.SameLine(0, 16);
             if (ImGui.SmallButton("Reset colors"))
             {
-                C.UpcomingBoardAccentColor = 0xFFF6823B;
+                C.UpcomingBoardAccentColor = Theme.DefaultAccent;
                 C.UpcomingBoardNextColor = 0xFF28BEFF;
                 C.UpcomingBoardNowColor = 0xFF64DC64;
                 C.Save();
@@ -836,7 +840,7 @@ public partial class ConfigWindow
         C.UpcomingHeaderTitle = true; C.UpcomingHeaderClock = true; C.UpcomingHeaderRule = true;
         C.UpcomingHeaderSlot = true; C.UpcomingHeaderSync = true;
         C.UpcomingBoardTimeText = true; C.UniversalTimelines = true;
-        C.UpcomingBoardAccentColor = 0xFFF6823B; C.UpcomingBoardNextColor = 0xFF28BEFF;
+        C.UpcomingBoardAccentColor = Theme.DefaultAccent; C.UpcomingBoardNextColor = 0xFF28BEFF;
         C.UpcomingBoardNowColor = 0xFF64DC64; C.UpcomingBoardBgOpacity = 0.85f;
         C.UpcomingBoardRounding = 5f; C.UpcomingBoardBarPad = 8f; C.UpcomingBoardRowGap = 4f;
         C.UpcomingBoardStripe = true; C.UpcomingBoardDrain = true;

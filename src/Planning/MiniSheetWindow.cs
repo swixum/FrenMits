@@ -51,7 +51,14 @@ public class MiniSheetWindow : Window
         var fight = _plugin.ActiveFight();
         if (fight == null)
         {
-            ImGui.TextDisabled("No fight in this zone.");
+            ImGui.TextUnformatted("Nothing planned here");
+            ImGui.PushTextWrapPos(0f);
+            ImGui.TextDisabled("The Mit Tuner follows the fight you are standing in, and this "
+                               + "duty has no sheet yet.");
+            ImGui.PopTextWrapPos();
+            ImGui.Spacing();
+            if (Widgets.AccentButton("Make a sheet for this duty"))
+                _plugin.SheetViewWindow.Open(null);
             return;
         }
 
@@ -66,7 +73,14 @@ public class MiniSheetWindow : Window
 
         if (_rows.Count == 0)
         {
-            ImGui.TextDisabled("No calls planned for your job here.");
+            ImGui.TextUnformatted("Your column is empty");
+            ImGui.PushTextWrapPos(0f);
+            ImGui.TextDisabled(string.IsNullOrEmpty(fight.Slot)
+                ? "No slot is picked for this fight, so nothing is yours to press yet."
+                : $"This sheet has rows, but nothing is assigned to {fight.Slot} yet.");
+            ImGui.PopTextWrapPos();
+            ImGui.Spacing();
+            if (Widgets.AccentButton("Open Sheet View")) _plugin.SheetViewWindow.Open(fight);
             return;
         }
 

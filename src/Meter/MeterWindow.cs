@@ -177,7 +177,7 @@ public class MeterWindow : Window
             {
                 // The theme's own accent, so an empty board still looks like the meter.
                 top += lineH + 4f;
-                CenterText(dl, wp, ws.X, top, C.MeterAccentColor, Clip(line, ws.X - 12f));
+                CenterText(dl, wp, ws.X, top, C.MeterAccent, Clip(line, ws.X - 12f));
             }
             if (note.Length > 0)
                 CenterText(dl, wp, ws.X, top + lineH + 4f, C.MeterSubColor, Clip(note, ws.X - 12f));
@@ -277,7 +277,7 @@ public class MeterWindow : Window
         if (label.Length > 0)
         {
             rx -= ImGui.CalcTextSize(label).X;
-            BText(dl, wp + new Vector2(rx, ty), m.Paused ? C.MeterAccentColor : C.MeterSubColor, label);
+            BText(dl, wp + new Vector2(rx, ty), m.Paused ? C.MeterAccent : C.MeterSubColor, label);
             rx -= 12f;
         }
 
@@ -348,7 +348,7 @@ public class MeterWindow : Window
             var g = icon.ToIconString();
             var gs = ImGui.CalcTextSize(g);
             dl.AddText(min + new Vector2((w - gs.X) * 0.5f, (h - gs.Y) * 0.5f),
-                accent ? C.MeterAccentColor : hovered ? C.MeterTextColor : C.MeterSubColor, g);
+                accent ? C.MeterAccent : hovered ? C.MeterTextColor : C.MeterSubColor, g);
         }
         if (hovered)
         {
@@ -372,8 +372,8 @@ public class MeterWindow : Window
         var active = C.MeterMode == mode;
         if (active)
         {
-            dl.AddRectFilled(min, max, (C.MeterAccentColor & 0x00FFFFFF) | 0x30000000, 4f);
-            dl.AddLine(new Vector2(min.X + 3, max.Y - 1), new Vector2(max.X - 3, max.Y - 1), C.MeterAccentColor, 2f);
+            dl.AddRectFilled(min, max, (C.MeterAccent & 0x00FFFFFF) | 0x30000000, 4f);
+            dl.AddLine(new Vector2(min.X + 3, max.Y - 1), new Vector2(max.X - 3, max.Y - 1), C.MeterAccent, 2f);
         }
         else if (hovered)
             dl.AddRectFilled(min, max, 0x1CFFFFFF, 4f);
@@ -744,14 +744,14 @@ public class MeterWindow : Window
             BText(dl, wp + new Vector2(pad, y), C.MeterTimerColor, timeText);
             TitleWithPicker(dl, wp, pad + timeW + 8f, y,
                 Clip(title, ws.X - pad * 2 - mainW - timeW - 34f - chevW));
-            BText(dl, wp + new Vector2(ws.X - pad - chevW - mainW, y), C.MeterAccentColor, main);
+            BText(dl, wp + new Vector2(ws.X - pad - chevW - mainW, y), C.MeterAccent, main);
             y += lineH + 5f;
         }
         else
         {
             var mainW = ImGui.CalcTextSize(main).X;
             TitleWithPicker(dl, wp, pad, y, Clip(title, ws.X - pad * 2 - mainW - 26f - chevW));
-            BText(dl, wp + new Vector2(ws.X - pad - chevW - mainW, y), C.MeterAccentColor, main);
+            BText(dl, wp + new Vector2(ws.X - pad - chevW - mainW, y), C.MeterAccent, main);
             y += lineH + 2f;
 
             var players = 0;
@@ -937,7 +937,7 @@ public class MeterWindow : Window
     {
         var enc = _plugin.Meter.Sample();
         var t = v.Theme;
-        var accent = t?.Accent ?? C.MeterAccentColor;
+        var accent = t?.Accent ?? C.MeterAccent;
         var text = t?.Text ?? C.MeterTextColor;
         var sub = t?.Sub ?? C.MeterSubColor;
         var rowCol = t?.Rows ?? C.MeterRowColor;
@@ -1213,7 +1213,7 @@ public class MeterWindow : Window
                 {
                     var ix = wp.X + (after ? r.X1 + ColGap * 0.5f : r.X0 - ColGap * 0.5f);
                     fg.AddLine(new Vector2(ix, wp.Y + rowTop - 2f), new Vector2(ix, wp.Y + rowTop + lineH + 2f),
-                        C.MeterAccentColor, 2f);
+                        C.MeterAccent, 2f);
                 }
 
         if (ImGui.IsMouseDown(ImGuiMouseButton.Left)) return;
@@ -1563,7 +1563,7 @@ public class MeterWindow : Window
         var opened = hovered && ImGui.IsItemClicked(ImGuiMouseButton.Left);
         var dl = ImGui.GetWindowDrawList();
 
-        var jobColor = C.MeterJobColors && JobColors.TryGetValue(r.Job, out var jc) ? jc : C.MeterAccentColor;
+        var jobColor = C.MeterJobColors && JobColors.TryGetValue(r.Job, out var jc) ? jc : C.MeterAccent;
         var rgb = jobColor & 0x00FFFFFF;
 
         dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, rowH),
@@ -1637,7 +1637,7 @@ public class MeterWindow : Window
         var hovered = !C.MeterClickThrough && ImGui.IsItemHovered();
         var opened = hovered && ImGui.IsItemClicked(ImGuiMouseButton.Left);
         var dl = ImGui.GetWindowDrawList();
-        var rgb = C.MeterAccentColor & 0x00FFFFFF;
+        var rgb = C.MeterAccent & 0x00FFFFFF;
 
         dl.AddRectFilled(p + new Vector2(pad - 3f, 0), p + new Vector2(w - pad + 3f, h),
             hovered ? Brighten(C.MeterRowColor) : C.MeterRowColor, 4f);
@@ -1769,7 +1769,7 @@ public class MeterWindow : Window
             var min = ImGui.GetItemRectMin();
             var on = _detailKind == tabs[i].Kind;
             if (on) dl.AddRectFilled(min, min + new Vector2(tw, lineH + 6f),
-                (C.MeterAccentColor & 0x00FFFFFF) | 0x33000000, 4f);
+                (C.MeterAccent & 0x00FFFFFF) | 0x33000000, 4f);
             BText(dl, min + new Vector2(7f, 3f), on ? C.MeterTextColor : C.MeterSubColor, tabs[i].Label);
             if (clicked) _detailKind = tabs[i].Kind;
             x += tw + 4f;
@@ -2094,8 +2094,8 @@ public class MeterWindow : Window
                     StringComparison.OrdinalIgnoreCase))
                 return (C.MeterJobColors && JobColors.TryGetValue(r.Job, out var jc)
                     ? jc
-                    : C.MeterAccentColor) & 0x00FFFFFF;
-        return C.MeterAccentColor & 0x00FFFFFF;
+                    : C.MeterAccent) & 0x00FFFFFF;
+        return C.MeterAccent & 0x00FFFFFF;
     }
 
     private double Metric(MeterCombatant c) => C.MeterMode switch
@@ -2399,7 +2399,7 @@ public class MeterWindow : Window
     // The meter's own look carried into its popups.
     private void PushMenuTheme()
     {
-        var accent = C.MeterAccentColor & 0x00FFFFFF;
+        var accent = C.MeterAccent & 0x00FFFFFF;
         ImGui.PushStyleColor(ImGuiCol.PopupBg, (C.MeterBgColor & 0x00FFFFFF) | 0xF4000000);
         ImGui.PushStyleColor(ImGuiCol.Border, 0x3CFFFFFF);
         ImGui.PushStyleColor(ImGuiCol.Text, C.MeterTextColor);
@@ -2408,7 +2408,7 @@ public class MeterWindow : Window
         ImGui.PushStyleColor(ImGuiCol.HeaderHovered, accent | 0x55000000);
         ImGui.PushStyleColor(ImGuiCol.HeaderActive, accent | 0x6E000000);
         ImGui.PushStyleColor(ImGuiCol.Separator, 0x24FFFFFF);
-        ImGui.PushStyleColor(ImGuiCol.CheckMark, C.MeterAccentColor);
+        ImGui.PushStyleColor(ImGuiCol.CheckMark, C.MeterAccent);
         ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x1FFFFFFF);
         ImGui.PushStyleVar(ImGuiStyleVar.PopupRounding, 9f);
         ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 1f);

@@ -186,7 +186,7 @@ public class TimelineWindow : Window
 
     // The customizable colors, guarded so a zeroed config value falls back to
     // the FrenMits defaults instead of erasing a state.
-    private uint AccentCol => C.UpcomingBoardAccentColor != 0 ? C.UpcomingBoardAccentColor : 0xFFF6823B;
+    private uint AccentCol => C.BoardAccent != 0 ? C.BoardAccent : Theme.DefaultAccent;
     private uint NextCol => C.UpcomingBoardNextColor != 0 ? C.UpcomingBoardNextColor : 0xFF28BEFF;
     private uint NowCol => C.UpcomingBoardNowColor != 0 ? C.UpcomingBoardNowColor : 0xFF64DC64;
     private float BoardRound => Math.Clamp(C.UpcomingBoardRounding, 0f, 12f);

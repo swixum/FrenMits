@@ -75,10 +75,9 @@ public partial class ConfigWindow : Window, IDisposable
     private NavKind _nav = NavKind.Home;
     private string _navCategory = "Ultimate";
 
+    // Every group a fight can file under, in sidebar order. The Type combo on
+    // the fight page picks from the same list.
     private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme" };
-
-    // Every group a fight can file under, in sidebar order.
-    private static readonly string[] FightTypes = { "Ultimate", "Savage", "Extreme" };
 
     // The sidebar group a fight belongs to.
     private static string CategoryOf(FightProfile f)
@@ -338,11 +337,22 @@ public partial class ConfigWindow : Window, IDisposable
             var wp = ImGui.GetWindowPos();
             dl.AddRectFilled(wp, wp + new Vector2(3, ImGui.GetWindowHeight()), Theme.Accent);
 
-            // Title + the zone's fight (or a hint when there isn't one).
-            ImGui.TextUnformatted("Fren Mits");
-            ImGui.SameLine(0, 10);
-            ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f),
-                fight != null ? fight.Name : "no supported fight in this zone");
+            // The zone's fight leads, since the title bar already says the name.
+            if (fight != null)
+            {
+                ImGui.TextUnformatted(fight.Name);
+                ImGui.SameLine(0, 10);
+                if (string.IsNullOrEmpty(fight.Slot))
+                    ImGui.TextColored(Theme.V(Theme.Warn), "no slot picked");
+                else
+                    ImGui.TextColored(Theme.V(Theme.Accent),
+                        job != null ? $"{fight.Slot} as {job}" : fight.Slot);
+            }
+            else
+            {
+                ImGui.TextColored(new Vector4(0.55f, 0.59f, 0.66f, 1f),
+                    "No supported fight in this zone");
+            }
 
             // Right-aligned quick action, measured rather than hardcoded.
             var right = ImGui.GetWindowWidth()
@@ -772,7 +782,7 @@ public partial class ConfigWindow : Window, IDisposable
             if (x > 0) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + x);
         }
 
-        var accent = new Vector4(0.23f, 0.51f, 0.96f, 1f);
+        var accent = Theme.V(Theme.Accent);
         var grey = new Vector4(0.55f, 0.59f, 0.66f, 1f);
 
         ImGui.Dummy(new Vector2(0, 10));
@@ -813,7 +823,7 @@ public partial class ConfigWindow : Window, IDisposable
         var dl = ImGui.GetWindowDrawList();
         var cy = ImGui.GetCursorScreenPos().Y;
         var cx = ImGui.GetWindowPos().X + ImGui.GetWindowWidth() * 0.5f;
-        dl.AddRectFilled(new Vector2(cx - 60, cy), new Vector2(cx + 60, cy + 2), 0xFFF6823B, 1f);
+        dl.AddRectFilled(new Vector2(cx - 60, cy), new Vector2(cx + 60, cy + 2), Theme.Accent, 1f);
         ImGui.Dummy(new Vector2(0, 14));
 
         // First-run steps, gone once any fight has a slot picked.

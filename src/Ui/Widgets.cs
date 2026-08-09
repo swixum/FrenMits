@@ -162,4 +162,77 @@ internal static class Widgets
         ImGui.PopStyleColor(4);
         return clicked;
     }
+
+    // ---- segmented control ----
+    // Small buttons joined into one: square corners, hairline gaps, one outline.
+    // Call Begin right where the first segment goes, then Segment per item.
+
+    private static float _segLeft;
+
+    public static void SegmentBegin()
+    {
+        _segLeft = ImGui.GetCursorScreenPos().X;
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1f, ImGui.GetStyle().ItemSpacing.Y));
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0f);
+    }
+
+    public static bool Segment(string label, bool on)
+    {
+        if (on)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
+            ImGui.PushStyleColor(ImGuiCol.Text, Theme.AccentText);
+        }
+        var clicked = ImGui.SmallButton(label);
+        if (on) ImGui.PopStyleColor(3);
+        return clicked;
+    }
+
+    public static void SegmentEnd()
+    {
+        ImGui.PopStyleVar(2);
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
+        ImGui.GetWindowDrawList().AddRect(new Vector2(_segLeft, min.Y), max, CardBorder, 4f);
+    }
+
+    // Filled danger: this button destroys a body of work. One color for all of
+    // them, and it follows colorblind mode, which the old literals never did.
+    public static void PushDanger()
+    {
+        ImGui.PushStyleColor(ImGuiCol.Button, Theme.Danger);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.DangerHover);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, Theme.DangerHover);
+        ImGui.PushStyleColor(ImGuiCol.Text, Theme.AccentText);
+    }
+
+    // Outlined danger: this removes one row, not a body of work.
+    public static void PushDangerOutline()
+    {
+        var rgb = Theme.Danger & 0x00FFFFFFu;
+        ImGui.PushStyleColor(ImGuiCol.Button, rgb | 0x28000000u);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, rgb | 0x4C000000u);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, rgb | 0x6E000000u);
+        ImGui.PushStyleColor(ImGuiCol.Text, Theme.Danger);
+    }
+
+    public static void PopDanger() => ImGui.PopStyleColor(4);
+
+    public static bool DangerButton(string label, Vector2 size = default)
+    {
+        PushDanger();
+        var clicked = ImGui.Button(label, size);
+        PopDanger();
+        return clicked;
+    }
+
+    public static bool DangerOutlineButton(string label, Vector2 size = default)
+    {
+        PushDangerOutline();
+        var clicked = ImGui.Button(label, size);
+        PopDanger();
+        return clicked;
+    }
+
 }

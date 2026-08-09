@@ -47,8 +47,17 @@ public partial class SheetViewWindow
             : new List<SyncEngine.Capture>();
         if (casts.Count == 0)
         {
-            ImGui.TextDisabled("Nothing captured from this duty yet. Do a pull (even a");
-            ImGui.TextDisabled("short wipe); the boss's casts are recorded automatically.");
+            ImGui.TextUnformatted("No pulls recorded");
+            ImGui.PushTextWrapPos(430f);
+            ImGui.TextDisabled("Rows are built from casts seen in a real pull, and they are recorded "
+                               + "automatically. One short wipe is enough.");
+            ImGui.PopTextWrapPos();
+            ImGui.Spacing();
+            if (ImGui.Button("Build from a kill log instead", new Vector2(220, 0)))
+            {
+                ImGui.CloseCurrentPopup();
+                _openLogAfterPull = true;
+            }
             ImGui.EndPopup();
             return;
         }
@@ -333,6 +342,9 @@ public partial class SheetViewWindow
     private string _flIdBuf = "";
     private string _flSecretBuf = "";
     private FightProfile? _flForFight; // whose sheet the cached report state belongs to
+
+    // Set by the build-from-pull popup when it has nothing to offer.
+    private bool _openLogAfterPull;
 
     private void DrawFFLogsPopup()
     {

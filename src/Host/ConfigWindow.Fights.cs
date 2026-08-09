@@ -460,9 +460,7 @@ public partial class ConfigWindow
         if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
-        if (ImGui.Button("Reset every column", new Vector2(180, 0)))
+        if (Widgets.DangerButton("Reset every column", new Vector2(180, 0)))
         {
             _plugin.Snapshots.Save(fight, "before Reset all columns");
             fight.SavedSlots.Clear();
@@ -473,7 +471,6 @@ public partial class ConfigWindow
             FlashBuiltin("Every column reset to the baked sheet. History restores the old plan.");
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
         ImGui.EndPopup();
     }
 
@@ -488,14 +485,11 @@ public partial class ConfigWindow
         ImGui.TextDisabled("Resetting will discard this slot's changes and load the baked sheet fresh.");
         ImGui.Separator();
 
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
-        if (ImGui.Button("Reset and lose my edits", new Vector2(220, 0)))
+        if (Widgets.DangerButton("Reset and lose my edits", new Vector2(220, 0)))
         {
             ResetBuiltinSlot(fight, slot);
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
         ImGui.SameLine();
         if (ImGui.Button("Cancel", new Vector2(100, 0)))
             ImGui.CloseCurrentPopup();

@@ -51,6 +51,7 @@ public class SlotPopupWindow : Window
     public override void Draw()
     {
         Theme.PushWidgets();
+        using var uiFont = Widgets.PushUiFont(_plugin.Fonts, Theme.Scale);
         try
         {
             ImGui.TextUnformatted(_fight!.Name);

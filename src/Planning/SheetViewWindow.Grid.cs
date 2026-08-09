@@ -873,9 +873,7 @@ public partial class SheetViewWindow
         if (ImGui.Button("Cancel", new Vector2(120, 0))) ImGui.CloseCurrentPopup();
         ImGui.SetItemDefaultFocus();
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Button, 0xFF1E40C0);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xFF2046D0);
-        if (ImGui.Button("Reset every column", new Vector2(180, 0)) && _fight != null)
+        if (Widgets.DangerButton("Reset every column", new Vector2(180, 0)) && _fight != null)
         {
             PushUndo("reset every column");
             _plugin.Snapshots.Save(_fight, "before Reset all columns");
@@ -890,7 +888,6 @@ public partial class SheetViewWindow
             Flash("Every column reset to the baked sheet. Plan > History (or Ctrl+Z) restores the old plan.");
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
         ImGui.EndPopup();
     }
 
