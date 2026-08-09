@@ -198,11 +198,13 @@ public partial class ConfigWindow
                     }
                     var hasExtras = PotionTimings.BossSlug(fight.TerritoryId) != null
                         || (fight.CustomSlots.Count > 0 && fight.CustomRows.Count > 0)
-                        || (!string.IsNullOrEmpty(job) && JobExtras.AllFor(fight, job).Count > 0);
+                        || (!string.IsNullOrEmpty(job) && JobExtras.AllFor(fight, job).Count > 0)
+                        || HasPersonalTimers(fight, job);
                     if (hasExtras && Section("Extras: potions, job mits", false))
                     {
                         DrawPotionsSection(fight);
                         DrawJobExtrasSection(fight);
+                        DrawPersonalTimersSection(fight);
                     }
                     ImGui.Separator();
                     

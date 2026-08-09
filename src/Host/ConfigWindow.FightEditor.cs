@@ -340,6 +340,81 @@ public partial class ConfigWindow
         Widgets.SegmentEnd();
     }
 
+    // Personal-timer cues the sheet bakes in, like the summoner's pet cycle on
+    // Dancing Mad. They belong to one job rather than the party, so they get
+    // their own switch instead of being deleted a burst at a time.
+    private bool HasPersonalTimers(FightProfile fight, string? job)
+        => Builtin.Has(fight.TerritoryId)
+           && Builtin.HasHiddenMechanics(fight.TerritoryId)
+           && !string.IsNullOrEmpty(fight.Slot)
+           && !string.IsNullOrEmpty(job)
+           && Builtin.BakedLinesForFight(fight, fight.Slot)
+               .Any(b => Builtin.IsHiddenMechanic(fight.TerritoryId, b.Mechanic) && b.AppliesTo(job));
+
+    private bool IsPersonalTimer(FightProfile fight, MitLine l, string job)
+        => Builtin.IsHiddenMechanic(fight.TerritoryId, l.Mechanic) && l.AppliesTo(job);
+
+    private void DrawPersonalTimersSection(FightProfile fight)
+    {
+        var job = _plugin.GetActiveJobAbbr(fight);
+        if (!HasPersonalTimers(fight, job)) return;
+
+        var mine = fight.Lines.Where(l => IsPersonalTimer(fight, l, job!)).ToList();
+        var baked = Builtin.BakedLinesForFight(fight, fight.Slot)
+            .Where(b => IsPersonalTimer(fight, b, job!)).ToList();
+        var name = baked.Count > 0 ? baked[0].Mechanic : "Summon";
+
+        BeginCard(FontAwesomeIcon.Hourglass, UserBlue, $"{job} {name.ToLowerInvariant()} cues",
+            mine.Count > 0 ? $"{mine.Count} on your plan" : "off");
+        ImGui.TextDisabled($"The sheet bakes {job}'s own {name.ToLowerInvariant()} timings in and calls them like any");
+        ImGui.TextDisabled("other line. Untick if you already know your rotation.");
+        ImGui.Spacing();
+
+        var on = mine.Count > 0;
+        if (GreenCheckbox($"Call the {name.ToLowerInvariant()} cues##hidcue", ref on))
+        {
+            _plugin.SheetViewWindow.PushUndo(fight, on ? $"restore {name} cues" : $"remove {name} cues");
+            if (on) RestorePersonalTimers(fight);
+            else RemovePersonalTimers(fight, mine, job!);
+            _plugin.SheetViewWindow.MarkPlanDirty();
+        }
+        Tip(on
+            ? $"{baked.Count} baked cue(s) for {job}. Untick to take them off this plan for good."
+            : $"Tick to put the sheet's {baked.Count} {job} cue(s) back.");
+
+        EndCard();
+    }
+
+    // A tombstone each, so the sheet's top-up cannot put them back.
+    private void RemovePersonalTimers(FightProfile fight, List<MitLine> mine, string job)
+    {
+        foreach (var l in mine)
+        {
+            if (!l.Custom)
+                fight.DeletedCalls.Add(new DeletedCall
+                {
+                    Slot = fight.Slot,
+                    Time = l.Time,
+                    Mechanic = l.Mechanic,
+                    Action = l.Action,
+                });
+            fight.Lines.Remove(l);
+        }
+        SetFightLines(fight, fight.Lines);
+        FlashBuiltin($"Removed {mine.Count} {job} cue(s). Tick the box to bring them back.");
+    }
+
+    // Lift only these tombstones, so other deletions stay deleted.
+    private void RestorePersonalTimers(FightProfile fight)
+    {
+        fight.DeletedCalls.RemoveAll(d =>
+            string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase)
+            && Builtin.IsHiddenMechanic(fight.TerritoryId, d.Mechanic));
+        var back = Builtin.ApplySlot(fight, fight.Slot);
+        C.Save();
+        FlashBuiltin($"Restored {back} cue(s) from the sheet.");
+    }
+
     // Potions: baked windows, or the 2-minute meta for customs.
     private void DrawPotionsSection(FightProfile fight)
     {

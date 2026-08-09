@@ -307,6 +307,15 @@ public static class Builtin
         return names.Count > 0 && names.Contains(mechanic.Trim());
     }
 
+    // True when the sheet has any personal-timer mechanic at all, so a page can
+    // offer a switch for them without hardcoding a duty.
+    public static bool HasHiddenMechanics(uint territory)
+    {
+        IsHiddenMechanic(territory, "x"); // warms the cache
+        lock (_hiddenCache)
+            return _hiddenCache.TryGetValue(territory, out var names) && names.Count > 0;
+    }
+
     // The raw sheet behind a built-in, for callers that need the whole thing.
     public static FightDefinition? Definition(uint territory) => LoadJsonDef(territory);
 
