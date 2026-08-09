@@ -190,16 +190,6 @@ internal static class SettingsIndex
         E(ConfigWindow.NavKind.Meter, "Style", "Drop shadow", nameof(Configuration.MeterTextShadow), "outline"),
     };
 
-    // Fast (page, label) lookup for the inline "changed" marks.
-    private static readonly Dictionary<(ConfigWindow.NavKind, string), Entry> ByLabel =
-        All.GroupBy(e => (e.Nav, e.Label)).ToDictionary(g => g.Key, g => g.First());
-
-    public static Entry? Find(ConfigWindow.NavKind nav, string label)
-        => ByLabel.TryGetValue((nav, label), out var e) ? e : null;
-
-    public static bool IsChanged(Configuration c, ConfigWindow.NavKind nav, string label)
-        => Find(nav, label)?.IsChanged(c) ?? false;
-
     // Settings on one tab that are off their defaults.
     public static List<Entry> ChangedIn(Configuration c, ConfigWindow.NavKind nav, string tab)
         => All.Where(e => e.Nav == nav && e.Tab == tab && e.IsChanged(c)).ToList();

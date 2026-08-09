@@ -514,7 +514,6 @@ public partial class ConfigWindow
             Theme.Accent = C.AccentColor;
             C.SaveSettings();
         }
-        if (SettingsIndex.IsChanged(C, NavKind.Display, "Accent color")) Widgets.ChangedPill();
 
         // One click each, so a color can be tried without opening the picker.
         ImGui.Spacing();
@@ -543,7 +542,6 @@ public partial class ConfigWindow
             Theme.Scale = scale;
             C.SaveSettings();
         }
-        if (SettingsIndex.IsChanged(C, NavKind.Display, "UI scale")) Widgets.ChangedPill();
         ImGui.TextDisabled("Text and spacing in the plugin's own windows. The in-game overlays keep");
         ImGui.TextDisabled("their own text-size sliders, since they sit over the game.");
     }

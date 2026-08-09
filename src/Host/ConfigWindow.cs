@@ -245,7 +245,6 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.SameLine(0, 8);
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(label);
-        if (SettingsIndex.IsChanged(C, _nav, label)) Widgets.ChangedPill();
         return v;
     }
 
@@ -645,7 +644,7 @@ public partial class ConfigWindow : Window, IDisposable
 
         ImGui.Spacing();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(Theme.V(Theme.Accent), $"{changed.Count} changed");
+        ImGui.TextColored(Theme.V(Theme.Accent), $"{changed.Count} off default");
         ImGui.SameLine(0, 10);
         if (ImGui.SmallButton($"Reset tab##rst{tab}"))
         {
@@ -727,12 +726,6 @@ public partial class ConfigWindow : Window, IDisposable
             var dl = ImGui.GetWindowDrawList();
             dl.AddText(min + new Vector2(8, 3), Theme.TextBright, e.Label);
             dl.AddText(min + new Vector2(8, 3 + ImGui.GetTextLineHeight()), Theme.Muted, SettingsIndex.Where(e));
-            if (e.IsChanged(C))
-            {
-                var tag = "changed";
-                var w = ImGui.CalcTextSize(tag).X;
-                dl.AddText(new Vector2(ImGui.GetItemRectMax().X - w - 10f, min.Y + 3), Theme.Accent, tag);
-            }
             ImGui.PopID();
         }
 

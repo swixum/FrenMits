@@ -43,28 +43,6 @@ internal static class Widgets
         return handle is { Available: true } ? handle.Push() : null;
     }
 
-    // A pill marking a setting that no longer matches its default. Drawn beside
-    // the last item rather than as one, so its label keeps the hover tooltip.
-    public static void ChangedPill()
-    {
-        var pad = new Vector2(6, 1);
-        var sz = ImGui.CalcTextSize("changed");
-        var p = new Vector2(ImGui.GetItemRectMax().X + 8f, ImGui.GetItemRectMin().Y - pad.Y);
-        var box = sz + pad * 2;
-        var dl = ImGui.GetWindowDrawList();
-        var right = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
-        if (p.X + box.X > right)
-        {
-            // No room for the word: a dot says the same thing.
-            var h = ImGui.GetTextLineHeight();
-            dl.AddCircleFilled(new Vector2(p.X, ImGui.GetItemRectMin().Y + h * 0.5f), 3.5f, Theme.Accent);
-            return;
-        }
-        dl.AddRectFilled(p, p + box, (Theme.Accent & 0x00FFFFFFu) | 0x2A000000u, 4f);
-        dl.AddRect(p, p + box, (Theme.Accent & 0x00FFFFFFu) | 0x99000000u, 4f);
-        dl.AddText(p + pad, Theme.Accent, "changed");
-    }
-
     // The header every plugin window opens with: an accent bar, a title, and a
     // muted detail. Right-aligned actions go after it with SameLine.
     public static void WindowHeader(string title, string detail = "")
