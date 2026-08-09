@@ -28,6 +28,9 @@ public partial class ConfigWindow
         public List<MitLine> Actions = new();
     }
 
+    // Narrow the table to mechanics holding a cooldown clash.
+    private bool _lineClashOnly;
+
     private void DrawLineTable(FightProfile fight)
     {
         // One shared stack with Sheet View, so either page takes back the
@@ -94,12 +97,15 @@ public partial class ConfigWindow
         ImGui.Spacing();
         ImGui.AlignTextToFramePadding();
         ImGui.TextDisabled($"{fight.Lines.Count} line{(fight.Lines.Count == 1 ? "" : "s")}");
-        if (clashLines > 0)
+        if (clashLines > 0 || _lineClashOnly)
         {
             ImGui.SameLine(0, 10);
-            Widgets.Chip("clashes", clashLines.ToString(), Theme.Danger);
+            if (Widgets.ChipButton("clashes", clashLines.ToString(), Theme.Danger, _lineClashOnly))
+                _lineClashOnly = !_lineClashOnly;
             if (Widgets.HoveredDelayed())
-                ImGui.SetTooltip("Lines whose mit repeats before its cooldown is back.\nThe red cells below are the ones.");
+                ImGui.SetTooltip(_lineClashOnly
+                    ? "Showing only mechanics with a clash. Click to show them all."
+                    : "Lines whose mit repeats before its cooldown is back.\nClick to show only those mechanics.");
         }
 
         // Grow to fill, leaving room for the import header..
@@ -171,6 +177,19 @@ public partial class ConfigWindow
             groups.RemoveAll(g => g.IsOfficial && (g.Actions.Count == 0 || g.Actions.All(a => string.IsNullOrWhiteSpace(a.Action) || (!string.IsNullOrEmpty(jobAbbr) && !a.AppliesTo(jobAbbr)))));
         }
         groups = groups.OrderBy(g => g.Time).ToList();
+
+        // The clashes chip narrows the table to the mechanics it counted.
+        if (_lineClashOnly)
+        {
+            groups.RemoveAll(g => !g.Actions.Any(a => _plugin.SheetViewWindow.HasConflict(fight, a, out _)));
+            if (groups.Count == 0)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TextDisabled("No clashes left. Click the chip to show every mechanic.");
+            }
+        }
 
         for (var g = 0; g < groups.Count; g++)
         {

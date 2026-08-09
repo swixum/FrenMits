@@ -687,7 +687,8 @@ public partial class ConfigWindow : Window, IDisposable
     // True while a query is up, so the page gives way to the results.
     private bool DrawSettingsSearch()
     {
-        if (_nav == NavKind.Fights) return false;   // that page has its own filter
+        // Home is a splash and Fights has its own filter; neither wants this bar.
+        if (_nav is NavKind.Home or NavKind.Fights) return false;
 
         ImGui.SetNextItemWidth(MathF.Min(300f * Theme.Scale, ImGui.GetContentRegionAvail().X - 30f));
         _searchEntered = ImGui.InputTextWithHint("##settingsearch", "Search all settings...", ref _search, 64,
