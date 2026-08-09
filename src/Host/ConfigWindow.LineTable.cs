@@ -92,37 +92,6 @@ public partial class ConfigWindow
         var jobAbbr = _plugin.GetActiveJobAbbr(fight);
         var bakedForSlotAll = Builtin.BakedLinesForFight(fight, fight.Slot);
 
-        // The same two numbers Sheet View shows, since it is the same plan.
-        var clashLines = fight.Lines.Count(l => _plugin.SheetViewWindow.HasConflict(fight, l, out _));
-        ImGui.Spacing();
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextDisabled($"{fight.Lines.Count} line{(fight.Lines.Count == 1 ? "" : "s")}");
-        if (clashLines > 0 || _lineClashOnly)
-        {
-            ImGui.SameLine(0, 10);
-            if (Widgets.ChipButton("clashes", clashLines.ToString(), Theme.Danger, _lineClashOnly))
-                _lineClashOnly = !_lineClashOnly;
-            if (Widgets.HoveredDelayed())
-                ImGui.SetTooltip(_lineClashOnly
-                    ? "Showing only mechanics with a clash. Click to show them all."
-                    : "Lines whose mit repeats before its cooldown is back.\nClick to show only those mechanics.");
-        }
-
-        // Grow to fill, leaving room for the import header..
-        var avail = ImGui.GetContentRegionAvail().Y;
-        var tableH = MathF.Max(200f, avail - ImGui.GetFrameHeightWithSpacing() - 8f);
-
-        var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY;
-        if (!ImGui.BeginTable("##lines", 4, flags, new Vector2(0, tableH)))
-            return;
-
-        ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 70);
-        ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 230);
-        ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthStretch, 1);
-        ImGui.TableSetupColumn("##del", ImGuiTableColumnFlags.WidthFixed, 28);
-        ImGui.TableHeadersRow();
-
         var toDelete = new List<MitLine>();
         Action? deferred = null;
         
@@ -178,17 +147,52 @@ public partial class ConfigWindow
         }
         groups = groups.OrderBy(g => g.Time).ToList();
 
-        // The clashes chip narrows the table to the mechanics it counted.
-        if (_lineClashOnly)
+        // Counted over the groups the table will actually draw, not over every
+        // line: a hidden mechanic or a hidden-empty row would make the chip
+        // promise rows the filter then has nothing to show.
+        bool GroupClashes(MechanicGroup g)
+            => g.Actions.Any(a => _plugin.SheetViewWindow.HasConflict(fight, a, out _));
+        var clashGroups = groups.Count(GroupClashes);
+        if (_lineClashOnly) groups.RemoveAll(g => !GroupClashes(g));
+
+        ImGui.Spacing();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled($"{fight.Lines.Count} line{(fight.Lines.Count == 1 ? "" : "s")}");
+        if (clashGroups > 0 || _lineClashOnly)
         {
-            groups.RemoveAll(g => !g.Actions.Any(a => _plugin.SheetViewWindow.HasConflict(fight, a, out _)));
-            if (groups.Count == 0)
-            {
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TextDisabled("No clashes left. Click the chip to show every mechanic.");
-            }
+            ImGui.SameLine(0, 10);
+            if (Widgets.ChipButton("clashes", clashGroups.ToString(), Theme.Danger, _lineClashOnly))
+                _lineClashOnly = !_lineClashOnly;
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip(_lineClashOnly
+                    ? "Showing only mechanics with a clash. Click to show them all."
+                    : "Mechanics where a mit repeats before its cooldown is back.\nClick to show only those.");
+        }
+
+        // Grow to fill, leaving room for the import header..
+        var avail = ImGui.GetContentRegionAvail().Y;
+        var tableH = MathF.Max(200f, avail - ImGui.GetFrameHeightWithSpacing() - 8f);
+
+        var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY;
+        if (!ImGui.BeginTable("##lines", 4, flags, new Vector2(0, tableH)))
+            return;
+
+        ImGui.TableSetupScrollFreeze(0, 1);
+        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 70);
+        ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, 230);
+        ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthStretch, 1);
+        ImGui.TableSetupColumn("##del", ImGuiTableColumnFlags.WidthFixed, 28);
+        ImGui.TableHeadersRow();
+
+        // Every clash fixed while the filter is up: say so in the stretched
+        // column, or the message clips inside the fixed-width Mechanic one.
+        if (_lineClashOnly && groups.Count == 0)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
+            ImGui.TextDisabled("No clashes left. Click the chip above to show every mechanic.");
         }
 
         for (var g = 0; g < groups.Count; g++)
