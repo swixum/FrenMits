@@ -34,12 +34,20 @@ public class MeterEngine : IDisposable
     public DateTime CurrentAt { get; private set; }
     public float LerpSpan { get; private set; } = 1f;
 
-    // The fight being stitched across parser splits.
-    private FightCarry? _carry;
     private MeterEncounter? _rawSeg;
     private long _fightStartSec;
     private string _fightTitle = "";
     private bool _sawBoss;
+
+    // A fight the parser split mid-boss, read off the log lines instead.
+    private bool _engineSourced;
+    // What the parser banked before the split, to judge the engine's count against.
+    private double _parserFightDamage;
+    private DateTime _fightStartWall = DateTime.MinValue;
+    // Idle share of the fight on the wall clock, for the log-line board's rates.
+    private readonly IdleClock _wallIdle = new();
+    // The parser's shield stat has no log line, so it adds across the splits.
+    private readonly Dictionary<string, double> _shieldCarry = new(StringComparer.OrdinalIgnoreCase);
     // Whether the pull in progress has a boss in it yet.
     public bool SawBoss => _sawBoss;
     private float _bossLeft = -1f;
@@ -71,6 +79,20 @@ public class MeterEngine : IDisposable
     public static bool SettleDue(bool inCombat, bool cutscene, double sinceDrop)
         => !inCombat && !cutscene && sinceDrop > SettleSeconds;
 
+    // How long a mid-boss quiet gap may run before the fight closes anyway.
+    public const double BossGraceSeconds = 30;
+
+    // A live boss in a duty holds the fight open through splits and gaps.
+    public static bool KeepFightOpen(bool inDuty, bool sawBoss, int standing, float bossLeft, bool killFrozen)
+        => inDuty && sawBoss && standing != 0 && bossLeft != 0f && !killFrozen;
+
+    // Only a count near the parser's may carry a fight.
+    public static bool EngineCanCarry(double engineTotal, double parserTotal)
+        => engineTotal >= parserTotal * 0.5;
+
+    private bool KeepOpen()
+        => !_replaying && KeepFightOpen(Plugin.InDuty, _sawBoss, _standing, _bossLeft, _killFrozen != null);
+
     private DateTime _nextTrim = DateTime.MinValue;
 
     public MeterEngine(Plugin plugin)
@@ -81,7 +103,16 @@ public class MeterEngine : IDisposable
         // English-sheet lookups, so localized logs still match.
         Engine.ResolveStatusIds = StatusIdsOf;
         Engine.ResolveActionIds = ActionIdsOf;
+        Service.DutyState.DutyCompleted += OnDutyCompleted;
+        Service.DutyState.DutyWiped += OnDutyWiped;
     }
+
+    // The director's word beats every reading: a clear or a wipe ends the fight now.
+    private volatile bool _dutyDone;
+    private volatile bool _dutyWipe;
+
+    private void OnDutyCompleted(Dalamud.Game.DutyState.IDutyStateEventArgs args) => _dutyDone = true;
+    private void OnDutyWiped(Dalamud.Game.DutyState.IDutyStateEventArgs args) => _dutyWipe = true;
 
     // One pass per sheet keeps the engine's lookups cheap. Volatile: the warm task publishes these.
     private static volatile Dictionary<string, List<uint>>? _statusIds;
@@ -217,6 +248,20 @@ public class MeterEngine : IDisposable
             _standing = _plugin.PlayersStanding;
         UpdateKillFreeze();
 
+        // A duty clear or wipe closes the fight, whatever the bar last read.
+        if ((_dutyDone || _dutyWipe) && !_replaying)
+        {
+            var wiped = _dutyWipe;
+            _dutyDone = _dutyWipe = false;
+            if (!Paused && (_engineSourced || _rawSeg is { Active: true }))
+            {
+                if (wiped) _standing = 0;
+                else _bossLeft = 0f;
+                Note(wiped ? "duty wiped - closing the fight" : "duty complete - closing the fight");
+                CutHere();
+            }
+        }
+
         // Combat over: close the fight without waiting.
         var inCombat = _inCombat;
         if (inCombat != _wasInCombat && !_replaying)
@@ -230,18 +275,14 @@ public class MeterEngine : IDisposable
             ? 0.0 : (DateTime.UtcNow - _combatDropAt).TotalSeconds;
         var settle = SettleDue(inCombat, _cutscene, sinceDrop);
 
-        // A stitched fight that ended in the quiet gap.
-        if (!Paused && _carry != null && _rawSeg is not { Active: true } && settle)
-        {
-            Note($"stitched fight settled in the gap after {sinceDrop:0.0}s quiet");
-            if (Current != null)
-            {
-                Current.Active = false;
-                Materialize(Current);
-                if (WorthKeeping(Current)) PushHistory(Current);
-            }
-            EndFight();
-        }
+        // The fight clock's idle share, for a board built off the log lines.
+        if (!_replaying && _fightStartWall != DateTime.MinValue)
+            _wallIdle.Accrue((float)(DateTime.UtcNow - _fightStartWall).TotalSeconds,
+                EngineTotal(), _cutscene || !inCombat || _plugin.DowntimeActive);
+
+        // Between waves no summaries arrive, so the board keeps itself fresh.
+        if (_engineSourced && !Paused && (DateTime.UtcNow - CurrentAt).TotalSeconds >= 1.0)
+            Publish(_killFrozen ?? EngineBoard(active: true));
 
         if (DateTime.UtcNow >= _nextTrim)
         {
@@ -251,7 +292,10 @@ public class MeterEngine : IDisposable
 
         _mdiag.Update();
 
-        if (!_cutDone && !Paused && _rawSeg is { Active: true } && settle)
+        // A held fight closes only on a kill, a wipe, or a gap past the grace.
+        var hold = KeepOpen();
+        var fightOn = _engineSourced || _rawSeg is { Active: true };
+        if (!_cutDone && !Paused && fightOn && settle && (!hold || sinceDrop > BossGraceSeconds))
         {
             _cutDone = true;
             Note($"settle cut after {sinceDrop:0.0}s quiet - board {Current?.Seconds ?? 0:0}s "
@@ -294,7 +338,12 @@ public class MeterEngine : IDisposable
                 if (!RdpsEngine.Handles(arr[0]?.ToString() ?? "")) return;
                 var line = new string[arr.Count];
                 for (var i = 0; i < arr.Count; i++) line[i] = arr[i]?.ToString() ?? "";
-                if (line.Length > 3 && line[0] == "01") Note($"zone change - {line[3]}");
+                if (line.Length > 3 && line[0] == "01")
+                {
+                    Note($"zone change - {line[3]}");
+                    // The zone clears the engine, so an engine-read fight banks first.
+                    if (_engineSourced) CutHere();
+                }
                 Engine.Process(line);
             }
             return;
@@ -398,11 +447,10 @@ public class MeterEngine : IDisposable
         var keepCombat = _inCombat;
         var keepCutscene = _cutscene;
         var keepBoss = _sawBoss;
-        // The stitch state the next live summary must come back to.
+        // The cut state the next live summary must come back to.
         var keepCut = _cut;
         var keepRawIn = _rawIn;
         var keepRawSeg = _rawSeg;
-        var keepCarry = _carry;
         var keepStart = _fightStartSec;
         var keepTitle = _fightTitle;
         MeterFeed.Pause();
@@ -434,7 +482,6 @@ public class MeterEngine : IDisposable
             _cut = keepCut;
             _rawIn = keepRawIn;
             _rawSeg = keepRawSeg;
-            _carry = keepCarry;
             _fightStartSec = keepStart;
             _fightTitle = keepTitle;
             _idle.Clear();
@@ -504,11 +551,15 @@ public class MeterEngine : IDisposable
                         if (_cut != null) raw = Subtract(incoming, _cut);
                     }
                 }
-                if (_carry == null)
+                if (!_engineSourced)
                 {
                     _fightStartSec = Math.Max(0, Engine.LatestSec - (long)raw.Seconds);
+                    _fightStartWall = DateTime.UtcNow - TimeSpan.FromSeconds(raw.Seconds);
+                    _wallIdle.Reset(raw.Seconds, EngineTotal());
                     _fightTitle = ""; // a fresh fight names itself from scratch
                     _sawBoss = false;
+                    _parserFightDamage = 0;
+                    _shieldCarry.Clear();
                     Note($"pull start - parser {raw.Seconds:0}s {raw.TotalDamage / 1e6:0.00}M"
                        + $"{(_cut != null ? " (cut active)" : "")}{(_inCombat ? "" : ", combat off")}");
                 }
@@ -517,8 +568,10 @@ public class MeterEngine : IDisposable
             }
             SetTitle(raw);
             _rawSeg = raw;
+            // The log lines carry a split fight; the parser only names it.
+            if (_engineSourced) return;
             // Frozen at the kill: already trimmed, so it skips the second pass.
-            Publish(Merge(_carry, _killFrozen ?? Trimmed(raw)));
+            Publish(_killFrozen ?? Trimmed(raw));
             return;
         }
 
@@ -539,25 +592,26 @@ public class MeterEngine : IDisposable
     private void EndSegment(MeterEncounter final)
     {
         // Banked on the active clock, and held at the kill if the boss died first.
-        final = _killFrozen ?? Trimmed(final);
-        var display = Merge(_carry, final);
-        // Stitching is the only arithmetic here, and it's opt-in.
-        if (C.MeterStitchSegments && _inCombat && _sawBoss)
+        var seg = _killFrozen ?? Trimmed(final);
+        if (!_engineSourced) _parserFightDamage += seg.TotalDamage;
+
+        // A split mid-boss keeps the fight open, counted off the log lines.
+        if (KeepOpen() && (_engineSourced || EngineCanCarry(EngineTotal(), _parserFightDamage)))
         {
-            // Mid-boss split: stitch and keep reading as one fight.
-            _carry ??= new FightCarry { StartSec = _fightStartSec, Title = _fightTitle };
-            Fold(_carry, final, Engine.LatestSec);
-            // Banked now, so the parser is measured from here.
+            if (!_engineSourced)
+            {
+                _engineSourced = true;
+                Note($"parser split mid-boss - the board reads the log lines from here "
+                   + $"(counted {EngineTotal() / 1e6:0.0}M, parser banked {_parserFightDamage / 1e6:0.0}M)");
+            }
+            BankShields(seg);
+            // The next segment is measured from here.
             if (_rawIn != null) _cut = Snapshot(_rawIn);
-            // Printed beside the total, a bad stitch shows itself.
-            Note($"banked segment {final.Seconds:0}s {final.TotalDamage / 1e6:0.0}M; "
-               + $"fight now {_carry.Seconds:0}s {Total(_carry) / 1e6:0.0}M "
-               + $"(log lines say {EngineTotal() / 1e6:0.0}M)");
-            display.Active = true;
-            Publish(display);
+            Publish(_killFrozen ?? EngineBoard(active: true));
             return;
         }
 
+        var display = _engineSourced ? _killFrozen ?? EngineBoard(active: false) : seg;
         display.Active = false;
         Materialize(display);
         Publish(display);
@@ -565,6 +619,82 @@ public class MeterEngine : IDisposable
            + $"{(WorthKeeping(display) ? "" : ", not kept")}");
         if (WorthKeeping(display)) PushHistory(display);
         EndFight();
+    }
+
+    // What earlier segments shielded, resolved to the names the log uses.
+    private void BankShields(MeterEncounter seg)
+    {
+        foreach (var r in seg.Rows)
+        {
+            if (r.Shielded <= 0) continue;
+            var who = ResolveRow(r);
+            _shieldCarry[who] = _shieldCarry.TryGetValue(who, out var s) ? s + r.Shielded : r.Shielded;
+        }
+    }
+
+    // The parser says "YOU" and tags pets with owners; the log does neither.
+    private string ResolveRow(MeterCombatant r)
+    {
+        var you = LocalName();
+        return string.Equals(r.Name, "YOU", StringComparison.OrdinalIgnoreCase) && you.Length > 0
+            ? you
+            : r.Display.Length > 0 ? r.Display : r.Name;
+    }
+
+    // The whole fight, counted off the log lines.
+    private MeterEncounter EngineBoard(bool active)
+    {
+        var wall = MathF.Max(1f, (float)(DateTime.UtcNow - _fightStartWall).TotalSeconds);
+        var secs = MathF.Max(1f, wall - _wallIdle.IdleSec);
+        var e = new MeterEncounter
+        {
+            Title = _fightTitle.Length > 0 ? _fightTitle : "Encounter",
+            Active = active,
+            Seconds = secs,
+            WallSeconds = wall,
+            Duration = $"{(int)wall / 60:00}:{(int)wall % 60:00}",
+        };
+
+        // The live segment's shields, on top of what earlier segments banked.
+        var shields = new Dictionary<string, double>(_shieldCarry, StringComparer.OrdinalIgnoreCase);
+        if (_rawSeg is { Active: true } seg)
+            foreach (var r in seg.Rows)
+            {
+                if (r.Shielded <= 0) continue;
+                var who = ResolveRow(r);
+                shields[who] = shields.TryGetValue(who, out var s) ? s + r.Shielded : r.Shielded;
+            }
+
+        var healed = 0.0;
+        foreach (var (name, t) in Engine.RowTotals())
+        {
+            if (t.Damage <= 0 && t.Healed <= 0 && t.Taken <= 0 && t.Deaths == 0) continue;
+            var lb = MeterEncounter.IsLimitBreakName(name);
+            var row = new MeterCombatant
+            {
+                Name = name, Display = name, LimitBreak = lb,
+                Job = lb ? "" : Engine.JobOf(name),
+                Damage = t.Damage, Healed = t.Healed, Taken = t.Taken, Deaths = t.Deaths,
+                Shielded = shields.TryGetValue(name, out var sh) ? sh : 0,
+            };
+            row.Dps = row.Damage / secs;
+            row.ADps = row.Dps;
+            row.RDps = row.Dps;
+            row.Hps = row.Healed / secs;
+            e.Rows.Add(row);
+            e.TotalDamage += row.Damage;
+            e.TotalTaken += row.Taken;
+            e.TotalDeaths += row.Deaths;
+            e.TotalHps += row.Hps;
+            healed += row.Healed;
+        }
+        e.TotalDps = e.TotalDamage / secs;
+        foreach (var r in e.Rows)
+        {
+            r.DamagePct = e.TotalDamage > 0 ? $"{r.Damage / e.TotalDamage * 100:0}%" : "";
+            r.HealedPct = healed > 0 ? $"{r.Healed / healed * 100:0}%" : "";
+        }
+        return e;
     }
 
     // A finished pull carries its own breakdowns.
@@ -630,7 +760,7 @@ public class MeterEngine : IDisposable
 
     // Where the pull on screen started, in log seconds.
     private long FightStart(MeterEncounter enc)
-        => _carry?.StartSec ?? (_fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)enc.Seconds);
+        => _fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)enc.Seconds;
 
     // A pull with breakdowns is finished, so never read live.
     private static bool Banked(MeterEncounter enc)
@@ -689,7 +819,11 @@ public class MeterEngine : IDisposable
     {
         // The parser's encounter can outlive the pull, so the next starts from here.
         if (_rawIn != null) _cut = Snapshot(_rawIn);
-        _carry = null;
+        _engineSourced = false;
+        _parserFightDamage = 0;
+        _fightStartWall = DateTime.MinValue;
+        _wallIdle.Clear();
+        _shieldCarry.Clear();
         _fightStartSec = 0;
         _fightTitle = "";
         _sawBoss = false;
@@ -770,95 +904,8 @@ public class MeterEngine : IDisposable
         Current = enc;
     }
 
-    // ---- segment stitching ----
-
-    public sealed class FightCarry
-    {
-        public long StartSec;
-        public float Seconds;
-        // The banked segments on the wall clock, for the on-screen timer.
-        public float WallSeconds;
-        public string Title = "";
-        public Dictionary<string, MeterCombatant> Rows { get; } = new(StringComparer.OrdinalIgnoreCase);
-    }
-
-    // Bank a segment, capped at the time really elapsed.
-    public static void Fold(FightCarry carry, MeterEncounter final, long nowSec = 0)
-    {
-        foreach (var r in final.Rows)
-            carry.Rows[r.Name] = Combine(carry.Rows.GetValueOrDefault(r.Name), r);
-        carry.Seconds += final.Seconds;
-        carry.WallSeconds += final.WallSeconds > 0f ? final.WallSeconds : final.Seconds;
-        if (nowSec > 0 && carry.StartSec > 0)
-        {
-            var elapsed = Math.Max(0, nowSec - carry.StartSec);
-            carry.Seconds = Math.Min(carry.Seconds, elapsed);
-            carry.WallSeconds = Math.Min(carry.WallSeconds, elapsed);
-        }
-        if (final.Title.Length > 0) carry.Title = final.Title;
-    }
-
     // Everything the engine has counted from the log lines this fight.
     private double EngineTotal() => Engine.DealtTotal;
-
-    // What a stitched fight has banked so far, for the pull record.
-    public static double Total(FightCarry carry)
-    {
-        var sum = 0.0;
-        foreach (var r in carry.Rows) sum += r.Value.Damage;
-        return sum;
-    }
-
-    // The banked segments plus the live one, presented as a single fight.
-    public static MeterEncounter Merge(FightCarry? carry, MeterEncounter seg)
-    {
-        if (carry == null || carry.Seconds <= 0f) return seg;
-        var secs = Math.Max(1f, carry.Seconds + seg.Seconds);
-        // The timer shows the whole fight; the rates below divide by active time only.
-        var wall = Math.Max(secs,
-            (carry.WallSeconds > 0f ? carry.WallSeconds : carry.Seconds)
-            + (seg.WallSeconds > 0f ? seg.WallSeconds : seg.Seconds));
-        var e = new MeterEncounter
-        {
-            Title = seg.Title.Length > 0 ? seg.Title : carry.Title,
-            Active = seg.Active,
-            Seconds = secs,
-            WallSeconds = wall,
-            Duration = $"{(int)wall / 60:00}:{(int)wall % 60:00}",
-            When = seg.When,
-        };
-
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var r in seg.Rows)
-        {
-            seen.Add(r.Name);
-            e.Rows.Add(Combine(carry.Rows.GetValueOrDefault(r.Name), r));
-        }
-        foreach (var kv in carry.Rows)
-            if (seen.Add(kv.Key))
-                e.Rows.Add(Combine(null, kv.Value));
-
-        foreach (var r in e.Rows)
-        {
-            r.Dps = r.Damage / secs;
-            r.RDps = r.Dps;
-            r.Hps = r.Healed / secs;
-            e.TotalDamage += r.Damage;
-            e.TotalTaken += r.Taken;
-            e.TotalDeaths += r.Deaths;
-        }
-        e.TotalDps = e.TotalDamage / secs;
-        e.TotalHps = 0;
-        var healed = 0.0;
-        foreach (var r in e.Rows) healed += r.Healed;
-        foreach (var r in e.Rows)
-        {
-            e.TotalHps += r.Hps;
-            r.DamagePct = e.TotalDamage > 0 ? $"{r.Damage / e.TotalDamage * 100:0}%" : "";
-            r.HealedPct = healed > 0 ? $"{r.Healed / healed * 100:0}%" : "";
-        }
-        return e;
-    }
 
     // ---- cutting the parser's running encounter ----
 
@@ -916,17 +963,25 @@ public class MeterEngine : IDisposable
         var hp = _plugin.BossHpFraction;
         if (_killFrozen == null)
         {
-            if (hp == 0f && _sawBoss && _rawSeg is { Active: true } seg)
+            if (hp == 0f && _sawBoss)
             {
-                var frozen = Trimmed(seg);
-                // Always a copy, so the live segment object stays untouched.
-                if (ReferenceEquals(frozen, seg)) frozen = Subtract(seg, new Baseline());
-                // Credit and breakdowns land now, before the engine counts corpse hits.
-                ApplyRdps(frozen);
-                Materialize(frozen);
-                _killFrozen = frozen;
-                _killAt = DateTime.UtcNow;
-                Note($"boss down at {frozen.TotalDamage / 1e6:0.0}M - hits on the corpse stay off this pull");
+                MeterEncounter? frozen = null;
+                if (_engineSourced) frozen = EngineBoard(active: true);
+                else if (_rawSeg is { Active: true } seg)
+                {
+                    frozen = Trimmed(seg);
+                    // Always a copy, so the live segment object stays untouched.
+                    if (ReferenceEquals(frozen, seg)) frozen = Subtract(seg, new Baseline());
+                }
+                if (frozen != null)
+                {
+                    // Credit and breakdowns land now, before the engine counts corpse hits.
+                    ApplyRdps(frozen);
+                    Materialize(frozen);
+                    _killFrozen = frozen;
+                    _killAt = DateTime.UtcNow;
+                    Note($"boss down at {frozen.TotalDamage / 1e6:0.0}M - hits on the corpse stay off this pull");
+                }
             }
             return;
         }
@@ -954,9 +1009,10 @@ public class MeterEngine : IDisposable
     // Close the running fight here and start the next one from zero.
     private void CutHere()
     {
-        if (_rawSeg is { Active: true } seg)
+        if (_engineSourced || _rawSeg is { Active: true })
         {
-            var display = Merge(_carry, _killFrozen ?? Trimmed(seg));
+            var display = _killFrozen
+                ?? (_engineSourced ? EngineBoard(active: false) : Trimmed(_rawSeg!));
             display.Active = false;
             Materialize(display);
             Publish(display);
@@ -1016,33 +1072,6 @@ public class MeterEngine : IDisposable
         return e;
     }
 
-    // Two chunks of one player's fight, damage-weighted.
-    public static MeterCombatant Combine(MeterCombatant? a, MeterCombatant b)
-    {
-        a ??= new MeterCombatant();
-        var dmg = a.Damage + b.Damage;
-        var healed = a.Healed + b.Healed;
-        return new MeterCombatant
-        {
-            Name = b.Name.Length > 0 ? b.Name : a.Name,
-            Display = b.Display.Length > 0 ? b.Display : a.Display,
-            Job = b.Job.Length > 0 ? b.Job : a.Job,
-            LimitBreak = b.LimitBreak || a.LimitBreak,
-            Damage = dmg,
-            Healed = healed,
-            Shielded = a.Shielded + b.Shielded,
-            Taken = a.Taken + b.Taken,
-            Deaths = a.Deaths + b.Deaths,
-            ADps = dmg > 0 ? (a.ADps * a.Damage + b.ADps * b.Damage) / dmg : b.ADps,
-            CritPct = dmg > 0 ? (a.CritPct * a.Damage + b.CritPct * b.Damage) / dmg : b.CritPct,
-            DirectHitPct = dmg > 0 ? (a.DirectHitPct * a.Damage + b.DirectHitPct * b.Damage) / dmg : b.DirectHitPct,
-            CritDirectHitPct = dmg > 0
-                ? (a.CritDirectHitPct * a.Damage + b.CritDirectHitPct * b.Damage) / dmg : b.CritDirectHitPct,
-            OverhealPct = healed > 0 ? (a.OverhealPct * a.Healed + b.OverhealPct * b.Healed) / healed : b.OverhealPct,
-            MaxHit = MaxHitValue(b.MaxHit) >= MaxHitValue(a.MaxHit) ? b.MaxHit : a.MaxHit,
-        };
-    }
-
     public static double MaxHitValue(string maxHit)
     {
         var dash = maxHit.LastIndexOf('-');
@@ -1055,8 +1084,8 @@ public class MeterEngine : IDisposable
     {
         // The window covers the fight, padded for feed lag; wall time, since log lines span idle too.
         var wall = enc.WallSeconds > 0f ? enc.WallSeconds : enc.Seconds;
-        var from = (_carry?.StartSec
-                    ?? (enc.Active && _fightStartSec > 0 ? _fightStartSec : Engine.LatestSec - (long)wall)) - 2;
+        var from = (enc.Active && _fightStartSec > 0
+            ? _fightStartSec : Engine.LatestSec - (long)wall) - 2;
         var totals = Engine.WindowTotals(from);
         var seconds = Math.Max(1f, enc.Seconds);
         var you = LocalName();
@@ -1425,6 +1454,8 @@ public class MeterEngine : IDisposable
 
     public void Dispose()
     {
+        Service.DutyState.DutyCompleted -= OnDutyCompleted;
+        Service.DutyState.DutyWiped -= OnDutyWiped;
         _mdiag.Flush();
         Link.Dispose();
     }

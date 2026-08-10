@@ -293,8 +293,6 @@ public class Configuration : IPluginConfiguration
     // Fren Meter: the parser-fed damage meter overlay with rDPS.
     public bool MeterEnabled { get; set; }
     public int MeterConnection { get; set; }             // 0 auto, 1 in-process parser, 2 WebSocket
-    // Hidden, so a split fight can be restitched by hand.
-    public bool MeterStitchSegments { get; set; }
     public string MeterSocketAddress { get; set; } = "ws://127.0.0.1:10501/ws";
     // The ACT steps stay up until someone says they have read them.
     public bool MeterSetupDone { get; set; }

@@ -129,6 +129,8 @@ public class RdpsEngine
     private readonly Dictionary<uint, string> _names = new();
     private readonly Dictionary<uint, uint> _owner = new();     // pet -> owning player
     private readonly Dictionary<uint, JobRole> _roles = new();  // player -> role, for cards
+    // Job by name, for rows built off the log lines.
+    private readonly Dictionary<string, string> _jobNames = new(StringComparer.OrdinalIgnoreCase);
 
     private sealed class ActiveBuff
     {
@@ -355,6 +357,47 @@ public class RdpsEngine
         return (landed, over);
     }
 
+    // One row's fight totals, counted off the log lines.
+    public sealed class RowTotal
+    {
+        public double Damage;
+        public double Healed;
+        public double Over;
+        public double Taken;
+        public int Deaths;
+    }
+
+    // Everyone who dealt, healed, or took anything this fight.
+    public Dictionary<string, RowTotal> RowTotals()
+    {
+        var map = new Dictionary<string, RowTotal>(StringComparer.OrdinalIgnoreCase);
+        RowTotal Row(string who)
+            => map.TryGetValue(who, out var t) ? t : map[who] = new RowTotal();
+        foreach (var (who, by) in _dealt)
+            foreach (var a in by.Values)
+                Row(who).Damage += a.Damage;
+        foreach (var (who, by) in _healDealt)
+        {
+            var t = Row(who);
+            foreach (var a in by.Values)
+            {
+                t.Healed += a.Damage;
+                t.Over += a.Over;
+            }
+        }
+        foreach (var (who, by) in _taken)
+            foreach (var a in by.Values)
+                Row(who).Taken += a.Damage;
+        foreach (var d in _deaths)
+            if (d.Name.Length > 0)
+                Row(d.Name).Deaths++;
+        return map;
+    }
+
+    // Empty until the log has introduced them.
+    public string JobOf(string name)
+        => _jobNames.TryGetValue(name, out var job) ? job : "";
+
     public List<AbilityStat> Dealt(string player) => Ranked(_dealt, player);
     public List<AbilityStat> Targets(string player) => Ranked(_targets, player);
     public List<AbilityStat> Taken(string player) => Ranked(_taken, player);
@@ -529,7 +572,11 @@ public class RdpsEngine
     {
         if (id is 0 or 0xE0000000) return;
         if (name.Length > 0) _names[id] = name;
-        if (Jobs.ByRowId(jobRowId) is { } job) _roles[id] = job.Role;
+        if (Jobs.ByRowId(jobRowId) is { } job)
+        {
+            _roles[id] = job.Role;
+            if (name.Length > 0) _jobNames[name] = job.Abbreviation;
+        }
         // Being in the party is the point, not the job: the log announces Duty Support
         // allies with no job at all, and without this they fold into their owner's row.
         if (!IsPlayer(id)) _allies.Add(id);
@@ -590,6 +637,7 @@ public class RdpsEngine
                 _owner.Clear();
                 _names.Clear();
                 _roles.Clear();
+                _jobNames.Clear();
                 _rates.Clear();
                 _effectNames.Clear();
                 ClearBreakdown();
@@ -615,6 +663,7 @@ public class RdpsEngine
             return;
         }
         _roles[id] = job.Role;
+        if (f[3].Length > 0) _jobNames[f[3]] = job.Abbreviation;
         // Carrying a job means it acts on its own.
         if (!IsPlayer(id)) _allies.Add(id);
     }
