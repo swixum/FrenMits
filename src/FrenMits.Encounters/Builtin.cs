@@ -24,6 +24,8 @@ public static class Builtin
     public const ushort M6sTerritory = 1259;
     public const ushort M7sTerritory = 1261;
     public const ushort M8sTerritory = 1263;
+    // The Forked Tower: Magic, four bosses on 1000s blocks inside North Horn.
+    public const ushort FtMagicTerritory = 1346;
     // The AAC Heavyweight tier.
     public const ushort M9sTerritory = 1321;
     public const ushort M10sTerritory = 1323;
@@ -61,6 +63,7 @@ public static class Builtin
         (DoomtrainTerritory, "Doomtrain", "Extreme", "Dawntrail"),
         (EnuoTerritory, "Enuo", "Extreme", "Dawntrail"),
         (ZeleniaTerritory, "Zelenia", "Extreme", "Dawntrail"),
+        (FtMagicTerritory, "The Forked Tower: Magic", "Occult Crescent", "Dawntrail"),
         (DsrTerritory, "Dragonsong's Reprise (DSR)", "Ultimate", "Endwalker"),
         (TopTerritory, "The Omega Protocol (TOP)", "Ultimate", "Endwalker"),
         (TeaTerritory, "Epic of Alexander (TEA)", "Ultimate", "Shadowbringers"),
@@ -88,6 +91,7 @@ public static class Builtin
         M10sTerritory => "M10S - Red Hot / Deep Blue",
         M11sTerritory => "M11S - The Tyrant",
         M12sTerritory => "M12S - Lindwurm",
+        FtMagicTerritory => "The Forked Tower: Magic",
         UcobTerritory => "Unending Coil of Bahamut (UCOB)",
         UwuTerritory => "Weapon's Refrain (UWU)",
         TeaTerritory => "Epic of Alexander (TEA)",
@@ -167,8 +171,17 @@ public static class Builtin
     public static string PhaseNotes(uint territory, string phase) => territory switch
     {
         DmuTerritory => DmuPhaseNotes(phase),
+        FtMagicTerritory => phase == "P4"
+            ? "Phantom Dancer covers both Elemental Chemistry casts with Mesmerize (700k+ raw). "
+            + "It applies ~1.8s after the press, so hit it at the 'i' in the castbar."
+            : "",
         _ => "",
     };
+
+    // Field operation duties run several encounters on 1000s blocks inside one
+    // territory, so a phase anchor may sit blocks ahead of a fresh clock and
+    // resync needs the same forward reach the universal timelines get.
+    public static bool FieldOp(uint territory) => territory == FtMagicTerritory;
 
     // Long display title for a phase key ("P1" -> "Phase 1: Kefka").
     public static string PhaseTitle(uint territory, string phase) => territory switch
@@ -180,6 +193,14 @@ public static class Builtin
             "P3" => "Phase 3: Chaos & Exdeath",
             "P4" => "Phase 4: Kefka Says",
             "P5" => "Phase 5: Ultima Kefka",
+            _ => phase,
+        },
+        FtMagicTerritory => phase switch
+        {
+            "P1" => "Boss 1: Twin Snakes",
+            "P2" => "Boss 2: Sword Dancer",
+            "P3" => "Boss 3: Necrophobia",
+            "P4" => "Boss 4: Index",
             _ => phase,
         },
         _ => phase,

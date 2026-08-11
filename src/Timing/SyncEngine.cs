@@ -212,7 +212,7 @@ public class SyncEngine
         var predictedElapsed = elapsed + timeToResolve; // where the clock will be at resolve
         var windows = SyncCore.WindowsFor(_plugin.Config.SyncWindowSeconds,
             _plugin.Config.SyncPhaseWindowSeconds, _plugin.Config.SyncForwardWindowSeconds,
-            fight.TimelineOnly);
+            fight.TimelineOnly || Builtin.FieldOp(fight.TerritoryId));
         var best = SyncCore.Choose(fight.SyncPoints, actionId, predictedElapsed, windows, _fired);
 
         if (best == null) return false;

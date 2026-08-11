@@ -59,7 +59,7 @@ public partial class SheetViewWindow
     private bool _newCatTouched;
 
     // Where the sheet files in the sidebar.
-    private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme" };
+    private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme", "Occult Crescent" };
 
     // Best guess from the duty name; your pick wins.
     private static int GuessCategory(string dutyName)

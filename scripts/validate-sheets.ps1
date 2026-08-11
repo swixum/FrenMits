@@ -22,8 +22,8 @@ param(
                            'M1S-BlackCat', 'M2S-HoneyB.Lovely', 'M3S-BruteBomber',
                            'M4S-WickedThunder', 'M5S-DancingGreen', 'M6S-SugarRiot',
                            'M7S-BruteAbombinator', 'M8S-HowlingBlade', 'M9S-VampFatale',
-                           'TheOmegaProtocol(TOP)', 'UnendingCoilofBahamut(UCOB)',
-                           "Weapon'sRefrain(UWU)", 'Zelenia')
+                           'TheForkedTower_Magic', 'TheOmegaProtocol(TOP)',
+                           'UnendingCoilofBahamut(UCOB)', "Weapon'sRefrain(UWU)", 'Zelenia')
 )
 
 $ErrorActionPreference = 'Stop'

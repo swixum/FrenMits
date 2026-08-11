@@ -1,0 +1,4746 @@
+{
+ "TerritoryId": 1346,
+ "Name": "The Forked Tower: Magic",
+ "Timeline": [
+  {
+   "Time": 1016,
+   "Mechanic": "Buffet"
+  },
+  {
+   "Time": 1029,
+   "Mechanic": "Storm's Breath"
+  },
+  {
+   "Time": 1029,
+   "Mechanic": "Freezing Fugue"
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest"
+  },
+  {
+   "Time": 1054,
+   "Mechanic": "Blazeloop and Repeat"
+  },
+  {
+   "Time": 1057,
+   "Mechanic": "Crossblaze and Repeat"
+  },
+  {
+   "Time": 1061,
+   "Mechanic": "Blazeloop"
+  },
+  {
+   "Time": 1065,
+   "Mechanic": "Crossblaze"
+  },
+  {
+   "Time": 1066,
+   "Mechanic": "Blaze"
+  },
+  {
+   "Time": 1077,
+   "Mechanic": "Archaeofury"
+  },
+  {
+   "Time": 1094,
+   "Mechanic": "Fulgurous Fugue"
+  },
+  {
+   "Time": 1094,
+   "Mechanic": "Poison Breath"
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest"
+  },
+  {
+   "Time": 1115,
+   "Mechanic": "Arcane Revelation"
+  },
+  {
+   "Time": 1125,
+   "Mechanic": "Arcane Beacon"
+  },
+  {
+   "Time": 1125,
+   "Mechanic": "Two Terrors"
+  },
+  {
+   "Time": 1135,
+   "Mechanic": "Summon"
+  },
+  {
+   "Time": 1155,
+   "Mechanic": "Breathy Duet"
+  },
+  {
+   "Time": 1155,
+   "Mechanic": "Lightning Cluster"
+  },
+  {
+   "Time": 1155,
+   "Mechanic": "Ice Cluster"
+  },
+  {
+   "Time": 1156,
+   "Mechanic": "Levin Wave"
+  },
+  {
+   "Time": 1163,
+   "Mechanic": "Lightning Cluster"
+  },
+  {
+   "Time": 1163,
+   "Mechanic": "Ice Cluster"
+  },
+  {
+   "Time": 1163,
+   "Mechanic": "Levin Wave"
+  },
+  {
+   "Time": 1177,
+   "Mechanic": "Arcane Revelation"
+  },
+  {
+   "Time": 1191,
+   "Mechanic": "Fulgurous Fugue"
+  },
+  {
+   "Time": 1194,
+   "Mechanic": "Freezing Fugue"
+  },
+  {
+   "Time": 1195,
+   "Mechanic": "Arcane Beacon"
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest"
+  },
+  {
+   "Time": 1211,
+   "Mechanic": "Archaeofury"
+  },
+  {
+   "Time": 1222,
+   "Mechanic": "Hissing Resonance"
+  },
+  {
+   "Time": 1236,
+   "Mechanic": "Blazeloop, Crossblaze"
+  },
+  {
+   "Time": 1239,
+   "Mechanic": "Buffet"
+  },
+  {
+   "Time": 1240,
+   "Mechanic": "Crossblaze, Blazeloop"
+  },
+  {
+   "Time": 1247,
+   "Mechanic": "Crossblaze"
+  },
+  {
+   "Time": 1247,
+   "Mechanic": "Buffet"
+  },
+  {
+   "Time": 1247,
+   "Mechanic": "Blazeloop"
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm"
+  },
+  {
+   "Time": 2019,
+   "Mechanic": "Throwing Swords"
+  },
+  {
+   "Time": 2020,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2028,
+   "Mechanic": "Turn"
+  },
+  {
+   "Time": 2028,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2032,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2032,
+   "Mechanic": "Turn"
+  },
+  {
+   "Time": 2036,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2036,
+   "Mechanic": "Turn"
+  },
+  {
+   "Time": 2040,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2040,
+   "Mechanic": "Turnabout"
+  },
+  {
+   "Time": 2041,
+   "Mechanic": "Martial Mystique"
+  },
+  {
+   "Time": 2045,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2045,
+   "Mechanic": "Turn"
+  },
+  {
+   "Time": 2049,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2049,
+   "Mechanic": "Turn"
+  },
+  {
+   "Time": 2051,
+   "Mechanic": "Martial Mystique"
+  },
+  {
+   "Time": 2053,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2053,
+   "Mechanic": "Turn"
+  },
+  {
+   "Time": 2058,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2058,
+   "Mechanic": "Turn"
+  },
+  {
+   "Time": 2060,
+   "Mechanic": "Martial Mystique"
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm"
+  },
+  {
+   "Time": 2086,
+   "Mechanic": "Cycloswords Unsheathed"
+  },
+  {
+   "Time": 2098,
+   "Mechanic": "Cycloswords"
+  },
+  {
+   "Time": 2100,
+   "Mechanic": "Spin"
+  },
+  {
+   "Time": 2103,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2109,
+   "Mechanic": "Sword Dance"
+  },
+  {
+   "Time": 2119,
+   "Mechanic": "Sword Dance"
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm"
+  },
+  {
+   "Time": 2147,
+   "Mechanic": "Leaping Lift"
+  },
+  {
+   "Time": 2147,
+   "Mechanic": "Pierce"
+  },
+  {
+   "Time": 2151,
+   "Mechanic": "Leaping Lift"
+  },
+  {
+   "Time": 2157,
+   "Mechanic": "Leaping Lift"
+  },
+  {
+   "Time": 2161,
+   "Mechanic": "Swordpointe"
+  },
+  {
+   "Time": 2164,
+   "Mechanic": "Steelsbreath"
+  },
+  {
+   "Time": 2165,
+   "Mechanic": "Steelsforge"
+  },
+  {
+   "Time": 2169,
+   "Mechanic": "Steelsbreath"
+  },
+  {
+   "Time": 2173,
+   "Mechanic": "Steelsbreath"
+  },
+  {
+   "Time": 2175,
+   "Mechanic": "Steelsforge"
+  },
+  {
+   "Time": 2178,
+   "Mechanic": "Steelsbreath"
+  },
+  {
+   "Time": 2181,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 2192,
+   "Mechanic": "Cycloswords Unsheathed"
+  },
+  {
+   "Time": 2208,
+   "Mechanic": "Cycloswords"
+  },
+  {
+   "Time": 2210,
+   "Mechanic": "Spin"
+  },
+  {
+   "Time": 2214,
+   "Mechanic": "Spin"
+  },
+  {
+   "Time": 2219,
+   "Mechanic": "Sword Dance"
+  },
+  {
+   "Time": 2229,
+   "Mechanic": "Sword Dance"
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm"
+  },
+  {
+   "Time": 2254,
+   "Mechanic": "Throwing Swords"
+  },
+  {
+   "Time": 2255,
+   "Mechanic": "Rush"
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares"
+  },
+  {
+   "Time": 3020,
+   "Mechanic": "Capitation"
+  },
+  {
+   "Time": 3031,
+   "Mechanic": "Death Shroud"
+  },
+  {
+   "Time": 3036,
+   "Mechanic": "Heads Roll"
+  },
+  {
+   "Time": 3050,
+   "Mechanic": "Severed Thunder III"
+  },
+  {
+   "Time": 3050,
+   "Mechanic": "Ancient Thunder III"
+  },
+  {
+   "Time": 3064,
+   "Mechanic": "Severed Fire III"
+  },
+  {
+   "Time": 3064,
+   "Mechanic": "Severed Blizzard III"
+  },
+  {
+   "Time": 3064,
+   "Mechanic": "Ancient Fire III"
+  },
+  {
+   "Time": 3064,
+   "Mechanic": "Ancient Blizzard III"
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares"
+  },
+  {
+   "Time": 3085,
+   "Mechanic": "Heads Roll"
+  },
+  {
+   "Time": 3091,
+   "Mechanic": "Dark Current"
+  },
+  {
+   "Time": 3092,
+   "Mechanic": "Deathly Ray"
+  },
+  {
+   "Time": 3100,
+   "Mechanic": "Deathly Ray"
+  },
+  {
+   "Time": 3100,
+   "Mechanic": "Vacuum Wave"
+  },
+  {
+   "Time": 3110,
+   "Mechanic": "Corpse Mangler"
+  },
+  {
+   "Time": 3119,
+   "Mechanic": "Capitation"
+  },
+  {
+   "Time": 3130,
+   "Mechanic": "Death Shroud"
+  },
+  {
+   "Time": 3135,
+   "Mechanic": "Heads Roll"
+  },
+  {
+   "Time": 3149,
+   "Mechanic": "Dig Three Graves"
+  },
+  {
+   "Time": 3160,
+   "Mechanic": "Severed Dark Current"
+  },
+  {
+   "Time": 3160,
+   "Mechanic": "Dark Current"
+  },
+  {
+   "Time": 3164,
+   "Mechanic": "Ancient Thunder III"
+  },
+  {
+   "Time": 3167,
+   "Mechanic": "Dark Current"
+  },
+  {
+   "Time": 3168,
+   "Mechanic": "Ancient Blizzard III"
+  },
+  {
+   "Time": 3174,
+   "Mechanic": "Dark Current"
+  },
+  {
+   "Time": 3175,
+   "Mechanic": "Ancient Fire III"
+  },
+  {
+   "Time": 3181,
+   "Mechanic": "Vacuum Wave"
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares"
+  },
+  {
+   "Time": 3204,
+   "Mechanic": "Fertile Ground"
+  },
+  {
+   "Time": 3208,
+   "Mechanic": "Capitation"
+  },
+  {
+   "Time": 3219,
+   "Mechanic": "Death Shroud"
+  },
+  {
+   "Time": 3224,
+   "Mechanic": "Heads Roll"
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession"
+  },
+  {
+   "Time": 3241,
+   "Mechanic": "Sowing Fear"
+  },
+  {
+   "Time": 3242,
+   "Mechanic": "Sowing Dread"
+  },
+  {
+   "Time": 3242,
+   "Mechanic": "Sowing Panic"
+  },
+  {
+   "Time": 3247,
+   "Mechanic": "Sowing Fear"
+  },
+  {
+   "Time": 3248,
+   "Mechanic": "Sowing Dread"
+  },
+  {
+   "Time": 3248,
+   "Mechanic": "Sowing Panic"
+  },
+  {
+   "Time": 3253,
+   "Mechanic": "Ancient Thunder III"
+  },
+  {
+   "Time": 3253,
+   "Mechanic": "Sowing Fear"
+  },
+  {
+   "Time": 3254,
+   "Mechanic": "Sowing Dread"
+  },
+  {
+   "Time": 3254,
+   "Mechanic": "Sowing Panic"
+  },
+  {
+   "Time": 3259,
+   "Mechanic": "Sowing Fear"
+  },
+  {
+   "Time": 3260,
+   "Mechanic": "Sowing Dread"
+  },
+  {
+   "Time": 3260,
+   "Mechanic": "Sowing Panic"
+  },
+  {
+   "Time": 3265,
+   "Mechanic": "Sowing Fear"
+  },
+  {
+   "Time": 3265,
+   "Mechanic": "Ancient Fire III"
+  },
+  {
+   "Time": 3266,
+   "Mechanic": "Sowing Dread"
+  },
+  {
+   "Time": 3266,
+   "Mechanic": "Sowing Panic"
+  },
+  {
+   "Time": 4013,
+   "Mechanic": "Dualcast"
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare"
+  },
+  {
+   "Time": 4024,
+   "Mechanic": "Flare"
+  },
+  {
+   "Time": 4034,
+   "Mechanic": "Propulsive Prophecy"
+  },
+  {
+   "Time": 4051,
+   "Mechanic": "Shockwave"
+  },
+  {
+   "Time": 4056,
+   "Mechanic": "Aim"
+  },
+  {
+   "Time": 4056,
+   "Mechanic": "Romeo's Ballad"
+  },
+  {
+   "Time": 4058,
+   "Mechanic": "Sealed Implements"
+  },
+  {
+   "Time": 4060,
+   "Mechanic": "Iainuki"
+  },
+  {
+   "Time": 4063,
+   "Mechanic": "Wind Slash"
+  },
+  {
+   "Time": 4069,
+   "Mechanic": "Dualcast"
+  },
+  {
+   "Time": 4076,
+   "Mechanic": "Flare"
+  },
+  {
+   "Time": 4080,
+   "Mechanic": "Flare"
+  },
+  {
+   "Time": 4097,
+   "Mechanic": "All-Knowing Flames"
+  },
+  {
+   "Time": 4098,
+   "Mechanic": "All-Mighty Flames"
+  },
+  {
+   "Time": 4098,
+   "Mechanic": "All-Consuming Flames"
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements"
+  },
+  {
+   "Time": 4116,
+   "Mechanic": "Elementary Expansion"
+  },
+  {
+   "Time": 4125,
+   "Mechanic": "Fire IV"
+  },
+  {
+   "Time": 4125,
+   "Mechanic": "Thunder IV"
+  },
+  {
+   "Time": 4126,
+   "Mechanic": "Blizzard IV"
+  },
+  {
+   "Time": 4127,
+   "Mechanic": "Predict"
+  },
+  {
+   "Time": 4131,
+   "Mechanic": "Fire IV"
+  },
+  {
+   "Time": 4138,
+   "Mechanic": "Starfall"
+  },
+  {
+   "Time": 4138,
+   "Mechanic": "Cleansing"
+  },
+  {
+   "Time": 4139,
+   "Mechanic": "Blizzard III"
+  },
+  {
+   "Time": 4139,
+   "Mechanic": "Thunder III"
+  },
+  {
+   "Time": 4142,
+   "Mechanic": "Sealed Implements"
+  },
+  {
+   "Time": 4144,
+   "Mechanic": "Fire III"
+  },
+  {
+   "Time": 4144,
+   "Mechanic": "Thunder III"
+  },
+  {
+   "Time": 4144,
+   "Mechanic": "Romeo's Ballad"
+  },
+  {
+   "Time": 4146,
+   "Mechanic": "Fire IV"
+  },
+  {
+   "Time": 4147,
+   "Mechanic": "Blizzard IV"
+  },
+  {
+   "Time": 4149,
+   "Mechanic": "Thunder IV"
+  },
+  {
+   "Time": 4153,
+   "Mechanic": "Fire IV"
+  },
+  {
+   "Time": 4156,
+   "Mechanic": "Sealed Implements"
+  },
+  {
+   "Time": 4158,
+   "Mechanic": "Blizzard III"
+  },
+  {
+   "Time": 4158,
+   "Mechanic": "Fire III"
+  },
+  {
+   "Time": 4158,
+   "Mechanic": "Aim"
+  },
+  {
+   "Time": 4164,
+   "Mechanic": "Elementary Absorption"
+  },
+  {
+   "Time": 4172,
+   "Mechanic": "Arm of Purgatory"
+  },
+  {
+   "Time": 4172,
+   "Mechanic": "Hypothermal Combustion"
+  },
+  {
+   "Time": 4172,
+   "Mechanic": "Shock"
+  },
+  {
+   "Time": 4178,
+   "Mechanic": "Arm of Purgatory"
+  },
+  {
+   "Time": 4178,
+   "Mechanic": "Hypothermal Combustion"
+  },
+  {
+   "Time": 4178,
+   "Mechanic": "Shock"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry"
+  },
+  {
+   "Time": 4202,
+   "Mechanic": "All-Knowing Flames"
+  },
+  {
+   "Time": 4202,
+   "Mechanic": "All-Mighty Flames"
+  },
+  {
+   "Time": 4202,
+   "Mechanic": "All-Consuming Flames"
+  },
+  {
+   "Time": 4213,
+   "Mechanic": "Summon"
+  },
+  {
+   "Time": 4221,
+   "Mechanic": "Sundering Spellblade"
+  },
+  {
+   "Time": 4233,
+   "Mechanic": "Bladeblitz"
+  },
+  {
+   "Time": 4237,
+   "Mechanic": "Feather Breeze"
+  },
+  {
+   "Time": 4243,
+   "Mechanic": "Bladeblitz"
+  },
+  {
+   "Time": 4261,
+   "Mechanic": "Quadrilogy of Implements"
+  },
+  {
+   "Time": 4262,
+   "Mechanic": "Iainuki"
+  },
+  {
+   "Time": 4263,
+   "Mechanic": "Sealed Implements"
+  },
+  {
+   "Time": 4266,
+   "Mechanic": "Wind Slash"
+  },
+  {
+   "Time": 4266,
+   "Mechanic": "Aim"
+  },
+  {
+   "Time": 4269,
+   "Mechanic": "Romeo's Ballad"
+  },
+  {
+   "Time": 4270,
+   "Mechanic": "Sealed Implements"
+  },
+  {
+   "Time": 4278,
+   "Mechanic": "Dualcast"
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare"
+  },
+  {
+   "Time": 4307,
+   "Mechanic": "All-Knowing Flames"
+  },
+  {
+   "Time": 4307,
+   "Mechanic": "All-Mighty Flames"
+  },
+  {
+   "Time": 4307,
+   "Mechanic": "All-Consuming Flames"
+  },
+  {
+   "Time": 4319,
+   "Mechanic": "Omni-Elements"
+  },
+  {
+   "Time": 4325,
+   "Mechanic": "Elementary Evocation"
+  },
+  {
+   "Time": 4334,
+   "Mechanic": "Fire IV"
+  },
+  {
+   "Time": 4335,
+   "Mechanic": "Blizzard IV"
+  },
+  {
+   "Time": 4339,
+   "Mechanic": "Thunder IV"
+  },
+  {
+   "Time": 4339,
+   "Mechanic": "Blizzard IV"
+  },
+  {
+   "Time": 4340,
+   "Mechanic": "Propulsive Prophecy"
+  },
+  {
+   "Time": 4343,
+   "Mechanic": "Fire IV"
+  },
+  {
+   "Time": 4343,
+   "Mechanic": "Thunder IV"
+  }
+ ],
+ "DefaultActions": [
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "MT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Temperance",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Divine Caress",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Neutral Sect",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Sun Sign",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Fey Illumination",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Panhaima",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R1",
+   "Action": "Dismantle",
+   "Jobs": [
+    "MCH"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R2",
+   "Action": "Magick Barrier",
+   "Jobs": [
+    "RDM"
+   ]
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R2",
+   "Action": "Tempera Grassa",
+   "Jobs": [
+    "PCT"
+   ]
+  },
+  {
+   "Time": 1077,
+   "Mechanic": "Archaeofury",
+   "Slot": "MT",
+   "Action": "Personals"
+  },
+  {
+   "Time": 1077,
+   "Mechanic": "Archaeofury",
+   "Slot": "OT",
+   "Action": "Personals"
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "OT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Expedient",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Holos",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "M1",
+   "Action": "Feint"
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R1",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R2",
+   "Action": "Addle"
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "MT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Temperance",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Divine Caress",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Neutral Sect",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H1",
+   "Action": "Sun Sign",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Fey Illumination",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "H2",
+   "Action": "Panhaima",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R1",
+   "Action": "Dismantle",
+   "Jobs": [
+    "MCH"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R2",
+   "Action": "Magick Barrier",
+   "Jobs": [
+    "RDM"
+   ]
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Slot": "R2",
+   "Action": "Tempera Grassa",
+   "Jobs": [
+    "PCT"
+   ]
+  },
+  {
+   "Time": 1211,
+   "Mechanic": "Archaeofury",
+   "Slot": "MT",
+   "Action": "Personals"
+  },
+  {
+   "Time": 1211,
+   "Mechanic": "Archaeofury",
+   "Slot": "OT",
+   "Action": "Personals"
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "MT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Temperance",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Divine Caress",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Neutral Sect",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Sun Sign",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Fey Illumination",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Panhaima",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "R1",
+   "Action": "Dismantle",
+   "Jobs": [
+    "MCH"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "R2",
+   "Action": "Magick Barrier",
+   "Jobs": [
+    "RDM"
+   ]
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Slot": "R2",
+   "Action": "Tempera Grassa",
+   "Jobs": [
+    "PCT"
+   ]
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "OT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Expedient",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Holos",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "M1",
+   "Action": "Feint"
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "R1",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Slot": "R2",
+   "Action": "Addle"
+  },
+  {
+   "Time": 2109,
+   "Mechanic": "Sword Dance",
+   "Slot": "H1",
+   "Action": "Liturgy of the Bell",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2109,
+   "Mechanic": "Sword Dance",
+   "Slot": "H1",
+   "Action": "Horoscope",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2109,
+   "Mechanic": "Sword Dance",
+   "Slot": "H1",
+   "Action": "Celestial Opposition",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2109,
+   "Mechanic": "Sword Dance",
+   "Slot": "H2",
+   "Action": "Whispering Dawn",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2109,
+   "Mechanic": "Sword Dance",
+   "Slot": "H2",
+   "Action": "Physis II",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "MT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Temperance",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Divine Caress",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Neutral Sect",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Sun Sign",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Fey Illumination",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Panhaima",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "R1",
+   "Action": "Dismantle",
+   "Jobs": [
+    "MCH"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "R2",
+   "Action": "Magick Barrier",
+   "Jobs": [
+    "RDM"
+   ]
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Slot": "R2",
+   "Action": "Tempera Grassa",
+   "Jobs": [
+    "PCT"
+   ]
+  },
+  {
+   "Time": 2219,
+   "Mechanic": "Sword Dance",
+   "Slot": "H1",
+   "Action": "Asylum",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2219,
+   "Mechanic": "Sword Dance",
+   "Slot": "H1",
+   "Action": "Horoscope",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2219,
+   "Mechanic": "Sword Dance",
+   "Slot": "H1",
+   "Action": "Celestial Opposition",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2219,
+   "Mechanic": "Sword Dance",
+   "Slot": "H2",
+   "Action": "Whispering Dawn",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2219,
+   "Mechanic": "Sword Dance",
+   "Slot": "H2",
+   "Action": "Physis II",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "OT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Expedient",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "H2",
+   "Action": "Holos",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "M2",
+   "Action": "Feint"
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "R1",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Slot": "R2",
+   "Action": "Addle"
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "OT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Expedient",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Holos",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "M1",
+   "Action": "Feint"
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "R1",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "R2",
+   "Action": "Addle"
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "MT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Temperance",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Divine Caress",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Neutral Sect",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Sun Sign",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Fey Illumination",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Panhaima",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "R1",
+   "Action": "Dismantle",
+   "Jobs": [
+    "MCH"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "R2",
+   "Action": "Magick Barrier",
+   "Jobs": [
+    "RDM"
+   ]
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "R2",
+   "Action": "Tempera Grassa",
+   "Jobs": [
+    "PCT"
+   ]
+  },
+  {
+   "Time": 3110,
+   "Mechanic": "Corpse Mangler",
+   "Slot": "MT",
+   "Action": "90s"
+  },
+  {
+   "Time": 3110,
+   "Mechanic": "Corpse Mangler",
+   "Slot": "MT",
+   "Action": "Short Mit"
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "OT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Expedient",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "H2",
+   "Action": "Holos",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "M2",
+   "Action": "Feint"
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "R1",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Slot": "R2",
+   "Action": "Addle"
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession",
+   "Slot": "H1",
+   "Action": "Liturgy of the Bell",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession",
+   "Slot": "H1",
+   "Action": "Asylum",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession",
+   "Slot": "H1",
+   "Action": "Horoscope",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession",
+   "Slot": "H1",
+   "Action": "Celestial Opposition",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession",
+   "Slot": "H2",
+   "Action": "Seraphism",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession",
+   "Slot": "H2",
+   "Action": "Philosophia",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 3240,
+   "Mechanic": "Spell Procession",
+   "Slot": "H2",
+   "Action": "Physis II",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "MT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "MT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Temperance",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Divine Caress",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Neutral Sect",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Sun Sign",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Fey Illumination",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Spreadlo",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Panhaima",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Zoe Shields",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "R1",
+   "Action": "Dismantle",
+   "Jobs": [
+    "MCH"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "R2",
+   "Action": "Magick Barrier",
+   "Jobs": [
+    "RDM"
+   ]
+  },
+  {
+   "Time": 4020,
+   "Mechanic": "Flare",
+   "Slot": "R2",
+   "Action": "Tempera Grassa",
+   "Jobs": [
+    "PCT"
+   ]
+  },
+  {
+   "Time": 4076,
+   "Mechanic": "Flare",
+   "Slot": "OT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 4076,
+   "Mechanic": "Flare",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 4076,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4076,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4098,
+   "Mechanic": "All-Consuming Flames",
+   "Slot": "MT",
+   "Action": "Invulnerability"
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements",
+   "Slot": "MT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Seraph",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Recitation",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Concitation",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Physis II",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements",
+   "Slot": "M1",
+   "Action": "Feint"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "MT",
+   "Action": "Reprisal"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "OT",
+   "Action": "LB3"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Temperance",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Divine Caress",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Liturgy of the Bell",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Horoscope",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Neutral Sect",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H1",
+   "Action": "Sun Sign",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H2",
+   "Action": "Fey Illumination",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H2",
+   "Action": "Expedient",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H2",
+   "Action": "Seraphism",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H2",
+   "Action": "Panhaima",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "H2",
+   "Action": "Holos",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "M2",
+   "Action": "Feint"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "R1",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "R1",
+   "Action": "Dismantle",
+   "Jobs": [
+    "MCH"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "R2",
+   "Action": "Addle"
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "R2",
+   "Action": "Magick Barrier",
+   "Jobs": [
+    "RDM"
+   ]
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Slot": "R2",
+   "Action": "Tempera Grassa",
+   "Jobs": [
+    "PCT"
+   ]
+  },
+  {
+   "Time": 4202,
+   "Mechanic": "All-Consuming Flames",
+   "Slot": "OT",
+   "Action": "Invulnerability"
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare",
+   "Slot": "MT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Plenary Indulgence",
+   "Jobs": [
+    "WHM"
+   ]
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare",
+   "Slot": "H1",
+   "Action": "Collective Unconscious",
+   "Jobs": [
+    "AST"
+   ]
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Sacred Soil",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Spreadlo",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Kerachole",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4285,
+   "Mechanic": "Flare",
+   "Slot": "H2",
+   "Action": "Zoe Shields",
+   "Jobs": [
+    "SGE"
+   ]
+  },
+  {
+   "Time": 4307,
+   "Mechanic": "All-Consuming Flames",
+   "Slot": "MT",
+   "Action": "Personals"
+  },
+  {
+   "Time": 4319,
+   "Mechanic": "Omni-Elements",
+   "Slot": "OT",
+   "Action": "Party Mit"
+  },
+  {
+   "Time": 4319,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Seraph",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4319,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Recitation",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4319,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Concitation",
+   "Jobs": [
+    "SCH"
+   ]
+  },
+  {
+   "Time": 4319,
+   "Mechanic": "Omni-Elements",
+   "Slot": "H2",
+   "Action": "Physis II",
+   "Jobs": [
+    "SGE"
+   ]
+  }
+ ],
+ "SyncPoints": [
+  {
+   "Ability": 47725,
+   "Time": 1016.1,
+   "IsPhase": true,
+   "Label": "P1 B1 Twin Snakes"
+  },
+  {
+   "Ability": 47726,
+   "Time": 1016.1,
+   "IsPhase": true,
+   "Label": "P1 B1 Twin Snakes"
+  },
+  {
+   "Ability": 47727,
+   "Time": 1016.1,
+   "IsPhase": true,
+   "Label": "P1 B1 Twin Snakes"
+  },
+  {
+   "Ability": 47728,
+   "Time": 1016.1,
+   "IsPhase": true,
+   "Label": "P1 B1 Twin Snakes"
+  },
+  {
+   "Ability": 49726,
+   "Time": 1016.1,
+   "IsPhase": true,
+   "Label": "P1 B1 Twin Snakes"
+  },
+  {
+   "Ability": 47739,
+   "Time": 1037.4,
+   "IsPhase": false,
+   "Label": "P1 Thunderfrost Tempest"
+  },
+  {
+   "Ability": 50706,
+   "Time": 1065.8,
+   "IsPhase": false,
+   "Label": "P1 Blaze"
+  },
+  {
+   "Ability": 50707,
+   "Time": 1065.8,
+   "IsPhase": false,
+   "Label": "P1 Blaze"
+  },
+  {
+   "Ability": 50708,
+   "Time": 1065.8,
+   "IsPhase": false,
+   "Label": "P1 Blaze"
+  },
+  {
+   "Ability": 47749,
+   "Time": 1077,
+   "IsPhase": false,
+   "Label": "P1 Archaeofury"
+  },
+  {
+   "Ability": 47739,
+   "Time": 1102.4,
+   "IsPhase": false,
+   "Label": "P1 Thunderfrost Tempest"
+  },
+  {
+   "Ability": 47719,
+   "Time": 1114.6,
+   "IsPhase": false,
+   "Label": "P1 Arcane Revelation"
+  },
+  {
+   "Ability": 47697,
+   "Time": 1124.8,
+   "IsPhase": false,
+   "Label": "P1 Two Terrors"
+  },
+  {
+   "Ability": 47702,
+   "Time": 1124.8,
+   "IsPhase": false,
+   "Label": "P1 Two Terrors"
+  },
+  {
+   "Ability": 47703,
+   "Time": 1124.8,
+   "IsPhase": false,
+   "Label": "P1 Two Terrors"
+  },
+  {
+   "Ability": 47710,
+   "Time": 1135,
+   "IsPhase": false,
+   "Label": "P1 Summon"
+  },
+  {
+   "Ability": 47646,
+   "Time": 1155.1,
+   "IsPhase": false,
+   "Label": "P1 Breathy Duet"
+  },
+  {
+   "Ability": 50699,
+   "Time": 1155.4,
+   "IsPhase": false,
+   "Label": "P1 Lightning Cluster"
+  },
+  {
+   "Ability": 50701,
+   "Time": 1155.4,
+   "IsPhase": false,
+   "Label": "P1 Lightning Cluster"
+  },
+  {
+   "Ability": 50700,
+   "Time": 1155.4,
+   "IsPhase": false,
+   "Label": "P1 Ice Cluster"
+  },
+  {
+   "Ability": 50702,
+   "Time": 1155.4,
+   "IsPhase": false,
+   "Label": "P1 Ice Cluster"
+  },
+  {
+   "Ability": 50699,
+   "Time": 1162.7,
+   "IsPhase": false,
+   "Label": "P1 Lightning Cluster"
+  },
+  {
+   "Ability": 50701,
+   "Time": 1162.7,
+   "IsPhase": false,
+   "Label": "P1 Lightning Cluster"
+  },
+  {
+   "Ability": 50700,
+   "Time": 1162.7,
+   "IsPhase": false,
+   "Label": "P1 Ice Cluster"
+  },
+  {
+   "Ability": 50702,
+   "Time": 1162.7,
+   "IsPhase": false,
+   "Label": "P1 Ice Cluster"
+  },
+  {
+   "Ability": 47719,
+   "Time": 1177.2,
+   "IsPhase": false,
+   "Label": "P1 Arcane Revelation"
+  },
+  {
+   "Ability": 47739,
+   "Time": 1202.7,
+   "IsPhase": false,
+   "Label": "P1 Thunderfrost Tempest"
+  },
+  {
+   "Ability": 47749,
+   "Time": 1210.9,
+   "IsPhase": false,
+   "Label": "P1 Archaeofury"
+  },
+  {
+   "Ability": 47723,
+   "Time": 1222.1,
+   "IsPhase": false,
+   "Label": "P1 Hissing Resonance"
+  },
+  {
+   "Ability": 47674,
+   "Time": 1236.2,
+   "IsPhase": false,
+   "Label": "P1 Blazeloop, Crossblaze"
+  },
+  {
+   "Ability": 47678,
+   "Time": 1236.2,
+   "IsPhase": false,
+   "Label": "P1 Blazeloop, Crossblaze"
+  },
+  {
+   "Ability": 47725,
+   "Time": 1238.6,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 47726,
+   "Time": 1238.6,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 47727,
+   "Time": 1238.6,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 47728,
+   "Time": 1238.6,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 49726,
+   "Time": 1238.6,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 47673,
+   "Time": 1239.5,
+   "IsPhase": false,
+   "Label": "P1 Crossblaze, Blazeloop"
+  },
+  {
+   "Ability": 47677,
+   "Time": 1239.5,
+   "IsPhase": false,
+   "Label": "P1 Crossblaze, Blazeloop"
+  },
+  {
+   "Ability": 47725,
+   "Time": 1246.7,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 47726,
+   "Time": 1246.7,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 47727,
+   "Time": 1246.7,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 47728,
+   "Time": 1246.7,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 49726,
+   "Time": 1246.7,
+   "IsPhase": false,
+   "Label": "P1 Buffet"
+  },
+  {
+   "Ability": 49675,
+   "Time": 2011.7,
+   "IsPhase": true,
+   "Label": "P2 B2 Sword Dancer"
+  },
+  {
+   "Ability": 49619,
+   "Time": 2018.9,
+   "IsPhase": false,
+   "Label": "P2 Throwing Swords"
+  },
+  {
+   "Ability": 50064,
+   "Time": 2040.5,
+   "IsPhase": false,
+   "Label": "P2 Turnabout"
+  },
+  {
+   "Ability": 49641,
+   "Time": 2041,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49642,
+   "Time": 2041,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49644,
+   "Time": 2041,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49645,
+   "Time": 2041,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49641,
+   "Time": 2051,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49642,
+   "Time": 2051,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49644,
+   "Time": 2051,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49645,
+   "Time": 2051,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49641,
+   "Time": 2059.5,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49642,
+   "Time": 2059.5,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49644,
+   "Time": 2059.5,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49645,
+   "Time": 2059.5,
+   "IsPhase": false,
+   "Label": "P2 Martial Mystique"
+  },
+  {
+   "Ability": 49675,
+   "Time": 2071.2,
+   "IsPhase": false,
+   "Label": "P2 Sword Storm"
+  },
+  {
+   "Ability": 49646,
+   "Time": 2085.5,
+   "IsPhase": false,
+   "Label": "P2 Cycloswords Unsheathed"
+  },
+  {
+   "Ability": 49647,
+   "Time": 2097.6,
+   "IsPhase": false,
+   "Label": "P2 Cycloswords"
+  },
+  {
+   "Ability": 49648,
+   "Time": 2099.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49649,
+   "Time": 2099.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49650,
+   "Time": 2099.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49651,
+   "Time": 2099.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49652,
+   "Time": 2099.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49653,
+   "Time": 2099.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49667,
+   "Time": 2109.2,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49668,
+   "Time": 2109.2,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49672,
+   "Time": 2109.2,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49667,
+   "Time": 2118.8,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49668,
+   "Time": 2118.8,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49672,
+   "Time": 2118.8,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49675,
+   "Time": 2132.4,
+   "IsPhase": false,
+   "Label": "P2 Sword Storm"
+  },
+  {
+   "Ability": 49654,
+   "Time": 2146.6,
+   "IsPhase": false,
+   "Label": "P2 Leaping Lift"
+  },
+  {
+   "Ability": 49655,
+   "Time": 2147.2,
+   "IsPhase": false,
+   "Label": "P2 Pierce"
+  },
+  {
+   "Ability": 49687,
+   "Time": 2161.3,
+   "IsPhase": false,
+   "Label": "P2 Swordpointe"
+  },
+  {
+   "Ability": 49660,
+   "Time": 2163.7,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 50360,
+   "Time": 2163.7,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 49661,
+   "Time": 2165.2,
+   "IsPhase": false,
+   "Label": "P2 Steelsforge"
+  },
+  {
+   "Ability": 49660,
+   "Time": 2168.7,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 50360,
+   "Time": 2168.7,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 49660,
+   "Time": 2172.8,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 50360,
+   "Time": 2172.8,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 49661,
+   "Time": 2175.2,
+   "IsPhase": false,
+   "Label": "P2 Steelsforge"
+  },
+  {
+   "Ability": 49660,
+   "Time": 2178.4,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 50360,
+   "Time": 2178.4,
+   "IsPhase": false,
+   "Label": "P2 Steelsbreath"
+  },
+  {
+   "Ability": 49646,
+   "Time": 2191.6,
+   "IsPhase": false,
+   "Label": "P2 Cycloswords Unsheathed"
+  },
+  {
+   "Ability": 49647,
+   "Time": 2207.8,
+   "IsPhase": false,
+   "Label": "P2 Cycloswords"
+  },
+  {
+   "Ability": 49648,
+   "Time": 2209.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49649,
+   "Time": 2209.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49650,
+   "Time": 2209.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49651,
+   "Time": 2209.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49652,
+   "Time": 2209.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49653,
+   "Time": 2209.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49648,
+   "Time": 2213.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49649,
+   "Time": 2213.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49650,
+   "Time": 2213.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49651,
+   "Time": 2213.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49652,
+   "Time": 2213.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49653,
+   "Time": 2213.5,
+   "IsPhase": false,
+   "Label": "P2 Spin"
+  },
+  {
+   "Ability": 49667,
+   "Time": 2219.3,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49668,
+   "Time": 2219.3,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49672,
+   "Time": 2219.3,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49667,
+   "Time": 2229,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49668,
+   "Time": 2229,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49672,
+   "Time": 2229,
+   "IsPhase": false,
+   "Label": "P2 Sword Dance"
+  },
+  {
+   "Ability": 49675,
+   "Time": 2242.5,
+   "IsPhase": false,
+   "Label": "P2 Sword Storm"
+  },
+  {
+   "Ability": 49619,
+   "Time": 2253.7,
+   "IsPhase": false,
+   "Label": "P2 Throwing Swords"
+  },
+  {
+   "Ability": 47482,
+   "Time": 3011.1,
+   "IsPhase": true,
+   "Label": "P3 B3 Necrophobia"
+  },
+  {
+   "Ability": 47486,
+   "Time": 3030.6,
+   "IsPhase": false,
+   "Label": "P3 Death Shroud"
+  },
+  {
+   "Ability": 47488,
+   "Time": 3035.7,
+   "IsPhase": false,
+   "Label": "P3 Heads Roll"
+  },
+  {
+   "Ability": 47482,
+   "Time": 3076.9,
+   "IsPhase": false,
+   "Label": "P3 Hail of Hellflares"
+  },
+  {
+   "Ability": 47499,
+   "Time": 3090.9,
+   "IsPhase": false,
+   "Label": "P3 Dark Current"
+  },
+  {
+   "Ability": 47500,
+   "Time": 3090.9,
+   "IsPhase": false,
+   "Label": "P3 Dark Current"
+  },
+  {
+   "Ability": 47501,
+   "Time": 3090.9,
+   "IsPhase": false,
+   "Label": "P3 Dark Current"
+  },
+  {
+   "Ability": 47509,
+   "Time": 3090.9,
+   "IsPhase": false,
+   "Label": "P3 Dark Current"
+  },
+  {
+   "Ability": 47504,
+   "Time": 3092.1,
+   "IsPhase": false,
+   "Label": "P3 Deathly Ray"
+  },
+  {
+   "Ability": 47504,
+   "Time": 3100.2,
+   "IsPhase": false,
+   "Label": "P3 Deathly Ray"
+  },
+  {
+   "Ability": 47502,
+   "Time": 3100.3,
+   "IsPhase": false,
+   "Label": "P3 Vacuum Wave"
+  },
+  {
+   "Ability": 47505,
+   "Time": 3110.5,
+   "IsPhase": false,
+   "Label": "P3 Corpse Mangler"
+  },
+  {
+   "Ability": 47486,
+   "Time": 3130,
+   "IsPhase": false,
+   "Label": "P3 Death Shroud"
+  },
+  {
+   "Ability": 47488,
+   "Time": 3135.1,
+   "IsPhase": false,
+   "Label": "P3 Heads Roll"
+  },
+  {
+   "Ability": 47506,
+   "Time": 3148.7,
+   "IsPhase": false,
+   "Label": "P3 Dig Three Graves"
+  },
+  {
+   "Ability": 47507,
+   "Time": 3159.6,
+   "IsPhase": false,
+   "Label": "P3 Severed Dark Current"
+  },
+  {
+   "Ability": 47502,
+   "Time": 3180.6,
+   "IsPhase": false,
+   "Label": "P3 Vacuum Wave"
+  },
+  {
+   "Ability": 47482,
+   "Time": 3190.8,
+   "IsPhase": false,
+   "Label": "P3 Hail of Hellflares"
+  },
+  {
+   "Ability": 47514,
+   "Time": 3203.7,
+   "IsPhase": false,
+   "Label": "P3 Fertile Ground"
+  },
+  {
+   "Ability": 47486,
+   "Time": 3218.9,
+   "IsPhase": false,
+   "Label": "P3 Death Shroud"
+  },
+  {
+   "Ability": 47488,
+   "Time": 3224.1,
+   "IsPhase": false,
+   "Label": "P3 Heads Roll"
+  },
+  {
+   "Ability": 47515,
+   "Time": 3240.2,
+   "IsPhase": false,
+   "Label": "P3 Spell Procession"
+  },
+  {
+   "Ability": 48407,
+   "Time": 4012.8,
+   "IsPhase": true,
+   "Label": "P4 B4 Index"
+  },
+  {
+   "Ability": 48415,
+   "Time": 4019.9,
+   "IsPhase": false,
+   "Label": "P4 Flare"
+  },
+  {
+   "Ability": 48403,
+   "Time": 4034.3,
+   "IsPhase": false,
+   "Label": "P4 Propulsive Prophecy"
+  },
+  {
+   "Ability": 48447,
+   "Time": 4051.3,
+   "IsPhase": false,
+   "Label": "P4 Shockwave"
+  },
+  {
+   "Ability": 48407,
+   "Time": 4069,
+   "IsPhase": false,
+   "Label": "P4 Dualcast"
+  },
+  {
+   "Ability": 48415,
+   "Time": 4076.1,
+   "IsPhase": false,
+   "Label": "P4 Flare"
+  },
+  {
+   "Ability": 50472,
+   "Time": 4097.4,
+   "IsPhase": false,
+   "Label": "P4 All-Knowing Flames"
+  },
+  {
+   "Ability": 48394,
+   "Time": 4109.6,
+   "IsPhase": false,
+   "Label": "P4 Omni-Elements"
+  },
+  {
+   "Ability": 48399,
+   "Time": 4115.8,
+   "IsPhase": false,
+   "Label": "P4 Elementary Expansion"
+  },
+  {
+   "Ability": 48412,
+   "Time": 4127,
+   "IsPhase": false,
+   "Label": "P4 Predict"
+  },
+  {
+   "Ability": 48451,
+   "Time": 4137.9,
+   "IsPhase": false,
+   "Label": "P4 Starfall"
+  },
+  {
+   "Ability": 48452,
+   "Time": 4137.9,
+   "IsPhase": false,
+   "Label": "P4 Cleansing"
+  },
+  {
+   "Ability": 48434,
+   "Time": 4183.7,
+   "IsPhase": false,
+   "Label": "P4 Elementary Chemistry"
+  },
+  {
+   "Ability": 50472,
+   "Time": 4201.8,
+   "IsPhase": false,
+   "Label": "P4 All-Knowing Flames"
+  },
+  {
+   "Ability": 48408,
+   "Time": 4213.1,
+   "IsPhase": false,
+   "Label": "P4 Summon"
+  },
+  {
+   "Ability": 48444,
+   "Time": 4221.2,
+   "IsPhase": false,
+   "Label": "P4 Sundering Spellblade"
+  },
+  {
+   "Ability": 48445,
+   "Time": 4221.2,
+   "IsPhase": false,
+   "Label": "P4 Sundering Spellblade"
+  },
+  {
+   "Ability": 48453,
+   "Time": 4233.3,
+   "IsPhase": false,
+   "Label": "P4 Bladeblitz"
+  },
+  {
+   "Ability": 48455,
+   "Time": 4233.3,
+   "IsPhase": false,
+   "Label": "P4 Bladeblitz"
+  },
+  {
+   "Ability": 48450,
+   "Time": 4236.9,
+   "IsPhase": false,
+   "Label": "P4 Feather Breeze"
+  },
+  {
+   "Ability": 48453,
+   "Time": 4243.1,
+   "IsPhase": false,
+   "Label": "P4 Bladeblitz"
+  },
+  {
+   "Ability": 48455,
+   "Time": 4243.1,
+   "IsPhase": false,
+   "Label": "P4 Bladeblitz"
+  },
+  {
+   "Ability": 48906,
+   "Time": 4260.9,
+   "IsPhase": false,
+   "Label": "P4 Quadrilogy of Implements"
+  },
+  {
+   "Ability": 48907,
+   "Time": 4260.9,
+   "IsPhase": false,
+   "Label": "P4 Quadrilogy of Implements"
+  },
+  {
+   "Ability": 48908,
+   "Time": 4260.9,
+   "IsPhase": false,
+   "Label": "P4 Quadrilogy of Implements"
+  },
+  {
+   "Ability": 48909,
+   "Time": 4260.9,
+   "IsPhase": false,
+   "Label": "P4 Quadrilogy of Implements"
+  },
+  {
+   "Ability": 48407,
+   "Time": 4278.2,
+   "IsPhase": false,
+   "Label": "P4 Dualcast"
+  },
+  {
+   "Ability": 48415,
+   "Time": 4285.4,
+   "IsPhase": false,
+   "Label": "P4 Flare"
+  },
+  {
+   "Ability": 50472,
+   "Time": 4306.7,
+   "IsPhase": false,
+   "Label": "P4 All-Knowing Flames"
+  },
+  {
+   "Ability": 48394,
+   "Time": 4318.9,
+   "IsPhase": false,
+   "Label": "P4 Omni-Elements"
+  },
+  {
+   "Ability": 48400,
+   "Time": 4325,
+   "IsPhase": false,
+   "Label": "P4 Elementary Evocation"
+  },
+  {
+   "Ability": 48403,
+   "Time": 4340.2,
+   "IsPhase": false,
+   "Label": "P4 Propulsive Prophecy"
+  }
+ ],
+ "PhaseStarts": [
+  {
+   "Time": 1016.1,
+   "Name": "P1"
+  },
+  {
+   "Time": 2011.7,
+   "Name": "P2"
+  },
+  {
+   "Time": 3011.1,
+   "Name": "P3"
+  },
+  {
+   "Time": 4012.8,
+   "Name": "P4"
+  }
+ ],
+ "CustomRows": [
+  {
+   "Time": 1016,
+   "Mechanic": "Buffet",
+   "Hurt": 1,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 1029,
+   "Mechanic": "Freezing Fugue",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1037,
+   "Mechanic": "Thunderfrost Tempest",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1054,
+   "Mechanic": "Blazeloop and Repeat",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1061,
+   "Mechanic": "Blazeloop",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1065,
+   "Mechanic": "Crossblaze",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1066,
+   "Mechanic": "Blaze",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1077,
+   "Mechanic": "Archaeofury",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 1102,
+   "Mechanic": "Thunderfrost Tempest",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1125,
+   "Mechanic": "Arcane Beacon",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1125,
+   "Mechanic": "Two Terrors",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1156,
+   "Mechanic": "Levin Wave",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1163,
+   "Mechanic": "Ice Cluster",
+   "Hurt": 1,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 1163,
+   "Mechanic": "Levin Wave",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1191,
+   "Mechanic": "Fulgurous Fugue",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1195,
+   "Mechanic": "Arcane Beacon",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1203,
+   "Mechanic": "Thunderfrost Tempest",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1211,
+   "Mechanic": "Archaeofury",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 1222,
+   "Mechanic": "Hissing Resonance",
+   "Hurt": 1,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 1236,
+   "Mechanic": "Blazeloop, Crossblaze",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1239,
+   "Mechanic": "Buffet",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1247,
+   "Mechanic": "Crossblaze",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1247,
+   "Mechanic": "Buffet",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 1247,
+   "Mechanic": "Blazeloop",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2012,
+   "Mechanic": "Sword Storm",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2020,
+   "Mechanic": "Rush",
+   "Hurt": 2,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2028,
+   "Mechanic": "Turn",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2028,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2032,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2032,
+   "Mechanic": "Turn",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2036,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2036,
+   "Mechanic": "Turn",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2040,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2040,
+   "Mechanic": "Turnabout",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2041,
+   "Mechanic": "Martial Mystique",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2045,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2045,
+   "Mechanic": "Turn",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2049,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2049,
+   "Mechanic": "Turn",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2051,
+   "Mechanic": "Martial Mystique",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2053,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2053,
+   "Mechanic": "Turn",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2058,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2058,
+   "Mechanic": "Turn",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2060,
+   "Mechanic": "Martial Mystique",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2071,
+   "Mechanic": "Sword Storm",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2086,
+   "Mechanic": "Cycloswords Unsheathed",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2098,
+   "Mechanic": "Cycloswords",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2100,
+   "Mechanic": "Spin",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2103,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2109,
+   "Mechanic": "Sword Dance",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2119,
+   "Mechanic": "Sword Dance",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2132,
+   "Mechanic": "Sword Storm",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2164,
+   "Mechanic": "Steelsbreath",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2165,
+   "Mechanic": "Steelsforge",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2169,
+   "Mechanic": "Steelsbreath",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2173,
+   "Mechanic": "Steelsbreath",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2175,
+   "Mechanic": "Steelsforge",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2178,
+   "Mechanic": "Steelsbreath",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2181,
+   "Mechanic": "Rush",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2192,
+   "Mechanic": "Cycloswords Unsheathed",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2208,
+   "Mechanic": "Cycloswords",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2210,
+   "Mechanic": "Spin",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2214,
+   "Mechanic": "Spin",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 2219,
+   "Mechanic": "Sword Dance",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2229,
+   "Mechanic": "Sword Dance",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2242,
+   "Mechanic": "Sword Storm",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 2255,
+   "Mechanic": "Rush",
+   "Hurt": 2,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 3011,
+   "Mechanic": "Hail of Hellflares",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3020,
+   "Mechanic": "Capitation",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3031,
+   "Mechanic": "Death Shroud",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3050,
+   "Mechanic": "Ancient Thunder III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3064,
+   "Mechanic": "Ancient Fire III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3064,
+   "Mechanic": "Ancient Blizzard III",
+   "Hurt": 0,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 3077,
+   "Mechanic": "Hail of Hellflares",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3085,
+   "Mechanic": "Heads Roll",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3092,
+   "Mechanic": "Deathly Ray",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3100,
+   "Mechanic": "Deathly Ray",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3100,
+   "Mechanic": "Vacuum Wave",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3110,
+   "Mechanic": "Corpse Mangler",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 3119,
+   "Mechanic": "Capitation",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3130,
+   "Mechanic": "Death Shroud",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3164,
+   "Mechanic": "Ancient Thunder III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3168,
+   "Mechanic": "Ancient Blizzard III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3175,
+   "Mechanic": "Ancient Fire III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3181,
+   "Mechanic": "Vacuum Wave",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3191,
+   "Mechanic": "Hail of Hellflares",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3204,
+   "Mechanic": "Fertile Ground",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3208,
+   "Mechanic": "Capitation",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3219,
+   "Mechanic": "Death Shroud",
+   "Hurt": 2,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3242,
+   "Mechanic": "Sowing Dread",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3242,
+   "Mechanic": "Sowing Panic",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3248,
+   "Mechanic": "Sowing Panic",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3254,
+   "Mechanic": "Sowing Dread",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3254,
+   "Mechanic": "Sowing Panic",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3260,
+   "Mechanic": "Sowing Dread",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3260,
+   "Mechanic": "Sowing Panic",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3265,
+   "Mechanic": "Ancient Fire III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 3266,
+   "Mechanic": "Sowing Panic",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4024,
+   "Mechanic": "Flare",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4034,
+   "Mechanic": "Propulsive Prophecy",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 4051,
+   "Mechanic": "Shockwave",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4056,
+   "Mechanic": "Aim",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4056,
+   "Mechanic": "Romeo's Ballad",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4060,
+   "Mechanic": "Iainuki",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4063,
+   "Mechanic": "Wind Slash",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4080,
+   "Mechanic": "Flare",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4098,
+   "Mechanic": "All-Consuming Flames",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4110,
+   "Mechanic": "Omni-Elements",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4116,
+   "Mechanic": "Elementary Expansion",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 4125,
+   "Mechanic": "Fire IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4125,
+   "Mechanic": "Thunder IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4126,
+   "Mechanic": "Blizzard IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4127,
+   "Mechanic": "Predict",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4131,
+   "Mechanic": "Fire IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4138,
+   "Mechanic": "Cleansing",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4139,
+   "Mechanic": "Blizzard III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4139,
+   "Mechanic": "Thunder III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4144,
+   "Mechanic": "Fire III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4144,
+   "Mechanic": "Thunder III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4144,
+   "Mechanic": "Romeo's Ballad",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4146,
+   "Mechanic": "Fire IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4147,
+   "Mechanic": "Blizzard IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4149,
+   "Mechanic": "Thunder IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4153,
+   "Mechanic": "Fire IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4158,
+   "Mechanic": "Blizzard III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4158,
+   "Mechanic": "Fire III",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4158,
+   "Mechanic": "Aim",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4164,
+   "Mechanic": "Elementary Absorption",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 4172,
+   "Mechanic": "Arm of Purgatory",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4172,
+   "Mechanic": "Hypothermal Combustion",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4172,
+   "Mechanic": "Shock",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4178,
+   "Mechanic": "Arm of Purgatory",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4178,
+   "Mechanic": "Hypothermal Combustion",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4178,
+   "Mechanic": "Shock",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4184,
+   "Mechanic": "Elementary Chemistry",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4202,
+   "Mechanic": "All-Consuming Flames",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4213,
+   "Mechanic": "Summon",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 4221,
+   "Mechanic": "Sundering Spellblade",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 4233,
+   "Mechanic": "Bladeblitz",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4237,
+   "Mechanic": "Feather Breeze",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4243,
+   "Mechanic": "Bladeblitz",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4261,
+   "Mechanic": "Quadrilogy of Implements",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4262,
+   "Mechanic": "Iainuki",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4266,
+   "Mechanic": "Wind Slash",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4266,
+   "Mechanic": "Aim",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4269,
+   "Mechanic": "Romeo's Ballad",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4270,
+   "Mechanic": "Sealed Implements",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4307,
+   "Mechanic": "All-Consuming Flames",
+   "Hurt": 3,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4319,
+   "Mechanic": "Omni-Elements",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4325,
+   "Mechanic": "Elementary Evocation",
+   "Hurt": 0,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 4334,
+   "Mechanic": "Fire IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4335,
+   "Mechanic": "Blizzard IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4339,
+   "Mechanic": "Thunder IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4339,
+   "Mechanic": "Blizzard IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4340,
+   "Mechanic": "Propulsive Prophecy",
+   "Hurt": 3,
+   "Buster": true,
+   "Enrage": false
+  },
+  {
+   "Time": 4343,
+   "Mechanic": "Fire IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  },
+  {
+   "Time": 4343,
+   "Mechanic": "Thunder IV",
+   "Hurt": 1,
+   "Buster": false,
+   "Enrage": false
+  }
+ ],
+ "BossAnchors": []
+}
