@@ -335,6 +335,9 @@ public partial class SheetViewWindow : Window
     private FightProfile? PickDefaultFight()
     {
         var terr = Service.ClientState.TerritoryType;
+        // The fight that would fire here opens first.
+        if (FightProfile.Active(C.Fights, terr, Builtin.Has) is { } active && Sheetable(active))
+            return active;
         // Prefer fights with a slot picked, since the grid needs one.
         return C.Fights.FirstOrDefault(f => Sheetable(f) && f.TerritoryId == terr && f.Enabled)
             ?? C.Fights.FirstOrDefault(f => Sheetable(f) && f.Id == C.LastSheetFightId)

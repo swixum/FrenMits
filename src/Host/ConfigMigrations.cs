@@ -863,6 +863,8 @@ public static class ConfigMigrations
         foreach (var f in config.Fights)
         {
             if (!match(f)) continue;
+            // A Custom sheet in the zone is the user's, not ours to reset.
+            if (f.Category == "Custom") continue;
             f.SavedSlots.Clear();
             if (!string.IsNullOrEmpty(f.Slot))
                 Builtin.ResetSlot(f, f.Slot);

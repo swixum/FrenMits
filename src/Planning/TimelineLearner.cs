@@ -278,6 +278,20 @@ public static class TimelineLearner
         return fight;
     }
 
+    // A ready-to-edit custom sheet for a learned boss, no slot picked yet.
+    public static FightProfile BuildSheet(LearnedFight learned)
+    {
+        var fight = new FightProfile
+        {
+            Name = learned.BossName.Length > 0 ? learned.BossName : $"Boss #{learned.BossNameId}",
+            TerritoryId = learned.Territory,
+            Category = "Custom",
+            CustomSlots = SlotNames.Standard.ToList(),
+        };
+        SeedSheet(fight, learned);
+        return fight;
+    }
+
     // Seed a custom sheet's rows and anchors from a learned boss.
     public static void SeedSheet(FightProfile fight, LearnedFight learned)
     {

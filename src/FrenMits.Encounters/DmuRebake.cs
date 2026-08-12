@@ -14,6 +14,8 @@ public static class DmuRebake
         foreach (var f in fights)
         {
             if (f.TerritoryId != Builtin.DmuTerritory) continue;
+            // A Custom sheet in the zone is the user's, not ours to rebake.
+            if (f.Category == "Custom") continue;
 
             if (!string.IsNullOrEmpty(f.Slot))
                 f.Lines = MergeSlot(f, f.Slot, f.Lines);

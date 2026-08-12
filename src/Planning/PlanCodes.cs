@@ -98,9 +98,12 @@ public static class PlanCodes
             // Old codes carry legacy slot names, so standardize first.
             SlotNames.NormalizeFight(fight);
 
-            // A same-duty import updates instead of duplicating.
+            // A same-duty import updates instead of duplicating. With an
+            // official and a Custom sheet in one zone, like updates like.
             var existing = fight.TerritoryId != 0
-                ? config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId)
+                ? config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId
+                      && (f.Category == "Custom") == (fight.Category == "Custom"))
+                  ?? config.Fights.FirstOrDefault(f => f.TerritoryId == fight.TerritoryId)
                 : null;
             if (existing != null)
             {

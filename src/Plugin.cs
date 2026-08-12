@@ -387,9 +387,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         try { AutoLoadForTerritory(territory); }
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
 
-        // Opt-in check-in, once per entry, for fights with a sheet.
-        var sheetFight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory
-            && (Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0));
+        // Opt-in check-in, once per entry, for the fight that will fire.
+        var active = FightProfile.Active(Config.Fights, territory, Builtin.Has);
+        var sheetFight = active != null && (Builtin.Has(active.TerritoryId) || active.CustomSlots.Count > 0)
+            ? active : null;
         
         if (Config.ShowSlotPopupOnEntry || (Config.UseSetup && sheetFight != null && string.IsNullOrEmpty(sheetFight.Slot)))
         {
@@ -490,9 +491,12 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     {
         if (!Builtin.Has(territory)) { AutoSlotCustomSheet(territory); return; }
 
+        // A coexisting Custom sheet slots itself; the bake below is official-only.
+        AutoSlotCustomSheet(territory);
+
         // Prefer the enabled profile, which is what drives the fight.
-        var fight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory)
-                    ?? Config.Fights.FirstOrDefault(f => f.TerritoryId == territory);
+        var fight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory && f.Category != "Custom")
+                    ?? Config.Fights.FirstOrDefault(f => f.TerritoryId == territory && f.Category != "Custom");
         if (fight == null)
         {
             fight = new FightProfile { Name = Builtin.Name(territory), TerritoryId = territory };

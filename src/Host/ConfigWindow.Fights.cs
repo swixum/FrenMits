@@ -7,6 +7,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
+using FrenMits.Planning;
 
 namespace FrenMits.Host;
 
@@ -326,8 +327,37 @@ public partial class ConfigWindow
             });
         if (ImGui.MenuItem("Paste Fight Code from Clipboard")) ImportFightFromClipboard();
 
+        // Custom's Add also offers sheets built from learned bosses.
+        if (category == "Custom")
+        {
+            var learned = C.LearnedFights.Values
+                .Where(f => f.Territory != 0
+                            && f.Casts.Count >= TimelineLearner.MinCasts
+                            && !Builtin.Has(f.Territory)
+                            && C.Fights.All(x => x.TerritoryId != f.Territory))
+                .OrderByDescending(f => f.LastSeen)
+                .ToList();
+            if (learned.Count > 0)
+            {
+                ImGui.Separator();
+                ImGui.TextDisabled("From a learned fight");
+                foreach (var lf in learned)
+                {
+                    var boss = lf.BossName.Length > 0 ? lf.BossName : $"#{lf.BossNameId}";
+                    var duty = TerritoryName(lf.Territory);
+                    var label = duty.Length > 0
+                        ? $"{boss} - {duty} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})"
+                        : $"{boss} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})";
+                    if (ImGui.MenuItem(label))
+                        AddFight(TimelineLearner.BuildSheet(lf));
+                }
+            }
+        }
+
         var presets = Builtin.Fights
-            .Where(f => f.Category == category && C.Fights.All(x => x.TerritoryId != f.Territory))
+            .Where(f => f.Category == category
+                        // A Custom sheet in the zone doesn't hide the official one.
+                        && C.Fights.All(x => x.TerritoryId != f.Territory || x.Category == "Custom"))
             .ToList();
         if (presets.Count > 0)
         {
