@@ -104,6 +104,15 @@ public static class UniversalTimelines
         return f;
     }
 
+    // True when a duty's timeline counts from a block base rather than the
+    // pull, which is how the long field-op instances are written.
+    public static bool UsesBlockTimes(uint territory)
+    {
+        Load();
+        return _zones!.TryGetValue(territory, out var z)
+               && z.Entries.Count > 0 && z.Entries[0].Time >= 1000f;
+    }
+
     // How many mechanics this duty's timeline carries.
     public static int RowCount(uint territory)
     {

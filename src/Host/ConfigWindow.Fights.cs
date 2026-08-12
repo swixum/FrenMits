@@ -370,27 +370,79 @@ public partial class ConfigWindow
         C.Save();
     }
 
-    // A section label inside the Add menu.
-    private static void MenuHeader(string text)
+    // An icon in the menu's own colour, drawn before its row.
+    private static float MenuIcon(FontAwesomeIcon icon, uint color)
     {
-        ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.TextColored(Theme.V(Theme.Heading), text);
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.TextColored(Theme.V(color), icon.ToIconString());
+        var w = ImGui.GetItemRectSize().X;
+        ImGui.SameLine(0, Theme.S(8f));
+        return w;
     }
 
-    // One pick: what it is on the left, what it costs you on the right.
-    private static bool MenuRow(string label, string detail, string id, string tip = "")
+    // One pick: type icon, name, then the duty muted beside it. A nameCol
+    // above zero lines every detail up in a column instead of on the edge.
+    private static bool MenuPick(FontAwesomeIcon icon, uint color, string label, string detail,
+        string id, float nameCol = 0f, string tip = "")
     {
+        var x0 = ImGui.GetCursorPosX();
+        var iconW = MenuIcon(icon, color);
         var clicked = ImGui.Selectable($"{label}##{id}");
         if (tip.Length > 0 && Widgets.HoveredDelayed()) ImGui.SetTooltip(tip);
         if (detail.Length == 0) return clicked;
-        // Right-aligned, but never back over the name.
-        ImGui.SameLine(MathF.Max(
-            ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(detail).X,
-            ImGui.CalcTextSize(label).X + Theme.S(28f)));
+
+        var textX = x0 + iconW + Theme.S(8f);
+        ImGui.SameLine(nameCol > 0f
+            ? textX + nameCol + Theme.S(18f)
+            // No column to share: sit on the right edge, clear of the name.
+            : MathF.Max(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(detail).X,
+                        textX + ImGui.CalcTextSize(label).X + Theme.S(24f)));
         ImGui.TextDisabled(detail);
         return clicked;
     }
+
+    // What a duty looks like in the menu: its kind, and how hard it is.
+    private static readonly Dictionary<uint, (FontAwesomeIcon Icon, uint Color)> LookCache = new();
+
+    private static (FontAwesomeIcon Icon, uint Color) DutyLook(uint territory)
+    {
+        if (LookCache.TryGetValue(territory, out var hit)) return hit;
+
+        var kind = "";
+        var tier = "";
+        try
+        {
+            var t = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.GetRowOrDefault(territory);
+            var cfc = t?.ContentFinderCondition.ValueNullable;
+            kind = cfc?.ContentType.ValueNullable?.Name.ExtractText() ?? "";
+            tier = Difficulty(cfc?.Name.ExtractText() ?? "", cfc?.HighEndDuty ?? false);
+        }
+        catch { /* sheet hiccup: the row still draws, just plainer */ }
+
+        const StringComparison ic = StringComparison.OrdinalIgnoreCase;
+        var dungeon = kind.Contains("Dungeon", ic);
+        var icon = tier == "Ultimate" ? FontAwesomeIcon.Crown
+            : dungeon ? FontAwesomeIcon.Dungeon
+            : kind.Contains("Raid", ic) ? FontAwesomeIcon.Users
+            : kind.Contains("Trial", ic) ? FontAwesomeIcon.Certificate
+            : kind.Contains("Field", ic) || UniversalTimelines.UsesBlockTimes(territory) ? FontAwesomeIcon.Map
+            : FontAwesomeIcon.LayerGroup;
+        var color = tier switch
+        {
+            "Ultimate" => Theme.Gold,
+            "Savage" => Theme.Danger,
+            "Extreme" or "Unreal" or "Chaotic" or "High-end" => Theme.Warn,
+            _ => dungeon ? Theme.Muted : Theme.Accent,
+        };
+
+        LookCache[territory] = (icon, color);
+        return (icon, color);
+    }
+
+    // A flyout is bounded the same way the menu that opened it is.
+    private static void SubMenuConstraints()
+        => ImGui.SetNextWindowSizeConstraints(
+            new Vector2(Theme.S(200f), 0f), new Vector2(Theme.S(520f), Theme.S(430f)));
 
     // Custom only: every way to start a sheet, behind one Add.
     private void DrawCategoryToolbar(string category)
@@ -407,28 +459,31 @@ public partial class ConfigWindow
         // A blank sheet in an official zone would be a locked duplicate.
         var officialHere = Builtin.Has(zone);
         ImGui.BeginDisabled(officialHere);
-        if (MenuRow("Blank sheet", "", "blank",
-                officialHere ? "" : "An empty grid for the duty you're in."))
+        if (MenuPick(FontAwesomeIcon.PlusSquare, Theme.Muted, "Blank sheet", "", "blank",
+                tip: officialHere ? "" : "An empty grid for the duty you're in."))
             AddFight(new FightProfile { Name = "New fight", TerritoryId = zone, Category = category });
         ImGui.EndDisabled();
         if (officialHere && Widgets.HoveredDelayed())
             ImGui.SetTooltip("This duty already has an official sheet.");
-        if (MenuRow("Paste a fight code", "", "paste", "Takes a plan a friend shared with you."))
+        if (MenuPick(FontAwesomeIcon.Clipboard, Theme.Accent, "Paste a fight code", "", "paste",
+                tip: "Takes a plan a friend shared with you."))
             ImportFightFromClipboard();
 
         // The duty you're standing in, when its timeline is baked in.
         if (!officialHere && UniversalTimelines.Has(zone)
             && C.Fights.All(x => x.TerritoryId != zone))
         {
-            MenuHeader("This duty");
+            ImGui.Separator();
             var here = TerritoryName(zone);
-            if (MenuRow(here.Length > 0 ? here : $"Zone {zone}",
+            var (icon, color) = DutyLook(zone);
+            if (MenuPick(icon, color, here.Length > 0 ? here : $"Zone {zone}",
                     $"{UniversalTimelines.RowCount(zone)} mechanics", "duty",
-                    "Every mechanic this duty runs, ready to plan.")
+                    tip: "Every mechanic this duty runs, ready to plan.")
                 && UniversalTimelines.BuildSheet(zone) is { } baked)
                 AddSheet(baked);
         }
 
+        // The long lists fold away, so the picks above stay at eye level.
         var learned = C.LearnedFights.Values
             .Where(f => f.Territory != 0
                         && f.Casts.Count >= TimelineLearner.MinCasts
@@ -438,14 +493,23 @@ public partial class ConfigWindow
             .ToList();
         if (learned.Count > 0)
         {
-            MenuHeader("Learned from your pulls");
-            foreach (var lf in learned)
+            ImGui.Separator();
+            MenuIcon(FontAwesomeIcon.GraduationCap, Theme.Gold);
+            SubMenuConstraints();
+            if (ImGui.BeginMenu($"Learned from your pulls ({learned.Count})"))
             {
-                var boss = lf.BossName.Length > 0 ? lf.BossName : $"#{lf.BossNameId}";
-                if (MenuRow(boss, TerritoryName(lf.Territory), $"lf{lf.BossNameId}",
-                        $"{lf.Casts.Count} mechanics, seen over "
-                        + $"{lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")}."))
-                    AddSheet(TimelineLearner.BuildSheet(lf));
+                var names = learned.Select(f => f.BossName.Length > 0 ? f.BossName : $"#{f.BossNameId}").ToList();
+                var col = MathF.Min(names.Max(n => ImGui.CalcTextSize(n).X), Theme.S(190f));
+                for (var i = 0; i < learned.Count; i++)
+                {
+                    var lf = learned[i];
+                    var (icon, color) = DutyLook(lf.Territory);
+                    if (MenuPick(icon, color, names[i], TerritoryName(lf.Territory), $"lf{lf.BossNameId}", col,
+                            $"{lf.Casts.Count} mechanics, seen over "
+                            + $"{lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")}."))
+                        AddSheet(TimelineLearner.BuildSheet(lf));
+                }
+                ImGui.EndMenu();
             }
         }
 
@@ -455,10 +519,17 @@ public partial class ConfigWindow
             .ToList();
         if (missing.Count > 0)
         {
-            MenuHeader("Official sheets you don't have");
-            foreach (var (territory, name, cat, _) in missing)
-                if (MenuRow(name, cat, $"of{territory}"))
-                    AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
+            ImGui.Separator();
+            MenuIcon(FontAwesomeIcon.Star, Theme.Gold);
+            SubMenuConstraints();
+            if (ImGui.BeginMenu($"Official sheets you don't have ({missing.Count})"))
+            {
+                var col = MathF.Min(missing.Max(f => ImGui.CalcTextSize(f.Name).X), Theme.S(230f));
+                foreach (var (territory, name, cat, _) in missing)
+                    if (MenuPick(CategoryIcon(cat), Theme.Gold, name, cat, $"of{territory}", col))
+                        AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
+                ImGui.EndMenu();
+            }
         }
         ImGui.EndPopup();
     }
