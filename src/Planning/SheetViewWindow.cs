@@ -506,7 +506,7 @@ public partial class SheetViewWindow : Window
     }
 
     // Fight picker (only when there's a choice to make).
-    private static readonly string[] PickerCategories = { "Ultimate", "Savage", "Extreme", "Raids", "Other" };
+    private static readonly string[] PickerCategories = { "Ultimate", "Savage", "Extreme", "Custom", "Raids", "Other" };
 
     private void DrawFightPicker()
     {

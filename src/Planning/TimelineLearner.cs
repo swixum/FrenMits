@@ -30,7 +30,7 @@ public class LearnedCast
 public static class TimelineLearner
 {
     // Floor and ceiling for what a pull can teach.
-    private const int MinCasts = 4;
+    public const int MinCasts = 4;
     private const int MaxCasts = 220;
 
     // Two casts closer than this are one mechanic ticking.
@@ -276,6 +276,18 @@ public static class TimelineLearner
         foreach (var c in learned.Casts)
             fight.SyncPoints.Add(new SyncPoint { Ability = c.Ability, Time = c.Time, IsPhase = false, Label = "learned" });
         return fight;
+    }
+
+    // Seed a custom sheet's rows and anchors from a learned boss.
+    public static void SeedSheet(FightProfile fight, LearnedFight learned)
+    {
+        foreach (var c in learned.Casts)
+        {
+            fight.CustomRows.Add(new CustomRow { Time = c.Time, Mechanic = c.Name });
+            fight.SyncPoints.Add(new SyncPoint { Ability = c.Ability, Time = c.Time, IsPhase = false, Label = "learned" });
+        }
+        // Only an ability's FIRST anchor may re-base the clock.
+        SyncAnchors.Guard(fight.SyncPoints, SyncAnchors.EncounterStarts(learned.Casts.Select(c => c.Time)));
     }
 
     // Bounded, dropping whatever went unseen longest.

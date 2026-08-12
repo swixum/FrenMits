@@ -25,7 +25,8 @@ public partial class ConfigWindow
         Tip("Times are seconds from the pull.");
 
         var ci = Array.IndexOf(Categories, fight.Category);
-        if (ci < 0) ci = Categories.Length - 1;
+        // Unknown files under Extreme in the sidebar; match that here.
+        if (ci < 0) ci = Array.IndexOf(Categories, "Extreme");
         LabelledWidth("Type", 120f);
         if (ImGui.Combo("##fighttype", ref ci, Categories, Categories.Length))
         {
@@ -39,6 +40,18 @@ public partial class ConfigWindow
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.TrashAlt, "Delete"))
             ImGui.OpenPopup("##delfight");
         Widgets.PopDanger();
+
+        if (fight.Category == "Custom" && Builtin.Has(fight.TerritoryId))
+        {
+            var prefer = fight.PreferOverOfficial;
+            if (ImGui.Checkbox("Use over the official sheet", ref prefer))
+            {
+                fight.PreferOverOfficial = prefer;
+                C.Save();
+            }
+            Tip("Off: the official sheet fires in this duty. Yours stays saved either way.");
+        }
+
         return !DrawDeleteFightConfirm(fight);
     }
 

@@ -13,8 +13,11 @@ public class FightProfile
     public uint TerritoryId { get; set; }
     public bool Enabled { get; set; } = true;
 
-    // Sidebar group: "Ultimate", "Savage", "Extreme", "Raids", "Other".
+    // Sidebar group: "Ultimate", "Savage", "Extreme", "Raids", "Custom", "Other".
     public string Category { get; set; } = "";
+
+    // A custom sheet that outranks the official one for its zone.
+    public bool PreferOverOfficial { get; set; }
 
     // Added on the cue clock, so it survives resync.
     public float TimerOffset { get; set; }
@@ -92,6 +95,21 @@ public class FightProfile
     private List<MitLine>? _orderedSrc;
     private List<MitLine> _ordered = new();
     private int _orderedStamp;
+
+    // The profile that fires in a territory. Officials outrank Custom
+    // sheets unless the Custom one is marked preferred.
+    public static FightProfile? Active(IEnumerable<FightProfile> fights, uint territory, Func<uint, bool> hasOfficial)
+    {
+        FightProfile? official = null, custom = null;
+        foreach (var fight in fights)
+        {
+            if (!fight.Enabled || fight.TerritoryId != territory) continue;
+            if (fight.Category == "Custom" && hasOfficial(fight.TerritoryId)) custom ??= fight;
+            else official ??= fight;
+        }
+        if (custom != null && (official == null || custom.PreferOverOfficial)) return custom;
+        return official;
+    }
 }
 
 // A deleted sheet call, remembered so no re-bake brings it back.

@@ -46,8 +46,9 @@ public partial class SheetViewWindow
         _newTemplate = 0;
         _newSlotsBuf = "";
         _newMySlot = 0;
-        _newCat = 4; // "Other" until the duty name suggests better
+        _newCat = 4; // "Custom" until the duty name suggests better
         _newCatTouched = false;
+        _newLearnedPick = 0;
         // Prefilled with the zone you're in, but editable.
         var here = (uint)Service.ClientState.TerritoryType;
         _newZoneBuf = here != 0 ? here.ToString() : "";
@@ -58,8 +59,28 @@ public partial class SheetViewWindow
     private int _newCat = 2;
     private bool _newCatTouched;
 
+    // Boss NameId of the learned fight seeding this sheet, 0 for none.
+    private uint _newLearnedPick;
+
+    // Learned bosses a sheet can start from: enough casts, no official sheet.
+    private List<LearnedFight> EligibleLearned()
+        => C.LearnedFights.Values
+            .Where(f => f.Territory != 0
+                        && f.Casts.Count >= TimelineLearner.MinCasts
+                        && !Builtin.Has(f.Territory))
+            .OrderByDescending(f => f.LastSeen)
+            .ToList();
+
+    private static string LearnedLabel(LearnedFight f)
+    {
+        var duty = ZoneLabel(f.Territory);
+        var boss = f.BossName.Length > 0 ? f.BossName : $"#{f.BossNameId}";
+        var where = duty.Length > 0 ? $" - {duty}" : "";
+        return $"{boss}{where} ({f.Pulls} pull{(f.Pulls == 1 ? "" : "s")})";
+    }
+
     // Where the sheet files in the sidebar.
-    private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme", "Occult Crescent" };
+    private static readonly string[] NewSheetCategories = { "Ultimate", "Savage", "Extreme", "Occult Crescent", "Custom" };
 
     // Best guess from the duty name; your pick wins.
     private static int GuessCategory(string dutyName)
@@ -149,6 +170,30 @@ public partial class SheetViewWindow
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings)) return;
 
         PopupHeader("New custom sheet", 380f);
+
+        // A learned boss can seed the sheet; blank stays the default.
+        var learned = EligibleLearned();
+        if (learned.Count > 0)
+        {
+            var picked = learned.FirstOrDefault(f => f.BossNameId == _newLearnedPick);
+            if (picked == null) _newLearnedPick = 0;
+            ImGui.SetNextItemWidth(Theme.S(250f));
+            if (ImGui.BeginCombo("start from##nslearned", picked == null ? "blank sheet" : LearnedLabel(picked)))
+            {
+                if (ImGui.Selectable("blank sheet", picked == null)) _newLearnedPick = 0;
+                foreach (var f in learned)
+                    if (ImGui.Selectable(LearnedLabel(f), f == picked))
+                    {
+                        _newLearnedPick = f.BossNameId;
+                        _newName = f.BossName;
+                        _newZoneBuf = f.Territory.ToString();
+                    }
+                ImGui.EndCombo();
+            }
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip("Bosses FrenMits learned from your pulls. Rows and resync\nanchors come prefilled; edit anything after.");
+        }
+
         ImGui.SetNextItemWidth(Theme.S(250f));
         ImGui.InputTextWithHint("##nsname", "sheet name (usually the fight)", ref _newName, 64);
         ImGui.SetNextItemWidth(Theme.S(250f));
@@ -167,11 +212,23 @@ public partial class SheetViewWindow
             ImGui.SetNextItemWidth(Theme.S(250f));
             ImGui.Combo("your column##nsmine", ref _newMySlot, slots, slots.Length);
         }
-        ImGui.SetNextItemWidth(Theme.S(250f));
-        if (ImGui.Combo("fight type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
-            _newCatTouched = true;
-        if (Widgets.HoveredDelayed())
-            ImGui.SetTooltip("Which sidebar group the sheet files under.");
+        if (_newLearnedPick != 0)
+        {
+            // Seeded sheets file under Custom, no choice to make.
+            var custom = 0;
+            ImGui.BeginDisabled();
+            ImGui.SetNextItemWidth(Theme.S(250f));
+            ImGui.Combo("fight type##nscat", ref custom, new[] { "Custom" }, 1);
+            ImGui.EndDisabled();
+        }
+        else
+        {
+            ImGui.SetNextItemWidth(Theme.S(250f));
+            if (ImGui.Combo("fight type##nscat", ref _newCat, NewSheetCategories, NewSheetCategories.Length))
+                _newCatTouched = true;
+            if (Widgets.HoveredDelayed())
+                ImGui.SetTooltip("Which sidebar group the sheet files under.");
+        }
 
         // The zone the sheet binds to, by id or by duty name.
         ImGui.SetNextItemWidth(Theme.S(250f));
@@ -247,7 +304,13 @@ public partial class SheetViewWindow
         ImGui.BeginDisabled(!ok);
         if (ImGui.Button("Create", Theme.Sz(110f)))
         {
-            CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr, NewSheetCategories[_newCat]);
+            // The pick only seeds when the zone still matches it.
+            var seed = _newLearnedPick != 0
+                ? learned.FirstOrDefault(f => f.BossNameId == _newLearnedPick && f.Territory == terr)
+                : null;
+            if (seed != null) CreateLearnedSheet(_newName.Trim(), slots, slots[_newMySlot], seed);
+            else CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr,
+                NewSheetCategories[Math.Clamp(_newCat, 0, NewSheetCategories.Length - 1)]);
             _openAutoPlan = true; // offer the mit auto-planner right away
             ImGui.CloseCurrentPopup();
         }
@@ -292,5 +355,16 @@ public partial class SheetViewWindow
         _filter = "";
         _dirty = true;
         Flash($"\"{name}\" created. Build > Add row adds mechanics; click cells to write mits; Share plan sends it to friends.");
+    }
+
+    // A sheet born from a learned boss: same create, rows prefilled.
+    private void CreateLearnedSheet(string name, string[] slots, string mySlot, LearnedFight learned)
+    {
+        CreateCustomSheet(name, slots, mySlot, learned.Territory, "Custom");
+        // Hand-built rows win; only an empty sheet takes the seed.
+        if (_fight == null || _fight.CustomRows.Count > 0) return;
+        TimelineLearner.SeedSheet(_fight, learned);
+        C.Save();
+        Flash($"\"{_fight.Name}\" built from {learned.Pulls} pull{(learned.Pulls == 1 ? "" : "s")}. Rows and anchors are in; click cells to write mits.");
     }
 }

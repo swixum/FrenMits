@@ -100,7 +100,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         {
             if (Config.SeededTerritories.Contains(territory)) continue;
             Config.SeededTerritories.Add(territory);
-            if (Config.Fights.All(f => f.TerritoryId != territory))
+            // A Custom sheet doesn't block the official one; they coexist.
+            if (Config.Fights.All(f => f.TerritoryId != territory || f.Category == "Custom"))
                 Config.Fights.Add(new FightProfile { Name = name, TerritoryId = territory, Category = category });
             seeded = true;
         }
@@ -1200,9 +1201,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public FightProfile? ActiveFight()
     {
         var territory = Service.ClientState.TerritoryType;
-        foreach (var fight in Config.Fights)
-            if (fight.Enabled && fight.TerritoryId == territory)
-                return fight;
+        if (FightProfile.Active(Config.Fights, territory, Builtin.Has) is { } picked)
+            return picked;
         // A practice phase-jump beats the universal timeline.
         if (Config.TestMode && PreviewFight != null) return PreviewFight;
         // No sheet here, so the baked universal timeline steps in.

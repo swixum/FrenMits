@@ -77,7 +77,7 @@ public partial class ConfigWindow : Window, IDisposable
 
     // Every group a fight can file under, in sidebar order. The Type combo on
     // the fight page picks from the same list.
-    private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme", "Occult Crescent" };
+    private static readonly string[] Categories = { "Ultimate", "Savage", "Extreme", "Occult Crescent", "Custom" };
 
     // The sidebar group a fight belongs to.
     private static string CategoryOf(FightProfile f)
@@ -432,6 +432,7 @@ public partial class ConfigWindow : Window, IDisposable
         "Savage" => FontAwesomeIcon.Skull,
         "Extreme" => FontAwesomeIcon.Fire,
         "Occult Crescent" => FontAwesomeIcon.Moon,
+        "Custom" => FontAwesomeIcon.PencilAlt,
         _ => FontAwesomeIcon.LayerGroup,
     };
 

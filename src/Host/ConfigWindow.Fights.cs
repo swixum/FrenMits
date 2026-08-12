@@ -585,6 +585,7 @@ public partial class ConfigWindow
 
     // The canonical profile for a built-in zone is the first.
     private bool IsOfficial(FightProfile f)
-        => Builtin.Has(f.TerritoryId)
-           && ReferenceEquals(C.Fights.FirstOrDefault(x => x.TerritoryId == f.TerritoryId), f);
+        => Builtin.Has(f.TerritoryId) && f.Category != "Custom"
+           && ReferenceEquals(C.Fights.FirstOrDefault(
+               x => x.TerritoryId == f.TerritoryId && x.Category != "Custom"), f);
 }

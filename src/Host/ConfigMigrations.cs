@@ -841,6 +841,8 @@ public static class ConfigMigrations
         foreach (var f in config.Fights)
         {
             if (f.CustomSlots.Count == 0 || !Builtin.Has(f.TerritoryId)) continue;
+            // Custom-section sheets live alongside the official one.
+            if (f.Category == "Custom") continue;
             snapshot?.Invoke(f, "before the official sheet took over");
             f.CustomSlots.Clear();
             f.SavedSlots.Clear();
