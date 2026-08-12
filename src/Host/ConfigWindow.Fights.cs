@@ -401,7 +401,57 @@ public partial class ConfigWindow
         return clicked;
     }
 
-    // What a duty looks like in the menu: its kind, and how hard it is.
+    // Column labels: bigger than the rows, and struck twice a hair apart
+    // since the window font has no bold cut of its own.
+    private const float MenuHeadScale = 1.15f;
+
+    private static void MenuHeadText(string text)
+    {
+        var at = ImGui.GetCursorScreenPos();
+        ImGui.TextColored(Theme.V(Theme.TextBright), text);
+        ImGui.GetWindowDrawList().AddText(at + new Vector2(0.7f, 0f), Theme.TextBright, text);
+    }
+
+    private static void MenuColumns(string left, string right, float col)
+    {
+        var x0 = ImGui.GetCursorPosX();
+        ImGui.SetWindowFontScale(MenuHeadScale);
+        MenuHeadText(left);
+        ImGui.SameLine(x0 + col + Theme.S(20f));
+        MenuHeadText(right);
+        ImGui.SetWindowFontScale(1f);
+        ImGui.Separator();
+    }
+
+    // A flyout row: no icon, since a column of them is just noise. The duty
+    // sets the left column in grey, the boss carries the colour on the right.
+    // The left is cut to its column, so the right edge can never wander.
+    private static bool MenuRow(string duty, string name, uint nameColor, string id,
+        float col, string tip = "")
+    {
+        var x0 = ImGui.GetCursorPosX();
+        ImGui.PushStyleColor(ImGuiCol.Text, Theme.Muted);
+        var clicked = ImGui.Selectable($"{Widgets.Elide(duty, col)}##{id}");
+        ImGui.PopStyleColor();
+        if (tip.Length > 0 && Widgets.HoveredDelayed()) ImGui.SetTooltip(tip);
+        if (name.Length == 0) return clicked;
+        ImGui.SameLine(x0 + col + Theme.S(20f));
+        ImGui.TextColored(Theme.V(nameColor), name);
+        return clicked;
+    }
+
+    // The colour a sidebar group answers to.
+    private static uint CategoryColor(string cat) => cat switch
+    {
+        "Ultimate" => Theme.Gold,
+        "Savage" => Theme.Danger,
+        "Extreme" => Theme.Warn,
+        "Occult Crescent" => Theme.Good,
+        _ => Theme.Accent,
+    };
+
+    // What a duty looks like in the menu: its kind, and the colour that says
+    // how hard it is, or failing that what sort of duty it is.
     private static readonly Dictionary<uint, (FontAwesomeIcon Icon, uint Color)> LookCache = new();
 
     private static (FontAwesomeIcon Icon, uint Color) DutyLook(uint territory)
@@ -427,12 +477,15 @@ public partial class ConfigWindow
             : kind.Contains("Trial", ic) ? FontAwesomeIcon.Certificate
             : kind.Contains("Field", ic) || UniversalTimelines.UsesBlockTimes(territory) ? FontAwesomeIcon.Map
             : FontAwesomeIcon.LayerGroup;
+        // Difficulty leads. Where there is none, the kind of duty colours it.
         var color = tier switch
         {
             "Ultimate" => Theme.Gold,
             "Savage" => Theme.Danger,
             "Extreme" or "Unreal" or "Chaotic" or "High-end" => Theme.Warn,
-            _ => dungeon ? Theme.Muted : Theme.Accent,
+            _ => dungeon ? Theme.Muted
+               : kind.Contains("Raid", ic) ? Theme.Good
+               : Theme.Accent,
         };
 
         LookCache[territory] = (icon, color);
@@ -498,17 +551,22 @@ public partial class ConfigWindow
             SubMenuConstraints();
             if (ImGui.BeginMenu($"Learned from your pulls ({learned.Count})"))
             {
-                var names = learned.Select(f => f.BossName.Length > 0 ? f.BossName : $"#{f.BossNameId}").ToList();
-                var col = MathF.Min(names.Max(n => ImGui.CalcTextSize(n).X), Theme.S(190f));
-                for (var i = 0; i < learned.Count; i++)
-                {
-                    var lf = learned[i];
-                    var (icon, color) = DutyLook(lf.Territory);
-                    if (MenuPick(icon, color, names[i], TerritoryName(lf.Territory), $"lf{lf.BossNameId}", col,
+                // By duty, so the left column groups instead of jumping about.
+                var rows = learned
+                    .Select(f => (Duty: TerritoryName(f.Territory),
+                                  Name: f.BossName.Length > 0 ? f.BossName : $"#{f.BossNameId}",
+                                  Fight: f))
+                    .OrderBy(r => r.Duty, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                var col = MathF.Max(MathF.Min(rows.Max(r => ImGui.CalcTextSize(r.Duty).X), Theme.S(230f)),
+                    ImGui.CalcTextSize("Duty").X * MenuHeadScale);
+                MenuColumns("Duty", "Boss", col);
+                foreach (var (duty, name, lf) in rows)
+                    if (MenuRow(duty, name, DutyLook(lf.Territory).Color, $"lf{lf.BossNameId}", col,
                             $"{lf.Casts.Count} mechanics, seen over "
                             + $"{lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")}."))
                         AddSheet(TimelineLearner.BuildSheet(lf));
-                }
                 ImGui.EndMenu();
             }
         }
@@ -524,9 +582,11 @@ public partial class ConfigWindow
             SubMenuConstraints();
             if (ImGui.BeginMenu($"Official sheets you don't have ({missing.Count})"))
             {
-                var col = MathF.Min(missing.Max(f => ImGui.CalcTextSize(f.Name).X), Theme.S(230f));
+                var col = MathF.Max(MathF.Min(missing.Max(f => ImGui.CalcTextSize(f.Category).X), Theme.S(130f)),
+                    ImGui.CalcTextSize("Type").X * MenuHeadScale);
+                MenuColumns("Type", "Sheet", col);
                 foreach (var (territory, name, cat, _) in missing)
-                    if (MenuPick(CategoryIcon(cat), Theme.Gold, name, cat, $"of{territory}", col))
+                    if (MenuRow(cat, name, CategoryColor(cat), $"of{territory}", col))
                         AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
                 ImGui.EndMenu();
             }
