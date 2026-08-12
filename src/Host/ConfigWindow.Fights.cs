@@ -342,7 +342,7 @@ public partial class ConfigWindow
             if (ImGui.MenuItem($"{(here.Length > 0 ? here : $"Zone {zone}")}"
                                + $" ({UniversalTimelines.RowCount(zone)} mechanics)")
                 && UniversalTimelines.BuildSheet(zone) is { } baked)
-                AddFight(baked);
+                AddSheet(baked);
         }
 
         var learned = C.LearnedFights.Values
@@ -364,7 +364,7 @@ public partial class ConfigWindow
                     ? $"{boss} - {duty} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})"
                     : $"{boss} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})";
                 if (ImGui.MenuItem(label))
-                    AddFight(TimelineLearner.BuildSheet(lf));
+                    AddSheet(TimelineLearner.BuildSheet(lf));
             }
         }
 
@@ -381,6 +381,13 @@ public partial class ConfigWindow
                     AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
         }
         ImGui.EndPopup();
+    }
+
+    // Adds a seeded sheet, on the column that fits your job.
+    private void AddSheet(FightProfile fight)
+    {
+        _plugin.PickDefaultSlot(fight);
+        AddFight(fight);
     }
 
     // Adds a fight and auto-expands its dropdown.

@@ -549,6 +549,17 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Service.Log.Information($"FrenMits auto-slot: \"{fight.Name}\" -> {slot}.");
     }
 
+    // A brand new custom sheet opens on the column that fits you.
+    public void PickDefaultSlot(FightProfile fight)
+    {
+        if (fight.CustomSlots.Count == 0 || !string.IsNullOrEmpty(fight.Slot)) return;
+        var slot = PreferredDefaultSlotIn(fight.CustomSlots);
+        if (slot.Length == 0) return;   // no confident match: the entry popup asks
+        fight.Slot = slot;
+        // The active slot's lines ARE fight.Lines, same as every other sheet.
+        fight.SavedSlots[slot] = fight.Lines;
+    }
+
     // PreferredDefaultSlot against an arbitrary column list.
     private string PreferredDefaultSlotIn(System.Collections.Generic.IReadOnlyList<string> slots)
     {

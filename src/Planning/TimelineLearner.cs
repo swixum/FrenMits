@@ -295,13 +295,19 @@ public static class TimelineLearner
     // Seed a custom sheet's rows and anchors from a learned boss.
     public static void SeedSheet(FightProfile fight, LearnedFight learned)
     {
-        foreach (var c in learned.Casts)
-        {
+        // A cast the game never named can't be planned against.
+        var casts = learned.Casts
+            .Where(c => c.Ability != 0 && !string.IsNullOrWhiteSpace(c.Name)
+                        && !SheetViewWindow.IsUnnamedAbility(c.Name))
+            .OrderBy(c => c.Time)
+            .ToList();
+        foreach (var c in casts)
             fight.CustomRows.Add(new CustomRow { Time = c.Time, Mechanic = c.Name });
-            fight.SyncPoints.Add(new SyncPoint { Ability = c.Ability, Time = c.Time, IsPhase = false, Label = "learned" });
-        }
-        // Only an ability's FIRST anchor may re-base the clock.
-        SyncAnchors.Guard(fight.SyncPoints, SyncAnchors.EncounterStarts(learned.Casts.Select(c => c.Time)));
+
+        // Learned times count from the boss's first cast, not the pull, so the
+        // opener has to re-base the clock or every call lands early.
+        fight.SyncPoints = SyncAnchors.Build(casts.Select(c => (c.Ability, c.Time, "", c.Name)));
+        foreach (var sp in fight.SyncPoints) sp.Label = sp.Label.Trim();
     }
 
     // Bounded, dropping whatever went unseen longest.

@@ -117,6 +117,16 @@ public partial class SheetViewWindow
         Widgets.Chip("Columns", _fight.CustomSlots.Count.ToString(), Theme.TextBright);
         ImGui.Spacing();
 
+        // Auto-built rows arrive ungraded, so say how to sharpen the plan.
+        if (gradedRows == 0)
+        {
+            ImGui.PushTextWrapPos(Theme.S(500f));
+            ImGui.TextDisabled("No hits are graded yet, so every row plans the same. Build from a kill log "
+                               + "to mark the deadly ones, or set a row's grade by hand.");
+            ImGui.PopTextWrapPos();
+            ImGui.Spacing();
+        }
+
         // The detail is here for whoever wants it, folded away for everyone else.
         if (ImGui.TreeNode("How it plans"))
         {
