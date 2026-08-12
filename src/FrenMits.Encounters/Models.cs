@@ -96,6 +96,17 @@ public class FightProfile
     private List<MitLine> _ordered = new();
     private int _orderedStamp;
 
+    // The last moment this fight has anything to say, across every column.
+    public float LastMoment()
+    {
+        var last = 0f;
+        foreach (var l in Lines) if (l.Time > last) last = l.Time;
+        foreach (var r in CustomRows) if (r.Time > last) last = r.Time;
+        foreach (var slot in SavedSlots.Values)
+            foreach (var l in slot) if (l.Time > last) last = l.Time;
+        return last;
+    }
+
     // The profile that fires in a territory. Officials outrank Custom
     // sheets unless the Custom one is marked preferred.
     public static FightProfile? Active(IEnumerable<FightProfile> fights, uint territory, Func<uint, bool> hasOfficial)

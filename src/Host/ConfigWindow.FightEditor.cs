@@ -273,6 +273,23 @@ public partial class ConfigWindow
     private string _pracPhase = "";
 
     // Practice: a row of phase-jump buttons for this fight.
+    // Stop is offered by whatever fight page you have open, not just the one
+    // being previewed, so a preview can never be left with no way out.
+    private bool DrawStopPractice(FightProfile fight, string id)
+    {
+        if (Plugin.PreviewFight is not { } running || !C.TestMode) return false;
+
+        ImGui.SameLine(0, Theme.S(8f));
+        var mine = running == fight;
+        var stopped = ImGui.SmallButton($"Stop##{id}");
+        if (Widgets.HoveredDelayed())
+            ImGui.SetTooltip(mine
+                ? "Ends the preview and clears the clock. It also stops on its own\nonce the board runs out."
+                : $"Stops the preview running on \"{running.Name}\".");
+        if (stopped) _plugin.StopPractice();
+        return stopped;
+    }
+
     private void DrawPracticeRow(FightProfile fight)
     {
         var phases = Builtin.PhaseStarts(fight.TerritoryId);
@@ -289,11 +306,7 @@ public partial class ConfigWindow
             _pracRowIdxs[fight.Id] = _pracRowIdx;
             ImGui.SameLine(0, Theme.S(4f));
             if (ImGui.SmallButton("Go##pracrow")) _plugin.PracticeJump(fight, rows[_pracRowIdx].Time);
-            if (Plugin.PreviewFight == fight && C.TestMode)
-            {
-                ImGui.SameLine(0, Theme.S(8f));
-                if (ImGui.SmallButton("Stop##pracrow")) _plugin.StopPractice();
-            }
+            DrawStopPractice(fight, "pracrow");
             return;
         }
 
@@ -314,10 +327,9 @@ public partial class ConfigWindow
             Tip($"Preview from {(int)phases[i].Time / 60}:{(int)phases[i].Time % 60:00}.");
         }
         Widgets.SegmentEnd();
+        if (DrawStopPractice(fight, "prac")) _pracPhase = "";
         if (previewing)
         {
-            ImGui.SameLine(0, Theme.S(8f));
-            if (ImGui.SmallButton("Stop##prac")) { _plugin.StopPractice(); _pracPhase = ""; }
             ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(Theme.V(Theme.Warn), "Previewing");
         }

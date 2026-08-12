@@ -382,8 +382,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         _phaseTwo = false;
         _trackedBossEntity = 0;
         _trackedBossLastHp = 0;
-        // A practice preview never survives a zone change.
-        PreviewFight = null;
+        // A practice preview never survives a zone change. Stopped outright,
+        // or its clock keeps running with no button left to stop it.
+        if (PreviewFight != null) StopPractice();
         try { AutoLoadForTerritory(territory); }
         catch (Exception ex) { Service.Log.Error(ex, "FrenMits: auto-load failed"); }
 
@@ -888,6 +889,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             Timer.Update();
             UpdateDowntime(gameDt);
             UpdateLearning();
+            UpdatePractice();
             Recap.Update();
             HandleCutsceneBoundary();
             UpdatePhase();
@@ -1377,6 +1379,24 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Timer.SetElapsed(MathF.Max(0f, raw));
         // SetElapsed doesn't bump Generation, so re-arm by hand.
         Cues.Rearm();
+    }
+
+    // How long the board keeps running past the last call before practice
+    // gives up: enough for that call to play out, not enough to forget about.
+    private const float PracticeTailSeconds = 20f;
+
+    // Practice stops itself at the end of the board, so a preview left open
+    // can't run the clock forever.
+    private void UpdatePractice()
+    {
+        if (PreviewFight is not { } fight || !Config.TestMode || !Timer.Running) return;
+        if (InCombat) return;   // a real pull owns the clock now
+
+        var last = fight.LastMoment();
+        if (last <= 0f || ElapsedFor(fight) <= last + PracticeTailSeconds) return;
+
+        StopPractice();
+        Service.Log.Information($"[FrenMits] Practice ran past the end of \"{fight.Name}\"; stopped.");
     }
 
     public void StopPractice()
