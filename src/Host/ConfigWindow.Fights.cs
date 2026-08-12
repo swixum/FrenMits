@@ -370,35 +370,61 @@ public partial class ConfigWindow
         C.Save();
     }
 
+    // A section label inside the Add menu.
+    private static void MenuHeader(string text)
+    {
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextColored(Theme.V(Theme.Heading), text);
+    }
+
+    // One pick: what it is on the left, what it costs you on the right.
+    private static bool MenuRow(string label, string detail, string id, string tip = "")
+    {
+        var clicked = ImGui.Selectable($"{label}##{id}");
+        if (tip.Length > 0 && Widgets.HoveredDelayed()) ImGui.SetTooltip(tip);
+        if (detail.Length == 0) return clicked;
+        // Right-aligned, but never back over the name.
+        ImGui.SameLine(MathF.Max(
+            ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(detail).X,
+            ImGui.CalcTextSize(label).X + Theme.S(28f)));
+        ImGui.TextDisabled(detail);
+        return clicked;
+    }
+
     // Custom only: every way to start a sheet, behind one Add.
     private void DrawCategoryToolbar(string category)
     {
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add"))
             ImGui.OpenPopup("##addfight");
+        // A long list scrolls instead of running off the screen.
+        ImGui.SetNextWindowSizeConstraints(
+            new Vector2(Theme.S(260f), 0f), new Vector2(Theme.S(560f), Theme.S(430f)));
         if (!ImGui.BeginPopup("##addfight")) return;
 
-        // A blank fight in an official zone would be a locked duplicate.
         var zone = Service.ClientState.TerritoryType;
-        if (Builtin.Has(zone))
-            ImGui.MenuItem("New Blank Fight (this zone has an official sheet)", false);
-        else if (ImGui.MenuItem("New Blank Fight (this zone)"))
-            AddFight(new FightProfile
-            {
-                Name = "New fight",
-                TerritoryId = zone,
-                Category = category,
-            });
-        if (ImGui.MenuItem("Paste Fight Code from Clipboard")) ImportFightFromClipboard();
+
+        // A blank sheet in an official zone would be a locked duplicate.
+        var officialHere = Builtin.Has(zone);
+        ImGui.BeginDisabled(officialHere);
+        if (MenuRow("Blank sheet", "", "blank",
+                officialHere ? "" : "An empty grid for the duty you're in."))
+            AddFight(new FightProfile { Name = "New fight", TerritoryId = zone, Category = category });
+        ImGui.EndDisabled();
+        if (officialHere && Widgets.HoveredDelayed())
+            ImGui.SetTooltip("This duty already has an official sheet.");
+        if (MenuRow("Paste a fight code", "", "paste", "Takes a plan a friend shared with you."))
+            ImportFightFromClipboard();
 
         // The duty you're standing in, when its timeline is baked in.
-        if (!Builtin.Has(zone) && UniversalTimelines.Has(zone)
+        if (!officialHere && UniversalTimelines.Has(zone)
             && C.Fights.All(x => x.TerritoryId != zone))
         {
-            ImGui.Separator();
-            ImGui.TextDisabled("From this duty's timeline");
+            MenuHeader("This duty");
             var here = TerritoryName(zone);
-            if (ImGui.MenuItem($"{(here.Length > 0 ? here : $"Zone {zone}")}"
-                               + $" ({UniversalTimelines.RowCount(zone)} mechanics)")
+            if (MenuRow(here.Length > 0 ? here : $"Zone {zone}",
+                    $"{UniversalTimelines.RowCount(zone)} mechanics", "duty",
+                    "Every mechanic this duty runs, ready to plan.")
                 && UniversalTimelines.BuildSheet(zone) is { } baked)
                 AddSheet(baked);
         }
@@ -412,16 +438,13 @@ public partial class ConfigWindow
             .ToList();
         if (learned.Count > 0)
         {
-            ImGui.Separator();
-            ImGui.TextDisabled("From a learned fight");
+            MenuHeader("Learned from your pulls");
             foreach (var lf in learned)
             {
                 var boss = lf.BossName.Length > 0 ? lf.BossName : $"#{lf.BossNameId}";
-                var duty = TerritoryName(lf.Territory);
-                var label = duty.Length > 0
-                    ? $"{boss} - {duty} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})"
-                    : $"{boss} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})";
-                if (ImGui.MenuItem(label))
+                if (MenuRow(boss, TerritoryName(lf.Territory), $"lf{lf.BossNameId}",
+                        $"{lf.Casts.Count} mechanics, seen over "
+                        + $"{lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")}."))
                     AddSheet(TimelineLearner.BuildSheet(lf));
             }
         }
@@ -432,10 +455,9 @@ public partial class ConfigWindow
             .ToList();
         if (missing.Count > 0)
         {
-            ImGui.Separator();
-            ImGui.TextDisabled("Official sheets you don't have");
+            MenuHeader("Official sheets you don't have");
             foreach (var (territory, name, cat, _) in missing)
-                if (ImGui.MenuItem(name))
+                if (MenuRow(name, cat, $"of{territory}"))
                     AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
         }
         ImGui.EndPopup();
