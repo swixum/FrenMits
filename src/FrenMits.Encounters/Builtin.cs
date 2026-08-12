@@ -183,6 +183,11 @@ public static class Builtin
     // resync needs the same forward reach the universal timelines get.
     public static bool FieldOp(uint territory) => territory == FtMagicTerritory;
 
+    // What a row's time reads as on screen. A field-op boss's block base is
+    // bookkeeping, not fight time: its rows show the seconds into its own pull.
+    public static float DisplayTime(uint territory, float seconds)
+        => FieldOp(territory) && seconds >= 1000f ? seconds % 1000f : seconds;
+
     // Long display title for a phase key ("P1" -> "Phase 1: Kefka").
     public static string PhaseTitle(uint territory, string phase) => territory switch
     {

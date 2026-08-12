@@ -94,7 +94,7 @@ public class RecapWindow : Window
         // ---- header ----
         Widgets.WindowHeader(
             string.IsNullOrEmpty(r.BossName) ? "Last pull" : r.BossName,
-            r.CaptureElapsed > 0 ? $"·  ended {Mmss(r.CaptureElapsed)} in" : "");
+            r.CaptureElapsed > 0 ? $"·  ended {Mmss(Builtin.DisplayTime(r.Territory, r.CaptureElapsed))} in" : "");
         var copyW = ImGui.CalcTextSize("Copy").X + ImGui.GetStyle().FramePadding.X * 2;
         // Off the header's last item, not the cursor, or a long boss name ends
         // up with the button drawn across it.
@@ -471,7 +471,7 @@ public class RecapWindow : Window
             ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(Theme.V(Theme.Danger), d.Name);
             ImGui.SameLine(0, Theme.S(6f));
-            ImGui.TextColored(Theme.V(Theme.Muted), Mmss(d.Time));
+            ImGui.TextColored(Theme.V(Theme.Muted), Mmss(Builtin.DisplayTime(r.Territory, d.Time)));
             var story = new List<string>();
             if (d.FromPct > 0f && d.Seconds > 0f)
                 story.Add($"{(int)(d.FromPct * 100)}% to dead in {d.Seconds:0.0}s");
@@ -505,7 +505,7 @@ public class RecapWindow : Window
                 {
                     var h = hits[j];
                     var blow = j == hits.Count - 1 && d.KilledBy.Length > 0;
-                    ImGui.TextColored(Theme.V(Theme.Muted), Mmss(h.Time));
+                    ImGui.TextColored(Theme.V(Theme.Muted), Mmss(Builtin.DisplayTime(r.Territory, h.Time)));
                     ImGui.SameLine(0, Theme.S(8f));
                     ImGui.TextColored(blow ? Theme.V(Theme.Danger) : Theme.V(Theme.TextBright),
                         h.Action.Length > 0 ? h.Action : h.OverTime ? "damage over time" : "hit");

@@ -243,7 +243,7 @@ public partial class ConfigWindow
             
             if (isOfficial)
             {
-                ImGui.TextUnformatted(Fmt.MmssSigned(group.Time));
+                ImGui.TextUnformatted(Fmt.MmssSigned(Builtin.DisplayTime(fight.TerritoryId, group.Time)));
             }
             else
             {
@@ -426,7 +426,8 @@ public partial class ConfigWindow
                         Delete = () => { ArmedUndo("delete"); toDelete.Add(target); },
                         Default = defForLine,
                         Job = _plugin.GetActiveJobAbbr(fight),
-                        Context = $"{Fmt.MmssSigned(group.Time)}  ·  {group.Mechanic}",
+                        Context = $"{Fmt.MmssSigned(Builtin.DisplayTime(fight.TerritoryId, group.Time))}  ·  {group.Mechanic}",
+                        Territory = fight.TerritoryId,
                         Reset = reset,
                     });
                     ImGui.EndPopup();

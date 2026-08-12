@@ -1042,6 +1042,7 @@ public partial class SheetViewWindow
         MitLineEditor.Draw(line, C, new MitLineEditor.Hooks
         {
             Stale = AbortIfStale,
+            Territory = _fight?.TerritoryId ?? 0,
             BeforeEdit = (l, rewrite) =>
             {
                 if (_cellEditUndoArmed)
@@ -1164,7 +1165,9 @@ public partial class SheetViewWindow
         }
     }
 
-    private static string TimeText(float t) => Fmt.MmssSigned(t);
+    // Field-op rows sit on 1000s blocks; on screen they read as pull time.
+    private string TimeText(float t)
+        => Fmt.MmssSigned(Builtin.DisplayTime(_fight?.TerritoryId ?? 0, t));
 
     private static string SlotTip(string slot)
         => TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? "Tank slot"

@@ -599,7 +599,8 @@ public class TimelineWindow : Window
         var clockW = 0f;
         if (C.UpcomingHeaderClock)
         {
-            var clock = TimeText(MathF.Max(0f, elapsed));
+            // A field-op clock sits on a block base; the header shows pull time.
+            var clock = TimeText(Builtin.DisplayTime(fight.TerritoryId, MathF.Max(0f, elapsed)));
             clockW = ImGui.CalcTextSize(clock).X;
             BoardText(dl, new Vector2(pos.X + width - clockW, pos.Y), accent, clock);
         }

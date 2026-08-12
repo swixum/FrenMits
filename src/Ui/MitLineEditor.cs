@@ -28,6 +28,8 @@ internal static class MitLineEditor
         public string? Job;
         // Where this call sits, e.g. "2:14 · Wroth Flames · H2".
         public string? Context;
+        // The fight's territory, so field-op block times read as pull time.
+        public uint Territory;
         // True when the plan reloaded underneath us, so the edit is dropped.
         public Func<bool>? Stale;
     }
@@ -111,7 +113,9 @@ internal static class MitLineEditor
         // The number is abstract; the time it lands on is not.
         ImGui.SameLine(0, gap);
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2f);
-        Widgets.Chip("Presses", Fmt.MmssSigned(line.CueTime), moved ? Theme.Accent : Theme.Muted);
+        Widgets.Chip("Presses",
+            Fmt.MmssSigned(FrenMits.Encounters.Builtin.DisplayTime(hooks.Territory, line.CueTime)),
+            moved ? Theme.Accent : Theme.Muted);
 
         // ---- who ----
         ImGui.AlignTextToFramePadding();

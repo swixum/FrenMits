@@ -270,7 +270,7 @@ public partial class ConfigWindow
             RowLabel("Practice");
             Tip("Preview a row's calls. Turns on Test Mode.");
             _pracRowIdx = Math.Clamp(_pracRowIdxs.GetValueOrDefault(fight.Id), 0, rows.Count - 1);
-            var labels = rows.Select(r => $"{Mmss(r.Time)}  {r.Mechanic}").ToArray();
+            var labels = rows.Select(r => $"{Mmss(Builtin.DisplayTime(fight.TerritoryId, r.Time))}  {r.Mechanic}").ToArray();
             ImGui.SetNextItemWidth(Theme.S(240f));
             ImGui.Combo("##pracrow", ref _pracRowIdx, labels, labels.Length);
             _pracRowIdxs[fight.Id] = _pracRowIdx;
@@ -450,7 +450,7 @@ public partial class ConfigWindow
         {
             if (!firstPill) ImGui.SameLine(0, Theme.S(6f));
             firstPill = false;
-            TimePill(Mmss(t));
+            TimePill(Mmss(Builtin.DisplayTime(fight.TerritoryId, t)));
             Tip($"{job} · {stat}");
         }
 
