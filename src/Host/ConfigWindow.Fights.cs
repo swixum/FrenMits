@@ -327,9 +327,22 @@ public partial class ConfigWindow
             });
         if (ImGui.MenuItem("Paste Fight Code from Clipboard")) ImportFightFromClipboard();
 
-        // Custom's Add also offers sheets built from learned bosses.
+        // Custom's Add also offers sheets built from auto timelines.
         if (category == "Custom")
         {
+            // The duty you're standing in, when its timeline is baked in.
+            if (!Builtin.Has(zone) && UniversalTimelines.Has(zone)
+                && C.Fights.All(x => x.TerritoryId != zone))
+            {
+                ImGui.Separator();
+                ImGui.TextDisabled("From this duty's timeline");
+                var here = TerritoryName(zone);
+                if (ImGui.MenuItem($"{(here.Length > 0 ? here : $"Zone {zone}")}"
+                                   + $" ({UniversalTimelines.RowCount(zone)} mechanics)")
+                    && UniversalTimelines.BuildSheet(zone) is { } baked)
+                    AddFight(baked);
+            }
+
             var learned = C.LearnedFights.Values
                 .Where(f => f.Territory != 0
                             && f.Casts.Count >= TimelineLearner.MinCasts

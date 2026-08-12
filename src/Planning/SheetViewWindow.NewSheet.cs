@@ -298,6 +298,9 @@ public partial class SheetViewWindow
             var here = terr == (uint)Service.ClientState.TerritoryType ? " - you're here" : "";
             ImGui.TextDisabled($"Binds to {(label.Length > 0 ? label : $"zone {terr}")}{here}; the calls fire there.");
             if (!_newCatTouched) _newCat = GuessCategory(label);
+            // Nothing learned for it, but the duty's own timeline can fill it.
+            if (_newLearnedPick == 0 && UniversalTimelines.Has(terr))
+                ImGui.TextDisabled($"Starts with this duty's {UniversalTimelines.RowCount(terr)} mechanics.");
         }
 
         var ok = !zoneBlocked && _newName.Trim().Length > 0 && slots.Length is > 0 and <= 12;
@@ -309,8 +312,12 @@ public partial class SheetViewWindow
                 ? learned.FirstOrDefault(f => f.BossNameId == _newLearnedPick && f.Territory == terr)
                 : null;
             if (seed != null) CreateLearnedSheet(_newName.Trim(), slots, slots[_newMySlot], seed);
-            else CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr,
-                NewSheetCategories[Math.Clamp(_newCat, 0, NewSheetCategories.Length - 1)]);
+            else
+            {
+                CreateCustomSheet(_newName.Trim(), slots, slots[_newMySlot], terr,
+                    NewSheetCategories[Math.Clamp(_newCat, 0, NewSheetCategories.Length - 1)]);
+                SeedFromDutyTimeline(terr);
+            }
             _openAutoPlan = true; // offer the mit auto-planner right away
             ImGui.CloseCurrentPopup();
         }
@@ -355,6 +362,19 @@ public partial class SheetViewWindow
         _filter = "";
         _dirty = true;
         Flash($"\"{name}\" created. Build > Add row adds mechanics; click cells to write mits; Share plan sends it to friends.");
+    }
+
+    // An empty new sheet takes the duty's baked timeline, when there is one.
+    private void SeedFromDutyTimeline(uint terr)
+    {
+        if (_fight == null || _fight.CustomRows.Count > 0 || _fight.Lines.Count > 0) return;
+        if (UniversalTimelines.BuildSheet(terr) is not { } baked) return;
+        _fight.CustomRows = baked.CustomRows;
+        _fight.SyncPoints = baked.SyncPoints;
+        C.Save();
+        _dirty = true;
+        Flash($"\"{_fight.Name}\" started with this duty's {_fight.CustomRows.Count} mechanics. "
+              + "Click cells to write mits.");
     }
 
     // A sheet born from a learned boss: same create, rows prefilled.

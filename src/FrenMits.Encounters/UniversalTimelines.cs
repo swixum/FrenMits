@@ -104,6 +104,34 @@ public static class UniversalTimelines
         return f;
     }
 
+    // How many mechanics this duty's timeline carries.
+    public static int RowCount(uint territory)
+    {
+        Load();
+        return _zones!.TryGetValue(territory, out var z) ? z.Entries.Count : 0;
+    }
+
+    // An editable sheet seeded from this duty's timeline, columns and all.
+    public static FightProfile? BuildSheet(uint territory)
+    {
+        Load();
+        if (!_zones!.TryGetValue(territory, out var z)) return null;
+        var f = new FightProfile
+        {
+            TerritoryId = territory,
+            Name = DutyName(territory),
+            Category = "Custom",
+            CustomSlots = SlotNames.Standard.ToList(),
+        };
+        // Mechanics are scaffold rows, so the grid is plannable at once.
+        foreach (var (t, name) in z.Entries)
+            f.CustomRows.Add(new CustomRow { Time = t, Mechanic = name });
+        foreach (var (t, id, phase) in z.Syncs)
+            f.SyncPoints.Add(new SyncPoint { Ability = id, Time = t, IsPhase = phase, Label = "auto" });
+        SyncAnchors.Guard(f.SyncPoints, SyncAnchors.EncounterStarts(z.Entries.Select(e => e.Time)));
+        return f;
+    }
+
     // The duty's display name, supplied by the host.
     public static Func<uint, string> DutyNameOf { get; set; } = _ => "Duty timeline";
 
