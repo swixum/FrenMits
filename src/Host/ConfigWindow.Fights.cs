@@ -26,6 +26,50 @@ public partial class ConfigWindow
         _expandFightId = fight.Id;
     }
 
+    // "Savage · AAC Cruiserweight M4" for a user sheet's row, cached per zone.
+    private static readonly Dictionary<uint, string> DetailCache = new();
+
+    private static string DutyDetail(uint territory)
+    {
+        if (territory == 0) return "";
+        if (DetailCache.TryGetValue(territory, out var hit)) return hit;
+
+        var duty = "";
+        var tier = "";
+        try
+        {
+            var t = Service.DataManager.GetExcelSheet<Lumina.Excel.Sheets.TerritoryType>()?.GetRowOrDefault(territory);
+            var cfc = t?.ContentFinderCondition.ValueNullable;
+            duty = cfc?.Name.ExtractText() ?? "";
+            if (string.IsNullOrWhiteSpace(duty))
+                duty = t?.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+            tier = Difficulty(duty, cfc?.HighEndDuty ?? false);
+        }
+        catch { /* sheet hiccup: the row just shows its name */ }
+
+        // The tier reads once, so drop the duty's own "(Savage)" tail.
+        duty = System.Text.RegularExpressions.Regex.Replace(
+            duty.Trim(), @"\s*\((?:Ultimate|Savage|Extreme|Unreal)\)$", "");
+        if (duty.Length > 0) duty = char.ToUpperInvariant(duty[0]) + duty[1..];
+
+        var detail = tier.Length > 0 && duty.Length > 0 ? $"{tier} · {duty}"
+            : tier.Length > 0 ? tier : duty;
+        DetailCache[territory] = detail;
+        return detail;
+    }
+
+    // What the duty finder calls this fight's difficulty, "" when it's normal.
+    private static string Difficulty(string duty, bool highEnd)
+    {
+        const StringComparison ic = StringComparison.OrdinalIgnoreCase;
+        if (duty.Contains("(Ultimate)", ic)) return "Ultimate";
+        if (duty.Contains("(Savage)", ic)) return "Savage";
+        if (duty.Contains("(Extreme)", ic) || duty.StartsWith("The Minstrel's Ballad", ic)) return "Extreme";
+        if (duty.Contains("(Unreal)", ic)) return "Unreal";
+        if (duty.Contains("Chaotic", ic)) return "Chaotic";
+        return highEnd ? "High-end" : "";
+    }
+
     // The expansion a fight's zone belongs to, cached per territory.
     private static readonly Dictionary<uint, uint> ExCache = new();
 
@@ -71,20 +115,21 @@ public partial class ConfigWindow
         Widgets.Chip("", fights.Count.ToString(), Theme.TextBright);
         var used = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
 
-        // Sheets are made under Custom; the official groups are read-only.
+        // Sheets are made under Custom; the official groups are read-only. Add
+        // leads next to the count, since making one is the point of the page.
         var canAdd = category == "Custom";
-        var addW = canAdd ? IconBtnWidth(FontAwesomeIcon.Plus, "Add") + Theme.S(8f) : 0f;
-        var right = Theme.S(150f) + addW + Theme.S(4f);
+        if (canAdd)
+        {
+            ImGui.SetCursorPos(new Vector2(used + Theme.S(10f),
+                headStart.Y + (headH - frameH) * 0.5f));
+            DrawCategoryToolbar(category);
+            used = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+        }
         ImGui.SetCursorPos(new Vector2(
-            MathF.Max(used + Theme.S(12f), ImGui.GetContentRegionMax().X - right),
+            MathF.Max(used + Theme.S(12f), ImGui.GetContentRegionMax().X - Theme.S(154f)),
             headStart.Y + (headH - frameH) * 0.5f));
         ImGui.SetNextItemWidth(Theme.S(150f));
         ImGui.InputTextWithHint("##fightfilter", "Filter", ref _fightFilter, 64);
-        if (canAdd)
-        {
-            ImGui.SameLine(0, Theme.S(8f));
-            DrawCategoryToolbar(category);
-        }
         ImGui.SetCursorPos(new Vector2(headStart.X, headStart.Y + headH));
         var filter = _fightFilter.Trim();
         ImGui.Spacing();
@@ -186,7 +231,20 @@ public partial class ConfigWindow
 
             ImGui.SameLine(0, Theme.S(8f));
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(Widgets.Elide(fight.Name, nameRoom));
+            // A user sheet's name is whatever you typed, so say which duty it is.
+            var detail = official ? "" : DutyDetail(fight.TerritoryId);
+            ImGui.TextUnformatted(Widgets.Elide(fight.Name, detail.Length > 0 ? nameRoom * 0.55f : nameRoom));
+            if (detail.Length > 0)
+            {
+                var nameEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+                var room = tagX - nameEnd - Theme.S(14f);
+                // Dropped rather than squeezed, so a narrow window stays clean.
+                if (room > Theme.S(50f))
+                {
+                    ImGui.SameLine(0, Theme.S(8f));
+                    ImGui.TextColored(Theme.V(Theme.Muted), Widgets.Elide(detail, room));
+                }
+            }
 
             // Your slot: the one thing that decides whether calls fire.
             var rowEnd = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
