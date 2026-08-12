@@ -71,15 +71,20 @@ public partial class ConfigWindow
         Widgets.Chip("", fights.Count.ToString(), Theme.TextBright);
         var used = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
 
-        var addW = IconBtnWidth(FontAwesomeIcon.Plus, "Add");
-        var right = Theme.S(150f) + addW + Theme.S(8f) + Theme.S(4f);
+        // Sheets are made under Custom; the official groups are read-only.
+        var canAdd = category == "Custom";
+        var addW = canAdd ? IconBtnWidth(FontAwesomeIcon.Plus, "Add") + Theme.S(8f) : 0f;
+        var right = Theme.S(150f) + addW + Theme.S(4f);
         ImGui.SetCursorPos(new Vector2(
             MathF.Max(used + Theme.S(12f), ImGui.GetContentRegionMax().X - right),
             headStart.Y + (headH - frameH) * 0.5f));
         ImGui.SetNextItemWidth(Theme.S(150f));
         ImGui.InputTextWithHint("##fightfilter", "Filter", ref _fightFilter, 64);
-        ImGui.SameLine(0, Theme.S(8f));
-        DrawCategoryToolbar(category);
+        if (canAdd)
+        {
+            ImGui.SameLine(0, Theme.S(8f));
+            DrawCategoryToolbar(category);
+        }
         ImGui.SetCursorPos(new Vector2(headStart.X, headStart.Y + headH));
         var filter = _fightFilter.Trim();
         ImGui.Spacing();
@@ -89,9 +94,9 @@ public partial class ConfigWindow
 
         if (fights.Count == 0)
         {
-            ImGui.TextDisabled(filter.Length > 0
-                ? "No fights here match the search."
-                : "No fights here yet. Add one above, or load a preset.");
+            ImGui.TextDisabled(filter.Length > 0 ? "No fights here match the search."
+                : canAdd ? "No sheets yet. Add one above, from this duty's timeline or a learned fight."
+                : "No fights here yet.");
             return;
         }
 
@@ -307,7 +312,7 @@ public partial class ConfigWindow
         C.Save();
     }
 
-    // One menu, since a button row grows every tier.
+    // Custom only: every way to start a sheet, behind one Add.
     private void DrawCategoryToolbar(string category)
     {
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add"))
@@ -327,67 +332,53 @@ public partial class ConfigWindow
             });
         if (ImGui.MenuItem("Paste Fight Code from Clipboard")) ImportFightFromClipboard();
 
-        // Custom's Add also offers sheets built from auto timelines.
-        if (category == "Custom")
+        // The duty you're standing in, when its timeline is baked in.
+        if (!Builtin.Has(zone) && UniversalTimelines.Has(zone)
+            && C.Fights.All(x => x.TerritoryId != zone))
         {
-            // The duty you're standing in, when its timeline is baked in.
-            if (!Builtin.Has(zone) && UniversalTimelines.Has(zone)
-                && C.Fights.All(x => x.TerritoryId != zone))
-            {
-                ImGui.Separator();
-                ImGui.TextDisabled("From this duty's timeline");
-                var here = TerritoryName(zone);
-                if (ImGui.MenuItem($"{(here.Length > 0 ? here : $"Zone {zone}")}"
-                                   + $" ({UniversalTimelines.RowCount(zone)} mechanics)")
-                    && UniversalTimelines.BuildSheet(zone) is { } baked)
-                    AddFight(baked);
-            }
+            ImGui.Separator();
+            ImGui.TextDisabled("From this duty's timeline");
+            var here = TerritoryName(zone);
+            if (ImGui.MenuItem($"{(here.Length > 0 ? here : $"Zone {zone}")}"
+                               + $" ({UniversalTimelines.RowCount(zone)} mechanics)")
+                && UniversalTimelines.BuildSheet(zone) is { } baked)
+                AddFight(baked);
+        }
 
-            var learned = C.LearnedFights.Values
-                .Where(f => f.Territory != 0
-                            && f.Casts.Count >= TimelineLearner.MinCasts
-                            && !Builtin.Has(f.Territory)
-                            && C.Fights.All(x => x.TerritoryId != f.Territory))
-                .OrderByDescending(f => f.LastSeen)
-                .ToList();
-            if (learned.Count > 0)
+        var learned = C.LearnedFights.Values
+            .Where(f => f.Territory != 0
+                        && f.Casts.Count >= TimelineLearner.MinCasts
+                        && !Builtin.Has(f.Territory)
+                        && C.Fights.All(x => x.TerritoryId != f.Territory))
+            .OrderByDescending(f => f.LastSeen)
+            .ToList();
+        if (learned.Count > 0)
+        {
+            ImGui.Separator();
+            ImGui.TextDisabled("From a learned fight");
+            foreach (var lf in learned)
             {
-                ImGui.Separator();
-                ImGui.TextDisabled("From a learned fight");
-                foreach (var lf in learned)
-                {
-                    var boss = lf.BossName.Length > 0 ? lf.BossName : $"#{lf.BossNameId}";
-                    var duty = TerritoryName(lf.Territory);
-                    var label = duty.Length > 0
-                        ? $"{boss} - {duty} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})"
-                        : $"{boss} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})";
-                    if (ImGui.MenuItem(label))
-                        AddFight(TimelineLearner.BuildSheet(lf));
-                }
+                var boss = lf.BossName.Length > 0 ? lf.BossName : $"#{lf.BossNameId}";
+                var duty = TerritoryName(lf.Territory);
+                var label = duty.Length > 0
+                    ? $"{boss} - {duty} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})"
+                    : $"{boss} ({lf.Pulls} pull{(lf.Pulls == 1 ? "" : "s")})";
+                if (ImGui.MenuItem(label))
+                    AddFight(TimelineLearner.BuildSheet(lf));
             }
         }
 
-        var presets = Builtin.Fights
-            .Where(f => f.Category == category
-                        // A Custom sheet in the zone doesn't hide the official one.
-                        && C.Fights.All(x => x.TerritoryId != f.Territory || x.Category == "Custom"))
+        // Empty unless a shipped sheet went missing, since Add lives here now.
+        var missing = Builtin.Fights
+            .Where(f => C.Fights.All(x => x.TerritoryId != f.Territory || x.Category == "Custom"))
             .ToList();
-        if (presets.Count > 0)
+        if (missing.Count > 0)
         {
             ImGui.Separator();
-            ImGui.TextDisabled("Official sheets");
-            // Builtin.Fights is already newest first, so just head each run.
-            var shown = "";
-            foreach (var (territory, name, cat, expansion) in presets)
-            {
-                if (expansion != shown)
-                {
-                    shown = expansion;
-                    ImGui.TextDisabled($"  {expansion}");
-                }
+            ImGui.TextDisabled("Official sheets you don't have");
+            foreach (var (territory, name, cat, _) in missing)
                 if (ImGui.MenuItem(name))
                     AddFight(new FightProfile { Name = name, TerritoryId = territory, Category = cat });
-            }
         }
         ImGui.EndPopup();
     }
