@@ -278,8 +278,13 @@ public static class Icons
     public static uint JobMitIcon(string? action, string? job)
         => ResolveMitAbility(action, job) is { } a ? ResolveFromText(a) : 0u;
 
-    // Swap a generic term for the job's real ability name.
+    // What a person reads: the job's real ability name, numerals as digits.
     public static string DisplayAction(string action, string? job)
+        => Fmt.Numerals(ResolveAction(action, job));
+
+    // Swap a generic term for the job's real ability name. Spelled the way the
+    // game spells it, so ability lookups off this text still hit.
+    public static string ResolveAction(string action, string? job)
     {
         if (string.IsNullOrWhiteSpace(action) || string.IsNullOrEmpty(job)) return action;
         // Memoized, since the board calls this per row per frame.

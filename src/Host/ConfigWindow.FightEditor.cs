@@ -300,7 +300,7 @@ public partial class ConfigWindow
             RowLabel("Practice");
             Tip("Preview a row's calls. Turns on Test Mode.");
             _pracRowIdx = Math.Clamp(_pracRowIdxs.GetValueOrDefault(fight.Id), 0, rows.Count - 1);
-            var labels = rows.Select(r => $"{Mmss(Builtin.DisplayTime(fight.TerritoryId, r.Time))}  {r.Mechanic}").ToArray();
+            var labels = rows.Select(r => $"{Mmss(Builtin.DisplayTime(fight.TerritoryId, r.Time))}  {Fmt.Numerals(r.Mechanic)}").ToArray();
             ImGui.SetNextItemWidth(Theme.S(240f));
             ImGui.Combo("##pracrow", ref _pracRowIdx, labels, labels.Length);
             _pracRowIdxs[fight.Id] = _pracRowIdx;
@@ -528,7 +528,7 @@ public partial class ConfigWindow
         foreach (var extra in extras)
         {
             ImGui.Spacing();
-            ImGui.TextColored(Theme.V(Theme.Heading), $"{job} · {extra.Action}");
+            ImGui.TextColored(Theme.V(Theme.Heading), $"{job} · {Fmt.Numerals(extra.Action)}");
 
             ImGui.PushStyleColor(ImGuiCol.Button, Theme.Accent);
             ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.AccentHover);
@@ -587,7 +587,7 @@ public partial class ConfigWindow
             {
                 ImGui.SameLine(0, Theme.S(10f));
                 ImGui.TextDisabled($"{extra.Lines.Length} casts, spaced to its {extra.Recast:0}s recast");
-                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, $"Reset {extra.Lines.Length} {extra.Action} line(s)"))
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, $"Reset {extra.Lines.Length} {Fmt.Numerals(extra.Action)} line(s)"))
                 {
                     var lines = new List<MitLine>(fight.Lines);
                     lines.RemoveAll(l => string.Equals(l.Action, extra.Action, StringComparison.OrdinalIgnoreCase)
@@ -605,9 +605,9 @@ public partial class ConfigWindow
                             Custom = true,
                         });
                     SetFightLines(fight, lines.OrderBy(l => l.Time).ToList());
-                    FlashBuiltin($"Reset {extra.Lines.Length} {job} {extra.Action} line(s) to the default schedule.");
+                    FlashBuiltin($"Reset {extra.Lines.Length} {job} {Fmt.Numerals(extra.Action)} line(s) to the default schedule.");
                 }
-                Tip($"Back to {extra.Action}'s default timing, tagged to {job}. Also un-deletes any you removed.");
+                Tip($"Back to {Fmt.Numerals(extra.Action)}'s default timing, tagged to {job}. Also un-deletes any you removed.");
             }
 
             ImGui.PopStyleColor(2);

@@ -323,7 +323,7 @@ public class MeterWindow : Window
             var d = list[i];
             ImGui.TextColored(Theme.V(Theme.Muted),
                 $"{(int)d.At / 60}:{(int)d.At % 60:00}   {d.Name}" +
-                (d.Killer.Length > 0 ? $"   {d.Killer}" : ""));
+                (d.Killer.Length > 0 ? $"   {Fmt.Numerals(d.Killer)}" : ""));
         }
         if (list.Count > shown)
             ImGui.TextColored(Theme.V(Theme.Muted), $"+{list.Count - shown} more");
@@ -1850,6 +1850,9 @@ public class MeterWindow : Window
                 }
             }
 
+            // Person rows keep their name letter for letter; a skill's numerals read as digits.
+            var abilityName = _detailKind is 1 or 4 or 5 ? a.Name : Fmt.Numerals(a.Name);
+
             var pct = total > 0 ? a.Damage / total * 100 : 0;
             var right = healing && a.Over > 0
                 ? $"{Num(a.Damage)}  ({a.OverPct:0.#}% OH)"
@@ -1858,13 +1861,13 @@ public class MeterWindow : Window
             BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterTextColor, right);
             var nameMax = p.X + w - pad - rw - x2 - 6f;
             if (nameMax > 12f)
-                BText(dl, new Vector2(x2, ty), C.MeterSubColor, Clip(a.Name, nameMax));
+                BText(dl, new Vector2(x2, ty), C.MeterSubColor, Clip(abilityName, nameMax));
 
             if (hovered)
             {
                 PushMenuTheme();
                 ImGui.BeginTooltip();
-                ImGui.TextUnformatted(a.Name);
+                ImGui.TextUnformatted(abilityName);
                 ImGui.Separator();
                 if (healing)
                 {
@@ -2013,12 +2016,12 @@ public class MeterWindow : Window
             BText(dl, new Vector2(p.X + w - pad - rw, ty), C.MeterSubColor, right);
             var nx = left.X + 7f;
             var nameMax = p.X + w - pad - rw - nx - 6f;
-            if (nameMax > 12f) BText(dl, new Vector2(nx, ty), C.MeterSubColor, Clip(b.Name, nameMax));
+            if (nameMax > 12f) BText(dl, new Vector2(nx, ty), C.MeterSubColor, Clip(Fmt.Numerals(b.Name), nameMax));
 
             if (hovered)
             {
                 PushMenuTheme();
-                ImGui.SetTooltip($"{b.Name}: {Num(b.Damage / seconds)} rDPS over the pull");
+                ImGui.SetTooltip($"{Fmt.Numerals(b.Name)}: {Num(b.Damage / seconds)} rDPS over the pull");
                 PopMenuTheme();
             }
             ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + rowH + 2f));
@@ -2058,7 +2061,7 @@ public class MeterWindow : Window
             var kMax = p.X + w - pad - bw - kx - 6f;
             if (kMax > 12f)
                 BText(dl, new Vector2(kx, y), C.MeterTextColor,
-                    Clip(d.Killer.Length > 0 ? d.Killer : "unknown", kMax));
+                    Clip(d.Killer.Length > 0 ? Fmt.Numerals(d.Killer) : "unknown", kMax));
             y += lineH + 3f;
 
             foreach (var h in d.Lead)
@@ -2071,7 +2074,7 @@ public class MeterWindow : Window
                 BText(dl, new Vector2(p.X + w - pad - vw, y), color, val);
                 var nx = p.X + pad + 14f + ImGui.CalcTextSize(ago).X + 8f;
                 var nMax = p.X + w - pad - vw - nx - 6f;
-                if (nMax > 12f) BText(dl, new Vector2(nx, y), color, Clip(h.Name, nMax));
+                if (nMax > 12f) BText(dl, new Vector2(nx, y), color, Clip(Fmt.Numerals(h.Name), nMax));
                 y += lineH + 3f;
             }
             ImGui.SetCursorScreenPos(new Vector2(p.X, p.Y + blockH + C.MeterBarGap + 2f));

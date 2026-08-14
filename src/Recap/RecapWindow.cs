@@ -194,7 +194,7 @@ public class RecapWindow : Window
             foreach (var h in r.Shown.PlanProblems.Take(10))
             {
                 if (h.Icon != 0) { Icons.Draw(h.Icon, new Vector2(plh, plh)); ImGui.SameLine(0, Theme.S(6f)); }
-                ImGui.TextColored(h.Missed ? Theme.V(Theme.Danger) : Theme.V(Theme.Warn), h.Mit);
+                ImGui.TextColored(h.Missed ? Theme.V(Theme.Danger) : Theme.V(Theme.Warn), Fmt.Numerals(h.Mit));
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted), $"· {(int)h.Time / 60}:{(int)h.Time % 60:00} ·");
                 // The verdict is the payload, so it reads in full ink.
@@ -204,7 +204,7 @@ public class RecapWindow : Window
                 if (h.Mechanic.Length > 0)
                 {
                     ImGui.SameLine(0, Theme.S(4f));
-                    ImGui.TextColored(Theme.V(Theme.Muted), $"· {h.Mechanic}");
+                    ImGui.TextColored(Theme.V(Theme.Muted), $"· {Fmt.Numerals(h.Mechanic)}");
                 }
             }
             if (r.Shown.PlanProblems.Count > 10)
@@ -221,7 +221,7 @@ public class RecapWindow : Window
             foreach (var (who, mit, note, icon) in r.Shown.Unused.Take(4))
             {
                 if (icon != 0) { Icons.Draw(icon, new Vector2(lh, lh)); ImGui.SameLine(0, Theme.S(6f)); }
-                ImGui.TextColored(Theme.V(Theme.Warn), mit);
+                ImGui.TextColored(Theme.V(Theme.Warn), Fmt.Numerals(mit));
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted), $"· {who} · {note}");
             }
@@ -237,7 +237,7 @@ public class RecapWindow : Window
             {
                 if (m.Icon != 0) { Icons.Draw(m.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, Theme.S(6f)); }
                 var col = MitColors.Color(m.Kind, C);
-                ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), m.Mit);
+                ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), Fmt.Numerals(m.Mit));
                 ImGui.SameLine();
                 ImGui.TextColored(Theme.V(Theme.Muted), $"· {m.Source} · {m.Remaining:0}s");
             }
@@ -307,7 +307,7 @@ public class RecapWindow : Window
                     n++;
                     if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ih, ih)); ImGui.SameLine(0, Theme.S(4f)); }
                     var col = MitColors.Color(e.Kind, C);
-                    ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), e.Mit);
+                    ImGui.TextColored(col != 0 ? Theme.V(col) : Theme.V(Theme.TextBright), Fmt.Numerals(e.Mit));
 
                     if (e.OnBoss)
                     {
@@ -324,7 +324,7 @@ public class RecapWindow : Window
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
-                            ImGui.TextColored(Theme.V(Theme.Muted), $"{e.Mit} coverage:");
+                            ImGui.TextColored(Theme.V(Theme.Muted), $"{Fmt.Numerals(e.Mit)} coverage:");
                             foreach (var name in party)
                             {
                                 // Icon font, since the text font has neither glyph.
@@ -402,7 +402,7 @@ public class RecapWindow : Window
         foreach (var e in group)
             if (e.Kind == MitTypes.Kind.Party && party.Count is > 1 and <= 8
                 && !e.OnBoss && e.Covered.Count < party.Count)
-                partial.Add($"{e.Mit} {e.Covered.Count}/{party.Count}");
+                partial.Add($"{Fmt.Numerals(e.Mit)} {e.Covered.Count}/{party.Count}");
 
         var missing = new List<string>();
         foreach (var (slot, line) in PlannedLinesNear(fight, t0, _plugin.GetActiveJobAbbr(fight)))
@@ -412,7 +412,7 @@ public class RecapWindow : Window
                 if (MitRecap.DeltaBlind.Contains(pm.Name)) continue;
                 if (!MitStatusBook.IsTrackedAction(pm.Name)) continue; // recap can't see it
                 if (!reported.Add(pm.Name)) continue; // one report per pull, not per adjacent group
-                missing.Add(slot.Length > 0 ? $"{pm.Name} ({slot})" : pm.Name);
+                missing.Add(slot.Length > 0 ? $"{Fmt.Numerals(pm.Name)} ({slot})" : Fmt.Numerals(pm.Name));
             }
 
         var parts = new List<string>();
@@ -508,7 +508,7 @@ public class RecapWindow : Window
                     ImGui.TextColored(Theme.V(Theme.Muted), Mmss(Builtin.DisplayTime(r.Territory, h.Time)));
                     ImGui.SameLine(0, Theme.S(8f));
                     ImGui.TextColored(blow ? Theme.V(Theme.Danger) : Theme.V(Theme.TextBright),
-                        h.Action.Length > 0 ? h.Action : h.OverTime ? "damage over time" : "hit");
+                        h.Action.Length > 0 ? Fmt.Numerals(h.Action) : h.OverTime ? "damage over time" : "hit");
                     if (h.OverTime)
                     {
                         ImGui.SameLine(0, Theme.S(5f));
@@ -703,7 +703,7 @@ public class RecapWindow : Window
             foreach (var e in up)
             {
                 if (e.Icon != 0) { Icons.Draw(e.Icon, new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())); ImGui.SameLine(0, Theme.S(5f)); }
-                ImGui.TextColored(Theme.V(e.OnBoss ? LaneBoss : LaneParty), e.Mit);
+                ImGui.TextColored(Theme.V(e.OnBoss ? LaneBoss : LaneParty), Fmt.Numerals(e.Mit));
                 if (e.OnBoss) { ImGui.SameLine(0, Theme.S(4f)); ImGui.TextColored(Theme.V(Theme.Muted), "(boss)"); }
             }
         }
@@ -750,7 +750,7 @@ public class RecapWindow : Window
             var d = MathF.Abs(l.Time - time);
             if (d < bestDist && !string.IsNullOrWhiteSpace(l.Mechanic)) { best = l; bestDist = d; }
         }
-        return best?.Mechanic.Trim() ?? "";
+        return Fmt.Numerals(best?.Mechanic.Trim() ?? "");
     }
 
     private static string Mmss(float t) => Fmt.MmssFloor(t);

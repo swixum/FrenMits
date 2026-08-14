@@ -1208,7 +1208,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             var hits = SheetTimeline.Build(GetActiveJobAbbr(fight), fight).Select(r => r.Time).ToList();
             // "Party Mit" solves as the job's real press, so it reaches the boards.
             _activePresses = TimingSolver.Solve(fight, hits, Config.ShowUseWindows, Config.MaxUseWindowSeconds,
-                text => CooldownTracker.PlanMits(Icons.DisplayAction(text, job)));
+                text => CooldownTracker.PlanMits(Icons.ResolveAction(text, job)));
             _pressesFight = fight;
             _pressesStamp = stamp;
         }

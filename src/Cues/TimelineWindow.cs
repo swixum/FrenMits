@@ -124,7 +124,7 @@ public class TimelineWindow : Window
             // passes the same resolution), so matching the raw text finds no
             // mit at all and silently drops every generic call - "Party Mit",
             // "Buddy Mit", "Invulnerability" - off this list.
-            var jobAction = Icons.DisplayAction(l.ActionFor(job), job);
+            var jobAction = Icons.ResolveAction(l.ActionFor(job), job);
             var mitsForJob = CooldownTracker.PlanMitsCached(jobAction);
             var handlesThisPress = false;
             for (var i = 0; i < mitsForJob.Count; i++)
@@ -151,7 +151,7 @@ public class TimelineWindow : Window
                 var p = _upcomingBuf[u];
                 var l = p.SourceLine;
                 var inSec = (int)MathF.Round(p.CallAt - elapsed);
-                var name = string.IsNullOrWhiteSpace(p.MitName) ? l.Mechanic : Icons.DisplayAction(p.MitName, job);
+                var name = string.IsNullOrWhiteSpace(p.MitName) ? Fmt.Numerals(l.Mechanic) : Icons.DisplayAction(p.MitName, job);
                 var icon = C.ShowAbilityIcon ? Icons.ResolveFromText(p.MitName) : 0u;
                 var notReady = C.CooldownAwareCalls
                     && CooldownTracker.Remaining(p.MitName) is { } cd && cd > (p.CallAt - elapsed) + 0.5f;
@@ -448,7 +448,7 @@ public class TimelineWindow : Window
                 // passes the same resolution), so matching the raw text finds no
                 // mit at all and silently drops every generic call - "Party Mit",
                 // "Buddy Mit", "Invulnerability" - off this list.
-                var jobAction = Icons.DisplayAction(l.ActionFor(job), job);
+                var jobAction = Icons.ResolveAction(l.ActionFor(job), job);
                 var mitsForJob = CooldownTracker.PlanMitsCached(jobAction);
                 var handlesThisPress = false;
                 for (var i = 0; i < mitsForJob.Count; i++)
@@ -536,12 +536,12 @@ public class TimelineWindow : Window
 
             // A row with no mechanic label (a bare user timer) is named by the
             // press itself, so its action doesn't repeat underneath.
-            var name = r.Mechanic;
+            var name = Fmt.Numerals(r.Mechanic);
             var bareTimer = string.IsNullOrWhiteSpace(name);
             if (bareTimer)
                 name = mine[i].Count > 0
                     ? Icons.DisplayAction(mine[i][0].MitName, job)
-                    : r.Fallback;
+                    : Fmt.Numerals(r.Fallback);
 
             // Row kind: lull markers (untargetable/targetable) or the mechanic's own
             // hit type.
@@ -965,6 +965,7 @@ public class TimelineWindow : Window
     // anything row-shaped here is space a mechanic doesn't get.
     private void BoardPhase(string label, float width)
     {
+        label = Fmt.Numerals(label);
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
         // Upper-cased so it reads as a label rather than as another mechanic name;
@@ -1133,7 +1134,7 @@ public class TimelineWindow : Window
         foreach (var l in upcoming)
         {
             var inSec = (int)MathF.Round(l.CueTime - elapsed);
-            var nm = string.IsNullOrWhiteSpace(l.Action) ? l.Mechanic : Icons.DisplayAction(l.Action, null);
+            var nm = string.IsNullOrWhiteSpace(l.Action) ? Fmt.Numerals(l.Mechanic) : Icons.DisplayAction(l.Action, null);
             Row(C.ShowAbilityIcon ? Icons.For(l, null) : 0u, $"+{inSec}s  ", nm);
         }
     }

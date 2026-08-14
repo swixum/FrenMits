@@ -188,7 +188,7 @@ internal static class MitLineEditor
         var gap = ImGui.GetStyle().ItemSpacing.X;
         var half = (_totalW - gap) * 0.5f;
         var closeEditor = false;
-        var named = string.IsNullOrWhiteSpace(line.Action) ? "this call" : $"\"{Ellipsis(line.Action, 28)}\"";
+        var named = string.IsNullOrWhiteSpace(line.Action) ? "this call" : $"\"{Ellipsis(Fmt.Numerals(line.Action), 28)}\"";
 
         if (hooks.Reset != null)
         {
@@ -304,7 +304,7 @@ internal static class MitLineEditor
         if (def == null || !ImGui.BeginPopupContextItem("##actionctx_pop")) return;
 
         if (!string.Equals(def.Action.Trim(), line.Action.Trim(), StringComparison.OrdinalIgnoreCase)
-            && ImGui.MenuItem($"Reset action to \"{Ellipsis(def.Action, 40)}\"") && begin(true))
+            && ImGui.MenuItem($"Reset action to \"{Ellipsis(Fmt.Numerals(def.Action), 40)}\"") && begin(true))
         {
             line.Action = def.Action;
             save();

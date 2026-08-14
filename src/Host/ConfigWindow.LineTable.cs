@@ -260,7 +260,7 @@ public partial class ConfigWindow
                     {
                         if (_editTimeLine == repLine && SheetImport.TryParseTime(_editTimeBuf, out var sec) && MathF.Abs(sec - repLine.Time) > 0.001f)
                         {
-                            Undoable($"re-time \"{group.Mechanic}\"");
+                            Undoable($"re-time \"{Fmt.Numerals(group.Mechanic)}\"");
                             foreach (var l in group.Actions)
                             {
                                 PreserveBakedEdit(fight, l);
@@ -278,7 +278,7 @@ public partial class ConfigWindow
             ImGui.TableNextColumn();
             if (isOfficial)
             {
-                ImGui.TextUnformatted(group.Mechanic);
+                ImGui.TextUnformatted(Fmt.Numerals(group.Mechanic));
             }
             else
             {
@@ -296,7 +296,7 @@ public partial class ConfigWindow
                     if (ImGui.IsItemActivated()) _mechUndoArmed = repLine;
                     if (mechChanged)
                     {
-                        if (_mechUndoArmed == repLine) { Undoable($"rename \"{group.Mechanic}\""); _mechUndoArmed = null; }
+                        if (_mechUndoArmed == repLine) { Undoable($"rename \"{Fmt.Numerals(group.Mechanic)}\""); _mechUndoArmed = null; }
                         foreach (var l in group.Actions)
                         {
                             PreserveBakedEdit(fight, l);
@@ -331,7 +331,7 @@ public partial class ConfigWindow
 
                 
                 var actionText = line.Action;
-                var pillLabel = string.IsNullOrEmpty(actionText) ? "(Empty)" : actionText;
+                var pillLabel = string.IsNullOrEmpty(actionText) ? "(Empty)" : Fmt.Numerals(actionText);
                 
                 if (line.OffsetSeconds != 0) pillLabel += $" ({line.OffsetSeconds:+0.#;-0.#}s)";
                 if (line.Jobs.Count > 0) pillLabel += $" [{string.Join(",", line.Jobs)}]";
@@ -398,7 +398,7 @@ public partial class ConfigWindow
                     if (ImGui.IsWindowAppearing()) _lineEditUndoArmed = true;
                     var defForLine = DefaultLineFor(fight, line, bakedForSlotAll);
                     var target = line;
-                    var named = string.IsNullOrWhiteSpace(line.Action) ? group.Mechanic : line.Action;
+                    var named = Fmt.Numerals(string.IsNullOrWhiteSpace(line.Action) ? group.Mechanic : line.Action);
                     void ArmedUndo(string verb)
                     {
                         if (!_lineEditUndoArmed) return;
@@ -426,7 +426,7 @@ public partial class ConfigWindow
                         Delete = () => { ArmedUndo("delete"); toDelete.Add(target); },
                         Default = defForLine,
                         Job = _plugin.GetActiveJobAbbr(fight),
-                        Context = $"{Fmt.MmssSigned(Builtin.DisplayTime(fight.TerritoryId, group.Time))}  ·  {group.Mechanic}",
+                        Context = $"{Fmt.MmssSigned(Builtin.DisplayTime(fight.TerritoryId, group.Time))}  ·  {Fmt.Numerals(group.Mechanic)}",
                         Territory = fight.TerritoryId,
                         Reset = reset,
                     });
@@ -455,7 +455,7 @@ public partial class ConfigWindow
                 };
                 deferred = () =>
                 {
-                    Undoable($"add a call to \"{group.Mechanic}\"");
+                    Undoable($"add a call to \"{Fmt.Numerals(group.Mechanic)}\"");
                     fight.Lines.Add(newLine);
                     fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
                     _focusNewAction = newLine;
@@ -506,7 +506,7 @@ public partial class ConfigWindow
                     {
                         deferred = () =>
                         {
-                            Undoable($"reset \"{group.Mechanic}\"");
+                            Undoable($"reset \"{Fmt.Numerals(group.Mechanic)}\"");
                             foreach(var l in group.Actions.Where(a => !JobExtras.IsAutoExtra(a))) { fight.Lines.Remove(l); }
                             foreach(var b in bakedForGroup)
                             {
@@ -535,7 +535,7 @@ public partial class ConfigWindow
                 {
                     deferred = () =>
                     {
-                        Undoable($"delete \"{group.Mechanic}\"");
+                        Undoable($"delete \"{Fmt.Numerals(group.Mechanic)}\"");
                         toDelete.AddRange(group.Actions);
                     };
                 }
@@ -625,7 +625,7 @@ public partial class ConfigWindow
         }
         if (ImGui.MenuItem("Paste Over This Action", string.Empty, false, hasCopy) && _copiedLine != null)
         {
-            undoable($"paste over \"{Ellipsis(line.Action, 28)}\"");
+            undoable($"paste over \"{Ellipsis(Fmt.Numerals(line.Action), 28)}\"");
             PreserveBakedEdit(fight, line); // pasting over rewrites time/mechanic
             OverwriteLine(line, _copiedLine);
             deferred = () => { fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList(); _scrollToLine = line; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); };
@@ -636,13 +636,13 @@ public partial class ConfigWindow
         {
             var dup = CloneLine(line);
             var at = index + 1;
-            deferred = () => { undoable($"duplicate \"{Ellipsis(line.Action, 28)}\""); fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), dup); C.Save(); };
+            deferred = () => { undoable($"duplicate \"{Ellipsis(Fmt.Numerals(line.Action), 28)}\""); fight.Lines.Insert(Math.Clamp(at, 0, fight.Lines.Count), dup); C.Save(); };
         }
 
         ImGui.Separator();
         if (ImGui.MenuItem("Delete Action"))
         {
-            undoable($"delete \"{Ellipsis(line.Action, 28)}\"");
+            undoable($"delete \"{Ellipsis(Fmt.Numerals(line.Action), 28)}\"");
             toDelete.Add(line);
         }
     }

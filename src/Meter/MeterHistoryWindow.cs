@@ -376,7 +376,7 @@ public class MeterHistoryWindow : Window
             if (d.Killer.Length == 0) continue;
             ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(Theme.V(Theme.Muted),
-                d.KillingBlow > 0 ? $"to {d.Killer} ({d.KillingBlow:N0})" : $"to {d.Killer}");
+                d.KillingBlow > 0 ? $"to {Fmt.Numerals(d.Killer)} ({d.KillingBlow:N0})" : $"to {Fmt.Numerals(d.Killer)}");
         }
     }
 

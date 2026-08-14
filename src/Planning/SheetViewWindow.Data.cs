@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -727,7 +727,7 @@ public partial class SheetViewWindow
         if (!SheetImport.TryParseTime(_timeBuf, out var newTime) || MathF.Abs(newTime - row.Time) < 0.05f)
             return;
 
-        PushUndo($"re-time \"{row.Mechanic}\"");
+        PushUndo($"re-time \"{Fmt.Numerals(row.Mechanic)}\"");
         var delta = newTime - row.Time;
         // The row's note (matched at the old coordinates) rides along.
         if (NoteFor(row) is { } note) note.Time += delta;
@@ -761,7 +761,7 @@ public partial class SheetViewWindow
         }
         C.Save();
         _dirty = true;
-        Flash($"Shifted \"{row.Mechanic}\" by {delta:+0.0;-0.0}s: {lines} line(s) across {slots} slot(s). Kept through sheet updates.");
+        Flash($"Shifted \"{Fmt.Numerals(row.Mechanic)}\" by {delta:+0.0;-0.0}s: {lines} line(s) across {slots} slot(s). Kept through sheet updates.");
     }
 
     private void CommitCell(Row row, int i) => ApplyCellText(row, i, _cellBuf);
@@ -814,7 +814,7 @@ public partial class SheetViewWindow
             return;
         }
 
-        PushUndo($"edit {_slots[slotIdx]}'s \"{row.Mechanic}\"");
+        PushUndo($"edit {_slots[slotIdx]}'s \"{Fmt.Numerals(row.Mechanic)}\"");
         EnsureBacked(slotIdx);
         if (cell.Count == 0)
         {
@@ -832,7 +832,7 @@ public partial class SheetViewWindow
                 Personal = true,
                 Jobs = jobs,
             });
-            Flash($"Added \"{text}\" for {_slots[slotIdx]} at {row.Mechanic} (that slot only).");
+            Flash($"Added \"{Fmt.Numerals(text)}\" for {_slots[slotIdx]} at {Fmt.Numerals(row.Mechanic)} (that slot only).");
         }
         else
         {
@@ -844,7 +844,7 @@ public partial class SheetViewWindow
                 if (!cell[0].Jobs.Contains(_gridCols[i], StringComparer.OrdinalIgnoreCase))
                     cell[0].Jobs.Add(_gridCols[i]);
             }
-            Flash($"{_slots[slotIdx]}'s mit for \"{row.Mechanic}\" updated (that slot only).");
+            Flash($"{_slots[slotIdx]}'s mit for \"{Fmt.Numerals(row.Mechanic)}\" updated (that slot only).");
         }
         Resort(slotIdx);
         C.Save();
@@ -862,7 +862,7 @@ public partial class SheetViewWindow
             // No baked instance pairs with this row: it's an extra instance the
             // sheet doesn't have, or a leftover edit under a mechanic name the
             // sheet renamed.
-            PushUndo($"remove \"{row.Mechanic}\" (not on the sheet)");
+            PushUndo($"remove \"{Fmt.Numerals(row.Mechanic)}\" (not on the sheet)");
             var removed = 0;
             var processedSlots = new HashSet<int>();
             for (var i = 0; i < _gridCols.Length; i++)
@@ -881,11 +881,11 @@ public partial class SheetViewWindow
             if (removed == 0) { PopUndo(); Flash("This row has no lines to remove."); return; }
             C.Save();
             _dirty = true;
-            Flash($"Removed {removed} line(s): \"{row.Mechanic}\" isn't on the baked sheet. Undo brings them back.");
+            Flash($"Removed {removed} line(s): \"{Fmt.Numerals(row.Mechanic)}\" isn't on the baked sheet. Undo brings them back.");
             return;
         }
 
-        PushUndo($"reset \"{row.Mechanic}\"");
+        PushUndo($"reset \"{Fmt.Numerals(row.Mechanic)}\"");
         var touched = 0;
         var processedResetSlots = new HashSet<int>();
         for (var i = 0; i < _gridCols.Length; i++)
@@ -935,8 +935,8 @@ public partial class SheetViewWindow
         C.Save();
         _dirty = true;
         Flash(touched > 0
-            ? $"\"{row.Mechanic}\" reset to the sheet across {touched} slot(s)."
-            : $"\"{row.Mechanic}\" already matches the sheet.");
+            ? $"\"{Fmt.Numerals(row.Mechanic)}\" reset to the sheet across {touched} slot(s)."
+            : $"\"{Fmt.Numerals(row.Mechanic)}\" already matches the sheet.");
     }
 
     private void SharePlan()

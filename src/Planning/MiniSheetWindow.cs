@@ -120,11 +120,11 @@ public class MiniSheetWindow : Window
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
                 var name = string.IsNullOrWhiteSpace(line.Action)
-                    ? line.Mechanic
+                    ? Fmt.Numerals(line.Mechanic)
                     : Icons.DisplayAction(line.ActionFor(job), job);
                 ImGui.TextColored(past ? Dim : Bright, name);
                 if (ImGui.IsItemHovered() && !string.IsNullOrWhiteSpace(line.Mechanic))
-                    ImGui.SetTooltip(line.Mechanic);
+                    ImGui.SetTooltip(Fmt.Numerals(line.Mechanic));
 
                 ImGui.TableNextColumn();
                 if (ImGui.SmallButton("-")) Nudge(line, -0.5f);

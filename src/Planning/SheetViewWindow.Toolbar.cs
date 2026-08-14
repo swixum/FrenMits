@@ -662,7 +662,7 @@ public partial class SheetViewWindow
     private void DeleteCustomRow(Row row)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
-        PushUndo($"delete \"{row.Mechanic}\" row");
+        PushUndo($"delete \"{Fmt.Numerals(row.Mechanic)}\" row");
         var processedSlots = new HashSet<int>();
         for (var i = 0; i < _gridCols.Length; i++)
         {
@@ -677,6 +677,6 @@ public partial class SheetViewWindow
             MechEquals(cr.Mechanic, row.Mechanic) && MathF.Abs(cr.Time - row.Time) < 2f);
         C.Save();
         _dirty = true;
-        Flash($"\"{row.Mechanic}\" removed. Ctrl+Z brings it back.");
+        Flash($"\"{Fmt.Numerals(row.Mechanic)}\" removed. Ctrl+Z brings it back.");
     }
 }

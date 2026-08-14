@@ -71,12 +71,18 @@ public partial class SheetViewWindow
     {
         if (_clashOnly && !RowHasClash(row)) return false;
         if (_filter.Length == 0) return true;
-        if (row.Mechanic.Contains(_filter, StringComparison.OrdinalIgnoreCase)) return true;
+        if (Hit(row.Mechanic)) return true;
         var cells = row.Ghost ? row.Bake!.Cells : row.Cells;
         foreach (var cell in cells)
             foreach (var l in cell)
-                if (l.Action.Contains(_filter, StringComparison.OrdinalIgnoreCase)) return true;
+                if (Hit(l.Action)) return true;
         return false;
+
+        // Typing "Physis 2" has to find the row that says "Physis 2", and typing
+        // the roman spelling still has to find it too.
+        bool Hit(string text)
+            => text.Contains(_filter, StringComparison.OrdinalIgnoreCase)
+               || Fmt.Numerals(text).Contains(_filter, StringComparison.OrdinalIgnoreCase);
     }
 
     // One definition of both, shared with the fight list so the pages agree.
@@ -267,7 +273,7 @@ public partial class SheetViewWindow
                 ImGui.GetWindowDrawList().AddRectFilled(
                     barP, barP + new Vector2(Theme.S(3f), ImGui.GetTextLineHeight()), Theme.Accent, 1.5f);
                 ImGui.TableNextColumn();
-                ImGui.TextColored(Theme.V(Theme.Accent), Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
+                ImGui.TextColored(Theme.V(Theme.Accent), Fmt.Numerals(Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase)));
                 // On this row for a swapped-priority phase, the toggle sits in
                 // the MT/OT columns themselves - it swaps both at once, not
                 // just the one you happen to be viewing as.
@@ -375,7 +381,7 @@ public partial class SheetViewWindow
         if (_stickyRowIdx < 0 && ImGui.GetCursorScreenPos().Y > _headerY + ImGui.GetTextLineHeight())
         {
             _stickyRowIdx = _rowIdxDrawing;
-            _stickyTitle = Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase);
+            _stickyTitle = Fmt.Numerals(Builtin.PhaseTitle(_fight!.TerritoryId, row.Phase));
         }
         if (row.Ghost)
         {
@@ -419,7 +425,7 @@ public partial class SheetViewWindow
         ImGui.TableNextColumn();
         if (row.Ghost)
         {
-            ImGui.TextDisabled(row.Mechanic);
+            ImGui.TextDisabled(Fmt.Numerals(row.Mechanic));
             ImGui.SameLine(0, Theme.S(6f));
             ImGui.TextColored(EditedColor, "Deleted");
             ImGui.SameLine(0, Theme.S(4f));
@@ -429,7 +435,7 @@ public partial class SheetViewWindow
             return;
         }
 
-        ImGui.TextUnformatted(row.Mechanic);
+        ImGui.TextUnformatted(Fmt.Numerals(row.Mechanic));
         if (ImGui.IsItemHovered())
         {
             _hoverRow = row; _hoverLive = row;
@@ -444,7 +450,7 @@ public partial class SheetViewWindow
                 _noteBuf = NoteFor(row)?.Text ?? "";
                 _noteUndoArmed = true; // one undo entry per editing session
             }
-            ImGui.TextDisabled($"Note: {row.Mechanic}");
+            ImGui.TextDisabled($"Note: {Fmt.Numerals(row.Mechanic)}");
             if (ImGui.InputTextMultiline("##notetxt", ref _noteBuf, 1000, new Vector2(360, 84) * Theme.Scale))
                 SaveNote(row, _noteBuf);
             ImGui.TextDisabled("Saved as you type. Clear the text to remove the note.");
@@ -543,7 +549,7 @@ public partial class SheetViewWindow
     private void DeleteExtraRow(Row row)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
-        PushUndo($"delete \"{row.Mechanic}\" job extra");
+        PushUndo($"delete \"{Fmt.Numerals(row.Mechanic)}\" job extra");
         var removed = 0;
         var processedSlots = new HashSet<int>();
         for (var i = 0; i < _gridCols.Length; i++)
@@ -573,7 +579,7 @@ public partial class SheetViewWindow
         if (removed == 0) { PopUndo(); return; }
         C.Save();
         _dirty = true;
-        Flash($"\"{row.Mechanic}\" job extra removed. Ctrl+Z brings it back.");
+        Flash($"\"{Fmt.Numerals(row.Mechanic)}\" job extra removed. Ctrl+Z brings it back.");
     }
 
     private bool IsYouColumn(int i)
@@ -589,7 +595,7 @@ public partial class SheetViewWindow
 
     private string FormatLineText(MitLine l, int i)
     {
-        var action = l.Action;
+        var action = Fmt.Numerals(l.Action);
         if (l.Jobs.Count > 0 && Jobs.ByAbbreviation(_gridCols[i]) == null)
         {
             return $"{action} ({string.Join("/", l.Jobs)})";
@@ -707,7 +713,7 @@ public partial class SheetViewWindow
             var dimColor = (ImGui.GetColorU32(ImGuiCol.TextDisabled) & 0x00FFFFFF) | 0xB0000000;
             foreach (var cItem in uniqueCarries)
             {
-                dl.AddText(textPos, dimColor, $"-> {cItem}");
+                dl.AddText(textPos, dimColor, $"-> {Fmt.Numerals(cItem)}");
                 textPos.Y += lineH;
             }
         }
@@ -728,7 +734,7 @@ public partial class SheetViewWindow
         if (ImGui.IsItemHovered())
         {
             _hoverRow = row; _hoverLive = row;
-            var tipCarryStr = uniqueCarries != null ? string.Join(" · ", uniqueCarries) : null;
+            var tipCarryStr = uniqueCarries != null ? string.Join(" · ", uniqueCarries.Select(Fmt.Numerals)) : null;
             var tip = cell.Count == 0
                 ? (tipCarryStr != null
                     ? $"Still covered: {tipCarryStr} from an earlier row is up through this hit.\nClick to add a mit of your own for {_gridCols[i]}."
@@ -763,7 +769,7 @@ public partial class SheetViewWindow
         if (ImGui.BeginPopupContextItem($"##cellctx{i}"))
         {
             if (ImGui.IsWindowAppearing()) _offsetUndoArmed = true;
-            ImGui.TextDisabled($"{_gridCols[i]}  ·  {row.Mechanic}");
+            ImGui.TextDisabled($"{_gridCols[i]}  ·  {Fmt.Numerals(row.Mechanic)}");
             ImGui.Separator();
             if (cell.Count > 0)
             {
@@ -773,7 +779,7 @@ public partial class SheetViewWindow
                 // Clamped, and not flagged Custom, since a nudge isn't a rewrite.
                 if (ImGui.InputFloat("call offset (s)", ref offset, 0.5f, 1f, "%.1f") && !AbortIfStale())
                 {
-                    if (_offsetUndoArmed) { PushUndo($"adjust \"{row.Mechanic}\" offset"); _offsetUndoArmed = false; }
+                    if (_offsetUndoArmed) { PushUndo($"adjust \"{Fmt.Numerals(row.Mechanic)}\" offset"); _offsetUndoArmed = false; }
                     EnsureBacked(i);
                     line.OffsetSeconds = Math.Clamp(offset, -30f, 30f);
                     line.OffsetManual = true; // hand-set: the timing solver won't touch it
@@ -787,10 +793,10 @@ public partial class SheetViewWindow
                 var nextRow = _rows.FirstOrDefault(r => !r.Ghost && r.Time > coverBase + 0.5f);
                 ImGui.BeginDisabled(nextRow == null);
                 if (ImGui.MenuItem(nextRow != null
-                        ? $"Cover through {nextRow.Mechanic} ({TimeText(nextRow.Time)})"
+                        ? $"Cover through {Fmt.Numerals(nextRow.Mechanic)} ({TimeText(nextRow.Time)})"
                         : "Cover through next hit") && nextRow != null && !AbortIfStale())
                 {
-                    PushUndo($"extend {row.Mechanic} coverage");
+                    PushUndo($"extend {Fmt.Numerals(row.Mechanic)} coverage");
                     EnsureBacked(i);
                     line.CoverUntil = nextRow.Time;
                     line.OffsetManual = true; // hand-set timing: the auto cooldown timer won't touch it
@@ -800,7 +806,7 @@ public partial class SheetViewWindow
                 ImGui.EndDisabled();
                 if (line.CoverUntil > row.Time && ImGui.MenuItem($"Clear coverage (through {TimeText(line.CoverUntil)})") && !AbortIfStale())
                 {
-                    PushUndo($"clear {row.Mechanic} coverage");
+                    PushUndo($"clear {Fmt.Numerals(row.Mechanic)} coverage");
                     EnsureBacked(i);
                     line.CoverUntil = 0f;
                     line.OffsetManual = true; // hand-set timing: the auto cooldown timer won't touch it
@@ -820,7 +826,7 @@ public partial class SheetViewWindow
                         if (shift is > 0f and <= 30f && MathF.Abs(line.OffsetSeconds - shift) >= 0.5f
                             && ImGui.MenuItem($"Call at window start (+{shift:0}s)") && !AbortIfStale())
                         {
-                            PushUndo($"offset {row.Mechanic} to window");
+                            PushUndo($"offset {Fmt.Numerals(row.Mechanic)} to window");
                             EnsureBacked(i);
                             line.OffsetSeconds = shift;
                             line.OffsetManual = true; // hand-set: the auto cooldown timer won't touch it
@@ -1047,7 +1053,7 @@ public partial class SheetViewWindow
             {
                 if (_cellEditUndoArmed)
                 {
-                    PushUndo($"edit {_slots[slotIdx]}'s \"{row.Mechanic}\"");
+                    PushUndo($"edit {_slots[slotIdx]}'s \"{Fmt.Numerals(row.Mechanic)}\"");
                     _cellEditUndoArmed = false;
                 }
                 EnsureBacked(slotIdx);
@@ -1065,7 +1071,7 @@ public partial class SheetViewWindow
             Reset = row.Bake != null ? () => ResetCell(row, i) : null,
             Default = baked is { Count: > 0 } ? baked[0] : null,
             Job = !_isCustom && Jobs.ByAbbreviation(_gridCols[i]) != null ? _gridCols[i] : null,
-            Context = $"{TimeText(row.Time)}  ·  {row.Mechanic}  ·  {_gridCols[i]}",
+            Context = $"{TimeText(row.Time)}  ·  {Fmt.Numerals(row.Mechanic)}  ·  {_gridCols[i]}",
         });
         ImGui.EndPopup();
     }
@@ -1081,7 +1087,7 @@ public partial class SheetViewWindow
         Resort(slotIdx);
         _cellEditDraft = null;
         // Named as you type, so the text itself would read half-finished.
-        Flash($"Added a call for {_slots[slotIdx]} at {row.Mechanic} (that slot only).");
+        Flash($"Added a call for {_slots[slotIdx]} at {Fmt.Numerals(row.Mechanic)} (that slot only).");
     }
 
     // Delete this row's line, tombstoned like clearing the text.
@@ -1091,7 +1097,7 @@ public partial class SheetViewWindow
         var slotIdx = _gridToSlot[i];
         var cell = GetCellLinesForJob(row, i);
         if (cell.Count == 0) return;
-        PushUndo($"delete {_slots[slotIdx]}'s \"{row.Mechanic}\" mit");
+        PushUndo($"delete {_slots[slotIdx]}'s \"{Fmt.Numerals(row.Mechanic)}\" mit");
         EnsureBacked(slotIdx);
         var line = cell[0];
         if (!line.Custom)
@@ -1101,7 +1107,7 @@ public partial class SheetViewWindow
         Resort(slotIdx);
         C.Save();
         _dirty = true;
-        Flash($"{_slots[slotIdx]}'s mit for \"{row.Mechanic}\" removed. The undo button on the row brings the sheet's version back.");
+        Flash($"{_slots[slotIdx]}'s mit for \"{Fmt.Numerals(row.Mechanic)}\" removed. The undo button on the row brings the sheet's version back.");
     }
 
     // Reset one slot's cell to the baked sheet.
@@ -1114,7 +1120,7 @@ public partial class SheetViewWindow
         {
             // No baked pair means the sheet has nothing here, so clear it.
             if (row.Cells[i].Count == 0) { Flash($"{slot} has nothing on this row."); return; }
-            PushUndo($"remove {slot}'s \"{row.Mechanic}\"");
+            PushUndo($"remove {slot}'s \"{Fmt.Numerals(row.Mechanic)}\"");
             EnsureBacked(slotIdx);
             foreach (var line in row.Cells[i].ToList()) _slotLines[slotIdx].Remove(line);
             Resort(slotIdx);
@@ -1131,7 +1137,7 @@ public partial class SheetViewWindow
 
         if (pristine) { Flash($"{slot} is already at the sheet default here."); return; }
 
-        PushUndo($"reset {slot}'s \"{row.Mechanic}\"");
+        PushUndo($"reset {slot}'s \"{Fmt.Numerals(row.Mechanic)}\"");
         var changed = 0;
         EnsureBacked(slotIdx);
 
@@ -1161,7 +1167,7 @@ public partial class SheetViewWindow
             Resort(slotIdx);
             C.Save();
             _dirty = true;
-            Flash($"Reset {slot} for \"{row.Mechanic}\" to the sheet version (that slot only).");
+            Flash($"Reset {slot} for \"{Fmt.Numerals(row.Mechanic)}\" to the sheet version (that slot only).");
         }
     }
 
@@ -1189,10 +1195,10 @@ public partial class SheetViewWindow
         if (note == null) return;
         IconText(FontAwesomeIcon.PencilAlt, NoteBlue);
         ImGui.SameLine(0, Theme.S(6f));
-        ImGui.TextUnformatted($"{_hoverRow!.Mechanic}:");
+        ImGui.TextUnformatted($"{Fmt.Numerals(_hoverRow!.Mechanic)}:");
         ImGui.SameLine(0, Theme.S(6f));
-        var text = note.Text.Replace('\n', ' ');
+        var text = Fmt.Numerals(note.Text.Replace('\n', ' '));
         ImGui.TextDisabled(text.Length > 220 ? text[..220] + "..." : text);
-        if (ImGui.IsItemHovered() && note.Text.Length > 220) ImGui.SetTooltip(note.Text);
+        if (ImGui.IsItemHovered() && note.Text.Length > 220) ImGui.SetTooltip(Fmt.Numerals(note.Text));
     }
 }

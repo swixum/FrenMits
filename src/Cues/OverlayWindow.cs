@@ -424,6 +424,7 @@ public class OverlayWindow : Window
     private void DrawBoardCall(string mechanic, string action, float remaining, bool imminent,
         uint colorOverride, float lead, float barFrac, float tickFrac, uint iconId, float width)
     {
+        mechanic = Fmt.Numerals(mechanic);
         var dl = ImGui.GetWindowDrawList();
         var lineH = ImGui.GetTextLineHeight();
         var barH = MathF.Round(lineH + 12f);
@@ -618,6 +619,7 @@ public class OverlayWindow : Window
     private void DrawCurrent(string mechanic, string action, float remaining, bool imminent,
         uint colorOverride, float lead, float barFrac, float tickFrac, uint iconId = 0)
     {
+        mechanic = Fmt.Numerals(mechanic);
         var dl = ImGui.GetWindowDrawList();
         var panel = C.OverlayCallPanel;
         // Split so the plate can be drawn behind content that has not been measured yet.

@@ -163,9 +163,10 @@ public class CueEngine
     public static string CueText(Configuration c, MitLine line, string? job)
     {
         // Per-line override wins over the action or mechanic.
+        var mech = Fmt.Numerals(line.Mechanic);
         var fallback = c.TtsSpeakMechanic
-            ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.ActionFor(job), job) : line.Mechanic)
-            : (string.IsNullOrWhiteSpace(line.Action) ? line.Mechanic : Icons.DisplayAction(line.ActionFor(job), job));
+            ? (string.IsNullOrWhiteSpace(line.Mechanic) ? Icons.DisplayAction(line.ActionFor(job), job) : mech)
+            : (string.IsNullOrWhiteSpace(line.Action) ? mech : Icons.DisplayAction(line.ActionFor(job), job));
         return string.IsNullOrWhiteSpace(line.Tts) ? fallback : line.Tts;
     }
 

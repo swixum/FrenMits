@@ -117,6 +117,10 @@ public partial class SheetViewWindow
     private static string? WouldReplace(string action, string find, string with)
     {
         var raw = action.Replace(find, with, StringComparison.OrdinalIgnoreCase).Trim();
+        if (raw != action) return raw;
+        // Typed the way the sheet reads it ("Physis 2"): swap the stored spelling.
+        if (Fmt.StoredFragment(action, find) is not { } stored) return null;
+        raw = action.Replace(stored, with, StringComparison.OrdinalIgnoreCase).Trim();
         return raw == action ? null : raw;
     }
 }

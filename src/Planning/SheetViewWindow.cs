@@ -302,7 +302,7 @@ public partial class SheetViewWindow : Window
     private void SaveNote(Row row, string text)
     {
         if (_fight == null) return;
-        if (_noteUndoArmed) { PushUndo($"edit \"{row.Mechanic}\" note"); _noteUndoArmed = false; }
+        if (_noteUndoArmed) { PushUndo($"edit \"{Fmt.Numerals(row.Mechanic)}\" note"); _noteUndoArmed = false; }
         var note = NoteFor(row);
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -502,7 +502,7 @@ public partial class SheetViewWindow : Window
                 if (!first) { ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing(); }
                 first = false;
                 ImGui.TextColored(NoteBlue, title);
-                ImGui.TextWrapped(text);
+                ImGui.TextWrapped(Fmt.Numerals(text));
             }
         }
         ImGui.EndChild();

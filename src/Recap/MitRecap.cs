@@ -323,7 +323,7 @@ public class MitRecap
             if (over >= 0 && t - ring[over].Time <= KillingBlowWindow)
             {
                 var hit = ring[over];
-                var what = hit.Action.Length > 0 ? hit.Action : hit.OverTime ? "damage over time" : "";
+                var what = hit.Action.Length > 0 ? Fmt.Numerals(hit.Action) : hit.OverTime ? "damage over time" : "";
                 killedBy = what.Length > 0
                     ? (hit.Amount > 0 ? $"{what} ({hit.Amount:N0})" : what)
                     : hit.Amount > 0 ? $"{hit.Amount:N0} damage" : "";
@@ -802,14 +802,14 @@ public class MitRecap
         var missed = NotSeen();
         sb.AppendLine(missed.Count == 0
             ? "All four standard raid mits landed."
-            : "Never landed: " + string.Join(", ", missed));
+            : "Never landed: " + string.Join(", ", missed.Select(Fmt.Numerals)));
 
         if (Snapshot.Count > 0)
         {
             sb.AppendLine();
             sb.AppendLine("Still up at the end:");
             foreach (var m in Snapshot.OrderByDescending(m => m.OnBoss).ThenBy(m => m.Source))
-                sb.AppendLine($"  {m.Mit} - {(m.OnBoss ? "on boss" : m.Source)} ({m.Remaining:0}s)");
+                sb.AppendLine($"  {Fmt.Numerals(m.Mit)} - {(m.OnBoss ? "on boss" : m.Source)} ({m.Remaining:0}s)");
         }
 
         if (LastDeaths.Count > 0)
@@ -825,7 +825,7 @@ public class MitRecap
                 if (d.Hits is { Count: > 0 })
                     foreach (var h in d.Hits)
                         sb.AppendLine($"      {(int)h.Time / 60}:{(int)h.Time % 60:00}  "
-                            + (h.Action.Length > 0 ? h.Action : h.OverTime ? "damage over time" : "hit")
+                            + (h.Action.Length > 0 ? Fmt.Numerals(h.Action) : h.OverTime ? "damage over time" : "hit")
                             + (h.OverTime ? " (tick)" : "")
                             + (h.Amount > 0 ? $"  {h.Amount:N0}" : "")
                             + $"  ({(h.Mits.Length > 0 ? "had " + h.Mits : "nothing up")})");
@@ -837,9 +837,9 @@ public class MitRecap
             sb.AppendLine();
             sb.AppendLine($"Plan check: {Shown.PlanGood} of {Shown.PlanTotal} planned mits went out on plan.");
             foreach (var h in Shown.PlanProblems)
-                sb.AppendLine($"  {(int)h.Time / 60}:{(int)h.Time % 60:00}  {h.Mit}"
+                sb.AppendLine($"  {(int)h.Time / 60}:{(int)h.Time % 60:00}  {Fmt.Numerals(h.Mit)}"
                     + (h.Why.Length > 0 ? $" - {h.Why}" : h.Missed ? " - never went out" : $" - {h.Delta:0}s late")
-                    + (h.Mechanic.Length > 0 ? $" ({h.Mechanic})" : ""));
+                    + (h.Mechanic.Length > 0 ? $" ({Fmt.Numerals(h.Mechanic)})" : ""));
         }
 
         if (Shown.Unused.Count > 0)
@@ -847,7 +847,7 @@ public class MitRecap
             sb.AppendLine();
             sb.AppendLine("Left on the table:");
             foreach (var (who, mit, note, _) in Shown.Unused)
-                sb.AppendLine($"  {mit} - {who}: {note}");
+                sb.AppendLine($"  {Fmt.Numerals(mit)} - {who}: {note}");
         }
 
         if (LastLog.Count > 0)
@@ -855,7 +855,7 @@ public class MitRecap
             sb.AppendLine();
             sb.AppendLine("Applied this pull:");
             foreach (var a in LastLog.OrderBy(a => a.Time))
-                sb.AppendLine($"  {(int)a.Time / 60}:{(int)a.Time % 60:00}  {a.Mit} - {(a.OnBoss ? "on boss" : a.Source)}");
+                sb.AppendLine($"  {(int)a.Time / 60}:{(int)a.Time % 60:00}  {Fmt.Numerals(a.Mit)} - {(a.OnBoss ? "on boss" : a.Source)}");
         }
         return sb.ToString();
     }
