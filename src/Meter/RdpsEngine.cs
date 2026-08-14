@@ -344,6 +344,15 @@ public class RdpsEngine
         return (hits, crits, dhs, cdhs, max, maxName);
     }
 
+    // One player's damage off the log lines, on the same clock the credit buckets use.
+    public double DamageOf(string player)
+    {
+        var total = 0.0;
+        if (player.Length > 0 && _dealt.TryGetValue(player, out var by))
+            foreach (var a in by.Values) total += a.Damage;
+        return total;
+    }
+
     // The same for healing, for an exact overheal share.
     public (double Landed, double Over) HealFacts(string player)
     {
@@ -534,6 +543,19 @@ public class RdpsEngine
         DealtTotal = 0;
         LastLimitBreak = 0;
         _dealt.Clear();
+        // Credit has to go with the damage that earned it, or the next pull prices
+        // this pull's buffs against its own shorter clock.
+        _buckets.Clear();
+        // Combat state dies with the pull too, or a song still ticking at the wipe pays
+        // the re-pull. Learned rates are not here: they measure gear, so they belong to
+        // the zone, and carrying them sharpens the opener of every pull after the first.
+        _buffs.Clear();
+        _guards.Clear();
+        _dotSnaps.Clear();
+        _songs.Clear();
+        _finale.Clear();
+        _finishTech.Clear();
+        _finishStd.Clear();
         _targets.Clear();
         _taken.Clear();
         _healDealt.Clear();
@@ -625,19 +647,14 @@ public class RdpsEngine
                 if (f.Length > 3) { _names[Hex(f[2])] = f[3]; LocalPlayerName = f[3]; }
                 break;
             case "01":
-                _buffs.Clear();
-                _dotSnaps.Clear();
-                _guards.Clear();
-                _songs.Clear();
-                _finale.Clear();
-                _finishTech.Clear();
-                _finishStd.Clear();
-                // Ids belong to whoever holds them in the new zone.
+                // Ids belong to whoever holds them in the new zone; the pull state
+                // below that goes with ClearBreakdown.
                 _allies.Clear();
                 _owner.Clear();
                 _names.Clear();
                 _roles.Clear();
                 _jobNames.Clear();
+                // Gear does not change mid-zone, so a learned crit rate outlives the pull.
                 _rates.Clear();
                 _effectNames.Clear();
                 ClearBreakdown();
@@ -1180,7 +1197,8 @@ public class RdpsEngine
 
     private Sums Bucket(long sec, string name)
     {
-        if (!_buckets.TryGetValue(sec, out var bySec)) _buckets[sec] = bySec = new Dictionary<string, Sums>();
+        if (!_buckets.TryGetValue(sec, out var bySec))
+            _buckets[sec] = bySec = new Dictionary<string, Sums>(StringComparer.OrdinalIgnoreCase);
         if (!bySec.TryGetValue(name, out var s)) bySec[name] = s = new Sums();
         return s;
     }
@@ -1190,7 +1208,7 @@ public class RdpsEngine
     // Per-player given and received totals from fromSec.
     public Dictionary<string, (double Given, double Received)> WindowTotals(long fromSec)
     {
-        var totals = new Dictionary<string, (double, double)>();
+        var totals = new Dictionary<string, (double, double)>(StringComparer.OrdinalIgnoreCase);
         foreach (var (sec, bySec) in _buckets)
         {
             if (sec < fromSec) continue;

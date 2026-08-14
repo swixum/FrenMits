@@ -1080,6 +1080,23 @@ public class MeterEngine : IDisposable
 
     // ---- rDPS ----
 
+    // How far the log lines' count may sit from the parser's before the credit is untrustworthy.
+    public const double CountGap = 0.5;
+
+    // One row's rDPS. Damage and credit must come off the same clock, so the log lines
+    // supply both; the parser's number stands in when they disagree about the pull.
+    public static double RowRdps(double parserDps, double parserDamage, double engineDamage,
+        double given, double received, float seconds)
+    {
+        if (seconds <= 0f || engineDamage <= 0) return parserDps;
+        // Two counts of different fights can't be subtracted from each other.
+        if (parserDamage > 0
+            && (engineDamage > parserDamage * (1 + CountGap) || engineDamage < parserDamage * (1 - CountGap)))
+            return parserDps;
+        // Credit received is always a slice of the damage above, so this never goes under zero.
+        return (engineDamage + given - received) / seconds;
+    }
+
     private void ApplyRdps(MeterEncounter enc)
     {
         // The window covers the fight, padded for feed lag; wall time, since log lines span idle too.
@@ -1097,8 +1114,12 @@ public class MeterEngine : IDisposable
             if (string.Equals(row.Name, "YOU", StringComparison.OrdinalIgnoreCase) && you.Length > 0)
                 row.Display = you;
             row.RDps = row.Dps;
-            if (totals.TryGetValue(row.Display, out var t))
-                row.RDps = Math.Max(0, row.Dps + (t.Given - t.Received) / seconds);
+            if (!row.LimitBreak)
+            {
+                totals.TryGetValue(row.Display, out var t);
+                row.RDps = RowRdps(row.Dps, row.Damage, Engine.DamageOf(row.Display),
+                    t.Given, t.Received, seconds);
+            }
             enc.RaidRDps += row.RDps;
         }
 
