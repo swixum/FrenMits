@@ -14,7 +14,7 @@ public class RdpsEngine
     // Stand-ins until a player's real rates are learned.
     public const float DefaultCritRate = 0.25f;
     public const float DefaultDirectHitRate = 0.30f;
-    public const int MinRateSamples = 40;
+    public const int MinRateSamples = 60;
 
     // ---- per-second credit buckets ----
 
@@ -762,8 +762,9 @@ public class RdpsEngine
             : null;
 
         if (!_buffs.TryGetValue(tgt, out var list)) _buffs[tgt] = list = new List<ActiveBuff>();
-        // A refresh replaces the copy from the same source.
-        list.RemoveAll(b => b.Def == def && b.SourceId == src);
+        // A refresh replaces any copy of the same buff, whoever cast it: none of these
+        // stack with themselves, so two Dokumori are still one 5%, paid to the newer one.
+        list.RemoveAll(b => b.Def == def);
         list.Add(new ActiveBuff
         {
             Def = def, SourceId = src, SourceName = sourceName ?? "",
