@@ -67,6 +67,14 @@ public sealed class CalloutRunner : IDisposable
 
     private float _testUntil;
 
+    // While the Boss Alerts page is on screen, a sample banner stays put so it
+    // can be dragged and sized. A banner that leaves after five seconds cannot
+    // be placed. The page stamps the frame it drew on; two frames of slack
+    // covers the gap between the settings window drawing and the overlay.
+    public int PreviewFrame { get; set; } = -100;
+
+    public bool Placing(int frame) => frame - PreviewFrame <= 2;
+
     // Fight seconds as the overlay counts them, so the countdown and the call
     // that raised it read from one clock.
     public float Clock { get; private set; }

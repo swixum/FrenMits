@@ -31,7 +31,9 @@ public sealed class AlertOverlay : Window
 
     // Unlocked means the player is placing it, so it has to be on screen to be
     // grabbed at all. Locked, it only exists while it has something to say.
-    private bool Locked => C.OverlayLocked;
+    // Placing it beats the lock: otherwise the one moment you need to drag it
+    // is the one moment it refuses to be dragged.
+    private bool Locked => C.OverlayLocked && !_plugin.Callouts.Placing(ImGui.GetFrameCount());
 
     private bool _saidWhy;
 
@@ -40,6 +42,7 @@ public sealed class AlertOverlay : Window
         var live = _plugin.Callouts.Live.Count > 0;
         var ok = (C.BossAlertsEnabled && C.BossAlertsDraw && live)
                  || _plugin.Callouts.Testing
+                 || _plugin.Callouts.Placing(ImGui.GetFrameCount())
                  || !Locked;
 
         // Said once per refusal, so a banner that never appears says why rather
@@ -92,8 +95,12 @@ public sealed class AlertOverlay : Window
         var live = _plugin.Callouts.Live;
         if (live.Count == 0)
         {
-            // Unlocked and quiet: something has to be here to grab and drag.
-            ImGui.TextColored(Theme.V(Theme.Muted), "Boss alerts appear here. Drag to move.");
+            // Nothing is happening, so a sample stands in. It is drawn the way a
+            // real one is, at the size and colors set, so what is being placed
+            // is what will be seen.
+            Row(new LiveAlert("Knockback", 0, FrenMits.Callouts.CallSeverity.Danger,
+                Lands: 2.4f, Until: 0f, Personal: true), now: 0f);
+            ImGui.TextColored(Theme.V(Theme.Muted), "Sample. Drag to move.");
             return;
         }
 

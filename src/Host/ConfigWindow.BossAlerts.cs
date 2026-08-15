@@ -100,6 +100,9 @@ public partial class ConfigWindow
 
     private void DrawBossAlertsPage()
     {
+        // Tells the overlay to hold a sample up while this page is open.
+        _plugin.Callouts.PreviewFrame = ImGui.GetFrameCount();
+
         var duty = AlertsDuty();
         var all = Alerts.For(duty).Where(a => !a.NamedOnly).ToList();
         var changed = all.Count(a => TweakFor(a) is { Empty: false });
