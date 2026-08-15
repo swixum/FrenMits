@@ -235,14 +235,20 @@ public partial class ConfigWindow
 
         if (!open) return;
 
+        // One trigger upstream can watch eight ability ids, and the pack needs a
+        // row per id to match them. Listing eight identical lines is not what
+        // that trigger is, so rows saying the same thing about the same mechanic
+        // are shown once and switched together.
         Widgets.ListBegin();
-        foreach (var a in calls) DrawAlertRow(a);
+        foreach (var same in calls.GroupBy(a => (a.Mechanic, SaysOf(a))))
+            DrawAlertRow(same.ToList());
         Widgets.ListEnd();
     }
 
     // One call. The whole row opens it, so nothing has to be aimed at.
-    private void DrawAlertRow(BossAlert a)
+    private void DrawAlertRow(List<BossAlert> same)
     {
+        var a = same[0];
         var key = TweakKey(a);
         var open = _alertOpen == key;
         var tweak = TweakFor(a);
@@ -266,19 +272,20 @@ public partial class ConfigWindow
         if (tweak is { Empty: false }) hint += "  ·  changed";
 
         var flip = on;
-        if (Widgets.RowCheckClick(a.Mechanic, hint, ref flip, id: key, gameIcon: a.Icon))
+        var label = same.Count > 1 ? $"{a.Mechanic}  x{same.Count}" : a.Mechanic;
+        if (Widgets.RowCheckClick(label, hint, ref flip, id: key, gameIcon: a.Icon))
         {
-            EditFor(a).On = flip;
-            TidyTweak(a);
+            foreach (var one in same) { EditFor(one).On = flip; TidyTweak(one); }
             C.Save();
         }
         if (Widgets.RowClicked) _alertOpen = open ? "" : key;
 
-        if (open) DrawAlertEditor(a);
+        if (open) DrawAlertEditor(same);
     }
 
-    private void DrawAlertEditor(BossAlert a)
+    private void DrawAlertEditor(List<BossAlert> same)
     {
+        var a = same[0];
         var t = EditFor(a);
         var dirty = false;
         Widgets.LabelScope("alertedit");
@@ -328,7 +335,7 @@ public partial class ConfigWindow
             Widgets.PushDangerOutline();
             if (ImGui.SmallButton("Reset##" + a.Key))
             {
-                C.BossAlertTweaks.Remove(TweakKey(a));
+                foreach (var one in same) C.BossAlertTweaks.Remove(TweakKey(one));
                 dirty = true;
             }
             Widgets.PopDanger();
@@ -337,7 +344,21 @@ public partial class ConfigWindow
         }
 
         Widgets.LabelScope("");
-        if (dirty) { TidyTweak(a); C.Save(); }
+        if (!dirty) return;
+
+        // Whatever was just changed on the first goes to the rest of the ids.
+        for (var i = 1; i < same.Count; i++)
+        {
+            if (C.BossAlertTweaks.TryGetValue(TweakKey(a), out var edited))
+                C.BossAlertTweaks[TweakKey(same[i])] = new AlertTweak
+                {
+                    On = edited.On, Text = edited.Text, Tts = edited.Tts,
+                    Sound = edited.Sound, Level = edited.Level, Roles = edited.Roles,
+                };
+            else C.BossAlertTweaks.Remove(TweakKey(same[i]));
+        }
+        TidyTweak(a);
+        C.Save();
     }
 
     // Say it now, the way a pull would, so nobody has to guess.
