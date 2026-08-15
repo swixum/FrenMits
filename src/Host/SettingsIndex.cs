@@ -57,7 +57,6 @@ internal static class SettingsIndex
         ConfigWindow.NavKind.PrepCheck => "Food & Pot",
         ConfigWindow.NavKind.Meter => "Fren Meter",
         ConfigWindow.NavKind.Appearance => "Appearance",
-        ConfigWindow.NavKind.BossAlerts => "Boss Alerts",
         _ => "Home",
     };
 
@@ -241,13 +240,6 @@ internal static class SettingsIndex
         E(ConfigWindow.NavKind.Meter, "Columns", "Column Labels", nameof(Configuration.MeterColumnHeader), "header"),
         E(ConfigWindow.NavKind.Meter, "Connection", "Source", nameof(Configuration.MeterConnection), "act iinact parser websocket"),
         E(ConfigWindow.NavKind.Meter, "Connection", "Address", nameof(Configuration.MeterSocketAddress), "ws wss port"),
-
-        // ---- Boss Alerts ----
-        E(ConfigWindow.NavKind.BossAlerts, "", "Enable Boss Alerts", nameof(Configuration.BossAlertsEnabled), "callouts mechanics banner"),
-        E(ConfigWindow.NavKind.BossAlerts, "", "Enable TTS", nameof(Configuration.BossAlertsSpeak), "tts voice speak read out loud"),
-        E(ConfigWindow.NavKind.BossAlerts, "", "Text Overlay", nameof(Configuration.BossAlertsDraw), "banner on screen draw"),
-        E(ConfigWindow.NavKind.BossAlerts, "", "Text Size", nameof(Configuration.AlertFontSizePx), "font bigger smaller"),
-        E(ConfigWindow.NavKind.BossAlerts, "", "Position", nameof(Configuration.AlertOverlayPosition), "where left centre right nudge"),
 
         // ---- Appearance ----
         E(ConfigWindow.NavKind.Appearance, "", "Accent", nameof(Configuration.AccentColor), "theme tint highlight colour"),

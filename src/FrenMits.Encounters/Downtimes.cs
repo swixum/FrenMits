@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace FrenMits.Encounters;
 
-// ATTRIBUTION: the untargetable/targetable window times below are adapted from
-// the cactbot project's timeline files (github.com/OverlayPlugin/cactbot,
-// Apache License 2.0, Copyright the cactbot authors), anchored to fight
-// mechanics and converted onto FrenMits' compressed sheet clock.
+// The untargetable and targetable window times below are adapted from a
+// third-party timeline set under the Apache License 2.0, anchored to fight
+// mechanics and converted onto FrenMits' compressed sheet clock. Attribution is
+// in docs/NOTICE.md, which ships with the plugin.
 public static class Downtimes
 {
     private static readonly List<DowntimeWindow> None = new();

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -229,36 +229,12 @@ public unsafe class DamageCapture : IDisposable
     private const uint ControlDeath = 6;
     private const uint ControlDoT = 1541;
 
-    // And the three boss alerts read. They arrive at this same detour and were
-    // being dropped on the floor, which is why head markers and tethers have
-    // never called: not a missing hook, a missing case. Hooking the function a
-    // second time to get them would be two detours on one function.
-    private const uint ControlHeadMarker = 34;
-    private const uint ControlTether = 35;
-    private const uint ControlTetherGone = 47;
-
     private void OnActorControl(uint entityId, uint category, uint arg1, uint arg2, uint arg3,
         uint arg4, uint arg5, uint arg6, uint arg7, uint arg8, GameObjectId targetId, bool isRecorded)
     {
         _controlHook!.Original(entityId, category, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, targetId, isRecorded);
         try
         {
-            // The marker rides on the actor wearing it, and the second argument
-            // names whoever it points at. A tether says the same thing one
-            // argument further along.
-            switch (category)
-            {
-                case ControlHeadMarker:
-                    _plugin.Callouts.OnMarker(entityId, arg1, arg2);
-                    break;
-                case ControlTether:
-                    _plugin.Callouts.OnTether(entityId, arg2, arg3);
-                    break;
-                case ControlTetherGone:
-                    _plugin.Callouts.OnTetherGone(entityId);
-                    break;
-            }
-
             if (category is not (ControlDeath or ControlDoT) || !Recording) return;
             if (Service.ObjectTable.SearchById(entityId) is not IPlayerCharacter pc) return;
             if (category == ControlDeath)

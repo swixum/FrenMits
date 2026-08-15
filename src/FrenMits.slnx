@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="FrenMits.csproj" />
   <Project Path="FrenMits.Encounters/FrenMits.Encounters.csproj" />
-  <Project Path="FrenMits.Callouts/FrenMits.Callouts.csproj" />
 </Solution>

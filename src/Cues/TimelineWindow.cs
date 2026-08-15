@@ -324,11 +324,10 @@ public class TimelineWindow : Window
     private uint _posTerritory = uint.MaxValue;
     private List<SheetTimeline.MechRow>? _posRows;
 
-    // Credit: the idea of surfacing boss untargetable/targetable windows on a fight
-    // timeline, and the timing data these windows are built from, come from cactbot
-    // (github.com/OverlayPlugin/cactbot, Apache License 2.0, Copyright the cactbot
-    // authors), which FrenMits adapts onto its own clock (see Data/Downtimes.cs) and
-    // renders its own way.
+    // The idea of surfacing boss untargetable and targetable windows on a fight
+    // timeline, and the timing data behind them, are adapted from a third-party
+    // set under the Apache License 2.0, onto FrenMits' own clock (see
+    // Downtimes.cs) and rendered its own way. Attribution is in docs/NOTICE.md.
     //
     // Every downtime window that applies to this fight: the built-in table for its
     // territory (with live-learned refinements) plus any the fight owns itself (a

@@ -71,7 +71,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    internal enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter, Appearance, BossAlerts }
+    internal enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter, Appearance }
     private NavKind _nav = NavKind.Home;
     private string _navCategory = "Ultimate";
 
@@ -461,12 +461,6 @@ public partial class ConfigWindow : Window, IDisposable
                 fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
         }
 
-        ImGui.Spacing();
-        SidebarHeading("CALLOUTS");
-        if (NavItem(FontAwesomeIcon.Bullhorn, "Boss Alerts", _nav == NavKind.BossAlerts,
-            dot: C.BossAlertsEnabled ? 0u : Theme.Warn)) _nav = NavKind.BossAlerts;
-        SidebarWarning("EXPERIMENTAL", "WORK IN PROGRESS");
-
         // Grouped by where the thing shows up, not by what kind of thing it is.
         ImGui.Spacing();
         SidebarHeading("ON SCREEN");
@@ -844,7 +838,6 @@ public partial class ConfigWindow : Window, IDisposable
             case NavKind.PrepCheck: DrawPrepCheckPage(); break;
             case NavKind.Meter: DrawMeterPage(); break;
             case NavKind.Appearance: DrawAppearancePage(); break;
-            case NavKind.BossAlerts: DrawBossAlertsPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }
