@@ -915,7 +915,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             Diag.Update();   // open/close the pull record before the engines log into it
             Sync.Update();
             Cues.Update();
-            Callouts.Update(InCombat);
+            Callouts.Update(InCombat, InDutyPlayback, ReplayGameSpeed());
             Meter.Update();
             UpdateDtr();
         }

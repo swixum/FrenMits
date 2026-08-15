@@ -41,11 +41,11 @@ Pages URL that Dalamud can fetch anonymously. (Publishing Pages from a private r
 needs **GitHub Pro/Team**; on Free, the repo must be public.)
 
 `.github/workflows/build.yml` does it all: builds the plugin, zips it, copies
-`repo.json` next to it, and deploys both to GitHub Pages on every push to `main`.
+`docs/repo.json` next to it, and deploys both to GitHub Pages on every push to `main`.
 
 One-time setup:
 1. Repo → **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-2. Edit `repo.json`: replace every `YOUR_USERNAME` with your GitHub username (the
+2. Edit `docs/repo.json`: replace every `YOUR_USERNAME` with your GitHub username (the
    download links become `https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip`).
 3. Commit + push to `main`. The Action builds and deploys. Your public files are:
    - manifest: `https://YOUR_USERNAME.github.io/FrenMits/repo.json`
@@ -72,7 +72,7 @@ stays fully private, nothing published.
 
 Bump the version in **all three** places to the same value (Dalamud rejects the
 install if the zip manifest and repo manifest disagree):
-- [ ] `FrenMits.csproj` → `<Version>` / `<AssemblyVersion>` / `<FileVersion>`
+- [ ] `Directory.Build.props` → `<Version>` / `<AssemblyVersion>` / `<FileVersion>`
 - [ ] `FrenMits.json` → `AssemblyVersion`
-- [ ] `repo.json` → `AssemblyVersion` (and `TestingAssemblyVersion`)
+- [ ] `docs/repo.json` → `AssemblyVersion` (and `TestingAssemblyVersion`)
 - [ ] `git commit && git push` — the Pages deploy publishes the new build automatically.

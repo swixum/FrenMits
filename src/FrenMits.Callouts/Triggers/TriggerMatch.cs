@@ -32,6 +32,11 @@ public sealed record TriggerMatch
     // Exact name; empty matches any. Ids are better, names read better.
     public string Name { get; init; } = "";
 
+    // The number riding on the event: status stacks, a marker's shape, a
+    // director's command. Null matches any, which is almost always right; a
+    // fight that hides an answer in there says which one it wants.
+    public uint? Param { get; init; }
+
     public ActorScope Source { get; init; } = ActorScope.Anyone;
 
     public ActorScope Target { get; init; } = ActorScope.Anyone;
@@ -40,6 +45,7 @@ public sealed record TriggerMatch
     {
         if (e.Kind != Kind) return false;
         if (Id != 0 && e.Id != Id) return false;
+        if (Param is { } want && e.Extra != want) return false;
         if (Name.Length > 0 && !string.Equals(e.Name, Name, StringComparison.Ordinal)) return false;
         return Fits(Source, e.Source, me) && Fits(Target, e.Target, me);
     }

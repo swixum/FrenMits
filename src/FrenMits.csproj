@@ -58,7 +58,9 @@
     <!-- The baked calls, read by the Boss Alerts page and by the engine. -->
     <Content Include="Data\Callouts\*.fmtrig" CopyToOutputDirectory="PreserveNewest" TargetPath="Sheets\Callouts\%(Filename)%(Extension)" />
     <!-- Attribution for the derived data, shipped beside the plugin. -->
-    <None Include="..\NOTICE.md" Link="NOTICE.md" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Kept in docs, but shipped at the plugin's own root: the licence asks
+         for the notice to travel with the binary, not with the repository. -->
+    <None Include="..\docs\NOTICE.md" Link="NOTICE.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

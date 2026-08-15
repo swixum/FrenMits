@@ -38,7 +38,7 @@ public partial class ConfigWindow
         { C.MeterMaxRows = maxRows; C.SaveSettings(); }
 
         var pos = C.MeterPosition;
-        if (PositionRow(ref pos, MeterHome))
+        if (PlaceRows(ref pos, MeterHome))
         { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
 
         var locked = C.MeterLocked;
@@ -273,8 +273,7 @@ public partial class ConfigWindow
         Widgets.GroupLabel("Where it sits");
         Widgets.ListBegin();
         var pos = C.MeterPosition;
-        var mmoved = PositionRow(ref pos, MeterHome);
-        if (NudgeRow(ref pos) || mmoved)
+        if (PlaceRows(ref pos, MeterHome))
         { C.MeterPosition = pos; C.SaveSettings(); _plugin.MeterWindow.RequestReposition(); }
         var locked = C.MeterLocked;
         if (Widgets.RowCheck("Locked", "Position and size. Unlock to drag the edges.", ref locked))

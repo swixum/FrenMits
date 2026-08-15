@@ -36,6 +36,11 @@ public sealed class TriggerEngine
     // What the engine knows about the pull so far.
     public FightState State { get; } = new();
 
+    // Who is carrying what, kept current by whoever feeds the engine. A fight
+    // whose call depends on the rest of your hand reads it from here rather
+    // than from the one event that happened to arrive first.
+    public StatusBook Statuses { get; } = new();
+
     // Where everyone is and what the room looks like, so a call can name a
     // place on the floor rather than a way to lean.
     public Arena Arena { get; } = new();
@@ -80,7 +85,7 @@ public sealed class TriggerEngine
             if (!t.On.Matches(e, Me)) continue;
             if (t.OncePerPull && _fired.Contains(t.Key)) continue;
 
-            var ctx = new TriggerContext(e, Me, State, Arena, Options);
+            var ctx = new TriggerContext(e, Me, State, Arena, Options, Statuses);
             if (t.When is not null && !t.When(ctx)) continue;
 
             // Remembering happens even while the call itself is held back, so a
@@ -134,6 +139,7 @@ public sealed class TriggerEngine
         _sequences.Reset();
         _collectors.Reset();
         State.Reset();
+        Statuses.Reset();
         Arena.Reset();
     }
 

@@ -9,8 +9,8 @@ $ErrorActionPreference = "Stop"
 $repo = "FrenMits"
 
 function Set-RepoJsonUser($user) {
-    (Get-Content repo.json -Raw).Replace("YOUR_USERNAME", $user) | Set-Content repo.json -NoNewline
-    git add repo.json 2>$null | Out-Null
+    (Get-Content docs/repo.json -Raw).Replace("YOUR_USERNAME", $user) | Set-Content docs/repo.json -NoNewline
+    git add docs/repo.json 2>$null | Out-Null
     git commit -m "Set repo.json links to $user" 2>$null | Out-Null
 }
 

@@ -14,6 +14,12 @@ public sealed record Trigger
     // Stable name, used for config, for once-per-pull and for voice pack clips.
     public string Key { get; init; } = "";
 
+    // What this says, in a sentence, for a settings page to show. A trigger
+    // whose words are worked out per pull has no fixed text to display, and
+    // "Real Short Accel / Fake Long + Shriek / ..." is what there is to say
+    // about it instead.
+    public string About { get; init; } = "";
+
     public TriggerMatch On { get; init; } = new();
 
     // Banner text. Tokens {source} {target} {ability} {me} {n} {nth} are filled in.

@@ -217,7 +217,10 @@ internal static class Widgets
     private static int _rowIndex;
     private static Vector2 _rowNext;
 
-    private static float RowPad => Theme.S(11f);
+    // The inset a row's name starts at and its control ends at. Public, so
+    // anything drawn beside a run of rows can line up with the same column
+    // instead of guessing at the number.
+    public static float RowPad => Theme.S(11f);
 
     public static void ListBegin()
     {
@@ -358,6 +361,22 @@ internal static class Widgets
     // A small button carries no vertical padding, so a row of them centers on this.
     public static float SmallHeight => ImGui.GetTextLineHeight();
 
+    // What one button actually comes out as: its text and the padding either
+    // side, and nothing else. A row reserving anything more leaves its control
+    // short of the edge every other row's control ends on.
+    public static float ButtonSize(string label)
+        => ImGui.CalcTextSize(label).X + ImGui.GetStyle().FramePadding.X * 2f;
+
+    // The same, for a joined segment run: the buttons plus the hairline between
+    // each pair. Small and frame-height segments measure alike, since only the
+    // vertical padding differs between them.
+    public static float SegmentWidth(params string[] labels)
+    {
+        var w = 0f;
+        foreach (var l in labels) w += ButtonSize(l);
+        return w + MathF.Max(0, labels.Length - 1);
+    }
+
     // Width of a run of small buttons, for right-aligning them in a row.
     public static float SmallWidth(params string[] labels)
     {
@@ -379,10 +398,11 @@ internal static class Widgets
     // The same row, but clicking anywhere on it flips the box.
     public static bool RowCheckClick(string name, string hint, ref bool v,
         FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0, string id = "",
-        uint gameIcon = 0)
+        uint gameIcon = 0, bool changed = false)
     {
         if (id.Length == 0) id = name;
-        RowBegin(name, hint, ImGui.GetFrameHeight(), clickable: true, icon: icon, iconCol: iconCol, id: id);
+        RowBegin(name, hint, ImGui.GetFrameHeight(), changed: changed, clickable: true,
+            icon: icon, iconCol: iconCol, id: id, gameIcon: gameIcon);
         var hit = GreenCheckbox("##rc" + id, ref v);
         if (_rowClicked) { v = !v; hit = true; }
         RowEnd();

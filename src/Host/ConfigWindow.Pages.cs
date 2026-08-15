@@ -28,10 +28,43 @@ public partial class ConfigWindow
     private static readonly (string Name, float X)[] XPresets =
         { ("Left", 0.18f), ("Center", 0.5f), ("Right", 0.82f) };
 
-    private static bool PositionRow(ref Vector2 pos, Vector2 home)
+    // Which pages have the exact numbers showing. Not saved: the row opens shut,
+    // since the presets are what almost anyone wants from it.
+    private readonly HashSet<NavKind> _posOpen = new();
+
+    // Where an overlay sits. The presets and a reset are the row; the exact
+    // numbers fold in under it, and the whole row is the handle for that, so
+    // there is no second control to aim at and nothing extra on screen until
+    // it is asked for.
+    private bool PlaceRows(ref Vector2 pos, Vector2 home)
     {
-        var w = Widgets.SmallWidth("Left", "Center", "Right", "Reset") + Theme.S(8f);
-        Widgets.RowBegin("Position", "Drag it in game, or use these", w, ctlHeight: Widgets.SmallHeight);
+        var open = _posOpen.Contains(_nav);
+        var icon = (open ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight).ToIconString();
+
+        // Reserved at the wider of the two glyphs, so the controls beside it do
+        // not shift sideways every time the row is opened or shut.
+        float glyph, slot;
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            glyph = ImGui.CalcTextSize(icon).X;
+            slot = MathF.Max(ImGui.CalcTextSize(FontAwesomeIcon.ChevronDown.ToIconString()).X,
+                             ImGui.CalcTextSize(FontAwesomeIcon.ChevronRight.ToIconString()).X);
+        }
+
+        // Exactly what gets drawn: the chevron, the joined run, then the button.
+        // A rough reserve left this row's controls short of the edge the rows
+        // above and below it end on.
+        var gap = Theme.S(8f);
+        var w = slot + gap + Widgets.SegmentWidth("Left", "Center", "Right")
+                + gap + Widgets.ButtonSize("Reset");
+        Widgets.RowBegin("Position", "Drag it in game, or use these", w,
+            ctlHeight: Widgets.SmallHeight, clickable: true, id: "pos");
+        var folded = Widgets.RowClicked;
+
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            ImGui.TextColored(Theme.V(Theme.Muted), icon);
+        ImGui.SameLine(0, gap + slot - glyph);
+
         var moved = false;
         Widgets.SegmentBegin();
         for (var i = 0; i < XPresets.Length; i++)
@@ -41,23 +74,36 @@ public partial class ConfigWindow
             { pos.X = XPresets[i].X; moved = true; }
         }
         Widgets.SegmentEnd();
-        ImGui.SameLine(0, Theme.S(8f));
+        ImGui.SameLine(0, gap);
         if (ImGui.SmallButton("Reset##pos")) { pos = home; moved = true; }
         Widgets.RowEnd();
+
+        if (folded)
+        {
+            if (open) _posOpen.Remove(_nav); else _posOpen.Add(_nav);
+            open = !open;
+        }
+        // Never short-circuited: the drags have to draw whatever the presets did.
+        if (open) moved |= NudgeRow(ref pos);
         return moved;
     }
 
-    // The exact spot, for anyone who would rather not drag.
+    // The exact spot, for anyone who would rather not drag. Each box says which
+    // axis it is, so the row does not need a legend and "Nudge" does not need
+    // explaining: across the screen, then down it.
     private static bool NudgeRow(ref Vector2 pos)
     {
-        var w = Theme.S(150f);
-        Widgets.RowBegin("Nudge", "", w, sub: true);
+        // Two boxes and the gap between them, exactly, so the pair ends on the
+        // same right edge as every other control in the run.
+        var box = Theme.S(70f);
+        var gap = Theme.S(8f);
+        Widgets.RowBegin("X and Y", "Across the screen, then down", box * 2f + gap, sub: true);
         var hit = false;
-        ImGui.SetNextItemWidth(Theme.S(70f));
-        if (ImGui.DragFloat("##nudgex", ref pos.X, 0.005f, 0f, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp)) hit = true;
-        ImGui.SameLine(0, Theme.S(8f));
-        ImGui.SetNextItemWidth(Theme.S(70f));
-        if (ImGui.DragFloat("##nudgey", ref pos.Y, 0.005f, 0f, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp)) hit = true;
+        ImGui.SetNextItemWidth(box);
+        if (ImGui.DragFloat("##posx", ref pos.X, 0.005f, 0f, 1f, "X %.2f", ImGuiSliderFlags.AlwaysClamp)) hit = true;
+        ImGui.SameLine(0, gap);
+        ImGui.SetNextItemWidth(box);
+        if (ImGui.DragFloat("##posy", ref pos.Y, 0.005f, 0f, 1f, "Y %.2f", ImGuiSliderFlags.AlwaysClamp)) hit = true;
         Widgets.RowEnd();
         return hit;
     }
@@ -67,7 +113,7 @@ public partial class ConfigWindow
     {
         var fonts = FontManager.FamilyNames;
         var idx = Math.Max(0, Array.IndexOf(fonts, family));
-        var w = Theme.S(140f) + Widgets.SmallWidth("B", "I") + Theme.S(8f);
+        var w = Theme.S(140f) + Theme.S(8f) + Widgets.SegmentWidth("B", "I");
         Widgets.RowBegin("Font", family == "Default" && (bold || italic) ? "Pick a font to use bold or italic" : "", w);
         var hit = false;
         ImGui.SetNextItemWidth(Theme.S(140f));
@@ -82,9 +128,18 @@ public partial class ConfigWindow
         return hit;
     }
 
+    // Separate small buttons and the one gap between each pair, exactly as
+    // they get drawn, so the run ends on the same edge as every other row.
+    private static float ButtonRunWidth(params string[] labels)
+    {
+        var w = 0f;
+        foreach (var l in labels) w += Widgets.ButtonSize(l);
+        return w + Theme.S(4f) * Math.Max(0, labels.Length - 1);
+    }
+
     // A row of buttons, right-aligned like every other control.
     private static void ButtonRow(string name, string hint, params string[] labels)
-        => Widgets.RowBegin(name, hint, Widgets.SmallWidth(labels) + Theme.S(4f), ctlHeight: Widgets.SmallHeight);
+        => Widgets.RowBegin(name, hint, ButtonRunWidth(labels), ctlHeight: Widgets.SmallHeight);
 
     // ---- Mit Recap ----
 
@@ -140,7 +195,7 @@ public partial class ConfigWindow
         { C.PrepCheckPotion = pot; C.SaveSettings(); }
 
         var pos = C.PrepCheckPosition;
-        if (PositionRow(ref pos, PrepHome))
+        if (PlaceRows(ref pos, PrepHome))
         { C.PrepCheckPosition = pos; C.SaveSettings(); _plugin.PrepWindow.RequestReposition(); }
         Widgets.ListEnd();
 
@@ -155,7 +210,7 @@ public partial class ConfigWindow
     private void DrawFoodWarnRow()
     {
         Widgets.RowBegin("Warn Me About", "No food is always flagged",
-            Widgets.SmallWidth("Crafter", "NQ"), ctlHeight: Widgets.SmallHeight);
+            Widgets.SegmentWidth("Crafter", "NQ"), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         if (Widgets.Segment("Crafter##warn", C.PrepCheckWarnWrongFood))
         { C.PrepCheckWarnWrongFood = !C.PrepCheckWarnWrongFood; C.SaveSettings(); }
@@ -172,7 +227,7 @@ public partial class ConfigWindow
     {
         var useFight = C.PrepCheckUseFightLength;
         Widgets.RowBegin("Running Out", "Warn when it won't last the pull",
-            Widgets.SmallWidth("This fight", "Under") + Theme.S(78f), ctlHeight: Widgets.SmallHeight);
+            Widgets.SegmentWidth("This fight", "Under") + Theme.S(78f), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         if (Widgets.Segment("This fight##len", useFight)) { C.PrepCheckUseFightLength = true; C.SaveSettings(); }
         ImGui.SameLine();
@@ -225,8 +280,7 @@ public partial class ConfigWindow
         { C.PrepCheckTts = tts; C.SaveSettings(); }
 
         var pos = C.PrepCheckPosition;
-        var pmoved = PositionRow(ref pos, PrepHome);
-        if (NudgeRow(ref pos) || pmoved)
+        if (PlaceRows(ref pos, PrepHome))
         { C.PrepCheckPosition = pos; C.SaveSettings(); _plugin.PrepWindow.RequestReposition(); }
         var locked = C.PrepCheckLocked;
         if (Widgets.RowCheck("Locked", "Auto-locks in combat", ref locked))
@@ -251,8 +305,7 @@ public partial class ConfigWindow
 
         Widgets.ListBegin();
         var pos = C.CombatTimerPosition;
-        var tmoved = PositionRow(ref pos, TimerHome);
-        if (NudgeRow(ref pos) || tmoved)
+        if (PlaceRows(ref pos, TimerHome))
         { C.CombatTimerPosition = pos; C.SaveSettings(); _plugin.CombatTimerWindow.RequestReposition(); }
 
         var locked = C.CombatTimerLocked;
@@ -382,7 +435,7 @@ public partial class ConfigWindow
         { C.OverlayFontSizePx = px; C.SaveSettings(); }
 
         var pos = C.OverlayPosition;
-        if (PositionRow(ref pos, CallHome))
+        if (PlaceRows(ref pos, CallHome))
         { C.OverlayPosition = pos; C.SaveSettings(); _plugin.OverlayWindow.RequestReposition(); }
 
         var locked = C.OverlayLocked;
@@ -459,7 +512,7 @@ public partial class ConfigWindow
     {
         var names = LookPresets.Select(p => p.Name).ToArray();
         Widgets.RowBegin("Look", "Changes entire look",
-            Widgets.SmallWidth(names), ctlHeight: Widgets.SmallHeight);
+            Widgets.SegmentWidth(names), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         for (var i = 0; i < LookPresets.Length; i++)
         {
@@ -506,7 +559,7 @@ public partial class ConfigWindow
         { C.OverlayFontSizePx = px; C.SaveSettings(); }
 
         var align = C.OverlayTextAlign;
-        Widgets.RowBegin("Align", "", Widgets.SmallWidth("Left", "Center", "Right"), ctlHeight: Widgets.SmallHeight);
+        Widgets.RowBegin("Align", "", Widgets.SegmentWidth("Left", "Center", "Right"), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         var aligns = new[] { "Left", "Center", "Right" };
         for (var i = 0; i < aligns.Length; i++)
@@ -630,8 +683,7 @@ public partial class ConfigWindow
     {
         Widgets.ListBegin();
         var pos = C.OverlayPosition;
-        var omoved = PositionRow(ref pos, CallHome);
-        if (NudgeRow(ref pos) || omoved)
+        if (PlaceRows(ref pos, CallHome))
         { C.OverlayPosition = pos; C.SaveSettings(); _plugin.OverlayWindow.RequestReposition(); }
 
         var locked = C.OverlayLocked;
@@ -723,7 +775,7 @@ public partial class ConfigWindow
         Widgets.RowCheck("A Setting", "With its hint underneath", ref demo);
         var demoIdx = 0;
         Widgets.RowCombo("A Value", "", ref demoIdx, "Option\0Another\0", 110f);
-        Widgets.RowBegin("A Choice", "", Widgets.SmallWidth("One", "Two", "Three"), ctlHeight: Widgets.SmallHeight);
+        Widgets.RowBegin("A Choice", "", Widgets.SegmentWidth("One", "Two", "Three"), ctlHeight: Widgets.SmallHeight);
         Widgets.SegmentBegin();
         Widgets.Segment("One##demo", true); ImGui.SameLine();
         Widgets.Segment("Two##demo", false); ImGui.SameLine();
@@ -818,7 +870,7 @@ public partial class ConfigWindow
         }
 
         var pos = C.TimelinePosition;
-        if (PositionRow(ref pos, BoardHome))
+        if (PlaceRows(ref pos, BoardHome))
         { C.TimelinePosition = pos; C.SaveSettings(); _plugin.TimelineWindow.RequestReposition(); }
 
         var locked = C.TimelineLocked;
@@ -829,7 +881,7 @@ public partial class ConfigWindow
 
     private void DrawLayoutRow()
     {
-        Widgets.RowBegin("Layout", "", Widgets.SmallWidth("Compact list", "Mechanic board"),
+        Widgets.RowBegin("Layout", "", Widgets.SegmentWidth("Compact list", "Mechanic board"),
             ctlHeight: Widgets.SmallHeight);
         var style = Math.Clamp(C.UpcomingStyle, 0, 1);
         Widgets.SegmentBegin();
@@ -893,8 +945,7 @@ public partial class ConfigWindow
         }
 
         var pos = C.TimelinePosition;
-        var nmoved = PositionRow(ref pos, BoardHome);
-        if (NudgeRow(ref pos) || nmoved)
+        if (PlaceRows(ref pos, BoardHome))
         { C.TimelinePosition = pos; C.SaveSettings(); _plugin.TimelineWindow.RequestReposition(); }
         var locked = C.TimelineLocked;
         if (Widgets.RowCheck("Locked", "Click-through. Locks itself on pull.", ref locked))
@@ -977,7 +1028,7 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Show a Header", "", ref v)) { C.UpcomingShowHeader = v; C.SaveSettings(); }
         if (C.UpcomingShowHeader)
         {
-            Widgets.RowBegin("Show", "", Widgets.SmallWidth("Name", "Clock", "Rule", "Slot", "Sync"),
+            Widgets.RowBegin("Show", "", Widgets.SegmentWidth("Name", "Clock", "Rule", "Slot", "Sync"),
                 sub: true, ctlHeight: Widgets.SmallHeight);
             Widgets.SegmentBegin();
             if (Widgets.Segment("Name##hd", C.UpcomingHeaderTitle)) { C.UpcomingHeaderTitle = !C.UpcomingHeaderTitle; C.SaveSettings(); }

@@ -174,6 +174,7 @@ fmtrig 5
 378	ShivaEx Whiteout	1	BEC		3	0	1	0.0	4.0	0	In			1		0.0	
 387	Sastasha Hard Slime	3	239		0	0	0	0.0	4.0	0	Sastasha Hard Slime			0		0.0	BLU,BRD,CNJ,WHM,SCH,AST,SGE
 387	Sastasha Hard Tail Screw	1	BF4		3	0	0	0.0	4.0	0	Sastasha Hard Tail Screw			0		0.0	
+394	Odin Valknut (Out)	1	C49		0	0	1	0.0	4.0	0	Out			1		0.0	
 430	Fractal Aetherochemical Bomb	3	2D3		0	0	0	0.0	4.0	0	Cleanse bomb			1		0.0	BLU,BRD,CNJ,WHM,SCH,AST,SGE
 430	Fractal Alarums	10	0	Clockwork Alarum	0	0	0	0.0	4.0	0	Kill Adds			1		5.0	
 430	Fractal Big Swing	1	F87		3	0	1	0.0	4.0	0	Use a cage			1		0.0	
@@ -1050,15 +1051,7 @@ fmtrig 5
 732	Eureka Sabotender Stack Marker on you	1	29EB		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 732	Eureka Voidscale Ice	1	29C3		3	1	1	0.0	4.0	0	Ice ball on you!	Ice ball on you		1		0.0	
 733	UCU Akh Morn	1	26EA		3	0	0	0.0	4.0	0	Akh Morn			0		0.0	
-733	UCU Bahamut Flatten no target	1	26D5		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
-733	UCU Bahamut Flatten no target others	1	26D5		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
-733	UCU Bahamut Flatten on target	1	26D5		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
-733	UCU Bahamut Flatten on you	1	26D5		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
 733	UCU Bahamut Gigaflare	1	26D6		3	0	1	0.0	4.0	0	Gigaflare			1		0.0	
-733	UCU Death Sentence no target	1	26A9		3	6	1	0.0	4.0	0	Tank Buster			1	healer,dps	0.0	
-733	UCU Death Sentence on target	1	26A9		3	5	1	0.0	4.0	0	Tank Buster on {target}			1	healer,dps	0.0	
-733	UCU Death Sentence on you	1	26A9		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-733	UCU Death Sentence swap	1	26A9		3	2	2	0.0	4.0	0	Tank Swap!	Tank Swap		1	tank	0.0	
 733	UCU Earthshaker Me	5	28		0	1	2	0.0	4.0	0	Earth Shaker on YOU			1		0.0	
 733	UCU Earthshaker Not Me	5	28		0	0	0	0.0	4.0	0	Earthshaker Not Me			0		0.0	
 733	UCU Hatch Callouts	5	76		0	0	0	0.25	4.0	0	Hatch Callouts			0		0.0	
@@ -1088,7 +1081,11 @@ fmtrig 5
 733	UCU Octet Twin Bait	5	29		0	0	0	0.5	4.0	0	Octet Twin Bait			0		0.0	
 733	UCU Quickmarch Dive Dir	1	26E1		3	0	0	0.0	4.0	0	Quickmarch Dive Dir			0		0.0	
 733	UCU Twister Dives	2	26B2		3	0	1	0.0	4.0	0	Twisters			1		2.0	
-733	UCU Twisters	1	26AA		3	0	1	0.0	4.0	0	Twisters			1		0.0	
+733	UCoB Death Sentence	1	26A9		3	0	2	0.0	4.0	0	Death Sentence on {target}!	Death Sentence on {target}		1		0.0	
+733	UCoB Flatten	1	26D5		3	0	1	0.0	4.0	0	Flatten on {target}			1		0.0	
+733	UCoB Liquid Hell	1	26AD		3	0	1	0.0	4.0	0	Move			1		0.0	
+733	UCoB Plummet	1	26A8		3	0	1	0.0	4.0	0	Frontal on {target}			1		0.0	
+733	UCoB Twister	1	26AA		3	0	1	0.0	4.0	0	Twister			1		0.0	
 734	Rab Argath Command Scatter	5	7B		0	1	0	0.0	4.0	0	Rab Argath Command Scatter			0		0.0	
 734	Rab Argath Command Turn	5	7C		0	1	0	0.0	4.0	0	Rab Argath Command Turn			0		0.0	
 734	Rab Argath Crippling Blow no target	1	262D		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
@@ -1453,25 +1450,15 @@ fmtrig 5
 776	Ridorana Yiazmat Rake Buster on you	1	2D4E		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
 776	Ridorana Yiazmat Rake Charge	1	2E32		3	0	1	0.0	4.0	0	Away From Front			1		0.0	
 776	Ridorana Yiazmat White Breath	1	2C31		3	0	0	0.0	4.0	0	Get Under			1		0.0	
-777	UWU Aetherochemical Laser Left	1	2B86		3	0	0	0.0	4.0	0	East Laser			1		0.0	
-777	UWU Aetherochemical Laser Middle	1	2B84		3	0	0	0.0	4.0	0	Middle Laser			1		0.0	
-777	UWU Aetherochemical Laser Right	1	2B85		3	0	0	0.0	4.0	0	North Laser			1		0.0	
 777	UWU Caster LB	10	859		0	0	1	0.0	4.0	0	Caster LB NOW!	Caster LB NOW		0		5.0	
-777	UWU Garuda Aerial Blast	1	2B55		3	0	0	0.0	4.0	0	AoE			0		0.0	
 777	UWU Garuda Downburst	2	2B53		3	0	0	0.0	4.0	0	Garuda Downburst			0		3.0	
 777	UWU Garuda Finale	2	2CD3		3	0	0	0.0	4.0	0	Garuda			0		0.0	
-777	UWU Garuda Mistral Song Marker	5	10		0	1	1	0.0	4.0	0	Mistral on YOU			1		0.0	
-777	UWU Garuda Mistral Song Tank	5	10		0	0	0	0.0	4.0	0	Block Mistral Song			1	tank	5.0	
-777	UWU Garuda Sisters Location	1	2B55		3	0	0	19.0	4.0	0	Garuda Sisters Location			0		0.0	
-777	UWU Garuda Slipstream	1	2B53		3	0	1	0.0	4.0	0	Get Behind			1		0.0	
 777	UWU Garuda Spiny Plume	10	0	Spiny Plume	0	0	0	0.0	4.0	0	Spiny Plume Add			1	tank	0.0	
 777	UWU Garuda Wicked Wheel	1	2B4E		3	0	0	0.0	4.0	0	Garuda Wicked Wheel			0		0.0	
 777	UWU Garuda Woken	3	5F9		0	0	0	0.0	4.0	0	Garuda Woken			0		0.0	
 777	UWU Healer LB	2	2B73		3	0	1	0.0	4.0	0	Healer LB NOW!	Healer LB NOW		0		5.0	
 777	UWU Ifrit Fetters	6	9		0	0	0	0.0	4.0	0	Ifrit Fetters			0		0.0	
 777	UWU Ifrit Finale	2	2CD4		3	0	0	0.0	4.0	0	Ifrit			0		0.0	
-777	UWU Ifrit Flaming Crush	5	75		0	0	1	0.0	4.0	0	Stack			1		0.0	
-777	UWU Ifrit Hellfire	1	2B5E		3	0	0	0.0	4.0	0	AoE			0		0.0	
 777	UWU Ifrit Nail Adds	10	4A2		0	0	0	0.0	4.0	0	Ifrit Nail Adds			0		0.0	
 777	UWU Ifrit Searing Wind	1	2B5B		3	1	2	0.0	4.0	0	Searing Wind on YOU			1		0.0	
 777	UWU Ifrit Vulcan Burst	1	25B7		3	0	1	0.0	4.0	0	Knockback			1		0.0	
@@ -1485,8 +1472,19 @@ fmtrig 5
 777	UWU Titan Gaols #1	2	2B6C		3	0	0	0.0	4.0	0	Titan Gaols			0		0.0	
 777	UWU Titan Gaols #2	2	2B6B		3	0	0	0.0	4.0	0	Titan Gaols			0		0.0	
 777	UWU Titan Woken	3	5F9		0	0	0	0.0	4.0	0	Titan Woken			0		0.0	
-777	UWU Ultima	1	2B8B		3	0	2	0.0	4.0	0	Tank LB NOW			1	tank	0.0	
 777	UWU Ultima Mesohigh Tether	6	4		0	0	0	0.0	4.0	0	Ultima Mesohigh Tether			0		30.0	
+777	Uwu Aerial Blast	1	2B55		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+777	Uwu Earthen Fury	1	2B90		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+777	Uwu Flaming Crush	5	75		0	0	1	0.0	4.0	0	Stack on {target}			1		0.0	
+777	Uwu Friction	1	2B48		0	0	1	0.0	4.0	0	Stack			1		0.0	
+777	Uwu Hellfire	1	2B5E		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+777	Uwu Homing Laser	1	2B7B		0	0	1	0.0	4.0	0	Homing Laser on {target}			1		0.0	
+777	Uwu Mistral (Headmark)	5	10		0	1	0	0.0	4.0	0	Mistral on you			1		0.0	
+777	Uwu Slipstream (Cleave)	1	2B53		0	0	1	0.0	4.0	0	Slipstream			1		0.0	
+777	Uwu Ultima	1	2B8B		0	0	2	0.0	4.0	0	Ultima			1		0.0	
+777	Uwu Ultima Laser: Left	1	2B86		0	0	0	0.0	4.0	0	Left Laser			1		0.0	
+777	Uwu Ultima Laser: Middle	1	2B84		0	0	0	0.0	4.0	0	Middle Laser			1		0.0	
+777	Uwu Ultima Laser: Right	1	2B85		0	0	0	0.0	4.0	0	Right Laser			1		0.0	
 778	Tsukuyomi Dance Of The Dead	2	2BFD		3	0	0	0.0	4.0	0	AoE			1		0.0	
 778	Tsukuyomi Lead Of The Underworld	1	2BE6		3	0	0	0.0	4.0	0	Tsukuyomi Lead Of The Underworld			0		0.0	
 778	Tsukuyomi Lunacy on target	5	3E		0	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
@@ -3975,19 +3973,19 @@ fmtrig 5
 960	Hunt Chi Assault Carapace (Donut) #2	1	6254		3	0	0	0.0	4.0	0	Get Under			1		0.0	
 960	Hunt Chi Assault Carapace (Line) #1	1	6562		3	0	1	0.0	4.0	0	Sides			1		0.0	
 960	Hunt Chi Assault Carapace (Line) #2	1	6255		3	0	1	0.0	4.0	0	Sides			1		0.0	
+960	Hunt Chi Back Guns	1	656A		3	0	1	0.0	4.0	0	Go Front			1		0.0	
+960	Hunt Chi Back Guns > Fore Arms 2.0	1	656B		3	0	0	0.0	4.0	0	Front => Back	Front then Back		1		0.0	
+960	Hunt Chi Carapace > Back Guns 2.0 (Donut)	1	6564		3	0	0	0.0	4.0	0	Under => Front	Under then Front		1		0.0	
+960	Hunt Chi Carapace > Back Guns 2.0 (Line)	1	6566		3	0	0	0.0	4.0	0	Sides => Front	Sides then Front		1		0.0	
 960	Hunt Chi Carapace > Fore Arms 2.0 (Donut)	1	6563		3	0	0	0.0	4.0	0	Under => Back	Under then Back		1		0.0	
 960	Hunt Chi Carapace > Fore Arms 2.0 (Line)	1	6565		3	0	0	0.0	4.0	0	Sides => Back	Sides then Back		1		0.0	
-960	Hunt Chi Carapace > Rear Guns 2.0 (Donut)	1	6564		3	0	0	0.0	4.0	0	Under => Front	Under then Front		1		0.0	
-960	Hunt Chi Carapace > Rear Guns 2.0 (Line)	1	6566		3	0	0	0.0	4.0	0	Sides => Front	Sides then Front		1		0.0	
 960	Hunt Chi Fore Arms	1	6567		3	0	1	0.0	4.0	0	Get Behind			1		0.0	
-960	Hunt Chi Fore Arms > Rear Guns 2.0	1	6568		3	0	0	0.0	4.0	0	Back => Front	Back then Front		1		0.0	
+960	Hunt Chi Fore Arms > Back Guns 2.0	1	6568		3	0	0	0.0	4.0	0	Back => Front	Back then Front		1		0.0	
 960	Hunt Chi Hellburner avoid	1	6574		3	2	1	0.0	4.0	0	Avoid Tank Cleave			1		0.0	CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,ARC,BRD,DNC,MCH,RDM,BLM,SMN,ACN,THM,PCT
 960	Hunt Chi Hellburner blue	1	6574		3	2	1	0.0	4.0	0	Tank Cleave			1		0.0	BLU
 960	Hunt Chi Hellburner on you	1	6574		3	1	1	0.0	4.0	0	Tank Cleave on YOU			1		0.0	
 960	Hunt Chi Hellburner tank	1	6574		3	2	1	0.0	4.0	0	Tank Cleave			1	tank	0.0	
 960	Hunt Chi Missile Shower	1	6571		3	0	0	0.0	4.0	0	AoE			1		0.0	
-960	Hunt Chi Rear Guns	1	656A		3	0	1	0.0	4.0	0	Go Front			1		0.0	
-960	Hunt Chi Rear Guns > Fore Arms 2.0	1	656B		3	0	0	0.0	4.0	0	Front => Back	Front then Back		1		0.0	
 960	Hunt Chi Thermobaric Explosive	1	656E		3	0	0	0.0	4.0	0	Hunt Chi Thermobaric Explosive			0		1.0	
 960	Hunt Fan Ail Cyclone Wing	1	6AF4		3	0	0	0.0	4.0	0	AoE			1		0.0	
 960	Hunt Fan Ail Death Sentence no target	1	6AF3		3	6	0	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
@@ -4452,6 +4450,7 @@ fmtrig 5
 986	Dreamscape Assault Cannon	1	63AB		3	0	1	0.0	4.0	0	Get to wall at last dash			1		0.0	
 986	Dreamscape Atomic Flame	1	63B4		3	0	0	0.0	4.0	0	AoE			1		0.0	
 986	Dreamscape Atomic Ray	1	6436		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
+986	Dreamscape Back Interceptors	1	6324		3	0	0	0.0	4.0	0	Go front of boss			1		0.0	
 986	Dreamscape Chemical Missile	5	8B		0	1	0	0.0	4.0	0	Spread			1		0.0	
 986	Dreamscape Electric Slide	5	121		0	0	0	0.0	4.0	0	Dreamscape Electric Slide			0		0.0	
 986	Dreamscape Electromagnetic Release Circle	1	6434		3	0	1	0.0	4.0	0	Out			0		0.0	
@@ -4466,7 +4465,6 @@ fmtrig 5
 986	Dreamscape Mustard Bomb on you	1	632B		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
 986	Dreamscape Proto-wave Cannons Left	1	642A		3	0	1	0.0	4.0	0	Left			1		0.0	
 986	Dreamscape Proto-wave Cannons Right	1	642B		3	0	1	0.0	4.0	0	Right			1		0.0	
-986	Dreamscape Rear Interceptors	1	6324		3	0	0	0.0	4.0	0	Go front of boss			1		0.0	
 986	Dreamscape Right Face	3	7A9		0	1	0	0.0	4.0	0	Mindhack: Right			1		0.0	
 986	Dreamscape Rush	1	642D		3	0	1	0.0	4.0	0	Avoid side dashes			1		5.0	
 986	Dreamscape Side Cannons Left	1	6320		3	0	1	0.0	4.0	0	Left			1		0.0	
@@ -4653,39 +4651,35 @@ fmtrig 5
 1002	P1N Shining Cells	1	65E9		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1002	P1N Slam Shut	1	65EA		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1002	P1N Warder's Wrath	1	65F4		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1003	P1S Aetherial Shackles Callout #1	3	AB6		0	0	0	0.0	4.0	0	Aetherial Shackles Callout			0		0.0	
-1003	P1S Aetherial Shackles Callout #2	3	AB7		0	0	0	0.0	4.0	0	Aetherial Shackles Callout			0		0.0	
-1003	P1S Fourfold Shackles of Companionship 1	3	B45		0	1	1	0.0	4.0	0	Close (3s)			1		0.0	
-1003	P1S Fourfold Shackles of Companionship 2	3	B46		0	1	1	0.0	4.0	0	Close (8s)			1		0.0	
-1003	P1S Fourfold Shackles of Companionship 3	3	B47		0	1	1	0.0	4.0	0	Close (13s)			1		0.0	
-1003	P1S Fourfold Shackles of Companionship 4	3	B6B		0	1	1	0.0	4.0	0	Close (18s)			1		0.0	
-1003	P1S Fourfold Shackles of Loneliness 1	3	B48		0	1	1	0.0	4.0	0	Far (3s)			1		0.0	
-1003	P1S Fourfold Shackles of Loneliness 2	3	B49		0	1	1	0.0	4.0	0	Far (8s)			1		0.0	
-1003	P1S Fourfold Shackles of Loneliness 3	3	B4A		0	1	1	0.0	4.0	0	Far (13s)			1		0.0	
-1003	P1S Fourfold Shackles of Loneliness 4	3	B6C		0	1	1	0.0	4.0	0	Far (18s)			1		0.0	
-1003	P1S Gaoler's Flail In => Out #1	1	65FA		3	0	1	0.0	4.0	0	In => Out	In then Out		1		0.0	
-1003	P1S Gaoler's Flail In => Out #2	1	65FB		3	0	1	0.0	4.0	0	In => Out	In then Out		1		0.0	
-1003	P1S Gaoler's Flail Left => Right	1	65F6		3	0	0	0.0	4.0	0	Gaoler's Flail Left => Right	Gaoler's Flail Left then Right		0		0.0	
-1003	P1S Gaoler's Flail Out => In #1	1	65F8		3	0	1	0.0	4.0	0	Out => In	Out then In		1		0.0	
-1003	P1S Gaoler's Flail Out => In #2	1	65F9		3	0	1	0.0	4.0	0	Out => In	Out then In		1		0.0	
-1003	P1S Gaoler's Flail Right => Left	1	65F7		3	0	0	0.0	4.0	0	Gaoler's Flail Right => Left	Gaoler's Flail Right then Left		0		0.0	
-1003	P1S Heavy Hand no target	1	6629		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
-1003	P1S Heavy Hand no target others	1	6629		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
-1003	P1S Heavy Hand on target	1	6629		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
-1003	P1S Heavy Hand on you	1	6629		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	GLA,PLD,MRD,WAR,DRK,GNB,CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,BLU
+1003	P1S Flail: In, Out #1	1	65FA		3	0	1	0.0	4.0	0	In then Out			1		0.0	
+1003	P1S Flail: In, Out #2	1	65FB		3	0	1	0.0	4.0	0	In then Out			1		0.0	
+1003	P1S Flail: Left, Right	1	65F6		3	0	0	0.0	4.0	0	Left to Right			1		0.0	
+1003	P1S Flail: Out, In #1	1	65F8		3	0	1	0.0	4.0	0	Out then In			1		0.0	
+1003	P1S Flail: Out, In #2	1	65F9		3	0	1	0.0	4.0	0	Out then In			1		0.0	
+1003	P1S Flail: Right, Left	1	65F7		3	0	0	0.0	4.0	0	Right to Left			1		0.0	
+1003	P1S Heavy Hand	1	6629		3	0	0	0.0	4.0	0	Tankbuster			1		0.0	
 1003	P1S Hot/Cold Spell #1	3	AB3		0	1	0	0.0	4.0	0	Hot/Cold Spell	Hot, Cold Spell		0		0.0	
 1003	P1S Hot/Cold Spell #2	3	AB4		0	1	0	0.0	4.0	0	Hot/Cold Spell	Hot, Cold Spell		0		0.0	
-1003	P1S Intemperate Torment Bottom	1	661F		3	0	0	0.0	4.0	0	Bottom First			1		0.0	
-1003	P1S Intemperate Torment Top	1	6620		3	0	0	0.0	4.0	0	Top First			1		0.0	
-1003	P1S Pitiless Flail of Grace	1	660E		3	0	1	0.0	4.0	0	Tankbuster+Knockback => Stack	Tankbuster and Knockback then Stack		1		0.0	
-1003	P1S Pitiless Flail of Purgation	1	660F		3	0	1	0.0	4.0	0	Tankbuster+Knockback => Flare	Tankbuster and Knockback then Flare		1		0.0	
+1003	P1S Intemp Bottom First	1	661F		3	0	0	0.0	4.0	0	Bottom First			1		0.0	
+1003	P1S Intemp Top First	1	6620		3	0	0	0.0	4.0	0	Top First			1		0.0	
+1003	P1S Pitiless Flail of Grace	1	660E		3	0	1	0.0	4.0	0	Buster, Knockback, Stack			1		0.0	
+1003	P1S Pitiless Flail of Purgation	1	660F		3	0	1	0.0	4.0	0	Buster, Knockback, Flare			1		0.0	
 1003	P1S Powerful Light/Fire	3	893		0	0	0	0.0	4.0	0	Powerful Light/Fire	Powerful Light, Fire		0		0.0	
-1003	P1S Shackles of Companionship	3	AB6		0	0	1	0.0	4.0	0	Close Shackles on YOU			1		0.0	
-1003	P1S Shackles of Loneliness	3	AB7		0	0	1	0.0	4.0	0	Far Shackles on YOU			1		0.0	
+1003	P1S Purple Shackle	3	AB6		0	1	1	0.0	4.0	0	In			1		0.0	
+1003	P1S Purple Shackle 1 (3s)	3	B45		0	1	1	0.0	4.0	0	In 1			1		0.0	
+1003	P1S Purple Shackle 2 (8s)	3	B46		0	1	1	0.0	4.0	0	In 2			1		0.0	
+1003	P1S Purple Shackle 3 (13s)	3	B47		0	1	1	0.0	4.0	0	In 3			1		0.0	
+1003	P1S Purple Shackle 4 (18s)	3	B6B		0	1	1	0.0	4.0	0	In 4			1		0.0	
+1003	P1S Red Shackle	3	AB7		0	1	1	0.0	4.0	0	Out			1		0.0	
+1003	P1S Red Shackle 1 (3s)	3	B48		0	1	1	0.0	4.0	0	Out 1			1		0.0	
+1003	P1S Red Shackle 2 (8s)	3	B49		0	1	1	0.0	4.0	0	Out 2			1		0.0	
+1003	P1S Red Shackle 3 (13s)	3	B4A		0	1	1	0.0	4.0	0	Out 3			1		0.0	
+1003	P1S Red Shackle 4 (18s)	3	B6C		0	1	1	0.0	4.0	0	Out 4			1		0.0	
+1003	P1S Shackles Prep	1	6625		3	0	1	0.0	4.0	0	Shackles			1		0.0	
 1003	P1S Shackles of Time	3	AB5		0	0	0	0.0	4.0	0	Shackles of Time			0		0.0	
-1003	P1S Shining Cells	1	6616		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1003	P1S Slam Shut	1	6617		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1003	P1S Warder's Wrath	1	662A		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1003	P1S Shining Cells	1	6616		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1003	P1S Slam Shut	1	6617		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1003	P1S Warden's Wrath	1	662A		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1004	P2N Coherence Flare	5	57		0	1	1	0.0	4.0	0	Flare on YOU			1		0.0	
 1004	P2N Coherence Stack	2	6D14		3	0	0	0.0	4.0	0	Coherence Stack			0		0.0	
 1004	P2N Dissociation	1	6806		3	0	0	0.0	4.0	0	Dissociation			0		0.0	
@@ -4717,15 +4711,15 @@ fmtrig 5
 1005	P2S Mark of the Depths	3	AD1		0	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 1005	P2S Mark of the Tides	3	AD0		0	0	0	0.0	4.0	0	Mark of the Tides			0		0.0	
 1005	P2S Mark of the Tides Move	3	AD0		0	0	2	0.0	4.0	0	Away from Group			0		0.0	
-1005	P2S Murky Depths	1	6833		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1005	P2S Murky Depths	1	6833		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1005	P2S Ominous Bubbling	1	682B		3	0	0	0.0	4.0	0	Healer Groups			1		1.0	
-1005	P2S Sewage Deluge	1	6810		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
+1005	P2S Sewage Deluge	1	6810		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1005	P2S Shockwave	1	682F		3	0	1	0.0	4.0	0	Knockback			0		0.0	
 1005	P2S Spoken Cataract #1	1	6817		3	0	1	0.0	4.0	0	Back of head			1		1.0	
 1005	P2S Spoken Cataract #2	1	6811		3	0	1	0.0	4.0	0	Back of head			1		1.0	
 1005	P2S Spoken Cataract #3	1	6812		3	0	1	0.0	4.0	0	Back of head			1		1.0	
 1005	P2S Spoken Cataract #4	1	6813		3	0	1	0.0	4.0	0	Back of head			1		1.0	
-1005	P2S Tainted Flood	1	6838		3	1	0	0.0	4.0	0	Spread			1		0.0	
+1005	P2S Tainted Flood	1	6838		0	1	0	0.0	4.0	0	Spread			1		0.0	
 1005	P2S Winged Cataract #1	1	6814		3	0	1	0.0	4.0	0	Front of head			1		1.0	
 1005	P2S Winged Cataract #2	1	6815		3	0	1	0.0	4.0	0	Front of head			1		1.0	
 1005	P2S Winged Cataract #3	1	6818		3	0	1	0.0	4.0	0	Front of head			1		1.0	
@@ -4745,26 +4739,28 @@ fmtrig 5
 1006	P3N Spread Marker	5	8B		0	1	0	0.0	4.0	0	Spread			1		0.0	
 1006	P3N Sunbird Spawn	10	0	Sunbird	0	0	0	0.0	4.0	0	Sunbird Spawn			0		1.0	
 1006	P3N Trail of Condemnation	1	66AD		3	0	1	0.0	4.0	0	Avoid Charge			1		0.0	
-1007	P3S Darkened Fire	1	66B9		3	0	0	0.0	4.0	0	Fire Positions			1		0.0	
-1007	P3S Dead Rebirth	1	66E4		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
+1007	P3S Darkened Fire	1	66B9		3	0	0	0.0	4.0	0	Partners			1		0.0	
+1007	P3S Dead Rebirth	1	66E4		3	0	0	0.0	4.0	0	Big Raidwide			1		0.0	
 1007	P3S Death's Toll Number	3	ACA		0	0	0	15.5	4.0	0	Death's Toll Number			0		0.0	
+1007	P3S Divebomb (Middle+Partners)	1	66FC		3	0	1	0.0	4.0	0	Middle and Pairs			1		0.0	
+1007	P3S Divebomb (Quickmarch)	1	66FB		3	0	1	0.0	4.0	0	Sides and Spread			1		0.0	
+1007	P3S Experimental Ashplume (Light Parties)	1	66C2		3	0	1	0.0	4.0	0	Light Parties			1		0.0	
+1007	P3S Experimental Ashplume (Spread)	1	66C4		3	0	1	0.0	4.0	0	Spread			1		0.0	
 1007	P3S Experimental Ashplume Spread	2	66C4		3	0	1	0.0	4.0	0	Spread			1		0.0	
 1007	P3S Experimental Ashplume Stacks	2	66C2		3	0	1	0.0	4.0	0	Stacks			1		0.0	
-1007	P3S Experimental Fireplume Out Cast	1	66BE		3	0	0	0.0	4.0	0	Get Middle (then out)			1		0.0	
+1007	P3S Experimental Fireplume (Out)	1	66BE		3	0	0	0.0	4.0	0	Middle then Out			1		0.0	
+1007	P3S Experimental Fireplume (Shiva)	1	66C0		3	0	0	0.0	4.0	0	Middle then Shiva Circles			1		0.0	
 1007	P3S Experimental Fireplume Out Marker	2	66BE		3	0	1	0.0	4.0	0	Out			1		0.0	
-1007	P3S Experimental Fireplume Rotating Cast	1	66C0		3	0	0	0.0	4.0	0	Get Middle (then rotate)			1		0.0	
+1007	P3S Experimental Gloryplume (Light Parties)	2	66CC		3	0	0	0.0	4.0	0	Light Parties			1		0.0	
+1007	P3S Experimental Gloryplume (Out)	1	66C6		3	0	0	0.0	4.0	0	Out			1		0.0	
+1007	P3S Experimental Gloryplume (Shiva)	1	66CA		3	0	0	0.0	4.0	0	Shiva Circles			1		0.0	
+1007	P3S Experimental Gloryplume (Spread)	2	66C8		3	0	0	0.0	4.0	0	Spread			1		0.0	
 1007	P3S Experimental Gloryplume Out	2	66C6		3	0	2	0.0	4.0	0	Out			1		0.0	
-1007	P3S Experimental Gloryplume Out Cast	1	66C6		3	0	0	0.0	4.0	0	Get Middle (then out)			1		0.0	
-1007	P3S Experimental Gloryplume Rotate Cast	1	66CA		3	0	0	0.0	4.0	0	Get Middle (then rotate)			1		0.0	
-1007	P3S Experimental Gloryplume Spread	2	66C8		3	0	0	0.0	4.0	0	Spread After			1		0.0	
-1007	P3S Experimental Gloryplume Stack	2	66CC		3	0	0	0.0	4.0	0	Stacks After			1		0.0	
-1007	P3S Firestorms of Asphodelos	1	66F0		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1007	P3S Flare of Condemnation	1	66FB		3	0	1	0.0	4.0	0	Sides + Spread	Sides and Spread		1		0.0	
+1007	P3S Firestorms of Asphodelus	1	66F0		3	0	0	0.0	4.0	0	Big Raidwide			1		0.0	
 1007	P3S Heat of Condemnation	1	6700		3	0	1	0.0	4.0	0	Tank Tethers			1		0.0	
-1007	P3S Left Cinderwing	1	6703		3	0	1	0.0	4.0	0	Right			1		0.0	
-1007	P3S Right Cinderwing	1	6702		3	0	1	0.0	4.0	0	Left			1		0.0	
-1007	P3S Scorched Exaltation	1	6706		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1007	P3S Spark of Condemnation	1	66FC		3	0	1	0.0	4.0	0	Middle Pairs			1		0.0	
+1007	P3S Left Wing Bad	1	6703		3	0	1	0.0	4.0	0	Go Right			1		0.0	
+1007	P3S Right Wing Bad	1	6702		3	0	1	0.0	4.0	0	Go Left			1		0.0	
+1007	P3S Scorched Exaltation	1	6706		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1007	P3S Sunbird Tether #1	6	39		0	1	0	0.0	4.0	1	Sunbird Tether			0		0.0	
 1007	P3S Sunbird Tether #2	6	1		0	1	0	0.0	4.0	1	Sunbird Tether			0		0.0	
 1008	P4N Acid Pinax	1	6A3C		3	0	0	0.0	4.0	0	Spread			1		0.0	
@@ -4842,7 +4838,7 @@ fmtrig 5
 1009	P4S Periaktoi #4	1	69F8		3	0	0	0.0	4.0	0	Periaktoi			0		0.0	
 1009	P4S Role Call #1	3	AF2		0	1	0	0.0	4.0	0	Pass Role Call			1		0.0	
 1009	P4S Role Call #2	3	AF3		0	1	0	0.0	4.0	0	Pass Role Call			1		0.0	
-1009	P4S Searing Stream	1	6A2D		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1009	P4S Searing Stream	1	6A2D		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1009	P4S Southerly Shift Cape	1	69FE		3	0	0	0.0	4.0	0	South Cape			1		0.0	
 1009	P4S Southerly Shift Slash	1	6A03		3	0	1	0.0	4.0	0	South Cleave			1		0.0	
 1009	P4S Ultimate Impulse	1	6A2C		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
@@ -5115,6 +5111,7 @@ fmtrig 5
 1072	BarbaricciaEx Void Aero III on you	1	7571		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
 1072	BarbaricciaEx Void Aero III swap	1	7571		3	2	2	0.0	4.0	0	Tank Swap!	Tank Swap		1	tank	0.0	
 1072	BarbaricciaEx Void Aero IV	1	7570		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1072	EX4 Brittle Boulder	5	16D		0	1	1	0.0	4.0	0	Bait middle then out			1		0.0	
 1075	ASS Arboreal Storm	1	7957		3	0	1	0.0	4.0	0	Out			1		0.0	
 1075	ASS Atropine Spore	1	7960		3	0	1	0.0	4.0	0	In			1		0.0	
 1075	ASS Banishment	3	B9A		0	1	0	0.0	4.0	0	Banishment			0		0.0	
@@ -5297,23 +5294,24 @@ fmtrig 5
 1081	P5N Venom Pool on target	5	64		0	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1081	P5N Venom Pool on you	5	64		0	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 1081	P5N Venom Rain	5	178		0	1	0	0.0	4.0	0	Spread			1		0.0	
-1082	P5S Claw to Tail	1	770E		3	0	0	0.0	5.0	0	Back => Front	Back then Front		1		0.0	
-1082	P5S Double Rush	1	771B		3	0	1	3.0	4.0	0	Knockback			1		0.0	
-1082	P5S Raging Claw	1	76FA		3	0	1	0.0	4.0	0	Get Behind			1		0.0	
+1082	P5S Claw to Tail	1	770E		0	0	0	0.0	4.0	0	Go Back then Front			1		0.0	
+1082	P5S Double Rush	1	771B		0	0	1	0.0	4.0	0	Knockback			1		0.0	
+1082	P5S Raging Claw	1	76FA		0	0	1	0.0	4.0	0	Go Behind			1		0.0	
 1082	P5S Raging Claw Move	2	7710		3	0	0	0.0	4.0	0	Move Front			0		0.0	
 1082	P5S Raging Tail Move	2	7A0C		3	0	0	0.0	4.0	0	Move Behind			1		0.0	
 1082	P5S Ruby 1 Topaz Stones	2	76FE		3	0	0	0.3	4.0	0	Ruby 1 Topaz Stones			0		1.0	
 1082	P5S Ruby 3 Topaz Cluster	2	7702		3	0	0	0.0	12.0	0	Ruby 3 Topaz Cluster			0		0.0	
-1082	P5S Ruby Glow	1	76F3		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1082	P5S Searing Ray #1	1	76D7		3	0	1	0.0	4.0	0	Go Front			1		0.0	
-1082	P5S Searing Ray #2	1	76F7		3	0	1	0.0	4.0	0	Go Front			1		0.0	
-1082	P5S Sonic Howl	1	7720		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1082	P5S Tail to Claw	1	7712		3	0	0	0.0	5.0	0	Front => Back	Front then Back		1		0.0	
-1082	P5S Toxic Crunch	1	784A		3	0	0	0.0	4.0	0	Toxic Crunch			0		0.0	
+1082	P5S Ruby Glow	1	76F3		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1082	P5S Searing Ray #1	1	76D7		0	0	1	0.0	4.0	0	Go Front			1		0.0	
+1082	P5S Searing Ray #2	1	76F7		0	0	1	0.0	4.0	0	Go Front			1		0.0	
+1082	P5S Searing Ray Reflected	1	7657		0	0	1	0.0	4.0	0	Go Front			1		0.0	
+1082	P5S Sonic Howl	1	7720		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1082	P5S Tail to Claw	1	7712		0	0	0	0.0	4.0	0	Go Front then Back			1		0.0	
+1082	P5S Toxic Crunch	1	784A		0	0	0	0.0	4.0	0	Tankbuster on MT			1		0.0	
 1082	P5S Venom Pool with Crystals	1	79E2		3	0	0	0.0	4.0	0	Healer Groups on Topaz Stones			1		0.0	
-1082	P5S Venom Squall/Surge #1	1	7716		3	0	0	0.0	5.0	0	Venom Squall/Surge	Venom Squall, Surge		0		0.0	
-1082	P5S Venom Squall/Surge #2	1	7717		3	0	0	0.0	5.0	0	Venom Squall/Surge	Venom Squall, Surge		0		0.0	
-1082	P5S Venomous Mass	1	771D		3	0	0	0.0	4.0	0	Venomous Mass			0		0.0	
+1082	P5S Venom Squall	1	7716		0	0	0	0.0	4.0	0	Spread then Bait then Light Parties			1		0.0	
+1082	P5S Venom Surge	1	7717		0	0	0	0.0	4.0	0	Light Parties then Bait then Spread			1		0.0	
+1082	P5S Venomous Mass	1	771D		0	0	0	0.0	4.0	0	Tankbuster with Bleed			1		0.0	
 1083	P6N Aetherial Exchange	2	784D		3	0	1	0.0	4.0	0	Be opposite tethered safespot			1		0.0	
 1083	P6N Choros Ixou Front Back	1	7857		3	0	1	0.0	4.0	0	Sides			1		0.0	
 1083	P6N Choros Ixou Sides	1	7858		3	0	1	0.0	4.0	0	Go Front/Back	Go Front, Back		1		0.0	
@@ -5325,20 +5323,18 @@ fmtrig 5
 1083	P6N Strophe Ixou #2	5	A8		0	0	0	0.0	4.0	0	Strophe Ixou			0		0.0	
 1083	P6N Synergy Call	5	157		0	0	0	0.3	4.0	0	Synergy Call			0		5.0	
 1084	P6S Cachexia 2 Dark Spheres	1	7880		3	0	0	0.5	4.0	0	Cachexia 2 Dark Spheres			0		1.0	
-1084	P6S Chelic Synergy avoid	1	788A		3	5	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1084	P6S Chelic Synergy no target	1	788A		3	6	1	0.0	4.0	0	Shared Tank Buster			1	tank,healer	0.0	
-1084	P6S Chelic Synergy no target others	1	788A		3	6	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1084	P6S Chelic Synergy on target	1	788A		3	5	1	0.0	4.0	0	Shared Tank Buster on {target}			1	tank,healer	0.0	
-1084	P6S Chelic Synergy on you	1	788A		3	1	1	0.0	4.0	0	Shared Tank Buster on YOU			1		0.0	
+1084	P6S Chelic Synergy	1	788A		0	0	1	0.0	4.0	0	Buster with Bleed			1		0.0	
 1084	P6S Choros Ixou Front Back	1	7883		3	0	0	0.0	4.0	0	Choros Ixou Front Back			0		0.0	
 1084	P6S Choros Ixou Sides	1	7881		3	0	0	0.0	4.0	0	Choros Ixou Sides			0		0.0	
+1084	P6S Dark Ashes	1	788D		0	0	1	0.0	4.0	0	Spread			1		0.0	
 1084	P6S Dark Dome Bait	1	788B		3	0	1	0.0	4.0	0	Bait Circles			1		0.0	
 1084	P6S Dark Dome Move	2	788B		3	0	0	0.0	4.0	0	Move!	Move		1		0.0	
+1084	P6S Dark Sphere	1	788F		0	0	1	0.0	4.0	0	Spread to Safe Spots			1		0.0	
 1084	P6S Exocleaver Healer Groups #1	1	7869		3	0	1	0.0	4.0	0	Healer Groups			0		0.0	
 1084	P6S Exocleaver Healer Groups #2	1	786B		3	0	1	0.0	4.0	0	Healer Groups			0		0.0	
 1084	P6S Exocleaver Move #1	2	7869		3	0	0	0.0	4.0	0	Move!	Move		1		4.0	
 1084	P6S Exocleaver Move #2	2	786B		3	0	0	0.0	4.0	0	Move!	Move		1		4.0	
-1084	P6S Hemitheos's Dark IV	1	7860		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1084	P6S Hemitheos's Dark IV	1	7860		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1084	P6S Polyominoid All #1	2	7866		3	0	0	2.0	10.0	0	Polyominoid All			0		0.0	
 1084	P6S Polyominoid All #2	2	7868		3	0	0	2.0	10.0	0	Polyominoid All			0		0.0	
 1084	P6S Polyominoid Healer Groups	1	7892		3	0	1	0.0	4.0	0	Healer Groups			0		1.0	
@@ -5349,7 +5345,7 @@ fmtrig 5
 1084	P6S Predation Out #1	2	787A		3	0	0	0.0	4.0	0	Out			0		0.0	
 1084	P6S Predation Out #2	2	787B		3	0	0	0.0	4.0	0	Out			0		0.0	
 1084	P6S Ptera Ixou	1	787C		3	0	0	0.0	4.0	0	Ptera Ixou			0		0.0	
-1084	P6S Synergy	1	7887		3	0	1	0.0	4.0	0	Split Tankbusters			1		0.0	
+1084	P6S Synergy	1	7887		0	0	1	0.0	4.0	0	Tankbuster			1		0.0	
 1084	P6S Transmission #1	3	CF3		0	0	0	0.0	4.0	0	Transmission			0		0.0	
 1084	P6S Transmission #2	3	D48		0	0	0	0.0	4.0	0	Transmission			0		0.0	
 1084	P6S Transmission Instant #1	3	CF3		0	1	0	0.0	4.0	0	Transmission Instant			0		0.0	
@@ -5367,14 +5363,15 @@ fmtrig 5
 1085	P7N Spark Of Life	1	780B		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
 1085	P7N Static Moon	1	7802		3	0	1	0.0	4.0	0	Avoid Behemoths			1		5.0	
 1085	P7N Stymphalian Strike	1	7803		3	0	0	0.0	4.0	0	Avoid line dashes			1		5.0	
-1086	P7S Bough of Attis Left Arrows	1	7824		3	0	1	0.0	4.0	0	Left			1		0.0	
-1086	P7S Bough of Attis Right Arrows	1	7823		3	0	1	0.0	4.0	0	Right			1		0.0	
-1086	P7S Condensed Aero II avoid	1	7836		3	5	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1086	P7S Condensed Aero II no target	1	7836		3	6	1	0.0	4.0	0	Shared Tank Buster			1	tank,healer	0.0	
-1086	P7S Condensed Aero II no target others	1	7836		3	6	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1086	P7S Condensed Aero II on target	1	7836		3	5	1	0.0	4.0	0	Shared Tank Buster on {target}			1	tank,healer	0.0	
-1086	P7S Condensed Aero II on you	1	7836		3	1	1	0.0	4.0	0	Shared Tank Buster on YOU			1		0.0	
-1086	P7S Dispersed Aero II	1	7835		3	0	1	0.0	4.0	0	Split Tankbusters			1		0.0	
+1086	P7S Blades of Attis	1	782E		0	0	1	0.0	4.0	0	Exaflare			1		0.0	
+1086	P7S Bough of Attis Attack Close	1	7821		0	0	1	0.0	4.0	0	Go Far			1		0.0	
+1086	P7S Bough of Attis Attack Far	1	7826		0	0	1	0.0	4.0	0	Get Close			1		0.0	
+1086	P7S Bough of Attis Attack Left	1	7823		0	0	1	0.0	4.0	0	Go Right			1		0.0	
+1086	P7S Bough of Attis Attack Right	1	7824		0	0	1	0.0	4.0	0	Go Left			1		0.0	
+1086	P7S Condensed Aero II	1	7836		0	0	1	0.0	4.0	0	Tank Stack			1		0.0	
+1086	P7S Death's Harvest	1	7A50		0	0	1	0.0	4.0	0	Death			1		0.0	
+1086	P7S Dispersed Aero II	1	7835		0	0	1	0.0	4.0	0	Tank Spread			1		0.0	
+1086	P7S Famine's Harvest	1	7A4F		0	0	1	0.0	4.0	0	Famine			1		0.0	
 1086	P7S Forbidden Fruit 4 and Harvest Tethers #1	6	1		0	0	0	0.1	4.0	0	Forbidden Fruit 4 and Harvest Tethers			0		0.0	
 1086	P7S Forbidden Fruit 4 and Harvest Tethers #2	6	6		0	0	0	0.1	4.0	0	Forbidden Fruit 4 and Harvest Tethers			0		0.0	
 1086	P7S Forbidden Fruit 4 and Harvest Tethers #3	6	39		0	0	0	0.1	4.0	0	Forbidden Fruit 4 and Harvest Tethers			0		0.0	
@@ -5384,26 +5381,28 @@ fmtrig 5
 1086	P7S Inviolate Bonds #1	3	CEC		0	1	0	0.0	20.0	0	Inviolate Bonds			0		0.0	
 1086	P7S Inviolate Bonds #2	3	D45		0	1	0	0.0	20.0	0	Inviolate Bonds			0		0.0	
 1086	P7S Light of Life	1	78E2		3	0	1	21.0	4.0	0	Big AOE, Get Middle			1		0.0	
+1086	P7S Light of Life (Enrage)	1	783F		0	0	1	0.0	4.0	0	Enrage			1		0.0	
 1086	P7S Roots of Attis 2	1	780E		3	0	0	0.0	4.0	0	Healer Group Platforms			0		0.0	
 1086	P7S Roots of Attis 3	1	780E		3	0	0	0.0	4.0	0	Bait on Empty Platform Soon			0		0.0	
-1086	P7S Spark of Life	1	7839		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
+1086	P7S Spark of Life	1	7839		0	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
+1086	P7S War's Harvest	1	7A51		0	0	1	0.0	4.0	0	War			1		0.0	
 1087	P8N Abyssal Fires	1	78F1		3	0	1	0.0	4.0	0	Get Middle			1		1.0	
-1087	P8N Ektothermos	1	78FE		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1087	P8N Flameviper avoid	1	7908		3	2	0	0.0	4.0	0	Avoid Tank Cleave			1		0.0	CNJ,WHM,SCH,AST,SGE,PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR,ARC,BRD,DNC,MCH,RDM,BLM,SMN,ACN,THM,PCT
-1087	P8N Flameviper blue	1	7908		3	2	0	0.0	4.0	0	Tank Cleave			1		0.0	BLU
-1087	P8N Flameviper on you	1	7908		3	1	0	0.0	4.0	0	Tank Cleave on YOU			1		0.0	
-1087	P8N Flameviper tank	1	7908		3	2	0	0.0	4.0	0	Tank Cleave			1	tank	0.0	
-1087	P8N Genesis of Flame	1	7905		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1087	P8N Ektothermos	1	78FE		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1087	P8N Flameviper	1	7908		0	0	0	0.0	4.0	0	Tankbuster on {target}			1		0.0	
+1087	P8N Genesis Of Flame	1	7905		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1087	P8N Gorgon Add	2	78FC		3	0	0	0.0	4.0	0	Kill Adds			1		1.0	
 1087	P8N Hemitheos's Flare	1	7907		3	1	0	0.0	4.0	0	Spread			1		0.0	
+1087	P8N Hemitheos's Flare #2	1	7906		0	0	1	0.0	4.0	0	Spread			1		0.0	
 1087	P8N Petrifaction	1	78FC		3	0	0	0.0	4.0	0	Look Away			1		1.0	
-1087	P8N Rearing Rampage	1	79AB		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1087	P8N Rearing Rampage	1	79AB		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1087	P8N Reforged Reflection Quadruped	1	794B		0	0	1	0.0	4.0	0	Quadruped			1		0.0	
+1087	P8N Reforged Reflection Serpent	1	794C		0	0	1	0.0	4.0	0	Serpent			1		0.0	
 1087	P8N Scorching Fang	1	78EE		3	0	1	0.0	4.0	0	Sides			1		0.0	
 1087	P8N Sun's Pinion	1	78EF		3	0	1	0.0	4.0	0	Get Middle			1		1.0	
 1087	P8N Suneater Cthonic Vent Initial	1	78F5		3	0	0	0.0	4.0	0	Suneater Cthonic Vent Initial			0		1.0	
+1087	P8N Sunforge Phoenix	1	78ED		0	0	1	0.0	4.0	0	In			1		0.0	
+1087	P8N Sunforge Serpent	1	78EC		0	0	1	0.0	4.0	0	Out			1		0.0	
 1087	P8N Torch Flame	1	78F8		3	0	0	0.5	4.0	0	Torch Flame			0		1.0	
-1088	P8S Aionagonia	1	7A22		3	0	1	0.0	4.0	0	big aoe + bleed	big aoe and bleed		1		0.0	
-1088	P8S Aioniopyr	1	79DF		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
 1088	P8S Ashing Blaze Left	1	79D8		3	0	0	0.0	4.0	0	Ashing Blaze Left			0		0.0	
 1088	P8S Ashing Blaze Right	1	79D7		3	0	0	0.0	4.0	0	Ashing Blaze Right			0		0.0	
 1088	P8S Blazing Footfalls #1	2	793C		3	0	0	0.0	9.0	0	Blazing Footfalls			0		0.0	
@@ -5415,7 +5414,6 @@ fmtrig 5
 1088	P8S Conceptual Octaflare	1	7914		3	0	0	0.0	4.0	0	(spread, for later)			1		0.0	
 1088	P8S Conceptual Tetraflare	1	7915		3	0	0	0.0	4.0	0	(partner stack, for later)			1		0.0	
 1088	P8S Conceptual Tetraflare Quadruped	1	7916		3	0	0	0.0	12.0	0	Partner Stacks			1		0.0	
-1088	P8S Dominion	1	79D9		3	0	1	0.0	4.0	0	Spread			1		0.0	
 1088	P8S Ektothermos	1	79EA		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1088	P8S Flameviper no target	1	7945		3	6	1	0.0	4.0	0	Tank Buster			1	healer,dps	0.0	
 1088	P8S Flameviper on target	1	7945		3	5	1	0.0	4.0	0	Tank Buster on {target}			1	healer,dps	0.0	
@@ -5431,7 +5429,6 @@ fmtrig 5
 1088	P8S Illusory Hephaistos End of Days	1	7A8B		3	0	0	0.0	4.0	0	Illusory Hephaistos End of Days			0		0.0	
 1088	P8S Illusory Hephaistos Scorched Pinion First	1	7952		3	0	0	0.3	4.0	0	Illusory Hephaistos Scorched Pinion First			0		0.0	
 1088	P8S Inverse Magics	3	D15		0	0	0	0.0	4.0	0	Inverse Magics			0		0.0	
-1088	P8S Limitless Desolation	1	75ED		3	0	1	0.0	4.0	0	Spread			1		0.0	
 1088	P8S Natural Alignment First	3	9F8		0	0	0	0.0	4.0	0	Natural Alignment First			0		0.0	
 1088	P8S Natural Alignment Purple Targets	3	9F8		0	0	0	0.3	4.0	0	Natural Alignment Purple Targets			0		5.0	
 1088	P8S Natural Alignment Purple on You	3	9F8		0	0	1	0.0	4.0	0	Alignment on YOU			1		0.0	
@@ -5443,8 +5440,9 @@ fmtrig 5
 1088	P8S Octaflare	1	791D		3	0	2	0.0	4.0	0	Spread			1		0.0	
 1088	P8S Orogenic Deformation Hit	2	79DB		3	1	0	0.5	10.0	0	Orogenic Deformation Hit			0		0.0	
 1088	P8S Orogenic Deformation Not Hit	2	79DB		3	0	0	0.5	5.0	0	Orogenic Deformation Not Hit			0		1.0	
-1088	P8S Quadrupedal Impact/Crush #1	1	7A04		3	0	0	0.0	4.0	0	Quadrupedal Impact/Crush	Quadrupedal Impact, Crush		0		0.0	
-1088	P8S Quadrupedal Impact/Crush #2	1	7A05		3	0	0	0.0	4.0	0	Quadrupedal Impact/Crush	Quadrupedal Impact, Crush		0		0.0	
+1088	P8S Quadruped Form	1	794B		0	0	1	0.0	4.0	0	Quadruped Form, Knockback Soon			1		0.0	
+1088	P8S Quadruped: Initial Crush	1	7A05		0	0	0	0.0	4.0	0	Away From Boss Facing			1		0.0	
+1088	P8S Quadruped: Initial Impact	1	7A04		0	0	0	0.0	4.0	0	Towards Boss Facing			1		0.0	
 1088	P8S Scorching Fang	1	7912		3	0	0	0.0	4.0	0	Scorching Fang			0		0.0	
 1088	P8S Snaking Kick	1	794C		3	0	1	0.0	4.0	0	Out			1		0.0	
 1088	P8S Sun's Pinion	1	7913		3	0	0	0.0	4.0	0	Sun's Pinion			0		1.0	
@@ -5455,8 +5453,14 @@ fmtrig 5
 1088	P8S Torch Flame	1	7927		3	0	0	0.5	4.0	0	Torch Flame			0		1.0	
 1088	P8S Tyrant's Fire III Bait then Tower	2	75F0		3	1	0	0.0	7.9	0	Tyrant's Fire III Bait then Tower			0		0.0	
 1088	P8S Tyrant's Flare II Soak Tower	1	7A88		3	0	0	0.0	4.0	0	Tyrant's Flare II Soak Tower			0		1.0	
-1088	P8S Tyrant's Unholy Darkness	1	79DD		3	0	1	0.0	4.0	0	Split Tankbusters			1		0.0	
 1088	P8S Uplift Number	2	7935		3	1	0	0.0	13.3	0	Uplift Number			0		0.0	
+1088	P8S2 Aionagonia	1	7A22		0	0	1	0.0	4.0	0	Raidwide with Bleed			1		0.0	
+1088	P8S2 Aioniopyr	1	79DF		0	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
+1088	P8S2 Dominion: Initial	1	79D9		0	0	1	0.0	4.0	0	Spread for Dominion			1		0.0	
+1088	P8S2 HC2: Prey	3	D14		0	1	0	0.0	4.0	0	Move			1		0.0	
+1088	P8S2 Limitless Desolation: Start	1	75ED		0	0	1	0.0	4.0	0	Spread			1		0.0	
+1088	P8S2 Tyrant's Unholy Darkness #1	1	79DD		0	0	1	0.0	4.0	0	Split Buster			1		0.0	
+1088	P8S2 Tyrant's Unholy Darkness #2	1	79DE		0	0	1	0.0	4.0	0	Split Buster			1		0.0	
 1090	SephirotUn Ascension	5	3E		0	0	1	0.0	4.0	0	Stack			1		0.0	
 1090	SephirotUn Chesed Buster no target	1	7694		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
 1090	SephirotUn Chesed Buster no target others	1	7694		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
@@ -5491,8 +5495,17 @@ fmtrig 5
 1095	Rubicante Shattering Heat on you	1	7CEB		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
 1095	Rubicante Soulscald	2	7CE8		3	0	1	0.0	4.0	0	Move!	Move		1		0.5	
 1095	Rubicante Sweeping Immolation Stack	1	7CE3		3	0	0	0.0	4.0	0	Stack behind Boss			1		0.0	
-1096	RubicanteEx Blazing Rapture	1	7D07		3	0	0	4.0	4.0	0	big AoE!	big AoE		1		0.0	
-1096	RubicanteEx Dualfire Not You	1	7D2E		3	0	0	0.0	4.0	0	RubicanteEx Dualfire Not You			0		0.0	
+1096	EX5 Arch Inferno	1	7CF9		3	0	1	0.0	4.0	0	Light parties			1		0.0	
+1096	EX5 Blazing Rapture	1	7D07		3	0	0	0.0	4.0	0	Heavy raidwide			1		0.0	
+1096	EX5 Dualfire	1	7D2E		3	0	0	0.0	4.0	0	Double buster			1		0.0	
+1096	EX5 Inferno	1	7D2C		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1096	EX5 Inferno: Spread	1	7D0F		3	0	0	0.0	4.0	0	Spread with bleed			1		0.0	
+1096	EX5 Radial Flagration	1	7CFE		3	0	1	0.0	4.0	0	Proteans			1		0.0	
+1096	EX5 Scalding Ring	1	7D25		3	0	1	0.0	4.0	0	In, spread			1		0.0	
+1096	EX5 Scalding Signal	1	7D24		3	0	1	0.0	4.0	0	Out, spread			1		0.0	
+1096	EX5 Shattering Heat	1	7D2D		3	0	0	0.0	4.0	0	Buster on {target}			1		0.0	
+1096	EX5 Sweeping Immolation: Spread	1	7D20		3	0	1	0.0	4.0	0	Behind and Spread			1		0.0	
+1096	EX5 Sweeping Immolation: Stack	1	7D21		3	0	0	0.0	4.0	0	Behind and Stack			1		0.0	
 1096	RubicanteEx Flamesent Ghastly Wind Tether	6	C0		0	1	1	0.0	4.0	0	Face tether out			1		0.0	
 1096	RubicanteEx Flamesent Shattering Heat Tether	6	54		0	0	0	0.0	4.0	0	Tank Tethers			1		15.0	
 1096	RubicanteEx Flamespire Brand Blooming Welt	2	7D18		3	0	0	0.0	4.0	0	RubicanteEx Flamespire Brand Blooming Welt			0		5.0	
@@ -5501,24 +5514,13 @@ fmtrig 5
 1096	RubicanteEx Flamespire Brand Stinging Welt	2	7D1C		3	0	0	0.0	4.0	0	Spread			1		5.0	
 1096	RubicanteEx Flamespire Claw Hit You	2	7E73		3	0	0	0.0	4.0	0	Get Tether			0		0.0	
 1096	RubicanteEx Fourfold Flame	1	7D03		3	0	0	0.0	4.0	0	Healer Groups			1		5.0	
-1096	RubicanteEx Inferno Raidwide	1	7D2C		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1096	RubicanteEx Inferno Spread	1	7D0F		3	0	0	0.0	4.0	0	Spread			1		0.0	
 1096	RubicanteEx Ordeal of Purgation 1	1	80E9		3	0	0	0.0	8.0	0	RubicanteEx Ordeal of Purgation 1			0		0.0	
 1096	RubicanteEx Ordeal of Purgation 2	1	80E9		3	0	0	0.0	8.0	0	RubicanteEx Ordeal of Purgation 2			0		0.0	
 1096	RubicanteEx Ordeal of Purgation 3	1	80E9		3	0	0	0.0	8.0	0	RubicanteEx Ordeal of Purgation 3			0		0.0	
 1096	RubicanteEx Ordeal of Purgation 4	1	80E9		3	0	0	0.0	8.0	0	RubicanteEx Ordeal of Purgation 4			0		0.0	
 1096	RubicanteEx Ordeal of Purgation 5	1	80E9		3	0	0	0.0	8.0	0	RubicanteEx Ordeal of Purgation 5			0		0.0	
 1096	RubicanteEx Ordeal of Purgation 6	1	80E9		3	0	0	0.0	4.0	0	RubicanteEx Ordeal of Purgation 6			0		0.0	
-1096	RubicanteEx Radial Flagration	1	7CFE		3	0	1	0.0	4.0	0	Protean			1		0.0	
-1096	RubicanteEx Scalding Ring	1	7D25		3	0	1	0.0	4.0	0	In + Protean	In and Protean		1		0.0	
-1096	RubicanteEx Scalding Signal	1	7D24		3	0	1	0.0	4.0	0	Out + Protean	Out and Protean		1		0.0	
-1096	RubicanteEx Shattering Heat no target	1	7D2D		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
-1096	RubicanteEx Shattering Heat no target others	1	7D2D		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
-1096	RubicanteEx Shattering Heat on target	1	7D2D		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
-1096	RubicanteEx Shattering Heat on you	1	7D2D		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
 1096	RubicanteEx Spike of Flame	1	7D02		3	1	0	0.0	4.0	0	Spread			1		0.0	
-1096	RubicanteEx Sweeping Immolation Spread	1	7D20		3	0	1	0.0	4.0	0	Spread behind Boss			1		0.0	
-1096	RubicanteEx Sweeping Immolation Stack	1	7D21		3	0	0	0.0	4.0	0	Stack behind Boss			1		0.0	
 1096	RubicanteEx Twinfold Flame	1	7D04		3	0	0	0.0	4.0	0	Partner Stacks			1		5.0	
 1097	Lapis Manalis Albion Albion's Embrace no target	1	7A85		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
 1097	Lapis Manalis Albion Albion's Embrace no target others	1	7A85		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
@@ -5634,7 +5636,7 @@ fmtrig 5
 1106	EO 71-80 Orthos Flamebeast Blistering Roar	1	81AF		3	0	1	0.0	4.0	0	Get Behind			1		0.0	
 1106	EO 71-80 Orthos Gulo Gulo the Killing Paw	1	81A9		3	0	1	0.0	5.0	0	Get Behind (Stay Behind)			1		0.0	
 1106	EO 71-80 Orthos Kargas Winds of Winter	1	81AA		3	0	0	0.0	4.0	0	71-80 Orthos Kargas Winds of Winter			0		0.0	
-1106	EO 71-80 Orthos Primelephas Rear	1	81A8		3	0	1	0.0	4.0	0	Out of Melee			1		0.0	
+1106	EO 71-80 Orthos Primelephas Back	1	81A8		3	0	1	0.0	4.0	0	Out of Melee			1		0.0	
 1106	EO 71-80 Orthos Sasquatch Ripe Banana	1	81AB		3	0	0	0.0	4.0	0	71-80 Orthos Sasquatch Ripe Banana			0		0.0	
 1106	EO 71-80 Orthos Skatene Chirp	1	7F7D		3	0	1	0.0	4.0	0	Out of Melee			1		0.0	
 1106	EO 71-80 Orthos Thunderbeast Scythe Tail	1	7F90		3	0	1	0.0	4.0	0	Out			1		0.0	
@@ -5836,13 +5838,31 @@ fmtrig 5
 1121	SophiaUN Thunder 3	1	7DA6		3	0	0	0.0	4.0	0	Get Under			1		0.0	
 1121	SophiaUN Tilt Via Cast	1	7DA3		3	0	0	0.0	10.0	0	SophiaUN Tilt Via Cast			0		5.0	
 1121	SophiaUN Tilt Via Tether	6	11		0	0	0	0.5	12.0	0	SophiaUN Tilt Via Tether			0		5.0	
+1122	OmegaUltimate Blind Faith	1	7B87		3	0	1	0.0	4.0	0	Raidwide and Knockback			1		0.0	
+1122	OmegaUltimate Blue Screen	1	7B7B		3	0	1	0.0	4.0	0	Heavy Raidwide			1		0.0	
+1122	OmegaUltimate Check M/F Sword/Shield	1	7B3F		0	0	1	0.0	4.0	0	If the callouts below do not work, make sure your OverlayPlugin is at least version 0.19.14.			1		0.0	
+1122	OmegaUltimate Cosmo Arrow	1	7BA2		3	0	1	0.0	4.0	0	Exasquares			1		0.0	
+1122	OmegaUltimate Cosmo Memory	1	7B22		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1122	OmegaUltimate Cosmo Memory (P6)	1	7BA1		3	0	2	0.0	4.0	0	Raidwide			1		0.0	
+1122	OmegaUltimate Cosmo Meteor Cast	1	7BB0		0	0	1	0.0	4.0	0	Bait Middle then Out			1		0.0	
+1122	OmegaUltimate Critical Error	1	7B64		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1122	OmegaUltimate Hello World: Initial Cast	1	7B55		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1122	OmegaUltimate Limitless Synergy	1	7B38		0	0	1	0.0	4.0	0	Limitless Synergy			1		0.0	
+1122	OmegaUltimate P6 Enrage	1	7BA0		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1122	OmegaUltimate Packet Filter F	3	DAC		0	1	0	0.0	4.0	0	Attack M			1		0.0	
+1122	OmegaUltimate Packet Filter M	3	DAB		0	1	0	0.0	4.0	0	Attack F			1		0.0	
+1122	OmegaUltimate Run Dynamis Delta	1	7B88		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1122	OmegaUltimate Run Dynamis Omega	1	8015		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1122	OmegaUltimate Run Dynamis Sigma	1	8014		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1122	OmegaUltimate Solar Ray	1	81AC		3	0	1	0.0	4.0	0	Buster on {target}			1		0.0	
+1122	OmegaUltimate Unlimited Wave Cannon	1	7BAC		3	0	0	0.0	4.0	0	Exaflares			1		0.0	
+1122	OmegaUltimate Wave Cannon Spread (P6)	1	7BA9		0	0	1	0.0	4.0	0	Spread			1		0.0	
 1122	TOP Beyond Defense	2	7B28		3	0	0	0.0	4.0	0	Beyond Defense			0		0.0	
 1122	TOP Code Smell Defamation Color	3	D6D		0	0	0	0.5	4.0	0	Code Smell Defamation Color			0		1.0	
 1122	TOP Cosmo Arrow Dodges	2	7BA4		3	0	0	0.0	4.0	0	Cosmo Arrow Dodges			0		1.0	
 1122	TOP Cosmo Arrow In/Out First	1	7BA3		3	0	0	0.1	7.0	0	Cosmo Arrow In/Out First	Cosmo Arrow In, Out First		0		5.0	
 1122	TOP Cosmo Arrow In/Out Wait	2	7BA3		3	0	0	0.0	4.0	0	Cosmo Arrow In/Out Wait	Cosmo Arrow In, Out Wait		0		5.0	
 1122	TOP Cosmo Dive	1	7BA6		3	0	0	0.0	5.0	0	Cosmo Dive			0		0.0	
-1122	TOP Cosmo Meteor	1	7BB0		3	0	1	0.0	4.0	0	Bait Middle			1		0.0	
 1122	TOP Delta Tethers #1	3	D70		0	0	0	0.0	4.0	0	Delta Tethers			0		0.0	
 1122	TOP Delta Tethers #2	3	DB0		0	0	0	0.0	4.0	0	Delta Tethers			0		0.0	
 1122	TOP High-Powered Sniper Cannon Fodder	3	D62		0	0	0	0.5	15.0	0	High-Powered Sniper Cannon Fodder			0		1.0	
@@ -5862,7 +5882,6 @@ fmtrig 5
 1122	TOP Oversampled Wave Cannon Loading #1	3	D7C		0	0	0	0.0	4.0	0	Oversampled Wave Cannon Loading			0		0.0	
 1122	TOP Oversampled Wave Cannon Loading #2	3	D7D		0	0	0	0.0	4.0	0	Oversampled Wave Cannon Loading			0		0.0	
 1122	TOP Oversampled Wave Cannon West	1	7B6C		3	0	1	0.0	4.0	0	West Monitors			1		0.0	
-1122	TOP P2 Cosmo Memory	1	7B22		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1122	TOP P3 Second Regression Break Tether #1	3	DC9		0	0	1	0.0	4.0	0	Break Tether			0		0.0	
 1122	TOP P3 Second Regression Break Tether #2	3	DCA		0	0	1	0.0	4.0	0	Break Tether			0		0.0	
 1122	TOP P5 Delta Debuffs	2	7B6D		3	0	0	0.0	8.0	0	Delta Debuffs			0		5.0	
@@ -5870,7 +5889,6 @@ fmtrig 5
 1122	TOP P5 Omega Debuffs #2	3	D73		0	0	0	0.0	8.0	0	Omega Debuffs			0		0.0	
 1122	TOP P5 Omega Tether Bait	3	D74		0	0	2	0.0	8.0	0	Bait Tethers			0		0.0	
 1122	TOP P5 Sigma Debuffs	2	7B04		3	0	0	0.0	4.0	0	Sigma Debuffs			0		5.0	
-1122	TOP P6 Cosmo Memory	1	7BA1		3	0	2	0.0	4.0	0	TANK LB!!	TANK LB		1	tank	0.0	
 1122	TOP Pantokrator First Debuffs	1	7B0D		3	0	0	0.0	4.0	0	Pantokrator First Debuffs			0		1.0	
 1122	TOP Pantokrator Other Debuffs	2	7B0E		3	0	0	0.0	4.0	0	Pantokrator Other Debuffs			0		1.0	
 1122	TOP Party Synergy	2	7B3E		3	0	0	5.5	4.0	0	Party Synergy			0		0.0	
@@ -5889,10 +5907,7 @@ fmtrig 5
 1122	TOP Swivel Cannon #2	1	7B95		3	0	0	0.0	4.0	0	Swivel Cannon			0		0.0	
 1122	TOP Synergy Marker #1	3	D63		0	0	0	0.5	14.0	0	Synergy Marker			0		10.0	
 1122	TOP Synergy Marker #2	3	D64		0	0	0	0.5	14.0	0	Synergy Marker			0		10.0	
-1122	TOP Unlimited Wave Cannon	1	7BAC		3	0	1	0.0	4.0	0	Bait Middle			1		0.0	
-1122	TOP Unlimited Wave Cannon Dodges	1	7BAC		3	0	0	1.5	10.6	0	Unlimited Wave Cannon Dodges			0		0.0	
 1122	TOP Wave Cannon Stack	2	5779		3	0	0	0.3	4.0	0	Wave Cannon Stack			0		1.0	
-1122	TOP Wave Cannon Wild Charge	1	7BA9		3	0	1	5.0	4.0	0	Line Charge			1		0.0	
 1123	Shifting Gymnasion Agonon Gymnasiou Acheloios Deadly Hold no target	1	7E13		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
 1123	Shifting Gymnasion Agonon Gymnasiou Acheloios Deadly Hold no target others	1	7E13		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
 1123	Shifting Gymnasion Agonon Gymnasiou Acheloios Deadly Hold on target	1	7E13		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
@@ -6088,13 +6103,22 @@ fmtrig 5
 1140	Golbez Void Meteor no target others	1	84AC		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
 1140	Golbez Void Meteor on target	1	84AC		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
 1140	Golbez Void Meteor on you	1	84AC		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-1141	GolbezEx Abyssal Quasar	1	84AB		3	0	1	0.0	4.0	0	Partner Stack			1		3.0	
+1141	EX6 Abyssal Quasar	1	84AB		3	0	1	0.0	4.0	0	Partners			1		1.0	
+1141	EX6 Binding Cold	1	84B3		3	0	0	0.0	4.0	0	Raidwide with DoT			1		0.0	
+1141	EX6 Eventide Fall	1	8484		3	0	1	0.0	4.0	0	Light Parties			1		0.0	
+1141	EX6 Eventide Triad	1	8480		3	0	1	0.0	4.0	0	Role Cleaves			1		0.0	
+1141	EX6 Flames of Eventide #1	2	8478		3	0	1	0.0	4.0	0	Cleave Busters			1		0.0	
+1141	EX6 Flames of Eventide #2	2	8479		3	0	1	0.0	4.0	0	Cleave Busters			1		0.0	
+1141	EX6 Immolating Shade	1	8496		3	0	1	0.0	4.0	0	Healer Stacks			1		1.0	
+1141	EX6 Lingering Spark (Wait)	1	8468		0	0	1	0.0	4.0	0	Twister			1		0.0	
+1141	EX6 Phases of the Blade	1	86DB		0	0	1	0.0	4.0	0	Back then Front			1		0.0	
+1141	EX6 Void Aero III	1	845C		3	0	1	0.0	4.0	0	Partners			1		1.0	
+1141	EX6 Void Blizzard III	1	8462		3	0	1	0.0	4.0	0	Healer Stacks			1		1.0	
+1141	EX6 Void Meteor #1	1	84AD		3	0	1	0.0	4.0	0	Buster, Multiple Hits			1		0.0	
+1141	EX6 Void Meteor #2	1	8471		3	0	0	0.0	4.0	0	Raidwide, Multiple Hits			1		0.0	
 1141	GolbezEx Azdaja's Shadow In Tell	1	8479		3	0	0	0.0	4.0	0	(in + spread, for later)	(in and spread, for later)		1		0.0	
 1141	GolbezEx Azdaja's Shadow Out Tell	1	8478		3	0	0	0.0	4.0	0	(out + healer groups, for later)	(out and healer groups, for later)		1		0.0	
-1141	GolbezEx Binding Cold	1	84B3		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
-1141	GolbezEx Black Fang	1	8471		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1141	GolbezEx Eventide Fall	1	8485		3	0	1	0.0	4.0	0	Healer Groups			1		3.0	
-1141	GolbezEx Eventide Triad	1	8480		3	0	1	0.0	4.0	0	Role positions			1		0.0	
 1141	GolbezEx Flames of Eventide Swap	3	DF5		0	0	1	0.0	4.0	0	Tank Swap!	Tank Swap		0		10.0	
 1141	GolbezEx Gale Initial Safe Spot #1	1	8458		3	0	0	0.0	4.0	0	GolbezEx Gale Initial Safe Spot			0		0.0	
 1141	GolbezEx Gale Initial Safe Spot #2	1	8459		3	0	0	0.0	4.0	0	GolbezEx Gale Initial Safe Spot			0		0.0	
@@ -6108,16 +6132,13 @@ fmtrig 5
 1141	GolbezEx Gale Sphere Followup Safe Spots #2	2	8459		3	0	0	0.0	4.0	0	GolbezEx Gale Sphere Followup Safe Spots			0		1.0	
 1141	GolbezEx Gale Sphere Followup Safe Spots #3	2	845A		3	0	0	0.0	4.0	0	GolbezEx Gale Sphere Followup Safe Spots			0		1.0	
 1141	GolbezEx Gale Sphere Followup Safe Spots #4	2	845B		3	0	0	0.0	4.0	0	GolbezEx Gale Sphere Followup Safe Spots			0		1.0	
-1141	GolbezEx Lingering Spark Bait	1	8468		3	0	1	0.0	4.0	0	Bait Circles			1		0.0	
 1141	GolbezEx Lingering Spark Move	1	846A		3	0	0	0.0	4.0	0	Move!	Move		1		3.0	
-1141	GolbezEx Phases of the Blade	1	86DB		3	0	1	0.0	4.0	0	Back => Front	Back then Front		1		0.0	
 1141	GolbezEx Phases of the Blade Followup	2	86DB		3	0	0	0.0	4.0	0	Front			1		5.0	
 1141	GolbezEx Phases of the Shadow	1	86E7		3	0	0	0.0	4.0	0	GolbezEx Phases of the Shadow			0		0.0	
 1141	GolbezEx Phases of the Shadow Followup	2	86E7		3	0	0	0.0	4.0	0	GolbezEx Phases of the Shadow Followup			0		5.0	
 1141	GolbezEx Rising Ring Followup	2	86ED		3	0	0	0.0	4.0	0	Spread Out			1		5.0	
 1141	GolbezEx Terrastorm 1 #1	7	8		0	0	0	0.0	4.0	0	GolbezEx Terrastorm 1			0		0.0	
 1141	GolbezEx Terrastorm 1 #2	7	9		0	0	0	0.0	4.0	0	GolbezEx Terrastorm 1			0		0.0	
-1141	GolbezEx Void Meteor	1	84AD		3	0	1	0.0	4.0	0	Tank Busters			1		0.0	
 1142	Sirensong Fleshless Captive Seductive Scream interrupt	1	2352		3	0	1	0.0	4.0	0	Interrupt {source}			1		0.0	BLU,GLA,PLD,MRD,WAR,DRK,GNB,ARC,BRD,DNC,MCH
 1142	Sirensong Fleshless Captive Seductive Scream stun	1	2352		3	0	1	0.0	4.0	0	Stun {source}			1		0.0	PGL,MNK,LNC,DRG,ROG,NIN,SAM,RPR,VPR
 1142	Sirensong Governor Bloodburst	1	1F5C		3	0	0	0.0	4.0	0	AoE			1		0.0	
@@ -6180,74 +6201,77 @@ fmtrig 5
 1146	Ala Mhigo Swell #2	1	2586		3	0	1	0.0	4.0	0	Knockback			1		0.0	
 1146	Ala Mhigo Sword #1	1	2068		3	0	1	0.0	4.0	0	Protean			1		0.0	
 1146	Ala Mhigo Sword #2	1	2588		3	0	1	0.0	4.0	0	Protean			1		0.0	
-1147	P9N Archaic Demolish	1	812F		3	0	1	0.0	4.0	0	Healer Groups			1		0.0	
-1147	P9N Archaic Rockbreaker	1	8128		3	0	1	0.0	4.0	0	Knockback			1		0.0	
-1147	P9N Ascendant Fist no target	1	8131		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
-1147	P9N Ascendant Fist no target others	1	8131		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
-1147	P9N Ascendant Fist on target	1	8131		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
-1147	P9N Ascendant Fist on you	1	8131		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
+1147	P9N Archaic Demolish	1	812F		3	0	1	0.0	4.0	0	Healer stacks			1		0.2	
+1147	P9N Archaic Rockbreaker	1	8128		3	0	1	0.0	4.0	0	Knockback, then avoid fissures			1		0.0	
+1147	P9N Ascendant Fist	1	8131		3	0	0	0.0	4.0	0	Tankbuster			1		0.0	
+1147	P9N Back Combination	1	814A		3	0	1	0.0	4.0	0	Donut, go front			1		0.0	
+1147	P9N Back Combination + Outside Roundhouse	1	8149		3	0	1	0.0	4.0	0	Go Front and Out			1		0.0	
 1147	P9N Beastly Roar	1	8138		3	0	1	0.0	4.0	0	Knockback			1		0.0	
 1147	P9N Burst	1	8136		3	0	0	0.0	4.0	0	Move!	Move		1		0.0	
+1147	P9N Burst #2	1	8143		3	0	1	0.0	4.0	0	Away from meteor			1		0.0	
 1147	P9N Charybdis	1	8133		3	1	0	0.0	4.0	0	Drop Puddles Outside			1		0.0	
-1147	P9N Ecliptic Meteor	1	813B		3	0	0	0.0	4.0	0	Hide behind unbroken meteor			1		0.0	
+1147	P9N Charybdis #2	1	8132		3	0	1	0.0	4.0	0	AOEs with puddles			1		0.2	
+1147	P9N Comet	1	8134		3	0	1	0.0	4.0	0	Proximity			1		0.0	
+1147	P9N Dualspell	1	811D		3	0	1	0.0	4.0	0	Donut and AOEs			1		0.0	
+1147	P9N Ecliptic Meteor	1	813B		3	0	0	0.0	4.0	0	Hide behind normal meteor			1		0.0	
+1147	P9N Fire Augment	2	8122		0	0	1	0.0	4.0	0	Enhanced fire			1		0.0	
 1147	P9N Fire III	5	1C5		0	1	0	0.0	4.0	0	Spread			1		0.0	
+1147	P9N Front Combination	1	8147		3	0	1	0.0	4.0	0	Out, go behind			1		0.0	
 1147	P9N Front Combination + Inside Roundhouse	1	8148		3	0	1	0.0	4.0	0	Get Behind and Under			1		0.0	
-1147	P9N Front Combination + Outside Roundhouse	1	8147		3	0	1	0.0	4.0	0	Get Behind and Out			1		0.0	
-1147	P9N Global Spell	1	8141		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
+1147	P9N Global Spell	1	8141		3	0	0	0.0	4.0	0	Raidwide with bleed			1		0.0	
 1147	P9N Gluttonous Rampage	5	13A		0	0	0	0.0	4.0	0	Gluttonous Rampage			0		0.0	
+1147	P9N Gluttonous Rampage #2	1	8139		3	0	1	0.0	4.0	0	Tank Tethers then proximity			1		10.0	
+1147	P9N Gluttony's Augar	1	8117		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
 1147	P9N Gluttony's Augur	1	8116		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1147	P9N Ice Augment	2	8123		0	0	1	0.0	4.0	0	Enhanced ice			1		0.0	
+1147	P9N Pulverizing Pounce	1	813F		3	0	1	0.0	4.0	0	Stack			1		0.0	
 1147	P9N Pulverizing Pounce on target	5	A1		0	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1147	P9N Pulverizing Pounce on you	5	A1		0	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
-1147	P9N Rear Combination + Inside Roundhouse	1	814A		3	0	1	0.0	4.0	0	Go Front and Under			1		0.0	
-1147	P9N Rear Combination + Outside Roundhouse	1	8149		3	0	1	0.0	4.0	0	Go Front and Out			1		0.0	
-1148	P9S Archaic Demolish	1	816D		3	0	1	0.0	4.0	0	Healer Groups			1		0.0	
-1148	P9S Archaic Rockbreaker	1	815F		3	0	0	0.0	4.0	0	Knockback into Wall			1		0.0	
-1148	P9S Ascendant Fist no target	1	816F		3	6	1	0.0	4.0	0	Tank Buster			1	healer,dps	0.0	
-1148	P9S Ascendant Fist on target	1	816F		3	5	1	0.0	4.0	0	Tank Buster on {target}			1	healer,dps	0.0	
-1148	P9S Ascendant Fist on you	1	816F		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-1148	P9S Ascendant Fist swap	1	816F		3	2	2	0.0	4.0	0	Tank Swap!	Tank Swap		1	tank	0.0	
-1148	P9S Beastly Fury	1	8186		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1148	P9S Charybdis	1	8170		3	0	1	0.0	4.0	0	Get Middle			1		0.0	
-1148	P9S Duality of Death	1	8151		3	0	0	0.0	4.0	0	Duality of Death			0		0.0	
+1148	P9S Archaic Demolish	1	816D		3	0	1	0.0	4.0	0	Light Parties			1		0.0	
+1148	P9S Archaic Rockbreaker	1	815F		3	0	0	0.0	4.0	0	Knockback			1		0.0	
+1148	P9S Archaic Rockbreaker: Back+In then Out	1	8168		3	0	1	0.0	4.0	0	In, Back, then Out			1		0.0	
+1148	P9S Archaic Rockbreaker: Back+Out then In	1	8167		3	0	1	0.0	4.0	0	Out, Back, then In			1		0.0	
+1148	P9S Archaic Rockbreaker: Front+Out then In #1	1	8169		3	0	1	0.0	4.0	0	Out, Front, then In			1		0.0	
+1148	P9S Archaic Rockbreaker: Front+Out then In #2	1	816A		3	0	1	0.0	4.0	0	In, Front, then Out			1		0.0	
+1148	P9S Ascendant Fist	1	816F		3	0	1	0.0	4.0	0	Tankbuster			1		0.0	
+1148	P9S Back Firestrikes	1	878F		3	0	1	0.0	4.0	0	Charge => Run Through	Charge then Run Through		1		0.0	
+1148	P9S Beatly Fury	1	8186		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1148	P9S Charybdis: Wait Middle	1	8170		0	0	1	0.0	4.0	0	Wait Middle			1		0.0	
+1148	P9S Duality of Death	1	8151		3	0	0	0.0	4.0	0	Tankbuster			1		0.0	
 1148	P9S Fire Symbol	2	8122		3	0	0	0.0	4.0	0	Fire Symbol			0		0.0	
 1148	P9S Front Firestrikes	1	878E		3	0	1	0.0	4.0	0	Charge => Stay	Charge then Stay		1		0.0	
-1148	P9S Front Inside Combination	1	8167		3	0	1	0.0	4.0	0	Out => Back	Out then Back		1		0.0	
-1148	P9S Front Outside Combination	1	8168		3	0	1	0.0	4.0	0	In => Back	In then Back		1		0.0	
-1148	P9S Gluttony's Augur	1	814C		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1148	P9S Gluttnoy's Augur	1	814C		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1148	P9S Ice Symbol	2	8123		3	0	0	0.0	4.0	0	Ice Symbol			0		0.0	
 1148	P9S Limit Cut First Dash/Tower Combo	2	817D		3	0	0	0.0	4.0	0	Limit Cut First Dash/Tower Combo	Limit Cut First Dash, Tower Combo		0		0.0	
 1148	P9S Limit Cut Later Dash/Tower Combo	2	8180		3	0	0	0.0	4.0	0	Limit Cut Later Dash/Tower Combo	Limit Cut Later Dash, Tower Combo		0		0.0	
 1148	P9S Limit Cut Levin Orb Start and Rotation	1	817D		3	0	0	1.5	4.0	0	Limit Cut Levin Orb Start and Rotation			0		0.0	
-1148	P9S Rear Firestrikes	1	878F		3	0	1	0.0	4.0	0	Charge => Run Through	Charge then Run Through		1		0.0	
-1148	P9S Rear Inside Roundhouse	1	8169		3	0	1	0.0	4.0	0	Out => Front	Out then Front		1		0.0	
-1148	P9S Rear Outside Roundhouse	1	816A		3	0	1	0.0	4.0	0	In => Front	In then Front		1		0.0	
+1148	P9S Ravening #1	2	8118		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1148	P9S Ravening #2	2	8119		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1148	P9S Ravening #3	2	811A		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1148	P9S Ravening #4	2	817B		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1148	P9S Roundhouse Followup #1	2	8238		3	0	0	0.0	4.0	0	Roundhouse Followup			0		15.0	
 1148	P9S Roundhouse Followup #2	2	8239		3	0	0	0.0	4.0	0	Roundhouse Followup			0		15.0	
-1148	P9S Soul Surge #1	2	8118		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1148	P9S Soul Surge #2	2	8119		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1148	P9S Soul Surge #3	2	817B		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1148	P9S Soul Surge #4	2	811A		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1148	P9S Thunder Symbol	2	815C		3	0	0	0.0	4.0	0	Thunder Symbol			0		0.0	
-1149	P10N Cannonspawn	1	8264		3	0	0	0.0	4.0	0	Under jails			1		1.0	
+1149	P10N Cannonspawn	1	8264		3	0	0	0.0	4.0	0	Under towers			1		0.1	
+1149	P10N Entangling Web	1	8721		3	0	1	0.0	4.0	0	Bait AOEs			1		0.0	
+1149	P10N Harrowing Hell	1	826A		3	0	0	0.0	4.0	0	Heavy raidwides			1		0.0	
 1149	P10N Harrowing Hell Knockback	1	826F		3	0	1	0.0	4.0	0	Knockback			1		0.0	
-1149	P10N Harrowing Hell x8	1	826A		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1149	P10N Imprisonment	1	8262		3	0	0	0.0	4.0	0	Avoid jails			1		1.0	
+1149	P10N Imprisonment	1	8262		3	0	0	0.0	4.0	0	Away from towers			1		0.1	
 1149	P10N Pandaemoniac Meltdown no target	2	87A2		3	6	1	0.0	4.0	0	Stack			1		0.0	
 1149	P10N Pandaemoniac Meltdown on target	2	87A2		3	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1149	P10N Pandaemoniac Meltdown on you	2	87A2		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
-1149	P10N Pandaemoniac Ray #1	1	8265		3	0	0	0.0	4.0	0	Pandaemoniac Ray			0		0.0	
-1149	P10N Pandaemoniac Ray #2	1	8267		3	0	0	0.0	4.0	0	Pandaemoniac Ray			0		0.0	
-1149	P10N Pandaemonic Pillars	1	825D		3	0	0	0.0	5.0	0	Get Towers			1		0.0	
+1149	P10N Pandu00e6moniac Pillars	1	825D		3	0	0	0.0	4.0	0	Soak towers			1		0.0	
+1149	P10N Pandu00e6moniac Ray: East hit	1	8267		3	0	0	0.0	4.0	0	West safe			1		0.0	
+1149	P10N Pandu00e6moniac Ray: West hit	1	8265		3	0	0	0.0	4.0	0	East safe			1		0.0	
+1149	P10N Pandu00e6monic Meltdown	1	8276		3	0	1	0.0	4.0	0	Stack			1		0.0	
+1149	P10N Parted Plumes	1	8270		3	0	1	0.0	4.0	0	Out of middle			1		0.0	
 1149	P10N Silkspit	5	1CE		0	0	0	0.5	4.0	0	Silkspit			0		0.5	
-1149	P10N Soul Grasp avoid	1	8278		3	5	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1149	P10N Soul Grasp no target	1	8278		3	6	1	0.0	4.0	0	Shared Tank Buster			1	tank,healer	0.0	
-1149	P10N Soul Grasp no target others	1	8278		3	6	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1149	P10N Soul Grasp on target	1	8278		3	5	1	0.0	4.0	0	Shared Tank Buster on {target}			1	tank,healer	0.0	
-1149	P10N Soul Grasp on you	1	8278		3	1	1	0.0	4.0	0	Shared Tank Buster on YOU			1		0.0	
-1149	P10N Touchdown	1	8268		3	0	1	0.0	4.0	0	Side platform(s)			1		0.0	
-1149	P10N Ultima	1	827B		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
-1149	P10N Wicked Step	1	8272		3	0	0	0.0	4.0	0	Wicked Step			0		0.0	
-1150	P10S Circles of Pandaemonium	1	82A7		3	0	1	0.0	4.0	0	In			1		0.0	
+1149	P10N Silkspit #2	1	8259		3	0	1	0.0	4.0	0	Spread AOEs			1		0.0	
+1149	P10N Soul Grasp	1	8278		3	0	1	0.0	4.0	0	Tank stack			1		0.0	
+1149	P10N Touchdown	1	8268		3	0	1	0.0	4.0	0	Move to side arenas			1		0.0	
+1149	P10N Ultima	1	827B		3	0	0	0.0	4.0	0	Raidwide with bleed			1		0.0	
+1149	P10N Wicked Step	1	8272		3	0	0	0.0	4.0	0	Tank towers			1		0.0	
+1150	P10S Circles of Panda	1	82A7		3	0	1	0.0	4.0	0	In			1		0.0	
 1150	P10S Daemoniac Bonds First	3	DDE		0	0	0	0.0	4.0	0	Daemoniac Bonds First			0		5.0	
 1150	P10S Daemoniac Bonds Followup #1	2	82A2		3	0	0	0.0	4.0	0	Daemoniac Bonds Followup			0		5.0	
 1150	P10S Daemoniac Bonds Followup #2	2	82A3		3	0	0	0.0	4.0	0	Daemoniac Bonds Followup			0		5.0	
@@ -6256,18 +6280,22 @@ fmtrig 5
 1150	P10S Dividing Wings Tether Break	2	827F		3	0	1	0.0	4.0	0	Break Tethers			0		5.0	
 1150	P10S Dueodaemoniac Bonds First	3	DDF		0	0	1	0.0	4.0	0	Partners => Spread	Partners then Spread		1		5.0	
 1150	P10S Dueodaemoniac Bonds Future	3	DDF		0	0	0	0.0	7.0	0	Dueodaemoniac Bonds Future			0		5.0	
+1150	P10S Harrowing Hell	1	828F		0	0	1	0.0	4.0	0	Heavy Raidwides, Tanks in Front			1		0.0	
 1150	P10S Jade Passage	10	3044		0	0	0	0.0	4.0	0	Jade Passage			0		5.0	
-1150	P10S Pandaemon's Holy	1	82A6		3	0	1	0.0	4.0	0	Out			1		0.0	
+1150	P10S Panda Holy	1	82A6		3	0	1	0.0	4.0	0	Out			1		0.0	
 1150	P10S Pandaemoniac Meltdown Stack	1	829D		3	0	1	0.0	4.0	0	Line stack			1		0.0	
 1150	P10S Pandaemoniac Pillars	1	8280		3	0	1	0.0	4.0	0	Get Towers			1		0.0	
 1150	P10S Pandaemoniac Ray #1	1	8289		3	0	0	0.0	4.0	0	Pandaemoniac Ray			0		0.0	
 1150	P10S Pandaemoniac Ray #2	1	828B		3	0	0	0.0	4.0	0	Pandaemoniac Ray			0		0.0	
 1150	P10S Pandaemoniac Turrets	1	87AF		3	0	1	0.0	4.0	0	Get Towers			1		0.0	
-1150	P10S Silkspit	1	827C		3	0	0	0.0	4.0	0	Spread for Webs			1		0.0	
+1150	P10S Parted Plumes	1	8295		3	0	1	0.0	4.0	0	Spin			1		0.0	
+1150	P10S Silkspit: Cast	1	827C		3	0	0	0.0	4.0	0	Spread Soon			1		0.0	
+1150	P10S Soul Grasp	1	829F		3	0	1	0.0	4.0	0	Tank Stack, Multiple Hits			1		0.0	
 1150	P10S TetraDaemoniac Bonds First	3	E70		0	0	0	0.0	4.0	0	TetraDaemoniac Bonds First			0		5.0	
 1150	P10S TetraDaemoniac Bonds Future	3	E70		0	0	0	0.0	7.0	0	TetraDaemoniac Bonds Future			0		0.0	
-1150	P10S Ultima	1	82A5		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
+1150	P10S Ultima	1	82A5		3	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
 1150	P10S Wicked Step	1	8299		3	0	0	0.0	4.0	0	Wicked Step			0		0.0	
+1150	P10S Wicked Step #2	1	829A		3	0	1	0.0	4.0	0	Tank Towers with Knockback			1		0.0	
 1151	P11N Blinding Light	5	1D2		0	1	0	0.0	4.0	0	Spread			1		0.0	
 1151	P11N Dark Discord	3	DE4		0	1	1	0.0	4.0	0	Get in light puddle			1		0.0	
 1151	P11N Dike Call	5	DA		0	0	0	0.5	4.0	0	Dike Call			0		10.0	
@@ -6283,10 +6311,10 @@ fmtrig 5
 1151	P11N Styx on you	5	131		0	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 1151	P11N Upheld Ruling Chariot	5	13E		0	0	0	0.0	4.0	0	Upheld Ruling Chariot			0		0.0	
 1151	P11N Upheld Ruling Dynamo	5	1CF		0	0	0	0.0	4.0	0	Upheld Ruling Dynamo			0		0.0	
-1152	P11S Arcane Revelation Dark Orbs	1	8210		3	0	1	0.0	6.0	0	Rotate to Light Orbs			1		0.0	
-1152	P11S Arcane Revelation Dark Portals	1	820E		3	0	1	0.0	4.0	0	Go to Light Portals			1		0.0	
-1152	P11S Arcane Revelation Light Orbs	1	820F		3	0	1	0.0	6.0	0	Rotate to Dark Orbs			1		0.0	
-1152	P11S Arcane Revelation Light Portals	1	820D		3	0	1	0.0	4.0	0	Go to Dark Portals			1		0.0	
+1152	P11S Arcane Revelation: Dark Safe #1	1	820D		3	0	1	0.0	4.0	0	Dark Safe			1		0.0	
+1152	P11S Arcane Revelation: Dark Safe #2	1	820F		3	0	1	0.0	4.0	0	Dark Safe			1		0.0	
+1152	P11S Arcane Revelation: Light Safe #1	1	820E		3	0	1	0.0	4.0	0	Light Safe			1		0.0	
+1152	P11S Arcane Revelation: Light Safe #2	1	8210		3	0	1	0.0	4.0	0	Light Safe			1		0.0	
 1152	P11S Dark Perimeter Followup	2	8225		3	0	1	0.0	4.0	0	Get Towers			0		5.0	
 1152	P11S Dark and Light Tether Callout #1	6	EC		0	0	0	0.5	6.0	1	Dark and Light Tether Callout			0		0.0	
 1152	P11S Dark and Light Tether Callout #2	6	ED		0	0	0	0.5	6.0	1	Dark and Light Tether Callout			0		0.0	
@@ -6294,29 +6322,30 @@ fmtrig 5
 1152	P11S Dark and Light Tether Callout #4	6	EF		0	0	0	0.5	6.0	1	Dark and Light Tether Callout			0		0.0	
 1152	P11S Dark and Light Tether Callout #5	6	F0		0	0	0	0.5	6.0	1	Dark and Light Tether Callout			0		0.0	
 1152	P11S Dark and Light Tether Callout #6	6	F1		0	0	0	0.5	6.0	1	Dark and Light Tether Callout			0		0.0	
+1152	P11S Dike	1	822D		3	0	1	0.0	4.0	0	Tankbuster			1		0.0	
 1152	P11S Dike #1	1	8230		3	0	0	0.0	4.0	0	Dike			0		0.0	
 1152	P11S Dike #2	1	822F		3	0	0	0.0	4.0	0	Dike			0		0.0	
-1152	P11S Dismissal Overruling Dark	1	8785		3	0	1	0.0	6.0	0	Knockback => In + Partners	Knockback then In and Partners		1		0.0	
 1152	P11S Dismissal Overruling Dark Followup	2	8785		3	0	0	0.0	4.0	0	In + Partners	In and Partners		1		5.0	
-1152	P11S Dismissal Overruling Light	1	8784		3	0	1	0.0	6.0	0	Knockback => Healer Stacks + Out	Knockback then Healer Stacks and Out		1		0.0	
 1152	P11S Dismissal Overruling Light Followup	2	8784		3	0	0	0.0	4.0	0	Healer Stacks + Out	Healer Stacks and Out		1		5.0	
-1152	P11S Divisive Overruling Dark	1	81ED		3	0	1	0.0	6.0	0	Sides => In + Partners	Sides then In and Partners		1		0.0	
+1152	P11S Dismissal Overruling: KB/In/Partners	1	8785		3	0	1	0.0	4.0	0	Knockback, In, Partners			1		0.0	
+1152	P11S Dismissal Overruling: KB/Out/Light Parties	1	8784		3	0	1	0.0	4.0	0	Knockback, Out, Light Parties			1		0.0	
 1152	P11S Divisive Overruling Dark Followup	2	81EE		3	0	0	0.0	4.0	0	Divisive Overruling Dark Followup			0		5.0	
-1152	P11S Divisive Overruling Dark Shadowed Messengers	1	87B4		3	0	1	0.0	8.0	0	Partners + In	Partners and In		1		0.0	
-1152	P11S Divisive Overruling Light	1	81EC		3	0	1	0.0	6.0	0	Sides => Healer Stacks + Out	Sides then Healer Stacks and Out		1		0.0	
-1152	P11S Divisive Overruling Light Shadowed Messengers	1	87B3		3	0	1	0.0	8.0	0	Healer Stacks + Out	Healer Stacks and Out		1		0.0	
-1152	P11S Eunomia	1	822B		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
-1152	P11S Jury Overruling Dark	1	81E7		3	0	1	0.0	6.0	0	Protean => Partners	Protean then Partners		1		0.0	
+1152	P11S Divisive Overruling: Sides then LP Out	1	81EC		3	0	1	0.0	4.0	0	Sides then Light Parties Out			1		0.0	
+1152	P11S Divisive Overruling: Sides then Partners In	1	81ED		3	0	1	0.0	4.0	0	Sides then Partners In			1		0.0	
+1152	P11S Divisive Ruling: Sides, In, Partners (During Other Mechs)	1	87B4		3	0	1	0.0	4.0	0	Sides then In and Partners			1		0.0	
+1152	P11S Divisive Ruling: Sides, Out, Light Parties (During Other Mechs)	1	87B3		3	0	1	0.0	4.0	0	Sides and Light Parties			1		0.0	
+1152	P11S Eunomia	1	822B		3	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
 1152	P11S Jury Overruling Dark Followup	2	81E9		3	0	0	0.0	4.0	0	Partners			1		5.0	
-1152	P11S Jury Overruling Light	1	81E6		3	0	1	0.0	6.0	0	Protean => Healer Stacks	Protean then Healer Stacks		1		0.0	
 1152	P11S Jury Overruling Light Followup	2	81E8		3	0	0	0.0	4.0	0	Healer Stacks			1		5.0	
-1152	P11S Styx Stack	1	8217		3	0	0	0.0	4.0	0	Styx Stack			0		0.0	
-1152	P11S Twofold Revelation Dark	1	8212		3	0	1	0.0	4.0	0	Go to Light Orb + Light Portals	Go to Light Orb and Light Portals		1		0.0	
-1152	P11S Twofold Revelation Light	1	8211		3	0	1	0.0	4.0	0	Go to Dark Orb + Dark Portals	Go to Dark Orb and Dark Portals		1		0.0	
-1152	P11S Upheld Overruling Dark	1	87D4		3	0	0	0.0	6.0	0	Upheld Overruling Dark			0		0.0	
+1152	P11S Jury Overruling: Proteans then Partners	1	81E7		3	0	1	0.0	4.0	0	Proteans then Partners Out			1		0.0	
+1152	P11S Jury Overruling: Twisters then Light Parties In	1	81E6		3	0	1	0.0	4.0	0	Twisters then Light Parties			1		0.0	
+1152	P11S Styx	1	8217		3	0	0	0.0	4.0	0	Party Stack, Multiple Hits			1		0.0	
+1152	P11S Twofold Revelation: Dark Safe	1	8211		3	0	1	0.0	4.0	0	Dark Safe			1		0.0	
+1152	P11S Twofold Revelation: Light Safe	1	8212		3	0	1	0.0	4.0	0	Light Safe			1		0.0	
 1152	P11S Upheld Overruling Dark Followup	2	81F3		3	0	0	0.0	4.0	0	In + Partners	In and Partners		1		5.0	
-1152	P11S Upheld Overruling Light	1	87D3		3	0	1	0.0	6.0	0	Party In => Out + Healer Stacks	Party In then Out and Healer Stacks		1		0.0	
 1152	P11S Upheld Overruling Light Followup	2	81F2		3	0	0	0.0	4.0	0	Out + Healer Stacks	Out and Healer Stacks		1		5.0	
+1152	P11S Upheld Overruling: Stack then Light Parties	1	87D3		3	0	1	0.0	4.0	0	Stack then Light Parties Out			1		0.0	
+1152	P11S Upheld Overruling: Tanks In then Partners In	1	87D4		3	0	0	0.0	4.0	0	Tanks In then Partners In			1		0.0	
 1152	P11S Upheld Ruling Dark Followup	2	8221		3	0	0	0.0	4.0	0	Get in Donut			1		5.0	
 1152	P11S Upheld Ruling Tether	1	87D1		3	0	0	0.0	4.0	0	Upheld Ruling Tether			0		0.0	
 1153	P12N Dialogos Stack no target	1	82D6		3	6	1	0.0	4.0	0	Stack			1		0.0	
@@ -6335,7 +6364,6 @@ fmtrig 5
 1153	P12N Third Wing #1	2	82C3		3	0	0	0.0	4.0	0	Third Wing			0		5.0	
 1153	P12N Third Wing #2	2	82C4		3	0	0	0.0	4.0	0	Third Wing			0		5.0	
 1153	P12N Unnatural Enchainment	1	82BF		3	0	1	0.0	4.0	0	Avoid Chained Platforms			1		0.0	
-1154	P12S Apodialogos	1	82FE		3	0	0	0.0	4.0	0	Apodialogos			0		0.0	
 1154	P12S Caloric Theory 1 Beacon	1	8338		3	0	0	1.0	4.0	0	Caloric Theory 1 Beacon			0		0.0	
 1154	P12S Caloric Theory 1 Fire	3	E06		0	0	1	0.0	4.0	0	Fire again			1		0.0	
 1154	P12S Caloric Theory 1 Fire Final	3	E06		0	0	0	12.8	4.0	0	Caloric Theory 1 Fire Final			0		2.0	
@@ -6343,7 +6371,6 @@ fmtrig 5
 1154	P12S Caloric Theory 2 Pass	3	E08		0	0	0	0.0	3.0	0	Caloric Theory 2 Pass			0		0.0	
 1154	P12S Classical Concepts #1	1	8331		3	0	0	0.0	4.0	0	Classical Concepts			0		0.0	
 1154	P12S Classical Concepts #2	1	8336		3	0	0	0.0	4.0	0	Classical Concepts			0		0.0	
-1154	P12S Ekpyrosis Cast	1	831E		3	0	1	0.0	4.0	0	Exaflare + Big AoE!	Exaflare and Big AoE		0		0.0	
 1154	P12S Ekpyrosis Spread	2	831F		3	0	1	0.5	4.0	0	Spread			1		2.0	
 1154	P12S Engravement 2 Heavensflame Soul	3	DFA		0	0	1	0.0	4.0	0	Spread			0		0.0	
 1154	P12S Engravement 2 Heavensflame Soul Early	3	DFA		0	0	0	6.5	4.0	0	(spread later)			0		0.0	
@@ -6352,15 +6379,11 @@ fmtrig 5
 1154	P12S First Wing #2	1	82E8		3	0	0	0.0	7.0	0	First Wing			0		0.0	
 1154	P12S First Wing #3	1	82E1		3	0	0	0.0	7.0	0	First Wing			0		0.0	
 1154	P12S First Wing #4	1	82E2		3	0	0	0.0	7.0	0	First Wing			0		0.0	
-1154	P12S Gaiaochos	1	8326		3	0	1	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1154	P12S Gaiaochos Tether	6	9		0	0	0	0.0	4.0	0	Gaiaochos Tether			0		0.0	
 1154	P12S Geocentrism Circle	1	832A		3	0	1	0.0	4.0	0	Inny Spinny			1		0.0	
 1154	P12S Geocentrism Horizontal	1	832B		3	0	1	0.0	4.0	0	Horizontal			1		0.0	
 1154	P12S Geocentrism Vertical	1	8329		3	0	1	0.0	4.0	0	Vertical			1		0.0	
-1154	P12S Glaukopis First Cleave	1	82FC		3	0	0	0.0	4.0	0	Glaukopis First Cleave			0		0.0	
 1154	P12S Glaukopis Second Cleave Swap	2	82FD		3	0	1	0.1	4.0	0	Tank Swap!	Tank Swap		1		1.0	GLA,PLD,MRD,WAR,DRK,GNB,BLU
-1154	P12S On the Soul	1	8304		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1154	P12S Palladian Grasp	1	831A		3	0	0	0.0	4.0	0	Palladian Grasp			0		0.0	
 1154	P12S Palladian Ray 1 Initial	4	E04		0	0	0	0.0	8.0	0	Palladian Ray 1 Initial			0		0.0	
 1154	P12S Palladian Ray 2 Initial	6	1		0	0	0	0.0	4.0	0	Palladian Ray 2 Initial			0		0.0	
 1154	P12S Palladian Ray Followup	2	8323		3	0	0	2.5	4.0	0	Palladian Ray Followup			0		0.0	
@@ -6369,13 +6392,10 @@ fmtrig 5
 1154	P12S Pangenesis Initial	3	E22		0	0	0	0.5	4.0	1	Pangenesis Initial			0		0.0	
 1154	P12S Pangenesis Slime Reminder	2	8343		3	0	2	0.0	4.0	0	Get Slime Tethers			0		3.0	
 1154	P12S Paradeigma 1 Clones	2	8314		3	0	0	0.5	4.0	0	Paradeigma 1 Clones			0		10.0	
-1154	P12S Peridialogos	1	82FF		3	0	0	0.0	4.0	0	Peridialogos			0		0.0	
 1154	P12S Ray of Light 1	1	82EE		3	0	0	0.0	4.0	0	Ray of Light 1			0		1.0	
 1154	P12S Sample Safe Tile	6	E8		0	0	1	1.0	4.0	0	Find safe tile			0		0.0	
 1154	P12S Summon Darkness Preposition	1	832F		3	0	0	0.0	4.0	0	Stack for Tethers			0		0.0	
 1154	P12S Superchain Theory IIb Second Mechanic + Ray of Light 2	1	82EE		3	0	0	0.0	4.0	0	Superchain Theory IIb Second Mechanic + Ray of Light 2	Superchain Theory IIb Second Mechanic and Ray of Light 2		0		1.0	
-1154	P12S Ultima #1	1	8682		3	0	1	0.0	4.0	0	AoE			1		0.0	
-1154	P12S Ultima #2	1	86F6		3	0	1	0.0	4.0	0	AoE			1		0.0	
 1154	P12S Ultima Blow Tether	6	1		0	0	0	0.5	4.0	0	Ultima Blow Tether			0		5.0	
 1154	P12S Ultima Ray 1	1	8330		3	0	0	0.0	4.0	0	Ultima Ray 1			0		0.0	
 1154	P12S Ultima Ray 2	1	8330		3	0	0	0.0	4.0	0	Ultima Ray 2			0		0.0	
@@ -6391,6 +6411,20 @@ fmtrig 5
 1154	P12S Wing Followup Third Wing Superchain IIA #2	2	82E6		3	0	0	0.0	4.0	0	Wing Followup Third Wing Superchain IIA			0		1.0	
 1154	P12S Wing Followup Third Wing Superchain IIA #3	2	82EB		3	0	0	0.0	4.0	0	Wing Followup Third Wing Superchain IIA			0		1.0	
 1154	P12S Wing Followup Third Wing Superchain IIA #4	2	82EC		3	0	0	0.0	4.0	0	Wing Followup Third Wing Superchain IIA			0		1.0	
+1154	P12SDoorBoss Apodialogos	1	82FE		3	0	0	0.0	4.0	0	Party In, Tanks Out			1		0.0	
+1154	P12SDoorBoss Glaukopis	1	82FC		3	0	0	0.0	4.0	0	Tank Buster			1		0.0	
+1154	P12SDoorBoss On the Soul	1	8304		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1154	P12SDoorBoss Peridialogos	1	82FF		3	0	0	0.0	4.0	0	Party Stack Out, Tanks In			1		0.0	
+1154	P12SDoorBoss Theos's Ultima	1	82FA		3	0	1	0.0	4.0	0	Big Raidwide			1		0.0	
+1154	P12SDoorBoss Ultima Blade	2	82F3		3	0	1	0.0	4.0	0	Big Raidwide			1		0.0	
+1154	P12SFinal Crush Helm	1	8317		3	0	1	0.0	4.0	0	Tankbuster, Multiple Hits			1		0.0	
+1154	P12SFinal Ekpyrosis Start	1	831E		0	0	1	0.0	4.0	0	Exaflares			1		0.0	
+1154	P12SFinal Gaiaochos	1	8326		3	0	1	0.0	4.0	0	Get In, Raidwide			1		0.0	
+1154	P12SFinal Ignorabimus	1	8349		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1154	P12SFinal Palladian Grasp	1	831A		3	0	0	0.0	4.0	0	Tankbuster			1		0.0	
+1154	P12SFinal Pangenesis: Raidwide	1	833F		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1154	P12SFinal Ultima #1	1	8682		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1154	P12SFinal Ultima #2	1	86F6		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
 1155	AMR Gorai Brazen Ballad Blue	1	850A		3	0	1	0.0	4.0	0	Under Rock + Lines	Under Rock and Lines		1		0.0	
 1155	AMR Gorai Brazen Ballad Purple	1	8509		3	0	1	0.0	4.0	0	Avoid Expanding Lines			1		0.0	
 1155	AMR Gorai Fighting Spirits	1	852B		3	0	0	0.0	4.0	0	Knockback			1		0.0	
@@ -6684,10 +6718,16 @@ fmtrig 5
 1168	Zeromus The Dark Divides	5	178		0	1	0	0.0	4.0	0	Spread			1		0.0	
 1168	Zeromus Visceral Whirl NE Safe	1	8AFB		3	0	0	0.0	4.0	0	Zeromus Visceral Whirl NE Safe	Zeromus Visceral Whirl northeast Safe		0		0.0	
 1168	Zeromus Visceral Whirl NW Safe	1	8AFE		3	0	0	0.0	4.0	0	Zeromus Visceral Whirl NW Safe	Zeromus Visceral Whirl northwest Safe		0		0.0	
+1169	EX7 Abyssal Nox Cast	1	8B3F		0	0	1	0.0	4.0	0	Heal to Full Soon			1		0.0	
+1169	EX7 Big Bang - Spread	1	8B4C		0	0	0	0.0	4.0	0	Spread, Watch Floor			1		0.0	
+1169	EX7 Dark Matter	1	8B83		3	0	1	0.0	4.0	0	Buster - 3 Hits			1		0.0	
+1169	EX7 Meteors - Stack Middle	1	8B57		0	0	1	0.0	4.0	0	Stack Middle			1		0.0	
+1169	EX7 Rend the Rift	1	8C0D		3	0	0	0.0	4.0	0	Avoid Ground AoE			1		0.0	
+1169	EX7 Sable Thread	1	8B38		3	0	1	0.0	4.0	0	Line Stack - Multiple Hits			1		0.0	
+1169	EX7 Void Bio	1	8B66		3	0	1	0.0	4.0	0	Dodge Balls			1		0.0	
 1169	ZeromusEx Abyssal Nox	3	6E9		0	0	1	0.0	4.0	0	Heal to full			1		5.0	
 1169	ZeromusEx Acceleration Bomb	3	A61		0	0	2	0.0	4.0	0	Stop Everything!	Stop Everything		0		0.0	
 1169	ZeromusEx Akh Rhai Followup	2	8B74		3	0	0	0.0	4.0	0	Move!	Move		1		5.0	
-1169	ZeromusEx Big Bang	1	8B4C		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
 1169	ZeromusEx Big Crunch	1	8B4D		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
 1169	ZeromusEx Branding Flare Tower	1	8B5F		3	0	1	0.0	6.0	0	Get Towers => Partner Stacks	Get Towers then Partner Stacks		1		0.0	
 1169	ZeromusEx Flow of the Abyss #1	7	2		0	0	0	0.0	4.0	0	ZeromusEx Flow of the Abyss			0		0.0	
@@ -6698,7 +6738,6 @@ fmtrig 5
 1169	ZeromusEx Fractured Eventide NW Safe	1	8B3D		3	0	1	0.0	4.0	0	Northwest			1		0.0	
 1169	ZeromusEx Miasmic Blast Safe Spots	1	8B49		3	0	1	0.5	4.0	0	Avoid Line Cleaves			0		0.0	
 1169	ZeromusEx Nostalgia	2	8B6B		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		5.0	
-1169	ZeromusEx Rend the Rift	1	8C0D		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1169	ZeromusEx Sable Thread	2	8AEF		3	0	0	0.0	4.0	0	ZeromusEx Sable Thread			0		0.0	
 1169	ZeromusEx Sparking Flare Tower	1	8B5E		3	0	1	0.0	6.0	0	Get Towers => Spread	Get Towers then Spread		1		0.0	
 1169	ZeromusEx Tether #1	6	A3		0	0	0	0.0	4.0	0	ZeromusEx Tether			0		10.0	
@@ -7310,23 +7349,38 @@ fmtrig 5
 1195	Valigarmanda Tulidisaster 1	1	8D65		3	0	0	5.0	4.0	0	big AoE!	big AoE		1		0.0	
 1195	Valigarmanda Tulidisaster 2	1	8D65		3	0	0	13.5	4.0	0	big AoE!	big AoE		1		0.0	
 1195	Valigarmanda Tulidisaster 3	1	8D65		3	0	0	21.5	4.0	0	big AoE!	big AoE		1		0.0	
+1196	DTEx1 Cone+Partners	1	8FC7		3	0	0	0.0	4.0	0	Front Corners and Partners			1		0.0	
+1196	DTEx1 Cone+Twister	1	8FC5		3	0	0	0.0	4.0	0	Front Corners and Bait Twister			1		0.0	
+1196	DTEx1 Crackling Cataclysm	1	8FC1		3	0	2	0.0	4.0	0	Move			1		3.0	
+1196	DTEx1 Disaster Zone #1	1	8FD6		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1196	DTEx1 Disaster Zone #2	1	8FD8		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1196	DTEx1 Disaster Zone #3	1	8FDA		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1196	DTEx1 Eruption: Move	2	8FEF		3	0	1	0.0	4.0	0	Move			1		0.2	
+1196	DTEx1 Freezing Dust	1	8FF0		3	0	1	0.0	4.0	0	Move			1		0.0	
+1196	DTEx1 In Middle+Partners	1	8FCF		3	0	0	0.0	4.0	0	Middle and Partners			1		0.0	
+1196	DTEx1 In Middle+Twister	1	8FCD		3	0	0	0.0	4.0	0	Middle and Bait Twister			1		0.0	
+1196	DTEx1 Mountain Fire Initial	1	900C		0	0	1	0.0	4.0	0	Tank Tower and Cleaves			1		0.0	
+1196	DTEx1 Out+Partners	1	8FCB		3	0	0	0.0	4.0	0	Out and Partners			1		0.0	
+1196	DTEx1 Out+Twister	1	8FC9		3	0	0	0.0	4.0	0	Out and Bait Twister			1		0.0	
+1196	DTEx1 Ruin Foretold	1	9692		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1196	DTEx1 Skyruin (Fire)	1	95C4		3	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
+1196	DTEx1 Skyruin (Ice)	1	8FD1		3	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
+1196	DTEx1 Skyruin (Lightning)	1	95C3		3	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
+1196	DTEx1 Triscourge	1	8FE7		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1196	DTEx1 Tulidisaster	1	9008		3	0	0	0.0	4.0	0	Multiple Raidwides			1		0.0	
+1196	DTEx1 Wrath Unfurled	1	995		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
 1196	Valigarmanda Ex Adds + Wild Charge Stacks	3	B7B		0	0	0	0.0	4.0	1	Valigarmanda Ex Adds + Wild Charge Stacks	Valigarmanda Ex Adds and Wild Charge Stacks		0		0.0	
 1196	Valigarmanda Ex Big AOE + Avalanche #1	1	8FC6		3	0	0	0.0	7.0	0	Valigarmanda Ex Big AOE + Avalanche	Valigarmanda Ex Big AOE and Avalanche		0		0.0	
 1196	Valigarmanda Ex Big AOE + Avalanche #2	1	8FCA		3	0	0	0.0	7.0	0	Valigarmanda Ex Big AOE + Avalanche	Valigarmanda Ex Big AOE and Avalanche		0		0.0	
 1196	Valigarmanda Ex Big AOE + Avalanche #3	1	8FCE		3	0	0	0.0	7.0	0	Valigarmanda Ex Big AOE + Avalanche	Valigarmanda Ex Big AOE and Avalanche		0		0.0	
-1196	Valigarmanda Ex Big AOE + Partners #1	1	8FC7		3	0	0	0.0	7.0	0	Valigarmanda Ex Big AOE + Partners	Valigarmanda Ex Big AOE and Partners		0		0.0	
-1196	Valigarmanda Ex Big AOE + Partners #2	1	8FCB		3	0	0	0.0	7.0	0	Valigarmanda Ex Big AOE + Partners	Valigarmanda Ex Big AOE and Partners		0		0.0	
-1196	Valigarmanda Ex Big AOE + Partners #3	1	8FCF		3	0	0	0.0	7.0	0	Valigarmanda Ex Big AOE + Partners	Valigarmanda Ex Big AOE and Partners		0		0.0	
 1196	Valigarmanda Ex Calamity's Bolt	3	EEF		0	0	0	0.0	6.0	0	Spread			0		0.0	
 1196	Valigarmanda Ex Calamity's Chill	3	EEE		0	0	1	0.0	6.0	0	Move!	Move		0		0.0	
 1196	Valigarmanda Ex Calamity's Flames	3	EE9		0	0	1	0.0	6.0	0	Healer Groups			0		1.0	
 1196	Valigarmanda Ex Calamity's Inferno	3	EEA		0	0	1	0.0	6.0	0	Healer Groups			0		1.0	
-1196	Valigarmanda Ex Crackling Cataclysm	1	8FC1		3	0	2	0.0	4.0	0	Move!	Move		1		2.0	
 1196	Valigarmanda Ex Disaster Zone #1	1	8FD5		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1196	Valigarmanda Ex Disaster Zone #2	1	8FD7		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1196	Valigarmanda Ex Disaster Zone #3	1	8FD9		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1196	Valigarmanda Ex Feather of Ruin	2	8FDE		3	0	0	5.0	8.0	1	Kill Feather => Stand in safe tile	Kill Feather then Stand in safe tile		1		0.0	
-1196	Valigarmanda Ex Freezing Dust	1	8FF0		3	0	1	0.0	4.0	0	Move!	Move		1		0.0	
 1196	Valigarmanda Ex Ice Arcane Sphere + Avalanche	2	8FC2		3	0	0	0.0	4.0	0	Valigarmanda Ex Ice Arcane Sphere + Avalanche	Valigarmanda Ex Ice Arcane Sphere and Avalanche		0		2.0	
 1196	Valigarmanda Ex Ice Arcane Sphere Safe	10	0	Arcane Sphere	0	0	0	0.0	4.0	0	Valigarmanda Ex Ice Arcane Sphere Safe			0		0.0	
 1196	Valigarmanda Ex Ice Big AOE #1	1	8FC8		3	0	0	0.0	7.0	0	Valigarmanda Ex Ice Big AOE			0		0.0	
@@ -7336,23 +7390,12 @@ fmtrig 5
 1196	Valigarmanda Ex Mountain Fire Tank	2	900C		3	0	0	0.0	30.5	0	Tank Tower (soak/swap)	Tank Tower (soak, swap)		1	tank	0.0	
 1196	Valigarmanda Ex Post-Arcane Sphere Spread	2	985A		3	0	0	0.0	9.0	0	Valigarmanda Ex Post-Arcane Sphere Spread			0		1.0	
 1196	Valigarmanda Ex Post-Feather Spread	2	8FDF		3	0	0	0.0	10.0	0	Valigarmanda Ex Post-Feather Spread			0		0.0	
-1196	Valigarmanda Ex Ruin Foretold	1	9692		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1196	Valigarmanda Ex Ruinfall Knockback	1	8FFF		3	0	1	3.0	4.0	0	Knockback			1		0.0	
 1196	Valigarmanda Ex Ruinfall Tower	1	8FFD		3	0	0	0.0	4.0	0	Valigarmanda Ex Ruinfall Tower			0		0.0	
 1196	Valigarmanda Ex Scourge of Ice and Fire	3	EEB		0	0	0	5.0	4.0	0	Valigarmanda Ex Scourge of Ice and Fire			0		1.0	
-1196	Valigarmanda Ex Skyruin Fire	1	95C4		3	0	0	6.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
-1196	Valigarmanda Ex Skyruin Ice	1	8FD1		3	0	0	6.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
-1196	Valigarmanda Ex Skyruin Storm	1	95C3		3	0	0	6.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
 1196	Valigarmanda Ex Spikesicle #1	7	4		0	0	0	0.0	4.0	0	Valigarmanda Ex Spikesicle			0		5.0	
 1196	Valigarmanda Ex Spikesicle #2	7	5		0	0	0	0.0	4.0	0	Valigarmanda Ex Spikesicle			0		5.0	
 1196	Valigarmanda Ex Storm Arcane Sphere Safe	10	0	Arcane Sphere	0	0	0	1.0	4.0	0	Valigarmanda Ex Storm Arcane Sphere Safe			0		2.0	
-1196	Valigarmanda Ex Storm Big AOEs + Bait #1	1	8FC5		3	0	0	0.0	7.0	0	Valigarmanda Ex Storm Big AOEs + Bait	Valigarmanda Ex Storm Big AOEs and Bait		0		0.0	
-1196	Valigarmanda Ex Storm Big AOEs + Bait #2	1	8FC9		3	0	0	0.0	7.0	0	Valigarmanda Ex Storm Big AOEs + Bait	Valigarmanda Ex Storm Big AOEs and Bait		0		0.0	
-1196	Valigarmanda Ex Storm Big AOEs + Bait #3	1	8FCD		3	0	0	0.0	7.0	0	Valigarmanda Ex Storm Big AOEs + Bait	Valigarmanda Ex Storm Big AOEs and Bait		0		0.0	
-1196	Valigarmanda Ex Triscourge	1	8FE7		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1196	Valigarmanda Ex Tulidisaster 1	1	9008		3	0	0	5.0	4.0	0	AoE			1		0.0	
-1196	Valigarmanda Ex Tulidisaster 2	1	9008		3	0	0	13.5	4.0	0	AoE			1		0.0	
-1196	Valigarmanda Ex Tulidisaster 3	1	9008		3	0	0	21.5	4.0	0	AoE			1		0.0	
 1196	Valigarmanda Ex Volcano #1	7	E		0	0	0	0.0	4.0	0	Valigarmanda Ex Volcano			0		0.0	
 1196	Valigarmanda Ex Volcano #2	7	F		0	0	0	0.0	4.0	0	Valigarmanda Ex Volcano			0		0.0	
 1196	Valigarmanda Ex Wrath Unfurled	1	9945		3	0	0	0.0	4.0	0	AoE			1		0.0	
@@ -7447,22 +7490,29 @@ fmtrig 5
 1200	ZoraalJa Soul Overflow Phase Transition	1	9370		3	0	1	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1200	ZoraalJa Vorpal Trail First	1	934E		3	0	0	0.0	9.5	0	Dodge contracting swords (front/back combo after)	Dodge contracting swords (front, back combo after)		1		0.0	
 1200	ZoraalJa Vorpal Trail Subsequent	1	934E		3	0	0	11.5	9.5	0	Dodge expanding swords			1		0.0	
-1201	Zoraal Ja Ex Actualize	1	9398		3	0	0	0.0	4.0	0	AoE			1		0.0	
+1201	DTEx2 Actualize	1	9398		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1201	DTEx2 Bitter Whirlwind	1	993E		3	0	1	0.0	4.0	0	Buster on {target}			1		0.0	
+1201	DTEx2 Burning Chains Initial	1	9395		0	0	1	0.0	4.0	0	Stack			1		0.0	
+1201	DTEx2 Dawn of an Age	1	9397		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1201	DTEx2 Duty's Edge	1	9374		3	0	1	0.0	4.0	0	Stack - Multiple Hits			1		0.0	
+1201	DTEx2 Forged Track	1	939C		3	0	1	0.0	4.0	0	Watch Swords and Tracks			1		5.0	
+1201	DTEx2 Greater Gateway	1	9381		3	0	1	0.0	4.0	0	Watch Tracks			1		0.0	
+1201	DTEx2 Multidirectional Divide	1	93A2		3	0	1	0.0	4.0	0	Cross			1		0.0	
+1201	DTEx2 Projection of Triumph	1	938A		3	0	1	0.0	4.0	0	Avoid Balls, Follow Donuts			1		15.0	
+1201	DTEx2 Projection of Turmoil	1	9A88		3	0	1	0.0	4.0	0	Take Stacks Sequentially			1		0.0	
+1201	DTEx2 Regicidal Rage	1	993B		3	0	0	0.0	4.0	0	Tank Tethers			1		0.0	
+1201	DTEx2 Sync	1	9359		3	0	1	0.0	4.0	0	Swords Mirroring			1		0.0	
+1201	DTEx2 Vollok (Five Platforms)	1	9357		3	0	1	0.0	4.0	0	Watch Swords			1		0.0	
+1201	DTEx2 Vollok (Two Platforms)	1	9392		3	0	1	0.0	4.0	0	Watch Swords			1		0.0	
 1201	Zoraal Ja Ex Backward Half Left Sword #1	1	937E		3	0	0	0.0	4.0	0	Zoraal Ja Ex Backward Half Left Sword			0		0.0	
 1201	Zoraal Ja Ex Backward Half Left Sword #2	1	999D		3	0	0	0.0	4.0	0	Zoraal Ja Ex Backward Half Left Sword			0		0.0	
 1201	Zoraal Ja Ex Backward Half Right Sword #1	1	937D		3	0	0	0.0	4.0	0	Zoraal Ja Ex Backward Half Right Sword			0		0.0	
 1201	Zoraal Ja Ex Backward Half Right Sword #2	1	999C		3	0	0	0.0	4.0	0	Zoraal Ja Ex Backward Half Right Sword			0		0.0	
-1201	Zoraal Ja Ex Bitter Whirlwind no target	1	993E		3	6	1	0.0	4.0	0	Tank Buster			1	healer,dps	0.0	
-1201	Zoraal Ja Ex Bitter Whirlwind on target	1	993E		3	5	1	0.0	4.0	0	Tank Buster on {target}			1	healer,dps	0.0	
-1201	Zoraal Ja Ex Bitter Whirlwind on you	1	993E		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-1201	Zoraal Ja Ex Bitter Whirlwind swap	1	993E		3	2	2	0.0	4.0	0	Tank Swap!	Tank Swap		1	tank	0.0	
 1201	Zoraal Ja Ex Burning Chains	3	301		0	1	0	0.0	4.0	0	Zoraal Ja Ex Burning Chains			0		0.0	
 1201	Zoraal Ja Ex Chasm Of Vollok + Half Full #1	1	9368		3	0	0	0.0	6.0	0	Zoraal Ja Ex Chasm Of Vollok + Half Full	Zoraal Ja Ex Chasm Of Vollok and Half Full		0		0.0	
 1201	Zoraal Ja Ex Chasm Of Vollok + Half Full #2	1	9369		3	0	0	0.0	6.0	0	Zoraal Ja Ex Chasm Of Vollok + Half Full	Zoraal Ja Ex Chasm Of Vollok and Half Full		0		0.0	
 1201	Zoraal Ja Ex Chasm Of Vollok No Cleave	1	9399		3	0	0	1.0	6.0	0	Zoraal Ja Ex Chasm Of Vollok No Cleave			0		1.0	
-1201	Zoraal Ja Ex Dawn Of An Age	1	9397		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1201	Zoraal Ja Ex Drum Of Vollok	1	938F		3	0	0	0.3	4.0	0	Zoraal Ja Ex Drum Of Vollok			0		1.0	
-1201	Zoraal Ja Ex Duty's Edge	1	9374		3	0	1	0.0	10.0	0	Stack			1		0.0	
 1201	Zoraal Ja Ex Forged Track	1	935F		3	0	0	0.6	9.0	0	Zoraal Ja Ex Forged Track			0		0.0	
 1201	Zoraal Ja Ex Forward Half Left Sword #1	1	937C		3	0	0	0.0	4.0	0	Zoraal Ja Ex Forward Half Left Sword			0		0.0	
 1201	Zoraal Ja Ex Forward Half Left Sword #2	1	999B		3	0	0	0.0	4.0	0	Zoraal Ja Ex Forward Half Left Sword			0		0.0	
@@ -7473,7 +7523,6 @@ fmtrig 5
 1201	Zoraal Ja Ex Knockaround Swords + Spread	1	9393		3	0	0	0.2	4.0	0	Zoraal Ja Ex Knockaround Swords + Spread	Zoraal Ja Ex Knockaround Swords and Spread		0		1.0	
 1201	Zoraal Ja Ex Might Of Vollok Left Sword	1	9369		3	0	1	0.0	4.0	0	Boss's Right			0		0.0	
 1201	Zoraal Ja Ex Might Of Vollok Right Sword	1	9368		3	0	1	0.0	4.0	0	Boss's Left			0		0.0	
-1201	Zoraal Ja Ex Regicidal Rage	1	993B		3	0	0	0.0	4.0	0	Zoraal Ja Ex Regicidal Rage			0		0.0	
 1201	Zoraal Ja Ex Swords Spread Markers	5	B9		0	0	1	0.0	4.0	0	Spread			0		0.0	
 1202	Queen Eternal Absolute Authority Doritos	5	37		0	1	1	0.0	4.0	0	Dorito Stack			1		0.0	
 1202	Queen Eternal Absolute Authority Flares	5	147		0	1	1	0.0	4.0	0	Flare on YOU			1		0.0	
@@ -7565,6 +7614,15 @@ fmtrig 5
 1209	Cenote Ja Ja Lightburst	1	9583		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1209	Cenote Ja Ja Pyreburst	1	9576		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1209	Cenote Ja Ja Uolon of Fortune Spawn	10	33B9		0	0	0	0.0	4.0	0	Cenote Ja Ja Uolon of Fortune Spawn			0		1.0	
+1225	M1N Black Cat Crossing: Card safe	1	930F		3	0	1	0.0	4.0	0	Cardinals then intercardinals			1		0.0	
+1225	M1N Leaping Black Cat Crossing: Card safe	1	9329		3	0	1	0.0	4.0	0	Cardinal then inter			1		0.0	
+1225	M1N Leaping Black Cat Crossing: Inter safe	1	9810		3	0	1	0.0	4.0	0	Inter then Cardinal			1		0.0	
+1225	M1N Leaping One-Two Paw: East safe #1	1	9320		3	0	0	0.0	4.0	0	East then West			1		0.0	
+1225	M1N Leaping One-Two Paw: East safe #2	1	9322		3	0	0	0.0	4.0	0	East then West			1		0.0	
+1225	M1N Leaping One-Two Paw: West safe #1	1	9321		3	0	0	0.0	4.0	0	West then East			1		0.0	
+1225	M1N Leaping One-Two Paw: West safe #2	1	931F		3	0	0	0.0	4.0	0	West then East			1		0.0	
+1225	M1N One-Two Paw: East safe	1	930C		3	0	1	0.0	4.0	0	East then West			1		0.0	
+1225	M1N One-Two Paw: West safe	1	9309		3	0	1	0.0	4.0	0	West then East			1		0.0	
 1225	R1N Biscuit Maker no target	1	934A		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
 1225	R1N Biscuit Maker no target others	1	934A		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
 1225	R1N Biscuit Maker on target	1	934A		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
@@ -7574,25 +7632,28 @@ fmtrig 5
 1225	R1N Clawful on target	1	933C		3	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1225	R1N Clawful on you	1	933C		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 1225	R1N Elevate and Eviscerate	1	9317		3	1	0	0.0	4.0	0	Aim for uncracked tile			1		0.0	
-1225	R1N Leaping One-two Paw East East West	1	9322		3	0	0	0.0	10.5	0	East => West at marker	East then West at marker		1		0.0	
-1225	R1N Leaping One-two Paw East West East	1	9321		3	0	0	0.0	10.5	0	West => East at marker	West then East at marker		1		0.0	
-1225	R1N Leaping One-two Paw West East West	1	9320		3	0	0	0.0	10.5	0	East => West at marker	East then West at marker		1		0.0	
-1225	R1N Leaping One-two Paw West West East	1	931F		3	0	0	0.0	10.5	0	West => East at marker	West then East at marker		1		0.0	
 1225	R1N Mouser	1	996B		3	0	0	0.2	11.0	0	Mouser			0		0.0	
-1225	R1N One-two Paw Left Right	1	930C		3	0	1	0.0	9.5	0	Right => Left	Right then Left		1		0.0	
-1225	R1N One-two Paw Right Left	1	9309		3	0	1	0.0	9.5	0	Left => Right	Left then Right		1		0.0	
 1225	R1N Overshadow no target	1	9319		3	6	1	0.0	4.0	0	Stack			1		0.0	
 1225	R1N Overshadow on target	1	9319		3	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1225	R1N Overshadow on you	1	9319		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 1225	R1N Shockwave 931D	1	931D		3	0	1	0.0	4.0	0	Knockback			1		0.0	
-1226	R1S Biscuit Maker no target	1	9495		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
-1226	R1S Biscuit Maker no target others	1	9495		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
-1226	R1S Biscuit Maker on target	1	9495		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
-1226	R1S Biscuit Maker on you	1	9495		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-1226	R1S Bloody Scratch	1	9494		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1226	R1S Delayed Double Swipe	1	945F		3	0	0	24.4	4.0	0	Healer Groups			1		0.0	
-1226	R1S Delayed Quadruple Swipe	1	945D		3	0	0	24.4	4.0	0	Partner Stacks			1		0.0	
-1226	R1S Double Swipe	1	945F		3	0	0	0.0	4.0	0	Healer Groups			1		0.0	
+1226	M1S Biscuit Maker	1	9495		3	0	0	0.0	4.0	0	Tankbuster on {target}			1		0.0	
+1226	M1S Bloody Scratch	1	9494		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1226	M1S Double Swipe #1	1	945F		0	0	0	0.0	4.0	0	Light Parties			1		0.0	
+1226	M1S Double Swipe #2	1	9481		0	0	1	0.0	4.0	0	Light Parties			1		0.0	
+1226	M1S Predaceous Pounce	1	9AD3		3	0	1	0.0	4.0	0	Watch Pounces			1		5.0	
+1226	M1S Quad Swipe #1	1	945D		0	0	0	0.0	4.0	0	Partners			1		0.0	
+1226	M1S Quad Swipe #2	1	947F		0	0	1	0.0	4.0	0	Partners			1		0.0	
+1226	M1S Quadruple Crossing - Initial	1	943C		0	0	1	0.0	4.0	0	Quadruple Crossing			1		0.0	
+1226	M1S Quadruple Crossing - Leaping Left	1	9457		0	0	0	0.0	4.0	0	Quadruple Crossing - Leaping Left			1		0.0	
+1226	M1S Quadruple Crossing - Leaping Right	1	982F		0	0	0	0.0	4.0	0	Quadruple Crossing - Leaping Right			1		0.0	
+1226	M1S Raining Cats #1	1	9ABB		3	0	1	0.0	4.0	0	Tethers and Stacks			1		0.0	
+1226	M1S Raining Cats #2	1	9ABC		3	0	1	0.0	4.0	0	Tethers and Stacks			1		0.0	
+1226	M1S Shockwave	1	944C		0	0	1	0.0	4.0	0	Knockback into Spread			1		0.0	
+1226	M1S Tempestuous Tear: East, In First	1	9471		0	0	1	0.0	4.0	0	Party Stacks - East, In First			1		0.0	
+1226	M1S Tempestuous Tear: East, Out First	1	946F		0	0	1	0.0	4.0	0	Party Stacks - East, Out First			1		0.0	
+1226	M1S Tempestuous Tear: West, In First	1	9470		0	0	1	0.0	4.0	0	Party Stacks - West, In First			1		0.0	
+1226	M1S Tempestuous Tear: West, Out First	1	9472		0	0	1	0.0	4.0	0	Party Stacks - West, Out First			1		0.0	
 1226	R1S Elevate and Eviscerate Launch Other	1	9446		3	0	0	0.0	4.0	0	Elevate and Eviscerate Launch Other			0		0.0	
 1226	R1S Elevate and Eviscerate Launch Self	1	9446		3	0	0	0.0	4.0	0	Launch Forward (Aim for uncracked tile)			0		0.0	
 1226	R1S Elevate and Eviscerate Stun Other	1	9448		3	0	0	0.0	4.0	0	Elevate and Eviscerate Stun Other			0		0.0	
@@ -7601,8 +7662,6 @@ fmtrig 5
 1226	R1S Leaping One-two Paw #2	1	944E		3	0	0	0.0	4.0	0	Leaping One-two Paw			0		0.0	
 1226	R1S Leaping One-two Paw #3	1	944F		3	0	0	0.0	4.0	0	Leaping One-two Paw			0		0.0	
 1226	R1S Leaping One-two Paw #4	1	9450		3	0	0	0.0	4.0	0	Leaping One-two Paw			0		0.0	
-1226	R1S Leaping Quadruple Crossing #1	1	9457		3	0	0	0.0	4.0	0	Proximity baits at target			0		0.0	
-1226	R1S Leaping Quadruple Crossing #2	1	982F		3	0	0	0.0	4.0	0	Proximity baits at target			0		0.0	
 1226	R1S Leaping clone collector	6	66		0	0	0	0.0	4.0	0	Leaping clone collector			0		0.0	
 1226	R1S Mouser	1	996C		3	0	0	0.2	11.0	0	Mouser			0		0.0	
 1226	R1S One-two Paw Left Right	1	9439		3	0	1	0.0	9.5	0	Right => Left	Right then Left		1		0.0	
@@ -7610,7 +7669,6 @@ fmtrig 5
 1226	R1S Overshadow no target	1	9497		3	6	1	0.0	4.0	0	Stack			1		0.0	
 1226	R1S Overshadow on target	1	9497		3	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1226	R1S Overshadow on you	1	9497		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
-1226	R1S Quadruple Swipe	1	945D		3	0	0	0.0	4.0	0	Partner Stacks			1		0.0	
 1226	R1S Shockwave Knockback Safe Directions #1	7	0		0	0	0	0.0	4.0	0	Shockwave Knockback Safe Directions			0		0.0	
 1226	R1S Shockwave Knockback Safe Directions #2	7	3		0	0	0	0.0	4.0	0	Shockwave Knockback Safe Directions			0		0.0	
 1226	R1S Splintering Nails	1	9499		3	0	0	0.0	4.0	0	Role positions			1		0.0	
@@ -7631,47 +7689,52 @@ fmtrig 5
 1227	R2N Loveseeker	1	9AC1		3	0	1	0.0	4.0	0	Out			1		0.0	
 1227	R2N Tempting Twist #1	1	9B3A		3	0	0	0.0	4.0	0	Get Under			1		0.0	
 1227	R2N Tempting Twist #2	1	9B3C		3	0	0	0.0	4.0	0	Get Under			1		0.0	
+1228	M2S Bee Sting	1	91A9		3	0	1	0.0	4.0	0	Light Parties			1		0.1	
+1228	M2S Beeline: Initial #1	1	9186		0	0	0	0.0	4.0	0	Out of Middle			1		0.0	
+1228	M2S Beeline: Initial #2	1	9B0C		0	0	0	0.0	4.0	0	Out of Middle			1		0.0	
+1228	M2S Call Me Honey	1	9183		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1228	M2S Center/Outer Stage: In+Intercards	1	91AC		0	0	0	0.0	4.0	0	In+Intercards	In and Intercards		1		0.0	
+1228	M2S Center/Outer Stage: Out+Cardinals	1	91AD		0	0	0	0.0	4.0	0	Out+Cardinals	Out and Cardinals		1		0.0	
+1228	M2S Honey B. Finale	1	918F		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1228	M2S Honey B. Live: 1st Beat	1	9C24		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1228	M2S Honey B. Live: 2nd Beat	1	9C25		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1228	M2S Honey B. Live: 3rd Beat	1	9C26		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1228	M2S Killer Sting	1	919C		3	0	1	0.0	4.0	0	Tank Stack			1		0.0	
+1228	M2S Loveseeker	1	9B7E		3	0	1	0.0	4.0	0	Out			1		0.0	
+1228	M2S Poison: Spread (Stocked) #1	1	9184		0	0	0	0.0	4.0	0	Spread Later			1		0.0	
+1228	M2S Poison: Spread (Stocked) #2	1	9B08		0	0	0	0.0	4.0	0	Spread Later			1		0.0	
+1228	M2S Poison: Stack (Stocked) #1	1	9185		0	0	0	0.0	4.0	0	Partner Later			1		0.0	
+1228	M2S Poison: Stack (Stocked) #2	1	9B09		0	0	0	0.0	4.0	0	Partner Later			1		0.0	
+1228	M2S Rotten Heart: Initial	1	91AA		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1228	M2S Sheer Heart Attack	1	91B7		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1228	M2S Stinging Slash	1	919B		3	0	1	0.0	4.0	0	Tank Cleaves			1		0.0	
+1228	M2S Tempting Twist: Initial #1	1	9187		0	0	0	0.0	4.0	0	In			1		0.0	
+1228	M2S Tempting Twist: Initial #2	1	9B0D		0	0	0	0.0	4.0	0	In			1		0.0	
 1228	R2S Beeloved Venom Other Merge	3	F5C		0	0	0	0.0	4.0	0	Beeloved Venom Other Merge			0		0.0	
 1228	R2S Beeloved Venom Player Merge #1	3	F5C		0	0	0	0.0	4.0	0	Beeloved Venom Player Merge			0		0.0	
 1228	R2S Beeloved Venom Player Merge #2	3	F5D		0	0	0	0.0	4.0	0	Beeloved Venom Player Merge			0		0.0	
-1228	R2S Call Me Honey	1	9183		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1228	R2S Centerstage Combo	1	91AC		3	0	0	0.0	9.0	0	Under Intercards => Out => Cards	Under Intercards then Out then Cards		1		0.0	
-1228	R2S Drop of Love	1	9B09		3	0	0	0.0	4.0	0	Stored: Partners			1		0.0	
-1228	R2S Drop of Venom	1	9185		3	0	0	0.0	4.0	0	Stored: Partners			1		0.0	
 1228	R2S Heart Debuff #1	3	F52		0	0	0	0.0	4.0	0	Heart Debuff			0		0.0	
 1228	R2S Heart Debuff #2	3	F53		0	0	0	0.0	4.0	0	Heart Debuff			0		0.0	
 1228	R2S Heart Debuff #3	3	F54		0	0	0	0.0	4.0	0	Heart Debuff			0		0.0	
-1228	R2S Honey B. Finale	1	918F		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1228	R2S Honey B. Live: 1st Beat	1	9C24		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1228	R2S Honey B. Live: 2nd Beat	1	9C25		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1228	R2S Honey B. Live: 3rd Beat	1	9C26		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1228	R2S Honey Beeline After Reminder #1	1	9186		3	0	0	1.5	4.0	0	(middle after)			1		0.0	
-1228	R2S Honey Beeline After Reminder #2	1	9B0C		3	0	0	1.5	4.0	0	(middle after)			1		0.0	
 1228	R2S Honey Beeline Followup #1	2	9186		3	0	0	0.0	4.0	0	Honey Beeline Followup			0		0.0	
 1228	R2S Honey Beeline Followup #2	2	9B0C		3	0	0	0.0	4.0	0	Honey Beeline Followup			0		0.0	
-1228	R2S Honey Beeline Initial #1	1	9186		3	0	1	0.0	4.0	0	Sides			1		0.0	
-1228	R2S Honey Beeline Initial #2	1	9B0C		3	0	1	0.0	4.0	0	Sides			1		0.0	
 1228	R2S Loveseeker	1	9B7D		3	0	1	0.0	4.0	0	Out			1		0.0	
-1228	R2S Outerstage Combo	1	91AD		3	0	0	0.0	9.0	0	Out Cards => Intercards => Under	Out Cards then Intercards then Under		1		0.0	
 1228	R2S Poison First Defamations	3	F5E		0	0	0	20.0	6.0	0	Poison First Defamations			0		1.0	
 1228	R2S Poison Second Defamations	3	F5E		0	0	0	40.0	6.0	0	Poison Second Defamations			0		1.0	
 1228	R2S Poison Towers	3	F5E		0	0	1	0.0	4.0	0	Get Towers			0		0.0	
-1228	R2S Rotten Heart	1	91AA		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1228	R2S Splash of Venom	1	9184		3	0	0	0.0	4.0	0	Stored: Spread			1		0.0	
-1228	R2S Spread Love	1	9B08		3	0	0	0.0	4.0	0	Stored: Spread			1		0.0	
-1228	R2S Tempting Twist After Reminder #1	1	9187		3	0	0	1.5	4.0	0	(out after)			1		0.0	
-1228	R2S Tempting Twist After Reminder #2	1	9B0D		3	0	0	1.5	4.0	0	(out after)			1		0.0	
 1228	R2S Tempting Twist Followup #1	2	9187		3	0	0	0.0	4.0	0	Tempting Twist Followup			0		0.0	
 1228	R2S Tempting Twist Followup #2	2	9B0D		3	0	0	0.0	4.0	0	Tempting Twist Followup			0		0.0	
-1228	R2S Tempting Twist Initial #1	1	9187		3	0	1	0.0	4.0	0	Get Under			1		0.0	
-1228	R2S Tempting Twist Initial #2	1	9B0D		3	0	1	0.0	4.0	0	Get Under			1		0.0	
+1229	M3N Brutal Lariat: East safe	1	9AD4		3	0	1	0.0	4.0	0	East			1		0.0	
+1229	M3N Brutal Lariat: West safe	1	9AD5		3	0	1	0.0	4.0	0	West			1		0.0	
+1229	M3N Lariat Combo: East safe	1	9ADD		3	0	0	0.0	4.0	0	East, stay east			1		0.0	
+1229	M3N Lariat Combo: East then west	1	9ADC		3	0	0	0.0	4.0	0	East then West			1		0.0	
+1229	M3N Lariat Combo: West safe	1	9ADF		3	0	0	0.0	4.0	0	West, stay west			1		0.0	
+1229	M3N Lariat Combo: West then east	1	9ADE		3	0	0	0.0	4.0	0	West then East			1		0.0	
 1229	R3N Barbarous Barrage	1	93B2		3	0	0	0.0	4.0	0	Knockback Towers			1		0.0	
 1229	R3N Brutal Burn no target	1	9429		3	6	1	0.0	4.0	0	Stack			1		0.0	
 1229	R3N Brutal Burn on target	1	9429		3	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1229	R3N Brutal Burn on you	1	9429		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 1229	R3N Brutal Impact	1	93D6		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1229	R3N Brutal Lariat 9AD4	1	9AD4		3	0	1	0.0	4.0	0	Get Right/East =>	Get Right, East		1		0.0	
-1229	R3N Brutal Lariat 9AD5	1	9AD5		3	0	1	0.0	4.0	0	<= Get Left/West	Get Left, West		1		0.0	
 1229	R3N Fire Spin Clockwise	1	93D0		3	0	0	0.0	4.0	0	Clockwise			1		0.0	
 1229	R3N Fire Spin Counterclockwise	1	93D1		3	0	0	0.0	4.0	0	Counter-Clockwise			1		0.0	
 1229	R3N Fuses of Fury	1	93B6		3	0	0	0.0	4.0	0	Long => Short	Long then Short		1		0.0	
@@ -7681,33 +7744,34 @@ fmtrig 5
 1229	R3N Knuckle Sandwich no target others	1	93D5		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
 1229	R3N Knuckle Sandwich on target	1	93D5		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
 1229	R3N Knuckle Sandwich on you	1	93D5		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-1229	R3N Lariat Combo East to East	1	9ADD		3	0	0	0.0	15.0	0	East, stay East			1		0.0	
-1229	R3N Lariat Combo East to West	1	9ADC		3	0	0	0.0	15.0	0	East, then West			1		0.0	
-1229	R3N Lariat Combo West to East	1	9ADE		3	0	0	0.0	15.0	0	West, then East			1		0.0	
-1229	R3N Lariat Combo West to West	1	9ADF		3	0	0	0.0	15.0	0	West, stay West			1		0.0	
 1229	R3N Murderous Mist	1	93B5		3	0	1	0.0	4.0	0	Get Behind			1		0.0	
+1230	M3S Brutal Impact	1	9425		3	0	0	0.0	4.0	0	Raidwide - Multi Hit			1		0.0	
+1230	M3S Fuse Field: Initial	1	93EE		0	0	1	0.0	4.0	0	Pop Fuses Sequentially			1		0.0	
+1230	M3S Fuse or Foe: Initial	1	9403		0	0	1	0.0	4.0	0	Spinning			1		0.0	
+1230	M3S Knuckle Sandwich	1	9423		3	0	1	0.0	4.0	0	Tank Buster - Multi Hit			1		0.0	
+1230	M3S Octoboom Bombarian Special	1	9752		0	0	1	0.0	4.0	0	Multiple Raidwides			1		0.0	
+1230	M3S Octuple Lariat In	1	93E9		3	0	1	0.0	4.0	0	In and Spread			1		0.0	
+1230	M3S Octuple Lariat Out	1	93E8		3	0	1	0.0	4.0	0	Out and Spread			1		0.0	
+1230	M3S Quadroboom Bombarian Special	1	940A		0	0	1	0.0	4.0	0	Multiple Raidwides			1		0.0	
+1230	M3S Quadroboom Dive (KB) #1	1	93F6		3	0	1	0.0	4.0	0	Knockback into Role Pairs			1		0.0	
+1230	M3S Quadroboom Dive (KB) #2	1	93ED		3	0	1	0.0	4.0	0	Knockback into Spreads			1		0.0	
+1230	M3S Quadroboom Dive (Out) #1	1	93F5		3	0	1	0.0	4.0	0	Out into Role Pairs			1		0.0	
+1230	M3S Quadroboom Dive (Out) #2	1	93EC		3	0	1	0.0	4.0	0	Out into Spreads			1		0.0	
+1230	M3S Quadruple Lariat In	1	93EB		3	0	1	0.0	4.0	0	In and Partners			1		0.0	
+1230	M3S Quadruple Lariat Out	1	93EA		3	0	1	0.0	4.0	0	Out and Partners			1		0.0	
+1230	M3S Special Bombarian Special	1	942B		3	0	1	0.0	4.0	0	Multiple Raidwides			1		0.0	
 1230	R3S Barbarous Barrage Uptime Knockback	1	93FB		3	0	0	0.0	4.0	0	Knockback			0		0.0	
-1230	R3S Brutal Impact	1	9425		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1230	R3S Fuse Field	3	FB4		0	1	0	0.0	4.0	0	Fuse Field			0		0.0	
 1230	R3S KB Towers 2 Lariat Combo #1	1	9AE8		3	0	0	0.0	11.0	0	KB Towers 2 Lariat Combo			0		0.0	
 1230	R3S KB Towers 2 Lariat Combo #2	1	9AE9		3	0	0	0.0	11.0	0	KB Towers 2 Lariat Combo			0		0.0	
 1230	R3S KB Towers 2 Lariat Combo #3	1	9AEA		3	0	0	0.0	11.0	0	KB Towers 2 Lariat Combo			0		0.0	
 1230	R3S KB Towers 2 Lariat Combo #4	1	9AEB		3	0	0	0.0	11.0	0	KB Towers 2 Lariat Combo			0		0.0	
-1230	R3S Knuckle Sandwich avoid	1	9423		3	5	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1230	R3S Knuckle Sandwich no target	1	9423		3	6	1	0.0	4.0	0	Shared Tank Buster			1	tank,healer	0.0	
-1230	R3S Knuckle Sandwich no target others	1	9423		3	6	0	0.0	4.0	0	Avoid Tank Cleave			1	dps	0.0	
-1230	R3S Knuckle Sandwich on target	1	9423		3	5	1	0.0	4.0	0	Shared Tank Buster on {target}			1	tank,healer	0.0	
-1230	R3S Knuckle Sandwich on you	1	9423		3	1	1	0.0	4.0	0	Shared Tank Buster on YOU			1		0.0	
 1230	R3S Long Fuse	3	FB9		0	1	0	0.0	4.0	0	Long Fuse			1		0.0	
 1230	R3S Murderous Mist	1	93FE		3	0	0	0.0	4.0	0	Get Behind			1		0.0	
-1230	R3S Octoboom Bombarian Special	1	9752		3	0	0	0.0	4.0	0	Out => In => Knockback => Spread	Out then In then Knockback then Spread		1		0.0	
-1230	R3S Octoboom Bombarian Special Reminder	1	9752		3	0	1	20.0	7.0	0	Spread			1		0.0	
 1230	R3S Octoboom Dive Knockback	1	93DF		3	0	0	0.0	4.0	0	Knockback + Spread	Knockback and Spread		1		0.0	
 1230	R3S Octoboom Dive Proximity	1	93DE		3	0	0	0.0	4.0	0	Away + Spread	Away and Spread		1		0.0	
 1230	R3S Octuple Lariat In	1	93D9		3	0	0	0.0	4.0	0	In + Spread	In and Spread		1		0.0	
 1230	R3S Octuple Lariat Out	1	93D8		3	0	0	0.0	4.0	0	Out + Spread	Out and Spread		1		0.0	
-1230	R3S Quadroboom Bombarian Special	1	940A		3	0	0	0.0	4.0	0	Out => In => Knockback => Partners	Out then In then Knockback then Partners		1		0.0	
-1230	R3S Quadroboom Bombarian Special Reminder	1	940A		3	0	1	20.0	7.0	0	Stack With Partner			1		0.0	
 1230	R3S Quadroboom Dive Knockback	1	93E1		3	0	0	0.0	4.0	0	Knockback + Partners	Knockback and Partners		1		0.0	
 1230	R3S Quadroboom Dive Proximity	1	93E0		3	0	0	0.0	4.0	0	Away + Partners	Away and Partners		1		0.0	
 1230	R3S Quadruple Lariat In	1	93DB		3	0	0	0.0	4.0	0	In + Partners	In and Partners		1		0.0	
@@ -7718,17 +7782,17 @@ fmtrig 5
 1230	R3S Tag Team Clone #3	1	9BD8		3	0	0	0.0	10.7	0	Tag Team Clone			0		0.0	
 1230	R3S Tag Team Clone #4	1	9BDA		3	0	0	0.0	10.7	0	Tag Team Clone			0		0.0	
 1230	R3S Tag Team Tether	6	112		0	0	0	0.0	4.0	0	Tag Team Tether			0		0.0	
+1231	M4N Sidewise Spark: East safe #1	1	92BD		3	0	0	0.0	4.0	0	East safe			1		0.0	
+1231	M4N Sidewise Spark: East safe #2	1	92BF		3	0	0	0.0	4.0	0	East safe			1		0.0	
+1231	M4N Sidewise Spark: West safe #1	1	92BC		3	0	0	0.0	4.0	0	West safe			1		0.0	
+1231	M4N Sidewise Spark: West safe #2	1	92BE		3	0	0	0.0	4.0	0	West safe			1		0.0	
+1231	M4N Stampeding Thunder: Go East	2	92AB		3	0	1	0.0	4.0	0	East safe			1		0.0	
+1231	M4N Stampeding Thunder: Go West	2	92AC		3	0	1	0.0	4.0	0	West safe			1		0.0	
 1231	R4N Bewitching Flight Left Safe	1	8DE6		3	0	0	0.0	4.0	0	West offset safe			0		0.0	
 1231	R4N Bewitching Flight North Safe	1	8DE6		3	0	0	0.0	4.0	0	North offset safe			0		0.0	
 1231	R4N Bewitching Flight Right Safe	1	8DE4		3	0	0	0.0	4.0	0	East offset safe			0		0.0	
 1231	R4N Bewitching Flight South Safe	1	8DE4		3	0	0	0.0	4.0	0	South offset safe			0		0.0	
 1231	R4N Clone Cleave Collector	9	197		0	0	0	0.5	7.3	0	Clone Cleave Collector			0		1.0	
-1231	R4N Left Roll	2	92AC		3	0	1	0.0	4.0	0	<= Get Left/West	Get Left, West		1		0.0	
-1231	R4N Right Roll	2	92AB		3	0	1	0.0	4.0	0	Get Right/East =>	Get Right, East		1		0.0	
-1231	R4N Sidewise Spark #1	1	92BC		3	0	0	0.0	7.3	0	Sidewise Spark			0		0.0	
-1231	R4N Sidewise Spark #2	1	92BE		3	0	0	0.0	7.3	0	Sidewise Spark			0		0.0	
-1231	R4N Sidewise Spark #3	1	92BD		3	0	0	0.0	7.3	0	Sidewise Spark			0		0.0	
-1231	R4N Sidewise Spark #4	1	92BF		3	0	0	0.0	7.3	0	Sidewise Spark			0		0.0	
 1231	R4N Wicked Cannon #1	2	4E40		3	0	0	0.0	2.0	0	Wicked Cannon			0		1.0	
 1231	R4N Wicked Cannon #2	2	9BBE		3	0	0	0.0	2.0	0	Wicked Cannon			0		1.0	
 1231	R4N Wicked Cannon #3	2	9A2F		3	0	0	0.0	2.0	0	Wicked Cannon			0		1.0	
@@ -7736,19 +7800,39 @@ fmtrig 5
 1231	R4N Wicked Cannon #5	2	92AE		3	0	0	0.0	2.0	0	Wicked Cannon			0		1.0	
 1231	R4N Wrath of Zeus	1	92C7		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1231	R4N XFold Blast Collector	3	B9A		0	0	0	0.0	4.0	0	XFold Blast Collector			0		0.0	
-1232	R4S Azure Thunder	1	962F		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1232	R4S Bewitching Flight #1	1	9671		3	0	0	0.0	4.0	0	Avoid Front + Side Cleaves	Avoid Front and Side Cleaves		1		0.0	
-1232	R4S Bewitching Flight #2	1	8DEF		3	0	0	0.0	4.0	0	Avoid Front + Side Cleaves	Avoid Front and Side Cleaves		1		0.0	
+1232	M4S Aetherial Conversion Fire East->West	1	9604		3	0	1	0.0	4.0	0	Later: West Safe then East			1		0.0	
+1232	M4S Aetherial Conversion Fire West->East	1	9602		3	0	1	0.0	4.0	0	Later: East Safe then West			1		0.0	
+1232	M4S Aetherial Conversion Water East->West	1	9605		3	0	1	0.0	4.0	0	Later: Knockback East then West			1		0.0	
+1232	M4S Aetherial Conversion Water West->East	1	9603		3	0	1	0.0	4.0	0	Later: Knockback West then East			1		0.0	
+1232	M4S Azure Thunder	1	962F		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1232	M4S Betwitching Flight #1	1	8DEF		3	0	0	0.0	4.0	0	Avoid Lines			1		0.0	
+1232	M4S Betwitching Flight #2	1	9671		3	0	0	0.0	4.0	0	Avoid Lines			1		0.0	
+1232	M4S Collider Conductor	3	FA6		0	1	0	0.0	4.0	0	Get Hit by Protean			1		0.0	
+1232	M4S Cross Tail Switch	1	95F2		3	0	0	0.0	4.0	0	Multiple Raidwides			1		0.0	
+1232	M4S Enrage	1	9632		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1232	M4S Flame Slash	1	9614		3	0	1	0.0	4.0	0	Out of Middle, Arena Splitting			1		0.0	
+1232	M4S Proximate Current	3	FA3		0	1	0	0.0	4.0	0	Proximate Current			1		0.0	
+1232	M4S Raining Swords: Soak Tower	1	9617		3	0	1	0.0	4.0	0	Soak Tower			1		0.2	
+1232	M4S Remote Current	3	FA2		0	1	0	0.0	4.0	0	Remote Current			1		0.0	
+1232	M4S Roundhouse Conductor	3	FA5		0	1	0	0.0	4.0	0	Roundhouse - Spread			1		0.0	
+1232	M4S Spinning Conductor	3	FA4		0	1	0	0.0	4.0	0	Spinning			1		0.0	
+1232	M4S Sword Quiver: Raidwides #1	1	95F9		0	0	1	0.0	4.0	0	Raidwides			1		0.0	
+1232	M4S Sword Quiver: Raidwides #2	1	95FA		0	0	1	0.0	4.0	0	Raidwides			1		0.0	
+1232	M4S Sword Quiver: Raidwides #3	1	95FB		0	0	1	0.0	4.0	0	Raidwides			1		0.0	
+1232	M4S Tail Thrust: Fire East->West	1	9608		3	0	0	0.0	4.0	0	West Safe then East			1		0.0	
+1232	M4S Tail Thrust: Fire West->East	1	9606		3	0	0	0.0	4.0	0	East Safe then West			1		0.0	
+1232	M4S Tail Thrust: Water East->West	1	9609		3	0	0	0.0	4.0	0	Knockback East then West			1		0.0	
+1232	M4S Tail Thrust: Water West->East	1	9607		3	0	0	0.0	4.0	0	Knockback West then East			1		0.0	
+1232	M4S Twilight Sabbath: Bait Puddle	1	9630		0	0	1	0.0	4.0	0	Bait Middle			1		0.0	
+1232	M4S Wicked Bolt	1	92C2		3	0	1	0.0	4.0	0	Stack, Multiple Hits			1		0.0	
+1232	M4S Wicked Jolt	1	95F0		3	0	1	0.0	4.0	0	Tank Buster on {target}			1		0.0	
+1232	M4S Wicked Thunder	1	949B		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1232	M4S Witchgleam: Basic	1	95C6		3	0	1	0.0	4.0	0	Stand on Cardinals, Multiple Hits			1		0.0	
+1232	M4S Wrath of Zeus	1	95EF		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1232	R4S Concentrated/Scattered Burst 1 #1	1	962B		3	0	0	0.2	4.0	0	Concentrated/Scattered Burst 1	Concentrated, Scattered Burst 1		0		0.0	
 1232	R4S Concentrated/Scattered Burst 1 #2	1	962C		3	0	0	0.2	4.0	0	Concentrated/Scattered Burst 1	Concentrated, Scattered Burst 1		0		0.0	
 1232	R4S Concentrated/Scattered Burst 2 #1	2	962B		3	0	0	0.0	4.0	0	Concentrated/Scattered Burst 2	Concentrated, Scattered Burst 2		0		0.0	
 1232	R4S Concentrated/Scattered Burst 2 #2	2	962C		3	0	0	0.0	4.0	0	Concentrated/Scattered Burst 2	Concentrated, Scattered Burst 2		0		0.0	
-1232	R4S Conductor/Current Debuffs #1	3	FA2		0	1	0	0.0	5.0	0	Conductor/Current Debuffs	Conductor, Current Debuffs		0		0.0	
-1232	R4S Conductor/Current Debuffs #2	3	FA3		0	1	0	0.0	5.0	0	Conductor/Current Debuffs	Conductor, Current Debuffs		0		0.0	
-1232	R4S Conductor/Current Debuffs #3	3	FA4		0	1	0	0.0	5.0	0	Conductor/Current Debuffs	Conductor, Current Debuffs		0		0.0	
-1232	R4S Conductor/Current Debuffs #4	3	FA5		0	1	0	0.0	5.0	0	Conductor/Current Debuffs	Conductor, Current Debuffs		0		0.0	
-1232	R4S Conductor/Current Debuffs #5	3	FA6		0	1	0	0.0	5.0	0	Conductor/Current Debuffs	Conductor, Current Debuffs		0		0.0	
-1232	R4S Cross Tail Switch	1	95F2		3	0	0	0.0	4.0	0	Cross Tail Switch			0		0.0	
 1232	R4S Electrical Condenser Debuff Expiring	3	F9F		0	0	0	0.0	4.0	0	Electrical Condenser Debuff Expiring			0		0.0	
 1232	R4S Electrical Condenser Debuff Initial	3	F9F		0	1	0	0.5	4.0	0	Electrical Condenser Debuff Initial			0		0.0	
 1232	R4S Electrifying Witch Hunt	1	95E5		3	0	0	0.0	4.0	0	Electrifying Witch Hunt			0		0.0	
@@ -7761,7 +7845,6 @@ fmtrig 5
 1232	R4S Electrope Edge 2 Sidewise Spark #1	1	95EC		3	0	0	0.2	4.0	0	Electrope Edge 2 Sidewise Spark			0		0.0	
 1232	R4S Electrope Edge 2 Sidewise Spark #2	1	95ED		3	0	0	0.2	4.0	0	Electrope Edge 2 Sidewise Spark			0		0.0	
 1232	R4S Electrope Edge Positions	1	95C5		3	0	0	0.0	4.0	0	Electrope Edge Positions			0		0.0	
-1232	R4S Flame Slash	1	9614		3	0	1	0.0	4.0	0	Sides			1		0.0	
 1232	R4S Forked Fissures	2	98CE		3	0	0	0.2	4.0	0	Forked Fissures			0		1.0	
 1232	R4S Fulminous Field	2	98D3		3	0	0	0.0	4.0	0	Dodge w/Partner x7	Dodge w, Partner x7		1		0.0	
 1232	R4S Fulminous Field Spread #1	2	90FE		3	0	0	0.0	4.0	0	Spread			1		1.0	
@@ -7786,62 +7869,52 @@ fmtrig 5
 1232	R4S Raining Swords Tower	2	9614		3	0	1	0.0	4.0	0	Tower Positions			1		0.0	
 1232	R4S Right Roll	2	95D2		3	0	1	0.0	4.0	0	Get Right/East =>	Get Right, East		1		0.0	
 1232	R4S Sunrise Sabbath Cannnons + Towers	3	B9A		0	0	0	0.2	4.0	0	Sunrise Sabbath Cannnons + Towers	Sunrise Sabbath Cannnons and Towers		0		1.0	
-1232	R4S Tail Thrust #1	1	9606		3	0	0	0.0	4.0	0	Tail Thrust			0		0.0	
-1232	R4S Tail Thrust #2	1	9607		3	0	0	0.0	4.0	0	Tail Thrust			0		0.0	
-1232	R4S Tail Thrust #3	1	9608		3	0	0	0.0	4.0	0	Tail Thrust			0		0.0	
-1232	R4S Tail Thrust #4	1	9609		3	0	0	0.0	4.0	0	Tail Thrust			0		0.0	
 1232	R4S Twilight Sabbath + Wicked Special #1	1	9610		3	0	0	0.0	4.0	0	Twilight Sabbath + Wicked Special	Twilight Sabbath and Wicked Special		0		0.0	
 1232	R4S Twilight Sabbath + Wicked Special #2	1	9612		3	0	0	0.0	4.0	0	Twilight Sabbath + Wicked Special	Twilight Sabbath and Wicked Special		0		0.0	
 1232	R4S Twilight Sabbath Sidewise Spark	9	197		0	0	0	0.1	9.0	0	Twilight Sabbath Sidewise Spark			0		0.0	
 1232	R4S Wicked Blaze	5	13C		0	0	0	0.0	4.0	0	Healer Groups			0		1.0	
 1232	R4S Wicked Bolt on target	5	13C		0	5	1	0.0	4.0	0	Stack on {target}			0		0.0	
 1232	R4S Wicked Bolt on you	5	13C		0	1	1	0.0	4.0	0	Stack on YOU			0		0.0	
-1232	R4S Wicked Jolt no target	1	95F0		3	6	1	0.0	4.0	0	Tank Buster			1	healer,dps	0.0	
-1232	R4S Wicked Jolt on target	1	95F0		3	5	1	0.0	4.0	0	Tank Buster on {target}			1	healer,dps	0.0	
-1232	R4S Wicked Jolt on you	1	95F0		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-1232	R4S Wicked Jolt swap	1	95F0		3	2	2	0.0	4.0	0	Tank Swap!	Tank Swap		1	tank	0.0	
 1232	R4S Wicked Special Middle	1	9612		3	0	1	0.0	4.0	0	Get Middle			0		0.0	
 1232	R4S Wicked Special Sides	1	9610		3	0	1	0.0	4.0	0	Sides			0		0.0	
-1232	R4S Wicked Thunder	1	949B		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1232	R4S Witch Hunt	1	95DE		3	0	0	0.2	4.0	0	Witch Hunt			0		0.0	
 1232	R4S Witchgleam Self Reminder	1	95CE		3	0	0	3.0	4.0	0	Witchgleam Self Reminder			0		0.0	
-1232	R4S Wrath of Zeus	1	95EF		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
+1238	FRU Akh Morn (Stacks)	1	9D37		0	0	1	0.0	4.0	0	Stacks			1		0.0	
+1238	FRU Banish III (Partners)	1	9D1C		3	0	0	0.0	4.0	0	Partners			1		0.0	
+1238	FRU Banish III (Spread)	1	9D1D		3	0	0	0.0	4.0	0	Spread			1		0.0	
+1238	FRU Black Halo	1	9D62		3	0	0	0.0	4.0	0	Tankbuster on {target}			1		0.0	
+1238	FRU Burnished Glory	1	9CEA		3	0	0	0.0	4.0	0	Raidwide with Bleed			1		0.0	
 1238	FRU Conceal Safe	9	3F		0	0	0	0.0	8.0	0	Conceal Safe			0		0.0	
+1238	FRU Crystallize Time: Initial	1	9D30		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1238	FRU Darklit Dragonsong: Initial	1	9D2F		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1238	FRU Diamond Dust	1	9D05		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1238	FRU Endless Ice Age (Intermission)	1	9D43		0	0	1	0.0	4.0	0	Kill Crystals, Bait AoEs			1		0.0	
+1238	FRU Fulgent Blade: Initial	1	9D72		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1238	FRU Hallowed Ray	1	9D12		3	0	1	0.0	4.0	0	Line Stack			1		0.0	
+1238	FRU Hell's Judgment	1	9D49		3	0	1	0.0	4.0	0	1 HP			1		0.0	
 1238	FRU Intermission Target Veil	4	307		0	0	0	0.0	4.0	0	Target Ice Veil			1		0.0	
-1238	FRU P1 Burnished Glory	1	9CEA		3	0	0	0.0	4.0	0	AoE + Bleed	AoE and Bleed		1		0.0	
+1238	FRU Light Rampant: Initial	1	9D14		0	0	1	0.0	4.0	0	Raidwide, Light Rampant Positions			1		0.0	
+1238	FRU Memory's End	1	9D71		3	0	1	0.0	4.0	0	Enrage			1		0.0	
 1238	FRU P1 Burnt Strike Fire	1	9CC1		3	0	1	0.0	8.0	0	Line Cleave => Knockback	Line Cleave then Knockback		1		0.0	
 1238	FRU P1 Burnt Strike Lightning	1	9CC5		3	0	1	0.0	8.0	0	Line Cleave => Out	Line Cleave then Out		1		0.0	
 1238	FRU P1 Cyclonic Break Fire #1	1	9CD0		3	0	1	0.0	8.0	0	Clock spots => Pairs	Clock spots then Pairs		1		0.0	
 1238	FRU P1 Cyclonic Break Fire #2	1	9D89		3	0	1	0.0	8.0	0	Clock spots => Pairs	Clock spots then Pairs		1		0.0	
 1238	FRU P1 Cyclonic Break Lightning #1	1	9CD4		3	0	1	0.0	8.0	0	Clock spots => Spread	Clock spots then Spread		1		0.0	
 1238	FRU P1 Cyclonic Break Lightning #2	1	9D8A		3	0	1	0.0	8.0	0	Clock spots => Spread	Clock spots then Spread		1		0.0	
+1238	FRU P1 Enrage	1	9CC0		3	0	1	0.0	4.0	0	Enrage			1		0.0	
 1238	FRU P1 Fall of Faith Collector #1	6	F9		0	0	0	0.0	4.0	0	Fall of Faith Collector			0		0.0	
 1238	FRU P1 Fall of Faith Collector #2	6	11F		0	0	0	0.0	4.0	0	Fall of Faith Collector			0		0.0	
-1238	FRU P1 Powder Mark Trail no target	1	9CE8		3	6	1	0.0	4.0	0	Tank Buster			1	healer,dps	0.0	
-1238	FRU P1 Powder Mark Trail on target	1	9CE8		3	5	1	0.0	4.0	0	Tank Buster on {target}			1	healer,dps	0.0	
-1238	FRU P1 Powder Mark Trail on you	1	9CE8		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
-1238	FRU P1 Powder Mark Trail swap	1	9CE8		3	2	2	0.0	4.0	0	Tank Swap!	Tank Swap		1	tank	0.0	
 1238	FRU P1 Turn of the Heavens Fire	1	9CD6		3	0	0	0.0	10.0	0	Lightning Safe			1		0.0	
 1238	FRU P1 Turn of the Heavens Lightning	1	9CD7		3	0	0	0.0	10.0	0	Fire Safe			1		0.0	
-1238	FRU P2 Absolute Zero	1	9D20		3	0	0	4.0	4.0	0	big AoE!	big AoE		1		0.0	
-1238	FRU P2 Diamond Dust	1	9D05		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
+1238	FRU P2 Enrage	1	9D20		3	0	0	0.0	4.0	0	Enrage, Knockback			1		0.0	
 1238	FRU P2 Heavenly Strike	2	9D07		3	0	0	0.0	3.5	0	Heavenly Strike			0		1.0	
 1238	FRU P2 House of Light/Frigid Stone	5	159		0	0	0	0.0	4.0	0	House of Light/Frigid Stone	House of Light, Frigid Stone		0		0.0	
-1238	FRU P2 Light Rampant Banish III #1	1	9D1C		3	0	0	0.5	4.0	0	Light Rampant Banish III			0		0.0	
-1238	FRU P2 Light Rampant Banish III #2	1	9D1D		3	0	0	0.5	4.0	0	Light Rampant Banish III			0		0.0	
 1238	FRU P2 Light Rampant Tower	2	9D1B		3	0	0	0.0	4.0	0	Light Rampant Tower			0		0.0	
-1238	FRU P2 Mirror Mirror Banish III #1	1	9D1C		3	0	0	0.0	4.0	0	Mirror Mirror Banish III			0		0.0	
-1238	FRU P2 Mirror Mirror Banish III #2	1	9D1D		3	0	0	0.0	4.0	0	Mirror Mirror Banish III			0		0.0	
 1238	FRU P2 Mirror Mirror Initial Cleaves	1	9D0B		3	0	1	1.0	4.0	0	Bait cleave			0		0.0	
 1238	FRU P2 Mirror Mirror Reflected Cleaves	1	9D0D		3	0	1	5.0	4.0	0	Bait cleave			1		1.0	
-1238	FRU P2 Quadruple Slap First no target	1	9CFF		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
-1238	FRU P2 Quadruple Slap First no target others	1	9CFF		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
-1238	FRU P2 Quadruple Slap First on target	1	9CFF		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
-1238	FRU P2 Quadruple Slap First on you	1	9CFF		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
 1238	FRU P2 Quadruple Slap Second	1	9D00		3	0	0	0.0	4.0	0	Quadruple Slap Second			0		0.0	
 1238	FRU P2 Shining Armor	3	8E1		0	0	2	0.0	4.0	0	Look Away			0		1.0	
 1238	FRU P2 Sinbound Holy Rotation	2	9D0F		3	1	0	1.0	5.0	0	Sinbound Holy Rotation			0		0.0	
-1238	FRU P2 The House of Light	1	9CFD		3	0	0	0.0	4.0	0	Protean			1		0.0	
 1238	FRU P2 Twin Silence/Stillness First #1	1	9D01		3	0	0	0.0	2.8	0	Twin Silence/Stillness First	Twin Silence, Stillness First		0		0.0	
 1238	FRU P2 Twin Silence/Stillness First #2	1	9D02		3	0	0	0.0	2.8	0	Twin Silence/Stillness First	Twin Silence, Stillness First		0		0.0	
 1238	FRU P2 Twin Silence/Stillness Second #1	1	9D01		3	0	0	2.9	4.0	0	Twin Silence/Stillness Second	Twin Silence, Stillness Second		0		0.0	
@@ -7850,17 +7923,14 @@ fmtrig 5
 1238	FRU P3 Apoc Darkest Dance Jump Bait	1	9CF5		3	0	0	3.0	2.0	0	Apoc Darkest Dance Jump Bait			0		0.0	
 1238	FRU P3 Apoc Second Stacks	2	9D52		3	0	0	1.0	4.0	0	Apoc Second Stacks			0		1.0	
 1238	FRU P3 Apoc Spirit Taker	3	99D		0	0	1	9.8	2.0	0	Spread			0		1.0	
-1238	FRU P3 Black Halo	1	9D62		3	0	0	0.0	4.0	0	Black Halo			0		0.0	
 1238	FRU P3 Darkest Dance KB + Third Stacks	2	9CF5		3	0	0	0.0	7.0	0	Darkest Dance KB + Third Stacks	Darkest Dance KB and Third Stacks		0		0.0	
-1238	FRU P3 Memory's End	1	9D6C		3	0	0	5.0	4.0	0	big AoE!	big AoE		1		0.0	
-1238	FRU P3 Shockwave Pulsar	1	9D5A		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
+1238	FRU P3 Enrage	1	9D6C		3	0	0	0.0	4.0	0	Enrage			1		0.0	
 1238	FRU P3 Ultimate Rel 1st Bait/Rewind	3	9A0		0	0	0	11.0	4.0	0	Ultimate Rel 1st Bait/Rewind	Ultimate Rel 1st Bait, Rewind		0		0.0	
 1238	FRU P3 Ultimate Rel 1st Fire/Stack	3	9A0		0	0	0	4.0	7.0	0	Ultimate Rel 1st Fire/Stack	Ultimate Rel 1st Fire, Stack		0		0.0	
 1238	FRU P3 Ultimate Rel 2nd Bait/Rewind	3	9A0		0	0	0	21.0	4.0	0	Ultimate Rel 2nd Bait/Rewind	Ultimate Rel 2nd Bait, Rewind		0		0.0	
 1238	FRU P3 Ultimate Rel 2nd Fire/Stack + Ice	3	9A0		0	0	0	16.0	4.0	0	Ultimate Rel 2nd Fire/Stack + Ice	Ultimate Rel 2nd Fire, Stack and Ice		0		0.0	
 1238	FRU P3 Ultimate Rel 3nd Bait	3	9A0		0	0	0	31.0	4.0	0	Ultimate Rel 3nd Bait			0		0.0	
 1238	FRU P3 Ultimate Rel 3rd Fire/Stack	3	9A0		0	0	0	26.0	4.0	0	Ultimate Rel 3rd Fire/Stack	Ultimate Rel 3rd Fire, Stack		0		0.0	
-1238	FRU P3 Ultimate Relativity AoE	1	9D4A		3	0	0	4.0	4.0	0	big AoE!	big AoE		1		0.0	
 1238	FRU P3 Ultimate Relativity Initial Debuff #1	3	997		0	0	0	0.0	8.0	0	Ultimate Relativity Initial Debuff			0		0.0	
 1238	FRU P3 Ultimate Relativity Initial Debuff #2	3	99E		0	0	0	0.0	8.0	0	Ultimate Relativity Initial Debuff			0		0.0	
 1238	FRU P4 Akh Morn	1	9D6E		3	0	1	0.0	4.0	0	Stacks			1		0.0	
@@ -7877,6 +7947,16 @@ fmtrig 5
 1238	FRU P4 Hallowed Wings #1	1	9D23		3	0	0	1.0	4.0	0	Hallowed Wings			0		0.0	
 1238	FRU P4 Hallowed Wings #2	1	9D24		3	0	0	1.0	4.0	0	Hallowed Wings			0		0.0	
 1238	FRU P4 Morn Afah	1	9D70		3	0	1	0.0	6.0	0	Stack			1		0.0	
+1238	FRU P5 Akh Morn	1	9D76		3	0	1	0.0	4.0	0	Stacks			1		0.0	
+1238	FRU P5 Enrage	1	9D88		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1238	FRU Pandora's Box	1	9D86		3	0	1	0.0	4.0	0	Tank LB			1		0.0	
+1238	FRU Polarizing Strikes	1	9D7C		0	0	1	0.0	4.0	0	Line Stacks			1		0.0	
+1238	FRU Powder Mark Trail: Initial	1	9CE8		0	0	2	0.0	4.0	0	Buster on {target}			1		0.0	
+1238	FRU Quadruple Slap	1	9CFF		3	0	1	0.0	4.0	0	Buster on {target}			1		0.0	
+1238	FRU Shell Crusher	1	9D5E		3	0	1	0.0	4.0	0	Stack			1		0.0	
+1238	FRU Shockwave Pulsar	1	9D5A		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1238	FRU The House of Light	1	9CFD		3	0	0	0.0	4.0	0	Proteans			1		0.0	
+1238	FRU Ultimate Relativity: Initial	1	9D4A		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
 1239	ByakkoUn Aratama	5	4		0	1	2	0.0	4.0	0	Puddles on YOU			1		0.0	
 1239	ByakkoUn Distant Clap	1	9BFE		3	0	0	0.1	4.0	0	Get Under			0		0.0	
 1239	ByakkoUn Gale Force	5	65		0	1	1	0.0	4.0	0	Drop bubble outside			1		0.0	
@@ -8282,20 +8362,23 @@ fmtrig 5
 1256	R5N Full Beat no target	1	A6FF		3	6	1	0.0	4.0	0	Stack			1		0.0	
 1256	R5N Full Beat on target	1	A6FF		3	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1256	R5N Full Beat on you	1	A6FF		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
+1257	M5S Celebrate Good Times	1	A723		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1257	M5S Deep Cut	1	A721		3	0	1	0.0	4.0	0	Tankbuster with Bleed			1		0.0	
+1257	M5S Eight Beats	1	A75D		3	0	0	0.0	4.0	0	Spread			1		0.0	
+1257	M5S Hi-NRG Fever	1	A779		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1257	M5S Inside Out	1	A77C		0	0	1	0.0	4.0	0	Out then In			1		0.0	
+1257	M5S Let's Pose #1	1	A76F		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1257	M5S Let's Pose #2	1	A770		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1257	M5S Outside In	1	A77E		0	0	1	0.0	4.0	0	In then Out			1		0.0	
+1257	M5S Quarter Beats	1	A75B		3	0	0	0.0	4.0	0	Partners			1		0.0	
+1257	M5S Stocking A-Side	1	A780		0	0	0	0.0	4.0	0	A Side Stocked			1		0.0	
+1257	M5S Stocking B-Side	1	A781		0	0	0	0.0	4.0	0	B Side Stocked			1		0.0	
 1257	R5S Burn Baby Burn 1 Cleanse	3	116D		0	0	1	0.0	4.0	0	Cleanse in spotlight			0		0.0	
 1257	R5S Burn Baby Burn 1 Early	3	116D		0	0	0	0.0	7.0	0	Burn Baby Burn 1 Early			0		0.0	
 1257	R5S Burn Baby Burn 2 First	3	116D		0	0	0	0.0	9.0	0	Burn Baby Burn 2 First			0		0.0	
 1257	R5S Burn Baby Burn 2 Second	3	116D		0	0	0	11.0	8.0	0	Burn Baby Burn 2 Second			0		0.0	
-1257	R5S Celebrate Good Times	1	A723		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1257	R5S Deep Cut	5	1D7		0	0	0	0.0	4.0	0	Deep Cut			0		0.0	
 1257	R5S Disco Inferno	1	A756		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1257	R5S Eighth Beats	1	A75D		3	0	0	0.0	4.0	0	Spread			1		0.0	
-1257	R5S Flip to AB Side #1	1	A780		3	0	0	0.0	4.0	0	Flip to AB Side			0		0.0	
-1257	R5S Flip to AB Side #2	1	A781		3	0	0	0.0	4.0	0	Flip to AB Side			0		0.0	
-1257	R5S Inside Out	1	A77C		3	0	1	0.0	8.5	0	Max Melee => Under	Max Melee then Under		1		0.0	
-1257	R5S Let's Pose	1	A770		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1257	R5S Outside In	1	A77E		3	0	1	0.0	8.5	0	Under => Max Melee	Under then Max Melee		1		0.0	
-1257	R5S Quarter Beats	1	A75B		3	0	0	0.0	4.0	0	Stack With Partner			1		0.0	
 1257	R5S Wavelength Merge Order #1	3	116E		0	0	0	0.0	4.0	0	Wavelength Merge Order			0		0.0	
 1257	R5S Wavelength Merge Order #2	3	116F		0	0	0	0.0	4.0	0	Wavelength Merge Order			0		0.0	
 1257	R5S Wavelength Merge Reminder #1	3	116E		0	0	1	0.0	4.0	0	Merge debuff			0		0.0	
@@ -8308,10 +8391,14 @@ fmtrig 5
 1258	R6N Taste of Fire #1	1	A65B		3	0	0	0.0	4.0	0	Healer Groups (in water)			1		5.0	
 1258	R6N Taste of Fire #2	1	A65C		3	0	0	0.0	4.0	0	Healer Groups (in water)			1		5.0	
 1258	R6N Taste of Thunder	1	A65E		3	0	0	0.0	4.0	0	Spread (not in water)			1		5.0	
-1259	R6S Color Clash #1	1	A68B		3	0	0	0.0	4.0	0	Color Clash			0		0.0	
-1259	R6S Color Clash #2	1	A68D		3	0	0	0.0	4.0	0	Color Clash			0		0.0	
-1259	R6S Color Clash Followup #1	1	A68B		3	0	0	18.0	4.0	0	Color Clash Followup			0		0.0	
-1259	R6S Color Clash Followup #2	1	A68D		3	0	0	18.0	4.0	0	Color Clash Followup			0		0.0	
+1259	M6S Artistic Anarchy (Enrage)	1	A6BD		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1259	M6S Color Clash: Stocking Light Parties	1	A68B		0	0	0	0.0	4.0	0	Light Parties Stocked			1		0.0	
+1259	M6S Color Clash: Stocking Partners	1	A68D		0	0	0	0.0	4.0	0	Partners Stocked			1		0.0	
+1259	M6S Mousse Mural	1	A6BC		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1259	M6S Pudding Party	1	A66D		3	0	1	0.0	4.0	0	Multi Stack			1		0.0	
+1259	M6S Ready Ore Not	1	A6AA		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1259	M6S Soul Sugar (Adds)	1	A6A5		3	0	1	0.0	4.0	0	Adds			1		0.0	
+1259	M6S Sticky Mousse Cast	1	A695		0	0	0	0.0	4.0	0	Spread			1		0.0	
 1259	R6S Color Riot #1	1	A691		3	0	0	0.0	4.0	0	Color Riot			0		0.0	
 1259	R6S Color Riot #2	1	A692		3	0	0	0.0	4.0	0	Color Riot			0		0.0	
 1259	R6S Double Style Taste of Fire/Thunder #1	1	A687		3	0	0	0.0	4.0	0	Double Style Taste of Fire/Thunder	Double Style Taste of Fire, Thunder		0		1.0	
@@ -8320,36 +8407,38 @@ fmtrig 5
 1259	R6S Heating Up Early Warning	3	1166		0	0	0	0.0	4.0	0	Defamation on YOU (for later)			0		0.0	
 1259	R6S Jabberwock Bind Marker	5	17		0	1	1	0.0	4.0	0	Jabberwock on YOU			1		0.0	
 1259	R6S Lightning Storm	5	25A		0	1	1	0.0	4.0	0	Spread			1		0.0	
-1259	R6S Mousse Mural	1	A6BC		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1259	R6S Pudding Graf #1	6	13F		1	0	0	0.0	4.0	0	Pudding Graf			0		0.0	
 1259	R6S Pudding Graf #2	6	140		1	0	0	0.0	4.0	0	Pudding Graf			0		0.0	
 1259	R6S Pudding Party	5	131		0	0	0	0.0	4.0	0	Pudding Party			0		0.0	
-1259	R6S Ready Ore Not	1	A6AA		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1259	R6S Single Style	1	9A3D		3	0	0	0.0	4.0	0	Avoid arrow lines			1		0.0	
-1259	R6S Sticky Mousse	1	A695		3	0	0	0.0	4.0	0	Sticky Mousse			0		0.0	
 1259	R6S Taste of Thunder (Twister/Stepped Leader)	1	A69D		3	0	0	0.0	4.0	0	Move!	Move		1		1.0	
 1259	R6S Tempest Piece Spawn Collector	10	3603		0	0	0	0.0	4.0	0	Tempest Piece Spawn Collector			0		0.0	
+1261	M7S Brutal Impact	1	A55B		3	0	0	0.0	4.0	0	Multi Hit Raidwide			1		0.0	
+1261	M7S Demolition Deathmatch	1	A596		0	0	0	0.0	4.0	0	Tethers near Walls			1		0.0	
+1261	M7S Glower Power	1	A585		3	0	1	0.0	4.0	0	Out and Spread			1		0.0	
+1261	M7S It Came from the Dirt	1	A57A		3	0	1	0.0	4.0	0	Clocks			1		0.0	
+1261	M7S Neo-Bombarian Special	1	A57C		3	0	1	0.0	4.0	0	Go North, Raidwide			1		0.0	
+1261	M7S Powerslam	1	A59E		3	0	1	0.0	4.0	0	Big Raidwide			1		0.0	
+1261	M7S Pulp Smash	1	A577		3	0	1	0.0	4.0	0	Stack into Clocks			1		0.0	
+1261	M7S Quarry Swamp: LoS Gaze	1	A575		3	0	0	0.0	4.0	0	Hide Behind Monster			1		0.0	
+1261	M7S Revenge of the Vines	1	A587		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1261	M7S Slaminator	1	A5AE		3	0	0	0.0	4.0	0	Tower			1		0.0	
+1261	M7S Special Bombarian Special (Enrage)	1	A5B1		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1261	M7S Sporeplosion: Initial	1	A58A		0	0	1	0.0	4.0	0	Dodge 3 to 1			1		0.0	
 1261	R7S Abominable Blink	5	147		0	0	0	0.0	4.0	0	Abominable Blink			0		0.0	
-1261	R7S Brutal Impact	1	A55B		3	0	0	0.0	4.0	0	Brutal Impact			0		0.0	
 1261	R7S Brutish Swing #1	1	A592		3	0	0	0.0	4.0	0	Brutish Swing			0		0.0	
 1261	R7S Brutish Swing #2	1	A593		3	0	0	0.0	4.0	0	Brutish Swing			0		0.0	
 1261	R7S Brutish Swing #3	1	A5A3		3	0	0	0.0	4.0	0	Brutish Swing			0		0.0	
 1261	R7S Brutish Swing #4	1	A5A5		3	0	0	0.0	4.0	0	Brutish Swing			0		0.0	
 1261	R7S Debris Deathmatch	1	A5B0		3	0	0	0.0	4.0	0	Get tethers			0		0.0	
-1261	R7S Demolition Deathmatch	1	A596		3	0	0	0.0	4.0	0	Get tethers			1		0.0	
 1261	R7S Explosion	1	A576		3	0	1	0.0	4.0	0	Rotate away from proximity markers			1		10.0	
 1261	R7S Glower Power	1	A94C		3	0	1	0.0	4.0	0	Spread, Away from front			1		0.0	
 1261	R7S Impact	2	A56E		3	0	1	0.0	4.0	0	Healer Groups			0		1.0	
 1261	R7S Killer Seeds	1	A59B		3	0	1	0.0	4.0	0	Stack With Partner			1		1.0	
 1261	R7S Lashing Lariat #1	1	A5A8		3	0	0	0.0	4.0	0	Lashing Lariat			0		0.0	
 1261	R7S Lashing Lariat #2	1	A5AA		3	0	0	0.0	4.0	0	Lashing Lariat			0		0.0	
-1261	R7S Neo Bombarian Special	1	A57C		3	0	1	0.0	4.0	0	Go North, big AoE + Launch	Go North, big AoE and Launch		1		0.0	
-1261	R7S Powerslam	1	A59E		3	0	1	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1261	R7S Pulp Smash	5	A1		0	0	0	0.0	4.0	0	Pulp Smash			0		0.0	
-1261	R7S Quarry Swamp	1	A575		3	0	0	0.0	4.0	0	Line of Sight boss with adds			1		0.0	
-1261	R7S Revenge of the Vines	1	A587		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1261	R7S Sinister Seeds	1	A56E		3	0	0	0.0	4.0	0	Sinister Seeds			0		0.0	
-1261	R7S Slaminator	1	A5AE		3	0	0	0.0	4.0	0	Get tower			1		0.0	
 1261	R7S Smash Here/There #1	1	A55F		3	0	0	0.0	4.0	0	Smash Here/There	Smash Here, There		0		0.0	
 1261	R7S Smash Here/There #2	1	A560		3	0	0	0.0	4.0	0	Smash Here/There	Smash Here, There		0		0.0	
 1261	R7S Stoneringer #1	1	A55D		3	0	0	0.0	4.0	0	Stoneringer			0		0.0	
@@ -8394,6 +8483,20 @@ fmtrig 5
 1262	R8N Wolves' Reign Direction #2	1	A96E		3	0	0	0.0	4.0	0	Wolves' Reign Direction			0		0.0	
 1262	R8N Wolves' Reign Direction #3	1	A90F		3	0	0	0.0	4.0	0	Wolves' Reign Direction			0		0.0	
 1262	R8N Wolves' Reign Direction #4	1	A910		3	0	0	0.0	4.0	0	Wolves' Reign Direction			0		0.0	
+1263	M8S Enrage Tower #1	1	AA02		3	0	0	0.0	4.0	0	Enrage Tower			1		0.0	
+1263	M8S Enrage Tower #2	1	A494		3	0	0	0.0	4.0	0	Enrage Tower			1		0.0	
+1263	M8S Extraplanar Pursuit	1	A74F		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1263	M8S Great Divide	1	A3D8		3	0	1	0.0	4.0	0	Tank Buster on {target}			1		0.0	
+1263	M8S Millennial Decay	1	A3B2		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1263	M8S Mooncleaver	1	A466		0	0	1	0.0	4.0	0	Off Platform, Cleave			1		0.0	
+1263	M8S Prowling Gale	1	A46E		3	0	1	0.0	4.0	0	Partner Towers			1		0.0	
+1263	M8S Quake III	1	A45A		3	0	1	0.0	4.0	0	Stacks			1		0.0	
+1263	M8S Ravenous Saber	1	A749		3	0	0	0.0	4.0	0	Multiple Raidwides			1		0.0	
+1263	M8S Starcleaver	1	A49E		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1263	M8S Tactical Pack	1	A3C8		0	0	1	0.0	4.0	0	Adds			1		0.0	
+1263	M8S Tactical Pack: Pack Predation	1	A3CC		3	0	1	0.0	4.0	0	Cleaves			1		1.0	
+1263	M8S Tracking Tremors	1	A3B9		3	0	0	0.0	4.0	0	Multi Stack			1		0.0	
+1263	M8S Twinbite	1	A4CD		3	0	0	0.0	4.0	0	Double Tankbuster			1		0.0	
 1263	R8S Aero III	1	A3B7		3	0	1	0.0	4.0	0	Knockback			1		16.0	
 1263	R8S Beckon Moonlight Quadrant Two #1	1	A3C2		3	0	0	0.0	4.0	0	Beckon Moonlight Quadrant Two			0		0.0	
 1263	R8S Beckon Moonlight Quadrant Two #2	1	A3C3		3	0	0	0.0	4.0	0	Beckon Moonlight Quadrant Two			0		0.0	
@@ -8419,19 +8522,14 @@ fmtrig 5
 1263	R8S Great Divide on you	5	256		0	1	1	0.0	4.0	0	Shared Tank Buster on YOU			1		0.0	
 1263	R8S Hero's Blow #1	1	A45F		3	0	0	0.3	4.0	0	Hero's Blow			0		0.0	
 1263	R8S Hero's Blow #2	1	A461		3	0	0	0.3	4.0	0	Hero's Blow			0		0.0	
-1263	R8S Howling Eight #1	1	AA02		3	0	0	0.0	15.0	0	Howling Eight			0		0.0	
-1263	R8S Howling Eight #2	1	A494		3	0	0	0.0	15.0	0	Howling Eight			0		0.0	
 1263	R8S Howling Havoc	1	A3DD		3	0	0	0.0	4.0	0	AoE			0		0.0	
 1263	R8S Lone Wolf's Lament Tethers #1	6	13E		0	0	0	0.0	4.0	0	Lone Wolf's Lament Tethers			0		0.0	
 1263	R8S Lone Wolf's Lament Tethers #2	6	13D		0	0	0	0.0	4.0	0	Lone Wolf's Lament Tethers			0		0.0	
-1263	R8S Millenial Decay	1	A3B2		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1263	R8S Mooncleaver	1	A465		3	0	0	0.0	4.0	0	Change Platform			1		0.0	
 1263	R8S Mooncleaver (Enrage Sequence) #1	1	AA0A		3	0	0	0.0	4.0	0	Mooncleaver (Enrage Sequence)			0		0.0	
 1263	R8S Mooncleaver (Enrage Sequence) #2	1	A49C		3	0	0	0.0	4.0	0	Mooncleaver (Enrage Sequence)			0		0.0	
 1263	R8S Pack Predation	5	17		0	0	0	0.0	4.0	0	Pack Predation			0		0.0	
 1263	R8S Prowling Gale Tower/Tether	6	39		0	0	0	0.0	4.0	0	Prowling Gale Tower/Tether	Prowling Gale Tower, Tether		0		0.0	
-1263	R8S Quake III	1	A45A		3	0	1	0.0	4.0	0	Healer Groups			1		0.0	
-1263	R8S Ravenous Saber	1	A749		3	0	0	0.0	7.0	0	big AoE!	big AoE		1		0.0	
 1263	R8S Shadowchase Rotate	1	A3BD		3	0	0	0.0	4.0	0	Rotate			0		1.0	
 1263	R8S Tactical Pack Debuffs #1	3	1127		0	0	0	0.0	4.0	0	Tactical Pack Debuffs			0		0.0	
 1263	R8S Tactical Pack Debuffs #2	3	1128		0	0	0	0.0	4.0	0	Tactical Pack Debuffs			0		0.0	
@@ -8443,11 +8541,6 @@ fmtrig 5
 1263	R8S Terrestrial Rage Spread/Stack #2	5	8B		0	0	0	0.1	4.0	0	Terrestrial Rage Spread/Stack	Terrestrial Rage Spread, Stack		0		1.0	
 1263	R8S Terrestrial Titans Safe Spot	9	197		0	0	0	0.0	4.0	0	Terrestrial Titans Safe Spot			0		0.0	
 1263	R8S Titanic Pursuit	1	A3C7		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1263	R8S Tracking Tremors	1	A3B9		3	0	0	0.0	9.0	0	Stack x8			1		0.0	
-1263	R8S Twinbite no target	1	A4CD		3	6	1	0.0	4.0	0	Tank Buster			1	tank,healer	0.0	
-1263	R8S Twinbite no target others	1	A4CD		3	6	0	0.0	4.0	0	Tank Buster			1	dps	0.0	
-1263	R8S Twinbite on target	1	A4CD		3	5	0	0.0	4.0	0	Tank Buster on {target}			1		0.0	
-1263	R8S Twinbite on you	1	A4CD		3	1	1	0.0	4.0	0	Tank Buster on YOU			1		0.0	
 1263	R8S Twofold Tempest Initial Tether/Bait	6	54		0	0	0	0.0	4.0	0	Twofold Tempest Initial Tether/Bait	Twofold Tempest Initial Tether, Bait		0		50.0	
 1263	R8S Twofold Tempest Tether Pass/Bait	2	A472		3	0	0	0.0	4.0	0	Twofold Tempest Tether Pass/Bait	Twofold Tempest Tether Pass, Bait		0		1.0	
 1263	R8S Ultraviolent Ray Target	5	E		0	1	0	0.0	4.0	0	UV Ray on YOU			1		0.0	
@@ -8903,22 +8996,31 @@ fmtrig 5
 1320	R9N Penetrating Pitch	1	B364		3	0	0	0.0	4.0	0	Healer Groups			1		0.0	
 1320	R9N Sadistic Screech	1	B333		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1320	R9N Vamp Stomp	1	B34A		3	0	1	0.0	4.0	0	Out			1		0.0	
+1321	M9S Aetherletting	1	B392		3	1	1	0.0	4.0	0	Marker			1		0.0	
+1321	M9S Brutal Rain	1	B35D		3	0	1	0.0	4.0	0	Stacks			1		0.0	
+1321	M9S Crowd Kill	1	B33E		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1321	M9S Dead Wake	1	B367		3	0	1	0.0	4.0	0	Move Away			1		0.0	
+1321	M9S Finale Fatale	1	B341		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1321	M9S Finale Fatale (Enrage)	1	B36E		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1321	M9S Hardcore (Large)	1	B380		3	0	1	0.0	4.0	0	Double Tankbuster, Large			1		0.1	
+1321	M9S Hardcore (Small)	1	B37F		3	0	1	0.0	4.0	0	Double Tankbuster			1		0.1	
+1321	M9S Insatiable Thirst	1	B344		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1321	M9S Killer Voice	1	B384		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1321	M9S Sadistic Screech	1	B333		3	0	0	0.0	4.0	0	Raidwide - Arena Change			1		0.0	
+1321	M9S Sanguine Scratch	1	B3A5		3	0	1	0.0	4.0	0	Rotate, Dodge Cleaves			1		5.0	
+1321	M9S Ultrasonic Amp	1	B39D		3	0	0	0.0	4.0	0	Stack			1		0.0	
+1321	M9S Ultrasonic Spread	1	B39C		3	0	0	0.0	4.0	0	Role Groups			1		0.0	
+1321	M9S Undead Deathmatch	1	B3A0		0	0	1	0.0	4.0	0	Tower Groups			1		0.0	
+1321	M9S Vamp Stomp #1	1	B34B		3	0	1	0.0	4.0	0	Out, Watch Bats, In			1		0.0	
+1321	M9S Vamp Stomp #2	1	B374		3	0	1	0.0	4.0	0	Out, Watch Bats, In			1		0.0	
 1321	R9S Blast Beat Inner	9	197		0	0	0	4.1	5.5	0	Blast Beat Inner			0		1.0	
 1321	R9S Blast Beat Middle	9	197		0	0	0	9.7	3.4	0	Blast Beat Middle			0		1.0	
 1321	R9S Blast Beat Outer	9	197		0	0	1	13.2	3.4	0	Get Middle			1		1.0	
-1321	R9S Crowd Kill	1	B33E		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1321	R9S Finale Fatale (Big)	1	B341		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1321	R9S Finale Fatale (Small)	1	B340		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1321	R9S Headmarker Aetherletting	5	28C		0	1	0	0.0	4.0	0	Aetherletting on YOU			1		0.0	
 1321	R9S Headmarker Party Multi Stack on target	5	131		0	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
 1321	R9S Headmarker Party Multi Stack on you	5	131		0	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
 1321	R9S Headmarker Tankbuster	5	1D4		0	1	0	0.0	4.0	0	Headmarker Tankbuster			0		0.0	
-1321	R9S Insatiable Thirst	1	B344		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1321	R9S Killer Voice	1	B384		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1321	R9S Sadistic Screech	1	B333		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1321	R9S Ultrasonic Amp	1	B39D		3	0	0	0.0	4.0	0	Ultrasonic Amp			0		0.0	
-1321	R9S Ultrasonic Spread	1	B39C		3	0	0	0.0	4.0	0	Ultrasonic Spread			0		0.0	
-1321	R9S Undead Deathmatch	1	B3A0		3	0	1	0.0	4.0	0	Get Towers			1		0.0	
 1321	R9S Vamp Stomp	1	B34A		3	0	1	0.0	4.0	0	Out			1		0.0	
 1322	R10N Alley-oop Inferno Spread	5	294		0	1	0	0.0	4.0	0	Spread			1		0.0	
 1322	R10N Alley-oop Maelstrom	1	B59E		3	0	0	0.0	4.0	0	Dodge Cones x2			1		10.0	
@@ -8937,15 +9039,27 @@ fmtrig 5
 1322	R10N Steam Burst	9	197		0	0	0	0.0	4.0	0	Away from exploding orbs			1		5.0	
 1322	R10N Watersnaking Tether	6	17C		0	0	0	0.0	4.0	0	Baiting water cones			0		0.0	
 1322	R10N Xtreme Spectacular	1	B5A1		3	0	1	0.0	4.0	0	Go N/S + Big AoE	Go north, south and Big AoE		0		0.0	
+1323	M10S Cutback Blaze	1	B5C9		3	0	0	0.0	4.0	0	Raidwide then Find Safe Spot			1		0.0	
+1323	M10S Deep Aerial: Cast	1	B5E4		0	0	1	0.0	4.0	0	Orb			1		0.0	
+1323	M10S Diver's Dare #1	1	B5B8		3	0	0	0.0	4.0	0	Raidwide			1		0.5	
+1323	M10S Diver's Dare #2	1	B5B9		3	0	0	0.0	4.0	0	Raidwide			1		0.5	
+1323	M10S Freaky Pyro-rotation	1	B596		3	0	1	0.0	4.0	0	Partners			1		0.0	
+1323	M10S Hot Impact #1	1	B5B6		3	0	1	0.0	4.0	0	Buster on {target}			1		0.0	
+1323	M10S Hot Impact #2	1	B580		3	0	1	0.0	4.0	0	Buster on {target}			1		0.0	
+1323	M10S Over the Falls #1	1	B5FC		3	0	1	0.0	4.0	0	Enrage			1		0.2	
+1323	M10S Over the Falls #2	1	B5FD		3	0	1	0.0	4.0	0	Enrage			1		0.2	
+1323	M10S Snaking	1	B381		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1323	M10S Steam Burst	1	B5FB		3	0	1	0.0	4.0	0	Avoid Steam Orb			1		1.0	
+1323	M10S Xtreme Snaking #1	1	B5AE		0	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1323	M10S Xtreme Snaking #2	1	B5AF		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1323	M10S Xtreme Snaking: Fire	3	12DB		0	1	0	0.0	4.0	0	Fire			1		0.0	
+1323	M10S Xtreme Snaking: Water	3	12DC		0	1	0	0.0	4.0	0	Water			1		0.0	
+1323	M10S Xtreme Spectacular	1	B5A4		0	0	1	0.0	4.0	0	Out, Multiple Raidwides			1		0.0	
 1323	R10S Alley-oop Inferno Spread	5	294		0	1	0	0.0	4.0	0	Alley-oop Inferno Spread			0		0.0	
-1323	R10S Cutback Blaze	1	B5C9		3	0	0	0.0	4.0	0	Bait cleave towards Fire			0		0.0	
 1323	R10S Deep Aerial Tower	1	B5E3		3	0	0	0.0	4.0	0	Get Tower			1		0.0	
 1323	R10S Deep Impact Buster	1	B5B7		3	0	0	0.0	4.0	0	Deep Impact Buster			0		0.0	
 1323	R10S Deep Varial #1	7	2		0	0	0	0.0	4.0	0	Deep Varial			0		0.0	
 1323	R10S Deep Varial #2	7	4		0	0	0	0.0	4.0	0	Deep Varial			0		0.0	
-1323	R10S Divers' Dare #1	1	B5B8		3	0	0	0.1	4.0	0	Divers' Dare			0		1.0	
-1323	R10S Divers' Dare #2	1	B5B9		3	0	0	0.1	4.0	0	Divers' Dare			0		1.0	
-1323	R10S Firesnaking/WaterSnaking	1	B381		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1323	R10S Flame Floater Order #1	3	BBC		0	1	0	0.0	4.0	0	Flame Floater Order			0		0.0	
 1323	R10S Flame Floater Order #2	3	BBD		0	1	0	0.0	4.0	0	Flame Floater Order			0		0.0	
 1323	R10S Flame Floater Order #3	3	BBE		0	1	0	0.0	4.0	0	Flame Floater Order			0		0.0	
@@ -8965,9 +9079,6 @@ fmtrig 5
 1323	R10S Sickest Take-off Debuff	3	808		0	0	0	0.0	9.0	0	Sickest Take-off Debuff			0		0.0	
 1323	R10S Snaking Debuff Target #1	3	136E		0	1	0	0.0	4.0	0	Snaking Debuff Target			0		0.0	
 1323	R10S Snaking Debuff Target #2	3	136F		0	1	0	0.0	4.0	0	Snaking Debuff Target			0		0.0	
-1323	R10S Xtreme Firesnaking/WaterSnaking	1	B5AE		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1323	R10S Xtreme Firesnaking/WaterSnaking Debuffs #1	3	12DB		0	1	0	0.0	4.0	0	Xtreme Firesnaking/WaterSnaking Debuffs	Xtreme Firesnaking, WaterSnaking Debuffs		0		0.0	
-1323	R10S Xtreme Firesnaking/WaterSnaking Debuffs #2	3	12DC		0	1	0	0.0	4.0	0	Xtreme Firesnaking/WaterSnaking Debuffs	Xtreme Firesnaking, WaterSnaking Debuffs		0		0.0	
 1323	R10S Xtreme Spectacular	1	B5D9		3	0	1	0.0	4.0	0	Go N/S + Big AoE	Go north, south and Big AoE		0		0.0	
 1324	R11N Arcadion Avalanche East Safe #1	1	B3EF		3	0	0	0.0	4.0	0	Tower Knockback to East			1		0.0	
 1324	R11N Arcadion Avalanche East Safe #2	1	B3F1		3	0	0	0.0	4.0	0	Tower Knockback to East			1		0.0	
@@ -9003,6 +9114,23 @@ fmtrig 5
 1324	R11N Smashdown Sword	1	B3BE		3	0	1	0.0	4.0	0	Intercards			1		0.0	
 1324	R11N Ultimate Trophy Weapons Call	9	197		0	0	0	2.4	4.0	0	Ultimate Trophy Weapons Call			0		0.0	
 1324	R11N Void Stardust	5	276		0	1	0	0.0	4.0	0	Spread => Bait 3x Puddles	Spread then Bait three Puddles		1		0.0	
+1325	M11S Charybdistopia	1	B425		3	0	0	0.0	4.0	0	1 HP			1		0.0	
+1325	M11S Comet	1	B414		3	1	1	0.0	4.0	0	Spread			1		0.0	
+1325	M11S Crown of Arcadia	1	B406		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1325	M11S Crushing Comet	1	B415		3	0	1	0.0	4.0	0	Stack			1		0.0	
+1325	M11S Dance of Domination Trophy	1	B7BB		0	0	0	0.0	4.0	0	Multiple Raidwides			1		0.0	
+1325	M11S Ecliptic Stampede	1	B452		0	0	1	0.0	4.0	0	Ecliptic Stampede			1		0.0	
+1325	M11S Fire and Fury	1	B430		3	0	1	0.0	4.0	0	Sides Safe			1		0.0	
+1325	M11S Flatliner	1	BA90		0	0	1	0.0	4.0	0	Raidwide, Knockback			1		0.0	
+1325	M11S Great Wall of Fire	1	B42B		3	0	0	0.0	4.0	0	Double Tank Buster			1		0.0	
+1325	M11S Heartbreak Kick #1	1	B3FF		3	0	1	0.0	4.0	0	Tower, Multiple Hits			1		0.0	
+1325	M11S Heartbreak Kick #2	1	B45D		3	0	0	0.0	4.0	0	Tower, Multiple Hits			1		0.0	
+1325	M11S Heartbreaker	1	B462		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1325	M11S Massive Meteor	1	B448		3	0	1	0.0	4.0	0	Stack, Multiple Hits			1		0.0	
+1325	M11S One and Only	1	B42A		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1325	M11S Orbital Omen/Meteorain: Initial	1	B432		0	0	1	0.0	4.0	0	Watch Lasers			1		0.0	
+1325	M11S Triple Annihilation	1	B43C		3	0	1	0.0	4.0	0	Hide Behind Meteors			1		0.0	
+1325	M11S Void Stardust	1	B412		3	0	0	0.0	4.0	0	Puddles			1		0.0	
 1325	R11S Arcadion Avalanche East Safe #1	1	B44A		3	0	0	0.0	4.0	0	Tower Knockback to East			1		0.0	
 1325	R11S Arcadion Avalanche East Safe #2	1	B44C		3	0	0	0.0	4.0	0	Tower Knockback to East			1		0.0	
 1325	R11S Arcadion Avalanche Follow Up North Safe #1	1	B44B		3	0	0	0.0	4.0	0	North			0		0.0	
@@ -9016,14 +9144,8 @@ fmtrig 5
 1325	R11S Arena Split Majestic Meteowrath Tether Bait Puddles	5	F4		0	0	0	0.0	6.0	0	Arena Split Majestic Meteowrath Tether Bait Puddles			0		1.0	
 1325	R11S Arena Split Majestic Meteowrath Tether Stretch Later #1	6	39		0	0	0	0.1	4.0	0	Arena Split Majestic Meteowrath Tether Stretch Later			0		0.0	
 1325	R11S Arena Split Majestic Meteowrath Tether Stretch Later #2	6	F9		0	0	0	0.1	4.0	0	Arena Split Majestic Meteowrath Tether Stretch Later			0		0.0	
-1325	R11S Charybdistopia	1	B425		3	0	0	0.0	4.0	0	HP to 1			1		0.0	
 1325	R11S Comet Spread	5	8B		0	1	0	0.0	4.0	0	Spread			1		0.0	
 1325	R11S Cosmic Kiss	1	B456		3	0	0	0.0	4.0	0	Get Towers			0		1.0	
-1325	R11S Crown of Arcadia	1	B406		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1325	R11S Crushing Comet no target	1	B415		3	6	1	0.0	4.0	0	Stack			1		0.0	
-1325	R11S Crushing Comet on target	1	B415		3	5	1	0.0	4.0	0	Stack on {target}			1		0.0	
-1325	R11S Crushing Comet on you	1	B415		3	1	1	0.0	4.0	0	Stack on YOU			1		0.0	
-1325	R11S Dance Of Domination Trophy	1	B7BB		3	0	0	3.7	5.0	0	AoE x6 => Big AoE	AoE x6 then Big AoE		1		0.0	
 1325	R11S Ecliptic Stampede Majestic Meteowrath Tethers #1	6	39		0	0	0	0.0	4.0	1	Ecliptic Stampede Majestic Meteowrath Tethers			0		0.0	
 1325	R11S Ecliptic Stampede Majestic Meteowrath Tethers #2	6	F9		0	0	0	0.0	4.0	1	Ecliptic Stampede Majestic Meteowrath Tethers			0		0.0	
 1325	R11S Explosion Towers	1	B444		3	0	0	0.0	4.0	0	Explosion Towers			0		1.0	
@@ -9032,20 +9154,16 @@ fmtrig 5
 1325	R11S Fire and Fury	1	B42F		3	0	1	0.0	4.0	0	Sides			1		0.0	
 1325	R11S Flatliner	1	B43F		3	0	0	0.0	4.0	0	Short knockback to sides			1		0.0	
 1325	R11S Four-way Fireball	1	B45A		3	0	0	0.0	4.0	0	Four-way Fireball			0		0.0	
-1325	R11S Great Wall of Fire	1	B42B		3	0	0	0.0	4.0	0	Shared Tank Buster			1		0.0	
-1325	R11S Heartbreaker (Enrage Sequence)	1	B45D		3	0	0	0.0	4.0	0	Heartbreaker (Enrage Sequence)			0		0.0	
 1325	R11S Massive Meteor	5	131		0	0	1	0.0	4.0	0	Stack 5x	Stack five		1		1.0	
 1325	R11S Meteor	5	F4		0	0	2	0.0	4.0	0	Meteor on YOU			0		0.0	
 1325	R11S One and Only	1	B429		3	0	0	0.0	6.0	0	big AoE!	big AoE		1		0.0	
 1325	R11S Powerful Gust Reminder	10	0	Maelstrom	0	0	0	0.0	4.0	0	Bait Gust			0		0.0	
 1325	R11S Raw Steel Trophy Axe	1	B422		3	0	0	0.0	4.0	0	Raw Steel Trophy Axe			0		0.0	
 1325	R11S Raw Steel Trophy Scythe	1	B423		3	0	0	0.0	4.0	0	Raw Steel Trophy Scythe			0		0.0	
-1325	R11S Triple Tyrannhilation	1	B43C		3	0	1	0.0	4.0	0	LoS behind 3x meteor	LoS behind three meteor		1		0.0	
 1325	R11S Trophy Weapons	9	197		0	0	0	0.0	4.0	0	Trophy Weapons			0		0.0	
 1325	R11S Trophy Weapons 2 Early Calls	9	197		0	0	0	0.0	4.0	1	Trophy Weapons 2 Early Calls			0		0.0	
 1325	R11S Two-way Fireball	1	B7BD		3	0	0	0.0	4.0	0	Two-way Fireball			0		0.0	
 1325	R11S Ultimate Trophy Weapons	9	197		0	0	0	0.0	4.0	0	Ultimate Trophy Weapons			0		0.0	
-1325	R11S Void Stardust	1	B412		3	0	0	0.0	4.0	0	Bait 3x puddles	Bait three puddles		1		0.0	
 1325	R11S Void Stardust End #1	1	B418		3	0	0	0.0	4.0	0	Void Stardust End			0		1.0	
 1325	R11S Void Stardust End #2	1	B419		3	0	0	0.0	4.0	0	Void Stardust End			0		1.0	
 1325	R11S Void Stardust End #3	1	B41A		3	0	0	0.0	4.0	0	Void Stardust End			0		1.0	
@@ -9075,10 +9193,21 @@ fmtrig 5
 1326	R12N Tankbuster on you	5	158		0	1	1	0.0	5.1	0	Tank Buster on YOU			1		0.0	
 1326	R12N The Fixer	1	B494		3	0	0	0.0	4.7	0	AoE			1		0.0	
 1326	R12N Tiles Phase Wyrm Head Cleaves	9	197		0	0	0	0.0	7.0	0	Tiles Phase Wyrm Head Cleaves			0		0.0	
+1327	M12S Arcadia Aflame	1	B528		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1327	M12S Arcadian Arcanum	1	B529		3	0	0	0.0	4.0	0	Spread			1		0.0	
+1327	M12S Arcadian Hell	1	B533		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1327	M12S Arcadian Hell (Enrage)	1	B537		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1327	M12S Double Sobat	1	B520		3	0	1	0.0	4.0	0	Tankbuster			1		0.0	
+1327	M12S Double Sobat: Second Hit	1	B525		3	0	0	0.0	4.0	0	Tankbuster			1		0.0	
+1327	M12S Idyllic Dream	1	B509		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1327	M12S Lindwurm's Meteor	1	B4F2		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1327	M12S Refreshing Overkill	1	B538		3	0	1	0.0	4.0	0	Enrage			1		0.0	
+1327	M12S Slaughtershed #1	1	B4C3		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1327	M12S Slaughtershed #2	1	B4C6		0	0	1	0.0	4.0	0	Raidwide			1		0.0	
+1327	M12S Snaking Kick	1	B527		3	0	0	0.0	4.0	0	Behind			1		0.0	
+1327	M12S Splattershed	1	B9C4		3	0	0	0.0	4.0	0	Raidwide			1		0.0	
+1327	M12S The Fixer	1	B4D7		3	0	1	0.0	4.0	0	Raidwide			1		0.0	
 1327	R12S Act 1 Blob Safe Spots (early)	2	B49D		3	0	0	0.3	4.0	1	Act 1 Blob Safe Spots (early)			0		0.0	
-1327	R12S Arcadia Aflame	1	B528		3	0	1	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1327	R12S Arcadian Arcanum	1	B529		3	0	0	0.0	4.0	0	Spread			1		0.0	
-1327	R12S Arcadian Hell 1	1	B533		3	0	0	0.0	4.7	1	AoE			1		0.0	
 1327	R12S Arcadian Hell 2	1	B535		3	0	0	0.0	4.7	1	big AoE!	big AoE		1		0.0	
 1327	R12S Avoid Earth Tower (Missing Dooms)	2	B4F6		3	0	0	0.5	4.0	1	Avoid Earth Tower (Missing Dooms)			0		0.0	
 1327	R12S Black Hole and Shapes	2	B4FD		3	0	0	0.2	8.3	1	Black Hole and Shapes			0		0.0	
@@ -9104,7 +9233,6 @@ fmtrig 5
 1327	R12S Double Sobat on target	5	256		0	5	1	0.0	4.0	0	Shared Tank Buster on {target}			1	tank,healer	0.0	
 1327	R12S Double Sobat on you	5	256		0	1	1	0.0	4.0	0	Shared Tank Buster on YOU			1		0.0	
 1327	R12S Dramatic Lysis Black Hole 1	2	B507		3	0	0	0.0	15.0	1	Dramatic Lysis Black Hole 1			0		0.0	
-1327	R12S Esoteric Finisher	1	B525		3	0	0	0.0	4.0	0	Esoteric Finisher			0		0.0	
 1327	R12S Fake Fire Resistance Down II #1	3	CFB		0	0	0	1.3	4.0	1	Fake Fire Resistance Down II			0		0.0	
 1327	R12S Fake Fire Resistance Down II #2	3	B79		0	0	0	1.3	4.0	1	Fake Fire Resistance Down II			0		0.0	
 1327	R12S Fire and Dark Resistance Down II #1	3	CFB		0	0	0	0.0	4.0	1	Fire and Dark Resistance Down II			0		0.0	
@@ -9116,7 +9244,6 @@ fmtrig 5
 1327	R12S Grotesquerie: Curtain Call Spreads	1	BEC0		3	0	0	0.0	4.0	0	Bait 5x Puddles	Bait five Puddles		1		0.0	
 1327	R12S Heavy Slam	2	B4E7		3	0	0	0.0	4.0	0	Heavy Slam			0		1.0	
 1327	R12S Hot-blooded	3	12A0		0	1	2	0.0	4.0	0	Stop Moving!	Stop Moving		1		0.0	
-1327	R12S Idyllic Dream	1	B509		3	0	1	0.0	4.7	0	big AoE!	big AoE		1		0.0	
 1327	R12S Idyllic Dream Lindwurm's Stone III	1	B4F7		3	0	0	0.0	4.0	0	Idyllic Dream Lindwurm's Stone III			0		1.0	
 1327	R12S Idyllic Dream Power Gusher Vision	1	B510		3	0	0	0.0	4.0	0	Idyllic Dream Power Gusher Vision			0		0.0	
 1327	R12S Idyllic Dream Staging 2 First Clone Cardinal/Intercardinal	9	197		0	0	0	0.0	4.0	1	Idyllic Dream Staging 2 First Clone Cardinal/Intercardinal	Idyllic Dream Staging 2 First Clone Cardinal, Intercardinal		0		0.0	
@@ -9164,17 +9291,12 @@ fmtrig 5
 1327	R12S Skinsplitter Out of Coil Reminder	2	B4BC		3	0	1	0.0	4.0	0	Out of Coil			0		1.0	
 1327	R12S Slaughershed Stack/Spread Spots (Early) #1	2	B4C6		3	0	0	0.0	4.0	0	Slaughershed Stack/Spread Spots (Early)	Slaughershed Stack, Spread Spots (Early)		0		1.0	
 1327	R12S Slaughershed Stack/Spread Spots (Early) #2	2	B4C3		3	0	0	0.0	4.0	0	Slaughershed Stack/Spread Spots (Early)	Slaughershed Stack, Spread Spots (Early)		0		1.0	
-1327	R12S Slaughtershed #1	1	B4C6		3	0	1	0.0	4.0	0	big AoE!	big AoE		1		0.0	
-1327	R12S Slaughtershed #2	1	B4C3		3	0	1	0.0	4.0	0	big AoE!	big AoE		1		0.0	
 1327	R12S Slaughtershed Spread	5	177		0	1	0	0.1	6.0	0	Slaughtershed Spread			0		1.0	
 1327	R12S Slaughtershed Stack	5	13D		0	0	0	0.1	6.0	0	Slaughtershed Stack			0		0.0	
-1327	R12S Snaking Kick	1	B527		3	0	0	0.1	4.0	1	Snaking Kick			0		0.0	
 1327	R12S Splattershed #1	1	B9C3		3	0	0	0.0	4.0	0	AoE			1		0.0	
-1327	R12S Splattershed #2	1	B9C4		3	0	0	0.0	4.0	0	AoE			1		0.0	
 1327	R12S Staging 1 Tethered Clone	6	175		0	1	0	0.0	4.0	1	Staging 1 Tethered Clone			0		0.0	
 1327	R12S Tankbuster	5	158		0	1	0	0.0	5.1	0	Tankbuster			0		0.0	
 1327	R12S Temporal Curtain Part 1	2	B51D		3	0	0	0.0	4.0	0	Temporal Curtain Part 1			0		0.0	
-1327	R12S The Fixer	1	B4D7		3	0	1	0.0	4.7	0	big AoE!	big AoE		1		0.0	
 1327	R12S Top-Tier Slam/Mighty Magic Locations	2	B4D9		3	0	0	1.0	4.0	1	Top-Tier Slam/Mighty Magic Locations	Top-Tier Slam, Mighty Magic Locations		0		0.0	
 1327	R12S Twisted Vision 4 Stack/Defamation 1	1	BBE2		3	0	0	0.0	10.0	0	Twisted Vision 4 Stack/Defamation 1	Twisted Vision 4 Stack, Defamation 1		0		0.0	
 1327	R12S Twisted Vision 4 Stack/Defamation 2-4 #1	2	B519		3	0	0	0.0	4.0	0	Twisted Vision 4 Stack/Defamation 2-4	Twisted Vision 4 Stack, Defamation 2-4		0		1.0	
@@ -9355,6 +9477,7 @@ fmtrig 5
 1363	DMU P4 Flood of Naught #3	1	C3A1		3	0	0	0.0	4.0	0	Flood of Naught			0		0.0	
 1363	DMU P4 Flood of Naught #4	1	C3A2		3	0	0	0.0	4.0	0	Flood of Naught			0		0.0	
 1363	DMU P4 Grand Cross	1	BB14		3	0	0	0.0	4.0	0	AoE			0		0.0	
+1363	DMU P4 Kefka Says	1	C2DC		3	0	1	0.0	4.0	0	Kefka Says			1		0.0	
 1363	DMU P4 Mana Release	1	BAA5		3	0	0	0.0	4.0	0	Mana Release			0		0.0	
 1363	DMU P4 Second Cursed Shriek	3	15A7		0	0	0	0.0	3.0	1	Second Cursed Shriek			0		0.0	
 1363	DMU P4 Second and Fourth Debuffs (Early) #1	1	BB20		3	0	0	1.0	4.0	0	Second and Fourth Debuffs (Early)			0		0.0	
@@ -9372,6 +9495,22 @@ fmtrig 5
 1363	DMU P4 Tsunami/Inferno and Third Debuffs (Early) #3	3	15A9		0	0	0	0.1	4.0	1	Tsunami/Inferno and Third Debuffs (Early)	Tsunami, Inferno and Third Debuffs (Early)		0		0.0	
 1363	DMU P4 Tsunami/Inferno and Third Debuffs (Early) #4	3	15AA		0	0	0	0.1	4.0	1	Tsunami/Inferno and Third Debuffs (Early)	Tsunami, Inferno and Third Debuffs (Early)		0		0.0	
 1363	DMU P4/P5 Ultima Upsurge	1	C24A		3	0	0	0.0	4.0	0	big AoE!	big AoE		1		0.0	
+1363	DMU P5 Catastrophic Choice In	1	C24F		3	0	2	0.0	4.0	0	In			1		0.0	
+1363	DMU P5 Catastrophic Choice Out	1	C24E		3	0	2	0.0	4.0	0	Out			1		0.0	
+1363	DMU P5 Celestriad	1	BB42		3	0	1	0.0	4.0	0	Elemental Towers			1		0.0	
+1363	DMU P5 Celestriad Fire Resistance Down	3	B56		0	1	0	0.0	4.0	0	Fire Last			1		0.0	
+1363	DMU P5 Celestriad Ice Resistance Down	3	B57		0	1	0	0.0	4.0	0	Ice Last			1		0.0	
+1363	DMU P5 Celestriad Lightning Resistance Down	3	BB6		0	1	0	0.0	4.0	0	Lightning Last			1		0.0	
+1363	DMU P5 Enrage	1	BB3A		3	0	2	0.0	4.0	0	Enrage			1		0.0	
+1363	DMU P5 Flood	1	C13F		3	0	1	0.0	4.0	0	Flood			1		0.0	
+1363	DMU P5 Forsaken	1	BB35		3	0	1	0.0	4.0	0	Stack, Raidwide			1		0.0	
+1363	DMU P5 Forsaken Move	1	BB38		3	0	2	0.0	4.0	0	Move			1		0.0	
+1363	DMU P5 Maddening Orchestra	1	BB50		3	0	1	0.0	4.0	0	Spread			1		0.0	
+1363	DMU P5 Maddening Orchestra Flare	3	14E6		0	1	2	0.0	4.0	0	Surprise Flare			1		0.0	
+1363	DMU P5 Maddening Orchestra Holy	3	14E7		0	1	2	0.0	4.0	0	Surprise Holy			1		0.0	
+1363	DMU P5 Stray Apocalypse	1	BB3B		3	0	1	0.0	4.0	0	Exaflares			1		0.0	
+1363	DMU P5 Stray Entropy	1	BB3E		3	0	1	0.0	4.0	0	Spread			1		0.0	
+1363	DMU P5 Ultima Repeater	1	BB40		3	0	1	0.0	4.0	0	Raidwide, 4 Hits			1		0.0	
 1367	Shisui Amikiri Digestive Fluid	5	E		0	1	0	0.0	4.0	0	Spread			1		0.0	
 1367	Shisui Amikiri Kamikiri Add	10	185E		0	0	0	0.0	4.0	0	Shisui Amikiri Kamikiri Add			0		0.0	
 1367	Shisui Ruby Princess Geothermal Flatulence	5	1		0	1	0	0.0	4.0	0	Chasing AOE on YOU			1		0.0	

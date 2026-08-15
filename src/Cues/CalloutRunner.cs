@@ -41,12 +41,19 @@ public sealed class CalloutRunner : IDisposable
 
     private TriggerEngine? _engine;
     private uint _territory;
-    private double _started;
     private bool _wasFighting;
+
+    // Fight seconds and the pull boundary. A live pull gets both from the game;
+    // a duty recording gets neither, so they are worked out here instead.
+    private readonly PullClock _clock = new();
+    private double _lastFrame = Now();
 
     // What each actor was doing last frame, so this frame can tell what changed.
     private readonly Dictionary<ulong, uint> _casting = new();
-    private readonly Dictionary<ulong, HashSet<uint>> _statuses = new();
+    private readonly Dictionary<ulong, HashSet<Held>> _statuses = new();
+
+    // Reused per actor per sweep, so a full party costs no allocations.
+    private readonly List<Callouts.Held> _hand = new();
     private readonly HashSet<ulong> _seen = new();
 
     // Drops a repeat, spaces two that land together, and merges a pair that
@@ -150,12 +157,27 @@ public sealed class CalloutRunner : IDisposable
 
         StopRecording();
 
-        var triggers = TriggersFor(territory);
-        if (triggers.Count == 0) { _engine = null; return; }
+        // The pack's rows, and over them whatever this fight has written as
+        // code. A written trigger with the same key wins; everything else in
+        // the pack keeps working exactly as it did.
+        var module = new FightModule { Territory = territory, Triggers = TriggersFor(territory) };
+        if (FrenMits.Callouts.Fights.FightBook.For(territory) is { } written)
+        {
+            // Switched off on the page means off here too. A trigger that only
+            // remembers has nothing to switch and always runs, or the calls that
+            // read it would go quiet with it.
+            var wanted = written.Triggers
+                .Where(t => t.About.Length == 0
+                            || (_config.BossAlertTweaks.GetValueOrDefault($"{territory}|{t.Key}")?.On ?? true))
+                .ToList();
+            module = (written with { Triggers = wanted }).Over(module);
+        }
+
+        if (module.Count == 0) { _engine = null; return; }
 
         if (_config.BossAlertsRecord) StartRecording(territory);
 
-        _engine = new TriggerEngine(triggers, Me());
+        _engine = TriggerEngine.For(module, Me());
 
         // Shapes and floors are deliberately not handed over, so no call here
         // ever names a direction. The geometry works, but it is measured on one
@@ -200,33 +222,126 @@ public sealed class CalloutRunner : IDisposable
 
     // Called from the plugin's own tick. Everything below runs on the game
     // thread, so it stays a walk over a short list and nothing else.
-    public void Update(bool inCombat)
+    //
+    // A duty recording is the same fight seen through a different frame: no
+    // combat flag ever arrives, and the speed it runs at is the watcher's to
+    // set. Both of those are the clock's problem, not this loop's.
+    public void Update(bool inCombat, bool playback, float speed)
     {
-        if (!_config.BossAlertsEnabled) return;
-
         // The clock and the sweep of what is on screen come first, and run
         // wherever you are. A duty with no calls still has to clear a banner
         // asked for from the settings page.
-        if (_started <= 0) _started = Now();
-        Clock = (float)(Now() - _started);
+        var now = Now();
+        _clock.Advance((float)(now - _lastFrame), playback, speed);
+        _lastFrame = now;
+        Clock = _clock.Time;
 
         for (var i = _live.Count - 1; i >= 0; i--)
             if (_live[i].Until <= Clock) _live.RemoveAt(i);
+
+        if (!_config.BossAlertsEnabled) return;
 
         var here = Service.ClientState.TerritoryType;
         if (here != _territory) Enter(here);
         if (_engine is null) return;
 
-        if (!inCombat)
-        {
-            if (_wasFighting) { _engine.Reset(); _casting.Clear(); _statuses.Clear(); _seen.Clear(); }
-            _wasFighting = false;
-            return;
-        }
+        // A chapter skip is a load screen, and everything remembered from
+        // before it describes a moment the recording has already left.
+        if (playback && Plugin.Loading) { EndPull(); return; }
+
+        // A cutscene empties the arena and puts it back, and every status that
+        // comes back reads as freshly applied. None of that is the fight.
+        if (Plugin.CutsceneActive) return;
+
+        var fighting = _clock.Fighting(inCombat, playback);
+
+        // With no flag to read, the pull starts when something hostile turns
+        // up. Only worth a look while the arena is otherwise quiet, since a
+        // running sweep spots its own enemies.
+        if (playback && !fighting && SeesEnemy()) fighting = true;
+
+        // A replay that says nothing is the hard one to tell from a replay that
+        // is not being watched at all, so each end of it says which.
+        if (playback && fighting != _wasFighting)
+            Service.Log.Information(fighting
+                ? $"[FrenMits] Playback: calls armed in duty {_territory}, {TriggerCount} triggers."
+                : $"[FrenMits] Playback: no enemy for {PullClock.QuietSeconds:0}s; calls stood down.");
+
+        if (!fighting) { EndPull(); return; }
 
         _wasFighting = true;
         _engine.Me = Me();
         Sweep(Clock);
+    }
+
+    // ---- what the sweep cannot see ----
+    //
+    // A head marker and a tether are not on any actor: they arrive as the server
+    // telling the client to draw something, and are gone by the next frame. They
+    // come in on the recap's actor-control detour, which was already running for
+    // deaths, and are handed straight over here.
+    //
+    // This runs inside packet handling rather than on the tick, so it does the
+    // least it can: no object table walk beyond naming the two actors, and
+    // nothing at all when there is no fight to tell.
+
+    public void OnMarker(uint actorId, uint markerId, uint pointsAt)
+        => FromHook(EventKind.HeadMarker, markerId, actorId, pointsAt);
+
+    public void OnTether(uint actorId, uint tetherId, uint pointsAt)
+        => FromHook(EventKind.Tether, tetherId, actorId, pointsAt);
+
+    private void FromHook(EventKind kind, uint id, uint actorId, uint pointsAt)
+    {
+        if (_engine is null || !_wasFighting) return;
+
+        // The marker's own actor is what a trigger asks about: whether it is on
+        // you, on somebody else, or on the boss. One the table has not caught up
+        // with still gets raised under its id, so a recording shows the marker
+        // rather than a gap where somebody has to guess whether it arrived.
+        var on = Find(actorId);
+        if (!on.Known) on = new Callouts.Actor(actorId, "", 0, Spot.Nowhere, 0f);
+
+        Raise(new GameEvent
+        {
+            Kind = kind,
+            Time = Clock,
+            Id = id,
+            Name = on.Name,
+            Source = pointsAt != 0 ? Find(pointsAt) : Callouts.Actor.Nobody,
+            Target = on,
+        });
+    }
+
+    // Between pulls: what each actor was doing is about a fight that is over,
+    // and a once-per-pull call has to be allowed to happen again.
+    private void EndPull()
+    {
+        if (!_wasFighting) return;
+        _engine?.Reset();
+        _casting.Clear();
+        _statuses.Clear();
+        _seen.Clear();
+        _clock.Forget();
+        _wasFighting = false;
+    }
+
+    // A hostile that is up and has hit points, which is the same thing the
+    // timeline's own playback watchdog counts.
+    private bool SeesEnemy()
+    {
+        foreach (var obj in Service.ObjectTable)
+        {
+            try
+            {
+                if (obj is not IBattleNpc npc) continue;
+                if ((byte)npc.BattleNpcKind != 5 || npc.MaxHp == 0 || npc.CurrentHp == 0) continue;
+                _clock.SawEnemy();
+                return true;
+            }
+            catch (NullReferenceException) { /* stale actor this frame; next one */ }
+        }
+        return false;
     }
 
     private static double Now() => Environment.TickCount64 / 1000.0;
@@ -240,6 +355,12 @@ public sealed class CalloutRunner : IDisposable
             if (live.Count >= MaxTracked) break;
             if (obj is not IBattleChara chara) continue;
             live.Add(chara.GameObjectId);
+
+            // A pull that is still going keeps feeding its own clock, so the
+            // quiet window that ends a replay's pull cannot trip mid-fight.
+            if (chara is IBattleNpc npc && (byte)npc.BattleNpcKind == 5
+                && npc.MaxHp != 0 && npc.CurrentHp != 0)
+                _clock.SawEnemy();
 
             var actor = Actor(chara);
 
@@ -255,7 +376,11 @@ public sealed class CalloutRunner : IDisposable
                 });
 
             WatchCast(chara, actor, time);
-            if (chara is IPlayerCharacter) WatchStatuses(chara, actor, time);
+
+            // Bosses carry statuses too, and some of them are the whole answer:
+            // Dancing Mad hangs its real-or-fake tell on one, as a number in the
+            // stack count rather than as a separate id.
+            WatchStatuses(chara, actor, time);
         }
 
         // Anything gone is not casting any more either.
@@ -291,19 +416,34 @@ public sealed class CalloutRunner : IDisposable
         }
     }
 
+    // A status and the number riding on it. Two applications of the same id with
+    // different stacks are two different things to a fight, so the pair is what
+    // is remembered rather than the id alone.
+    private readonly record struct Held(uint Id, ushort Param);
+
     private void WatchStatuses(IBattleChara chara, Callouts.Actor actor, float time)
     {
-        if (_statuses.Count >= MaxParty && !_statuses.ContainsKey(chara.GameObjectId)) return;
+        if (_statuses.Count >= MaxTracked && !_statuses.ContainsKey(chara.GameObjectId)) return;
 
         if (!_statuses.TryGetValue(chara.GameObjectId, out var was))
-            _statuses[chara.GameObjectId] = was = new HashSet<uint>();
+            _statuses[chara.GameObjectId] = was = new HashSet<Held>();
 
-        var now = new HashSet<uint>();
+        var now = new HashSet<Held>();
+
+        // The whole hand goes to the engine before any of it is announced, so
+        // the first debuff of a burst can already see the rest of them.
+        _hand.Clear();
+        foreach (var status in chara.StatusList)
+            if (status.StatusId != 0)
+                _hand.Add(new Callouts.Held(status.StatusId, status.RemainingTime, status.Param));
+        _engine?.Statuses.Set((uint)chara.GameObjectId, _hand);
+
         foreach (var status in chara.StatusList)
         {
             if (status.StatusId == 0) continue;
-            now.Add(status.StatusId);
-            if (was.Contains(status.StatusId)) continue;
+            var held = new Held(status.StatusId, status.Param);
+            now.Add(held);
+            if (was.Contains(held)) continue;
 
             Raise(new GameEvent
             {
@@ -311,6 +451,9 @@ public sealed class CalloutRunner : IDisposable
                 Time = time,
                 Id = status.StatusId,
                 Value = status.RemainingTime,
+                // Stacks, and for some fights the only thing that tells two
+                // otherwise identical applications apart.
+                Extra = status.Param,
                 Source = Find(status.SourceObject?.GameObjectId ?? 0),
                 Target = actor,
             });
@@ -320,7 +463,8 @@ public sealed class CalloutRunner : IDisposable
             if (!now.Contains(gone))
                 Raise(new GameEvent
                 {
-                    Kind = EventKind.StatusLose, Time = time, Id = gone, Target = actor,
+                    Kind = EventKind.StatusLose, Time = time, Id = gone.Id,
+                    Extra = gone.Param, Target = actor,
                 });
 
         _statuses[chara.GameObjectId] = now;
@@ -422,9 +566,6 @@ public sealed class CalloutRunner : IDisposable
     // overlay placed without pulling anything.
     public void ShowTest(string text, uint icon, CallSeverity level, bool personal, float hold = 5f)
     {
-        if (_started <= 0) _started = Now();
-        Clock = (float)(Now() - _started);
-
         _live.Add(new LiveAlert(text, icon, level, Lands: Clock + hold * 0.6f,
             Until: Clock + hold, Personal: personal));
         while (_live.Count > MaxOnScreen) _live.RemoveAt(0);

@@ -40,8 +40,13 @@ public sealed class AlertOverlay : Window
 
     public override bool DrawConditions()
     {
+        // Switched off means gone, the same instant, the way every other overlay
+        // behaves. A test or a sample is still a boss alert: it has no business
+        // outliving the switch that turns boss alerts off.
+        if (!C.BossAlertsEnabled || !C.BossAlertsDraw) return false;
+
         var live = _plugin.Callouts.Live.Count > 0;
-        var ok = (C.BossAlertsEnabled && C.BossAlertsDraw && live)
+        var ok = live
                  || _plugin.Callouts.Testing
                  || _plugin.Callouts.Placing(ImGui.GetFrameCount())
                  || !Locked;
@@ -103,10 +108,7 @@ public sealed class AlertOverlay : Window
             // Nothing is happening, so a sample stands in. It is drawn the way a
             // real one is, at the size and colors set, so what is being placed
             // is what will be seen.
-            Row(new LiveAlert("Knockback",
-                _plugin.Callouts.SampleIcon(Service.ClientState.TerritoryType),
-                FrenMits.Callouts.CallSeverity.Danger,
-                Lands: 2.4f, Until: 0f, Personal: true), now: 0f);
+            DrawSampleBanner();
             ImGui.TextColored(Theme.V(Theme.Muted), "Sample. Drag to move.");
             return;
         }
@@ -115,18 +117,36 @@ public sealed class AlertOverlay : Window
         for (var i = 0; i < live.Count; i++) Row(live[i], now);
     }
 
+    // One banner the way a pull draws it, for the settings page to show the
+    // size and colors being set. The same call as on screen, so the two cannot
+    // drift into looking like different things.
+    public void DrawSampleBanner()
+        => DrawSampleBanner("Knockback",
+            _plugin.Callouts.SampleIcon(Service.ClientState.TerritoryType),
+            FrenMits.Callouts.CallSeverity.Danger, personal: true);
+
+    // A named call rather than the stand-in, so a page editing one can show the
+    // words being typed at the size and color they will land in.
+    public void DrawSampleBanner(string text, uint icon,
+        FrenMits.Callouts.CallSeverity level, bool personal)
+        => Row(new LiveAlert(text.Length > 0 ? text : " ", icon, level,
+            Lands: 2.4f, Until: 0f, Personal: personal), now: 0f);
+
     private void Row(LiveAlert alert, float now)
     {
         var left = MathF.Max(0f, alert.Lands - now);
         var color = Theme.V(Color(alert.Level));
         var dl = ImGui.GetWindowDrawList();
 
+        // The overlay's own font, so a banner reads like every other call the
+        // plugin makes. Always bold: this one is read at a glance mid-mechanic.
         // Yours reads a little larger, so it stands out of a stack of four.
         // Through the shared helper, which hands back what Push returned rather
         // than the handle. Disposing the handle itself kills it for good, and
         // every later frame throws on it.
         using var font = OverlayChrome.PushFont(_plugin.Fonts,
-            C.AlertFontSizePx * (alert.Personal ? 1.18f : 1f), "Default", bold: true, italic: false);
+            C.AlertFontSizePx * (alert.Personal ? 1.18f : 1f),
+            C.OverlayFontFamily, bold: true, italic: C.OverlayFontItalic);
 
         var art = ImGui.GetTextLineHeight();
         ImGui.BeginGroup();
@@ -143,22 +163,32 @@ public sealed class AlertOverlay : Window
         // A call aimed at this player says so before it says anything else.
         if (alert.Personal)
         {
-            ImGui.TextColored(Theme.V(Theme.Gold), "YOU");
+            Glyphs(dl, "YOU", Theme.V(Theme.Gold), art);
             ImGui.SameLine(0, art * 0.35f);
         }
 
-        ImGui.TextColored(color, alert.Text);
+        Glyphs(dl, alert.Text, color, art);
 
         // The countdown only earns its place while there is something to count.
         if (left > 0.05f)
         {
             ImGui.SameLine(0, art * 0.45f);
-            ImGui.TextColored(
-                Theme.V(left <= Urgent ? Theme.Danger : Theme.Muted),
-                left >= 10f ? $"{left:0}s" : $"{left:0.0}s");
+            Glyphs(dl, left >= 10f ? $"{left:0}s" : $"{left:0.0}s",
+                Theme.V(left <= Urgent ? Theme.Danger : Theme.Muted), art);
         }
 
         ImGui.EndGroup();
+    }
+
+    // Text ringed in black before it is drawn, so the word survives whatever the
+    // arena is doing behind it. The ring goes to the draw list at the cursor and
+    // the word itself still goes through layout, so the group measures normally.
+    private void Glyphs(ImDrawListPtr dl, string text, Vector4 color, float lineHeight)
+    {
+        var at = ImGui.GetCursorScreenPos();
+        if (C.TextShadow) dl.AddText(at + new Vector2(lineHeight * 0.06f, lineHeight * 0.06f), 0xB4000000, text);
+        OverlayChrome.Outline(dl, at, text, lineHeight);
+        ImGui.TextColored(color, text);
     }
 
     private static uint Color(FrenMits.Callouts.CallSeverity level) => level switch

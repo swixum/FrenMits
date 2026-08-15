@@ -76,7 +76,10 @@ jobs:
           # plugin, so the in-game installer always sees the version it just got
           # (repo.json's committed version can never go stale and block updates).
           $ver = (Get-Content "$out\FrenMits.json" -Raw | ConvertFrom-Json).AssemblyVersion
-          (Get-Content "repo.json" -Raw) -replace '("(?:Testing)?AssemblyVersion"\s*:\s*")[\d.]+(")', "`${1}$ver`${2}" |
+          # Kept in docs, published at the site root: the URL people pasted into
+          # their installer is the published one, and it does not move.
+          if (-not (Test-Path "docs\repo.json")) { throw "docs\repo.json missing - every installed plugin would stop seeing updates." }
+          (Get-Content "docs\repo.json" -Raw) -replace '("(?:Testing)?AssemblyVersion"\s*:\s*")[\d.]+(")', "`${1}$ver`${2}" |
             Set-Content "site\repo.json"
           Write-Host "Published manifest version: $ver"
 

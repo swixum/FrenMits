@@ -12,7 +12,7 @@ public enum AlertLevel { Info = 0, Warn, Danger }
 // One call as it ships. Read from the pack and never written back, so a reset
 // always has something true to go back to.
 //
-// The pack is derived work under the Apache License 2.0. See NOTICE.md.
+// The pack is derived work under the Apache License 2.0. See docs/NOTICE.md.
 public sealed record BossAlert
 {
     public uint Territory { get; init; }
@@ -39,12 +39,18 @@ public sealed record BossAlert
     // "tank", "healer", "dps", or several separated by a comma. Empty is everyone.
     public string Roles { get; init; } = "";
 
-    // Every call ships on. The bake marks the ones it is less sure of, and that
-    // mark is still worth keeping, but it decides what the list hides rather
-    // than what the fight says out loud.
-    public bool On => true;
+    // A call ships on when the bake could reproduce its whole condition. One it
+    // could not ships off, because the engine would fire it on the cast alone
+    // and ignore the half of the condition it never read. "TANK LB!!" belongs to
+    // one tower out of eight under one strategy; on the cast alone it screams
+    // through the other seven.
+    public bool On => Suggested;
 
     public bool Suggested { get; init; } = true;
+
+    // Real wording, but a condition that reads fight state nothing tracks yet.
+    // Listed and switchable, so anyone who knows it applies can turn it on.
+    public bool Partial => !Suggested && !NamedOnly;
 
     // Seconds before the thing lands, or 0 for "as it starts".
     public float Lead { get; init; }
@@ -58,6 +64,12 @@ public sealed record BossAlert
 
     public string Mechanic => Split().Mechanic;
 
+    // One upstream trigger becomes a row per audience, and the bake tags each
+    // with who it is for. The page says that in words now, so the tag on the
+    // name is the same thing said twice, in the uglier of the two ways.
+    private static readonly string[] AudienceTags =
+        { " no target others", " no target", " on target", " from target", " on you" };
+
     private (string Phase, string Mechanic) Split()
     {
         var rest = Key;
@@ -65,6 +77,11 @@ public sealed record BossAlert
         // A trailing "#2" only says which of several ids this row watches.
         var tag = rest.LastIndexOf(" #", StringComparison.Ordinal);
         if (tag > 0 && rest[(tag + 2)..].All(char.IsDigit)) rest = rest[..tag];
+
+        // Longest first, or " no target" eats the front of " no target others".
+        foreach (var mark in AudienceTags)
+            if (rest.EndsWith(mark, StringComparison.Ordinal) && rest.Length > mark.Length)
+            { rest = rest[..^mark.Length]; break; }
 
         // A long duty writes its whole name into every key. Whatever they all
         // share is the fight, not the mechanic. Never strip it down to nothing.
@@ -128,6 +145,11 @@ public sealed record BossAlert
     // Words every key in this duty starts with, which is the fight's own name
     // and belongs to none of the mechanics. Set when the book loads.
     public string Prefix { get; init; } = "";
+
+    // Written as code for this fight rather than read from the pack. Its wording
+    // is worked out per pull, so the line the page shows is a description of
+    // what it can say rather than the thing it will say.
+    public bool Written { get; init; }
 }
 
 // What the player changed about one call. Only the fields they touched are
@@ -237,6 +259,39 @@ public sealed class AlertBook
         catch (Exception e)
         {
             book.Problem = "Could not read the call pack: " + e.Message;
+        }
+
+        // The fights written as code sit in the same list, so a phase that is
+        // half pack rows and half written triggers reads as one phase.
+        foreach (var duty in FrenMits.Callouts.Fights.FightBook.Territories)
+        {
+            if (FrenMits.Callouts.Fights.FightBook.For(duty) is not { } module) continue;
+            if (!book._byDuty.TryGetValue(duty, out var rows))
+                book._byDuty[duty] = rows = new List<BossAlert>();
+
+            foreach (var t in module.Triggers)
+            {
+                if (t.About.Length == 0) continue;   // a trigger that only remembers
+
+                // A written trigger replaces the pack row of the same name, the
+                // same way the engine does. Listing both would put two rows on
+                // one switch, and the one the player flipped would be the one
+                // that is not running.
+                rows.RemoveAll(a => string.Equals(a.Key, t.Key, StringComparison.Ordinal));
+
+                rows.Add(new BossAlert
+                {
+                    Territory = duty,
+                    Key = t.Key,
+                    Text = t.About,
+                    Written = true,
+                    Level = (AlertLevel)(int)t.Severity,
+                    Roles = t.Roles,
+                    Jobs = t.Jobs,
+                    Hold = t.Duration,
+                });
+                book.Count++;
+            }
         }
 
         foreach (var duty in book._byDuty.Keys.ToList())

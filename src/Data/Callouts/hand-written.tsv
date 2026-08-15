@@ -1,0 +1,44 @@
+# Calls written by hand, merged into triggers.fmtrig by the bake.
+#
+# The generated pack only covers what its source covers. Where a fight's later
+# phases were never written up there, the call is put in here instead, so a
+# re-bake adds to these rather than wiping them.
+#
+# Wording is copied word for word from where the call came from. Nothing here
+# is reworded, shortened or made friendlier: a call people already know has to
+# read the way they know it.
+#
+# Only calls the engine can fire exactly go in. A call that needs to know which
+# tower this is, who was hit last, or where a cast landed does not belong here
+# until a fight module tracks that; a row on the id alone would fire on every
+# other one of them too.
+#
+# duty   key   kind   id(hex)   source   target   severity   text
+#
+#   kind      cast | ability | gains | loses
+#   source    anyone | me | notme | enemy | player | other | untargeted
+#   target    the same
+#   severity  info | warn | danger
+
+# ---- Dancing Mad (Ultimate), phase 4 ----
+# Only the opening cast: the rest of this phase reads head markers and the
+# real-or-fake VFX on the boss, and neither is wired up yet.
+1363	DMU P4 Kefka Says	cast	C2DC	enemy	anyone	warn	Kefka Says
+
+# ---- Dancing Mad (Ultimate), phase 5 ----
+1363	DMU P5 Ultima Repeater	cast	BB40	enemy	anyone	warn	Raidwide, 4 Hits
+1363	DMU P5 Flood	cast	C13F	enemy	anyone	warn	Flood
+1363	DMU P5 Maddening Orchestra	cast	BB50	enemy	anyone	warn	Spread
+1363	DMU P5 Maddening Orchestra Flare	gains	14E6	anyone	me	danger	Surprise Flare
+1363	DMU P5 Maddening Orchestra Holy	gains	14E7	anyone	me	danger	Surprise Holy
+1363	DMU P5 Celestriad	cast	BB42	enemy	anyone	warn	Elemental Towers
+1363	DMU P5 Celestriad Fire Resistance Down	gains	B56	anyone	me	info	Fire Last
+1363	DMU P5 Celestriad Lightning Resistance Down	gains	BB6	anyone	me	info	Lightning Last
+1363	DMU P5 Celestriad Ice Resistance Down	gains	B57	anyone	me	info	Ice Last
+1363	DMU P5 Catastrophic Choice Out	cast	C24E	enemy	anyone	danger	Out
+1363	DMU P5 Catastrophic Choice In	cast	C24F	enemy	anyone	danger	In
+1363	DMU P5 Stray Apocalypse	cast	BB3B	enemy	anyone	warn	Exaflares
+1363	DMU P5 Stray Entropy	cast	BB3E	enemy	anyone	warn	Spread
+1363	DMU P5 Forsaken	cast	BB35	enemy	anyone	warn	Stack, Raidwide
+1363	DMU P5 Forsaken Move	cast	BB38	enemy	anyone	danger	Move
+1363	DMU P5 Enrage	cast	BB3A	enemy	anyone	danger	Enrage

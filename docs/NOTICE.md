@@ -30,6 +30,24 @@ A copy of the Apache License 2.0 is at
 This is attribution, not endorsement. Nothing here implies that project's
 authors are involved with FrenMits or have reviewed it.
 
+## Triggevent
+
+<https://github.com/xpdota/event-trigger> — GNU General Public License v3.0,
+Copyright (C) 2021 - 2022 xp.
+
+**Boss alerts.** Part of the call pack in `src/Data/Callouts/triggers.fmtrig` is
+carried over from that project's fight triggers, for every fight other than
+Dancing Mad. What each call says is copied word for word on purpose, and the
+ability, status and marker ids it watches are the ones that project watches. The
+rows are listed in `src/Data/Callouts/ported.tsv` and built by
+`tools/port_calls.py`. No code from that project is included.
+
+A copy of the GNU General Public License v3.0 is at
+<https://www.gnu.org/licenses/gpl-3.0.html>.
+
+This is attribution, not endorsement. Nothing here implies that project's
+authors are involved with FrenMits or have reviewed it.
+
 ## FFXIV data
 
 Ability names, ability ids, territory ids and job data come from the game's own

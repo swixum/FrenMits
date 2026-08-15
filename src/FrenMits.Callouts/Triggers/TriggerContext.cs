@@ -11,9 +11,27 @@ public readonly record struct TriggerContext(
     PlayerContext Me,
     FightState State,
     Arena Arena,
-    IReadOnlyDictionary<string, string> Options)
+    IReadOnlyDictionary<string, string> Options,
+    StatusBook Statuses)
 {
     public bool Mine => Me.IsMe(Event.Target);
+
+    // What I am carrying right now, rather than what just landed. A burst of
+    // debuffs arrives as several events and a fight has to read the whole hand
+    // before it can say anything: whichever one fires first would otherwise
+    // decide on half the information.
+    public Held MyStatus(uint statusId) => Statuses.On(Me.Id, statusId);
+
+    public bool Have(uint statusId) => Statuses.On(Me.Id, statusId).Present;
+
+    // The first of these I am carrying, or nothing. Written this way because a
+    // fight usually asks "which of these did I get", not "did I get this one".
+    public Held AnyOf(params uint[] statusIds)
+    {
+        foreach (var id in statusIds)
+            if (Statuses.On(Me.Id, id) is { Present: true } held) return held;
+        return Held.None;
+    }
 
     public Spot MySpot => Arena.Of(Me.Id);
 

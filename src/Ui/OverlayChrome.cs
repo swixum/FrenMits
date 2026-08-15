@@ -136,4 +136,16 @@ internal static class OverlayChrome
         if (shadow) dl.AddText(pos + new Vector2(1.5f, 1.5f), 0xE0000000, text);
         dl.AddText(pos, color, text);
     }
+
+    // A dark ring around the glyphs, so a word reads over whatever the arena is
+    // doing behind it. Same treatment the icon clock's countdown uses, scaled to
+    // the text so a big banner gets a thick edge and a small one stays clean.
+    public static void Outline(ImDrawListPtr dl, Vector2 pos, string text, float lineHeight)
+    {
+        var d = Math.Clamp(lineHeight * 0.055f, 1f, 3f);
+        for (var oy = -1; oy <= 1; oy++)
+            for (var ox = -1; ox <= 1; ox++)
+                if (ox != 0 || oy != 0)
+                    dl.AddText(pos + new Vector2(ox * d, oy * d), 0xE6000000, text);
+    }
 }
