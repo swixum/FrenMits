@@ -29,7 +29,7 @@ public sealed class CalloutRunner : IDisposable
 
     private readonly Configuration _config;
     private readonly Audio _audio;
-    private readonly AlertBook _book;
+    private readonly Func<AlertBook> _book;
 
     // A recording of exactly what the plugin saw, for working out afterwards
     // why a call did or did not land. Off unless asked for, written nowhere but
@@ -64,7 +64,7 @@ public sealed class CalloutRunner : IDisposable
     // that raised it read from one clock.
     public float Clock { get; private set; }
 
-    public CalloutRunner(Configuration config, Audio audio, AlertBook book)
+    public CalloutRunner(Configuration config, Audio audio, Func<AlertBook> book)
     {
         _config = config;
         _audio = audio;
@@ -80,7 +80,7 @@ public sealed class CalloutRunner : IDisposable
     private List<Trigger> TriggersFor(uint territory)
     {
         var built = new List<Trigger>();
-        foreach (var a in _book.For(territory))
+        foreach (var a in _book().For(territory))
         {
             var tweak = _config.BossAlertTweaks.GetValueOrDefault($"{territory}|{a.Key}");
             if (!(tweak?.On ?? a.On)) continue;

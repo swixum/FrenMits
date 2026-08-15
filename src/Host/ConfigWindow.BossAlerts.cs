@@ -15,7 +15,6 @@ namespace FrenMits.Host;
 // on, what does it say, and when does it land. Everything else is a click away.
 public partial class ConfigWindow
 {
-    private AlertBook? _alerts;
     private string _alertSearch = "";
     private string _alertOpen = "";
     private int _alertFilter;          // 0 all, 1 on, 2 changed
@@ -26,9 +25,9 @@ public partial class ConfigWindow
     private static readonly string[] WhoNames = { "Everyone", "Tanks", "Healers", "DPS" };
     private static readonly string[] WhoRoles = { "", "tank", "healer", "dps" };
 
-    private AlertBook Alerts => _alerts ??= AlertBook.Load(
-        System.IO.Path.Combine(Service.PluginInterface.AssemblyLocation.Directory?.FullName ?? "",
-            "Sheets", "Callouts", "triggers.fmtrig"));
+    // The plugin owns the one copy; loading a second here would parse nine
+    // thousand rows twice and let the two drift.
+    private AlertBook Alerts => _plugin.Alerts;
 
     private static string TweakKey(BossAlert a) => $"{a.Territory}|{a.Key}";
 

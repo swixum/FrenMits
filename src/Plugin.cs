@@ -22,9 +22,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public Audio Audio { get; } = new();
     public CueEngine Cues { get; }
 
-    // Boss alerts: the shipped call pack, and the loop that runs it. Both are
-    // built once and cost nothing until a duty with calls is entered.
-    public AlertBook Alerts { get; } = AlertBook.Load(System.IO.Path.Combine(
+    // Boss alerts: the shipped call pack, read the first time something asks
+    // for it. Not a field initializer, because those run before the constructor
+    // body and so before Service exists; and not at load either, because that
+    // is nine thousand rows parsed on the game thread for a duty you may not be
+    // in. Nothing asks until a duty with calls is entered or the page is opened.
+    private AlertBook? _alerts;
+
+    public AlertBook Alerts => _alerts ??= AlertBook.Load(System.IO.Path.Combine(
         Service.PluginInterface.AssemblyLocation.Directory?.FullName ?? "",
         "Sheets", "Callouts", "triggers.fmtrig"));
 
@@ -136,7 +141,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // Deferred to the first tick, since both need game state.
 
         Cues = new CueEngine(this, Audio);
-        Callouts = new CalloutRunner(Config, Audio, Alerts);
+        Callouts = new CalloutRunner(Config, Audio, () => Alerts);
         Sync = new SyncEngine(this);
         Damage = new DamageCapture(this);
         Meter = new MeterEngine(this);
