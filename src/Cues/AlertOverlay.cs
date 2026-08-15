@@ -29,6 +29,8 @@ public sealed class AlertOverlay : Window
         ForceMainWindow = true;
     }
 
+    // Unlocked means the player is placing it, so it has to be on screen to be
+    // grabbed at all. Locked, it only exists while it has something to say.
     private bool Locked => C.OverlayLocked;
 
     public override bool DrawConditions()

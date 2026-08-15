@@ -42,6 +42,7 @@ public sealed class CalloutRunner : IDisposable
     private TriggerEngine? _engine;
     private uint _territory;
     private double _started;
+    private bool _wasFighting;
 
     // What each actor was doing last frame, so this frame can tell what changed.
     private readonly Dictionary<ulong, uint> _casting = new();
@@ -168,24 +169,29 @@ public sealed class CalloutRunner : IDisposable
     {
         if (!_config.BossAlertsEnabled) return;
 
+        // The clock and the sweep of what is on screen come first, and run
+        // wherever you are. A duty with no calls still has to clear a banner
+        // asked for from the settings page.
+        if (_started <= 0) _started = Now();
+        Clock = (float)(Now() - _started);
+
+        for (var i = _live.Count - 1; i >= 0; i--)
+            if (_live[i].Until <= Clock) _live.RemoveAt(i);
+
         var here = Service.ClientState.TerritoryType;
         if (here != _territory) Enter(here);
         if (_engine is null) return;
 
         if (!inCombat)
         {
-            if (_started > 0) { Reset(); _started = 0; }
+            if (_wasFighting) { _engine.Reset(); _casting.Clear(); _statuses.Clear(); _seen.Clear(); }
+            _wasFighting = false;
             return;
         }
-        if (_started <= 0) _started = Now();
 
-        Clock = (float)(Now() - _started);
+        _wasFighting = true;
         _engine.Me = Me();
         Sweep(Clock);
-
-        // Anything whose time is up leaves. Cheap: the list is at most four.
-        for (var i = _live.Count - 1; i >= 0; i--)
-            if (_live[i].Until <= Clock) _live.RemoveAt(i);
     }
 
     private static double Now() => Environment.TickCount64 / 1000.0;
@@ -374,6 +380,18 @@ public sealed class CalloutRunner : IDisposable
             Until: MathF.Max(e.Time, call.At) + call.Duration,
             Personal: call.Personal));
 
+        while (_live.Count > MaxOnScreen) _live.RemoveAt(0);
+    }
+
+    // A banner asked for from the settings page, so a call can be seen and the
+    // overlay placed without pulling anything.
+    public void ShowTest(string text, uint icon, CallSeverity level, bool personal, float hold = 5f)
+    {
+        if (_started <= 0) _started = Now();
+        Clock = (float)(Now() - _started);
+
+        _live.Add(new LiveAlert(text, icon, level, Lands: Clock + hold * 0.6f,
+            Until: Clock + hold, Personal: personal));
         while (_live.Count > MaxOnScreen) _live.RemoveAt(0);
     }
 

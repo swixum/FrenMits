@@ -78,18 +78,30 @@ public partial class ConfigWindow
 
     // Which duty the page is showing. The fight you are in wins, then whatever
     // was open last, then the first one that has any calls at all.
+    // The duties worth offering: the ones the plugin has an official sheet for
+    // and that the pack has calls for. Cached, because Builtin.Has reads a file.
+    private uint[]? _alertDuties;
+
+    private uint[] AlertDuties => _alertDuties ??= Alerts.Duties
+        .Where(Builtin.Has)
+        .OrderBy(d => d)
+        .ToArray();
+
     private uint AlertsDuty()
     {
+        var offered = AlertDuties;
+        if (offered.Length == 0) return 0u;
+
         var here = _plugin.ActiveFight()?.TerritoryId ?? 0u;
-        if (here != 0 && Alerts.For(here).Count > 0) return here;
-        if (C.LastAlertsDuty != 0 && Alerts.For(C.LastAlertsDuty).Count > 0) return C.LastAlertsDuty;
-        return Alerts.Duties.Count > 0 ? Alerts.Duties.OrderBy(d => d).First() : 0u;
+        if (Array.IndexOf(offered, here) >= 0) return here;
+        if (Array.IndexOf(offered, C.LastAlertsDuty) >= 0) return C.LastAlertsDuty;
+        return offered[0];
     }
 
     private void DrawBossAlertsPage()
     {
         var duty = AlertsDuty();
-        var all = Alerts.For(duty);
+        var all = Alerts.For(duty).Where(a => !a.NamedOnly).ToList();
         var changed = all.Count(a => TweakFor(a) is { Empty: false });
 
         var note = Alerts.Problem.Length > 0 ? Alerts.Problem
@@ -148,7 +160,7 @@ public partial class ConfigWindow
     // Duty picker, search, and the three things worth filtering by.
     private void DrawAlertTools(uint duty, IReadOnlyList<BossAlert> all)
     {
-        var duties = Alerts.Duties.OrderBy(d => d).ToArray();
+        var duties = AlertDuties;
         var names = duties.Select(d => DutyDetail(d) is { Length: > 0 } n ? n : $"Duty {d}").ToArray();
         var idx = Math.Max(0, Array.IndexOf(duties, duty));
 
@@ -188,6 +200,7 @@ public partial class ConfigWindow
         var needle = _alertSearch.Trim();
         return all.Where(a =>
         {
+            if (a.NamedOnly) return false;
             if (_alertFilter == 1 && !OnOf(a)) return false;
             if (_alertFilter == 2 && TweakFor(a) is not { Empty: false }) return false;
             if (needle.Length == 0) return true;
@@ -330,6 +343,10 @@ public partial class ConfigWindow
     // Say it now, the way a pull would, so nobody has to guess.
     private void TestAlert(BossAlert a)
     {
+        if (C.BossAlertsDraw)
+            _plugin.Callouts.ShowTest(SaysOf(a), a.Icon,
+                (FrenMits.Callouts.CallSeverity)(int)LevelOf(a), a.Match.Target == FrenMits.Callouts.ActorScope.Me);
+
         if (!C.BossAlertsSpeak) return;
         var spoken = SpeaksOf(a);
 
