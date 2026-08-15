@@ -22,16 +22,14 @@
 
   <ItemGroup>
     <!-- Their own projects; the SDK's **/*.cs glob would compile them twice. -->
-    <Compile Remove="FrenMits.Encounters\**;FrenMits.Callouts\**" />
-    <EmbeddedResource Remove="FrenMits.Encounters\**;FrenMits.Callouts\**" />
-    <None Remove="FrenMits.Encounters\**;FrenMits.Callouts\**" />
-    <Content Remove="FrenMits.Encounters\**;FrenMits.Callouts\**" />
+    <Compile Remove="FrenMits.Encounters\**" />
+    <EmbeddedResource Remove="FrenMits.Encounters\**" />
+    <None Remove="FrenMits.Encounters\**" />
+    <Content Remove="FrenMits.Encounters\**" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="FrenMits.Encounters\FrenMits.Encounters.csproj" />
-    <!-- The callout engine: events in, calls out, no Dalamud of its own. -->
-    <ProjectReference Include="FrenMits.Callouts\FrenMits.Callouts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,8 +53,6 @@
     <None Include="..\images\icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" />
     <!-- Relational JSON data for fights -->
     <Content Include="Data\Sheets\**\*.json" CopyToOutputDirectory="PreserveNewest" TargetPath="Sheets\%(RecursiveDir)%(Filename)%(Extension)" />
-    <!-- The baked calls, read by the Boss Alerts page and by the engine. -->
-    <Content Include="Data\Callouts\*.fmtrig" CopyToOutputDirectory="PreserveNewest" TargetPath="Sheets\Callouts\%(Filename)%(Extension)" />
     <!-- Attribution for the derived data, shipped beside the plugin. -->
     <!-- Kept in docs, but shipped at the plugin's own root: the licence asks
          for the notice to travel with the binary, not with the repository. -->

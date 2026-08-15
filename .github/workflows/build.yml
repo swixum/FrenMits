@@ -63,11 +63,10 @@ jobs:
           # Every project reference has to be in the zip by name. This list is
           # not derived from the build, so a new one is invisible until the
           # plugin installs and then refuses to load.
-          foreach ($dep in @("FrenMits.Encounters.dll", "FrenMits.Callouts.dll")) {
+          foreach ($dep in @("FrenMits.Encounters.dll")) {
             if (-not (Test-Path "$out\$dep")) { throw "$dep missing - the plugin would install and then fail to load." }
           }
-          if (-not (Test-Path "$out\Sheets\Callouts\triggers.fmtrig")) { throw "Call pack missing - Boss Alerts would ship with no calls." }
-          $files = @("$out\FrenMits.dll", "$out\FrenMits.Encounters.dll", "$out\FrenMits.Callouts.dll", "$out\FrenMits.json", "$out\icon.png", "$out\NOTICE.md", "$out\Sheets")
+          $files = @("$out\FrenMits.dll", "$out\FrenMits.Encounters.dll", "$out\FrenMits.json", "$out\icon.png", "$out\NOTICE.md", "$out\Sheets")
           $files += (Get-ChildItem "$out\NAudio*.dll" | ForEach-Object { $_.FullName })
           Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
           # Publicly host the icon for the listing IconUrl.
