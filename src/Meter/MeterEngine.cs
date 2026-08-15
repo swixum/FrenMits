@@ -570,6 +570,7 @@ public class MeterEngine : IDisposable
             _rawSeg = raw;
             // The log lines carry a split fight; the parser only names it.
             if (_engineSourced) return;
+            NoteParserDamage(raw);
             // Frozen at the kill: already trimmed, so it skips the second pass.
             Publish(_killFrozen ?? Trimmed(raw));
             return;
@@ -630,6 +631,23 @@ public class MeterEngine : IDisposable
             var who = ResolveRow(r);
             _shieldCarry[who] = _shieldCarry.TryGetValue(who, out var s) ? s + r.Shielded : r.Shielded;
         }
+    }
+
+    // A tick line lumps a target's whole damage over time under one name, so the engine
+    // needs the parser's rows to tell whose it was.
+    private readonly Dictionary<string, double> _parserByName = new(StringComparer.OrdinalIgnoreCase);
+
+    private void NoteParserDamage(MeterEncounter raw)
+    {
+        _parserByName.Clear();
+        foreach (var r in raw.Rows)
+        {
+            if (r.LimitBreak || r.Damage <= 0) continue;
+            var who = ResolveRow(r);
+            if (who.Length == 0) continue;
+            _parserByName[who] = _parserByName.TryGetValue(who, out var d) ? d + r.Damage : r.Damage;
+        }
+        Engine.NoteParserDamage(_parserByName);
     }
 
     // The parser says "YOU" and tags pets with owners; the log does neither.
@@ -1083,8 +1101,10 @@ public class MeterEngine : IDisposable
     // How far the log lines' count may sit from the parser's before the credit is untrustworthy.
     public const double CountGap = 0.5;
 
-    // One row's rDPS. Damage and credit must come off the same clock, so the log lines
-    // supply both; the parser's number stands in when they disagree about the pull.
+    // One row's rDPS: the damage it dealt, plus the credit it gave out, minus what it took in.
+    // The damage has to be the parser's. A tick line lumps every damage over time on a target
+    // into one number under one name, so the log lines hand a healer's ticks to whoever the
+    // packet happened to name, while the parser splits them by who applied them.
     public static double RowRdps(double parserDps, double parserDamage, double engineDamage,
         double given, double received, float seconds)
     {
@@ -1093,8 +1113,10 @@ public class MeterEngine : IDisposable
         if (parserDamage > 0
             && (engineDamage > parserDamage * (1 + CountGap) || engineDamage < parserDamage * (1 - CountGap)))
             return parserDps;
-        // Credit received is always a slice of the damage above, so this never goes under zero.
-        return (engineDamage + given - received) / seconds;
+        var damage = parserDamage > 0 ? parserDamage : engineDamage;
+        // Credit is priced off the damage the log lines saw, which on a row that was handed
+        // someone else's ticks can outrun the parser's own count.
+        return Math.Max(0, damage + given - received) / seconds;
     }
 
     private void ApplyRdps(MeterEncounter enc)

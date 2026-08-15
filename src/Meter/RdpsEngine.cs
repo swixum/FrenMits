@@ -291,6 +291,32 @@ public class RdpsEngine
     // Status names by id, so a damage-over-time tick is named.
     private readonly Dictionary<uint, string> _effectNames = new();
 
+    // Everything but ticks, which is all the log lines attribute reliably.
+    private readonly Dictionary<string, double> _direct = new(StringComparer.OrdinalIgnoreCase);
+
+    // Tick damage each player is still owed: what the parser has counted for them, less the
+    // hits the log lines named and the tick shares already handed over. Repriced whenever the
+    // rows arrive, so a share that went to the wrong row comes back on the next one.
+    private readonly Dictionary<string, double> _owed = new(StringComparer.OrdinalIgnoreCase);
+
+    // Tick damage handed out since the parser last spoke.
+    private readonly Dictionary<string, double> _paid = new(StringComparer.OrdinalIgnoreCase);
+
+    // Handed over on every refresh, already resolved to the names the log lines use.
+    public void NoteParserDamage(Dictionary<string, double> byName)
+    {
+        _owed.Clear();
+        foreach (var (name, damage) in byName)
+        {
+            if (name.Length == 0 || damage <= 0) continue;
+            _direct.TryGetValue(name, out var direct);
+            _paid.TryGetValue(name, out var paid);
+            // A debuff that never ticks leaves nothing owed, which is how it drops out.
+            var owed = damage - direct - paid;
+            if (owed > 0) _owed[name] = owed;
+        }
+    }
+
     private static void Tally(Dictionary<string, Dictionary<string, AbilityStat>> table,
         string who, string what, double dmg, bool crit, bool dh, uint id = 0, bool status = false,
         double over = 0)
@@ -326,7 +352,8 @@ public class RdpsEngine
     // Every point counted off the log lines this fight.
     public double DealtTotal { get; private set; }
 
-    // Event-exact roll counts and biggest hit.
+    // Event-exact roll counts and biggest hit. Ticks sit out: a tick line carries no roll,
+    // and counting them as misses would read as a crit rate nobody has.
     public (int Hits, int Crits, int Dhs, int Cdhs, double MaxHit, string MaxHitName) DealtFacts(string player)
     {
         int hits = 0, crits = 0, dhs = 0, cdhs = 0;
@@ -335,6 +362,7 @@ public class RdpsEngine
         if (player.Length > 0 && _dealt.TryGetValue(player, out var by))
             foreach (var a in by.Values)
             {
+                if (a.IsStatus) continue;
                 hits += a.Hits;
                 crits += a.Crits;
                 dhs += a.Dhs;
@@ -543,6 +571,10 @@ public class RdpsEngine
         DealtTotal = 0;
         LastLimitBreak = 0;
         _dealt.Clear();
+        // The tick split is priced against this pull's damage, every side of it.
+        _direct.Clear();
+        _owed.Clear();
+        _paid.Clear();
         // Credit has to go with the damage that earned it, or the next pull prices
         // this pull's buffs against its own shorter clock.
         _buckets.Clear();
@@ -853,6 +885,7 @@ public class RdpsEngine
 
             Tally(_dealt, ownerName, action.Length > 0 ? action : "Attack", dmg, crit, dh, Hex(f[4]));
             DealtTotal += dmg;
+            _direct[ownerName] = _direct.TryGetValue(ownerName, out var sofar) ? sofar + dmg : dmg;
             if (f[7].Length > 0) Tally(_targets, ownerName, f[7], dmg, crit, dh);
 
             Gather(owner, target, sec);
@@ -928,27 +961,109 @@ public class RdpsEngine
         var owner = OwnerOf(src);
         var target = Hex(f[2]);
         if (IsCombatant(target)) { OnPartyTick(f, owner, target, hot); return; }
-        if (owner == 0 || hot) return;
-        if (target < 0x40000000) return;
+        if (hot || target < 0x40000000) return;
         var dmg = (uint)HexLong(f[6]);
         if (dmg == 0) return;
         var sec = Sec(f[1]);
         if (sec > LatestSec) LatestSec = sec;
+
+        // A tick line with no status id on it carries every dot on the target at once, under
+        // one name, so split it across the players holding one by what each is still owed.
+        // A line that names its own dot already belongs to the source beside it.
+        var effect = Hex(f[5]);
+        if (effect == 0)
+        {
+            var shares = TickShares(target, sec);
+            if (shares.Count > 0)
+            {
+                foreach (var s in shares)
+                    Tick(s.Owner, target, f[3], dmg * s.Share, s.Snap, s.Effect, sec);
+                return;
+            }
+        }
+        // Nothing to split it by, so the name the line came with is all there is.
+        if (owner == 0) return;
+        var (own, id) = SnapFor(target, owner, effect, sec);
+        Tick(owner, target, f[3], dmg, own, id, sec);
+    }
+
+    // One player's slice of a tick: filed, priced off what they froze, then paid out.
+    private void Tick(uint owner, uint target, string targetName, double dmg,
+        DotSnap? snap, uint id, long sec)
+    {
+        if (dmg <= 0) return;
         if (!_names.TryGetValue(owner, out var ownerName) || ownerName.Length == 0) return;
 
-        var effect = Hex(f[5]);
+        _paid[ownerName] = _paid.TryGetValue(ownerName, out var sofar) ? sofar + dmg : dmg;
+        // Paid out inside this refresh, so the rest of it goes to whoever is still short.
+        if (_owed.TryGetValue(ownerName, out var owed))
+            _owed[ownerName] = Math.Max(0, owed - dmg);
+
         Tally(_dealt, ownerName,
-            _effectNames.TryGetValue(effect, out var en) && en.Length > 0 ? en : "Damage over time",
-            dmg, crit: false, dh: false, effect, status: true);
+            _effectNames.TryGetValue(id, out var en) && en.Length > 0 ? en : "Damage over time",
+            dmg, crit: false, dh: false, id, status: true);
         DealtTotal += dmg;
-        if (f[3].Length > 0) Tally(_targets, ownerName, f[3], dmg, crit: false, dh: false);
+        if (targetName.Length > 0) Tally(_targets, ownerName, targetName, dmg, crit: false, dh: false);
 
         // Ticks price against the frozen buffs, else what is up.
-        if (_dotSnaps.TryGetValue((target, Hex(f[5]), src), out var snap) && sec <= snap.ExpireSec)
-            LoadSnap(snap);
-        else
-            Gather(owner, target, sec);
+        if (snap != null) LoadSnap(snap);
+        else Gather(owner, target, sec);
         AllocateTick(owner, ownerName, dmg, sec);
+    }
+
+    // The dot a tick came from, by id when the line carries one, else the owner's own
+    // snapshot on that target. Two of theirs and nothing can name the row.
+    private (DotSnap? Snap, uint Effect) SnapFor(uint target, uint owner, uint effect, long sec)
+    {
+        if (effect != 0)
+            return (_dotSnaps.TryGetValue((target, effect, owner), out var exact)
+                    && sec <= exact.ExpireSec ? exact : null, effect);
+        DotSnap? mine = null;
+        uint id = 0;
+        var several = false;
+        foreach (var (key, snap) in _dotSnaps)
+        {
+            if (key.Target != target || sec > snap.ExpireSec || OwnerOf(key.Source) != owner) continue;
+            if (mine == null) { mine = snap; id = key.Effect; }
+            else several = true;
+        }
+        return (mine, several ? 0u : id);
+    }
+
+    private readonly List<(uint Owner, double Share, DotSnap? Snap, uint Effect)> _shares = new();
+
+    // Every player holding a dot on that target, weighted by what they are owed, carrying
+    // the dot they froze. Empty until the parser speaks, which is how a replay keeps the
+    // name the line came with.
+    private List<(uint Owner, double Share, DotSnap? Snap, uint Effect)> TickShares(uint target, long sec)
+    {
+        _shares.Clear();
+        if (_owed.Count == 0) return _shares;
+        var total = 0.0;
+        foreach (var (key, snap) in _dotSnaps)
+        {
+            if (key.Target != target || sec > snap.ExpireSec) continue;
+            var owner = OwnerOf(key.Source);
+            if (owner == 0) continue;
+            // A second dot of theirs on the same target leaves nothing to name the row.
+            var held = Held(owner);
+            if (held >= 0) { _shares[held] = (owner, _shares[held].Share, _shares[held].Snap, 0u); continue; }
+            if (!_names.TryGetValue(owner, out var name) || name.Length == 0) continue;
+            if (!_owed.TryGetValue(name, out var owed) || owed <= 0) continue;
+            _shares.Add((owner, owed, snap, key.Effect));
+            total += owed;
+        }
+        if (total <= 0) { _shares.Clear(); return _shares; }
+        for (var i = 0; i < _shares.Count; i++)
+            _shares[i] = (_shares[i].Owner, _shares[i].Share / total, _shares[i].Snap, _shares[i].Effect);
+        return _shares;
+    }
+
+    private int Held(uint owner)
+    {
+        for (var i = 0; i < _shares.Count; i++)
+            if (_shares[i].Owner == owner) return i;
+        return -1;
     }
 
     // A tick on a party member, which pays no credit.
