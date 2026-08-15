@@ -295,7 +295,12 @@ public partial class ConfigWindow
         Widgets.LabelScope("alertedit");
 
         var says = t.Text ?? a.Text;
-        Widgets.RowBegin("Says", "What the banner reads", Theme.S(300f), sub: true);
+
+        // The row reserves exactly this much and puts the cursor at its left
+        // edge, so anything sharing the row has to be counted here. Asking for
+        // the box alone drew the Test button past the window and out of reach.
+        var testW = Widgets.SmallWidth("Test") + Theme.S(8f);
+        Widgets.RowBegin("Says", "What the banner reads", Theme.S(300f) + testW, sub: true);
         ImGui.SetNextItemWidth(Theme.S(300f));
         if (ImGui.InputText("##says" + a.Key, ref says, 128))
         {

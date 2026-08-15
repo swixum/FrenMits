@@ -1131,6 +1131,12 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                 break;
             // Undocumented on purpose: a recording is a diagnostic, so it is
             // asked for by name and never offered.
+            case "alert":
+            case "alerttest":
+                Callouts.ShowTest("Boss alert test", 0,
+                    FrenMits.Callouts.CallSeverity.Warn, personal: true);
+                Service.ChatGui.Print("Fren Mits: showing a test boss alert for five seconds.");
+                break;
             case "record":
                 Config.BossAlertsRecord = !Config.BossAlertsRecord;
                 Config.Save();
