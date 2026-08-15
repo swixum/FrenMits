@@ -108,9 +108,11 @@ public sealed class AlertOverlay : Window
         var dl = ImGui.GetWindowDrawList();
 
         // Yours reads a little larger, so it stands out of a stack of four.
-        using var font = _plugin.Fonts.Get(
-            C.AlertFontSizePx * (alert.Personal ? 1.18f : 1f), "Default", true, false);
-        using var pushed = font is { Available: true } ? font.Push() : null;
+        // Through the shared helper, which hands back what Push returned rather
+        // than the handle. Disposing the handle itself kills it for good, and
+        // every later frame throws on it.
+        using var font = OverlayChrome.PushFont(_plugin.Fonts,
+            C.AlertFontSizePx * (alert.Personal ? 1.18f : 1f), "Default", bold: true, italic: false);
 
         var art = ImGui.GetTextLineHeight();
         ImGui.BeginGroup();
