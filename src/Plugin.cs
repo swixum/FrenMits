@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Command;
@@ -21,6 +21,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public FontManager Fonts { get; } = new();
     public Audio Audio { get; } = new();
     public CueEngine Cues { get; }
+
+    // Boss alerts: the shipped call pack, and the loop that runs it. Both are
+    // built once and cost nothing until a duty with calls is entered.
+    public AlertBook Alerts { get; } = AlertBook.Load(System.IO.Path.Combine(
+        Service.PluginInterface.AssemblyLocation.Directory?.FullName ?? "",
+        "Sheets", "Callouts", "triggers.fmtrig"));
+
+    public CalloutRunner Callouts { get; }
     public SyncEngine Sync { get; }
     public DamageCapture Damage { get; }
     public MeterEngine Meter { get; }
@@ -31,6 +39,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
     public readonly WindowSystem Windows = new("FrenMits");
     public ConfigWindow ConfigWindow { get; }
     public OverlayWindow OverlayWindow { get; }
+
+    public AlertOverlay AlertOverlay { get; }
     public TimelineWindow TimelineWindow { get; }
     public MitBarWindow MitBarWindow { get; }
     public CombatTimerWindow CombatTimerWindow { get; }
@@ -126,6 +136,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         // Deferred to the first tick, since both need game state.
 
         Cues = new CueEngine(this, Audio);
+        Callouts = new CalloutRunner(Config, Audio, Alerts);
         Sync = new SyncEngine(this);
         Damage = new DamageCapture(this);
         Meter = new MeterEngine(this);
@@ -133,6 +144,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Diag = new Diagnostics(this);
         ConfigWindow = new ConfigWindow(this);
         OverlayWindow = new OverlayWindow(this);
+        AlertOverlay = new AlertOverlay(this);
         TimelineWindow = new TimelineWindow(this);
         MitBarWindow = new MitBarWindow(this);
         CombatTimerWindow = new CombatTimerWindow(this);
@@ -147,6 +159,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         WhatsNewWindow = new WhatsNewWindow(this);
         Windows.AddWindow(ConfigWindow);
         Windows.AddWindow(OverlayWindow);
+        Windows.AddWindow(AlertOverlay);
         Windows.AddWindow(TimelineWindow);
         Windows.AddWindow(MitBarWindow);
         Windows.AddWindow(CombatTimerWindow);
@@ -163,6 +176,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         Config.PlanMutated = () => SheetViewWindow.MarkPlanDirty();
 
         OverlayWindow.IsOpen = true;
+        AlertOverlay.IsOpen = true;
         TimelineWindow.IsOpen = true;
         MitBarWindow.IsOpen = true;
         CombatTimerWindow.IsOpen = true;
@@ -896,6 +910,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             Diag.Update();   // open/close the pull record before the engines log into it
             Sync.Update();
             Cues.Update();
+            Callouts.Update(InCombat);
             Meter.Update();
             UpdateDtr();
         }
@@ -1108,6 +1123,17 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             case "test":
                 Config.TestMode = !Config.TestMode;
                 Config.Save();
+                break;
+            // Undocumented on purpose: a recording is a diagnostic, so it is
+            // asked for by name and never offered.
+            case "record":
+                Config.BossAlertsRecord = !Config.BossAlertsRecord;
+                Config.Save();
+                Callouts.Enter(Service.ClientState.TerritoryType);   // opens or closes the file now
+                Service.ChatGui.Print(Config.BossAlertsRecord
+                    ? "Fren Mits: recording callouts. Type the same command again to stop."
+                    : "Fren Mits: recording stopped. Files are in the plugin config folder, "
+                      + "under callout-records.");
                 break;
             case "sheet":
                 if (SheetViewWindow.IsOpen) SheetViewWindow.IsOpen = false;
@@ -1416,6 +1442,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         clock.Mark("save");
         Service.Framework.Update -= OnFrameworkUpdate;
         Service.ClientState.TerritoryChanged -= OnTerritoryChanged;
+        Callouts.Dispose();
         Service.PluginInterface.UiBuilder.Draw -= DrawUi;
         Service.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfig;
         Service.PluginInterface.UiBuilder.OpenMainUi -= OpenConfig;

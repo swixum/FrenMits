@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -36,7 +36,8 @@ public class Audio : IDisposable
         ("en-AU-WilliamNeural",     "William (AU)",     false),
     };
 
-    private sealed record Job(long Seq, string Text, int Rate, int Volume, bool Edge, string Voice, bool ListVoices);
+    private sealed record Job(long Seq, string Text, int Rate, int Volume, bool Edge, string Voice,
+        bool ListVoices, int Channel = 0);
 
     // Small and lossy on purpose: a full queue drops the cue rather than block a frame.
     private readonly BlockingCollection<Job> _jobs = new(64);
@@ -49,7 +50,18 @@ public class Audio : IDisposable
     private int _voicesRequested;
 
     // Cue ordering: only a newer cue plays.
-    private long _speakSeq;
+    // One sequence per channel, not one for the lot.
+    //
+    // A cue skips itself when a newer one is already queued, so a stale line
+    // never lands late. Counting them all together made that rule cross wires:
+    // a boss alert arriving between a mit call and its turn to speak silently
+    // dropped the mit call. Mitigation and boss alerts count separately, so
+    // each stays current without cancelling the other.
+    public const int Channels = 2;
+    public const int MitChannel = 0;
+    public const int AlertChannel = 1;
+
+    private readonly long[] _speakSeq = new long[Channels];
     private long _playedSeq;
     private volatile bool _disposed;
 
@@ -82,11 +94,14 @@ public class Audio : IDisposable
     private const int EdgeCacheMax = 128;
 
     // Speaks through Edge when useEdge, else SAPI. Never blocks the caller.
-    public void Speak(string text, int rate, int volume, bool useEdge, string voice)
+    public void Speak(string text, int rate, int volume, bool useEdge, string voice,
+        int channel = MitChannel)
     {
         if (_disposed || string.IsNullOrWhiteSpace(text)) return;
-        var seq = Interlocked.Increment(ref _speakSeq);
-        try { _jobs.TryAdd(new Job(seq, text, rate, volume, useEdge, voice, false)); }
+        if ((uint)channel >= Channels) channel = MitChannel;
+
+        var seq = Interlocked.Increment(ref _speakSeq[channel]);
+        try { _jobs.TryAdd(new Job(seq, text, rate, volume, useEdge, voice, false, channel)); }
         catch (InvalidOperationException) { /* closed mid-add on unload */ }
     }
 
@@ -128,11 +143,13 @@ public class Audio : IDisposable
         finally { Cleanup(); }
     }
 
+    private long Current(int channel) => Interlocked.Read(ref _speakSeq[channel]);
+
     private void Run(Job job)
     {
         if (job.ListVoices) { FillVoiceNames(); return; }
         // A newer cue is already queued behind this one, so skip ahead.
-        if (job.Seq < Interlocked.Read(ref _speakSeq)) return;
+        if (job.Seq < Current(job.Channel)) return;
 
         if (job.Edge)
         {
@@ -141,26 +158,26 @@ public class Audio : IDisposable
                 var mp3 = GetEdgeWav(job.Text, job.Voice, job.Rate, job.Volume);
                 if (mp3 is { Length: > 64 })
                 {
-                    if (job.Seq == Interlocked.Read(ref _speakSeq))
+                    if (job.Seq == Current(job.Channel))
                         LastTtsStatus = $"Online OK - {job.Voice}";
                     PlayMp3(mp3, job.Seq);
                     return;
                 }
-                if (job.Seq == Interlocked.Read(ref _speakSeq))
+                if (job.Seq == Current(job.Channel))
                     LastTtsStatus = $"Online: no audio [{_edgeDiag}] - using Windows voice";
             }
             catch (Exception ex)
             {
-                if (job.Seq == Interlocked.Read(ref _speakSeq))
+                if (job.Seq == Current(job.Channel))
                     LastTtsStatus = $"Online failed: {ex.Message} - using Windows voice";
                 Service.Log.Warning(ex, "FrenMits: Edge TTS failed; using Windows voice");
             }
-            SpeakSapi(job.Text, job.Rate, job.Volume, "", job.Seq);   // fallback
+            SpeakSapi(job.Text, job.Rate, job.Volume, "", job.Seq, job.Channel);   // fallback
             return;
         }
 
         LastTtsStatus = "Windows voice";
-        SpeakSapi(job.Text, job.Rate, job.Volume, job.Voice, job.Seq);
+        SpeakSapi(job.Text, job.Rate, job.Volume, job.Voice, job.Seq, job.Channel);
     }
 
     // Worker-only from here down: COM and the player live on this one thread.
@@ -182,14 +199,14 @@ public class Audio : IDisposable
 
     // ---- Windows SAPI ----
 
-    private void SpeakSapi(string text, int rate, int volume, string voiceName, long seq)
+    private void SpeakSapi(string text, int rate, int volume, string voiceName, long seq, int channel)
     {
         if (_ttsUnavailable || _disposed) return;
         Service.Log.Information($"[FrenMits] SAPI.Speak '{text}'");
         try
         {
             // A newer cue was asked for, so drop this one.
-            if (seq < Interlocked.Read(ref _speakSeq)) return;
+            if (seq < Current(channel)) return;
             if (!TryAdvance(ref _playedSeq, seq)) return; // newer cue already played
 
             _voice ??= CreateVoice();

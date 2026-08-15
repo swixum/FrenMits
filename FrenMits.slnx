@@ -2,5 +2,6 @@
   <Folder Name="/src/">
     <Project Path="src/FrenMits.csproj" />
     <Project Path="src/FrenMits.Encounters/FrenMits.Encounters.csproj" />
+    <Project Path="src/FrenMits.Callouts/FrenMits.Callouts.csproj" />
   </Folder>
 </Solution>

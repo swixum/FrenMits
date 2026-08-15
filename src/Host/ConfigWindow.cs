@@ -71,7 +71,7 @@ public partial class ConfigWindow : Window, IDisposable
     }
 
     // Left-sidebar navigation.
-    internal enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter, Appearance }
+    internal enum NavKind { Home, Fights, Display, NextMits, Audio, PartyRecap, CombatTimer, PrepCheck, Meter, Appearance, BossAlerts }
     private NavKind _nav = NavKind.Home;
     private string _navCategory = "Ultimate";
 
@@ -461,6 +461,12 @@ public partial class ConfigWindow : Window, IDisposable
                 fight != null && (Builtin.Has(fight.TerritoryId) || fight.CustomSlots.Count > 0) ? fight : null);
         }
 
+        ImGui.Spacing();
+        SidebarHeading("CALLOUTS");
+        if (NavItem(FontAwesomeIcon.Bullhorn, "Boss Alerts", _nav == NavKind.BossAlerts,
+            dot: C.BossAlertsEnabled ? 0u : Theme.Warn)) _nav = NavKind.BossAlerts;
+        SidebarWarning("EXPERIMENTAL", "WORK IN PROGRESS");
+
         // Grouped by where the thing shows up, not by what kind of thing it is.
         ImGui.Spacing();
         SidebarHeading("ON SCREEN");
@@ -491,6 +497,20 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8);
         // Muted, so the accent belongs to the selected row alone.
         ImGui.TextColored(Theme.V(Theme.Heading), text.ToUpperInvariant());
+        ImGui.Spacing();
+    }
+
+    // A standing warning under a nav row, for anything not finished enough to
+    // be trusted in a pull. It sits under the row rather than beside it so the
+    // words fit whatever width the sidebar has settled on.
+    private void SidebarWarning(params string[] lines)
+    {
+        foreach (var line in lines)
+        {
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 20);
+            ImGui.TextColored(Theme.V(Theme.Warn), line);
+            _navNeed = MathF.Max(_navNeed, ImGui.GetItemRectSize().X + Theme.S(28f));
+        }
         ImGui.Spacing();
     }
 
@@ -824,6 +844,7 @@ public partial class ConfigWindow : Window, IDisposable
             case NavKind.PrepCheck: DrawPrepCheckPage(); break;
             case NavKind.Meter: DrawMeterPage(); break;
             case NavKind.Appearance: DrawAppearancePage(); break;
+            case NavKind.BossAlerts: DrawBossAlertsPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }

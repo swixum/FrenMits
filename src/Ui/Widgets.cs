@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -264,10 +264,15 @@ internal static class Widgets
     private static bool _rowClicked;
     public static bool RowClicked => _rowClicked;
 
+    // A row is usually known by its name, but two rows can honestly share one:
+    // a fight names the same mechanic in several phases. Pass an id where that
+    // happens, or clicking one row works the other.
     public static void RowBegin(string name, string hint, float ctlWidth, bool changed = false,
         bool sub = false, float ctlHeight = 0f, bool clickable = false,
-        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0)
+        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0, string id = "",
+        uint gameIcon = 0)
     {
+        if (id.Length == 0) id = name;
         var hasHint = !string.IsNullOrEmpty(hint);
         var rowH = RowHeight(hasHint);
         // Small buttons are shorter than a frame, so a row of them would sit high.
@@ -287,7 +292,7 @@ internal static class Widgets
         _rowClicked = false;
         if (clickable)
         {
-            _rowClicked = ImGui.InvisibleButton("##hit" + name, new Vector2(width, rowH));
+            _rowClicked = ImGui.InvisibleButton("##hit" + id, new Vector2(width, rowH));
             if (ImGui.IsItemHovered()) { hot = true; ImGui.SetMouseCursor(ImGuiMouseCursor.Hand); }
             ImGui.SetItemAllowOverlap();
             ImGui.SetCursorPos(start);
@@ -299,6 +304,7 @@ internal static class Widgets
         _rowIndex++;
 
         var textX = start.X + RowPad + (sub ? Theme.S(17f) : 0f);
+        textX += DrawRowGameIcon(gameIcon, textX, start.Y, rowH);
         textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
         ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
         ImGui.TextUnformatted(name);
@@ -322,6 +328,19 @@ internal static class Widgets
     public static void RowEnd() => ImGui.SetCursorPos(_rowNext);
 
     // A leading icon in a fixed slot, so names beside it still line up.
+    // A game icon, for a row about a real debuff or ability. It goes to the
+    // draw list rather than through layout, so it cannot move the text beside it.
+    private static float DrawRowGameIcon(uint iconId, float textX, float startY, float rowH)
+    {
+        if (iconId == 0) return 0f;
+        var slot = Theme.S(20f);
+        var art = Theme.S(18f);
+        var origin = ImGui.GetWindowPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
+        var at = origin + new Vector2(textX + (slot - art) * 0.5f, startY + (rowH - art) * 0.5f);
+        Icons.DrawTo(ImGui.GetWindowDrawList(), iconId, at, new Vector2(art, art));
+        return slot + Theme.S(7f);
+    }
+
     private static float DrawRowIcon(FontAwesomeIcon icon, uint iconCol, float textX, float startY, float rowH)
     {
         if (icon == FontAwesomeIcon.None) return 0f;
@@ -359,10 +378,12 @@ internal static class Widgets
 
     // The same row, but clicking anywhere on it flips the box.
     public static bool RowCheckClick(string name, string hint, ref bool v,
-        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0)
+        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0, string id = "",
+        uint gameIcon = 0)
     {
-        RowBegin(name, hint, ImGui.GetFrameHeight(), clickable: true, icon: icon, iconCol: iconCol);
-        var hit = GreenCheckbox("##rc" + name, ref v);
+        if (id.Length == 0) id = name;
+        RowBegin(name, hint, ImGui.GetFrameHeight(), clickable: true, icon: icon, iconCol: iconCol, id: id);
+        var hit = GreenCheckbox("##rc" + id, ref v);
         if (_rowClicked) { v = !v; hit = true; }
         RowEnd();
         return hit;
