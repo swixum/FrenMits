@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Configuration;
@@ -465,6 +465,30 @@ public class Configuration : IPluginConfiguration
 
     // Which sheet slot the baked DMU timeline last loaded, for display.
     public string DmuSlot { get; set; } = "";
+
+    // Boss alerts: the shipped calls, and whatever you changed about them.
+    public bool BossAlertsEnabled { get; set; } = true;
+    public bool BossAlertsSpeak { get; set; } = true;
+    public bool BossAlertsDraw { get; set; } = true;
+
+    // Only the calls you actually touched, keyed "territory|trigger key". A call
+    // you never opened is not in here, so it keeps following the pack.
+    public Dictionary<string, AlertTweak> BossAlertTweaks { get; set; } = new();
+
+    // Write every event the callout runner sees to a file, for working out
+    // afterwards why a call landed or did not. Off, and stays off unless asked.
+    public bool BossAlertsRecord { get; set; }
+
+    // How big the alert banner reads, in pixels. A call aimed at you draws a
+    // little larger than one that is not.
+    public float AlertFontSizePx { get; set; } = 34f;
+
+    // Where the alert banner sits, as a share of the screen. Just above the
+    // middle, where the eye already is during a mechanic.
+    public Vector2 AlertOverlayPosition { get; set; } = new(0.5f, 0.42f);
+
+    // The duty the Boss Alerts page last showed, so it reopens where you left it.
+    public uint LastAlertsDuty { get; set; }
 
     // Audio cues (text-to-speech).
     public bool AudioEnabled { get; set; }
