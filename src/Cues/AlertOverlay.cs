@@ -33,9 +33,25 @@ public sealed class AlertOverlay : Window
     // grabbed at all. Locked, it only exists while it has something to say.
     private bool Locked => C.OverlayLocked;
 
+    private bool _saidWhy;
+
     public override bool DrawConditions()
-        => C.BossAlertsEnabled && C.BossAlertsDraw
-           && (_plugin.Callouts.Live.Count > 0 || !Locked);
+    {
+        var ok = C.BossAlertsEnabled && C.BossAlertsDraw
+                 && (_plugin.Callouts.Live.Count > 0 || !Locked);
+
+        // Said once per refusal, so a banner that never appears says why rather
+        // than leaving nothing to go on.
+        if (!ok && _plugin.Callouts.Live.Count > 0 && !_saidWhy)
+        {
+            _saidWhy = true;
+            Service.Log.Information(
+                $"[FrenMits] alert overlay held back: on={C.BossAlertsEnabled} "
+                + $"draw={C.BossAlertsDraw} locked={Locked}");
+        }
+        if (ok) _saidWhy = false;
+        return ok;
+    }
 
     public override void PreDraw()
     {
@@ -89,8 +105,9 @@ public sealed class AlertOverlay : Window
         var color = Theme.V(Color(alert.Level));
         var dl = ImGui.GetWindowDrawList();
 
+        // Yours reads a little larger, so it stands out of a stack of four.
         using var font = _plugin.Fonts.Get(
-            ImGui.GetFontSize() * (alert.Personal ? 1.9f : 1.6f), "Default", true, false);
+            C.AlertFontSizePx * (alert.Personal ? 1.18f : 1f), "Default", true, false);
         using var pushed = font is { Available: true } ? font.Push() : null;
 
         var art = ImGui.GetTextLineHeight();

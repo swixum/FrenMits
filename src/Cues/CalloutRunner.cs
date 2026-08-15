@@ -393,6 +393,10 @@ public sealed class CalloutRunner : IDisposable
         _live.Add(new LiveAlert(text, icon, level, Lands: Clock + hold * 0.6f,
             Until: Clock + hold, Personal: personal));
         while (_live.Count > MaxOnScreen) _live.RemoveAt(0);
+
+        Service.Log.Information(
+            $"[FrenMits] alert test: \"{text}\" live={_live.Count} clock={Clock:0.0} "
+            + $"until={Clock + hold:0.0} draw={_config.BossAlertsDraw} on={_config.BossAlertsEnabled}");
     }
 
     private void Speak(Call call)

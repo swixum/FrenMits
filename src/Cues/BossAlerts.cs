@@ -39,7 +39,12 @@ public sealed record BossAlert
     // "tank", "healer", "dps", or several separated by a comma. Empty is everyone.
     public string Roles { get; init; } = "";
 
-    public bool On { get; init; } = true;
+    // Every call ships on. The bake marks the ones it is less sure of, and that
+    // mark is still worth keeping, but it decides what the list hides rather
+    // than what the fight says out loud.
+    public bool On => true;
+
+    public bool Suggested { get; init; } = true;
 
     // Seconds before the thing lands, or 0 for "as it starts".
     public float Lead { get; init; }
@@ -118,7 +123,7 @@ public sealed record BossAlert
     // on fight state nothing has ported yet, so it ships off and says so. Both
     // halves are needed. Some real calls are honestly named after the mechanic
     // and say so on purpose, and those ship on.
-    public bool NamedOnly => !On && Text == Mechanic;
+    public bool NamedOnly => !Suggested && Text == Mechanic;
 
     // Words every key in this duty starts with, which is the fight's own name
     // and belongs to none of the mechanics. Set when the book loads.
@@ -218,7 +223,7 @@ public sealed class AlertBook
                     Hold = Real(f[9]) is var h && h > 0f ? h : 4f,
                     Text = Unescape(f[11]),
                     Tts = Unescape(f[12]),
-                    On = f[14] != "0",
+                    Suggested = f[14] != "0",
                     Roles = Unescape(f[15]),
                 };
                 if (alert.Text.Length == 0) continue;

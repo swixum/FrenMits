@@ -137,6 +137,10 @@ public partial class ConfigWindow
         if (Widgets.RowCheck("Show them on screen", "A banner with a countdown", ref draw))
         { C.BossAlertsDraw = draw; C.Save(); }
 
+        var size = C.AlertFontSizePx;
+        if (Widgets.RowDrag("Text size", "How big the banner reads", ref size, 14f, 90f, "%.0f px"))
+        { C.AlertFontSizePx = size; C.Save(); }
+
         var pos = C.AlertOverlayPosition;
         if (PositionRow(ref pos, AlertHome)) { C.AlertOverlayPosition = pos; C.Save(); }
         if (NudgeRow(ref pos)) { C.AlertOverlayPosition = pos; C.Save(); }
@@ -384,6 +388,7 @@ public partial class ConfigWindow
         C.BossAlertsSpeak = true;
         C.BossAlertsDraw = true;
         C.AlertOverlayPosition = AlertHome;
+        C.AlertFontSizePx = 34f;
         C.BossAlertsRecord = false;
         _alertSearch = "";
         _alertFilter = 0;

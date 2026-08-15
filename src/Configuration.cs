@@ -479,6 +479,10 @@ public class Configuration : IPluginConfiguration
     // afterwards why a call landed or did not. Off, and stays off unless asked.
     public bool BossAlertsRecord { get; set; }
 
+    // How big the alert banner reads, in pixels. A call aimed at you draws a
+    // little larger than one that is not.
+    public float AlertFontSizePx { get; set; } = 34f;
+
     // Where the alert banner sits, as a share of the screen. Just above the
     // middle, where the eye already is during a mechanic.
     public Vector2 AlertOverlayPosition { get; set; } = new(0.5f, 0.42f);
