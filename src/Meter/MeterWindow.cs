@@ -2474,12 +2474,15 @@ public class MeterWindow : Window
     private void CenterText(ImDrawListPtr dl, Vector2 wp, float w, float y, uint color, string text)
         => BText(dl, wp + new Vector2((w - ImGui.CalcTextSize(text).X) * 0.5f, y), color, text);
 
-    // A stable color per ability, kept between pulls.
+    // A stable color per ability, kept between pulls and emptied at the cap: the
+    // color is worked out from the name, so a rebuilt entry is the same color.
     private static readonly Dictionary<string, uint> TintCache = new(StringComparer.Ordinal);
+    private const int TintCacheMax = 4096;
 
     public static uint TintFor(string name)
     {
         if (TintCache.TryGetValue(name, out var cached)) return cached;
+        if (TintCache.Count >= TintCacheMax) TintCache.Clear();
         var h = 2166136261u;
         foreach (var ch in name) { h = (h ^ ch) * 16777619u; }
         // Spread the hues rather than letting the hash clump them.

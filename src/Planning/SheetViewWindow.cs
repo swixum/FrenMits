@@ -77,6 +77,9 @@ public partial class SheetViewWindow : Window
     private readonly Dictionary<MitLine, string> _levelWarns = new();
     // Valid press windows, from coverage and squeeze.
     private readonly Dictionary<MitLine, string> _windows = new();
+    // The same window's opening as a number. Reading it back out of the text
+    // broke on any sheet whose displayed time is not its plan time.
+    private readonly Dictionary<MitLine, float> _windowOpens = new();
     // Text filter: show only rows whose mechanic or any mit matches.
     private string _filter = "";
     // Action Type filters

@@ -446,8 +446,10 @@ public class Configuration : IPluginConfiguration
     // Server-info (DTR) bar entry showing the next mit.
     public bool ShowDtrBar { get; set; } = true;
 
-    // Write a per-pull diagnostics file to the plugin folder.
-    public bool Diagnostics { get; set; } = true;
+    // Write a per-pull diagnostics file to the plugin folder, asked for by name
+    // with /fm pulldiag. A diagnostic ships off and stays on the machine that
+    // wanted it.
+    public bool Diagnostics { get; set; }
 
     // Resync: snap the pull-clock when known boss casts happen.
     public bool EnableSync { get; set; } = true;

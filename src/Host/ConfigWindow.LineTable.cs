@@ -85,8 +85,11 @@ public partial class ConfigWindow
             undoable("add a mechanic");
             var newLine = new MitLine { Custom = true, Personal = true };
             fight.Lines.Add(newLine);
-            fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
+            Resort(fight);
             _scrollToLine = newLine;
+            // Its editor opens with it: a blank call whose editor is shut is
+            // swept the same frame, so without this the new row never lands.
+            _focusNewAction = newLine;
             C.Save();
         }
         Tip("Add a mechanic. Mechanics group actions together.\nOfficial ones cannot be renamed.");
@@ -266,7 +269,7 @@ public partial class ConfigWindow
                                 PreserveBakedEdit(fight, l);
                                 l.Time = sec;
                             }
-                            deferred = () => { fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList(); _scrollToLine = repLine; C.Save(); };
+                            deferred = () => { Resort(fight); _scrollToLine = repLine; C.Save(); };
                         }
                         if (_editTimeLine == repLine) _editTimeLine = null;
                     }
@@ -457,7 +460,7 @@ public partial class ConfigWindow
                 {
                     Undoable($"add a call to \"{Fmt.Numerals(group.Mechanic)}\"");
                     fight.Lines.Add(newLine);
-                    fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
+                    Resort(fight);
                     _focusNewAction = newLine;
                     C.Save();
                 };
@@ -514,7 +517,7 @@ public partial class ConfigWindow
                                 newLine.Custom = false;
                                 fight.Lines.Add(newLine);
                             }
-                            fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
+                            Resort(fight);
                             C.Save(); 
                         };
                     }
@@ -557,8 +560,7 @@ public partial class ConfigWindow
                 if (fight.Lines[i].Time < fight.Lines[i - 1].Time) { isSorted = false; break; }
             if (!isSorted)
             {
-                fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
-                if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;
+                Resort(fight);
                 C.Save();
             }
         }
@@ -604,6 +606,15 @@ public partial class ConfigWindow
         _plugin.SheetViewWindow.MarkPlanDirty();
     }
 
+    // Sort by time, and put the stash back on the same list: a fresh list breaks
+    // the alias into SavedSlots, and a save in that window persists a stale copy
+    // of the column being edited.
+    private static void Resort(FightProfile fight)
+    {
+        fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList();
+        if (!string.IsNullOrEmpty(fight.Slot)) fight.SavedSlots[fight.Slot] = fight.Lines;
+    }
+
     // Right-click menu shared by the editable cells.
     private void LineContextItems(FightProfile fight, MitLine line, int index, Action<string> undoable,
         ref Action? deferred, List<MitLine> toDelete)
@@ -628,7 +639,7 @@ public partial class ConfigWindow
             undoable($"paste over \"{Ellipsis(Fmt.Numerals(line.Action), 28)}\"");
             PreserveBakedEdit(fight, line); // pasting over rewrites time/mechanic
             OverwriteLine(line, _copiedLine);
-            deferred = () => { fight.Lines = fight.Lines.OrderBy(a => a.Time).ToList(); _scrollToLine = line; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); };
+            deferred = () => { Resort(fight); _scrollToLine = line; C.Save(); _plugin.SheetViewWindow.MarkPlanDirty(); };
         }
 
         ImGui.Separator();

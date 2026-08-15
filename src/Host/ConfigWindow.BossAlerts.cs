@@ -409,6 +409,7 @@ public partial class ConfigWindow
         {
             foreach (var a in calls) { EditFor(a).On = !allOn; TidyTweak(a); }
             C.Save();
+            _plugin.Callouts.TweaksChanged();
         }
         Tip(allOn ? "Turn every call listed here off." : "Turn every call listed here on.");
         ImGui.Spacing();
@@ -476,6 +477,7 @@ public partial class ConfigWindow
         {
             foreach (var one in same) { EditFor(one).On = flip; TidyTweak(one); }
             C.Save();
+            _plugin.Callouts.TweaksChanged();
         }
         if (Widgets.RowClicked) _alertOpen = open ? "" : key;
 
@@ -610,9 +612,10 @@ public partial class ConfigWindow
         if (!dirty) return;
 
         // Whatever was just changed on the first goes to the rest of the ids.
+        // One that has just been emptied is a reset, not a change to copy.
         for (var i = 1; i < same.Count; i++)
         {
-            if (C.BossAlertTweaks.TryGetValue(TweakKey(a), out var edited))
+            if (C.BossAlertTweaks.TryGetValue(TweakKey(a), out var edited) && !edited.Empty)
                 C.BossAlertTweaks[TweakKey(same[i])] = new AlertTweak
                 {
                     On = edited.On, Text = edited.Text, Tts = edited.Tts,
@@ -622,6 +625,7 @@ public partial class ConfigWindow
         }
         TidyTweak(a);
         C.Save();
+        _plugin.Callouts.TweaksChanged();
     }
 
     // The bit of the editor a written call still gets: who hears it, and a way
@@ -649,7 +653,7 @@ public partial class ConfigWindow
         }
 
         Widgets.LabelScope("");
-        if (dirty) { TidyTweak(a); C.Save(); }
+        if (dirty) { TidyTweak(a); C.Save(); _plugin.Callouts.TweaksChanged(); }
     }
 
     // Say it now, the way a pull would, so nobody has to guess.
@@ -691,5 +695,6 @@ public partial class ConfigWindow
         _alertFilter = 0;
         _alertOpen = "";
         C.Save();
+        _plugin.Callouts.TweaksChanged();
     }
 }

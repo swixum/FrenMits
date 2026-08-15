@@ -34,9 +34,10 @@ public partial class SheetViewWindow
         // The official layout, where healer columns are job columns.
         1 => new[] { "MT", "OT", "WHM", "AST", "SCH", "SGE", "M1", "M2", "R1", "R2" },
         2 => new[] { "T", "H", "M1", "M2" },
-        // Hand-typed columns still run through the standard names.
+        // Hand-typed columns still run through the standard names, but a healer
+        // job typed as a column is a column, which is what the hint promises.
         _ => _newSlotsBuf.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                         .Select(SlotNames.Canon)
+                         .Select(s => SlotNames.Canon(s, true))
                          .Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
     };
 

@@ -9,11 +9,10 @@ namespace FrenMits.Cues;
 
 // Boss alerts at run time: the game every frame, calls out the other side.
 //
-// Everything here is read from the object table on the tick the plugin already
-// has. No detours, no memory patches, no second process. What that reach costs
-// is the events it cannot see: a head marker, a tether and a map effect are not
-// on any actor, so those triggers stay quiet until there is a hook for them.
-// Four in five calls do not need one.
+// Most of this is read from the object table on the tick the plugin already
+// has. Head markers and tethers are not on any actor, so they arrive instead
+// from the recap's actor-control detour. A map effect still has no source here,
+// and those triggers stay quiet until one exists.
 //
 // The engine itself is in FrenMits.Callouts and knows nothing about the game.
 // This is the only place the two meet.
@@ -22,10 +21,6 @@ public sealed class CalloutRunner : IDisposable
     // A duty is eight players and a handful of enemies. The cap is a backstop
     // against an open world zone, not a real limit.
     public const int MaxTracked = 128;
-
-    // Statuses are read for the party only. They are three percent of the calls
-    // and the whole object table would be the expensive part of this loop.
-    public const int MaxParty = 8;
 
     private readonly Configuration _config;
     private readonly Audio _audio;
@@ -54,6 +49,7 @@ public sealed class CalloutRunner : IDisposable
 
     // Reused per actor per sweep, so a full party costs no allocations.
     private readonly List<Callouts.Held> _hand = new();
+    private readonly HashSet<Held> _now = new();
     private readonly HashSet<ulong> _seen = new();
 
     // Drops a repeat, spaces two that land together, and merges a pair that
@@ -118,6 +114,14 @@ public sealed class CalloutRunner : IDisposable
 
     public int TriggerCount => _engine?.TriggerCount ?? 0;
 
+    // A call switched off on the settings page has to reach the engine that is
+    // already running, or the change waits for a zone the player has no reason
+    // to leave for. Taken between pulls, since a rebuild mid-fight would drop
+    // everything the fight remembers.
+    public void TweaksChanged() => _rebake = true;
+
+    private bool _rebake;
+
     // Everything the pack holds for this duty, with the player's own changes
     // laid over it. Built once per duty rather than per frame.
     private List<Trigger> TriggersFor(uint territory)
@@ -151,6 +155,7 @@ public sealed class CalloutRunner : IDisposable
     public void Enter(uint territory)
     {
         _territory = territory;
+        _rebake = false;
         _casting.Clear();
         _statuses.Clear();
         _seen.Clear();
@@ -192,6 +197,7 @@ public sealed class CalloutRunner : IDisposable
     {
         _live.Clear();
         _engine?.Reset();
+        _scheduler.Reset();
         _casting.Clear();
         _statuses.Clear();
         _seen.Clear();
@@ -243,6 +249,7 @@ public sealed class CalloutRunner : IDisposable
 
         var here = Service.ClientState.TerritoryType;
         if (here != _territory) Enter(here);
+        else if (_rebake && !_wasFighting) Enter(here);
         if (_engine is null) return;
 
         // A chapter skip is a load screen, and everything remembered from
@@ -291,6 +298,11 @@ public sealed class CalloutRunner : IDisposable
     public void OnTether(uint actorId, uint tetherId, uint pointsAt)
         => FromHook(EventKind.Tether, tetherId, actorId, pointsAt);
 
+    // A tether ending is its own event. Raised as a tether it carried no id, so
+    // anything counting tethers counted the removals too and filled early.
+    public void OnTetherGone(uint actorId)
+        => FromHook(EventKind.TetherLose, 0, actorId, 0);
+
     private void FromHook(EventKind kind, uint id, uint actorId, uint pointsAt)
     {
         if (_engine is null || !_wasFighting) return;
@@ -319,6 +331,7 @@ public sealed class CalloutRunner : IDisposable
     {
         if (!_wasFighting) return;
         _engine?.Reset();
+        _scheduler.Reset();
         _casting.Clear();
         _statuses.Clear();
         _seen.Clear();
@@ -421,6 +434,8 @@ public sealed class CalloutRunner : IDisposable
     // is remembered rather than the id alone.
     private readonly record struct Held(uint Id, ushort Param);
 
+    // Every tracked actor, not the party alone: a boss carries the status some
+    // fights hang their whole answer on.
     private void WatchStatuses(IBattleChara chara, Callouts.Actor actor, float time)
     {
         if (_statuses.Count >= MaxTracked && !_statuses.ContainsKey(chara.GameObjectId)) return;
@@ -428,7 +443,10 @@ public sealed class CalloutRunner : IDisposable
         if (!_statuses.TryGetValue(chara.GameObjectId, out var was))
             _statuses[chara.GameObjectId] = was = new HashSet<Held>();
 
-        var now = new HashSet<Held>();
+        // Scratch, reused every actor: a fresh set per actor per frame was the
+        // one allocation this sweep made, and it made it 128 times a tick.
+        var now = _now;
+        now.Clear();
 
         // The whole hand goes to the engine before any of it is announced, so
         // the first debuff of a burst can already see the rest of them.
@@ -467,7 +485,8 @@ public sealed class CalloutRunner : IDisposable
                     Extra = gone.Param, Target = actor,
                 });
 
-        _statuses[chara.GameObjectId] = now;
+        was.Clear();
+        was.UnionWith(now);
     }
 
     private static Callouts.Actor Actor(IBattleChara chara) => new(

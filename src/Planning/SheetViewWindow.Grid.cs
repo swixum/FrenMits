@@ -140,7 +140,11 @@ public partial class SheetViewWindow
             var filtered = new List<MitLine>();
             foreach (var l in cell)
             {
-                var isPartyMit = AbilityBook.PartyMits.Contains(l.Action);
+                // The same call the cell is colored by, so the filter and the
+                // color agree. Matching the whole cell against a list of exact
+                // names missed "Party Mit", every shorthand, every alternative
+                // spelled with a slash, and every ranged party mit.
+                var isPartyMit = MitTypes.Classify(l.Action) == MitTypes.Kind.Party;
                 if (isPartyMit && !_showPartyMits) continue;
                 if (!isPartyMit && !_showPersonalMits) continue;
                 filtered.Add(l);
@@ -720,7 +724,7 @@ public partial class SheetViewWindow
 
         if (cell.Count == 0 && (uniqueCarries == null || uniqueCarries.Count == 0))
         {
-            // empty — selectable still covers one line height for click target
+            // empty: the selectable still covers one line height as a click target
         }
 
         if (clicked && !CommitPending())
@@ -780,7 +784,7 @@ public partial class SheetViewWindow
                 if (ImGui.InputFloat("call offset (s)", ref offset, 0.5f, 1f, "%.1f") && !AbortIfStale())
                 {
                     if (_offsetUndoArmed) { PushUndo($"adjust \"{Fmt.Numerals(row.Mechanic)}\" offset"); _offsetUndoArmed = false; }
-                    EnsureBacked(i);
+                    EnsureBacked(slotIdx);
                     line.OffsetSeconds = Math.Clamp(offset, -30f, 30f);
                     line.OffsetManual = true; // hand-set: the timing solver won't touch it
                     C.Save();
@@ -797,7 +801,7 @@ public partial class SheetViewWindow
                         : "Cover through next hit") && nextRow != null && !AbortIfStale())
                 {
                     PushUndo($"extend {Fmt.Numerals(row.Mechanic)} coverage");
-                    EnsureBacked(i);
+                    EnsureBacked(slotIdx);
                     line.CoverUntil = nextRow.Time;
                     line.OffsetManual = true; // hand-set timing: the auto cooldown timer won't touch it
                     C.Save();
@@ -807,7 +811,7 @@ public partial class SheetViewWindow
                 if (line.CoverUntil > row.Time && ImGui.MenuItem($"Clear coverage (through {TimeText(line.CoverUntil)})") && !AbortIfStale())
                 {
                     PushUndo($"clear {Fmt.Numerals(row.Mechanic)} coverage");
-                    EnsureBacked(i);
+                    EnsureBacked(slotIdx);
                     line.CoverUntil = 0f;
                     line.OffsetManual = true; // hand-set timing: the auto cooldown timer won't touch it
                     C.Save();
@@ -817,17 +821,18 @@ public partial class SheetViewWindow
                 {
                     var winFirst = lineWin.Split('\n')[0];
                     ImGui.TextDisabled(winFirst);
-                    // One click to move the CALL to the window's start.
-                    var m = System.Text.RegularExpressions.Regex.Match(winFirst, "between (\\d+):(\\d+)");
-                    if (m.Success)
+                    // One click to move the CALL to the window's start. The
+                    // opening is read as a number: parsing it back out of the
+                    // text above gave a block-relative time on the sheets whose
+                    // displayed clock restarts, so the item never appeared.
+                    if (_windowOpens.TryGetValue(line, out var winStart))
                     {
-                        var winStart = int.Parse(m.Groups[1].Value) * 60 + int.Parse(m.Groups[2].Value);
                         var shift = MathF.Round(row.Time - winStart);
                         if (shift is > 0f and <= 30f && MathF.Abs(line.OffsetSeconds - shift) >= 0.5f
                             && ImGui.MenuItem($"Call at window start (+{shift:0}s)") && !AbortIfStale())
                         {
                             PushUndo($"offset {Fmt.Numerals(row.Mechanic)} to window");
-                            EnsureBacked(i);
+                            EnsureBacked(slotIdx);
                             line.OffsetSeconds = shift;
                             line.OffsetManual = true; // hand-set: the auto cooldown timer won't touch it
                             C.Save();
@@ -925,7 +930,7 @@ public partial class SheetViewWindow
                 if (syncLevel > 0 && pm.Level > syncLevel) continue; // above the duty's sync
                 // One entry per family, upgrades first so the best form wins.
                 if (pm.Family.Length > 0 && !shownFamilies.Add(pm.Family)) continue;
-                var free = MitFreeAt(i, pm, row.Time);
+                var free = MitFreeAt(slotIdx, pm, row.Time);
                 ImGui.BeginDisabled(!free);
                 if (ImGui.MenuItem(free ? name : $"{name} (on cooldown here)"))
                     ApplyCellText(row, i, name);
@@ -938,10 +943,12 @@ public partial class SheetViewWindow
     }
 
     // Is this mit's timer free at t, given the column's plan?
-    private bool MitFreeAt(int i, AbilityBook.PlanMit pm, float t)
+    // Takes a slot index, never a grid column: built-in grids carry ten columns
+    // against eight slots, so the two only agree on a custom sheet.
+    private bool MitFreeAt(int slotIdx, AbilityBook.PlanMit pm, float t)
     {
         var nearby = 0;
-        foreach (var l in _slotLines[i])
+        foreach (var l in _slotLines[slotIdx])
         {
             if (!l.Enabled || MathF.Abs(l.CueTime - t) >= pm.Recast) continue;
             foreach (var other in CooldownTracker.PlanMits(l.Action))

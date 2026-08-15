@@ -23,7 +23,13 @@ public class Diagnostics
 
     public void Update()
     {
-        if (!_plugin.Config.Diagnostics) return;
+        // Switched off mid-pull, so close the file instead of leaving it open
+        // against a start time that goes stale.
+        if (!_plugin.Config.Diagnostics)
+        {
+            if (_active || _pendingEnd) End();
+            return;
+        }
 
         // Running, not Live: this records a pull that happened.
         var running = _plugin.Timer.Running;

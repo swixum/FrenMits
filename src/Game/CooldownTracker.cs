@@ -36,6 +36,10 @@ public static class CooldownTracker
         _byName = map;
     }
 
+    // Keyed by free-typed cell text, so both memos empty at the cap rather than
+    // growing for the life of the session.
+    private const int MemoMax = 4096;
+
     // Action text to every tracked name it mentions, memoized for per-frame callers.
     private static readonly Dictionary<string, List<string>> _namesByText = new(StringComparer.Ordinal);
 
@@ -59,6 +63,7 @@ public static class CooldownTracker
                         names.Add(kv.Key);
                     }
                 }
+                if (_namesByText.Count >= MemoMax) _namesByText.Clear();
                 _namesByText[actionText!] = names;
             }
             if (names.Count == 0) return null;
@@ -185,7 +190,11 @@ public static class CooldownTracker
         if (_planMitsByText.TryGetValue(actionText!, out var hit)) return hit;
         var list = new List<AbilityBook.PlanMit>(PlanMits(actionText));
         // Never memoize a miss from an unbuilt map.
-        if (_planByName is { Count: > 0 }) _planMitsByText[actionText!] = list;
+        if (_planByName is { Count: > 0 })
+        {
+            if (_planMitsByText.Count >= MemoMax) _planMitsByText.Clear();
+            _planMitsByText[actionText!] = list;
+        }
         return list;
     }
 

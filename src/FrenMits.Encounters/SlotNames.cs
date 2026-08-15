@@ -16,10 +16,19 @@ public static class SlotNames
     public static readonly string[] Standard = 
         { "MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2" };
 
+    // Healer jobs name a seat on the standard sheets and a column of their own
+    // on a sheet that declares them, so only the first kind gets folded.
+    public static readonly string[] HealerJobs = { "WHM", "AST", "SCH", "SGE" };
+
     // Any known alias to its canonical name.
-    public static string Canon(string? slot)
+    public static string Canon(string? slot) => Canon(slot, false);
+
+    // With jobHealers, WHM and AST stay themselves rather than both becoming H1.
+    public static string Canon(string? slot, bool jobHealers)
     {
         var s = (slot ?? "").Trim();
+        if (jobHealers && HealerJobs.Contains(s, StringComparer.OrdinalIgnoreCase))
+            return s.ToUpperInvariant();
         return s.ToUpperInvariant() switch
         {
             "T1" or "MT" => "MT",
@@ -57,15 +66,19 @@ public static class SlotNames
     {
         var changed = false;
 
-        var slot = Canon(fight.Slot);
+        // A sheet that declares a healer job as a column means it: folding WHM
+        // and AST into one H1 threw away one of the two plans on every load.
+        var jobHealers = fight.CustomSlots.Any(c => HealerJobs.Contains(c, StringComparer.OrdinalIgnoreCase));
+
+        var slot = Canon(fight.Slot, jobHealers);
         if (!string.Equals(slot, fight.Slot, StringComparison.Ordinal)) { fight.Slot = slot; changed = true; }
 
-        if (fight.SavedSlots.Keys.Any(k => !string.Equals(Canon(k), k, StringComparison.Ordinal)))
+        if (fight.SavedSlots.Keys.Any(k => !string.Equals(Canon(k, jobHealers), k, StringComparison.Ordinal)))
         {
             var moved = new Dictionary<string, List<MitLine>>(StringComparer.OrdinalIgnoreCase);
             foreach (var (key, lines) in fight.SavedSlots)
             {
-                var ck = Canon(key);
+                var ck = Canon(key, jobHealers);
                 // A collision (both MT and T1 stashed) keeps the fuller plan.
                 if (!moved.TryGetValue(ck, out var have) || lines.Count > have.Count)
                     moved[ck] = lines;
@@ -77,7 +90,7 @@ public static class SlotNames
 
         for (var i = 0; i < fight.CustomSlots.Count; i++)
         {
-            var c = Canon(fight.CustomSlots[i]);
+            var c = Canon(fight.CustomSlots[i], jobHealers);
             if (!string.Equals(c, fight.CustomSlots[i], StringComparison.Ordinal))
             { fight.CustomSlots[i] = c; changed = true; }
         }
@@ -88,7 +101,7 @@ public static class SlotNames
 
         foreach (var d in fight.DeletedCalls)
         {
-            var c = Canon(d.Slot);
+            var c = Canon(d.Slot, jobHealers);
             if (!string.Equals(c, d.Slot, StringComparison.Ordinal)) { d.Slot = c; changed = true; }
         }
 

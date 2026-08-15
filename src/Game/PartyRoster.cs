@@ -20,13 +20,16 @@ public static class PartyRoster
         if (string.IsNullOrEmpty(localJob)) return null;
         var selfId = Plugin.LocalPlayer?.EntityId;
         string? other = null;
+        var others = 0;
         foreach (var m in Service.PartyList)
         {
             if (selfId != null && m.EntityId == selfId) continue;
             if (Jobs.ByRowId(m.ClassJob.RowId) is not { Role: JobRole.Tank } job) continue;
             other = job.Abbreviation;
+            others++;
         }
-        return other;
+        // Three tanks has no "other one", so say so rather than picking last.
+        return others == 1 ? other : null;
     }
 
     // The pairing TankPriority resolves its columns from.

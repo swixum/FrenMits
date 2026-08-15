@@ -107,6 +107,10 @@ public sealed record BossAlert
                 at++;
             }
             else if (IsFightCode(parts[at])) at++;
+            // A duty whose keys do not agree on one short name carries longer
+            // ones too ("OmegaUltimate" beside "TOP"). A word standing in front
+            // of a phase is one of those, and filed the call under nothing.
+            else if (at + 1 < parts.Length && IsPhase(parts[at + 1])) at++;
             else break;
         }
 

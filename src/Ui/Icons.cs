@@ -183,9 +183,13 @@ public static class Icons
             var jm = JobMitIcon(action, job);
             icon = jm != 0 ? jm : ResolveFromText(action);
         }
+        if (_forCache.Count >= CacheMax) _forCache.Clear();
         _forCache[key] = icon;
         return icon;
     }
+
+    // Keys come from plan text, so growth is slow but has no end of its own.
+    private const int CacheMax = 4096;
 
     private static readonly Dictionary<(string Action, string Mech, string Job), uint> _forCache = new();
 
@@ -291,6 +295,7 @@ public static class Icons
         var key = (action, job!);
         if (_displayCache.TryGetValue(key, out var cached)) return cached;
         var resolved = DisplayActionUncached(action, job);
+        if (_displayCache.Count >= CacheMax) _displayCache.Clear();
         _displayCache[key] = resolved;
         return resolved;
     }
@@ -411,6 +416,7 @@ public static class Icons
         if (icon == 0) icon = Substr(_byLength!, t);
         if (icon == 0) icon = Substr(_statusByLength!, t);
 
+        if (_textCache.Count >= CacheMax) _textCache.Clear();
         _textCache[text] = icon;
         return icon;
     }

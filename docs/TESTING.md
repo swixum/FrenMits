@@ -34,7 +34,7 @@ the plugin off/on in `/xlplugins`, or use the reload button on the dev-plugins l
 - **Built-in mits:** Fights tab → pick the ultimate → **Your slot** → **Load mits**.
   Open the line table to confirm the timeline + icons populated.
 - **Timeline + resync without going in:** use the in-game **Duty Recorder**
-  (`/duty` recordings) or a **replay** of the fight. Play it back — the plugin runs
+  (`/duty` recordings) or a **replay** of the fight. Play it back - the plugin runs
   exactly as in a live pull: combat starts the timer, boss casts resync the clock,
   cues fire. Watch the **Timer** tab's "Last sync" line to confirm anchors are firing.
 - **Capture anchors:** Timer tab → **Record boss casts this pull** during a replay to
@@ -43,8 +43,8 @@ the plugin off/on in `/xlplugins`, or use the reload button on the dev-plugins l
 
 ## 4. Automated tests
 
-The logic that doesn't need a game — sheet bakes, slot naming, share codes, the
-cooldown solver, the board's row builder and the config migration chain — is
+The logic that doesn't need a game - sheet bakes, slot naming, share codes, the
+cooldown solver, the board's row builder and the config migration chain - is
 covered offline:
 
 ```powershell

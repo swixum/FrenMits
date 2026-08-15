@@ -132,7 +132,7 @@ public static class TimingSolver
                 }
                 var latestByNext = nextHitTime != float.MaxValue ? nextHitTime - (m.Recast > 0f ? m.Recast : 60f) - 3f : float.MaxValue;
 
-                // lo stays at the mechanic's own hit — sheet lines are explicitly assigned to
+                // lo stays at the mechanic's own hit - sheet lines are explicitly assigned to
                 // their target; reaching back to earlier mechanics creates incorrect early calls.
                 var lo = iT;
                 var hi = iT;

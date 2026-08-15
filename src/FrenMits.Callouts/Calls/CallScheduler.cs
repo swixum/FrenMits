@@ -18,33 +18,73 @@ public sealed class CallScheduler
     // Calls this close together are one thought, so they get joined.
     public float MergeWindow { get; init; } = 0.1f;
 
+    // What was said and when, carried between events: two events half a second
+    // apart are the repeat these windows exist to catch, and locals could only
+    // ever see one event's worth.
+    private readonly Dictionary<string, float> _lastSaid = new(StringComparer.Ordinal);
+    private float _lastAt = float.NegativeInfinity;
+    private Call? _lastCall;
+
+    // Bound on the spoken-line memory, pruned to the duplicate window.
+    private const int MaxRemembered = 256;
+
+    // A new pull says everything afresh.
+    public void Reset()
+    {
+        _lastSaid.Clear();
+        _lastAt = float.NegativeInfinity;
+        _lastCall = null;
+    }
+
     public List<Call> Apply(IEnumerable<Call> calls)
     {
         var ordered = calls.OrderBy(c => c.At).ToList();
         var merged = Merge(ordered);
 
         var kept = new List<Call>(merged.Count);
-        var lastSaid = new Dictionary<string, float>(StringComparer.Ordinal);
-        var lastAt = float.NegativeInfinity;
 
         foreach (var c in merged)
         {
-            if (lastSaid.TryGetValue(c.Spoken, out var when) && c.At - when < DuplicateWindow) continue;
+            if (_lastSaid.TryGetValue(c.Spoken, out var when) && c.At - when < DuplicateWindow) continue;
 
             // Two calls landing together: the one that matters more wins the slot.
-            if (kept.Count > 0 && c.At - lastAt < MinGap)
+            if (_lastCall is { } prev && c.At - _lastAt < MinGap)
             {
-                if (!Outranks(c, kept[^1])) continue;
-                kept[^1] = c;
-                lastSaid[c.Spoken] = c.At;
+                if (!Outranks(c, prev)) continue;
+
+                // A call this batch has not handed over yet can still be swapped;
+                // one already gone out is only ever talked over.
+                if (kept.Count > 0) kept[^1] = c;
+                else kept.Add(c);
+                _lastSaid[c.Spoken] = c.At;
+                _lastCall = c;
                 continue;
             }
 
             kept.Add(c);
-            lastSaid[c.Spoken] = c.At;
-            lastAt = c.At;
+            _lastSaid[c.Spoken] = c.At;
+            _lastAt = c.At;
+            _lastCall = c;
         }
+
+        Prune();
         return kept;
+    }
+
+    // Anything past the duplicate window can never match again.
+    private void Prune()
+    {
+        if (_lastSaid.Count <= MaxRemembered) return;
+
+        foreach (var key in _lastSaid.Where(p => _lastAt - p.Value >= DuplicateWindow)
+                     .Select(p => p.Key).ToList())
+            _lastSaid.Remove(key);
+
+        // Still over means a burst of distinct lines, so the oldest go.
+        foreach (var key in _lastSaid.OrderBy(p => p.Value)
+                     .Take(Math.Max(0, _lastSaid.Count - MaxRemembered))
+                     .Select(p => p.Key).ToList())
+            _lastSaid.Remove(key);
     }
 
     // Yours beats the party's, then louder beats quieter.

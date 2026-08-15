@@ -28,4 +28,7 @@ public enum EventKind
 
     // Which duty this is, which is what picks the trigger set.
     Zone,
+
+    // A tether ending, which is not a tether: counting both filled a set early.
+    TetherLose,
 }

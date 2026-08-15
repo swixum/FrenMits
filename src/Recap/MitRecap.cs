@@ -121,7 +121,8 @@ public class MitRecap
                 _pullId = Guid.NewGuid();
                 _plugin.Damage.Clear();
             }
-            else if (!running && _wasRunning && Log.Count > 0) FinalizePull(); // pull ended -> freeze recap
+            // A pull with deaths and no tracked mit still has a story to tell.
+            else if (!running && _wasRunning && (Log.Count > 0 || _deaths.Count > 0)) FinalizePull();
             _wasRunning = running;
             if (!running) return;
 

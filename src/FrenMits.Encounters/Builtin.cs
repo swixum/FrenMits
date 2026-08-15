@@ -395,7 +395,14 @@ public static class Builtin
             // Canon on both sides, so saved fights carrying old column names still bake.
             if (a.Slot.Length == 0 || string.Equals(SlotNames.Canon(a.Slot), SlotNames.Canon(slot), StringComparison.OrdinalIgnoreCase))
             {
-                lines.Add(new MitLine { Time = a.Time, Mechanic = a.Mechanic, Action = a.Action, Jobs = a.Jobs, IsJobExtra = a.Slot.Length == 0 && a.Jobs.Count > 0 });
+                // Its own list, never the sheet's: a cell edit adding a job gate
+                // wrote it back into the cached sheet for the rest of the session.
+                lines.Add(new MitLine
+                {
+                    Time = a.Time, Mechanic = a.Mechanic, Action = a.Action,
+                    Jobs = a.Jobs.Count > 0 ? new List<string>(a.Jobs) : new(),
+                    IsJobExtra = a.Slot.Length == 0 && a.Jobs.Count > 0,
+                });
             }
         }
         

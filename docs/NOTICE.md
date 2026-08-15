@@ -5,7 +5,7 @@ where, and under which licence. It ships with the plugin.
 
 ## cactbot
 
-<https://github.com/OverlayPlugin/cactbot> — Apache License 2.0, Copyright the
+<https://github.com/OverlayPlugin/cactbot> - Apache License 2.0, Copyright the
 cactbot authors.
 
 Three parts of FrenMits are derived from that project's data:
@@ -32,7 +32,7 @@ authors are involved with FrenMits or have reviewed it.
 
 ## Triggevent
 
-<https://github.com/xpdota/event-trigger> — GNU General Public License v3.0,
+<https://github.com/xpdota/event-trigger> - GNU General Public License v3.0,
 Copyright (C) 2021 - 2022 xp.
 
 **Boss alerts.** Part of the call pack in `src/Data/Callouts/triggers.fmtrig` is

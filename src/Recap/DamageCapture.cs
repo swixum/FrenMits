@@ -185,8 +185,10 @@ public unsafe class DamageCapture : IDisposable
             {
                 if (!Connected(e.Type)) continue;
                 connected = true;
-                // High bits of the amount ride in Param3.
-                amount += (e.Param4 & 0x40) != 0 ? e.Value + ((uint)e.Param3 << 16) : e.Value;
+                // High bits of the amount ride in Param3, and the low copy of
+                // them comes back off. Same wrap the meter's Unscramble undoes.
+                var hi = (uint)e.Param3;
+                amount += (e.Param4 & 0x40) != 0 ? (uint)e.Value - hi + (hi << 16) : e.Value;
             }
             if (!connected) continue;
             players++;
@@ -195,7 +197,8 @@ public unsafe class DamageCapture : IDisposable
         if (players == 0) return;
 
         var mask = 0;
-        var sm = caster->GetStatusManager();
+        // No caster is no status list; dereferencing one in a detour ends the game.
+        var sm = caster == null ? null : caster->GetStatusManager();
         if (sm != null)
             foreach (ref var st in sm->Status)
                 if (st.StatusId != 0 && MitStatusBook.Resolve(st.StatusId) is { } e)
@@ -252,7 +255,7 @@ public unsafe class DamageCapture : IDisposable
                     _plugin.Callouts.OnTether(entityId, arg2, arg3);
                     break;
                 case ControlTetherGone:
-                    _plugin.Callouts.OnTether(entityId, 0, 0);
+                    _plugin.Callouts.OnTetherGone(entityId);
                     break;
             }
 

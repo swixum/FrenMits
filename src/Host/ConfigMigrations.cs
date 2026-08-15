@@ -31,10 +31,9 @@ public static class ConfigMigrations
             config.Save();
         }
 
-        // v4: per-pull diagnostics on by default, local only.
+        // v4: turned per-pull diagnostics on for everybody, undone by v50.
         if (config.Version < 4)
         {
-            config.Diagnostics = true;
             config.Version = 4;
             config.Save();
         }
@@ -577,6 +576,15 @@ public static class ConfigMigrations
             if (renamed > 0)
                 EncounterLog.Info($"[FrenMits] corrected {renamed} saved mechanic name(s).");
             config.Version = 49;
+            config.Save();
+        }
+
+        // v50: stop writing a file per pull on everybody's machine. It is a
+        // diagnostic, so it goes back to being asked for with /fm pulldiag.
+        if (config.Version < 50)
+        {
+            config.Diagnostics = false;
+            config.Version = 50;
             config.Save();
         }
     }

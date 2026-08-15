@@ -188,8 +188,10 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         MeterWindow.IsOpen = true;
         PrepWindow.IsOpen = true;
         RecapButtonWindow.IsOpen = true;
-        // Pop the "What's New" panel once after an update with notes.
-        WhatsNewWindow.IsOpen = Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
+        // Pop the "What's New" panel once after an update with notes. A fresh
+        // install has no update to read about, and the notes are older than it.
+        WhatsNewWindow.IsOpen = Config.LastWhatsNew.Length > 0
+                                && Config.LastWhatsNew != WhatsNewWindow.NotesVersion;
         load.Mark("windows");
 
         // The long name still works, but only the short one is worth a line in
@@ -424,6 +426,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         var n = 0;
         foreach (var f in Config.Fights)
         {
+            if (f.Category == "Custom") continue;   // a custom sheet is nobody's to rebake
             if (!Builtin.Has(f.TerritoryId)) continue;
             if (f.Lines.Count > 0 || f.SavedSlots.Count > 0)
                 Snapshots.Save(f, "before Refresh from sheet");
@@ -1174,6 +1177,14 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                     ? "No recordings yet - run /fm meterrec before a pull."
                     : $"{System.IO.Path.GetFileName(newest)}: {Meter.Replay(newest)}");
                 break;
+            // The per-pull diagnostics file, kept off unless turned on here.
+            case "pulldiag":
+                Config.Diagnostics = !Config.Diagnostics;
+                Config.SaveSettings();
+                Chat(Config.Diagnostics
+                    ? "Pull diagnostics on (this PC only)."
+                    : "Pull diagnostics off.");
+                break;
             // The meter's session diag file, kept off unless turned on here.
             case "meterdiag":
                 Config.MeterDiagFile = !Config.MeterDiagFile;
@@ -1236,6 +1247,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             {
                 stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.Time);
                 stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.OffsetSeconds);
+                // The solve reads the call itself, so renaming a mit, gating it
+                // to another job or switching it off has to move the stamp too.
+                stamp = stamp * 31 + StringComparer.Ordinal.GetHashCode(l.Action);
+                stamp = stamp * 31 + (l.Enabled ? 1 : 0);
+                stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.CoverUntil);
+                foreach (var j in l.Jobs)
+                    stamp = stamp * 31 + StringComparer.OrdinalIgnoreCase.GetHashCode(j);
             }
             // Generic terms resolve per job, so the solve is job-specific too.
             stamp = stamp * 31 + (job != null ? StringComparer.OrdinalIgnoreCase.GetHashCode(job) : 0);

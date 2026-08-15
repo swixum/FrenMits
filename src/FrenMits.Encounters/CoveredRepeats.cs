@@ -28,7 +28,7 @@ public static class CoveredRepeats
             if (!line.Enabled || string.IsNullOrWhiteSpace(line.Action)) continue;
             var ours = !line.Custom && line.Jobs.Count == 0;
 
-            // Each line is now a single action — check if it's already covered.
+            // Each line is now a single action - check if it's already covered.
             var mit = ours ? BareMit(line.Action, buffsIn) : null;
             if (mit != null && !AbilityBook.HasCharges(mit)
                 && upUntil.TryGetValue(mit, out var end) && end > line.Time + Slop)

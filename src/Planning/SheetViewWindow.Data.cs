@@ -373,6 +373,7 @@ public partial class SheetViewWindow
         _conflicts.Clear();
         _levelWarns.Clear();
         _windows.Clear();
+        _windowOpens.Clear();
         var syncLevel = _fight != null ? CooldownTracker.DutySyncLevel(_fight.TerritoryId) : 0;
 
         for (var i = 0; i < _slots.Length; i++)
@@ -513,6 +514,8 @@ public partial class SheetViewWindow
                                 ? $"Press {name} between {loText} and {TimeText(t)} to cover through {TimeText(line.CoverUntil)}."
                                 : $"Press {name} by {TimeText(hi)}; it's needed again for {squeezedBy}.";
                         AppendOnce(_windows, line, win);
+                        if (lo > float.NegativeInfinity && !_windowOpens.ContainsKey(line))
+                            _windowOpens[line] = MathF.Max(lo, 0f);
                     }
                 }
 

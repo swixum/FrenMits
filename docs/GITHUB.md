@@ -31,7 +31,7 @@ git commit -m "what changed"
 git push
 ```
 
-That's the whole loop. For your own use you don't need anything fancier — see
+That's the whole loop. For your own use you don't need anything fancier - see
 "Personal updates" below.
 
 ## 3. Private repo, public link via GitHub Pages
@@ -51,7 +51,7 @@ One-time setup:
    - manifest: `https://YOUR_USERNAME.github.io/FrenMits/repo.json`
    - plugin:   `https://YOUR_USERNAME.github.io/FrenMits/FrenMits.zip`
 
-If CI can't find Dalamud types, your in-game Dalamud is on **staging** — change the
+If CI can't find Dalamud types, your in-game Dalamud is on **staging** - change the
 download URL in the workflow to `.../dalamud-distrib/stg/latest.zip`.
 
 ## 4. Install / auto-update in-game
@@ -60,11 +60,11 @@ download URL in the workflow to `.../dalamud-distrib/stg/latest.zip`.
    `https://YOUR_USERNAME.github.io/FrenMits/repo.json` → Save.
 2. `/xlplugins` → install **Fren Mits**.
 3. Every push to `main` that bumps the version updates it in-game (Dalamud re-checks
-   the manifest). No release/tag needed — Pages always serves the latest build.
+   the manifest). No release/tag needed - Pages always serves the latest build.
 
 ## 5. Personal updates without Pages (simplest)
 
-For solo use you don't even need Pages — point Dalamud **Dev Plugin Locations** at your
+For solo use you don't even need Pages - point Dalamud **Dev Plugin Locations** at your
 local `src\bin\x64\Release`, `git pull` + `dotnet build src`, and Dalamud hot-reloads. Repo
 stays fully private, nothing published.
 
@@ -75,4 +75,4 @@ install if the zip manifest and repo manifest disagree):
 - [ ] `Directory.Build.props` → `<Version>` / `<AssemblyVersion>` / `<FileVersion>`
 - [ ] `FrenMits.json` → `AssemblyVersion`
 - [ ] `docs/repo.json` → `AssemblyVersion` (and `TestingAssemblyVersion`)
-- [ ] `git commit && git push` — the Pages deploy publishes the new build automatically.
+- [ ] `git commit && git push` - the Pages deploy publishes the new build automatically.

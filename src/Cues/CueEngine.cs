@@ -35,6 +35,7 @@ public class CueEngine
             // Freshness reads the raw timer, not a shifted clock.
             var fresh = _plugin.Timer.Elapsed < 5f;
             if (fresh) _fired.Clear();
+            _lastClock = float.NaN;   // a new pull's clock is not a jump
         }
 
         // Stay silent until a phase anchor re-bases the clock.
@@ -52,6 +53,13 @@ public class CueEngine
         var job = _plugin.ActiveJobAbbreviation();
         // Cue clock: sheet time plus the fight's offset.
         var elapsed = _plugin.CueClockFor(fight);
+
+        // The clock does not only tick: a resync snaps it, and one snap can cross
+        // a call's whole warning window between two frames. The call inside that
+        // span is usually the one about the very cast the snap just recognised,
+        // so it is said late rather than not at all.
+        var jumped = float.IsNaN(_lastClock) || elapsed <= _lastClock ? 0f : elapsed - _lastClock;
+        _lastClock = elapsed;
 
         // Speak off the press window, so voice and overlay open together.
         // A solver fault falls back to plain cue times rather than losing the voice.
@@ -80,7 +88,7 @@ public class CueEngine
             var cueAt = CueMoment(line, hasWindow, open.Start);
             var lead = LeadFor(c, line, hasWindow, open.Windowed);
             var remaining = cueAt - elapsed; // honors the per-line offset
-            if (remaining > lead || remaining < -0.5f) continue;
+            if (!Due(remaining, lead, jumped)) continue;
 
             (due ??= new()).Add(line);
         }
@@ -100,6 +108,20 @@ public class CueEngine
             Fire(c, group, job);
         }
     }
+
+    // The clock as the last frame read it, for spotting a snap.
+    private float _lastClock = float.NaN;
+
+    // How late a snapped-over call may still be said. Short enough to stay
+    // inside the cast it belongs to, so a phase jump cannot empty the whole
+    // phase's worth of calls at once.
+    public const float JumpGrace = 3f;
+
+    // Is this call due? Lateness is allowed only as far as the clock actually
+    // jumped this frame, so ordinary time passing still closes the window.
+    public static bool Due(float remaining, float lead, float jumped)
+        => remaining <= lead
+           && remaining >= -0.5f - MathF.Min(MathF.Max(jumped, 0f), JumpGrace);
 
     // An offset names its own moment, so it beats the press window.
     //

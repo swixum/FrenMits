@@ -22,7 +22,7 @@ added to that script's `$Strict` list once it passes.
 | `BossAnchors` | Fallback phase labels when `PhaseStarts` is empty. |
 | `PriorityPhases` | Windows where MT/OT tank lines mean priority 1/2 rather than literal enmity. |
 
-`Timeline` is reference data — no code reads it at runtime. The mechanic list
+`Timeline` is reference data - no code reads it at runtime. The mechanic list
 the UI actually builds comes from `DefaultActions` via `Builtin.BakedLines`.
 That is exactly why it needs a build-time check: a bad mechanic name here
 produces a wrong sheet, never an error.
@@ -34,7 +34,7 @@ produces a wrong sheet, never an error.
 
 Exact, not approximate. An action a second or two off its mechanic renders as
 its own row in the config list, which is how one cast ends up looking like
-three. Use `MitLine.OffsetSeconds` if a call needs to *fire* early or late —
+three. Use `MitLine.OffsetSeconds` if a call needs to *fire* early or late -
 that shifts the cue without splitting the row.
 
 ```json
@@ -57,11 +57,11 @@ Key order is `Time`, `Mechanic`, `Slot`, `Action`, `Jobs`, `Hidden`.
 ## `Hidden`
 
 `"Hidden": true` marks an action whose `Mechanic` is a **personal timer rather
-than a boss cast** — currently only the summoner's `Summon` cycle (Ifrit /
+than a boss cast** - currently only the summoner's `Summon` cycle (Ifrit /
 Titan / Garuda), 51 rows in UMAD.
 
 A hidden action still bakes, and the job that owns it still sees the row as a
-normal part of the sheet. For everyone else it is absent entirely — not an
+normal part of the sheet. For everyone else it is absent entirely - not an
 official mechanic they are missing actions for, and not a custom row either.
 It also carries no delete affordance in Sheet View: the sheet keeps baking it,
 so a tombstone would only fight the next top-up.
@@ -78,7 +78,7 @@ off the mechanic list.
 ## Adding a mechanic
 
 If an action needs a cast the `Timeline` lacks, add the `Timeline` entry rather
-than nudging the action's time. Prefer the time recorded in `CustomRows` — that
+than nudging the action's time. Prefer the time recorded in `CustomRows` - that
 section is built from kill logs, so it is the most accurate record of when the
 cast lands.
 

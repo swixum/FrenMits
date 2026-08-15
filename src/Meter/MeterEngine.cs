@@ -53,6 +53,11 @@ public class MeterEngine : IDisposable
     private float _bossLeft = -1f;
     private int _standing = -1;
 
+    // What the game itself said about the end, which beats reading it off the
+    // numbers: a kill landed by damage over time leaves nobody standing, and
+    // the party being down is what the numbers call a wipe.
+    private PullEnd? _outcome;
+
     // How a pull finished: party down is a wipe.
     public static PullEnd EndOf(int standing, float bossLeft)
     {
@@ -257,6 +262,7 @@ public class MeterEngine : IDisposable
             {
                 if (wiped) _standing = 0;
                 else _bossLeft = 0f;
+                _outcome = wiped ? PullEnd.Wipe : PullEnd.Kill;
                 Note(wiped ? "duty wiped - closing the fight" : "duty complete - closing the fight");
                 CutHere();
             }
@@ -341,8 +347,10 @@ public class MeterEngine : IDisposable
                 if (line.Length > 3 && line[0] == "01")
                 {
                     Note($"zone change - {line[3]}");
-                    // The zone clears the engine, so an engine-read fight banks first.
-                    if (_engineSourced) CutHere();
+                    // The zone clears the engine, so an open fight banks first,
+                    // parser-read included: banking after the clear filed the
+                    // pull with empty breakdowns. A frozen board is left alone.
+                    if (!Paused && (_engineSourced || _rawSeg is { Active: true })) CutHere();
                 }
                 Engine.Process(line);
             }
@@ -722,7 +730,7 @@ public class MeterEngine : IDisposable
         if (enc.Dealt.Count > 0 || enc.Deaths.Count > 0) return;
         enc.BossLeft = _bossLeft;
         enc.Boss = _sawBoss;
-        enc.Ended = EndOf(_standing, _bossLeft);
+        enc.Ended = _outcome ?? EndOf(_standing, _bossLeft);
 
         // The parser says "YOU", so resolve it before filing.
         var you = LocalName();
@@ -847,6 +855,7 @@ public class MeterEngine : IDisposable
         _sawBoss = false;
         _bossLeft = -1f;
         _standing = -1;
+        _outcome = null;
         _warnedAt = 0;
         _seenLines = 0;   // the engine's table is cleared below, so its count restarts
         _idle.Clear();

@@ -108,8 +108,18 @@ public static class PlanCodes
             if (existing != null)
             {
                 plugin.Snapshots.Save(existing, $"before importing \"{fight.Name}\"");
-                // Slot-scoped: only the sender's active slot is replaced.
-                existing.Lines = fight.Lines;
+
+                // Slot-scoped: the sender's column is replaced and the rest are
+                // kept, including which column the receiver is playing. Taking
+                // their slot too put an H1 on the tank's plan without saying so.
+                var onSameSlot = string.IsNullOrEmpty(fight.Slot)
+                                 || string.IsNullOrEmpty(existing.Slot)
+                                 || string.Equals(fight.Slot, existing.Slot, StringComparison.OrdinalIgnoreCase);
+                if (onSameSlot)
+                {
+                    existing.Lines = fight.Lines;
+                    if (!string.IsNullOrEmpty(fight.Slot)) existing.Slot = fight.Slot;
+                }
                 existing.TimerOffset = fight.TimerOffset;
                 // Notes merge, so an old code can't wipe yours.
                 foreach (var n in fight.Notes)
@@ -121,7 +131,6 @@ public static class PlanCodes
                 }
                 if (!string.IsNullOrEmpty(fight.Slot))
                 {
-                    existing.Slot = fight.Slot;
                     existing.SavedSlots[fight.Slot] = fight.Lines;
                     existing.DeletedCalls.RemoveAll(d =>
                         string.Equals(d.Slot, fight.Slot, StringComparison.OrdinalIgnoreCase));
@@ -144,7 +153,9 @@ public static class PlanCodes
                 config.Save();
                 return (existing, false, string.IsNullOrEmpty(fight.Slot)
                     ? $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\"."
-                    : $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\" ({fight.Slot} slot; your other slots kept).");
+                    : onSameSlot
+                        ? $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\" ({fight.Slot} slot; your other slots kept)."
+                        : $"Imported \"{fight.Name}\" into your existing \"{existing.Name}\" ({fight.Slot} slot; you are still on {existing.Slot}).");
             }
 
             fight.Id = Guid.NewGuid().ToString("N");

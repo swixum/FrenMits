@@ -8,6 +8,9 @@ namespace FrenMits.Timing;
 public class SyncEngine
 {
     private readonly Plugin _plugin;
+    // Backstop against an open-world zone, matching the callout sweep's cap.
+    private const int MaxCastActors = 128;
+
     private readonly Dictionary<uint, uint> _lastCast = new(); // actor -> last seen cast action id
     private readonly HashSet<uint> _seenBoss = new();          // boss NameIds seen this pull
     private readonly HashSet<(uint Ability, float Time)> _fired = new(); // anchors already used this pull
@@ -125,7 +128,10 @@ public class SyncEngine
 
                 _lastCast.TryGetValue(id, out var prev);
                 if (castId == prev) continue;
-                _lastCast[id] = castId;
+                // A field op never leaves the zone, so the pull-end clear alone
+                // is no bound: an actor it has not seen only lands under the cap.
+                if (_lastCast.Count < MaxCastActors || _lastCast.ContainsKey(id))
+                    _lastCast[id] = castId;
                 if (castId == 0) continue;
 
                 var timeToResolve = MathF.Max(0f, bc.TotalCastTime - bc.CurrentCastTime);

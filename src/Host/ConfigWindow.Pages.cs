@@ -1297,10 +1297,13 @@ public partial class ConfigWindow
         return bestHasMatch ? best : null;
     }
 
+    // Every field, including who owns the line: a copy that forgets it is yours
+    // tombstones the sheet when it is deleted and loses its override tint.
     private static MitLine CloneLine(MitLine l) => new()
     {
         Time = l.Time, Mechanic = l.Mechanic, Action = l.Action,
         Jobs = new List<string>(l.Jobs), Enabled = l.Enabled,
+        Custom = l.Custom, Personal = l.Personal, IsJobExtra = l.IsJobExtra,
         LeadOverride = l.LeadOverride, OffsetSeconds = l.OffsetSeconds,
         OffsetManual = l.OffsetManual, CoverUntil = l.CoverUntil,
         Tts = l.Tts, Sound = l.Sound, Color = l.Color, IconId = l.IconId

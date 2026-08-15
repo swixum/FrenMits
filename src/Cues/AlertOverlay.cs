@@ -40,26 +40,30 @@ public sealed class AlertOverlay : Window
 
     public override bool DrawConditions()
     {
+        var live = _plugin.Callouts.Live.Count > 0;
+
         // Switched off means gone, the same instant, the way every other overlay
         // behaves. A test or a sample is still a boss alert: it has no business
         // outliving the switch that turns boss alerts off.
-        if (!C.BossAlertsEnabled || !C.BossAlertsDraw) return false;
+        if (!C.BossAlertsEnabled || !C.BossAlertsDraw)
+        {
+            // Said once per refusal, and only where a refusal can happen with
+            // calls live, which is here: below, live is what makes it draw.
+            if (live && !_saidWhy)
+            {
+                _saidWhy = true;
+                Service.Log.Information(
+                    $"[FrenMits] alert overlay held back: on={C.BossAlertsEnabled} "
+                    + $"draw={C.BossAlertsDraw} locked={Locked}");
+            }
+            return false;
+        }
 
-        var live = _plugin.Callouts.Live.Count > 0;
         var ok = live
                  || _plugin.Callouts.Testing
                  || _plugin.Callouts.Placing(ImGui.GetFrameCount())
                  || !Locked;
 
-        // Said once per refusal, so a banner that never appears says why rather
-        // than leaving nothing to go on.
-        if (!ok && _plugin.Callouts.Live.Count > 0 && !_saidWhy)
-        {
-            _saidWhy = true;
-            Service.Log.Information(
-                $"[FrenMits] alert overlay held back: on={C.BossAlertsEnabled} "
-                + $"draw={C.BossAlertsDraw} locked={Locked}");
-        }
         if (ok) _saidWhy = false;
         return ok;
     }

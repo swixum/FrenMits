@@ -62,7 +62,7 @@ public class Audio : IDisposable
     public const int AlertChannel = 1;
 
     private readonly long[] _speakSeq = new long[Channels];
-    private long _playedSeq;
+    private readonly long[] _playedSeq = new long[Channels];
     private volatile bool _disposed;
 
     // Unload cancels any fetch still on the wire.
@@ -160,7 +160,7 @@ public class Audio : IDisposable
                 {
                     if (job.Seq == Current(job.Channel))
                         LastTtsStatus = $"Online OK - {job.Voice}";
-                    PlayMp3(mp3, job.Seq);
+                    PlayMp3(mp3, job.Seq, job.Channel);
                     return;
                 }
                 if (job.Seq == Current(job.Channel))
@@ -207,7 +207,7 @@ public class Audio : IDisposable
         {
             // A newer cue was asked for, so drop this one.
             if (seq < Current(channel)) return;
-            if (!TryAdvance(ref _playedSeq, seq)) return; // newer cue already played
+            if (!TryAdvance(ref _playedSeq[channel], seq)) return; // newer cue already played
 
             _voice ??= CreateVoice();
             if (_voice is null) return;
@@ -244,7 +244,10 @@ public class Audio : IDisposable
         }
         catch (Exception ex)
         {
+            // Unanswered rather than empty, so the next ask can try again.
+            Interlocked.Exchange(ref _voicesRequested, 0);
             Service.Log.Warning(ex, "FrenMits: enumerating TTS voices failed");
+            return;
         }
         _voiceNames = names;
     }
@@ -454,7 +457,7 @@ public class Audio : IDisposable
     private MemoryStream? _readerMs;
 
     // Decodes the MP3 and plays it, non-blocking.
-    private void PlayMp3(byte[] mp3, long seq)
+    private void PlayMp3(byte[] mp3, long seq, int channel)
     {
         Service.Log.Information($"[FrenMits] Edge.PlayMp3 ({mp3.Length}B)");
         try
@@ -462,7 +465,7 @@ public class Audio : IDisposable
             // Don't resurrect the player after Dispose.
             if (_disposed) return;
             // A newer cue already played, so drop this one.
-            if (!TryAdvance(ref _playedSeq, seq)) return;
+            if (!TryAdvance(ref _playedSeq[channel], seq)) return;
 
             // Disposing the previous output stops it.
             try { _output?.Dispose(); } catch { /* ignore */ }
