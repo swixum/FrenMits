@@ -61,6 +61,12 @@ public sealed class CalloutRunner : IDisposable
 
     public IReadOnlyList<LiveAlert> Live => _live;
 
+    // A banner asked for from settings outranks every setting that would hide
+    // one, because the point of asking is to see it.
+    public bool Testing => _testUntil > Clock;
+
+    private float _testUntil;
+
     // Fight seconds as the overlay counts them, so the countdown and the call
     // that raised it read from one clock.
     public float Clock { get; private set; }
@@ -393,6 +399,7 @@ public sealed class CalloutRunner : IDisposable
         _live.Add(new LiveAlert(text, icon, level, Lands: Clock + hold * 0.6f,
             Until: Clock + hold, Personal: personal));
         while (_live.Count > MaxOnScreen) _live.RemoveAt(0);
+        _testUntil = Clock + hold;
 
         Service.Log.Information(
             $"[FrenMits] alert test: \"{text}\" live={_live.Count} clock={Clock:0.0} "

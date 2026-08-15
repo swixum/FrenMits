@@ -368,9 +368,12 @@ public partial class ConfigWindow
     // Say it now, the way a pull would, so nobody has to guess.
     private void TestAlert(BossAlert a)
     {
-        if (C.BossAlertsDraw)
-            _plugin.Callouts.ShowTest(SaysOf(a), a.Icon,
-                (FrenMits.Callouts.CallSeverity)(int)LevelOf(a), a.Match.Target == FrenMits.Callouts.ActorScope.Me);
+        // Test means show me this, so it is never gated on the draw setting.
+        // Hiding it behind that setting also hid the one log line that says why
+        // nothing appeared, which is how this went unexplained for two builds.
+        _plugin.Callouts.ShowTest(SaysOf(a), a.Icon,
+            (FrenMits.Callouts.CallSeverity)(int)LevelOf(a),
+            a.Match.Target == FrenMits.Callouts.ActorScope.Me);
 
         if (!C.BossAlertsSpeak) return;
         var spoken = SpeaksOf(a);

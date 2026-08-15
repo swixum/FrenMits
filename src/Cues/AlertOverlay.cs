@@ -37,8 +37,10 @@ public sealed class AlertOverlay : Window
 
     public override bool DrawConditions()
     {
-        var ok = C.BossAlertsEnabled && C.BossAlertsDraw
-                 && (_plugin.Callouts.Live.Count > 0 || !Locked);
+        var live = _plugin.Callouts.Live.Count > 0;
+        var ok = (C.BossAlertsEnabled && C.BossAlertsDraw && live)
+                 || _plugin.Callouts.Testing
+                 || !Locked;
 
         // Said once per refusal, so a banner that never appears says why rather
         // than leaving nothing to go on.
