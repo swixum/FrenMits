@@ -73,7 +73,28 @@ public sealed class CalloutRunner : IDisposable
     // covers the gap between the settings window drawing and the overlay.
     public int PreviewFrame { get; set; } = -100;
 
+    // The duty the page is showing, which is where the sample's art comes from.
+    // Standing in a city, the duty you are in has no calls and no icons.
+    public uint PreviewDuty { get; set; }
+
     public bool Placing(int frame) => frame - PreviewFrame <= 2;
+
+    // Real art for the sample, taken from the duty being looked at, so what is
+    // placed looks like what a call in that fight will. Worked out once per
+    // duty, because it walks the duty's calls to find one that has an icon.
+    private uint _sampleIcon;
+    private uint _sampleFor = uint.MaxValue;
+
+    public uint SampleIcon(uint territory)
+    {
+        if (PreviewDuty != 0) territory = PreviewDuty;
+        if (territory == _sampleFor) return _sampleIcon;
+        _sampleFor = territory;
+        _sampleIcon = 0;
+        foreach (var a in _book().For(territory))
+            if (a.Icon != 0) { _sampleIcon = a.Icon; break; }
+        return _sampleIcon;
+    }
 
     // Fight seconds as the overlay counts them, so the countdown and the call
     // that raised it read from one clock.

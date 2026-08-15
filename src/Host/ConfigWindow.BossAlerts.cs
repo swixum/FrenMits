@@ -104,6 +104,7 @@ public partial class ConfigWindow
         _plugin.Callouts.PreviewFrame = ImGui.GetFrameCount();
 
         var duty = AlertsDuty();
+        _plugin.Callouts.PreviewDuty = duty;
         var all = Alerts.For(duty).Where(a => !a.NamedOnly).ToList();
         var changed = all.Count(a => TweakFor(a) is { Empty: false });
 

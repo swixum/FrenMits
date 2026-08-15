@@ -1133,7 +1133,8 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
             // asked for by name and never offered.
             case "alert":
             case "alerttest":
-                Callouts.ShowTest("Boss alert test", 0,
+                Callouts.ShowTest("Boss alert test",
+                    Callouts.SampleIcon(Service.ClientState.TerritoryType),
                     FrenMits.Callouts.CallSeverity.Warn, personal: true);
                 Service.ChatGui.Print("Fren Mits: showing a test boss alert for five seconds.");
                 break;

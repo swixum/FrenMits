@@ -33,7 +33,8 @@ public sealed class AlertOverlay : Window
     // grabbed at all. Locked, it only exists while it has something to say.
     // Placing it beats the lock: otherwise the one moment you need to drag it
     // is the one moment it refuses to be dragged.
-    private bool Locked => C.OverlayLocked && !_plugin.Callouts.Placing(ImGui.GetFrameCount());
+    private bool Locked => OverlayChrome.Locked(C.OverlayLocked, C)
+                           && !_plugin.Callouts.Placing(ImGui.GetFrameCount());
 
     private bool _saidWhy;
 
@@ -73,21 +74,25 @@ public sealed class AlertOverlay : Window
             Flags |= ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
                      | ImGuiWindowFlags.NoMouseInputs;
 
-        var viewport = ImGui.GetMainViewport();
-        var pos = viewport.WorkPos + C.AlertOverlayPosition * viewport.WorkSize;
-        pos = new Vector2(MathF.Round(pos.X), MathF.Round(pos.Y));  // whole pixels, sharp text
+        // The same placement every other overlay uses. Locked, it is pinned
+        // every frame; unlocked, it is placed once and then left alone so a
+        // drag survives the frame it happens on.
+        OverlayChrome.ApplyPosition(C.AlertOverlayPosition, Locked, ref _applyPos);
+    }
 
-        // Pinned, except while it is being dragged.
-        if (Locked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
-        {
-            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f));
-            _applyPos = true;
-        }
-        else if (_applyPos)
-        {
-            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new Vector2(0.5f, 0.5f));
-            _applyPos = false;
-        }
+    public override void PostDraw() => SavePositionIfDragged();
+
+    private bool _posDirty;
+
+    private void SavePositionIfDragged()
+    {
+        if (Locked) return;
+        if (OverlayChrome.MovedCenterFrac(C.AlertOverlayPosition) is { } frac)
+        { C.AlertOverlayPosition = frac; _posDirty = true; }
+
+        // One disk write when the drag ends, not one per frame.
+        if (_posDirty && !ImGui.IsMouseDown(ImGuiMouseButton.Left))
+        { C.SaveSettings(); _posDirty = false; }
     }
 
     public override void Draw()
@@ -98,7 +103,9 @@ public sealed class AlertOverlay : Window
             // Nothing is happening, so a sample stands in. It is drawn the way a
             // real one is, at the size and colors set, so what is being placed
             // is what will be seen.
-            Row(new LiveAlert("Knockback", 0, FrenMits.Callouts.CallSeverity.Danger,
+            Row(new LiveAlert("Knockback",
+                _plugin.Callouts.SampleIcon(Service.ClientState.TerritoryType),
+                FrenMits.Callouts.CallSeverity.Danger,
                 Lands: 2.4f, Until: 0f, Personal: true), now: 0f);
             ImGui.TextColored(Theme.V(Theme.Muted), "Sample. Drag to move.");
             return;
