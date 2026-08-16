@@ -34,13 +34,13 @@ public static class Reworded
         ["dmu-p1-mystery-magic-ice-and-fire"] = "ice and fire",
         ["dmu-p1-and-p4-mystery-magic-ice-and-thunder"] = "ice and thunder",
 
-        // A direction never carries a comma: a slash means both are safe, "then"
-        // means one after the other.
-        ["dmu-p1-gravitational-wave"] = "Right / East",
-        ["dmu-p1-impertinent-will"] = "Left / West",
-        ["dmu-p1-wave-cannon"] = "East / West spread",
-        ["dmu-p3-longitudinal-implosion"] = "Sides then Front / Back",
-        ["dmu-p3-latitudinal-implosion"] = "Front / Back then Sides",
+        // A direction never carries a comma. The same spot said two ways goes in
+        // brackets, and "then" means one after the other.
+        ["dmu-p1-gravitational-wave"] = "Right (East)",
+        ["dmu-p1-impertinent-will"] = "Left (West)",
+        ["dmu-p1-wave-cannon"] = "East West spread",
+        ["dmu-p3-longitudinal-implosion"] = "Sides then Front (Back)",
+        ["dmu-p3-latitudinal-implosion"] = "Front (Back) then Sides",
         ["dmu-p5-forsaken"] = "stack raidwide",
         ["dmu-p5-ultima-repeater"] = "raidwide x4",
     };

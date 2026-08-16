@@ -82,7 +82,7 @@ public static partial class Program
         if (territory == DancingMad.Territory)
         {
             engine.AddRange(DancingMad.Triggers());
-            engine.AddRange(DancingMad.Sequences());
+            engine.AddRange(DancingMad.AllSequences());
         }
         if (territory == FuturesRewritten.Territory) engine.AddRange(FuturesRewritten.Triggers());
         if (territory == Lindwurm.Territory) engine.AddRange(Lindwurm.Triggers());

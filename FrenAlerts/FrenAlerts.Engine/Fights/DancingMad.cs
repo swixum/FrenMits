@@ -23,7 +23,7 @@ public static class DancingMad
                 Id = $"limit-cut-{number}",
                 On = EventKind.HeadMarker,
                 MatchId = id,
-                Phase = 2,
+                Phase = 3,
                 OnlyMe = true,
                 Make = ctx => new Call
                 {
@@ -214,6 +214,7 @@ public static class DancingMad
                     ThenOn = EventKind.StatusGain,
                     ThenId = second,
                     ThenOnMe = true,
+                    Phase = 1,
                     Within = 20.0,
                     Make = ctx => new Call
                     {
@@ -228,6 +229,10 @@ public static class DancingMad
         }
     }
 
+    // Everything that needs two events in order, in one list.
+    public static IEnumerable<SequenceTrigger> AllSequences() =>
+        Sequences().Concat(MysteryMagic());
+
     // The statuses the sequence is built from, claimed so the pack's own bare
     // "Tele-Portents" rows do not fire alongside it.
     private static IEnumerable<Trigger> TelePortents()
@@ -239,6 +244,16 @@ public static class DancingMad
         }
     }
 
+    private static Trigger Claim(string id, EventKind on, uint match, int phase) => new()
+    {
+        Id = id,
+        On = on,
+        MatchId = match,
+        Phase = phase,
+        Claims = true,
+        Make = _ => null,
+    };
+
     // Holds an event so the pack does not answer it, and says nothing itself.
     private static Trigger Silent(string id, uint status, int phase) => new()
     {
@@ -246,6 +261,7 @@ public static class DancingMad
         On = EventKind.StatusGain,
         MatchId = status,
         Phase = phase,
+        Claims = true,
         Make = _ => null,
     };
 
@@ -268,6 +284,72 @@ public static class DancingMad
         foreach (var (status, word) in Wounds)
             yield return Element($"neo-debuff-{status:X}", status, word, 4);
     }
+
+    // Mystery Magic. The element markers land on the field and say which tell is
+    // real; the dorito or stack marker lands on you. Both are head markers, so this
+    // is the part that needs a parser running.
+    //
+    // 007F is "spread if the element is real, stack if it is fake" and 0080 is the
+    // other way round, which comes out as an exclusive or.
+    private const uint FakeFire = 0x02A1, TrueFire = 0x02A2;
+    private const uint FakeIce = 0x02A3, TrueIce = 0x02A4;
+    private const uint FakeThunder = 0x02A5, TrueThunder = 0x02A6;
+    private const uint Dorito = 0x007F, StackMark = 0x0080;
+
+    private static IEnumerable<SequenceTrigger> MysteryMagic()
+    {
+        foreach (var (element, real) in new (uint, bool)[] { (TrueFire, true), (FakeFire, false) })
+        {
+            foreach (var (mark, dorito) in new (uint, bool)[] { (Dorito, true), (StackMark, false) })
+            {
+                var spread = real == dorito;
+                yield return new SequenceTrigger
+                {
+                    Id = $"mystery-magic-{element:X}-{mark:X}",
+                    StartOn = EventKind.HeadMarker,
+                    StartId = element,
+                    ThenOn = EventKind.HeadMarker,
+                    ThenId = mark,
+                    ThenOnMe = true,
+                    Within = 5.0,
+                    Phase = 1,
+                    Make = ctx => new Call
+                    {
+                        Text = spread ? "spread" : "stack",
+                        Time = ctx.Event.Time,
+                        Key = "mystery-magic",
+                        Level = CallLevel.Alarm,
+                        Personal = true,
+                    },
+                };
+            }
+        }
+    }
+
+    // The tell that goes with it, which lands on the field rather than on a player:
+    // a real one is a thing to dodge, a fake one is the safe place to stand.
+    private static IEnumerable<Trigger> Tells()
+    {
+        yield return Tell("tell-ice-real", TrueIce, "dodge the cone");
+        yield return Tell("tell-ice-fake", FakeIce, "in the cone");
+        yield return Tell("tell-thunder-real", TrueThunder, "dodge the line");
+        yield return Tell("tell-thunder-fake", FakeThunder, "in the line");
+    }
+
+    private static Trigger Tell(string id, uint marker, string text) => new()
+    {
+        Id = id,
+        On = EventKind.HeadMarker,
+        MatchId = marker,
+        Phase = 1,
+        Make = ctx => new Call
+        {
+            Text = text,
+            Time = ctx.Event.Time,
+            Key = id,
+            Level = CallLevel.Alert,
+        },
+    };
 
     private static Trigger Hero(string id, uint status, string boss, int phase) => new()
     {
@@ -300,25 +382,33 @@ public static class DancingMad
         // Tanks press it here, not in phase 2.
         yield return new Trigger
         {
+            Id = "vacuum-wave-tank-lb",
+            On = EventKind.CastStart,
+            MatchId = 0xBB13,
+            Phase = 3,
+            For = "tank",
+            Make = ctx => new Call
+            {
+                Text = "tank limit break",
+                Time = Lands(ctx),
+                Key = "vacuum-wave",
+                Level = CallLevel.Alarm,
+            },
+        };
+        yield return new Trigger
+        {
             Id = "vacuum-wave",
             On = EventKind.CastStart,
             MatchId = 0xBB13,
             Phase = 3,
-            Make = ctx => Audience.RoleOf(ctx.MySlot) == "tank"
-                ? new Call
-                {
-                    Text = "tank limit break",
-                    Time = Lands(ctx),
-                    Key = "vacuum-wave",
-                    Level = CallLevel.Alarm,
-                }
-                : new Call
-                {
-                    Text = Audience.RoleOf(ctx.MySlot) == "healer" ? "raidwide heal" : "raidwide",
-                    Time = Lands(ctx),
-                    Key = "vacuum-wave",
-                    Level = CallLevel.Alert,
-                },
+            For = "healer,dps",
+            Make = ctx => new Call
+            {
+                Text = Audience.RoleOf(ctx.MySlot) == "healer" ? "raidwide heal" : "raidwide",
+                Time = Lands(ctx),
+                Key = "vacuum-wave",
+                Level = CallLevel.Alert,
+            },
         };
         yield return Raidwide("light-of-judgment", 0xC622, 1);
 
@@ -494,6 +584,11 @@ public static class DancingMad
         foreach (var t in InLine()) yield return t;
         foreach (var t in TelePortents()) yield return t;
         foreach (var t in NeoDebuffs()) yield return t;
+        foreach (var t in Tells()) yield return t;
+
+        // Claimed so the pack's own bare rows stay quiet while the sequence answers.
+        yield return Claim("mystery-fire-real", EventKind.HeadMarker, TrueFire, 1);
+        yield return Claim("mystery-fire-fake", EventKind.HeadMarker, FakeFire, 1);
 
         // Which of the two bosses this player is meant to be hitting.
         yield return Hero("epic-hero", 0x1060, "Chaos", 3);

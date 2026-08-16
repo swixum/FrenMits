@@ -103,6 +103,11 @@ public sealed record Trigger
     // Fire only on this numbered occurrence of the id, or 0 for any.
     public int Occurrence { get; init; }
 
+    // A trigger that exists only to claim an event so the pack does not answer it.
+    // It says nothing, so listing it puts a row on the fight page with no call in
+    // it and the row's own id where the words should be.
+    public bool Claims { get; init; }
+
     // Which phase of the fight this belongs to, for grouping it on the fight page.
     // Zero means it was never given one, which reads as "everything else" and is
     // what a hand written call used to fall into whether it belonged there or not.

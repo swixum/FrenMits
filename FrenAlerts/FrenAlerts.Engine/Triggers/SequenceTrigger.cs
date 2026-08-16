@@ -20,6 +20,9 @@ public sealed class SequenceTrigger
     // then pairs it with yours: eight players make eight chances to mismatch.
     public bool StartOnMe { get; init; }
 
+    // Which phase this belongs to, so it groups on the fight page like the rest.
+    public int Phase { get; init; }
+
     public required Func<TriggerContext, Call?> Make { get; init; }
 
     private bool _armed;

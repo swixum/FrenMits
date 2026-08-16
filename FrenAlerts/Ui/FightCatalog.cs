@@ -134,6 +134,10 @@ public static class FightCatalog
     {
         var modules = new Dictionary<uint, List<Trigger>>();
         Module(modules, DancingMad.Territory, DancingMad.Triggers);
+        var sequences = new Dictionary<uint, List<SequenceTrigger>>
+        {
+            [DancingMad.Territory] = DancingMad.AllSequences().ToList(),
+        };
         Module(modules, FuturesRewritten.Territory, FuturesRewritten.Triggers);
         Module(modules, Lindwurm.Territory, Lindwurm.Triggers);
 
@@ -152,7 +156,9 @@ public static class FightCatalog
             // Hand written calls belong in the list with the rest of them. They were
             // counted and not shown, so authoring a mechanic took it off the page:
             // Dancing Mad went from 157 rows to 33 and read as an empty fight.
-            var built = Written(mine, keyOf);
+            var built = Written(mine, keyOf)
+                .Concat(Ordered(sequences.GetValueOrDefault(territory) ?? [], keyOf))
+                .ToList();
             var all = built.Concat(loaded).ToList();
             calls[territory] = all;
             foreach (var c in all) shipped[c.Key] = c.Text;
@@ -193,6 +199,9 @@ public static class FightCatalog
         var seen = new HashSet<string>();
         foreach (var t in mine)
         {
+            // A claim holds an event so the pack stays quiet on it. There is no call
+            // in it, so a row for it reads as a mechanic with its own id for words.
+            if (t.Claims) continue;
             if (!seen.Add(t.Id)) continue;
             keyOf[t.Id] = t.Id;
 
@@ -218,6 +227,46 @@ public static class FightCatalog
         }
         return list;
     }
+
+    // Sequences say one thing when two events land in order, and they were left off
+    // the page entirely, so the call they make could be neither seen nor switched off.
+    private static IReadOnlyList<CallEntry> Ordered(
+        List<SequenceTrigger> steps, Dictionary<string, string> keyOf)
+    {
+        var list = new List<CallEntry>(steps.Count);
+        var seen = new HashSet<string>();
+        foreach (var q in steps)
+        {
+            string text;
+            CallLevel level;
+            string key;
+            try
+            {
+                var sample = q.Make(BlankFor(q.ThenOn, q.ThenId));
+                text = sample?.Text ?? Readable(q.Id);
+                level = sample?.Level ?? CallLevel.Info;
+                key = sample?.Key is { Length: > 0 } k ? k : q.Id;
+            }
+            catch
+            {
+                text = Readable(q.Id);
+                level = CallLevel.Info;
+                key = q.Id;
+            }
+
+            // Sixteen portent pairs are one mechanic and one switch, so they group by
+            // the call's key rather than each landing its own row on the page.
+            keyOf[q.Id] = key;
+            if (!seen.Add(key)) continue;
+
+            list.Add(new CallEntry(key, text, level, 4f, q.Phase, true, q.ThenOn, q.ThenId));
+        }
+        return list;
+    }
+
+    private static TriggerContext BlankFor(EventKind kind, uint id) => new(
+        new GameEvent { Kind = kind, Time = 0, Id = id },
+        new PlayerContext(), new ActorBook(), new PartyContext(), new FightState());
 
     private static TriggerContext Blank(Trigger t) => new(
         new GameEvent { Kind = t.On, Time = 0, Id = t.MatchId },
