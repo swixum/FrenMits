@@ -29,20 +29,9 @@ public sealed class LogReader
         var f = line.Split('|');
         if (f.Length < 3) return null;
 
-        var kind = f[0] switch
-        {
-            "01" => EventKind.ZoneChange,
-            "03" => EventKind.ActorSpawn,
-            "04" => EventKind.ActorDespawn,
-            "20" => EventKind.CastStart,
-            "21" or "22" => EventKind.AbilityHit,
-            "26" => EventKind.StatusGain,
-            "27" => EventKind.HeadMarker,
-            "30" => EventKind.StatusLose,
-            "35" => EventKind.Tether,
-            "257" => EventKind.MapEffect,
-            _ => EventKind.Unknown,
-        };
+        // The same table the live bridge reads by, so a recording and a duty cannot
+        // disagree about what a line means.
+        var kind = LogLine.KindOf(f[0]);
         if (kind == EventKind.Unknown) { Skipped++; return null; }
 
         NoteNames(f[0], f);
@@ -51,80 +40,11 @@ public sealed class LogReader
         _origin ??= stamp;
         var time = (stamp - _origin.Value).TotalSeconds;
 
-        try
-        {
-            return kind switch
-            {
-                // 01|ts|zoneId|zoneName|hash
-                EventKind.ZoneChange => new GameEvent { Kind = kind, Time = time, Id = Hex(f, 2) },
-
-                // 03|ts|id|name|job|lvl|owner|world|worldName|..|..|curHp|maxHp|curMp|maxMp|||x|y|elev|heading|hash
-                EventKind.ActorSpawn or EventKind.ActorDespawn => new GameEvent
-                {
-                    Kind = kind, Time = time,
-                    SourceId = Hex(f, 2),
-                    Id = Dec(f, 12),                  // max health, which names the boss
-                    Source = Pos(f, 17),
-                },
-
-                // 20|ts|src|srcName|action|actionName|tgt|tgtName|castTime|x|y|elev|heading|hash
-                EventKind.CastStart => new GameEvent
-                {
-                    Kind = kind, Time = time,
-                    SourceId = Hex(f, 2), TargetId = Hex(f, 6), Id = Hex(f, 4),
-                    CastTime = Flt(f, 8),
-                    Source = Pos(f, 9),
-                },
-
-                EventKind.AbilityHit => new GameEvent
-                {
-                    Kind = kind, Time = time,
-                    SourceId = Hex(f, 2), TargetId = Hex(f, 6), Id = Hex(f, 4),
-                    Target = Pos(f, 30),
-                    Source = Pos(f, 40),
-                },
-
-                // 26/30|ts|status|statusName|duration|src|srcName|tgt|tgtName|stacks|curHp|maxHp|hash
-                // Source and target settled by a Dance Partner line: the dancer is
-                // field 6 and the partner wearing the status is field 8.
-                EventKind.StatusGain or EventKind.StatusLose => new GameEvent
-                {
-                    Kind = kind, Time = time,
-                    Id = Hex(f, 2), Duration = Flt(f, 4),
-                    SourceId = Hex(f, 5), TargetId = Hex(f, 7),
-                },
-
-                // 27|ts|target|targetName|0000|0000|markerId|target|0000|0000|hash
-                // Fields 3 and 8 were identical in all 490 markers of the sample pull,
-                // so which one is authoritative is untested, not decided.
-                EventKind.HeadMarker => new GameEvent
-                {
-                    Kind = kind, Time = time,
-                    TargetId = Hex(f, 2), Id = Hex(f, 6),
-                },
-
-                // 35|ts|src|srcName|tgt|tgtName|0000|0000|tetherId|...|hash
-                EventKind.Tether => new GameEvent
-                {
-                    Kind = kind, Time = time,
-                    SourceId = Hex(f, 2), TargetId = Hex(f, 4), Id = Hex(f, 8),
-                },
-
-                // 257|ts|instance|flags|00|||hash
-                EventKind.MapEffect => new GameEvent
-                {
-                    Kind = kind, Time = time,
-                    SourceId = Hex(f, 2), Id = Hex(f, 3),
-                },
-
-                _ => null,
-            };
-        }
-        catch (IndexOutOfRangeException)
-        {
-            Refuse(f[0]);
-            return null;
-        }
+        // Every field meaning lives in the engine's reader, so this side is the
+        // timestamp, the names and the counters and nothing else.
+        var e = LogLine.Read(kind, f, time);
+        if (e is null) Refuse(f[0]);
+        return e;
     }
 
     private void Refuse(string type) =>
@@ -154,18 +74,4 @@ public sealed class LogReader
 
     private static uint Hex(string[] f, int i) =>
         i < f.Length && uint.TryParse(f[i], System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : 0;
-
-    private static uint Dec(string[] f, int i) =>
-        i < f.Length && uint.TryParse(f[i], out var v) ? v : 0;
-
-    private static float Flt(string[] f, int i) =>
-        i < f.Length && float.TryParse(f[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0f;
-
-    private static Position Pos(string[] f, int i)
-    {
-        if (i + 3 >= f.Length) return Position.None;
-        if (!float.TryParse(f[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var x))
-            return Position.None;
-        return new Position(x, Flt(f, i + 1), Flt(f, i + 2), Flt(f, i + 3));
-    }
 }

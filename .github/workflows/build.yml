@@ -102,7 +102,10 @@ jobs:
           # Without the call pack the plugin installs, loads, and then says nothing
           # in any fight, which looks like a broken install rather than a missing file.
           if (-not (Test-Path "$alertsOut\calls.facall")) { throw "calls.facall missing - Fren Alerts would have no calls in any fight." }
-          Compress-Archive -Path @("$alertsOut\FrenAlerts.dll", "$alertsOut\FrenAlerts.Engine.dll", "$alertsOut\FrenAlerts.json", "$alertsOut\icon.png", "$alertsOut\calls.facall") -DestinationPath "site\FrenAlerts.zip" -Force
+          # Same again for the timelines: without them nothing counts down and the
+          # fight page reads zero mechanics everywhere, with no error to explain it.
+          if (-not (Test-Path "$alertsOut\timelines.fatime")) { throw "timelines.fatime missing - no fight would count down." }
+          Compress-Archive -Path @("$alertsOut\FrenAlerts.dll", "$alertsOut\FrenAlerts.Engine.dll", "$alertsOut\FrenAlerts.json", "$alertsOut\icon.png", "$alertsOut\calls.facall", "$alertsOut\timelines.fatime") -DestinationPath "site\FrenAlerts.zip" -Force
           # Its own name at the site root, or it would overwrite FrenMits' icon.
           Copy-Item "FrenAlerts\images\icon.png" "site\frenalerts-icon.png" -Force
           # The voice pack, beside the plugin zips rather than inside one. Checked by

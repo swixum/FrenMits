@@ -16,6 +16,7 @@ public static partial class Program
         if (args[0] == "import") return Import(args);
         if (args[0] == "roundtrip") return RoundTrip(args);
         if (args[0] == "pack") return Pack(args);
+        if (args[0] == "coverage") return Coverage(args);
 
         var path = args[0];
         if (!File.Exists(path))
@@ -84,8 +85,6 @@ public static partial class Program
             engine.AddRange(DancingMad.Triggers());
             engine.AddRange(DancingMad.AllSequences());
         }
-        if (territory == FuturesRewritten.Territory) engine.AddRange(FuturesRewritten.Triggers());
-        if (territory == Lindwurm.Territory) engine.AddRange(Lindwurm.Triggers());
 
         // Same order the plugin uses: fight module, then the named marker and tether
         // calls, then the pack.

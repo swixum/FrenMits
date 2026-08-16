@@ -37,6 +37,9 @@
     <!-- Every fight's calls, built by the authoring tool. Without it the plugin
          loads and then has nothing to say in any fight. -->
     <Content Include="Data\calls.facall" Link="calls.facall" CopyToOutputDirectory="PreserveNewest" />
+    <!-- What each fight expects and when, so a call can be counted down to rather
+         than only announced as it lands. Missing it costs the timeline, not the calls. -->
+    <Content Include="Data\timelines.fatime" Link="timelines.fatime" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

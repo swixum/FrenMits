@@ -1,8 +1,52 @@
 namespace FrenAlerts.Engine;
 
-public static class DancingMad
+// The fight is split a file per phase, because it is five fights in a trenchcoat and
+// one file of it ran to a thousand lines before the direction calls went in at all.
+public static partial class DancingMad
 {
     public const ushort Territory = 1363;
+
+    // Every strat setting this fight offers, named once so a typo in a key reads as
+    // a build error rather than as a call that quietly never fires.
+    public const string PortentStrat = "teleportent";
+    public const string ForsakenStrat = "forsaken";
+    public const string AgonyStrat = "boa";
+    public const string AccretionStrat = "accretion";
+    public const string HoleStrat = "blackHole";
+    public const string HoleTetherStrat = "blackHoleTether";
+
+    // Shorthand for the state this pull has built up. Kept on the fight state so it
+    // dies with the pull rather than following it into the next one.
+    private static DancingMadPull Pull(in TriggerContext ctx) =>
+        ctx.State.Remember<DancingMadPull>();
+
+    // A trigger that only writes something down. It says nothing, so it is a claim:
+    // that keeps it off the fight page, where a row with no words shows its own id
+    // where the call should be.
+    private static Trigger Collect(
+        string id, EventKind on, uint match, int phase, Action<TriggerContext> note) => new()
+    {
+        Id = id,
+        On = on,
+        MatchId = match,
+        Phase = phase,
+        Claims = true,
+        // Collectors want every event of the burst, not just the first: eight
+        // players getting one debuff is eight things to write down.
+        OncePerBurst = false,
+        Make = ctx =>
+        {
+            note(ctx);
+            return null;
+        },
+    };
+
+    // How this fight says a spot out loud, in one place so every phase agrees.
+    private static string Way(int dir8) => Compass.Name8(dir8);
+
+    private static string Way4(int dir4) => Compass.Name4(dir4);
+
+    private static string Way16(int dir16) => Compass.Name16(dir16);
 
     private static readonly HashSet<uint> OwnedMarkers =
         [0xA1, 0x150, 0x151, 0x152, 0x153, 0x1B5, 0x1B6, 0x1B7, 0x1B8];
@@ -230,9 +274,12 @@ public static class DancingMad
                     ThenOnMe = true,
                     Phase = 1,
                     Within = 20.0,
+                    // The arrows themselves unless the group reads them as spots,
+                    // in which case the pair is a place to stand and then a place
+                    // to end up. Both tables are the source's own.
                     Make = ctx => new Call
                     {
-                        Text = $"{firstWay} then {secondWay}",
+                        Text = PortentCall(ctx.Strat(PortentStrat), firstWay, secondWay),
                         Time = ctx.Event.Time,
                         Key = "portents",
                         Level = CallLevel.Alarm,
@@ -393,7 +440,10 @@ public static class DancingMad
         yield return Raidwide("umbra-smash", 0xBB00, 3);
         yield return Raidwide("bowels-of-agony", 0xBAF2, 3);
 
-        // Tanks press it here, not in phase 2.
+        // Tanks press it here, not in phase 2, and only if that is what the group
+        // answers Bowels of Agony with. A group running SG3K gets the raidwide line
+        // like everyone else rather than being told to press a limit break they are
+        // saving.
         yield return new Trigger
         {
             Id = "vacuum-wave-tank-lb",
@@ -401,13 +451,21 @@ public static class DancingMad
             MatchId = 0xBB13,
             Phase = 3,
             For = "tank",
-            Make = ctx => new Call
-            {
-                Text = "tank limit break",
-                Time = Lands(ctx),
-                Key = "vacuum-wave",
-                Level = CallLevel.Alarm,
-            },
+            Make = ctx => ctx.Running("boa", "lb3")
+                ? new Call
+                {
+                    Text = "tank limit break",
+                    Time = Lands(ctx),
+                    Key = "vacuum-wave",
+                    Level = CallLevel.Alarm,
+                }
+                : new Call
+                {
+                    Text = "raidwide mit",
+                    Time = Lands(ctx),
+                    Key = "vacuum-wave",
+                    Level = CallLevel.Alert,
+                },
         };
         yield return new Trigger
         {
@@ -470,9 +528,6 @@ public static class DancingMad
         // 8.0 targets a cast, 40.5k each, 16 casts in one session.
         yield return Raidwide("gravitas", 0xBAAC, 1);
 
-        // 1.0 target at 37.6k.
-        yield return Buster("damning-edict", 0xBB01, 3);
-
         // Exactly 4.0 targets a cast, which is what the source calls towers too, so
         // the coverage lines up and the number backs the name.
         yield return Cast("wave-cannon", 0xBAA8, "towers", 1);
@@ -493,22 +548,8 @@ public static class DancingMad
             },
         };
 
-        yield return new Trigger
-        {
-            Id = "knock-down",
-            On = EventKind.HeadMarker,
-            MatchId = 0xA1,
-            Phase = 3,
-            OnlyMe = true,
-            Make = ctx => new Call
-            {
-                Text = "stack on you",
-                Time = ctx.Event.Time,
-                Key = $"knock-down-{ctx.Nth}",
-                Level = CallLevel.Alarm,
-                Personal = true,
-            },
-        };
+        // The stomp stack is answered in phase 3 and again in phase 5, and what it
+        // means differs both times, so it lives with the phases rather than here.
 
         // Explodes if you are moving when it drops, so the seconds are the call.
         yield return Debuff("acceleration-bomb", 0x15AA, "stop when it drops", 4);
@@ -521,16 +562,12 @@ public static class DancingMad
         yield return Raidwide("light-of-judgment-2", 0xBABD, 2);
         yield return Raidwide("grand-cross", 0xBB14, 4);
         yield return Raidwide("thrumming-thunder", 0xC5DE, 4);
-        yield return Raidwide("thunder-3-aoe", 0xBB12, 3);
-
         yield return Buster("thunder-3-buster", 0xBB09, 3);
 
         yield return Cast("blizzard-3-stack", 0xBB0D, "stack", 3);
         yield return Cast("blizzard-3-move", 0xBB11, "keep moving", 3);
         yield return Cast("blizzard-blowout", 0xBA95, "knockback", 1);
         yield return Cast("knock-down-cast", 0xBB03, "stack middle", 3);
-        yield return Cast("slap-happy", 0xBAE6, "out of the middle", 3);
-        yield return Cast("slap-happy-2", 0xBAE7, "out of the middle", 3);
         yield return Cast("despair-1", 0xBAEC, "out of the middle", 3);
         yield return Cast("despair-2", 0xBAED, "out of the middle", 3);
         yield return Cast("mana-release", 0xBAA5, "in the donut", 4);
@@ -559,17 +596,22 @@ public static class DancingMad
             },
         };
 
-        // Towers, under whichever name the fight gives them.
-        yield return Cast("path-of-light-towers", 0xBADD, "towers", 2);
-        yield return Cast("celestriad", 0xBB42, "towers", 5);
+        // Towers, under whichever name the fight gives them. The phase 2 rotation
+        // says which tower rather than that there are towers, so it lives in there.
+        yield return Cast("celestriad", 0xBB42, "element towers", 5);
         yield return Cast("stray-apocalypse", 0xBB3B, "exaflares", 5);
 
-        yield return Hit("towers-8-a", 0xBABF, "towers", 2, "towers-8");
-        yield return Hit("towers-8-b", 0xBAC0, "towers", 2, "towers-8");
-        yield return Hit("towers-8-c", 0xBAC1, "towers", 2, "towers-8");
-        yield return Hit("towers-8-d", 0xBAC2, "towers", 2, "towers-8");
-        yield return Hit("wave-cannon-explosion", 0xBAA8, "avoid towers", 1);
-        yield return Hit("vitrophyre", 0xBAAC, "spread", 1);
+        // Phase 5 is left for the port rather than named from here. The target
+        // counts below are measured and worth keeping, but a count cannot say what
+        // to do about a mechanic, and naming them from it got them wrong:
+        //   BB52 Flare 2.0 targets   BB53 Chaotic Flare 1.9   BB54 Holy 3.1
+        //   BB55 Flare Diffusion 2.6 BB56 Chaotic Holy 1.1    BB4A Quake 1.1
+        //   BB35 Forsaken 6.8        BB36 Forsaken 2 6.0      BB50 Orchestra 1.0
+        // Measured over 21 to 42 casts each in a pull that reaches phase 5.
+
+        // The eighth set of towers is the last of the rotation, so it is called by
+        // the rotation, which knows which tower is yours rather than that there are
+        // some. The four ids still share one key, for the same reason they did here.
         yield return Hit("all-things-ending-bait-a", 0xBAD2, "bait", 2, "all-things-ending-bait");
         yield return Hit("all-things-ending-bait-b", 0xBAD3, "bait", 2, "all-things-ending-bait");
 
@@ -590,15 +632,27 @@ public static class DancingMad
             },
         };
 
-        // Which element you take last, off the resistance the towers leave on you.
-        yield return Element("celestriad-fire", 0xB56, "fire last", 5);
-        yield return Element("celestriad-ice", 0xB57, "ice last", 5);
-        yield return Element("celestriad-lightning", 0xBB6, "lightning last", 5);
+        // The resistance the towers leave on you used to be called as "fire last".
+        // Phase 5 now works the whole soak order out from where the towers stand and
+        // what is still ticking, which says the same thing and the rest of it.
 
-        foreach (var t in InLine()) yield return t;
+        // The bare "second in line" is answered in phase 3 now, where it also knows
+        // who is moving with you and, for a healer, whose bar to watch. Both firing
+        // on the same status put two calls in one instant and the crowding rule
+        // threw the one with the names in it away.
         foreach (var t in TelePortents()) yield return t;
         foreach (var t in NeoDebuffs()) yield return t;
         foreach (var t in Tells()) yield return t;
+
+        // The phases go in last, and each one puts what it writes down ahead of what
+        // reads it. The engine walks this list in order for every event, so a
+        // collector listed after its own call would answer with the last event's
+        // answer for the whole fight.
+        foreach (var t in PhaseOne()) yield return t;
+        foreach (var t in PhaseTwo()) yield return t;
+        foreach (var t in PhaseThree()) yield return t;
+        foreach (var t in PhaseFour()) yield return t;
+        foreach (var t in PhaseFive()) yield return t;
 
         // Claimed so the pack's own bare rows stay quiet while the sequence answers.
         yield return Claim("mystery-fire-real", EventKind.HeadMarker, TrueFire, 1);

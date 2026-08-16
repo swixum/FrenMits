@@ -30,6 +30,10 @@ public sealed class ParserBridge : IDisposable
 
     public int Reported { get; private set; }
 
+    // Head markers alone, which is the one kind nothing else can answer and the one
+    // the screen speaks about.
+    public int MarkersReported { get; private set; }
+
     public int Lines { get; private set; }
 
     // Still trying to open the channel we send on.
@@ -43,8 +47,21 @@ public sealed class ParserBridge : IDisposable
     private const double AskEverySeconds = 1.0;
     private const int MaxAsks = 30;
 
+    // A parser that was unloaded, or crashed, stops sending and says nothing about
+    // it. Past this the client's own reads take the kinds back, because a silent
+    // handover is the whole fight going quiet.
+    //
+    // Generous on purpose: a duty is thousands of lines a second, and even standing
+    // still in a city there is chat and health. Only a parser that is gone is this
+    // quiet for this long.
+    private const double StaleSeconds = 20.0;
+
     private double _lastAsk = double.NegativeInfinity;
     private int _asks;
+
+    // Written on the parser's thread, read on the frame. A double is one aligned
+    // write, so the frame never sees half of one.
+    private double _lastLine = double.NegativeInfinity;
 
     private void TryConnect()
     {
@@ -86,6 +103,13 @@ public sealed class ParserBridge : IDisposable
     // lose that race, so it is asked again on the frame until it takes.
     public void Tick(double now)
     {
+        if (Reading && now - _lastLine > StaleSeconds)
+        {
+            Reading = false;
+            Service.Log.Information(
+                "Fren Alerts: the parser went quiet, reading from the client again.");
+        }
+
         if (!Connected || !Asking) return;
         if (now - _lastAsk < AskEverySeconds) return;
 
@@ -111,7 +135,10 @@ public sealed class ParserBridge : IDisposable
             });
             Asking = false;
             Reading = true;
-            Service.Log.Information("Fren Alerts: reading head markers from the parser.");
+            // Or the staleness check fires on the next frame, before a single line
+            // has had the chance to arrive.
+            _lastLine = _now();
+            Service.Log.Information("Fren Alerts: reading the fight from the parser.");
         }
         catch
         {
@@ -120,6 +147,10 @@ public sealed class ParserBridge : IDisposable
         }
     }
 
+    // Every line of the pull comes down this one callback, which is what it cost
+    // before as well: the subscription was always for all of them and all but the
+    // head markers were thrown away. So the reading below is the part that changed,
+    // not the traffic.
     private bool OnMessage(JObject message)
     {
         try
@@ -127,17 +158,30 @@ public sealed class ParserBridge : IDisposable
             if ((string?)message["type"] != "LogLine") return true;
             if (message["line"] is not JArray line) return true;
 
+            var now = _now();
             Lines++;
+            _lastLine = now;
 
-            // Cheap check before building anything: nearly every line is not a marker.
-            if (line.Count < 7 || (string?)line[0] != LogLine.HeadMarkerKind) return true;
+            // Back from a quiet stretch. Lines arriving is the proof the channel is
+            // alive, so nothing is re-subscribed: asking twice risks a parser that
+            // adds the subscription rather than replacing it, and then every line
+            // arrives twice and every call is said twice.
+            if (!Reading && Connected && !Asking) Reading = true;
+
+            if (line.Count < 3) return true;
+
+            // Cheap check before anything is built: four lines in five are movement,
+            // health and chat, and this is the only work they cause.
+            var kind = LogLine.KindOf((string?)line[0] ?? "");
+            if (!LiveCoverage.ParserOwned.Contains(kind)) return true;
 
             var fields = new string[line.Count];
             for (var i = 0; i < line.Count; i++) fields[i] = (string?)line[i] ?? "";
 
-            if (LogLine.Read(fields, _now()) is not { } e) return true;
+            if (LogLine.Read(kind, fields, now) is not { } e) return true;
 
             Reported++;
+            if (kind == EventKind.HeadMarker) MarkersReported++;
             _emit(e);
         }
         catch

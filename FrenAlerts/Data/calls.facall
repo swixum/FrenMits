@@ -1,367 +1,77 @@
 facall 3
-1226	r1s-biscuit-maker-no-target	r1s-biscuit-maker-no-target	1	9495	6	1	0	0	0	4	0	0	tank,healer	buster		3	0	0	1	1
-1226	r1s-biscuit-maker-no-target-others	r1s-biscuit-maker-no-target-others	1	9495	6	0	0	0	0	4	0	0	dps	buster		3	0	0	1	1
-1226	r1s-biscuit-maker-on-target	r1s-biscuit-maker-on-target	1	9495	5	0	0	0	0	4	0	0		buster on {target}		3	0	0	1	1
-1226	r1s-biscuit-maker-on-you	r1s-biscuit-maker-on-you	1	9495	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
-1226	r1s-bloody-scratch	r1s-bloody-scratch	1	9494	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1226	r1s-double-swipe	r1s-double-swipe	1	945F	0	0	0	0	0	4	0	0		healer groups		3	0	0	1	1
-1226	r1s-quadruple-swipe	r1s-quadruple-swipe	1	945D	0	0	0	0	0	4	0	0		partner stacks		3	0	0	1	1
-1226	r1s-elevate-and-eviscerate-launch-other	r1s-elevate-and-eviscerate-launch-other	1	9446	0	0	0	0	0	4	0	0		Elevate and Eviscerate Launch Other		3	0	0	1	0
-1226	r1s-elevate-and-eviscerate-launch-self	r1s-elevate-and-eviscerate-launch-self	1	9446	0	0	0	0	0	4	0	0		Launch Forward (Aim for uncracked tile)		3	0	0	1	0
-1226	r1s-elevate-and-eviscerate-stun-other	r1s-elevate-and-eviscerate-stun-other	1	9448	0	0	0	0	0	4	0	0		Elevate and Eviscerate Stun Other		3	0	0	1	0
-1226	r1s-elevate-and-eviscerate-stun-self	r1s-elevate-and-eviscerate-stun-self	1	9448	0	0	0	0	0	4	0	0		Stand on uncracked tile		3	0	0	1	0
-1226	r1s-leaping-one-two-paw-1	r1s-leaping-one-two-paw	1	944D	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
-1226	r1s-leaping-one-two-paw-2	r1s-leaping-one-two-paw	1	944E	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
-1226	r1s-leaping-one-two-paw-3	r1s-leaping-one-two-paw	1	944F	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
-1226	r1s-leaping-one-two-paw-4	r1s-leaping-one-two-paw	1	9450	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
-1226	r1s-leaping-quadruple-crossing-1	r1s-leaping-quadruple-crossing	1	9457	0	0	0	0	0	4	0	0		Proximity baits at target		3	0	0	1	0
-1226	r1s-leaping-quadruple-crossing-2	r1s-leaping-quadruple-crossing	1	982F	0	0	0	0	0	4	0	0		Proximity baits at target		3	0	0	1	0
-1226	r1s-mouser	r1s-mouser	1	996C	0	0	0	0	0.2	11	0	0		Mouser		3	0	0	1	0
-1226	r1s-one-two-paw-left-right	r1s-one-two-paw-left-right	1	9439	0	1	0	0	0	9.5	0	0		right left	Right then Left	3	0	0	1	1
-1226	r1s-one-two-paw-right-left	r1s-one-two-paw-right-left	1	9436	0	1	0	0	0	9.5	0	0		left right	Left then Right	3	0	0	1	1
-1226	r1s-overshadow-no-target	r1s-overshadow-no-target	1	9497	6	1	0	0	0	4	0	0		stack		3	0	0	1	1
-1226	r1s-overshadow-on-target	r1s-overshadow-on-target	1	9497	5	1	0	0	0	4	0	0		stack on {target}		3	0	0	1	1
-1226	r1s-overshadow-on-you	r1s-overshadow-on-you	1	9497	1	1	0	0	0	4	1	1		stack on you		3	0	0	1	1
-1226	r1s-shockwave-knockback-safe-directions-1	r1s-shockwave-knockback-safe-directions	8	0	0	0	0	0	0	4	0	0		Shockwave Knockback Safe Directions		0	0	0	1	0
-1226	r1s-shockwave-knockback-safe-directions-2	r1s-shockwave-knockback-safe-directions	8	3	0	0	0	0	0	4	0	0		Shockwave Knockback Safe Directions		0	0	0	1	0
-1226	r1s-splintering-nails	r1s-splintering-nails	1	9499	0	0	0	0	0	4	0	0		Role positions		3	0	0	1	1
-1228	r2s-beeloved-venom-other-merge	r2s-beeloved-venom-other-merge	4	F5C	0	0	0	0	0	4	0	0		Beeloved Venom Other Merge		0	0	0	1	0
-1228	r2s-beeloved-venom-player-merge-1	r2s-beeloved-venom-player-merge	4	F5C	0	0	0	0	0	4	0	0		Beeloved Venom Player Merge		0	0	0	1	0
-1228	r2s-beeloved-venom-player-merge-2	r2s-beeloved-venom-player-merge	4	F5D	0	0	0	0	0	4	0	0		Beeloved Venom Player Merge		0	0	0	1	0
-1228	r2s-call-me-honey	r2s-call-me-honey	1	9183	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1228	r2s-centerstage-combo	r2s-centerstage-combo	1	91AC	0	0	0	0	0	9	0	0		get under	get under	3	0	0	1	1
-1228	r2s-drop-of-love	r2s-drop-of-love	1	9B09	0	0	0	0	0	4	0	0		stored, partners		3	0	0	1	1
-1228	r2s-drop-of-venom	r2s-drop-of-venom	1	9185	0	0	0	0	0	4	0	0		stored, partners		3	0	0	1	1
-1228	r2s-heart-debuff-1	r2s-heart-debuff	4	F52	0	0	0	0	0	4	0	0		Heart Debuff		0	0	0	1	0
-1228	r2s-heart-debuff-2	r2s-heart-debuff	4	F53	0	0	0	0	0	4	0	0		Heart Debuff		0	0	0	1	0
-1228	r2s-heart-debuff-3	r2s-heart-debuff	4	F54	0	0	0	0	0	4	0	0		Heart Debuff		0	0	0	1	0
-1228	r2s-honey-b-finale	r2s-honey-b-finale	1	918F	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1228	r2s-honey-b-live-1st-beat	r2s-honey-b-live-1st-beat	1	9C24	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1228	r2s-honey-b-live-2nd-beat	r2s-honey-b-live-2nd-beat	1	9C25	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1228	r2s-honey-b-live-3rd-beat	r2s-honey-b-live-3rd-beat	1	9C26	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1228	r2s-honey-beeline-after-reminder-1	r2s-honey-beeline-after-reminder	1	9186	0	0	0	0	1.5	4	0	0		middle after		3	0	0	1	1
-1228	r2s-honey-beeline-after-reminder-2	r2s-honey-beeline-after-reminder	1	9B0C	0	0	0	0	1.5	4	0	0		middle after		3	0	0	1	1
-1228	r2s-honey-beeline-followup-1	r2s-honey-beeline-followup	3	9186	0	0	0	0	0	4	0	0		Honey Beeline		3	0	0	1	0
-1228	r2s-honey-beeline-followup-2	r2s-honey-beeline-followup	3	9B0C	0	0	0	0	0	4	0	0		Honey Beeline		3	0	0	1	0
-1228	r2s-honey-beeline-initial-1	r2s-honey-beeline-initial	1	9186	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	1
-1228	r2s-honey-beeline-initial-2	r2s-honey-beeline-initial	1	9B0C	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	1
-1228	r2s-loveseeker	r2s-loveseeker	1	9B7D	0	1	0	0	0	4	0	0		out		3	0	0	1	1
-1228	r2s-outerstage-combo	r2s-outerstage-combo	1	91AD	0	0	0	0	0	9	0	0		Out Cards Intercards Under	Out Cards then Intercards then Under	3	0	0	1	1
-1228	r2s-poison-first-defamations	r2s-poison-first-defamations	4	F5E	0	0	0	0	20	6	0	0		Poison First Defamations		0	1	0	1	0
-1228	r2s-poison-second-defamations	r2s-poison-second-defamations	4	F5E	0	0	0	0	40	6	0	0		Poison Second Defamations		0	1	0	1	0
-1228	r2s-poison-towers	r2s-poison-towers	4	F5E	0	1	0	0	0	4	0	0		towers		0	0	0	1	0
-1228	r2s-rotten-heart	r2s-rotten-heart	1	91AA	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1228	r2s-splash-of-venom	r2s-splash-of-venom	1	9184	0	0	0	0	0	4	0	0		stored, spread		3	0	0	1	1
-1228	r2s-spread-love	r2s-spread-love	1	9B08	0	0	0	0	0	4	0	0		stored, spread		3	0	0	1	1
-1228	r2s-tempting-twist-after-reminder-1	r2s-tempting-twist-after-reminder	1	9187	0	0	0	0	1.5	4	0	0		out after		3	0	0	1	1
-1228	r2s-tempting-twist-after-reminder-2	r2s-tempting-twist-after-reminder	1	9B0D	0	0	0	0	1.5	4	0	0		out after		3	0	0	1	1
-1228	r2s-tempting-twist-followup-1	r2s-tempting-twist-followup	3	9187	0	0	0	0	0	4	0	0		Tempting Twist		3	0	0	1	0
-1228	r2s-tempting-twist-followup-2	r2s-tempting-twist-followup	3	9B0D	0	0	0	0	0	4	0	0		Tempting Twist		3	0	0	1	0
-1228	r2s-tempting-twist-initial-1	r2s-tempting-twist-initial	1	9187	0	1	0	0	0	4	0	0		get under		3	0	0	1	1
-1228	r2s-tempting-twist-initial-2	r2s-tempting-twist-initial	1	9B0D	0	1	0	0	0	4	0	0		get under		3	0	0	1	1
-1230	r3s-barbarous-barrage-uptime-knockback	r3s-barbarous-barrage-uptime-knockback	1	93FB	0	0	0	0	0	4	0	0		knockback		3	0	0	1	0
-1230	r3s-brutal-impact	r3s-brutal-impact	1	9425	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1230	r3s-fuse-field	r3s-fuse-field	4	FB4	1	0	0	0	0	4	1	1		Fuse Field		0	0	0	1	0
-1230	r3s-kb-towers-2-lariat-combo-1	r3s-kb-towers-2-lariat-combo	1	9AE8	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
-1230	r3s-kb-towers-2-lariat-combo-2	r3s-kb-towers-2-lariat-combo	1	9AE9	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
-1230	r3s-kb-towers-2-lariat-combo-3	r3s-kb-towers-2-lariat-combo	1	9AEA	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
-1230	r3s-kb-towers-2-lariat-combo-4	r3s-kb-towers-2-lariat-combo	1	9AEB	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
-1230	r3s-knuckle-sandwich-avoid	r3s-knuckle-sandwich-avoid	1	9423	5	0	0	0	0	4	0	0	dps	out of the cleave		3	0	0	1	1
-1230	r3s-knuckle-sandwich-no-target	r3s-knuckle-sandwich-no-target	1	9423	6	1	0	0	0	4	0	0	tank,healer	share the buster		3	0	0	1	1
-1230	r3s-knuckle-sandwich-no-target-others	r3s-knuckle-sandwich-no-target-others	1	9423	6	0	0	0	0	4	0	0	dps	out of the cleave		3	0	0	1	1
-1230	r3s-knuckle-sandwich-on-target	r3s-knuckle-sandwich-on-target	1	9423	5	1	0	0	0	4	0	0	tank,healer	share the buster, {target}		3	0	0	1	1
-1230	r3s-knuckle-sandwich-on-you	r3s-knuckle-sandwich-on-you	1	9423	1	1	0	0	0	4	1	1		share the buster, on you		3	0	0	1	1
-1230	r3s-long-fuse	r3s-long-fuse	4	FB9	1	0	0	0	0	4	1	1		Long Fuse		0	0	0	1	1
-1230	r3s-murderous-mist	r3s-murderous-mist	1	93FE	0	0	0	0	0	4	0	0		get behind		3	0	0	1	1
-1230	r3s-octoboom-bombarian-special	r3s-octoboom-bombarian-special	1	9752	0	0	0	0	0	4	0	0		out in knockback spread	Out then In then Knockback then Spread	3	0	0	1	1
-1230	r3s-octoboom-bombarian-special-reminder	r3s-octoboom-bombarian-special-reminder	1	9752	0	1	0	0	20	7	0	0		spread		3	0	0	1	1
-1230	r3s-octoboom-dive-knockback	r3s-octoboom-dive-knockback	1	93DF	0	0	0	0	0	4	0	0		knockback	knockback	3	0	0	1	1
-1230	r3s-octoboom-dive-proximity	r3s-octoboom-dive-proximity	1	93DE	0	0	0	0	0	4	0	0		away and spread	Away and Spread	3	0	0	1	1
-1230	r3s-octuple-lariat-in	r3s-octuple-lariat-in	1	93D9	0	0	0	0	0	4	0	0		in and spread	in and spread	3	0	0	1	1
-1230	r3s-octuple-lariat-out	r3s-octuple-lariat-out	1	93D8	0	0	0	0	0	4	0	0		out and spread	out and spread	3	0	0	1	1
-1230	r3s-quadroboom-bombarian-special	r3s-quadroboom-bombarian-special	1	940A	0	0	0	0	0	4	0	0		Out In Knockback Partners	Out then In then Knockback then Partners	3	0	0	1	1
-1230	r3s-quadroboom-bombarian-special-reminder	r3s-quadroboom-bombarian-special-reminder	1	940A	0	1	0	0	20	7	0	0		stack with your partner		3	0	0	1	1
-1230	r3s-quadroboom-dive-knockback	r3s-quadroboom-dive-knockback	1	93E1	0	0	0	0	0	4	0	0		knockback	knockback	3	0	0	1	1
-1230	r3s-quadroboom-dive-proximity	r3s-quadroboom-dive-proximity	1	93E0	0	0	0	0	0	4	0	0		away and partners	Away and Partners	3	0	0	1	1
-1230	r3s-quadruple-lariat-in	r3s-quadruple-lariat-in	1	93DB	0	0	0	0	0	4	0	0		in and partners	In and Partners	3	0	0	1	1
-1230	r3s-quadruple-lariat-out	r3s-quadruple-lariat-out	1	93DA	0	0	0	0	0	4	0	0		out and partners	Out and Partners	3	0	0	1	1
-1230	r3s-short-fuse	r3s-short-fuse	4	FB8	1	0	0	0	0	4	1	1		Short Fuse		0	0	0	1	1
-1230	r3s-tag-team-clone-1	r3s-tag-team-clone	1	9B2C	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
-1230	r3s-tag-team-clone-2	r3s-tag-team-clone	1	9B2E	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
-1230	r3s-tag-team-clone-3	r3s-tag-team-clone	1	9BD8	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
-1230	r3s-tag-team-clone-4	r3s-tag-team-clone	1	9BDA	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
-1230	r3s-tag-team-tether	r3s-tag-team-tether	7	112	0	0	0	0	0	4	0	0		Tag Team Tether		0	0	0	1	0
-1232	r4s-azure-thunder	r4s-azure-thunder	1	962F	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1232	r4s-bewitching-flight-1	r4s-bewitching-flight	1	9671	0	0	0	0	0	4	0	0		out of the front and side cleaves	out of Front and Side Cleaves	3	0	0	1	1
-1232	r4s-bewitching-flight-2	r4s-bewitching-flight	1	8DEF	0	0	0	0	0	4	0	0		out of the front and side cleaves	out of Front and Side Cleaves	3	0	0	1	1
-1232	r4s-concentrated-scattered-burst-1-1	r4s-concentrated-scattered-burst-1	1	962B	0	0	0	0	0.2	4	0	0		Concentrated/Scattered Burst 1		3	0	0	1	0
-1232	r4s-concentrated-scattered-burst-1-2	r4s-concentrated-scattered-burst-1	1	962C	0	0	0	0	0.2	4	0	0		Concentrated/Scattered Burst 1		3	0	0	1	0
-1232	r4s-concentrated-scattered-burst-2-1	r4s-concentrated-scattered-burst-2	3	962B	0	0	0	0	0	4	0	0		Concentrated/Scattered Burst 2		3	0	0	1	0
-1232	r4s-concentrated-scattered-burst-2-2	r4s-concentrated-scattered-burst-2	3	962C	0	0	0	0	0	4	0	0		Concentrated/Scattered Burst 2		3	0	0	1	0
-1232	r4s-conductor-current-debuffs-1	r4s-conductor-current-debuffs	4	FA2	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
-1232	r4s-conductor-current-debuffs-2	r4s-conductor-current-debuffs	4	FA3	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
-1232	r4s-conductor-current-debuffs-3	r4s-conductor-current-debuffs	4	FA4	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
-1232	r4s-conductor-current-debuffs-4	r4s-conductor-current-debuffs	4	FA5	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
-1232	r4s-conductor-current-debuffs-5	r4s-conductor-current-debuffs	4	FA6	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
-1232	r4s-cross-tail-switch	r4s-cross-tail-switch	1	95F2	0	0	0	0	0	4	0	0		Cross Tail Switch		3	0	0	1	0
-1232	r4s-electrical-condenser-debuff-expiring	r4s-electrical-condenser-debuff-expiring	4	F9F	0	0	0	0	0	4	0	0		Electrical Condenser Debuff Expiring		0	0	0	1	0
-1232	r4s-electrical-condenser-debuff-initial	r4s-electrical-condenser-debuff-initial	4	F9F	1	0	0	0	0.5	4	1	1		Electrical Condenser Debuff		0	0	0	1	0
-1232	r4s-electrifying-witch-hunt	r4s-electrifying-witch-hunt	1	95E5	0	0	0	0	0	4	0	0		Electrifying Witch Hunt		3	0	0	1	0
-1232	r4s-electron-stream-initial-1	r4s-electron-stream-initial	1	95D6	0	0	0	0	0	4	0	0		Electron Stream		3	0	0	1	0
-1232	r4s-electron-stream-initial-2	r4s-electron-stream-initial	1	95D7	0	0	0	0	0	4	0	0		Electron Stream		3	0	0	1	0
-1232	r4s-electron-stream-subsequent-1	r4s-electron-stream-subsequent	1	95D6	0	0	0	0	0	4	0	0		Electron Stream Subsequent		3	0	0	1	0
-1232	r4s-electron-stream-subsequent-2	r4s-electron-stream-subsequent	1	95D7	0	0	0	0	0	4	0	0		Electron Stream Subsequent		3	0	0	1	0
-1232	r4s-electrope-edge-1-sidewise-spark-1	r4s-electrope-edge-1-sidewise-spark	1	95EC	0	0	1	0	0.2	4	0	0		Electrope Edge 1 Sidewise Spark		3	0	0	1	0
-1232	r4s-electrope-edge-1-sidewise-spark-2	r4s-electrope-edge-1-sidewise-spark	1	95ED	0	0	1	0	0.2	4	0	0		Electrope Edge 1 Sidewise Spark		3	0	0	1	0
-1232	r4s-electrope-edge-2-sidewise-spark-1	r4s-electrope-edge-2-sidewise-spark	1	95EC	0	0	2	0	0.2	4	0	0		Electrope Edge 2 Sidewise Spark		3	0	0	1	0
-1232	r4s-electrope-edge-2-sidewise-spark-2	r4s-electrope-edge-2-sidewise-spark	1	95ED	0	0	2	0	0.2	4	0	0		Electrope Edge 2 Sidewise Spark		3	0	0	1	0
-1232	r4s-flame-slash	r4s-flame-slash	1	9614	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	1
-1232	r4s-forked-fissures	r4s-forked-fissures	3	98CE	0	0	0	0	0.2	4	0	0		Forked Fissures		3	1	0	1	0
-1232	r4s-fulminous-field	r4s-fulminous-field	3	98D3	0	0	0	0	0	4	0	0		dodge with your partner, seven hits	Dodge w, Partner, seven hits	3	0	0	1	1
-1232	r4s-fulminous-field-spread-1	r4s-fulminous-field-spread	3	90FE	0	0	0	0	0	4	0	0		spread		3	1	0	1	1
-1232	r4s-fulminous-field-spread-2	r4s-fulminous-field-spread	3	98CD	0	0	0	0	0	4	0	0		spread		3	1	0	1	1
-1232	r4s-ion-cluster-debuff-initial-1	r4s-ion-cluster-debuff-initial	4	FA0	0	0	0	0	0	4	0	0		Ion Cluster Debuff		0	0	0	1	0
-1232	r4s-ion-cluster-debuff-initial-2	r4s-ion-cluster-debuff-initial	4	FA1	0	0	0	0	0	4	0	0		Ion Cluster Debuff		0	0	0	1	0
-1232	r4s-left-roll	r4s-left-roll	3	95D3	0	1	0	0	0	4	0	0		left, west	get left, west	3	0	0	1	1
-1232	r4s-mustard-bomb-followup	r4s-mustard-bomb-followup	3	961F	0	0	0	0	0.2	4	0	0		Mustard Bomb		3	1	0	1	0
-1232	r4s-mustard-bomb-initial	r4s-mustard-bomb-initial	1	961E	0	0	0	0	0	4	0	0		Mustard Bomb		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-first-1	r4s-narrowing-widening-witch-hunt-first	1	95E0	0	0	0	0	7	7	0	0		Narrowing/Widening Witch Hunt First		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-first-2	r4s-narrowing-widening-witch-hunt-first	1	95E1	0	0	0	0	7	7	0	0		Narrowing/Widening Witch Hunt First		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-fourth-1	r4s-narrowing-widening-witch-hunt-fourth	1	95E0	0	0	0	0	20.8	3.2	0	0		Narrowing/Widening Witch Hunt Fourth		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-fourth-2	r4s-narrowing-widening-witch-hunt-fourth	1	95E1	0	0	0	0	20.8	3.2	0	0		Narrowing/Widening Witch Hunt Fourth		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-general-1	r4s-narrowing-widening-witch-hunt-general	1	95E0	0	0	0	0	0.2	24	0	0		Narrowing/Widening Witch Hunt General		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-general-2	r4s-narrowing-widening-witch-hunt-general	1	95E1	0	0	0	0	0.2	24	0	0		Narrowing/Widening Witch Hunt General		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-second-1	r4s-narrowing-widening-witch-hunt-second	1	95E0	0	0	0	0	14	3.2	0	0		Narrowing/Widening Witch Hunt Second		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-second-2	r4s-narrowing-widening-witch-hunt-second	1	95E1	0	0	0	0	14	3.2	0	0		Narrowing/Widening Witch Hunt Second		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-third-1	r4s-narrowing-widening-witch-hunt-third	1	95E0	0	0	0	0	17.4	3.2	0	0		Narrowing/Widening Witch Hunt Third		3	0	0	1	0
-1232	r4s-narrowing-widening-witch-hunt-third-2	r4s-narrowing-widening-witch-hunt-third	1	95E1	0	0	0	0	17.4	3.2	0	0		Narrowing/Widening Witch Hunt Third		3	0	0	1	0
-1232	r4s-raining-swords-safe-list-1	r4s-raining-swords-safe-list	7	117	0	0	0	0	0	24	0	0		Raining Swords Safe List		0	10	0	1	0
-1232	r4s-raining-swords-safe-list-2	r4s-raining-swords-safe-list	7	118	0	0	0	0	0	24	0	0		Raining Swords Safe List		0	10	0	1	0
-1232	r4s-raining-swords-tower	r4s-raining-swords-tower	3	9614	0	1	0	0	0	4	0	0		Tower Positions		3	0	0	1	1
-1232	r4s-right-roll	r4s-right-roll	3	95D2	0	1	0	0	0	4	0	0		right, east	get right, east	3	0	0	1	1
-1232	r4s-sunrise-sabbath-cannnons-towers	r4s-sunrise-sabbath-cannnons-towers	4	B9A	0	0	0	0	0.2	4	0	0		Sunrise Sabbath Cannnons and, towers		0	1	0	1	0
-1232	r4s-tail-thrust-1	r4s-tail-thrust	1	9606	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
-1232	r4s-tail-thrust-2	r4s-tail-thrust	1	9607	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
-1232	r4s-tail-thrust-3	r4s-tail-thrust	1	9608	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
-1232	r4s-tail-thrust-4	r4s-tail-thrust	1	9609	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
-1232	r4s-twilight-sabbath-wicked-special-1	r4s-twilight-sabbath-wicked-special	1	9610	0	0	0	0	0	4	0	0		Twilight Sabbath and Wicked Special		3	0	0	1	0
-1232	r4s-twilight-sabbath-wicked-special-2	r4s-twilight-sabbath-wicked-special	1	9612	0	0	0	0	0	4	0	0		Twilight Sabbath and Wicked Special		3	0	0	1	0
-1232	r4s-twilight-sabbath-sidewise-spark	r4s-twilight-sabbath-sidewise-spark	9	197	0	0	0	0	0.1	9	0	0		Twilight Sabbath Sidewise Spark		0	0	0	1	0
-1232	r4s-wicked-blaze	r4s-wicked-blaze	6	13C	0	0	0	0	0	4	0	0		healer groups		0	1	0	1	0
-1232	r4s-wicked-bolt-on-target	r4s-wicked-bolt-on-target	6	13C	5	1	0	0	0	4	0	0		stack on {target}		0	0	0	1	0
-1232	r4s-wicked-bolt-on-you	r4s-wicked-bolt-on-you	6	13C	1	1	0	0	0	4	1	1		stack on you		0	0	0	1	0
-1232	r4s-wicked-jolt-no-target	r4s-wicked-jolt-no-target	1	95F0	6	1	0	0	0	4	0	0	healer,dps	buster		3	0	0	1	1
-1232	r4s-wicked-jolt-on-target	r4s-wicked-jolt-on-target	1	95F0	5	1	0	0	0	4	0	0	healer,dps	buster on {target}		3	0	0	1	1
-1232	r4s-wicked-jolt-on-you	r4s-wicked-jolt-on-you	1	95F0	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
-1232	r4s-wicked-jolt-swap	r4s-wicked-jolt-swap	1	95F0	2	2	0	0	0	4	0	0	tank	tank swap	tank swap	3	0	0	1	1
-1232	r4s-wicked-special-middle	r4s-wicked-special-middle	1	9612	0	1	0	0	0	4	0	0		get to the middle		3	0	0	1	0
-1232	r4s-wicked-special-sides	r4s-wicked-special-sides	1	9610	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	0
-1232	r4s-wicked-thunder	r4s-wicked-thunder	1	949B	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1232	r4s-witch-hunt	r4s-witch-hunt	1	95DE	0	0	0	0	0.2	4	0	0		Witch Hunt		3	0	0	1	0
-1232	r4s-witchgleam-self-reminder	r4s-witchgleam-self-reminder	1	95CE	0	0	0	0	3	4	0	0		Witchgleam Self		3	0	0	1	0
-1232	r4s-wrath-of-zeus	r4s-wrath-of-zeus	1	95EF	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-conceal-safe	fru-conceal-safe	9	3F	0	0	0	0	0	8	0	0		Conceal Safe		0	0	0	1	0
-1238	fru-intermission-target-veil	fru-intermission-target-veil	5	307	0	0	0	0	0	4	0	0		Target Ice Veil		0	0	0	1	1
-1238	fru-p1-burnished-glory	fru-p1-burnished-glory	1	9CEA	0	0	0	1	0	4	0	0		aoe and bleed	AoE and Bleed	3	0	0	1	1
-1238	fru-p1-burnt-strike-fire	fru-p1-burnt-strike-fire	1	9CC1	0	1	0	1	0	8	0	0		Line Cleave Knockback	Line Cleave then Knockback	3	0	0	1	1
-1238	fru-p1-burnt-strike-lightning	fru-p1-burnt-strike-lightning	1	9CC5	0	1	0	1	0	8	0	0		Line Cleave Out	Line Cleave then Out	3	0	0	1	1
-1238	fru-p1-cyclonic-break-fire-1	fru-p1-cyclonic-break-fire	1	9CD0	0	1	0	1	0	8	0	0		Clock spots Pairs	Clock spots then Pairs	3	0	0	1	1
-1238	fru-p1-cyclonic-break-fire-2	fru-p1-cyclonic-break-fire	1	9D89	0	1	0	1	0	8	0	0		Clock spots Pairs	Clock spots then Pairs	3	0	0	1	1
-1238	fru-p1-cyclonic-break-lightning-1	fru-p1-cyclonic-break-lightning	1	9CD4	0	1	0	1	0	8	0	0		Clock spots Spread	Clock spots then Spread	3	0	0	1	1
-1238	fru-p1-cyclonic-break-lightning-2	fru-p1-cyclonic-break-lightning	1	9D8A	0	1	0	1	0	8	0	0		Clock spots Spread	Clock spots then Spread	3	0	0	1	1
-1238	fru-p1-powder-mark-trail-no-target	fru-p1-powder-mark-trail-no-target	1	9CE8	6	1	0	1	0	4	0	0	healer,dps	buster		3	0	0	1	1
-1238	fru-p1-powder-mark-trail-on-target	fru-p1-powder-mark-trail-on-target	1	9CE8	5	1	0	1	0	4	0	0	healer,dps	buster on {target}		3	0	0	1	1
-1238	fru-p1-powder-mark-trail-on-you	fru-p1-powder-mark-trail-on-you	1	9CE8	1	1	0	1	0	4	1	1		buster on you		3	0	0	1	1
-1238	fru-p1-powder-mark-trail-swap	fru-p1-powder-mark-trail-swap	1	9CE8	2	2	0	1	0	4	0	0	tank	tank swap	tank swap	3	0	0	1	1
-1238	fru-p1-turn-of-the-heavens-fire	fru-p1-turn-of-the-heavens-fire	1	9CD6	0	0	0	1	0	10	0	0		Lightning Safe		3	0	0	1	1
-1238	fru-p1-turn-of-the-heavens-lightning	fru-p1-turn-of-the-heavens-lightning	1	9CD7	0	0	0	1	0	10	0	0		Fire Safe		3	0	0	1	1
-1238	fru-p2-absolute-zero	fru-p2-absolute-zero	1	9D20	0	0	0	2	4	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-p2-diamond-dust	fru-p2-diamond-dust	1	9D05	0	0	0	2	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-p2-heavenly-strike	fru-p2-heavenly-strike	3	9D07	0	0	0	2	0	3.5	0	0		Heavenly Strike		3	1	0	1	0
-1238	fru-p2-house-of-light-frigid-stone	fru-p2-house-of-light-frigid-stone	6	159	0	0	0	2	0	4	0	0		House of Light/Frigid Stone		0	0	0	1	0
-1238	fru-p2-light-rampant-banish-iii-1	fru-p2-light-rampant-banish-iii	1	9D1C	0	0	0	2	0.5	4	0	0		Light Rampant Banish III		3	0	0	1	0
-1238	fru-p2-light-rampant-banish-iii-2	fru-p2-light-rampant-banish-iii	1	9D1D	0	0	0	2	0.5	4	0	0		Light Rampant Banish III		3	0	0	1	0
-1238	fru-p2-light-rampant-tower	fru-p2-light-rampant-tower	3	9D1B	0	0	0	2	0	4	0	0		Light Rampant, tower		3	0	0	1	0
-1238	fru-p2-mirror-mirror-banish-iii-1	fru-p2-mirror-mirror-banish-iii	1	9D1C	0	0	0	2	0	4	0	0		Mirror Mirror Banish III		3	0	0	1	0
-1238	fru-p2-mirror-mirror-banish-iii-2	fru-p2-mirror-mirror-banish-iii	1	9D1D	0	0	0	2	0	4	0	0		Mirror Mirror Banish III		3	0	0	1	0
-1238	fru-p2-mirror-mirror-initial-cleaves	fru-p2-mirror-mirror-initial-cleaves	1	9D0B	0	1	0	2	1	4	0	0		bait the cleave		3	0	0	1	0
-1238	fru-p2-mirror-mirror-reflected-cleaves	fru-p2-mirror-mirror-reflected-cleaves	1	9D0D	0	1	0	2	5	4	0	0		bait the cleave		3	1	0	1	1
-1238	fru-p2-quadruple-slap-first-no-target	fru-p2-quadruple-slap-first-no-target	1	9CFF	6	1	0	2	0	4	0	0	tank,healer	buster		3	0	0	1	1
-1238	fru-p2-quadruple-slap-first-no-target-others	fru-p2-quadruple-slap-first-no-target-others	1	9CFF	6	0	0	2	0	4	0	0	dps	buster		3	0	0	1	1
-1238	fru-p2-quadruple-slap-first-on-target	fru-p2-quadruple-slap-first-on-target	1	9CFF	5	0	0	2	0	4	0	0		buster on {target}		3	0	0	1	1
-1238	fru-p2-quadruple-slap-first-on-you	fru-p2-quadruple-slap-first-on-you	1	9CFF	1	1	0	2	0	4	1	1		buster on you		3	0	0	1	1
-1238	fru-p2-quadruple-slap-second	fru-p2-quadruple-slap-second	1	9D00	0	0	0	2	0	4	0	0		Quadruple Slap Second		3	0	0	1	0
-1238	fru-p2-shining-armor	fru-p2-shining-armor	4	8E1	0	2	0	2	0	4	0	0		look away		0	1	0	1	0
-1238	fru-p2-sinbound-holy-rotation	fru-p2-sinbound-holy-rotation	3	9D0F	1	0	0	2	1	5	1	1		Sinbound Holy Rotation		3	0	0	1	0
-1238	fru-p2-the-house-of-light	fru-p2-the-house-of-light	1	9CFD	0	0	0	2	0	4	0	0		Protean		3	0	0	1	1
-1238	fru-p2-twin-silence-stillness-first-1	fru-p2-twin-silence-stillness-first	1	9D01	0	0	0	2	0	2.8	0	0		Twin Silence/Stillness First		3	0	0	1	0
-1238	fru-p2-twin-silence-stillness-first-2	fru-p2-twin-silence-stillness-first	1	9D02	0	0	0	2	0	2.8	0	0		Twin Silence/Stillness First		3	0	0	1	0
-1238	fru-p2-twin-silence-stillness-second-1	fru-p2-twin-silence-stillness-second	1	9D01	0	0	0	2	2.9	4	0	0		Twin Silence/Stillness Second		3	0	0	1	0
-1238	fru-p2-twin-silence-stillness-second-2	fru-p2-twin-silence-stillness-second	1	9D02	0	0	0	2	2.9	4	0	0		Twin Silence/Stillness Second		3	0	0	1	0
-1238	fru-p3-apoc-dark-water-debuff	fru-p3-apoc-dark-water-debuff	4	99D	0	0	0	3	0	6	0	0		Apoc Dark Water Debuff		0	0	0	1	0
-1238	fru-p3-apoc-darkest-dance-jump-bait	fru-p3-apoc-darkest-dance-jump-bait	1	9CF5	0	0	0	3	3	2	0	0		Apoc Darkest Dance Jump, bait it		3	0	0	1	0
-1238	fru-p3-apoc-second-stacks	fru-p3-apoc-second-stacks	3	9D52	0	0	0	3	1	4	0	0		Apoc Second, stack		3	1	0	1	0
-1238	fru-p3-apoc-spirit-taker	fru-p3-apoc-spirit-taker	4	99D	0	1	0	3	9.8	2	0	0		spread		0	1	0	1	0
-1238	fru-p3-black-halo	fru-p3-black-halo	1	9D62	0	0	0	3	0	4	0	0		Black Halo		3	0	0	1	0
-1238	fru-p3-darkest-dance-kb-third-stacks	fru-p3-darkest-dance-kb-third-stacks	3	9CF5	0	0	0	3	0	7	0	0		Darkest Dance KB and Third, stack		3	0	0	1	0
-1238	fru-p3-memory-s-end	fru-p3-memory-s-end	1	9D6C	0	0	0	3	5	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-p3-shockwave-pulsar	fru-p3-shockwave-pulsar	1	9D5A	0	0	0	3	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-p3-ultimate-rel-1st-bait-rewind	fru-p3-ultimate-rel-1st-bait-rewind	4	9A0	0	0	0	3	11	4	0	0		Ultimate Rel 1st Bait/Rewind		0	0	0	1	0
-1238	fru-p3-ultimate-rel-1st-fire-stack	fru-p3-ultimate-rel-1st-fire-stack	4	9A0	0	0	0	3	4	7	0	0		Ultimate Rel 1st Fire/Stack		0	0	0	1	0
-1238	fru-p3-ultimate-rel-2nd-bait-rewind	fru-p3-ultimate-rel-2nd-bait-rewind	4	9A0	0	0	0	3	21	4	0	0		Ultimate Rel 2nd Bait/Rewind		0	0	0	1	0
-1238	fru-p3-ultimate-rel-2nd-fire-stack-ice	fru-p3-ultimate-rel-2nd-fire-stack-ice	4	9A0	0	0	0	3	16	4	0	0		Ultimate Rel 2nd Fire/Stack and Ice		0	0	0	1	0
-1238	fru-p3-ultimate-rel-3nd-bait	fru-p3-ultimate-rel-3nd-bait	4	9A0	0	0	0	3	31	4	0	0		Ultimate Rel 3nd, bait it		0	0	0	1	0
-1238	fru-p3-ultimate-rel-3rd-fire-stack	fru-p3-ultimate-rel-3rd-fire-stack	4	9A0	0	0	0	3	26	4	0	0		Ultimate Rel 3rd Fire/Stack		0	0	0	1	0
-1238	fru-p3-ultimate-relativity-aoe	fru-p3-ultimate-relativity-aoe	1	9D4A	0	0	0	3	4	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-p3-ultimate-relativity-initial-debuff-1	fru-p3-ultimate-relativity-initial-debuff	4	997	0	0	0	3	0	8	0	0		Ultimate Relativity Initial Debuff		0	0	0	1	0
-1238	fru-p3-ultimate-relativity-initial-debuff-2	fru-p3-ultimate-relativity-initial-debuff	4	99E	0	0	0	3	0	8	0	0		Ultimate Relativity Initial Debuff		0	0	0	1	0
-1238	fru-p4-akh-morn	fru-p4-akh-morn	1	9D6E	0	1	0	4	0	4	0	0		stacks		3	0	0	1	1
-1238	fru-p4-akh-rhai	fru-p4-akh-rhai	4	8E1	0	1	0	4	4.7	4	0	0		move	move	0	1	0	1	0
-1238	fru-p4-crystallize-time	fru-p4-crystallize-time	1	9D6A	0	0	0	4	3	7	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-p4-crystallize-time-blue-cleanse	fru-p4-crystallize-time-blue-cleanse	3	9D55	0	0	0	4	2	8	0	0		Crystallize Time Blue, cleanse it		3	1	0	1	0
-1238	fru-p4-crystallize-time-drop-rewind	fru-p4-crystallize-time-drop-rewind	4	1070	0	0	0	4	0	4	0	0		Crystallize Time Drop Rewind		0	0	0	1	0
-1238	fru-p4-crystallize-time-initial-position	fru-p4-crystallize-time-initial-position	7	85	0	0	0	4	0	9	0	0		Crystallize Time Initial Position		0	0	0	1	0
-1238	fru-p4-crystallize-time-spirit-taker	fru-p4-crystallize-time-spirit-taker	4	994	0	1	0	4	0	4	0	0		Spread, Avoid crystal		0	0	0	1	0
-1238	fru-p4-darklit-cleave-stack	fru-p4-darklit-cleave-stack	7	6E	0	0	0	4	2	7	0	0		Darklit Cleave, stack		0	0	0	1	0
-1238	fru-p4-darklit-dragonsong	fru-p4-darklit-dragonsong	1	9D6D	0	0	0	4	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1238	fru-p4-darklit-spirit-taker	fru-p4-darklit-spirit-taker	1	9D60	0	1	0	4	0.5	2	0	0		spread		3	0	0	1	0
-1238	fru-p4-darklit-tower-bait	fru-p4-darklit-tower-bait	7	6E	0	0	0	4	0	9	0	0		Darklit Tower /, bait it		0	0	0	1	0
-1238	fru-p4-hallowed-wings-1	fru-p4-hallowed-wings	1	9D23	0	0	0	4	1	4	0	0		Hallowed Wings		3	0	0	1	0
-1238	fru-p4-hallowed-wings-2	fru-p4-hallowed-wings	1	9D24	0	0	0	4	1	4	0	0		Hallowed Wings		3	0	0	1	0
-1238	fru-p4-morn-afah	fru-p4-morn-afah	1	9D70	0	1	0	4	0	6	0	0		stack		3	0	0	1	1
-1257	r5s-burn-baby-burn-1-cleanse	r5s-burn-baby-burn-1-cleanse	4	116D	0	1	0	0	0	4	0	0		cleanse in the spotlight		0	0	0	1	0
-1257	r5s-burn-baby-burn-1-early	r5s-burn-baby-burn-1-early	4	116D	0	0	0	0	0	7	0	0		Burn Baby Burn 1		0	0	0	1	0
-1257	r5s-burn-baby-burn-2-first	r5s-burn-baby-burn-2-first	4	116D	0	0	0	0	0	9	0	0		Burn Baby Burn 2 First		0	0	0	1	0
-1257	r5s-burn-baby-burn-2-second	r5s-burn-baby-burn-2-second	4	116D	0	0	0	0	11	8	0	0		Burn Baby Burn 2 Second		0	0	0	1	0
-1257	r5s-celebrate-good-times	r5s-celebrate-good-times	1	A723	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1257	r5s-deep-cut	r5s-deep-cut	6	1D7	0	0	0	0	0	4	0	0		Deep Cut		0	0	0	1	0
-1257	r5s-disco-inferno	r5s-disco-inferno	1	A756	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1257	r5s-eighth-beats	r5s-eighth-beats	1	A75D	0	0	0	0	0	4	0	0		spread		3	0	0	1	1
-1257	r5s-flip-to-ab-side-1	r5s-flip-to-ab-side	1	A780	0	0	0	0	0	4	0	0		Flip to AB Side		3	0	0	1	0
-1257	r5s-flip-to-ab-side-2	r5s-flip-to-ab-side	1	A781	0	0	0	0	0	4	0	0		Flip to AB Side		3	0	0	1	0
-1257	r5s-inside-out	r5s-inside-out	1	A77C	0	1	0	0	0	8.5	0	0		Max Melee Under	Max Melee then Under	3	0	0	1	1
-1257	r5s-let-s-pose	r5s-let-s-pose	1	A770	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1257	r5s-outside-in	r5s-outside-in	1	A77E	0	1	0	0	0	8.5	0	0		get under	get under	3	0	0	1	1
-1257	r5s-quarter-beats	r5s-quarter-beats	1	A75B	0	0	0	0	0	4	0	0		stack with your partner		3	0	0	1	1
-1257	r5s-wavelength-merge-order-1	r5s-wavelength-merge-order	4	116E	0	0	0	0	0	4	0	0		Wavelength Merge Order		0	0	0	1	0
-1257	r5s-wavelength-merge-order-2	r5s-wavelength-merge-order	4	116F	0	0	0	0	0	4	0	0		Wavelength Merge Order		0	0	0	1	0
-1257	r5s-wavelength-merge-reminder-1	r5s-wavelength-merge-reminder	4	116E	0	1	0	0	0	4	0	0		Merge debuff		0	0	0	1	0
-1257	r5s-wavelength-merge-reminder-2	r5s-wavelength-merge-reminder	4	116F	0	1	0	0	0	4	0	0		Merge debuff		0	0	0	1	0
-1259	r6s-color-clash-1	r6s-color-clash	1	A68B	0	0	0	0	0	4	0	0		Color Clash		3	0	0	1	0
-1259	r6s-color-clash-2	r6s-color-clash	1	A68D	0	0	0	0	0	4	0	0		Color Clash		3	0	0	1	0
-1259	r6s-color-riot-1	r6s-color-riot	1	A691	0	0	0	0	0	4	0	0		Color Riot		3	0	0	1	0
-1259	r6s-color-riot-2	r6s-color-riot	1	A692	0	0	0	0	0	4	0	0		Color Riot		3	0	0	1	0
-1259	r6s-double-style-taste-of-fire-thunder-1	r6s-double-style-taste-of-fire-thunder	1	A687	0	0	0	0	0	4	0	0		Double Style Taste of Fire/Thunder		3	1	0	1	0
-1259	r6s-double-style-taste-of-fire-thunder-2	r6s-double-style-taste-of-fire-thunder	1	A689	0	0	0	0	0	4	0	0		Double Style Taste of Fire/Thunder		3	1	0	1	0
-1259	r6s-heating-up	r6s-heating-up	4	1166	0	1	0	0	0	4	0	0		Defamation on you		0	0	0	1	0
-1259	r6s-heating-up-early-warning	r6s-heating-up-early-warning	4	1166	0	0	0	0	0	4	0	0		Defamation on you (for later)		0	0	0	1	0
-1259	r6s-jabberwock-bind-marker	r6s-jabberwock-bind-marker	6	17	1	1	0	0	0	4	1	1		Jabberwock on you		0	0	0	1	1
-1259	r6s-lightning-storm	r6s-lightning-storm	6	25A	1	1	0	0	0	4	1	1		spread		0	0	0	1	1
-1259	r6s-mousse-mural	r6s-mousse-mural	1	A6BC	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1259	r6s-pudding-graf-1	r6s-pudding-graf	7	13F	0	0	0	0	0	4	0	0		Pudding Graf		1	0	0	1	0
-1259	r6s-pudding-graf-2	r6s-pudding-graf	7	140	0	0	0	0	0	4	0	0		Pudding Graf		1	0	0	1	0
-1259	r6s-pudding-party	r6s-pudding-party	6	131	0	0	0	0	0	4	0	0		Pudding Party		0	0	0	1	0
-1259	r6s-ready-ore-not	r6s-ready-ore-not	1	A6AA	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1259	r6s-single-style	r6s-single-style	1	9A3D	0	0	0	0	0	4	0	0		out of arrow lines		3	0	0	1	1
-1259	r6s-sticky-mousse	r6s-sticky-mousse	1	A695	0	0	0	0	0	4	0	0		Sticky Mousse		3	0	0	1	0
-1259	r6s-taste-of-thunder-twister-stepped-leader	r6s-taste-of-thunder-twister-stepped-leader	1	A69D	0	0	0	0	0	4	0	0		move	move	3	1	0	1	1
-1261	r7s-abominable-blink	r7s-abominable-blink	6	147	0	0	0	0	0	4	0	0		Abominable Blink		0	0	0	1	0
-1261	r7s-brutal-impact	r7s-brutal-impact	1	A55B	0	0	0	0	0	4	0	0		Brutal Impact		3	0	0	1	0
-1261	r7s-brutish-swing-1	r7s-brutish-swing	1	A592	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
-1261	r7s-brutish-swing-2	r7s-brutish-swing	1	A593	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
-1261	r7s-brutish-swing-3	r7s-brutish-swing	1	A5A3	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
-1261	r7s-brutish-swing-4	r7s-brutish-swing	1	A5A5	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
-1261	r7s-debris-deathmatch	r7s-debris-deathmatch	1	A5B0	0	0	0	0	0	4	0	0		take your tether		3	0	0	1	0
-1261	r7s-demolition-deathmatch	r7s-demolition-deathmatch	1	A596	0	0	0	0	0	4	0	0		take your tether		3	0	0	1	1
-1261	r7s-explosion	r7s-explosion	1	A576	0	1	0	0	0	4	0	0		rotate away from the markers		3	10	0	1	1
-1261	r7s-glower-power	r7s-glower-power	1	A94C	0	1	0	0	0	4	0	0		spread, away from the front		3	0	0	1	1
-1261	r7s-impact	r7s-impact	3	A56E	0	1	0	0	0	4	0	0		healer groups		3	1	0	1	0
-1261	r7s-killer-seeds	r7s-killer-seeds	1	A59B	0	1	0	0	0	4	0	0		stack with your partner		3	1	0	1	1
-1261	r7s-lashing-lariat-1	r7s-lashing-lariat	1	A5A8	0	0	0	0	0	4	0	0		Lashing Lariat		3	0	0	1	0
-1261	r7s-lashing-lariat-2	r7s-lashing-lariat	1	A5AA	0	0	0	0	0	4	0	0		Lashing Lariat		3	0	0	1	0
-1261	r7s-neo-bombarian-special	r7s-neo-bombarian-special	1	A57C	0	1	0	0	0	4	0	0		north, heavy raidwide and launch	Go North, big AoE and Launch	3	0	0	1	1
-1261	r7s-powerslam	r7s-powerslam	1	A59E	0	1	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1261	r7s-pulp-smash	r7s-pulp-smash	6	A1	0	0	0	0	0	4	0	0		Pulp Smash		0	0	0	1	0
-1261	r7s-quarry-swamp	r7s-quarry-swamp	1	A575	0	0	0	0	0	4	0	0		Line of Sight boss with adds		3	0	0	1	1
-1261	r7s-revenge-of-the-vines	r7s-revenge-of-the-vines	1	A587	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1261	r7s-sinister-seeds	r7s-sinister-seeds	1	A56E	0	0	0	0	0	4	0	0		Sinister Seeds		3	0	0	1	0
-1261	r7s-slaminator	r7s-slaminator	1	A5AE	0	0	0	0	0	4	0	0		towers		3	0	0	1	1
-1261	r7s-smash-here-there-1	r7s-smash-here-there	1	A55F	0	0	0	0	0	4	0	0		Smash Here/There		3	0	0	1	0
-1261	r7s-smash-here-there-2	r7s-smash-here-there	1	A560	0	0	0	0	0	4	0	0		Smash Here/There		3	0	0	1	0
-1261	r7s-stoneringer-1	r7s-stoneringer	1	A55D	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
-1261	r7s-stoneringer-2	r7s-stoneringer	1	A55E	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
-1261	r7s-stoneringer-3	r7s-stoneringer	1	A57F	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
-1261	r7s-stoneringer-4	r7s-stoneringer	1	A580	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
-1261	r7s-strange-seeds	r7s-strange-seeds	1	A598	1	1	0	0	0	4	1	1		drop your seed		3	0	0	1	1
-1261	r7s-tendrils-of-terror-1	r7s-tendrils-of-terror	1	A599	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
-1261	r7s-tendrils-of-terror-2	r7s-tendrils-of-terror	1	A59A	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
-1261	r7s-tendrils-of-terror-3	r7s-tendrils-of-terror	1	A59C	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
-1261	r7s-tendrils-of-terror-4	r7s-tendrils-of-terror	1	A59D	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
-1261	r7s-thorny-deathmatch	r7s-thorny-deathmatch	7	152	0	0	0	0	0	4	0	0		Thorny Deathmatch		0	0	0	1	0
-1263	r8s-aero-iii	r8s-aero-iii	1	A3B7	0	1	0	0	0	4	0	0		knockback		3	16	0	1	1
-1263	r8s-beckon-moonlight-quadrant-two-1	r8s-beckon-moonlight-quadrant-two	1	A3C2	0	0	0	0	0	4	0	0		Beckon Moonlight Quadrant Two		3	0	0	1	0
-1263	r8s-beckon-moonlight-quadrant-two-2	r8s-beckon-moonlight-quadrant-two	1	A3C3	0	0	0	0	0	4	0	0		Beckon Moonlight Quadrant Two		3	0	0	1	0
-1263	r8s-beckon-moonlight-quadrants-1	r8s-beckon-moonlight-quadrants	3	A3E0	0	0	0	0	0.1	10	0	0		Beckon Moonlight Quadrants		3	0	0	1	0
-1263	r8s-beckon-moonlight-quadrants-2	r8s-beckon-moonlight-quadrants	3	A3E1	0	0	0	0	0.1	10	0	0		Beckon Moonlight Quadrants		3	0	0	1	0
-1263	r8s-beckon-moonlight-spread-stack-1	r8s-beckon-moonlight-spread-stack	6	5D	0	0	0	0	0.1	4	0	0		Beckon Moonlight Spread/Stack		0	1	0	1	0
-1263	r8s-beckon-moonlight-spread-stack-2	r8s-beckon-moonlight-spread-stack	6	8B	0	0	0	0	0.1	4	0	0		Beckon Moonlight Spread/Stack		0	1	0	1	0
-1263	r8s-breath-of-decay-rotation	r8s-breath-of-decay-rotation	1	A3B4	0	0	0	0	0	6	0	0		Breath of Decay Rotation		3	0	0	1	0
-1263	r8s-champion-s-circuit-safe-spot	r8s-champion-s-circuit-safe-spot	1	A476	0	0	0	0	0	4	0	0		Champion's Circuit, safe spot		3	0	0	1	0
-1263	r8s-elemental-purge-targets	r8s-elemental-purge-targets	6	17	0	0	0	0	0	4	0	0		Elemental Purge Targets		0	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-1	r8s-eminent-revolutionary-reign	1	A911	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-2	r8s-eminent-revolutionary-reign	1	A912	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-3	r8s-eminent-revolutionary-reign	1	A913	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-4	r8s-eminent-revolutionary-reign	1	A914	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-direction-1	r8s-eminent-revolutionary-reign-direction	1	A911	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-direction-2	r8s-eminent-revolutionary-reign-direction	1	A912	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-direction-3	r8s-eminent-revolutionary-reign-direction	1	A913	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
-1263	r8s-eminent-revolutionary-reign-direction-4	r8s-eminent-revolutionary-reign-direction	1	A914	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
-1263	r8s-extraplanar-pursuit	r8s-extraplanar-pursuit	1	A3DA	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1263	r8s-gleaming-beam	r8s-gleaming-beam	9	197	0	0	0	0	0	4	0	0		Gleaming Beam		0	0	0	1	0
-1263	r8s-great-divide-avoid	r8s-great-divide-avoid	6	256	5	0	0	0	0	4	0	0	dps	out of the cleave		0	0	0	1	1
-1263	r8s-great-divide-on-target	r8s-great-divide-on-target	6	256	5	1	0	0	0	4	0	0	tank,healer	share the buster, {target}		0	0	0	1	1
-1263	r8s-great-divide-on-you	r8s-great-divide-on-you	6	256	1	1	0	0	0	4	1	1		share the buster, on you		0	0	0	1	1
-1263	r8s-hero-s-blow-1	r8s-hero-s-blow	1	A45F	0	0	0	0	0.3	4	0	0		Hero's Blow		3	0	0	1	0
-1263	r8s-hero-s-blow-2	r8s-hero-s-blow	1	A461	0	0	0	0	0.3	4	0	0		Hero's Blow		3	0	0	1	0
-1263	r8s-howling-eight-1	r8s-howling-eight	1	AA02	0	0	0	0	0	15	0	0		Howling Eight		3	0	0	1	0
-1263	r8s-howling-eight-2	r8s-howling-eight	1	A494	0	0	0	0	0	15	0	0		Howling Eight		3	0	0	1	0
-1263	r8s-howling-havoc	r8s-howling-havoc	1	A3DD	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	0
-1263	r8s-lone-wolf-s-lament-tethers-1	r8s-lone-wolf-s-lament-tethers	7	13E	0	0	0	0	0	4	0	0		Lone Wolf's Lament Tethers		0	0	0	1	0
-1263	r8s-lone-wolf-s-lament-tethers-2	r8s-lone-wolf-s-lament-tethers	7	13D	0	0	0	0	0	4	0	0		Lone Wolf's Lament Tethers		0	0	0	1	0
-1263	r8s-millenial-decay	r8s-millenial-decay	1	A3B2	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1263	r8s-mooncleaver	r8s-mooncleaver	1	A465	0	0	0	0	0	4	0	0		Change Platform		3	0	0	1	1
-1263	r8s-mooncleaver-enrage-sequence-1	r8s-mooncleaver-enrage-sequence	1	AA0A	0	0	0	0	0	4	0	0		Mooncleaver		3	0	0	1	0
-1263	r8s-mooncleaver-enrage-sequence-2	r8s-mooncleaver-enrage-sequence	1	A49C	0	0	0	0	0	4	0	0		Mooncleaver		3	0	0	1	0
-1263	r8s-pack-predation	r8s-pack-predation	6	17	0	0	0	0	0	4	0	0		Pack Predation		0	0	0	1	0
-1263	r8s-prowling-gale-tower-tether	r8s-prowling-gale-tower-tether	7	39	0	0	0	0	0	4	0	0		Prowling Gale Tower/Tether		0	0	0	1	0
-1263	r8s-quake-iii	r8s-quake-iii	1	A45A	0	1	0	0	0	4	0	0		healer groups		3	0	0	1	1
-1263	r8s-ravenous-saber	r8s-ravenous-saber	1	A749	0	0	0	0	0	7	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
-1263	r8s-shadowchase-rotate	r8s-shadowchase-rotate	1	A3BD	0	0	0	0	0	4	0	0		Rotate		3	1	0	1	0
-1263	r8s-tactical-pack-debuffs-1	r8s-tactical-pack-debuffs	4	1127	0	0	0	0	0	4	0	0		Tactical Pack Debuffs		0	0	0	1	0
-1263	r8s-tactical-pack-debuffs-2	r8s-tactical-pack-debuffs	4	1128	0	0	0	0	0	4	0	0		Tactical Pack Debuffs		0	0	0	1	0
-1263	r8s-tactical-pack-first-pop	r8s-tactical-pack-first-pop	4	B7D	0	0	0	0	0	4	0	0		Tactical Pack First Pop		0	1	0	1	0
-1263	r8s-tactical-pack-second-pop	r8s-tactical-pack-second-pop	4	B7D	0	0	0	0	0	4	0	0		Tactical Pack Second Pop		0	1	0	1	0
-1263	r8s-tactical-pack-tethers-1	r8s-tactical-pack-tethers	7	14F	0	0	0	0	0	4	0	0		Tactical Pack Tethers		1	0	0	1	0
-1263	r8s-tactical-pack-tethers-2	r8s-tactical-pack-tethers	7	150	0	0	0	0	0	4	0	0		Tactical Pack Tethers		1	0	0	1	0
-1263	r8s-terrestrial-rage-spread-stack-1	r8s-terrestrial-rage-spread-stack	6	5D	0	0	0	0	0.1	4	0	0		Terrestrial Rage Spread/Stack		0	1	0	1	0
-1263	r8s-terrestrial-rage-spread-stack-2	r8s-terrestrial-rage-spread-stack	6	8B	0	0	0	0	0.1	4	0	0		Terrestrial Rage Spread/Stack		0	1	0	1	0
-1263	r8s-terrestrial-titans-safe-spot	r8s-terrestrial-titans-safe-spot	9	197	0	0	0	0	0	4	0	0		Terrestrial Titans, safe spot		0	0	0	1	0
-1263	r8s-titanic-pursuit	r8s-titanic-pursuit	1	A3C7	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
-1263	r8s-tracking-tremors	r8s-tracking-tremors	1	A3B9	0	0	0	0	0	9	0	0		stack, eight hits		3	0	0	1	1
-1263	r8s-twinbite-no-target	r8s-twinbite-no-target	1	A4CD	6	1	0	0	0	4	0	0	tank,healer	buster		3	0	0	1	1
-1263	r8s-twinbite-no-target-others	r8s-twinbite-no-target-others	1	A4CD	6	0	0	0	0	4	0	0	dps	buster		3	0	0	1	1
-1263	r8s-twinbite-on-target	r8s-twinbite-on-target	1	A4CD	5	0	0	0	0	4	0	0		buster on {target}		3	0	0	1	1
-1263	r8s-twinbite-on-you	r8s-twinbite-on-you	1	A4CD	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
-1263	r8s-twofold-tempest-initial-tether-bait	r8s-twofold-tempest-initial-tether-bait	7	54	0	0	0	0	0	4	0	0		Twofold Tempest Initial Tether/Bait		0	50	0	1	0
-1263	r8s-twofold-tempest-tether-pass-bait	r8s-twofold-tempest-tether-pass-bait	3	A472	0	0	0	0	0	4	0	0		Twofold Tempest Tether Pass/Bait		3	1	0	1	0
-1263	r8s-ultraviolent-ray-target	r8s-ultraviolent-ray-target	6	E	1	0	0	0	0	4	1	1		UV Ray on you		0	0	0	1	1
-1263	r8s-weal-of-stone	r8s-weal-of-stone	1	A78E	0	1	0	0	0	4	0	0		out of Lines		3	1	0	1	1
-1263	r8s-weal-of-stone-cardinals-1	r8s-weal-of-stone-cardinals	1	A3C2	0	1	0	0	0	4	0	0		cardinals		3	0	0	1	0
-1263	r8s-weal-of-stone-cardinals-2	r8s-weal-of-stone-cardinals	1	A3C3	0	1	0	0	0	4	0	0		cardinals		3	0	0	1	0
-1263	r8s-windfang-stonefang-1	r8s-windfang-stonefang	1	A39E	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
-1263	r8s-windfang-stonefang-2	r8s-windfang-stonefang	1	A39D	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
-1263	r8s-windfang-stonefang-3	r8s-windfang-stonefang	1	A3A1	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
-1263	r8s-windfang-stonefang-4	r8s-windfang-stonefang	1	A3A2	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
+733	ucu-akh-morn	ucu-akh-morn	1	26EA	0	0	0	0	0	4	0	0		Akh Morn		3	0	0	1	0
+733	ucu-bahamut-flatten-no-target	ucu-bahamut-flatten-no-target	1	26D5	6	1	0	0	0	4	0	0	tank,healer	buster		3	0	0	1	1
+733	ucu-bahamut-flatten-no-target-others	ucu-bahamut-flatten-no-target-others	1	26D5	6	0	0	0	0	4	0	0	dps	buster		3	0	0	1	1
+733	ucu-bahamut-flatten-on-target	ucu-bahamut-flatten-on-target	1	26D5	5	0	0	0	0	4	0	0		buster on {target}		3	0	0	1	1
+733	ucu-bahamut-flatten-on-you	ucu-bahamut-flatten-on-you	1	26D5	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
+733	ucu-bahamut-gigaflare	ucu-bahamut-gigaflare	1	26D6	0	1	0	0	0	4	0	0		Gigaflare		3	0	0	1	1
+733	ucu-death-sentence-no-target	ucu-death-sentence-no-target	1	26A9	6	1	0	0	0	4	0	0	healer,dps	buster		3	0	0	1	1
+733	ucu-death-sentence-on-target	ucu-death-sentence-on-target	1	26A9	5	1	0	0	0	4	0	0	healer,dps	buster on {target}		3	0	0	1	1
+733	ucu-death-sentence-on-you	ucu-death-sentence-on-you	1	26A9	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
+733	ucu-death-sentence-swap	ucu-death-sentence-swap	1	26A9	2	2	0	0	0	4	0	0	tank	tank swap	tank swap	3	0	0	1	1
+733	ucu-earthshaker-me	ucu-earthshaker-me	6	28	1	2	0	0	0	4	1	1		Earth Shaker on you		0	0	0	1	1
+733	ucu-earthshaker-not-me	ucu-earthshaker-not-me	6	28	0	0	0	0	0	4	0	0		Earthshaker Not Me		0	0	0	1	0
+733	ucu-hatch-callouts	ucu-hatch-callouts	6	76	0	0	0	0	0.25	4	0	0		Hatch Callouts		0	0	0	1	0
+733	ucu-hatch-marker-you	ucu-hatch-marker-you	6	76	1	2	0	0	0	4	1	1		Hatch on you		0	0	0	1	1
+733	ucu-megaflare-stack-me	ucu-megaflare-stack-me	6	27	1	1	0	0	0	4	1	1		Megaflare Stack		0	0	0	1	1
+733	ucu-megaflare-tower	ucu-megaflare-tower	6	27	0	0	0	0	0	4	0	0		Megaflare Tower		0	0	0	1	0
+733	ucu-megaflare-twin-tower	ucu-megaflare-twin-tower	6	27	0	0	0	0	0.5	4	0	0		Megaflare Twin Tower		0	1	0	1	0
+733	ucu-morn-afah	ucu-morn-afah	1	26EC	0	0	0	0	0	4	0	0		Morn Afah		3	0	0	1	0
+733	ucu-morn-afah-enrage-spread-warning	ucu-morn-afah-enrage-spread-warning	1	26ED	0	2	0	0	0	4	0	0		Spread (Enrage)		3	0	0	1	1
+733	ucu-nael-cleanse-callout	ucu-nael-cleanse-callout	3	26CA	0	0	0	0	0	4	0	0		Nael Cleanse Callout		3	0	0	1	0
+733	ucu-nael-dragon-dive-marker-me	ucu-nael-dragon-dive-marker-me	6	14	0	0	0	0	0	4	0	0		Nael Dragon Dive Marker Me		0	0	0	1	0
+733	ucu-nael-dragon-dive-marker-others	ucu-nael-dragon-dive-marker-others	6	14	0	0	0	0	0	4	0	0		Nael Dragon Dive Marker Others		0	0	0	1	0
+733	ucu-nael-dragon-placement	ucu-nael-dragon-placement	3	26B6	0	0	0	0	0	10	0	0		Nael Dragon Placement		3	0	0	1	0
+733	ucu-nael-fireball-1	ucu-nael-fireball-1	3	26B8	0	0	0	0	35	4	0	0		Fire IN		3	0	1	1	1
+733	ucu-nael-fireball-2	ucu-nael-fireball-2	3	26B8	0	0	0	0	51	4	0	0		Nael Fireball 2		3	0	1	1	0
+733	ucu-nael-fireball-3	ucu-nael-fireball-3	3	26B8	0	0	0	0	77	4	0	0		Nael Fireball 3		3	0	1	1	0
+733	ucu-nael-fireball-4	ucu-nael-fireball-4	3	26B8	0	0	0	0	98	4	0	0		Nael Fireball 4		3	0	1	1	0
+733	ucu-nael-ravensbeak-no-target	ucu-nael-ravensbeak-no-target	1	26B6	6	1	0	0	0	4	0	0	healer,dps	buster		3	0	0	1	1
+733	ucu-nael-ravensbeak-on-target	ucu-nael-ravensbeak-on-target	1	26B6	5	1	0	0	0	4	0	0	healer,dps	buster on {target}		3	0	0	1	1
+733	ucu-nael-ravensbeak-on-you	ucu-nael-ravensbeak-on-you	1	26B6	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
+733	ucu-nael-ravensbeak-swap	ucu-nael-ravensbeak-swap	1	26B6	2	2	0	0	0	4	0	0	tank	tank swap	tank swap	3	0	0	1	1
+733	ucu-nael-thunderstruck	ucu-nael-thunderstruck	3	26C7	0	0	0	0	0.5	4	0	0		Nael Thunderstruck		3	5	0	1	0
+733	ucu-nael-your-doom	ucu-nael-your-doom	4	D2	0	0	0	0	0	4	0	0		Nael Your Doom		0	20	0	1	0
+733	ucu-octet-baha-marker	ucu-octet-baha-marker	6	29	0	0	0	0	0	4	0	0		Octet Baha Marker		0	0	0	1	0
+733	ucu-octet-dragon-marker	ucu-octet-dragon-marker	6	14	0	0	0	0	0	4	0	0		Octet Dragon Marker		0	0	0	1	0
+733	ucu-octet-nael-marker	ucu-octet-nael-marker	6	77	0	0	0	0	0	4	0	0		Octet Nael Marker		0	0	0	1	0
+733	ucu-octet-twin-bait	ucu-octet-twin-bait	6	29	0	0	0	0	0.5	4	0	0		Octet Twin Bait		0	0	0	1	0
+733	ucu-quickmarch-dive-dir	ucu-quickmarch-dive-dir	1	26E1	0	0	0	0	0	4	0	0		Quickmarch Dive Dir		3	0	0	1	0
+733	ucu-twister-dives	ucu-twister-dives	3	26B2	0	1	0	0	0	4	0	0		Twisters		3	2	0	1	1
+733	ucu-twisters	ucu-twisters	1	26AA	0	1	0	0	0	4	0	0		Twisters		3	0	0	1	1
+777	uwu-aetherochemical-laser-left	uwu-aetherochemical-laser-left	1	2B86	0	0	0	0	0	4	0	0		East Laser		3	0	0	1	1
+777	uwu-aetherochemical-laser-middle	uwu-aetherochemical-laser-middle	1	2B84	0	0	0	0	0	4	0	0		Middle Laser		3	0	0	1	1
+777	uwu-aetherochemical-laser-right	uwu-aetherochemical-laser-right	1	2B85	0	0	0	0	0	4	0	0		North Laser		3	0	0	1	1
+777	uwu-caster-lb	uwu-caster-lb	10	859	0	1	0	0	0	4	0	0		Caster LB NOW	Caster LB NOW	0	5	0	1	0
+777	uwu-garuda-aerial-blast	uwu-garuda-aerial-blast	1	2B55	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	0
+777	uwu-garuda-downburst	uwu-garuda-downburst	3	2B53	0	0	0	0	0	4	0	0		Garuda Downburst		3	3	0	1	0
+777	uwu-garuda-finale	uwu-garuda-finale	3	2CD3	0	0	0	0	0	4	0	0		Garuda		3	0	0	1	0
+777	uwu-garuda-mistral-song-marker	uwu-garuda-mistral-song-marker	6	10	1	1	0	0	0	4	1	1		Mistral on you		0	0	0	1	1
+777	uwu-garuda-mistral-song-tank	uwu-garuda-mistral-song-tank	6	10	0	0	0	0	0	4	0	0	tank	Block Mistral Song		0	5	0	1	1
+777	uwu-garuda-sisters-location	uwu-garuda-sisters-location	1	2B55	0	0	0	0	19	4	0	0		Garuda Sisters Location		3	0	0	1	0
+777	uwu-garuda-slipstream	uwu-garuda-slipstream	1	2B53	0	1	0	0	0	4	0	0		get behind		3	0	0	1	1
+777	uwu-garuda-wicked-wheel	uwu-garuda-wicked-wheel	1	2B4E	0	0	0	0	0	4	0	0		Garuda Wicked Wheel		3	0	0	1	0
+777	uwu-garuda-woken	uwu-garuda-woken	4	5F9	0	0	0	0	0	4	0	0		Garuda Woken		0	0	0	1	0
+777	uwu-healer-lb	uwu-healer-lb	3	2B73	0	1	0	0	0	4	0	0		Healer LB NOW	Healer LB NOW	3	5	0	1	0
+777	uwu-ifrit-fetters	uwu-ifrit-fetters	7	9	0	0	0	0	0	4	0	0		Ifrit Fetters		0	0	0	1	0
+777	uwu-ifrit-finale	uwu-ifrit-finale	3	2CD4	0	0	0	0	0	4	0	0		Ifrit		3	0	0	1	0
+777	uwu-ifrit-flaming-crush	uwu-ifrit-flaming-crush	6	75	0	1	0	0	0	4	0	0		stack		0	0	0	1	1
+777	uwu-ifrit-hellfire	uwu-ifrit-hellfire	1	2B5E	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	0
+777	uwu-ifrit-nail-adds	uwu-ifrit-nail-adds	10	4A2	0	0	0	0	0	4	0	0		Ifrit Nail Adds		0	0	0	1	0
+777	uwu-ifrit-searing-wind	uwu-ifrit-searing-wind	1	2B5B	1	2	0	0	0	4	1	1		Searing Wind on you		3	0	0	1	1
+777	uwu-ifrit-vulcan-burst	uwu-ifrit-vulcan-burst	1	25B7	0	1	0	0	0	4	0	0		knockback		3	0	0	1	1
+777	uwu-ifrit-woken	uwu-ifrit-woken	4	5F9	0	0	0	0	0	4	0	0		Ifrit Woken		0	0	0	1	0
+777	uwu-melee-lb	uwu-melee-lb	1	2B74	0	1	0	0	0	4	0	0		Melee LB NOW	Melee LB NOW	3	0	0	1	0
+777	uwu-predation	uwu-predation	1	2B76	0	0	0	0	10	5	0	0		Predation		3	0	0	1	0
+777	uwu-suppression-gaol	uwu-suppression-gaol	3	2B6B	0	2	0	0	0	4	0	0		Gaol on you		3	0	0	1	0
+777	uwu-titan-bomb-failure	uwu-titan-bomb-failure	3	2B6A	0	0	0	0	0	4	0	0		Titan Bomb Failure		3	0	0	1	0
+777	uwu-titan-bury-direction	uwu-titan-bury-direction	10	70B	0	0	0	0	0	4	0	0		Titan Bury Direction		0	0	0	1	0
+777	uwu-titan-finale	uwu-titan-finale	3	2CD5	0	0	0	0	0	4	0	0		Titan		3	0	0	1	0
+777	uwu-titan-gaols-1	uwu-titan-gaols	3	2B6C	0	0	0	0	0	4	0	0		Titan Gaols		3	0	0	1	0
+777	uwu-titan-gaols-2	uwu-titan-gaols	3	2B6B	0	0	0	0	0	4	0	0		Titan Gaols		3	0	0	1	0
+777	uwu-titan-woken	uwu-titan-woken	4	5F9	0	0	0	0	0	4	0	0		Titan Woken		0	0	0	1	0
+777	uwu-ultima	uwu-ultima	1	2B8B	0	2	0	0	0	4	0	0	tank	Tank LB NOW		3	0	0	1	1
+777	uwu-ultima-mesohigh-tether	uwu-ultima-mesohigh-tether	7	4	0	0	0	0	0	4	0	0		Ultima Mesohigh Tether		0	30	0	1	0
 1321	r9s-blast-beat-inner	r9s-blast-beat-inner	9	197	0	0	0	0	4.1	5.5	0	0		Blast Beat Inner		0	1	0	1	0
 1321	r9s-blast-beat-middle	r9s-blast-beat-middle	9	197	0	0	0	0	9.7	3.4	0	0		Blast Beat Middle		0	1	0	1	0
 1321	r9s-blast-beat-outer	r9s-blast-beat-outer	9	197	0	1	0	0	13.2	3.4	0	0		get to the middle		0	1	0	1	1

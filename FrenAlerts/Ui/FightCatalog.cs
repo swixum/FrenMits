@@ -8,7 +8,7 @@ using FrenAlerts.Engine;
 namespace FrenAlerts.Ui;
 
 public sealed record FightEntry(
-    string Name, string Full, string Category, uint TerritoryId, int Calls, int BuiltIn);
+    string Name, string Full, string Category, uint TerritoryId, int Calls);
 
 public sealed record CallEntry(
     string Key, string Text, CallLevel Level, float Hold, int Phase,
@@ -21,26 +21,22 @@ public static class FightCatalog
     // A pack far bigger than the real one is a broken file, not a big raid tier.
     private const int MaxPackLines = 20_000;
 
+    // The same bound for the timelines, which run a few hundred lines a fight.
+    private const int MaxTimelineLines = 20_000;
+
     // The sidebar's groups, in the order they are shown.
     private static readonly string[] Order = { "Ultimate", "Savage", "Other" };
 
-    private static readonly Dictionary<uint, (string Name, string Full, string Category)> Known = new()
-    {
-        [1226] = ("M1S", "", "Savage"),
-        [1228] = ("M2S", "", "Savage"),
-        [1230] = ("M3S", "", "Savage"),
-        [1232] = ("M4S", "", "Savage"),
-        [1238] = ("FRU", "Futures Rewritten", "Ultimate"),
-        [1257] = ("M5S", "", "Savage"),
-        [1259] = ("M6S", "", "Savage"),
-        [1261] = ("M7S", "", "Savage"),
-        [1263] = ("M8S", "", "Savage"),
-        [1321] = ("M9S", "", "Savage"),
-        [1323] = ("M10S", "", "Savage"),
-        [1325] = ("M11S", "", "Savage"),
-        [1327] = ("M12S", "Lindwurm", "Savage"),
-        [1363] = ("DMU", "Dancing Mad", "Ultimate"),
-    };
+    // What a territory is called on the page.
+    //
+    // Shipped is the only list: the page used to keep its own copy of the fourteen
+    // fights beside it, and the two disagreed the moment either was edited. A
+    // territory it does not name still gets a page rather than being dropped, so a
+    // pack carrying a fight nobody listed is visible instead of silently missing.
+    private static (string Name, string Full, string Category) NameOf(uint territory) =>
+        Shipped.At((ushort)territory) is { } f
+            ? (f.Name, f.Full, f.Category)
+            : ($"Territory {territory}", "", "Other");
 
     // Swapped whole rather than edited in place, so a draw reading the list never
     // sees it half filled while the pack lands on another thread.
@@ -51,6 +47,7 @@ public static class FightCatalog
         new Dictionary<string, string>();
     private static IReadOnlyDictionary<string, string> _keyOf =
         new Dictionary<string, string>();
+    private static IReadOnlyDictionary<uint, int> _mechanics = new Dictionary<uint, int>();
     private static bool _asked;
 
     public static IReadOnlyList<CallEntry> CallsIn(uint territory)
@@ -116,6 +113,40 @@ public static class FightCatalog
             PackProblem = "The call pack would not read, so only the built-in fights call.";
             Service.Log.Error(ex, "Fren Alerts: the call pack would not read into the fight list");
         }
+
+        // Its own try, so a timeline that will not read costs the page a line of
+        // detail rather than the whole fight list.
+        try
+        {
+            _mechanics = ReadTimelines();
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Error(ex, "Fren Alerts: the timelines would not read into the fight list");
+        }
+    }
+
+    // How many mechanics the shipped timeline lists per fight.
+    //
+    // A count, never a ratio: one call can cover several timeline entries and the
+    // timeline lists things nobody would ever call, so "157 of 405 covered" would be
+    // a precise-looking number that is not true. How long the fight is and how much
+    // of it has been written are both worth knowing; the arithmetic between them is
+    // not.
+    private static IReadOnlyDictionary<uint, int> ReadTimelines()
+    {
+        var dir = Service.PluginInterface.AssemblyLocation.Directory?.FullName;
+        var path = dir is null ? null : Path.Combine(dir, "timelines.fatime");
+        if (path is null || !File.Exists(path)) return new Dictionary<uint, int>();
+
+        return TimelinePack.ReadAll(File.ReadLines(path).Take(MaxTimelineLines))
+            .ToDictionary(t => (uint)t.Key, t => t.Value.Entries.Count);
+    }
+
+    public static int MechanicsIn(uint territory)
+    {
+        Ensure();
+        return _mechanics.TryGetValue(territory, out var n) ? n : 0;
     }
 
     private static IEnumerable<CallSpec> ReadPack()
@@ -138,13 +169,21 @@ public static class FightCatalog
         {
             [DancingMad.Territory] = DancingMad.AllSequences().ToList(),
         };
-        Module(modules, FuturesRewritten.Territory, FuturesRewritten.Triggers);
+        // Every fight FightLoader builds a module for has to be registered here too,
+        // or its hand written calls are neither listed nor switchable: the page only
+        // shows what this dictionary knows about. That has already gone wrong once,
+        // when authoring a mechanic quietly took it off the page.
+        Module(modules, UnendingCoil.Territory, UnendingCoil.Triggers);
+        Module(modules, WeaponsRefrain.Territory, WeaponsRefrain.Triggers);
+        Module(modules, VampFatale.Territory, VampFatale.Triggers);
+        Module(modules, RedHotDeepBlue.Territory, RedHotDeepBlue.Triggers);
+        Module(modules, TyrantComet.Territory, TyrantComet.Triggers);
         Module(modules, Lindwurm.Territory, Lindwurm.Triggers);
 
         var calls = new Dictionary<uint, IReadOnlyList<CallEntry>>();
         var shipped = new Dictionary<string, string>();
         var keyOf = new Dictionary<string, string>();
-        var list = new List<FightEntry>(Known.Count);
+        var list = new List<FightEntry>(Shipped.Fights.Count);
         var territories = modules.Keys.Union(pack.Select(s => (uint)s.Territory));
         foreach (var territory in territories)
         {
@@ -168,11 +207,10 @@ public static class FightCatalog
             // happens to carry.
             if (all.Count == 0) continue;
 
-            var (name, full, category) = Known.TryGetValue(territory, out var k)
-                ? k : ($"Territory {territory}", "", "Other");
+            var (name, full, category) = NameOf(territory);
             // Nothing is hidden from the page any more, so nothing is counted as
             // hidden either.
-            list.Add(new FightEntry(name, full, category, territory, all.Count, 0));
+            list.Add(new FightEntry(name, full, category, territory, all.Count));
         }
         _calls = calls;
         _shipped = shipped;

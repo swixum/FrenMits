@@ -26,6 +26,9 @@ public sealed class FightLoader
     // leave it as the pack shipped it.
     public Func<string, bool?>? Switched { get; set; }
 
+    // Which strat the group runs, asked per fight and setting.
+    public Func<ushort, string, string>? Strat { get; set; }
+
     // A fresh engine per fight, rather than clearing one: every bound and every reset
     // lives inside it, and a new one cannot inherit the last fight's state.
     public TriggerEngine Build(uint territory)
@@ -51,6 +54,11 @@ public sealed class FightLoader
 
         // Whatever was switched by hand wins over how the call shipped, applied here
         // so a change takes effect on the next zone rather than a reload.
+        // The group's answers, read fresh each load so a change takes effect on the
+        // next zone rather than the next restart.
+        if (Strat is { } strat)
+            engine.Player.Strat = key => strat((ushort)territory, key);
+
         if (Switched is { } ask)
             foreach (var t in engine.Triggers)
                 if (ask(t.Id) is { } wanted) t.Enabled = wanted;
@@ -63,6 +71,12 @@ public sealed class FightLoader
         return engine;
     }
 
+    // Which boss lines this fight reads, so the listener watches those and no
+    // others. Empty for every fight but one: a yell is only a mechanic where the
+    // fight has nothing else to announce it with.
+    public static IReadOnlySet<uint> YellsFor(uint territory) =>
+        territory == UnendingCoil.Territory ? UnendingCoil.QuoteIds : new HashSet<uint>();
+
     private static string AddFightModule(TriggerEngine engine, uint territory)
     {
         if (territory == DancingMad.Territory)
@@ -71,15 +85,35 @@ public sealed class FightLoader
             engine.AddRange(DancingMad.AllSequences());
             return "Dancing Mad";
         }
-        if (territory == FuturesRewritten.Territory)
-        {
-            engine.AddRange(FuturesRewritten.Triggers());
-            return "Futures Rewritten";
-        }
         if (territory == Lindwurm.Territory)
         {
             engine.AddRange(Lindwurm.Triggers());
             return "M12S Lindwurm";
+        }
+        if (territory == RedHotDeepBlue.Territory)
+        {
+            engine.AddRange(RedHotDeepBlue.Triggers());
+            return "M10S Red Hot & Deep Blue";
+        }
+        if (territory == TyrantComet.Territory)
+        {
+            engine.AddRange(TyrantComet.Triggers());
+            return "M11S The Tyrant & Comet";
+        }
+        if (territory == VampFatale.Territory)
+        {
+            engine.AddRange(VampFatale.Triggers());
+            return "M9S Vamp Fatale";
+        }
+        if (territory == WeaponsRefrain.Territory)
+        {
+            engine.AddRange(WeaponsRefrain.Triggers());
+            return "The Weapon's Refrain";
+        }
+        if (territory == UnendingCoil.Territory)
+        {
+            engine.AddRange(UnendingCoil.Triggers());
+            return "The Unending Coil of Bahamut";
         }
         return "none";
     }

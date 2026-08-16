@@ -1,56 +1,50 @@
 namespace FrenAlerts.Engine;
 
+// M12S, Lindwurm.
+//
+// Only what the pack could not carry. Most of what is left in this fight hangs on
+// the line-up the group hands out before the pull (who is chain one, who is beta),
+// which no event carries, so those calls need the raid plan rather than a trigger.
 public static class Lindwurm
 {
     public const ushort Territory = 1327;
 
-    private static Trigger Debuff(string id, uint status, string name, int seconds,
-                                  CallLevel level = CallLevel.Alert) => new()
-    {
-        Id = id,
-        On = EventKind.StatusGain,
-        MatchId = status,
-        OnlyMe = true,
-        Make = ctx => new Call
-        {
-            Text = $"{name}, {seconds}s",
-            Time = ctx.Event.Time,
-            Key = id,
-            Level = level,
-            Personal = true,
-        },
-    };
+    // The boss coming back and turning targetable again, which is the only thing
+    // that announces the two scourges: both are instant, so there is no cast to
+    // fire on and no marker to read.
+    private const uint Targetable = 0x8000000D;
 
-    private static Trigger Element(string id, uint status, string element, int seconds) =>
-        Debuff(id, status, $"{element} resistance down", seconds, CallLevel.Info);
+    // Two values, one per platform set it returns from. Both mean the same thing
+    // here, and only one of them arrives in any given pull.
+    private static readonly uint[] ComingBack = [0x1E01, 0x1E001];
 
     public static IEnumerable<Trigger> Triggers()
     {
-        yield return Debuff("doom", 0xD24, "Doom", 8, CallLevel.Alarm);
+        foreach (var t in LindwurmChains.Triggers()) yield return t;
+        foreach (var t in LindwurmBlobs.Triggers()) yield return t;
+        foreach (var t in LindwurmReplication.Triggers()) yield return t;
+        foreach (var t in LindwurmCoil.Triggers()) yield return t;
+        foreach (var t in LindwurmSlam.Triggers()) yield return t;
 
-        // 4 gains on 4 players at 17 seconds, so it picks half the party.
-        yield return Debuff("bursting-grotesquerie", 0x1299, "Bursting Grotesquerie", 17);
-
-        // The elemental family, most to least seen in the sampled pull.
-        yield return Element("poison-res-down", 0xF5F, "Poison", 12);
-        yield return Element("dark-res-down", 0xCFB, "Dark", 24);
-        yield return Element("fire-res-down", 0xB79, "Fire", 25);
-        yield return Element("light-res-down", 0x1044, "Light", 24);
-
+        // Split Scourge lands first and every head takes the nearest player with a
+        // line, so the tanks step out and everyone else stays off them.
         yield return new Trigger
         {
-            Id = "marker-on-me",
-            On = EventKind.HeadMarker,
-            OnlyMe = true,
-            Make = ctx => new Call
+            Id = "m12s-scourges",
+            On = EventKind.ActorControl,
+            MatchId = Targetable,
+            // Said once a pull: it fires on the boss returning and it returns more
+            // than once.
+            Once = true,
+            OncePerBurst = false,
+            Make = ctx => !ComingBack.Contains(ctx.Event.Arg1) ? null : new Call
             {
-                Text = "marker on you",
+                Text = ctx.ForMe("tank") ? "get out, line on you" : "away from the tanks",
                 Time = ctx.Event.Time,
-                Key = $"marker-{ctx.Event.Id:X}",
+                Key = "m12s-scourges",
                 Level = CallLevel.Alert,
-                Personal = true,
+                Hold = 9f,
             },
         };
-
     }
 }

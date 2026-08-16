@@ -48,6 +48,21 @@ public sealed class ActorBook
         _byId[actor.Id] = actor;
     }
 
+    // Where an actor is, for the calls that turn a spot into a direction. Unknown
+    // rather than the middle when nothing has ever carried one for it.
+    public Position Where(uint id) => Get(id)?.Where ?? Position.None;
+
+    public uint DataIdOf(uint id) => Get(id)?.DataId ?? 0;
+
+    // Every actor of one kind that has a position, which is what a mechanic made of
+    // several identical props is read from.
+    public IEnumerable<Actor> OfKind(uint dataId)
+    {
+        if (dataId == 0) yield break;
+        foreach (var a in _byId.Values)
+            if (a.DataId == dataId && a.Where.Known) yield return a;
+    }
+
     // Applied to every event, because an id seen mid-pull may never have had a
     // spawn line in this recording at all.
     public void Note(in GameEvent e)
@@ -55,12 +70,29 @@ public sealed class ActorBook
         if (e.SourceId == 0) return;
         var known = Get(e.SourceId);
         var cast = e.Kind is EventKind.CastStart or EventKind.AbilityHit;
+
+        // A spawn names the kind; everything else only ever carries where it is,
+        // so a later event cannot overwrite the kind with nothing.
+        var placed = e.Kind is EventKind.ActorSpawn or EventKind.ActorMoved;
+        var dataId = placed ? e.DataId : 0;
+
         if (known is null)
         {
-            Add(new Actor { Id = e.SourceId, HasCast = cast });
+            Add(new Actor
+            {
+                Id = e.SourceId,
+                HasCast = cast,
+                DataId = dataId,
+                Where = e.Source.Known ? e.Source : Position.None,
+            });
             return;
         }
-        if (cast && !known.HasCast) _byId[e.SourceId] = known with { HasCast = true };
+
+        var next = known;
+        if (cast && !next.HasCast) next = next with { HasCast = true };
+        if (dataId != 0 && next.DataId == 0) next = next with { DataId = dataId };
+        if (e.Source.Known) next = next with { Where = e.Source };
+        if (!ReferenceEquals(next, known)) _byId[e.SourceId] = next;
     }
 
     public Actor? Boss()

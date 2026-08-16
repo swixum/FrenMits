@@ -6,6 +6,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
+using FrenAlerts.Engine;
 using FrenAlerts.Engine.Alerts;
 
 namespace FrenAlerts.Ui;
@@ -160,6 +161,12 @@ public partial class ConfigWindow : Window, IDisposable
         return s < 90 ? $"{(int)s}s ago" : s < 5400 ? $"{(int)(s / 60)}m ago" : $"{(int)(s / 3600)}h ago";
     }
 
+    // How long a pull runs before an unanchored timeline is called a fault rather
+    // than a clock still looking. Long enough to cover a phase-block fight's opening,
+    // short enough that a whole pull without countdowns is not the first anybody
+    // hears of it.
+    private const double TimelineGrace = 45d;
+
     // Tooltip with a hover delay, so sweeping a page stays quiet.
     private static void Tip(string text) => Widgets.Tooltip(text);
 
@@ -208,11 +215,18 @@ public partial class ConfigWindow : Window, IDisposable
             // What is loaded right now beats what exists: standing in the fight,
             // the line names it and says how much it has to say.
             var fights = FightCatalog.All.Count;
-            var name = FightCatalog.At(Service.ClientState.TerritoryType)?.Name;
+            var here = Service.ClientState.TerritoryType;
+            var name = FightCatalog.At(here)?.Name;
+            // A fight the plugin knows by name but has no calls for yet. Without
+            // this the line reads "14 fights loaded" while you stand in one of the
+            // fourteen hearing nothing, which looks like something broke rather
+            // than like a fight nobody has written yet.
+            var named = name is null ? Shipped.At((ushort)here)?.Name : null;
             var line = Runner is { TriggerCount: > 0 } r
                 ? r.SpeakingCount == r.TriggerCount
                     ? $"{name ?? r.Fight}, {r.TriggerCount} call{(r.TriggerCount == 1 ? "" : "s")} ready"
                     : $"{name ?? r.Fight}, {r.SpeakingCount} of {r.TriggerCount} speaking"
+                : named is not null ? $"{named}, no calls written yet"
                 : fights > 0 ? $"{fights} fight{(fights == 1 ? "" : "s")} loaded" : null;
             if (line is not null)
                 ImGui.TextUnformatted(Widgets.Elide(line, right - ImGui.GetCursorPosX()));
@@ -242,6 +256,46 @@ public partial class ConfigWindow : Window, IDisposable
                     ? $"Pull {run.Pulls}"
                     : $"{run.Pulls} pull{(run.Pulls == 1 ? "" : "s")}");
             }
+            // Only for a fight that names what moves it on. Everywhere else the
+            // number would sit at 1 for the whole pull and read as a stuck phase.
+            if (Runner is { InPull: true, PhasesKnown: true } phased)
+            {
+                ImGui.SameLine(0, Theme.S(18f));
+                Dot(true, $"Phase {phased.Phase}");
+            }
+            // Where the fight thinks it is, and what it expects next. Only once the
+            // clock has been anchored: a countdown against a clock nobody has placed
+            // would be a confident number pointing at the wrong mechanic.
+            if (Runner is { InPull: true, TimelineRunning: true } tl)
+            {
+                ImGui.SameLine(0, Theme.S(18f));
+                var next = tl.Upcoming(1).FirstOrDefault();
+                Dot(true, next.Mechanic is { Length: > 0 } m
+                    ? $"Next: {m} in {Math.Max(0d, next.In):0}"
+                    : "Timeline running");
+                if (Widgets.HoveredDelayed())
+                    ImGui.SetTooltip(
+                        $"{tl.TimelineAt:0}s into this fight's timeline, "
+                        + $"{tl.TimelineResyncs} resync{(tl.TimelineResyncs == 1 ? "" : "s")}.\n"
+                        + $"Running {(tl.TimelineDrift >= 0 ? "ahead of" : "behind")} the fight "
+                        + $"by {Math.Abs(tl.TimelineDrift):0.0}s on average.");
+            }
+            // A timeline that has not placed itself yet. Muted while it is still
+            // reasonable, amber once it is not: the countdowns are simply absent
+            // either way, and silently absent is how that would otherwise be found.
+            else if (Runner is { InPull: true, HasTimeline: true } waiting)
+            {
+                ImGui.SameLine(0, Theme.S(18f));
+                var late = waiting.PullSeconds > TimelineGrace;
+                if (late) WarnDot("Timeline not anchored");
+                else Dot(false, "Timeline waiting");
+                if (Widgets.HoveredDelayed())
+                    ImGui.SetTooltip(late
+                        ? "Nothing has matched an anchor cast this pull, so there are no\n"
+                          + "countdowns. The calls that do not need one still fire."
+                        : "Waiting for a cast it recognises. A fight written in phase\n"
+                          + "blocks has nothing to count from until its first anchor.");
+            }
             // Not a fault, but it explains why the calls are keeping their own time.
             if (Runner is { InReplay: true })
             {
@@ -266,14 +320,43 @@ public partial class ConfigWindow : Window, IDisposable
             }
             // The other maintained address, and the bigger one: sixty-six calls ride
             // on what an ability actually hit.
-            if (Runner is { AbilitiesAvailable: false })
+            //
+            // Read from the runner rather than off the address, because a reading
+            // parser answers hits instead and the hook stands down on purpose while
+            // it does. Warning on the address alone called the hits dead at exactly
+            // the moment something else was supplying them.
+            if (Runner is { HitsCovered: false })
             {
                 ImGui.SameLine(0, Theme.S(18f));
                 WarnDot("No hit calls");
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip(
                         "This patch moved where damage is read from, so calls that wait\n"
-                        + "on a hit stay quiet. Casts, debuffs and tethers still call.");
+                        + "on a hit stay quiet. Casts, debuffs and tethers still call.\n"
+                        + "A running parser would cover these.");
+            }
+            // Not a fault: the parser answers these better, so the client's own
+            // reads stand down while it is up. Worth saying, because it is the
+            // answer to the fight behaving differently with a parser open.
+            if (Runner is { ClientReadsStoodDown: true })
+            {
+                ImGui.SameLine(0, Theme.S(18f));
+                Dot(true, "Parser feed");
+                if (Widgets.HoveredDelayed())
+                    ImGui.SetTooltip(
+                        "Casts, hits, debuffs and tethers are coming from the parser,\n"
+                        + "which reads them better than the client can. The plugin's\n"
+                        + "own reads take over again the moment it stops.");
+            }
+            // These are gone rather than late: the frame stopped draining the feed.
+            if (Runner is { ParserDropped: > 0 } fed)
+            {
+                ImGui.SameLine(0, Theme.S(18f));
+                WarnDot($"Feed dropped {fed.ParserDropped}");
+                if (Widgets.HoveredDelayed())
+                    ImGui.SetTooltip(
+                        "The parser handed over more than the frame could take, so some\n"
+                        + "events were dropped. Calls riding on those never happened.");
             }
             if (MutedHere)
             {
@@ -287,7 +370,7 @@ public partial class ConfigWindow : Window, IDisposable
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip(
                         $"More calls at once than the screen holds ({AlertBoard.Capacity}).\n"
-                        + "The furthest out got dropped.");
+                        + "The furthest out got dropped. Counted for this pull only.");
             }
         }
         ImGui.EndChild();

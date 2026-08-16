@@ -37,13 +37,6 @@ public static class MarkerMeanings
             new(0x02CC, "spread path", false),
             new(0x02CD, "cone path", false),
         ],
-        // FRU: 3 ids, unverified, no recording of this fight has one.
-        [1238] =
-        [
-            new(0x006E, "Darklit Tower , Bait", true),
-            new(0x0159, "House of Light, Frigid Stone", false),
-            new(0x0177, "Light Rampant", false),
-        ],
         // M10S: 9 ids, unverified, no recording of this fight has one.
         [1323] =
         [
@@ -85,75 +78,6 @@ public static class MarkerMeanings
             new(0x0177, "slaughter spread", false),
             new(0x0256, "buster", false),
             new(0x0291, "cell chain", false),
-        ],
-        // M1S: 4 ids, unverified, no recording of this fight has one.
-        [1226] =
-        [
-            new(0x00DA, "buster", false),
-            new(0x00F4, "spread", false),
-            new(0x0178, "spread", false),
-            new(0x021A, "pawprint", false),
-        ],
-        // M2S: 5 ids, unverified, no recording of this fight has one.
-        [1228] =
-        [
-            new(0x00EA, "spread", false),
-            new(0x0103, "share the buster", false),
-            new(0x01D7, "buster", false),
-            new(0x0203, "spread", false),
-            new(0x0205, "heart stack", false),
-        ],
-        // M3S: 1 ids, unverified, no recording of this fight has one.
-        [1230] =
-        [
-            new(0x0112, "Tag Team Tether", true),
-        ],
-        // M4S: 1 ids, unverified, no recording of this fight has one.
-        [1232] =
-        [
-            new(0x013C, "Wicked Bolt", false),
-        ],
-        // M5S: 1 ids, unverified, no recording of this fight has one.
-        [1257] =
-        [
-            new(0x01D7, "Deep Cut", false),
-        ],
-        // M6S: 5 ids, unverified, no recording of this fight has one.
-        [1259] =
-        [
-            new(0x0017, "bind", false),
-            new(0x0131, "pudding party", false),
-            new(0x013F, "Pudding Graf", true),
-            new(0x0140, "Pudding Graf", true),
-            new(0x025A, "lightning storm", false),
-        ],
-        // M7S: 6 ids, unverified, no recording of this fight has one.
-        [1261] =
-        [
-            new(0x005D, "killer seed", false),
-            new(0x00A1, "pulp smash", false),
-            new(0x0147, "flare", false),
-            new(0x0152, "Thorny Deathmatch", true),
-            new(0x0177, "sinister seed", false),
-            new(0x01D2, "strange seed", false),
-        ],
-        // M8S: 14 ids, unverified, no recording of this fight has one.
-        [1263] =
-        [
-            new(0x000E, "ultraviolent", false),
-            new(0x0017, "predation", false),
-            new(0x0039, "gale tether", true),
-            new(0x0054, "twofold tether", true),
-            new(0x005D, "stack", false),
-            new(0x008B, "spread", false),
-            new(0x013C, "eight hit stack", false),
-            new(0x013D, "close tether", true),
-            new(0x013E, "far tether", true),
-            new(0x014F, "stone tether", true),
-            new(0x0150, "wind tether", true),
-            new(0x01F5, "clockwise", false),
-            new(0x01F6, "counterclockwise", false),
-            new(0x0256, "buster", false),
         ],
         // M9S: 5 ids, unverified, no recording of this fight has one.
         [1321] =

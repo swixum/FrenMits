@@ -19,4 +19,8 @@ public class Service
 
     // Control packets carry the direction calls, and the object table cannot see them.
     [PluginService] public static IGameInteropProvider GameInterop { get; private set; } = null!;
+
+    // Boss lines are matched by the row id of the line, so the client's own yell
+    // sheet is what turns an incoming line back into an id. See Game/YellEvents.cs.
+    [PluginService] public static IDataManager DataManager { get; private set; } = null!;
 }

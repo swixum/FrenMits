@@ -105,14 +105,9 @@ public static partial class Program
         return same ? 0 : 1;
     }
 
-    // The 14 fights in scope: the Dawntrail ultimates and savage tiers.
-    private static readonly Dictionary<ushort, string> Scope = new()
-    {
-        [1363] = "Dancing Mad", [1238] = "FRU", [1327] = "M12S", [1325] = "M11S",
-        [1323] = "M10S", [1321] = "M9S", [1263] = "M8S", [1261] = "M7S",
-        [1259] = "M6S", [1257] = "M5S", [1232] = "M4S", [1230] = "M3S",
-        [1228] = "M2S", [1226] = "M1S",
-    };
+    // The fights in scope, read off the one list that decides what ships.
+    private static readonly Dictionary<ushort, string> Scope =
+        Shipped.Fights.ToDictionary(f => f.Territory, f => f.Name);
 
     private static int Import(string[] args)
     {

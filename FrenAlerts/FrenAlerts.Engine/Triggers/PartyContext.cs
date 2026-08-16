@@ -20,5 +20,20 @@ public sealed class PartyContext
 
     public string RoleOf(uint actorId) => Audience.RoleOf(SlotOf(actorId));
 
+    // The other way round, for a call that is about the player in a named seat
+    // rather than about whoever an event happened to name.
+    //
+    // Zero when nobody is in that seat, which is a party that has not been read yet
+    // as much as it is a seat nobody filled, and both mean the same thing to a call:
+    // there is nobody to say anything about.
+    public uint IdOf(string slot)
+    {
+        if (string.IsNullOrWhiteSpace(slot)) return 0;
+        var want = slot.ToUpperInvariant();
+        foreach (var (id, seat) in _slotById)
+            if (seat == want) return id;
+        return 0;
+    }
+
     public void Reset() => _slotById.Clear();
 }

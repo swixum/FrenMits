@@ -129,12 +129,22 @@ public class AlertOverlay : Window
         }
         else
         {
+            // Measured before anything is drawn, so every call in the stack lands at
+            // the same size rather than each shrinking to its own longest word.
+            var needs = new float[live.Count];
+            for (var i = 0; i < live.Count; i++)
+                needs[i] = Need(live[i].Call.Text, live[i].Icon,
+                    live[i].Remaining(now), live[i].Counting(now));
+
+            var px = OverlayState.FitFontPxFor(C.CallFontSizePx,
+                ImGui.GetMainViewport().WorkSize.X * 0.92f, needs);
+
             for (var i = 0; i < live.Count; i++)
             {
                 if (i > 0) ImGui.Spacing();
                 var s = live[i];
                 DrawCall(s.Call.Text, s.Call.Level, s.Icon, s.Remaining(now), s.Counting(now),
-                    (float)(now - s.FireAt));
+                    (float)(now - s.FireAt), px);
             }
         }
 
@@ -187,12 +197,21 @@ public class AlertOverlay : Window
     public void DrawPreview()
     {
         var (remaining, counting, sinceGo) = SampleClock();
-        DrawCall("Raidwide", CallLevel.Alert, CallIcon.None, remaining, counting, sinceGo);
+        var second = MathF.Max(0f, remaining - 1f);
+
+        // Sized as a pair, the same way the real stack is, or the preview shows two
+        // sizes and the game shows one.
+        var px = OverlayState.FitFontPxFor(C.CallFontSizePx,
+            ImGui.GetMainViewport().WorkSize.X * 0.92f,
+            [Need("Raidwide", CallIcon.None, remaining, counting),
+             Need("Stack on you", CallIcon.Marker(0), second, counting)]);
+
+        DrawCall("Raidwide", CallLevel.Alert, CallIcon.None, remaining, counting, sinceGo, px);
         ImGui.Spacing();
         // A second call a beat ahead of the first, so the preview shows two at
         // once the way a real burst does, each pulsing at its own moment.
         DrawCall("Stack on you", CallLevel.Alarm, CallIcon.Marker(0),
-            MathF.Max(0f, remaining - 1f), counting, sinceGo + 1f);
+            second, counting, sinceGo + 1f, px);
     }
 
     public void DrawOne(string text, CallLevel level)
@@ -218,8 +237,22 @@ public class AlertOverlay : Window
         _ => C.ColorInfo,
     };
 
+    // How much width one call wants, per pixel of font size, icon included. The one
+    // place that measurement is written, so the stack's shared size and the size a
+    // lone call picks for itself can never drift apart.
+    private float Need(string text, CallIcon icon, float remaining, bool counting)
+    {
+        var (_, reserve) = OverlayState.Countdown(
+            CallText.Sentence(text), C.ShowCountdown, counting, remaining);
+        var perPx = ImGui.CalcTextSize(reserve).X / MathF.Max(1f, ImGui.GetFontSize());
+        return perPx + IconFactor(icon);
+    }
+
+    private float IconFactor(CallIcon icon) =>
+        C.ShowCallIcon && icon.Any ? Math.Clamp(C.CallIconScale, 0.4f, 1.6f) + 0.32f : 0f;
+
     private void DrawCall(string text, CallLevel level, CallIcon icon, float remaining, bool counting,
-        float sinceGo = 0f)
+        float sinceGo = 0f, float? sharedPx = null)
     {
         // Centred on go rather than stopping at it: the flash is worth most at the
         // moment you act, and the switch is called Pulse on Go.
@@ -230,19 +263,19 @@ public class AlertOverlay : Window
         var color = pulsing ? OverlayChrome.Pulse(baseColor) : baseColor;
 
         var words = CallText.Sentence(text);
-        var line = C.ShowCountdown && counting
-            ? $"{words} ({MathF.Ceiling(remaining):0})"
-            : words;
+        var (line, reserve) = OverlayState.Countdown(words, C.ShowCountdown, counting, remaining);
 
         // Measured at the window's own font, then scaled: text width is close
         // enough to linear in size for the same face, and this is what lets the
         // size be chosen before the font is pushed rather than after.
-        var perPx = ImGui.CalcTextSize(line).X / MathF.Max(1f, ImGui.GetFontSize());
-        var iconFactor = C.ShowCallIcon && icon.Any
-            ? Math.Clamp(C.CallIconScale, 0.4f, 1.6f) + 0.32f
-            : 0f;
-        var px = OverlayState.FitFontPx(C.CallFontSizePx,
-            ImGui.GetMainViewport().WorkSize.X * 0.92f, perPx, iconFactor);
+        //
+        // Against the reserved form, so the fitted size does not step up on the
+        // frame the countdown drops off either.
+        // The stack's own size when there is one, so four calls read as four calls
+        // rather than as four sizes. A lone call still fits itself.
+        var px = sharedPx ?? OverlayState.FitFontPxFor(C.CallFontSizePx,
+            ImGui.GetMainViewport().WorkSize.X * 0.92f,
+            [ImGui.CalcTextSize(reserve).X / MathF.Max(1f, ImGui.GetFontSize()) + IconFactor(icon)]);
 
         using (OverlayChrome.PushFont(_fonts, px))
         {
@@ -251,8 +284,9 @@ public class AlertOverlay : Window
             var iconH = withIcon ? MathF.Round(lineH * Math.Clamp(C.CallIconScale, 0.4f, 1.6f)) : 0f;
             var gap = withIcon ? MathF.Round(lineH * 0.32f) : 0f;
             var textW = ImGui.CalcTextSize(line).X;
+            var holdW = MathF.Max(textW, ImGui.CalcTextSize(reserve).X);
 
-            var offset = AlignOffset(ImGui.GetContentRegionAvail().X, iconH + gap + textW);
+            var offset = AlignOffset(ImGui.GetContentRegionAvail().X, iconH + gap + holdW);
             if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
             var start = ImGui.GetCursorPos();
@@ -273,6 +307,14 @@ public class AlertOverlay : Window
 
             ImGui.SetCursorPos(new Vector2(start.X + iconH + gap, start.Y));
             Text(line, color);
+
+            // The room the countdown gave up, held open: the window sizes to what it
+            // holds, so letting it shrink would drag the words along with the edge.
+            if (holdW > textW)
+            {
+                ImGui.SameLine(0f, 0f);
+                ImGui.Dummy(new Vector2(holdW - textW, 1f));
+            }
         }
     }
 

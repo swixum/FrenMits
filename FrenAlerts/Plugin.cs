@@ -50,17 +50,21 @@ public sealed class Plugin : IDalamudPlugin
         Service.PluginInterface.UiBuilder.OpenConfigUi += OpenConfig;
         Service.PluginInterface.UiBuilder.OpenMainUi += OpenConfig;
 
-        Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
-        {
-            HelpMessage = "Open Fren Alerts. /frenalerts status prints what is running, /frenalerts plan reads your group's assignments.",
-        });
+        // The short one is the one on show. Both work and always have, but the
+        // installer prints the command beside its help text, and the long name with
+        // its two subcommands spelled out filled the row with things nobody types.
         Service.CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Open Fren Alerts",
+        });
+        Service.CommandManager.AddHandler(Command, new CommandInfo(OnCommand)
         {
             ShowInHelp = false,
         });
         _runner = new Game.Runner(Board)
         {
             Switched = id => Config.CallSwitch(Ui.FightCatalog.CallOf(id)),
+            Strat = (territory, key) => Config.StratFor(territory, key),
         };
         // So the window can report the fight that is actually loaded rather than
         // the list of fights that exist.
@@ -171,7 +175,23 @@ public sealed class Plugin : IDalamudPlugin
                 $"speaking, {_runner.PlanCalls} from your plan, {_runner.TethersSeen} tethers seen. " +
                 (_runner.InReplay ? "Replay. " : "") +
                 $"Pull {_runner.Pulls}{(_runner.InPull ? ", running" : "")}, " +
-                $"{_runner.AbilitiesSeen} hits, {_runner.MarkersSeen} head markers read." +
+                (_runner.PhasesKnown ? $"phase {_runner.Phase}, " : "") +
+                $"{_runner.AbilitiesSeen} hits, {_runner.MarkersSeen} head markers read. " +
+                // Counted, so "the prop calls are quiet" has an answer that is not a
+                // guess: zero here means nothing is reading the arena in this zone.
+                $"Arena: {_runner.ArenaSeen} read, {_runner.ArenaTracking} tracked" +
+                (_runner.ArenaDropped > 0 ? $", {_runner.ArenaDropped} dropped" : "") + ". " +
+                (_runner.HasTimeline
+                    ? $"Timeline: {_runner.TimelineMechanics} mechanics, "
+                      + (_runner.TimelineRunning
+                          ? $"at {_runner.TimelineAt:0}s, {_runner.TimelineResyncs} resyncs, "
+                            + $"drift {_runner.TimelineDrift:+0.0;-0.0;0}s."
+                          : "not anchored yet.")
+                    : "No timeline for this fight.") +
+                // Only where the fight has any, so it is silent in the six that do not.
+                (_runner.YellsExpected == 0
+                    ? ""
+                    : $" {_runner.YellsKnown} of {_runner.YellsExpected} boss lines known.") +
                 (_runner.ControlAvailable ? "" : " Direction calls unavailable.") +
                 (_runner.AbilitiesAvailable ? "" : " Calls that fire on a hit unavailable.") +
                 (_runner.ParserConnected ? "" : " No parser: head marker calls are off."));

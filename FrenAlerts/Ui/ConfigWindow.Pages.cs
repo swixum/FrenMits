@@ -92,15 +92,37 @@ public partial class ConfigWindow
         if (fights == 0) problems.Add("No fights built yet");
         if (FightCatalog.PackProblem is not null) problems.Add("The call pack did not load");
         if (MutedHere) problems.Add("This fight is off");
+        // Only for the fight you are standing in: a strat you have not picked for a
+        // fight you are not in is next week's job, not something needing a look.
+        if (StratsOff(Service.ClientState.TerritoryType) is > 0 and var unset)
+            problems.Add($"{unset} strat{(unset == 1 ? "" : "s")} not set here");
         if (Runner is { ControlAvailable: false }) problems.Add("No direction calls");
-        if (Runner is { AbilitiesAvailable: false }) problems.Add("No hit calls");
+        // Covered, not available: a reading parser answers hits and the hook stands
+        // down while it does, so the address alone would call them dead mid-pull.
+        if (Runner is { HitsCovered: false }) problems.Add("No hit calls");
+        if (Runner is { ParserDropped: > 0 } fed)
+            problems.Add($"The feed dropped {fed.ParserDropped}");
+        // Only where it costs something: a fight with no prop calls does not care
+        // that the arena is unread.
+        if (ArenaCallsHere() is > 0 and var waiting)
+            problems.Add($"{waiting} call{(waiting == 1 ? "" : "s")} here need the arena read");
+        // Well into a pull with a timeline that still has not placed itself. Every
+        // countdown is missing and nothing else would say so.
+        if (Runner is { InPull: true, HasTimeline: true, TimelineRunning: false } late
+            && late.PullSeconds > TimelineGrace)
+            problems.Add("The timeline has not anchored");
         if (Runner is { LocalVoice.GivenUp: true }) problems.Add("Local voice gave up");
-        // Three states, and only one of them is fine. Still shaking hands is worth
-        // nothing on the list: it settles on its own in a second or two.
-        if (Runner is { ParserReading: false, ParserAsking: false })
-            problems.Add(Runner is { ParserConnected: true }
-                ? "The parser never answered, head markers are quiet"
-                : "No parser, head markers are quiet");
+        // Having no parser is not a fault any more. Every kind has a client route now,
+        // head markers and tethers included, and LiveCoverage.NeedsAParser is empty to
+        // say so. This used to read "No parser, head markers are quiet", which as of
+        // this build tells somebody their markers are dead while they are working.
+        //
+        // A parser that answered and then never opened its channel is still a fault:
+        // it is there, it is not feeding, and the statuses it would have improved are
+        // silently the poorer ones. Still shaking hands is worth nothing on the list,
+        // because it settles on its own in a second or two.
+        if (Runner is { ParserConnected: true, ParserReading: false, ParserAsking: false })
+            problems.Add("The parser never answered");
         if (C.TestMode) problems.Add("Test mode is on");
 
         if (HomeTile("##t1", w, h, FontAwesomeIcon.Bell,
@@ -108,7 +130,9 @@ public partial class ConfigWindow
             "Calls",
             C.AlertsEnabled ? "Running" : "Off",
             Theme.V(C.AlertsEnabled ? Theme.Good : Theme.Muted),
-            fights == 0 ? "Nothing to call yet" : $"{fights} fight{(fights == 1 ? "" : "s")} loaded"))
+            UnwrittenHere() is { } unwritten ? $"No calls for {unwritten} yet"
+            : fights == 0 ? "Nothing to call yet"
+            : $"{fights} fight{(fights == 1 ? "" : "s")} loaded"))
             _nav = NavKind.CallDisplay;
         ImGui.SameLine();
         if (HomeTile("##t2", w, h, FontAwesomeIcon.Desktop, Theme.V(Theme.Accent),
@@ -289,6 +313,10 @@ public partial class ConfigWindow
                 {
                     C.ClearEdits(calls.Select(c => c.Key));
                     if (C.MutedTerritories.Remove(fight.TerritoryId)) C.Save();
+                    // Back to defaults means the strats too, or the button half
+                    // undoes the page and leaves the group's answers behind.
+                    foreach (var s in Strategies.For((ushort)fight.TerritoryId))
+                        C.SetStrat((ushort)fight.TerritoryId, s.Key, s.Default);
                     _openCall = "";
                 },
                 icon: CategoryIcon(fight.Category)) is { } master)
@@ -308,11 +336,14 @@ public partial class ConfigWindow
         if (calls.Count == 0)
         {
             Widgets.ListBegin();
-            Widgets.RowNote(FightCatalog.PackProblem
-                ?? $"All {fight.BuiltIn} of this fight's calls are built in.");
+            // Only reachable in the blink between the pack reloading and the page
+            // redrawing, so it says that rather than inventing a reason.
+            Widgets.RowNote(FightCatalog.PackProblem ?? "Nothing here yet.");
             Widgets.ListEnd();
             return;
         }
+
+        DrawStrats((ushort)fight.TerritoryId);
 
         var phase = DrawPhaseTabs(calls);
 
@@ -324,20 +355,14 @@ public partial class ConfigWindow
         var here = phase is { } only ? calls.Where(c => c.Phase == only).ToList() : calls;
 
         var dead = here.Count(c => !LiveCoverage.Covered(c.On));
-        if (dead > 0)
-        {
-            ImGui.TextColored(Theme.V(Theme.Warn),
-                $"{dead} of these never fire: nothing on the game side sends what they wait for.");
-            ImGui.Spacing();
-        }
-
-        var waiting = here.Count(NeedsParser);
-        if (waiting > 0)
-        {
-            ImGui.TextColored(Theme.V(Theme.Warn),
-                $"{waiting} of these wait on head markers from a parser, and none are arriving.");
-            ImGui.Spacing();
-        }
+        // Covered on paper, silent in fact. Counted apart from the dead ones because
+        // this one comes back on its own the moment a parser starts.
+        var hushed = here.Count(QuietNow);
+        // Only the ones that are otherwise fine, or a call is counted twice.
+        var unproven = here.Count(c => Unproven(c) && !NeedsParser(c) && !QuietNow(c)
+                                       && LiveCoverage.Covered(c.On));
+        var noArena = here.Count(NoArenaYet);
+        DrawCallStateChips(here.Count(NeedsParser), dead, hushed, unproven, noArena);
 
         var shown = here
             .Where(c => string.IsNullOrWhiteSpace(_callFilter)
@@ -359,24 +384,107 @@ public partial class ConfigWindow
         foreach (var call in shown) DrawCallRow(call);
         Widgets.ListEnd();
 
-        if (fight.BuiltIn > 0)
-        {
-            ImGui.Spacing();
-            ImGui.TextColored(Theme.V(Theme.Muted),
-                $"{fight.BuiltIn} more are built in, not editable here.");
-        }
-
         // Rows that would only have said the mechanic's name. Counted rather than
         // hidden: a fight that lists fewer calls than the strat sheet has mechanics
         // reads like something failed to load.
         var trimmed = Trimmed.Count((ushort)fight.TerritoryId);
         if (trimmed > 0)
         {
-            if (fight.BuiltIn == 0) ImGui.Spacing();
+            ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Muted),
                 $"{trimmed} more only name the mechanic, so they wait until they can say where to go.");
         }
+
+        // How long the fight actually is, from the shipped timeline. Two counts side
+        // by side and no ratio between them: a call can cover several timeline
+        // entries and the timeline lists things nobody would call, so a percentage
+        // would read as coverage while measuring nothing.
+        var mechanics = FightCatalog.MechanicsIn(fight.TerritoryId);
+        if (mechanics > 0)
+        {
+            ImGui.Spacing();
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                $"The timeline lists {mechanics} mechanics for this fight.");
+        }
     }
+
+    // Which answer your group runs, for the mechanics that have more than one.
+    //
+    // A mechanic with several accepted answers has no single right call: which tower
+    // you take, which way the rotation reads, where the healers plant. Picking one in
+    // code is choosing a group's strat for them and being wrong for everybody else.
+    private void DrawStrats(ushort territory)
+    {
+        var strats = Strategies.For(territory);
+        if (strats.Count == 0) return;
+
+        Widgets.GroupLabel("Your Strats");
+        Widgets.ListBegin();
+        foreach (var s in strats)
+        {
+            var labels = s.Options.Select(o => o.Label).ToArray();
+            var chosen = C.StratFor(territory, s.Key);
+            // Falls back to the first option rather than to nothing, so an answer
+            // that has since been dropped cannot leave the row blank.
+            var idx = Math.Max(0, IndexOf(s.Options, chosen));
+            // Keyed on the strat's key, not its label. Labels are fight data and two
+            // could read the same; keys are unique per fight and tested to be.
+            if (Widgets.RowCombo(s.Name, s.Hint, ref idx, labels, 190f,
+                    changed: C.StratIsSet(territory, s.Key), id: $"strat-{territory}-{s.Key}")
+                && idx >= 0 && idx < s.Options.Count)
+                C.SetStrat(territory, s.Key, s.Options[idx].Value);
+        }
+
+        // Said once under the list rather than on every row that can be switched off.
+        if (strats.Any(s => C.StratFor(territory, s.Key) == "none"))
+            Widgets.RowNote("A strat left off stays quiet rather than guessing.");
+
+        Widgets.ListEnd();
+        ImGui.Spacing();
+    }
+
+    private static int IndexOf(IReadOnlyList<StrategyOption> options, string value)
+    {
+        for (var i = 0; i < options.Count; i++) if (options[i].Value == value) return i;
+        return -1;
+    }
+
+    // The fight you are standing in when the plugin knows its name and has nothing to
+    // say for it yet. Null everywhere else, including in a fight that does have calls.
+    //
+    // Worth its own line: silence in a fight nobody has written looks exactly like
+    // silence from something broken, and only one of those is worth chasing.
+    private static string? UnwrittenHere()
+    {
+        var here = Service.ClientState.TerritoryType;
+        if (FightCatalog.At(here) is not null) return null;
+        return Shipped.At((ushort)here)?.Name;
+    }
+
+    // Calls in the fight you are standing in that wait on the arena being read, while
+    // nothing has been read from it. Zero everywhere else, including in a fight that
+    // has no prop calls at all.
+    private int ArenaCallsHere()
+    {
+        var here = Service.ClientState.TerritoryType;
+        if (Runner is not { ArenaSeen: 0 }) return 0;
+        return FightCatalog.CallsIn(here).Count(c => FromTheArena(c.On));
+    }
+
+    // Strats still sitting on Off, which is a count of mechanics that will not call.
+    private int StratsOff(uint territory)
+    {
+        var t = (ushort)territory;
+        return Strategies.For(t).Count(s => C.StratFor(t, s.Key) == "none");
+    }
+
+    // The phase the pull is in, when this page is open on the fight being played and
+    // that fight knows its own phases. Null everywhere else, so nothing is marked
+    // from a number that was never earned.
+    private int? LivePhase =>
+        Runner is { InPull: true, PhasesKnown: true } r
+        && _navFightId == Service.ClientState.TerritoryType
+            ? r.Phase : null;
 
     private int? DrawPhaseTabs(IReadOnlyList<CallEntry> calls)
     {
@@ -385,6 +493,7 @@ public partial class ConfigWindow
         // gets no tabs at all rather than a row with one tab on it.
         if (phases.Count(p => p > 0) < 2) return null;
 
+        var live = LivePhase;
         int? picked = null;
         if (ImGui.BeginTabBar("##phases", ImGuiTabBarFlags.FittingPolicyScroll))
         {
@@ -393,7 +502,11 @@ public partial class ConfigWindow
             foreach (var p in phases.Where(p => p > 0))
             {
                 var n = calls.Count(c => c.Phase == p);
-                if (ImGui.BeginTabItem($"P{p} ({n})###phase{p}"))
+                var open = ImGui.BeginTabItem($"P{p} ({n})###phase{p}");
+                // Read before anything is drawn into the tab, while the tab itself
+                // is still the last item.
+                if (p == live) MarkLiveTab();
+                if (open)
                 {
                     picked = p;
                     ImGui.EndTabItem();
@@ -416,6 +529,19 @@ public partial class ConfigWindow
         return picked;
     }
 
+    // An accent underline on the tab of the phase the pull is in, so the page says
+    // where the fight has got to without stealing the tab you were reading.
+    private static void MarkLiveTab()
+    {
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
+        var inset = Theme.S(5f);
+        ImGui.GetWindowDrawList().AddRectFilled(
+            new Vector2(min.X + inset, max.Y - Theme.S(2f)),
+            new Vector2(max.X - inset, max.Y), Theme.Accent);
+        Tip("The pull is in this phase now.");
+    }
+
     // One call: what it says, whether it is on, and its own editor underneath.
     private void DrawCallRow(CallEntry call)
     {
@@ -428,8 +554,13 @@ public partial class ConfigWindow
         var words = CallText.Sentence(Wording(call));
 
         var dead = !LiveCoverage.Covered(call.On);
-        var quiet = NeedsParser(call);
-        var note = dead ? "Never fires" : quiet ? "Needs a parser" : "";
+        var quiet = NeedsParser(call) || QuietNow(call) || NoArenaYet(call);
+        // Unproven is last and is not a warning: the others say a call cannot speak,
+        // this one says nobody has watched it speak yet.
+        var note = dead ? "Never fires" : NeedsParser(call) ? "Needs a parser"
+            : QuietNow(call) ? "Quiet this patch"
+            : NoArenaYet(call) ? "No arena reads"
+            : Unproven(call) ? "Unproven" : "";
         var room = ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeight() * 2f
                    - ImGui.CalcTextSize(note).X - Theme.S(48f);
 
@@ -466,6 +597,91 @@ public partial class ConfigWindow
     // player only finds out about mid-pull.
     private bool NeedsParser(CallEntry call) =>
         LiveCoverage.NeedsAParser.ContainsKey(call.On) && Runner is { ParserReading: false };
+
+    // Why some of this fight's calls are not speaking, as one row of chips.
+    //
+    // These arrived one per pass and were four stacked paragraphs of amber, which
+    // pushed the calls themselves off the first screen and made a fight with one dead
+    // call look like a fight in trouble. Same four numbers, one line, and the words
+    // that explain each one moved onto the hover where they are read once.
+    private static void DrawCallStateChips(int needsParser, int dead, int quiet, int unproven,
+        int noArena)
+    {
+        if (needsParser + dead + quiet + unproven + noArena == 0) return;
+
+        var avail = ImGui.GetContentRegionAvail().X;
+        var used = 0f;
+        // Empty as of this build: every kind has a client route now. Kept because it
+        // reads the engine's own list rather than a copy, so if a kind ever goes back
+        // to being parser-only the page says so without being edited.
+        Chip("Needs a parser", needsParser, Theme.Warn, ref used, avail,
+            "These only come from a parser, and none is reading.");
+        Chip("Never fires", dead, Theme.Warn, ref used, avail,
+            "Nothing on the game side sends what these wait for.");
+        Chip("Quiet this patch", quiet, Theme.Warn, ref used, avail,
+            "These wait on a hit, and this patch moved where hits are read from.\n"
+            + "A running parser would cover them.");
+        Chip("No arena reads", noArena, Theme.Warn, ref used, avail,
+            "These wait on where the arena's props are, and nothing has arrived\n"
+            + "from that source in this zone. Counted, not assumed.");
+        // Muted: not a fault, just unwatched.
+        Chip("Unproven", unproven, Theme.Muted, ref used, avail,
+            "Expected to work and never seen doing it in a pull.\n"
+            + "Open one to see what to watch for.");
+
+        ImGui.Spacing();
+    }
+
+    // Laid out by measuring first, so a narrow window wraps the row instead of
+    // running the last chip off the edge.
+    private static void Chip(string label, int count, uint color, ref float used, float avail,
+        string tip)
+    {
+        if (count == 0) return;
+
+        var value = count.ToString();
+        var w = Widgets.ChipWidth(label, value) + Theme.S(6f);
+        if (used > 0f && used + w > avail) used = 0f;
+        else if (used > 0f) ImGui.SameLine(0, Theme.S(6f));
+        used += w;
+
+        Widgets.Chip(label, value, color);
+        Widgets.Tooltip(tip);
+    }
+
+    // Kinds the arena poll is supposed to supply. Named here rather than asked of
+    // LiveCoverage, because what matters is which source a kind comes from and that
+    // list only records what the source is called.
+    private static bool FromTheArena(EventKind kind) =>
+        kind is EventKind.ActorSpawn or EventKind.ActorMoved or EventKind.NameToggle;
+
+    // A call that waits on the arena poll while nothing has arrived from it.
+    //
+    // Checked by counting what has turned up, not by reading the coverage list. The
+    // list says these come from ArenaEvents and is right about the intent, but no
+    // event has ever reached the engine from it, and a page that reads the intent
+    // reports five fights of calls as fine when they cannot fire.
+    private bool NoArenaYet(CallEntry call) =>
+        FromTheArena(call.On)
+        && Runner is { ArenaSeen: 0 }
+        && _navFightId == Service.ClientState.TerritoryType;
+
+    // Wired, believed to work, never actually seen working in a pull.
+    //
+    // Not a fault and not a warning: the engine writes down which kinds are still
+    // unproven, and a page that showed them as plainly fine would be making a claim
+    // nobody has earned. Said quietly, next to what to watch for.
+    private static bool Unproven(CallEntry call) =>
+        LiveCoverage.UnprovenLive.ContainsKey(call.On);
+
+    // Quiet right now for a reason that is not the call's own: the kind is one this
+    // build can emit, but nothing is emitting it this session.
+    //
+    // Separate from "never fires", which is about the kind having no source at all.
+    // A hit call is covered on paper and silent in fact when the address moved and
+    // no parser is up, and that gap only shows at the moment it costs a pull.
+    private bool QuietNow(CallEntry call) =>
+        call.On == EventKind.AbilityHit && Runner is { HitsCovered: false };
 
     private string? FiresOn(CallEntry call)
     {
@@ -530,6 +746,32 @@ public partial class ConfigWindow
             ImGui.TextWrapped(LiveCoverage.Explain(call.On));
             ImGui.TextColored(Theme.V(Theme.Muted),
                 "Everything else here works without one.");
+            ImGui.Spacing();
+        }
+        else if (QuietNow(call))
+        {
+            ImGui.TextColored(Theme.V(Theme.Warn), "Quiet this patch.");
+            ImGui.TextWrapped(LiveCoverage.Explain(call.On));
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                "A running parser would cover it until the address is found again.");
+            ImGui.Spacing();
+        }
+        else if (NoArenaYet(call))
+        {
+            ImGui.TextColored(Theme.V(Theme.Warn), "Nothing is reading the arena here.");
+            ImGui.TextWrapped(LiveCoverage.Explain(call.On));
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                "This call needs to know where a prop is, and no spawn, move or "
+                + "targetable flip has reached the engine in this zone.");
+            ImGui.Spacing();
+        }
+        else if (Unproven(call) && LiveCoverage.UnprovenLive.TryGetValue(call.On, out var watch))
+        {
+            // Muted, not amber: nothing is wrong with this call. It has simply never
+            // been watched working, and saying it is fine would be a claim off the
+            // back of no pull at all.
+            ImGui.TextColored(Theme.V(Theme.Muted), "Not seen working in a pull yet.");
+            ImGui.TextWrapped(watch);
             ImGui.Spacing();
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Configuration;
+using FrenAlerts.Engine;
 using FrenAlerts.Engine.Alerts;
 using Newtonsoft.Json;
 
@@ -68,6 +69,42 @@ public class Configuration : IPluginConfiguration
     }
 
     public bool IsEdited(string key) => EditFor(key) is { IsDefault: false };
+
+    private Dictionary<string, string> _strats = new();
+
+    // Which answer the group uses for a mechanic that has several, keyed by fight
+    // and setting so two fights can use the same word for different things.
+    public Dictionary<string, string> Strats
+    {
+        get => _strats;
+        set => _strats = value ?? new Dictionary<string, string>();
+    }
+
+    private static string StratKey(ushort territory, string key) => $"{territory}/{key}";
+
+    // The group's answer, or the setting's own default when they have not said.
+    // An answer that is no longer offered reads as the default rather than being
+    // passed through, so a renamed option cannot leave a fight matching nothing.
+    public string StratFor(ushort territory, string key)
+    {
+        var setting = Strategies.Find(territory, key);
+        if (setting is null) return "";
+        if (!_strats.TryGetValue(StratKey(territory, key), out var chosen)) return setting.Default;
+        return setting.Options.Any(o => o.Value == chosen) ? chosen : setting.Default;
+    }
+
+    public void SetStrat(ushort territory, string key, string value)
+    {
+        var setting = Strategies.Find(territory, key);
+        if (setting is null) return;
+
+        if (value == setting.Default) _strats.Remove(StratKey(territory, key));
+        else if (setting.Options.Any(o => o.Value == value)) _strats[StratKey(territory, key)] = value;
+        Save();
+    }
+
+    public bool StratIsSet(ushort territory, string key) =>
+        _strats.ContainsKey(StratKey(territory, key));
 
     // The one place an edit is written, so the "back to default drops it" rule
     // cannot be forgotten at a call site.

@@ -5,7 +5,13 @@ namespace FrenAlerts.Engine;
 
 public static class EventLog
 {
-    public const string Header = "fmrec 1";
+    public const string Header = "fmrec 2";
+
+    // What version 1 wrote, still readable: those recordings are the only proof
+    // some of these calls have, and refusing them would throw the evidence away.
+    public const string HeaderV1 = "fmrec 1";
+
+    private const int FieldsV1 = 15;
 
     // Fixed order, and the header carries the version, so an older recording either
     // reads correctly or is refused rather than being silently misread.
@@ -22,6 +28,12 @@ public static class EventLog
         Pos(sb, e.Source);
         sb.Append('\t');
         Pos(sb, e.Target);
+        // Version 2 adds these three on the end, where a version 1 reader would
+        // have ignored them and this one finds them missing without complaining.
+        sb.Append('\t').Append(e.DataId.ToString("X"));
+        sb.Append('\t').Append(e.Arg1.ToString("X"));
+        sb.Append('\t').Append(e.Arg2.ToString("X"));
+        sb.Append('\t').Append(e.Param.ToString("X"));
         return sb.ToString();
     }
 
@@ -36,7 +48,7 @@ public static class EventLog
     public static GameEvent? Read(string line)
     {
         var f = line.Split('\t');
-        if (f.Length < 15) return null;
+        if (f.Length < FieldsV1) return null;
         if (!double.TryParse(f[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var time)) return null;
         if (!int.TryParse(f[1], out var kind)) return null;
 
@@ -51,8 +63,15 @@ public static class EventLog
             CastTime = Flt(f[6]),
             Source = ReadPos(f, 7),
             Target = ReadPos(f, 11),
+            DataId = At(f, 15),
+            Arg1 = At(f, 16),
+            Arg2 = At(f, 17),
+            Param = (ushort)At(f, 18),
         };
     }
+
+    // Zero for a version 1 line, which never carried these.
+    private static uint At(string[] f, int i) => i < f.Length ? Hex(f[i]) : 0;
 
     public static IEnumerable<GameEvent> ReadAll(IEnumerable<string> lines)
     {
@@ -64,7 +83,7 @@ public static class EventLog
                 first = false;
                 if (line.StartsWith("fmrec", StringComparison.Ordinal))
                 {
-                    if (line != Header)
+                    if (line != Header && line != HeaderV1)
                         throw new InvalidDataException($"recording is {line}, this reads {Header}");
                     continue;
                 }

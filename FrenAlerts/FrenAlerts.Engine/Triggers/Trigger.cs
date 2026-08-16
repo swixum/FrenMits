@@ -18,6 +18,12 @@ public sealed class PlayerContext
     public string MySlot { get; set; } = "";
 
     public CallNaming Naming { get; set; } = CallNaming.NameAndSlot;
+
+    // Which answer the group uses for a mechanic that has several. Supplied by the
+    // host, because the engine has no idea where a setting is stored. Unset returns
+    // an empty string, which no option ever equals, so a call gated on a strat stays
+    // quiet until somebody picks one.
+    public Func<string, string> Strat { get; set; } = static _ => "";
 }
 
 // Everything a trigger gets to look at when it fires.
@@ -25,6 +31,11 @@ public readonly record struct TriggerContext(
     GameEvent Event, PlayerContext Player, ActorBook Actors, PartyContext Party, FightState State)
 {
     public int Nth => State.Count(Event.Kind, Event.Id);
+
+    // The group's answer for one of this fight's strat settings.
+    public string Strat(string key) => Player.Strat(key);
+
+    public bool Running(string key, string option) => Player.Strat(key) == option;
 
     public int Phase => State.Phase;
 

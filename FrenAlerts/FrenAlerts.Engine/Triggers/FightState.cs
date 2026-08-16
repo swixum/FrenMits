@@ -47,6 +47,30 @@ public sealed class FightState
 
     public int PhasesKnown => _phaseOf.Count;
 
+    // How many separate things a fight may remember across one pull. A fight uses
+    // one of these; the bound is here so a mistake cannot turn it into a leak.
+    public const int MemorySlots = 16;
+
+    private readonly Dictionary<Type, object> _memory = new(MemorySlots);
+
+    public int Remembering => _memory.Count;
+
+    // Somewhere for a fight to keep what one call has to tell the next: which
+    // towers have spawned, whose turn it is, how many of a thing have gone off.
+    //
+    // Kept here rather than in the fight's own file because this is what a pull
+    // ending clears. State that outlives its pull is the bug where the second pull
+    // of the night is called with the first pull's answers.
+    public T Remember<T>() where T : class, new()
+    {
+        if (_memory.TryGetValue(typeof(T), out var had)) return (T)had;
+        var made = new T();
+        // Past the bound it is handed back unbacked rather than stored: the caller
+        // still gets a usable object, and nothing grows without limit.
+        if (_memory.Count < MemorySlots) _memory[typeof(T)] = made;
+        return made;
+    }
+
     public void StartAt(double time)
     {
         _running = true;
@@ -106,6 +130,7 @@ public sealed class FightState
     {
         _counts.Clear();
         _lastSeen.Clear();
+        _memory.Clear();
         Phase = 1;
         Dropped = 0;
         Now = 0;

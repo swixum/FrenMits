@@ -359,11 +359,15 @@ internal static class Widgets
         return hit;
     }
 
+    // The id defaults to the label, which is fine for the fixed rows on a settings
+    // page and not fine for a list built from data: two rows that happen to share a
+    // label share an ImGui id, and then they move together. Callers drawing from a
+    // list pass something guaranteed unique instead.
     public static bool RowCombo(string name, string hint, ref int idx, string[] items,
-        float width = 150f, bool changed = false, bool sub = false)
+        float width = 150f, bool changed = false, bool sub = false, string id = "")
     {
-        RowBegin(name, hint, Theme.S(width), changed, sub);
-        var hit = ImGui.Combo("##rk" + name, ref idx, items, items.Length);
+        RowBegin(name, hint, Theme.S(width), changed, sub, id: id.Length > 0 ? id : name);
+        var hit = ImGui.Combo("##rk" + (id.Length > 0 ? id : name), ref idx, items, items.Length);
         RowEnd();
         return hit;
     }
