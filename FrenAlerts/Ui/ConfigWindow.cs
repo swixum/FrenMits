@@ -305,13 +305,16 @@ public partial class ConfigWindow : Window, IDisposable
                 // counts down, nothing ages off the screen, and the board wedges on
                 // whatever got there first. Worth being able to see rather than
                 // deduce from a frozen countdown.
-                Dot(true, $"Replay {replaying.ClockSeconds:0.0}s");
+                // Whole seconds as mm:ss rather than a decimal. A tenth redrawn every
+                // frame changes the label's width sixty times a second, and every dot
+                // after it on the row shuffles sideways to match.
+                var at = TimeSpan.FromSeconds(Math.Max(0, replaying.ClockSeconds));
+                Dot(true, $"Replay {at:mm\\:ss}");
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip(
                         "Watching a recording. Calls run on the recording's own clock, so\n"
                         + "they stop when you pause and keep pace when you fast forward.\n\n"
-                        + $"Fight clock {replaying.ClockSeconds:0.0}s, "
-                        + $"running at {replaying.ReplaySpeed:0.##}x.\n"
+                        + $"Fight clock {at:mm\\:ss}, running at {replaying.ReplaySpeed:0.##}x.\n"
                         + "The clock should climb while the speed is above zero. It sitting\n"
                         + "still at a speed above zero is a fault worth reporting.");
             }

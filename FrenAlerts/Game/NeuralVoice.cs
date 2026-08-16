@@ -21,9 +21,14 @@ public sealed class NeuralVoice : IDisposable
     // call would be disk work per line spoken.
     private const double RecheckSeconds = 10.0;
 
+    // Enough of the child's own words to say why it failed, and no more. Cleared on
+    // every launch, so what is kept always belongs to the child running now.
+    private const int KeptErrors = 5;
+
     private readonly string _folder;
     private readonly VoiceModel _pack;
     private readonly Stopwatch _clock = Stopwatch.StartNew();
+    private readonly Queue<string> _errors = new();
 
     private Process? _child;
     private int _starts;
@@ -115,7 +120,8 @@ public sealed class NeuralVoice : IDisposable
             // launch another 84MB process on top of the one already loading.
             if (_clock.Elapsed.TotalSeconds - _startedAt < StartSeconds) return false;
 
-            Service.Log.Warning("Fren Alerts: the local voice did not finish loading; stopping it.");
+            Service.Log.Warning(
+                $"Fren Alerts: the local voice did not finish loading; stopping it. {LastWords()}");
             Stop();
         }
 
@@ -124,7 +130,8 @@ public sealed class NeuralVoice : IDisposable
         if (_starts >= MaxStarts)
         {
             _givenUp = true;
-            Service.Log.Warning("Fren Alerts: the local voice would not stay running; using the system voice.");
+            Service.Log.Warning(
+                $"Fren Alerts: the local voice would not stay running; using the system voice. {LastWords()}");
             return false;
         }
 
@@ -139,6 +146,7 @@ public sealed class NeuralVoice : IDisposable
             _starts++;
             _ready = false;
             Forget();
+            lock (_errors) _errors.Clear();
             _startedAt = _clock.Elapsed.TotalSeconds;
 
             _child = Process.Start(new ProcessStartInfo(Path.Combine(_folder, "FrenAlertsVoice.exe"))
@@ -157,6 +165,13 @@ public sealed class NeuralVoice : IDisposable
             // from the voice worker.
             var child = _child;
             new Thread(() => Watch(child)) { IsBackground = true, Name = "Fren Alerts voice watch" }.Start();
+
+            // And a second thread for the other pipe, which is not optional. A
+            // redirected pipe nobody reads holds 4KB and then blocks the writer:
+            // the model loader alone writes 34KB of warnings before it is ready, so
+            // leaving this undrained stopped the child dead every single time, on
+            // every machine, before it could say a word.
+            new Thread(() => Drain(child)) { IsBackground = true, Name = "Fren Alerts voice errors" }.Start();
         }
         catch (Exception ex)
         {
@@ -179,7 +194,8 @@ public sealed class NeuralVoice : IDisposable
             }
             else
             {
-                Service.Log.Warning("Fren Alerts: the local voice did not report itself ready.");
+                Service.Log.Warning(
+                    $"Fren Alerts: the local voice did not report itself ready. {LastWords()}");
             }
         }
         catch
@@ -190,6 +206,37 @@ public sealed class NeuralVoice : IDisposable
         {
             _ready = false;
         }
+    }
+
+    // Everything the child writes to the other pipe, read and mostly thrown away.
+    // The reading is the point; what is kept is so a failure can say why.
+    private void Drain(Process child)
+    {
+        try
+        {
+            while (child.StandardError.ReadLine() is { } line)
+            {
+                // The model loader's own warnings, thousands of them on a good
+                // start, which would bury the one line that matters.
+                if (line.Length == 0 || line.Contains("onnxruntime", StringComparison.Ordinal))
+                    continue;
+
+                lock (_errors)
+                {
+                    _errors.Enqueue(line);
+                    while (_errors.Count > KeptErrors) _errors.Dequeue();
+                }
+            }
+        }
+        catch
+        {
+            // Same as the other pipe: it closing is how a dead child reports itself.
+        }
+    }
+
+    private string LastWords()
+    {
+        lock (_errors) return _errors.Count == 0 ? "It said nothing." : string.Join(" ", _errors);
     }
 
     // Never blocks and never throws, because a closed pipe means the child died
