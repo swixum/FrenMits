@@ -469,6 +469,11 @@ public partial class ConfigWindow : Window, IDisposable
 
     private const int MaxCallHits = 30;
 
+    // What this call says on screen: the player's own wording once they have changed
+    // it, the shipped line until then.
+    private string Wording(CallEntry call) =>
+        C.EditFor(call.Key)?.Text is { Length: > 0 } mine ? mine : call.Text;
+
     private List<CallHit> SearchCalls(string text)
     {
         var found = new List<CallHit>();
@@ -478,7 +483,11 @@ public partial class ConfigWindow : Window, IDisposable
         {
             foreach (var call in FightCatalog.CallsIn(fight.TerritoryId))
             {
-                if (!call.Text.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase)) continue;
+                var needle = text.Trim();
+                // Either wording finds it. Somebody who renamed a call searches what
+                // they named it; somebody reading a strat searches what it shipped as.
+                if (!Wording(call).Contains(needle, StringComparison.OrdinalIgnoreCase)
+                    && !call.Text.Contains(needle, StringComparison.OrdinalIgnoreCase)) continue;
                 found.Add(new CallHit(fight, call));
                 if (found.Count >= MaxCallHits) return found;
             }
@@ -583,7 +592,7 @@ public partial class ConfigWindow : Window, IDisposable
             var lineH = ImGui.GetTextLineHeight();
             var top = min.Y + (max.Y - min.Y - lineH * 2f) * 0.5f;
             dl.AddText(new Vector2(min.X + textX, top), Theme.TextBright,
-                Widgets.Elide(CallText.Sentence(hit.Call.Text), room));
+                Widgets.Elide(CallText.Sentence(Wording(hit.Call)), room));
             dl.AddText(new Vector2(min.X + textX, top + lineH), Theme.Muted,
                 Widgets.Elide(hit.Fight.Name, room));
             ImGui.PopID();

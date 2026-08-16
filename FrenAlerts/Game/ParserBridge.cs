@@ -35,6 +35,11 @@ public sealed class ParserBridge : IDisposable
     // Still trying to open the channel we send on.
     public bool Asking { get; private set; } = true;
 
+    // The channel is open and head markers are on their way. Its own flag rather than
+    // "no longer asking", because asking also stops when it gives up, and those two
+    // are opposites: one means every head marker call works, the other means none do.
+    public bool Reading { get; private set; }
+
     private const double AskEverySeconds = 1.0;
     private const int MaxAsks = 30;
 
@@ -105,6 +110,7 @@ public sealed class ParserBridge : IDisposable
                 ["events"] = new JArray("LogLine"),
             });
             Asking = false;
+            Reading = true;
             Service.Log.Information("Fren Alerts: reading head markers from the parser.");
         }
         catch
@@ -156,5 +162,6 @@ public sealed class ParserBridge : IDisposable
         _mine?.UnregisterFunc();
         _mine = null;
         Connected = false;
+        Reading = false;
     }
 }

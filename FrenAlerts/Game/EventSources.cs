@@ -89,6 +89,14 @@ public sealed class EventSources : IDisposable
 
     public bool ParserConnected => _parser.Connected;
 
+    // Connected is only half of it: the parser accepts the subscriber first and opens
+    // the channel we read from some time after, and it can give up trying. Head
+    // markers arrive only once both have happened, so this is what the screen asks.
+    public bool ParserReading => _parser.Reading;
+
+    // Still working on it, so the screen can wait rather than call it broken.
+    public bool ParserAsking => _parser.Asking;
+
     public int MarkersSeen => _parser.Reported;
 
     public int Pulls => _combat.Pulls;

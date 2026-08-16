@@ -15,7 +15,9 @@ public static class MarkerMeanings
             new(0x007F, "spread", false),
             new(0x0080, "stack", false),
             new(0x00A1, "stomp stack", false),
-            new(0x00DA, "buster", false),
+            // Revolting Ruin III is a cone in the game's own shape table, so the
+            // people behind the tank are in it too.
+            new(0x00DA, "cleave", false),
             new(0x0103, "share the buster", false),
             new(0x0150, "1", false),
             new(0x0151, "2", false),

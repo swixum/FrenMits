@@ -95,7 +95,12 @@ public partial class ConfigWindow
         if (Runner is { ControlAvailable: false }) problems.Add("No direction calls");
         if (Runner is { AbilitiesAvailable: false }) problems.Add("No hit calls");
         if (Runner is { LocalVoice.GivenUp: true }) problems.Add("Local voice gave up");
-        if (Runner is { ParserConnected: false }) problems.Add("No parser, head markers are quiet");
+        // Three states, and only one of them is fine. Still shaking hands is worth
+        // nothing on the list: it settles on its own in a second or two.
+        if (Runner is { ParserReading: false, ParserAsking: false })
+            problems.Add(Runner is { ParserConnected: true }
+                ? "The parser never answered, head markers are quiet"
+                : "No parser, head markers are quiet");
         if (C.TestMode) problems.Add("Test mode is on");
 
         if (HomeTile("##t1", w, h, FontAwesomeIcon.Bell,
@@ -331,7 +336,7 @@ public partial class ConfigWindow
         if (waiting > 0)
         {
             ImGui.TextColored(Theme.V(Theme.Warn),
-                $"{waiting} of these stay quiet until a parser is running.");
+                $"{waiting} of these wait on head markers from a parser, and none are arriving.");
             ImGui.Spacing();
         }
 
@@ -368,6 +373,7 @@ public partial class ConfigWindow
         var shown = here
             .Where(c => _callView switch { 1 => c.Exact, 2 => !c.Exact, _ => true })
             .Where(c => string.IsNullOrWhiteSpace(_callFilter)
+                || Wording(c).Contains(_callFilter, StringComparison.OrdinalIgnoreCase)
                 || c.Text.Contains(_callFilter, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -390,6 +396,17 @@ public partial class ConfigWindow
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Muted),
                 $"{fight.BuiltIn} more are built in, not editable here.");
+        }
+
+        // Rows that would only have said the mechanic's name. Counted rather than
+        // hidden: a fight that lists fewer calls than the strat sheet has mechanics
+        // reads like something failed to load.
+        var trimmed = Trimmed.Count((ushort)fight.TerritoryId);
+        if (trimmed > 0)
+        {
+            if (fight.BuiltIn == 0) ImGui.Spacing();
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                $"{trimmed} more only name the mechanic, so they wait until they can say where to go.");
         }
     }
 
@@ -440,7 +457,7 @@ public partial class ConfigWindow
         // call ships silent, and a tick that reads on while the call says nothing is
         // the one thing this page must never do.
         var on = C.IsCallOn(call.Key, call.ShipsOn);
-        var words = CallText.Sentence(edit?.Text is { Length: > 0 } t ? t : call.Text);
+        var words = CallText.Sentence(Wording(call));
 
         var dead = !LiveCoverage.Covered(call.On);
         var quiet = NeedsParser(call);
@@ -478,8 +495,11 @@ public partial class ConfigWindow
         C.SetEdit(key, edit);
     }
 
+    // Reading, not connected: a parser that accepted us and never opened its channel
+    // leaves these calls just as quiet, and saying they are fine would be a lie the
+    // player only finds out about mid-pull.
     private bool NeedsParser(CallEntry call) =>
-        LiveCoverage.NeedsAParser.ContainsKey(call.On) && Runner is { ParserConnected: false };
+        LiveCoverage.NeedsAParser.ContainsKey(call.On) && Runner is { ParserReading: false };
 
     private string? FiresOn(CallEntry call)
     {

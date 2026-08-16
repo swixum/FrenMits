@@ -19,6 +19,7 @@ public static class TriggerPack
         foreach (var spec in specs)
         {
             if (spec.Territory != territory || spec.NeedsWording) continue;
+            if (Trimmed.Drops(territory, spec.Id)) continue;
             if (taken.Contains((spec.On, spec.MatchId))) continue;
             if (owned.Any(o => Names(spec.Key, o))) continue;
             yield return ToTrigger(spec);

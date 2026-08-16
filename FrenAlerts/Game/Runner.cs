@@ -70,6 +70,12 @@ public sealed class Runner : IDisposable
 
     public bool ParserConnected => _sources.ParserConnected;
 
+    // Whether head markers are actually arriving, which is not the same as a parser
+    // being there: the handshake can still be running, or can have given up.
+    public bool ParserReading => _sources.ParserReading;
+
+    public bool ParserAsking => _sources.ParserAsking;
+
     public int MarkersSeen => _sources.MarkersSeen;
 
     public int Pulls => _sources.Pulls;
