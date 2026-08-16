@@ -27,5 +27,11 @@ public static class Trimmed
         "dmu-p1-pulse-wave-tethers",
         "dmu-p3-black-hole-2-nothingness-2",
         "dmu-p3-black-hole-6-nothingness-10",
+
+        // Their phase 2 tank limit break is gated on a strat option this group does
+        // not run. The one that matters is on Vacuum Wave in phase 3, and the fight
+        // module calls it there.
+        "dmu-p2-path-of-light-tower-8-aaaabbbb-special-1",
+        "dmu-p2-path-of-light-tower-8-aaaabbbb-special-2",
     ];
 }

@@ -64,6 +64,7 @@ public sealed class FightLoader
         if (territory == DancingMad.Territory)
         {
             engine.AddRange(DancingMad.Triggers());
+            engine.AddRange(DancingMad.Sequences());
             return "Dancing Mad";
         }
         if (territory == FuturesRewritten.Territory)

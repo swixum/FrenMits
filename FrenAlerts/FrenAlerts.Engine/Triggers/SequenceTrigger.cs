@@ -15,6 +15,11 @@ public sealed class SequenceTrigger
     // Only complete when the follow-up landed on this player.
     public bool ThenOnMe { get; init; }
 
+    // Only arm when the opening event landed on this player. Without it a sequence
+    // waiting on two debuffs arms on whoever in the party got the first one, and
+    // then pairs it with yours: eight players make eight chances to mismatch.
+    public bool StartOnMe { get; init; }
+
     public required Func<TriggerContext, Call?> Make { get; init; }
 
     private bool _armed;
@@ -28,7 +33,8 @@ public sealed class SequenceTrigger
 
         if (!_armed)
         {
-            if (e.Kind == StartOn && (StartId == 0 || e.Id == StartId))
+            if (e.Kind == StartOn && (StartId == 0 || e.Id == StartId)
+                && (!StartOnMe || ctx.TargetIsMe))
             {
                 _armed = true;
                 _armedAt = e.Time;

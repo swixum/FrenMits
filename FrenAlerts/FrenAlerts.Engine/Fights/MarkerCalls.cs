@@ -42,5 +42,5 @@ public static class MarkerCalls
     }
 
     private static string Line(string says) =>
-        says.Length <= 2 && says.All(char.IsDigit) ? says : $"{says}, on you";
+        says.Length <= 2 && says.All(char.IsDigit) ? says : $"{says} on you";
 }

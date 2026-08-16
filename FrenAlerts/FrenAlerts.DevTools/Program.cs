@@ -79,7 +79,11 @@ public static partial class Program
         var territory = (ushort)events.FirstOrDefault(e => e.Kind == EventKind.ZoneChange).Id;
         Console.WriteLine($"territory     {territory} {Scope.GetValueOrDefault(territory, "unknown")}");
 
-        if (territory == DancingMad.Territory) engine.AddRange(DancingMad.Triggers());
+        if (territory == DancingMad.Territory)
+        {
+            engine.AddRange(DancingMad.Triggers());
+            engine.AddRange(DancingMad.Sequences());
+        }
         if (territory == FuturesRewritten.Territory) engine.AddRange(FuturesRewritten.Triggers());
         if (territory == Lindwurm.Territory) engine.AddRange(Lindwurm.Triggers());
 

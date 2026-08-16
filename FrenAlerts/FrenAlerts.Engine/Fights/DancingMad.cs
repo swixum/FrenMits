@@ -57,8 +57,8 @@ public static class DancingMad
             // and for a raidwide that difference is not a strat choice.
             Text = Audience.RoleOf(ctx.MySlot) switch
             {
-                "healer" => "raidwide, heal",
-                "tank" => "raidwide, mit",
+                "healer" => "raidwide heal",
+                "tank" => "raidwide mit",
                 _ => "raidwide",
             },
             Time = Lands(ctx),
@@ -95,7 +95,7 @@ public static class DancingMad
         Make = ctx => new Call
         {
             Text = ctx.Event.Duration > 0
-                ? $"{what}, {ctx.Event.Duration:0.#}s"
+                ? $"{what} {ctx.Event.Duration:0.#}s"
                 : what,
             Time = ctx.Event.Time,
             Key = id,
@@ -193,24 +193,73 @@ public static class DancingMad
         (0x130F, 0x13DA, "left"),
     ];
 
-    private static IEnumerable<Trigger> TelePortents()
+    // Both portents in one line, because the pair is what you act on and hearing
+    // "up" then "right" four seconds apart makes you do the arithmetic yourself.
+    //
+    // Armed on your own first portent only. Without that it arms on whoever in the
+    // party got theirs first and pairs it with yours, which is eight chances to say
+    // the wrong pair.
+    public static IEnumerable<SequenceTrigger> Sequences()
     {
-        foreach (var (first, second, way) in Portents)
+        foreach (var (first, _, firstWay) in Portents)
         {
-            // Two separate calls rather than one combined one: which pair you hold
-            // decides where to stand, and that depends on the group's strat, so the
-            // engine says what it knows and stops there.
-            yield return Element($"portent-1-{way}", first, way, 1);
-            yield return Element($"portent-2-{way}", second, way, 1);
+            foreach (var (_, second, secondWay) in Portents)
+            {
+                yield return new SequenceTrigger
+                {
+                    Id = $"portent-{firstWay}-{secondWay}",
+                    StartOn = EventKind.StatusGain,
+                    StartId = first,
+                    StartOnMe = true,
+                    ThenOn = EventKind.StatusGain,
+                    ThenId = second,
+                    ThenOnMe = true,
+                    Within = 20.0,
+                    Make = ctx => new Call
+                    {
+                        Text = $"{firstWay} then {secondWay}",
+                        Time = ctx.Event.Time,
+                        Key = "portents",
+                        Level = CallLevel.Alarm,
+                        Personal = true,
+                    },
+                };
+            }
         }
     }
 
-    // The Neo Exdeath debuff you are holding, named the way the raid calls it.
+    // The statuses the sequence is built from, claimed so the pack's own bare
+    // "Tele-Portents" rows do not fire alongside it.
+    private static IEnumerable<Trigger> TelePortents()
+    {
+        foreach (var (first, second, _) in Portents)
+        {
+            yield return Silent($"portent-1-{first:X}", first, 1);
+            yield return Silent($"portent-2-{second:X}", second, 1);
+        }
+    }
+
+    // Holds an event so the pack does not answer it, and says nothing itself.
+    private static Trigger Silent(string id, uint status, int phase) => new()
+    {
+        Id = id,
+        On = EventKind.StatusGain,
+        MatchId = status,
+        Phase = phase,
+        Make = _ => null,
+    };
+
+    // The Neo Exdeath debuff you are holding, and whether it is the real one.
+    //
+    // The game gives the fake a separate status id from the real one, so this needs
+    // no head marker and no guessing: 1317 is White Wound (Fake) against 15A5 the
+    // real one, and the same pairing runs through the other two. Lumping the pair
+    // under one word throws away the only thing you act on.
     private static readonly (uint Status, string Word)[] Wounds =
     [
-        (0x15A5, "purple"), (0x1317, "purple"),
-        (0x15A6, "blue"), (0x1318, "blue"),
-        (0x566, "death"), (0x1558, "death"),
+        (0x15A5, "purple"), (0x1317, "fake purple"),
+        (0x15A6, "blue"), (0x1318, "fake blue"),
+        (0x566, "death"), (0x1558, "fake death"),
         (0x1C6, "field"),
     ];
 
@@ -243,10 +292,34 @@ public static class DancingMad
         yield return Raidwide("forsaken", 0xBABC, 2);
         yield return Raidwide("ultima-upsurge", 0xC24A, 4);
         yield return Raidwide("aero-assault", 0xC3F7, 2);
-        yield return Raidwide("vacuum-wave", 0xBB13, 3);
+
         yield return Raidwide("white-hole", 0xBD66, 3);
         yield return Raidwide("umbra-smash", 0xBB00, 3);
         yield return Raidwide("bowels-of-agony", 0xBAF2, 3);
+
+        // Tanks press it here, not in phase 2.
+        yield return new Trigger
+        {
+            Id = "vacuum-wave",
+            On = EventKind.CastStart,
+            MatchId = 0xBB13,
+            Phase = 3,
+            Make = ctx => Audience.RoleOf(ctx.MySlot) == "tank"
+                ? new Call
+                {
+                    Text = "tank limit break",
+                    Time = Lands(ctx),
+                    Key = "vacuum-wave",
+                    Level = CallLevel.Alarm,
+                }
+                : new Call
+                {
+                    Text = Audience.RoleOf(ctx.MySlot) == "healer" ? "raidwide heal" : "raidwide",
+                    Time = Lands(ctx),
+                    Key = "vacuum-wave",
+                    Level = CallLevel.Alert,
+                },
+        };
         yield return Raidwide("light-of-judgment", 0xC622, 1);
 
         yield return Buster("revolting-ruin", 0xC403, 1) with
@@ -405,7 +478,7 @@ public static class DancingMad
             Phase = 3,
             Make = ctx => new Call
             {
-                Text = ctx.TargetIsMe ? "heal to full, on you" : $"heal {ctx.NameTarget()} to full",
+                Text = ctx.TargetIsMe ? "heal to full on you" : $"heal {ctx.NameTarget()} to full",
                 Time = ctx.Event.Time,
                 Key = "accretion",
                 Level = CallLevel.Alarm,
