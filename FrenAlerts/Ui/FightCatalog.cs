@@ -148,18 +148,25 @@ public static class FightCatalog
             var loaded = pack.Count == 0
                 ? []
                 : Loaded(pack, (ushort)territory, mine, keyOf);
-            calls[territory] = loaded;
-            foreach (var c in loaded) shipped[c.Key] = c.Text;
+
+            // Hand written calls belong in the list with the rest of them. They were
+            // counted and not shown, so authoring a mechanic took it off the page:
+            // Dancing Mad went from 157 rows to 33 and read as an empty fight.
+            var built = Written(mine, keyOf);
+            var all = built.Concat(loaded).ToList();
+            calls[territory] = all;
+            foreach (var c in all) shipped[c.Key] = c.Text;
 
             // Specs that share a key are one call, so the fight's number is the
             // number of lines it can put on screen, not the number of rows a file
             // happens to carry.
-            var total = mine.Count + loaded.Count;
-            if (total == 0) continue;
+            if (all.Count == 0) continue;
 
             var (name, full, category) = Known.TryGetValue(territory, out var k)
                 ? k : ($"Territory {territory}", "", "Other");
-            list.Add(new FightEntry(name, full, category, territory, total, mine.Count));
+            // Nothing is hidden from the page any more, so nothing is counted as
+            // hidden either.
+            list.Add(new FightEntry(name, full, category, territory, all.Count, 0));
         }
         _calls = calls;
         _shipped = shipped;
@@ -172,6 +179,51 @@ public static class FightCatalog
         });
         return list;
     }
+
+    // The hand written calls for one fight, as list rows.
+    //
+    // What a trigger says is only known by asking it, so each one is run once
+    // against an empty event. A trigger that declines that (the catch-alls answer
+    // only for a marker they do not already name) still gets a row, under its own
+    // id, because a call you cannot switch off is worse than one that reads plainly.
+    private static IReadOnlyList<CallEntry> Written(
+        List<Trigger> mine, Dictionary<string, string> keyOf)
+    {
+        var list = new List<CallEntry>(mine.Count);
+        var seen = new HashSet<string>();
+        foreach (var t in mine)
+        {
+            if (!seen.Add(t.Id)) continue;
+            keyOf[t.Id] = t.Id;
+
+            string text;
+            float hold;
+            CallLevel level;
+            try
+            {
+                var sample = t.Make(Blank(t));
+                text = sample?.Text ?? Readable(t.Id);
+                hold = sample?.Hold ?? 4f;
+                level = sample?.Level ?? CallLevel.Info;
+            }
+            catch
+            {
+                text = Readable(t.Id);
+                hold = 4f;
+                level = CallLevel.Info;
+            }
+
+            // Written by hand, so it says what it means at the moment it means it.
+            list.Add(new CallEntry(t.Id, text, level, hold, 0, true, t.Enabled, t.On, t.MatchId));
+        }
+        return list;
+    }
+
+    private static TriggerContext Blank(Trigger t) => new(
+        new GameEvent { Kind = t.On, Time = 0, Id = t.MatchId },
+        new PlayerContext(), new ActorBook(), new PartyContext(), new FightState());
+
+    private static string Readable(string id) => id.Replace('-', ' ');
 
     // The pack's calls for one fight, as they will actually load: built through
     // the engine's own filter so a spec the module already covers is not listed
