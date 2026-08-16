@@ -343,6 +343,10 @@ public partial class ConfigWindow
             return;
         }
 
+        // Read the calls as this player, so the rows say what this player would
+        // hear: their role's half of a call and their group's answer to a strat.
+        FightCatalog.ReadAs(Runner?.MySlot ?? "", C.StratFor);
+
         DrawStrats((ushort)fight.TerritoryId);
 
         var phase = DrawPhaseTabs(calls);
@@ -421,7 +425,12 @@ public partial class ConfigWindow
             if (Widgets.RowCombo(s.Name, s.Hint, ref idx, labels, 190f,
                     changed: C.StratIsSet(territory, s.Key), id: $"strat-{territory}-{s.Key}")
                 && idx >= 0 && idx < s.Options.Count)
+            {
                 C.SetStrat(territory, s.Key, s.Options[idx].Value);
+                // The calls below this list are what the answer changes, so they are
+                // re-read now rather than at the next reload.
+                FightCatalog.Invalidate();
+            }
         }
 
         // Said once under the list rather than on every row that can be switched off.
@@ -546,10 +555,13 @@ public partial class ConfigWindow
         var quiet = NeedsParser(call) || QuietNow(call) || NoArenaYet(call);
         // Unproven is last and is not a warning: the others say a call cannot speak,
         // this one says nobody has watched it speak yet.
+        // Last of all, and the only one that is not about a call being in trouble:
+        // it reads off the pull, so there is no one line to show before a pull.
         var note = dead ? "Never fires" : NeedsParser(call) ? "Needs a parser"
             : QuietNow(call) ? "Quiet this patch"
             : NoArenaYet(call) ? "No arena reads"
-            : Unproven(call) ? "Unproven" : "";
+            : Unproven(call) ? "Unproven"
+            : !call.Sampled ? "Reads the pull" : "";
         var room = ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeight() * 2f
                    - ImGui.CalcTextSize(note).X - Theme.S(48f);
 

@@ -48,6 +48,10 @@ public sealed class Runner : IDisposable
 
     public string Fight => _fights.Fight;
 
+    // Which seat this player is in, for the fight page to read its calls as. Empty
+    // outside a party, which is the page's cue to show the plain half of a call.
+    public string MySlot => _engine.Player.MySlot;
+
     public int TriggerCount => _engine.Triggers.Count;
 
     // How many will actually speak, which is the number that matters: a status line

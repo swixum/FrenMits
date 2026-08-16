@@ -12,7 +12,7 @@ public sealed record FightEntry(
 
 public sealed record CallEntry(
     string Key, string Text, CallLevel Level, float Hold, int Phase,
-    bool ShipsOn, EventKind On, uint MatchId);
+    bool ShipsOn, EventKind On, uint MatchId, bool Sampled = true);
 
 public static class FightCatalog
 {
@@ -53,6 +53,13 @@ public static class FightCatalog
     // is written. Read once with the timelines and used only to order the rows.
     private static IReadOnlyDictionary<uint, IReadOnlyDictionary<string, float>> _whenBy =
         new Dictionary<uint, IReadOnlyDictionary<string, float>>();
+
+    // Kept so a strat change can re-sample the calls without reading the file again.
+    private static List<CallSpec> _pack = [];
+
+    private static string _slot = "";
+
+    private static Func<ushort, string, string>? _strat;
     private static bool _asked;
 
     public static IReadOnlyList<CallEntry> CallsIn(uint territory)
@@ -107,6 +114,37 @@ public static class FightCatalog
         _ = Task.Run(LoadPack);
     }
 
+    // Who to read the calls as. Handed in by the page rather than reached for, so
+    // the engine's own player stays the only thing the calls actually fire against.
+    //
+    // A rebuild only when one of them really moved: this is called every frame the
+    // fight page draws, and re-running every trigger in the game per frame would be
+    // a stutter nobody could explain.
+    public static void ReadAs(string slot, Func<ushort, string, string> strat)
+    {
+        var same = string.Equals(slot, _slot, StringComparison.Ordinal) && _strat is not null;
+        _slot = slot;
+        _strat = strat;
+        if (!same) Rebuild();
+    }
+
+    // The group changed an answer, so every call that reads one says something else
+    // now. Cheap: the pack is already in memory, only the sampling runs again.
+    public static void Invalidate() => Rebuild();
+
+    private static void Rebuild()
+    {
+        if (!_asked) return;
+        try
+        {
+            _entries = Build(_pack);
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Error(ex, "Fren Alerts: the fight list would not rebuild");
+        }
+    }
+
     private static void LoadPack()
     {
         // Timelines first, because the build puts the rows in the order they say.
@@ -123,7 +161,8 @@ public static class FightCatalog
 
         try
         {
-            _entries = Build(ReadPack().ToList());
+            _pack = ReadPack().ToList();
+            _entries = Build(_pack);
         }
         catch (Exception ex)
         {
@@ -295,7 +334,7 @@ public static class FightCatalog
             // Hand written calls belong in the list with the rest of them. They were
             // counted and not shown, so authoring a mechanic took it off the page:
             // Dancing Mad went from 157 rows to 33 and read as an empty fight.
-            var built = Written(mine, keyOf)
+            var built = Written(mine, keyOf, (ushort)territory)
                 .Concat(Ordered(sequences.GetValueOrDefault(territory) ?? [], keyOf))
                 .ToList();
             var all = InFightOrder(territory, built.Concat(loaded).ToList());
@@ -331,7 +370,7 @@ public static class FightCatalog
     // only for a marker they do not already name) still gets a row, under its own
     // id, because a call you cannot switch off is worse than one that reads plainly.
     private static IReadOnlyList<CallEntry> Written(
-        List<Trigger> mine, Dictionary<string, string> keyOf)
+        List<Trigger> mine, Dictionary<string, string> keyOf, ushort territory)
     {
         var list = new List<CallEntry>(mine.Count);
         var seen = new HashSet<string>();
@@ -346,22 +385,26 @@ public static class FightCatalog
             string text;
             float hold;
             CallLevel level;
+            bool sampled;
             try
             {
-                var sample = t.Make(Blank(t));
-                text = sample?.Text ?? Readable(t.Id);
+                var sample = t.Make(Blank(t, territory));
+                sampled = !string.IsNullOrWhiteSpace(sample?.Text);
+                text = sampled ? sample!.Text : Readable(t.Id);
                 hold = sample?.Hold ?? 4f;
                 level = sample?.Level ?? CallLevel.Info;
             }
             catch
             {
+                sampled = false;
                 text = Readable(t.Id);
                 hold = 4f;
                 level = CallLevel.Info;
             }
 
             // Written by hand, so it says what it means at the moment it means it.
-            list.Add(new CallEntry(t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId));
+            list.Add(new CallEntry(
+                t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId, sampled));
         }
         return list;
     }
@@ -404,11 +447,39 @@ public static class FightCatalog
 
     private static TriggerContext BlankFor(EventKind kind, uint id) => new(
         new GameEvent { Kind = kind, Time = 0, Id = id },
-        new PlayerContext(), new ActorBook(), new PartyContext(), new FightState());
+        Asking(0), new ActorBook(), new PartyContext(), new FightState());
 
-    private static TriggerContext Blank(Trigger t) => new(
-        new GameEvent { Kind = t.On, Time = 0, Id = t.MatchId },
-        new PlayerContext(), new ActorBook(), new PartyContext(), new FightState());
+    // Who the page samples a call as.
+    //
+    // It used to be nobody: no slot, no strat, and an id of zero. Three things went
+    // wrong at once. Every role call read its generic branch, so nine mechanics all
+    // said "raidwide" where a healer hears "raidwide heal". Every strat call read
+    // its fallback, so picking a strat changed the dropdown and nothing above it.
+    // And "is this aimed at me" is an id comparison, so zero equalled zero and every
+    // buster in the fight claimed to be on you.
+    private static PlayerContext Asking(ushort territory) => new()
+    {
+        // Any id that is not the blank event's zero. What it is does not matter,
+        // only that "aimed at me" stops being accidentally true for everything.
+        MyId = Me,
+        MySlot = _slot,
+        Strat = key => _strat?.Invoke(territory, key) ?? "",
+    };
+
+    private const uint Me = 0x10000001;
+
+    // A call that only ever fires on you is sampled as being on you; anything that
+    // can land on anybody is sampled as landing on somebody else, which is the form
+    // most of the party hears most of the time.
+    private static TriggerContext Blank(Trigger t, ushort territory) => new(
+        new GameEvent
+        {
+            Kind = t.On,
+            Time = 0,
+            Id = t.MatchId,
+            TargetId = t.OnlyMe || t.Aim == Aim.Me ? Me : 0,
+        },
+        Asking(territory), new ActorBook(), new PartyContext(), new FightState());
 
     private static string Readable(string id) => id.Replace('-', ' ');
 
