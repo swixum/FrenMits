@@ -390,7 +390,13 @@ public static class FightCatalog
             {
                 var sample = t.Make(Blank(t, territory));
                 sampled = !string.IsNullOrWhiteSpace(sample?.Text);
-                text = sampled ? sample!.Text : Readable(t.Id);
+                // Asked, then told, then the id as a last resort. A call that reads
+                // the pull cannot answer here, but its author knows what it sounds
+                // like, and a player choosing what to switch off needs the words
+                // rather than a slug.
+                text = sampled ? sample!.Text
+                    : t.Says.Length > 0 ? t.Says
+                    : Readable(t.Id);
                 hold = sample?.Hold ?? 4f;
                 level = sample?.Level ?? CallLevel.Info;
             }
@@ -453,7 +459,7 @@ public static class FightCatalog
     //
     // It used to be nobody: no slot, no strat, and an id of zero. Three things went
     // wrong at once. Every role call read its generic branch, so nine mechanics all
-    // said "raidwide" where a healer hears "raidwide heal". Every strat call read
+    // showed its generic half whoever was reading. Every strat call read
     // its fallback, so picking a strat changed the dropdown and nothing above it.
     // And "is this aimed at me" is an id comparison, so zero equalled zero and every
     // buster in the fight claimed to be on you.

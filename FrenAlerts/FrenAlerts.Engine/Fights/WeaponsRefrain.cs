@@ -134,6 +134,7 @@ public static class WeaponsRefrain
         yield return new Trigger
         {
             Id = "uwu-titan-jump",
+            Says = "safe spot unknown / someone is safe",
             On = EventKind.NameToggle,
             OncePerBurst = false,
             Make = ctx =>

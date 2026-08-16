@@ -58,6 +58,7 @@ public static class LindwurmSlam
         yield return new Trigger
         {
             Id = "m12s-top-tier-slam",
+            Says = "bait dark in north, out south (solo)",
             On = EventKind.AbilityHit,
             MatchId = WingedScourge,
             Hush = 5f,

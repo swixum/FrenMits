@@ -228,6 +228,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "p5-stack",
+            Says = "stack on you / stack on Bob",
             On = EventKind.HeadMarker,
             MatchId = 0x00A1,
             Phase = 5,
@@ -263,6 +264,7 @@ public static partial class DancingMad
     private static Trigger CeleOrder(string id, EventKind on, uint match, double after) => new()
     {
         Id = id,
+        Says = "fire on you soak ice then lightning",
         On = on,
         MatchId = match,
         Phase = 5,

@@ -160,6 +160,7 @@ public static partial class UnendingCoilTrio
         yield return new Trigger
         {
             Id = "ucob-blackfire-nael",
+            Says = "Nael is",
             On = EventKind.ActorMoved,
             OncePerBurst = false,
             Phase = 3,
@@ -189,6 +190,7 @@ public static partial class UnendingCoilTrio
         yield return new Trigger
         {
             Id = "ucob-heavensfall-nael",
+            Says = "Nael",
             On = EventKind.ActorMoved,
             OncePerBurst = false,
             Phase = 3,
@@ -227,6 +229,7 @@ public static partial class UnendingCoilTrio
         yield return new Trigger
         {
             Id = "ucob-heavensfall-tower",
+            Says = "tower someone",
             On = EventKind.CastStart,
             MatchId = 0x26DF,
             OncePerBurst = false,
@@ -265,6 +268,7 @@ public static partial class UnendingCoilTrio
         yield return new Trigger
         {
             Id = "ucob-grand-octet",
+            Says = "start north, go clockwise",
             On = EventKind.ActorMoved,
             OncePerBurst = false,
             Phase = 3,

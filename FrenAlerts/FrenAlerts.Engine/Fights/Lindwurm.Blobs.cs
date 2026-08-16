@@ -89,6 +89,7 @@ public static class LindwurmBlobs
         yield return new Trigger
         {
             Id = "m12s-mitotic-tower",
+            Says = "tower",
             On = EventKind.StatusGain,
             MatchId = Mitotic,
             OnlyMe = true,
@@ -114,6 +115,7 @@ public static class LindwurmBlobs
         yield return new Trigger
         {
             Id = "m12s-blob-tower-early",
+            Says = "blob tower 1, inner north",
             On = EventKind.StatusGain,
             MatchId = FleshAlpha,
             OnlyMe = true,
@@ -148,6 +150,7 @@ public static class LindwurmBlobs
         yield return new Trigger
         {
             Id = "m12s-blob-tower",
+            Says = "blob tower 2, outer southeast",
             On = EventKind.CastStart,
             MatchId = RollingMass,
             Hush = 10f,

@@ -74,6 +74,7 @@ public static class RedHotDeepBlue
         yield return new Trigger
         {
             Id = "m10s-sick-swell",
+            Says = "knock north, middle",
             On = EventKind.CastStart,
             MatchId = SickSwell,
             OncePerBurst = false,
@@ -100,6 +101,7 @@ public static class RedHotDeepBlue
         yield return new Trigger
         {
             Id = "m10s-snaking",
+            Says = "north / west / south",
             On = EventKind.MapEffect,
             OncePerBurst = false,
             Make = ctx =>

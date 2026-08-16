@@ -36,6 +36,7 @@ public static class WeaponsRefrainIfrit
         yield return new Trigger
         {
             Id = "uwu-ifrit-initial-dash",
+            Says = "Ifrit someone",
             On = EventKind.ActorMoved,
             OncePerBurst = false,
             Make = ctx =>
@@ -67,6 +68,7 @@ public static class WeaponsRefrainIfrit
         yield return new Trigger
         {
             Id = "uwu-ifrit-plumes",
+            Says = "someone is safe",
             On = EventKind.CastStart,
             MatchId = RadiantPlume,
             OncePerBurst = false,
@@ -117,6 +119,7 @@ public static class WeaponsRefrainIfrit
         yield return new Trigger
         {
             Id = "uwu-ifrit-dash-1",
+            Says = "someone or someone",
             On = EventKind.NameToggle,
             OncePerBurst = false,
             Make = ctx =>
@@ -147,6 +150,7 @@ public static class WeaponsRefrainIfrit
         yield return new Trigger
         {
             Id = "uwu-ifrit-dash-2",
+            Says = "cw 90 to north, fast",
             On = EventKind.CastStart,
             MatchId = CrimsonCyclone,
             OncePerBurst = false,

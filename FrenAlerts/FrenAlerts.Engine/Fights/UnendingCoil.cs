@@ -48,6 +48,7 @@ public static class UnendingCoil
     private static Trigger Exaflares() => new()
     {
         Id = "ucob-exaflares",
+        Says = "exaflares someone towards someone",
         On = EventKind.CastStart,
         MatchId = 0x26F0,
         Phase = 3,

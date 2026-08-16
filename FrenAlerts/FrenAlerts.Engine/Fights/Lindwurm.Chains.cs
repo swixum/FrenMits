@@ -132,6 +132,7 @@ public static class LindwurmChains
         yield return new Trigger
         {
             Id = "m12s-mortal-slayer",
+            Says = "tanks left / tanks right",
             On = EventKind.ActorSpawn,
             OncePerBurst = false,
             Hush = 12f,
@@ -207,6 +208,7 @@ public static class LindwurmChains
         yield return new Trigger
         {
             Id = "m12s-chain-tether",
+            Says = "tether 2, then chain tower 3",
             On = EventKind.Tether,
             MatchId = CellChainTether,
             OncePerBurst = false,
@@ -239,6 +241,7 @@ public static class LindwurmChains
         yield return new Trigger
         {
             Id = "m12s-chain-tower",
+            Says = "take chain tower",
             On = EventKind.AbilityHit,
             MatchId = ChainBroken,
             Hush = 1f,

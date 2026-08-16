@@ -100,6 +100,7 @@ public static class LindwurmCoil
     private static Trigger Chains(string id, uint status, bool alpha) => new()
     {
         Id = id,
+        Says = "break chains, northwest or south",
         On = EventKind.StatusGain,
         MatchId = status,
         OnlyMe = true,

@@ -111,14 +111,11 @@ public static partial class DancingMad
         Phase = phase,
         Make = ctx => new Call
         {
-            // Everyone needs to know it is coming; what they do about it differs,
-            // and for a raidwide that difference is not a strat choice.
-            Text = Audience.RoleOf(ctx.MySlot) switch
-            {
-                "healer" => "raidwide heal",
-                "tank" => "raidwide mit",
-                _ => "raidwide",
-            },
+            // One word for everybody. It used to split by role into "raidwide heal"
+            // and "raidwide mit", which tells a healer and a tank the thing they were
+            // already going to do and makes the same event sound like three different
+            // mechanics depending on who you ask about it.
+            Text = "raidwide",
             Time = Lands(ctx),
             Key = id,
             Level = CallLevel.Alert,
@@ -461,7 +458,7 @@ public static partial class DancingMad
                 }
                 : new Call
                 {
-                    Text = "raidwide mit",
+                    Text = "raidwide",
                     Time = Lands(ctx),
                     Key = "vacuum-wave",
                     Level = CallLevel.Alert,
@@ -476,7 +473,7 @@ public static partial class DancingMad
             For = "healer,dps",
             Make = ctx => new Call
             {
-                Text = Audience.RoleOf(ctx.MySlot) == "healer" ? "raidwide heal" : "raidwide",
+                Text = "raidwide",
                 Time = Lands(ctx),
                 Key = "vacuum-wave",
                 Level = CallLevel.Alert,

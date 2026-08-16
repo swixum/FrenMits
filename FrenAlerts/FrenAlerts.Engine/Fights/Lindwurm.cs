@@ -31,6 +31,7 @@ public static class Lindwurm
         yield return new Trigger
         {
             Id = "m12s-scourges",
+            Says = "get out, line on you / away from the tanks",
             On = EventKind.ActorControl,
             MatchId = Targetable,
             // Said once a pull: it fires on the boss returning and it returns more

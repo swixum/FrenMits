@@ -284,6 +284,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "trine-spots",
+            Says = "north later (north/east/south)",
             On = EventKind.ActorSpawn,
             Phase = 2,
             OncePerBurst = false,
@@ -398,6 +399,7 @@ public static partial class DancingMad
     private static Trigger PathSet(string id, EventKind on, uint match, int set) => new()
     {
         Id = id,
+        Says = "1: stack on you + tower",
         On = on,
         MatchId = match,
         Phase = 2,

@@ -170,7 +170,8 @@ public static partial class DancingMad
         // the side that is left.
         yield return new Trigger
         {
-            Id = "impertinent-will",
+            Id = "intemperate-will",
+            Says = "get left (west)",
             On = EventKind.ActorControl,
             MatchId = StatueControl,
             Phase = 1,
@@ -193,6 +194,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "gravitational-wave",
+            Says = "get right (east)",
             On = EventKind.ActorControl,
             MatchId = StatueControl,
             Phase = 1,
@@ -217,6 +219,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "wave-cannon-spread",
+            Says = "east west spread",
             On = EventKind.ActorControl,
             MatchId = StatueControl,
             Phase = 1,
@@ -241,6 +244,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "statue-gaze-early",
+            Says = "look away from statue later / look at statue later",
             On = EventKind.ActorControl,
             MatchId = StatueControl,
             Phase = 1,
@@ -268,6 +272,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "pulse-wave-tether",
+            Says = "knockback on you / tether on you",
             On = EventKind.Tether,
             MatchId = ImageTether,
             Phase = 1,
@@ -292,6 +297,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "will-tether",
+            Says = "confuse tether on you / sleep tether on you / tether on you",
             On = EventKind.Tether,
             MatchId = ImageTether,
             Phase = 1,
@@ -353,6 +359,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "trap-knockback",
+            Says = "knockback from Bob then confuse",
             On = EventKind.StatusGain,
             MatchId = 0x13D6,
             Phase = 1,
@@ -394,6 +401,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "mystery-ice-and-thunder",
+            Says = "avoid both / cone only / line only",
             On = EventKind.CastStart,
             MatchId = 0xBA94,
             Phase = 1,
@@ -421,6 +429,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "mystery-ice-and-fire",
+            Says = "avoid tell / in cone",
             On = EventKind.CastStart,
             MatchId = 0xBA94,
             Phase = 1,
@@ -444,6 +453,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "mystery-fire-and-thunder",
+            Says = "stack + in line + look away from statue",
             On = EventKind.CastStart,
             MatchId = 0xBA94,
             Phase = 1,
@@ -475,6 +485,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "mystery-ice-and-puddle",
+            Says = "aoe on you / get middle / avoid tell",
             On = EventKind.CastStart,
             MatchId = 0xBA95,
             Phase = 1,

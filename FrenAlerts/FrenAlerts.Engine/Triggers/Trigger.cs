@@ -119,6 +119,19 @@ public sealed record Trigger
     // it and the row's own id where the words should be.
     public bool Claims { get; init; }
 
+    // What this call sounds like, for the fight page to show before a pull.
+    //
+    // Most calls can be asked what they say by running them once. These are the ones
+    // that cannot: they read which statue lit, who took the marker, which tether is
+    // yours, so before a pull there is no answer to read and they return nothing.
+    // The page used to print their id with the dashes taken out, which is how
+    // "impertinent will" ended up on screen as if it were a call.
+    //
+    // Written as the words the player will actually hear, several separated by " / "
+    // where the call has more than one answer. It is a sample and not a promise: the
+    // row is tagged so nobody reads it as the exact line.
+    public string Says { get; init; } = "";
+
     // Which phase of the fight this belongs to, for grouping it on the fight page.
     // Zero means it was never given one, which reads as "everything else" and is
     // what a hand written call used to fall into whether it belonged there or not.

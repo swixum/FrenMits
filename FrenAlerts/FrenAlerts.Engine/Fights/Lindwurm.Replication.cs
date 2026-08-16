@@ -112,6 +112,7 @@ public static class LindwurmReplication
             yield return new Trigger
             {
                 Id = $"m12s-idyllic-{tether:X}",
+                Says = "stacks first, east group 1, northeast",
                 On = EventKind.Tether,
                 MatchId = tether,
                 OnlyMe = true,
@@ -140,6 +141,7 @@ public static class LindwurmReplication
         yield return new Trigger
         {
             Id = "m12s-replication-job",
+            Says = "north clone, boss tether",
             On = EventKind.Tether,
             MatchId = LockedTether,
             OnlyMe = true,

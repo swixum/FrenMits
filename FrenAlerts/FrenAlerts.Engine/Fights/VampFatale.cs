@@ -75,6 +75,7 @@ public static class VampFatale
         yield return new Trigger
         {
             Id = "m9s-plummet",
+            Says = "right then left / left then right / near",
             On = EventKind.CastStart,
             MatchId = Plummet,
             OncePerBurst = false,

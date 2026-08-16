@@ -203,6 +203,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "crystal-spots",
+            Says = "fire northwest then water northeast then wind southeast (later)",
             On = EventKind.ActorSpawn,
             Phase = 3,
             OncePerBurst = false,
@@ -273,6 +274,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "wind-on-me",
+            Says = "fire + headwind on you",
             On = EventKind.StatusGain,
             Phase = 3,
             OnlyMe = true,
@@ -298,6 +300,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "blaster-rotation",
+            Says = "north (later) / clockwise / counterclockwise",
             On = EventKind.AbilityHit,
             MatchId = 0xBAE3,
             Phase = 3,
@@ -323,6 +326,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "in-line-with",
+            Says = "#3 (with Bob)",
             On = EventKind.StatusGain,
             Phase = 3,
             OnlyMe = true,
@@ -392,6 +396,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "kefka-teleport",
+            Says = "north kefka",
             On = EventKind.ActorMoved,
             Phase = 3,
             OncePerBurst = false,
@@ -614,6 +619,7 @@ public static partial class DancingMad
     private static Trigger ElementCall(string id, uint status, string element, string shape) => new()
     {
         Id = id,
+        Says = "spread on Bob then bait fire northwest",
         On = EventKind.StatusGain,
         MatchId = status,
         Phase = 3,
@@ -688,6 +694,7 @@ public static partial class DancingMad
     private static Trigger HoleSet(string id, EventKind on, uint match, int nth) => new()
     {
         Id = id,
+        Says = "take the north tether",
         On = on,
         MatchId = match,
         Phase = 3,

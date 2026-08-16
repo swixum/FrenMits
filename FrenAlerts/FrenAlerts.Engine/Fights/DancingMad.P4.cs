@@ -135,6 +135,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "neo-wound-and-field",
+            Says = "purple debuff + death on you",
             On = EventKind.StatusGain,
             Phase = 4,
             OnlyMe = true,
@@ -170,6 +171,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "neo-short-debuffs",
+            Says = "spread + stop everything",
             On = EventKind.AbilityHit,
             MatchId = 0xC394,
             Phase = 4,
@@ -194,6 +196,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "acceleration-bomb-drop",
+            Says = "stop everything",
             On = EventKind.StatusGain,
             MatchId = Bomb,
             Phase = 4,
@@ -220,6 +223,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "neo-entropy",
+            Says = "bait puddles / stack for donuts",
             On = EventKind.StatusGain,
             MatchId = Shriek,
             Phase = 4,
@@ -240,6 +244,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "neo-fluid",
+            Says = "stack for donuts / bait puddles",
             On = EventKind.StatusGain,
             MatchId = Shriek,
             Phase = 4,
@@ -262,6 +267,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "thrumming-thunder-tell",
+            Says = "true lightning (lines) / fake lightning (lines)",
             On = EventKind.CastStart,
             MatchId = 0xC5DE,
             Phase = 4,
@@ -279,6 +285,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "blizzard-blowout-tell",
+            Says = "avoid cone / in cone",
             On = EventKind.CastStart,
             MatchId = 0xBA95,
             Phase = 4,
@@ -301,6 +308,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "mana-release-tells",
+            Says = "true ice (cones) / true lightning (lines) + in donut",
             On = EventKind.CastStart,
             MatchId = 0xBAA5,
             Phase = 4,
@@ -338,6 +346,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "shotcall-gaze",
+            Says = "first / second / out",
             On = EventKind.StatusGain,
             MatchId = Shriek,
             Phase = 4,
@@ -367,6 +376,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "shotcall-tells",
+            Says = "ice real lightning fake",
             On = EventKind.CastStart,
             MatchId = 0xBA94,
             Phase = 4,
@@ -417,6 +427,7 @@ public static partial class DancingMad
     private static Trigger Shotcall(string id, uint status, string real, string fake) => new()
     {
         Id = id,
+        Says = "fire is aoe (dodge)",
         On = EventKind.StatusGain,
         MatchId = status,
         Phase = 4,
@@ -438,6 +449,7 @@ public static partial class DancingMad
     private static Trigger MySet(string id, bool first) => new()
     {
         Id = id,
+        Says = "spread first / stack second",
         On = EventKind.StatusGain,
         Phase = 4,
         OnlyMe = true,
@@ -492,6 +504,7 @@ public static partial class DancingMad
     private static Trigger Flood(string id, uint action, bool real, bool blueLeft) => new()
     {
         Id = id,
+        Says = "stand in purple (left)",
         On = EventKind.CastStart,
         MatchId = action,
         Phase = 4,
@@ -551,6 +564,7 @@ public static partial class DancingMad
     private static Trigger Shrieking(string id, bool first) => new()
     {
         Id = id,
+        Says = "look away from Bob",
         On = EventKind.StatusGain,
         MatchId = Shriek,
         Phase = 4,

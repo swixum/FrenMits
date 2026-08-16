@@ -49,6 +49,7 @@ public static class TyrantComet
         yield return new Trigger
         {
             Id = "m11s-bait-gust",
+            Says = "bait the gust",
             On = EventKind.ActorSpawn,
             OncePerBurst = false,
             Make = ctx =>
@@ -71,6 +72,7 @@ public static class TyrantComet
         yield return new Trigger
         {
             Id = "m11s-mammoth-meteor",
+            Says = "get middle / someone or someone",
             On = EventKind.CastStart,
             MatchId = MammothMeteor,
             // Two meteors, one line: upstream says it once per set.
