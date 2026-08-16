@@ -22,14 +22,16 @@ public static class TriggerPack
             if (Trimmed.Drops(territory, spec.Id)) continue;
             if (taken.Contains((spec.On, spec.MatchId))) continue;
             if (owned.Any(o => Names(spec.Key, o))) continue;
-            yield return ToTrigger(spec);
+            yield return ToTrigger(spec, territory);
         }
     }
 
     private static bool Names(string key, string mechanic) =>
         $"-{key}-".Contains($"-{mechanic}-", StringComparison.Ordinal);
 
-    public static Trigger ToTrigger(CallSpec spec) => new()
+    public static Trigger ToTrigger(CallSpec spec) => ToTrigger(spec, spec.Territory);
+
+    public static Trigger ToTrigger(CallSpec spec, ushort territory) => new()
     {
         Id = spec.Id,
         On = spec.On,
@@ -47,7 +49,7 @@ public static class TriggerPack
         For = spec.For,
         Make = ctx => NeedsATarget(spec.Text) && !ctx.HasRealTarget ? null : new Call
         {
-            Text = Fill(spec.Text, ctx),
+            Text = Fill(Reworded.For(territory, spec.Id, spec.Text), ctx),
             Time = ctx.Event.Time + spec.Delay,
             Key = spec.DedupeKey,
             Level = spec.Level,

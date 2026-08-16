@@ -183,6 +183,43 @@ public static class DancingMad
         },
     };
 
+    // Which way your portent points. The direction is fixed per status id, so this
+    // needs no geometry at all: 130C-130F are the first one, 13D7-13DA the second.
+    private static readonly (uint First, uint Second, string Way)[] Portents =
+    [
+        (0x130C, 0x13D7, "up"),
+        (0x130D, 0x13D8, "down"),
+        (0x130E, 0x13D9, "right"),
+        (0x130F, 0x13DA, "left"),
+    ];
+
+    private static IEnumerable<Trigger> TelePortents()
+    {
+        foreach (var (first, second, way) in Portents)
+        {
+            // Two separate calls rather than one combined one: which pair you hold
+            // decides where to stand, and that depends on the group's strat, so the
+            // engine says what it knows and stops there.
+            yield return Element($"portent-1-{way}", first, way, 1);
+            yield return Element($"portent-2-{way}", second, way, 1);
+        }
+    }
+
+    // The Neo Exdeath debuff you are holding, named the way the raid calls it.
+    private static readonly (uint Status, string Word)[] Wounds =
+    [
+        (0x15A5, "purple"), (0x1317, "purple"),
+        (0x15A6, "blue"), (0x1318, "blue"),
+        (0x566, "death"), (0x1558, "death"),
+        (0x1C6, "field"),
+    ];
+
+    private static IEnumerable<Trigger> NeoDebuffs()
+    {
+        foreach (var (status, word) in Wounds)
+            yield return Element($"neo-debuff-{status:X}", status, word, 4);
+    }
+
     private static Trigger Hero(string id, uint status, string boss, int phase) => new()
     {
         Id = id,
@@ -320,6 +357,11 @@ public static class DancingMad
         yield return Cast("despair-1", 0xBAEC, "out of the middle", 3);
         yield return Cast("despair-2", 0xBAED, "out of the middle", 3);
         yield return Cast("mana-release", 0xBAA5, "in the donut", 4);
+        // The highlighted wing is the one that cleaves, so the call is the far side:
+        // BACD lights the left wing and BACE the right.
+        yield return Cast("single-wing-left", 0xBACD, "right", 2);
+        yield return Cast("single-wing-right", 0xBACE, "left", 2);
+
         yield return Cast("stray-flames", 0xBAF3, "bait", 3);
         yield return Cast("stray-spray", 0xBAF6, "bait", 3);
 
@@ -377,6 +419,8 @@ public static class DancingMad
         yield return Element("celestriad-lightning", 0xBB6, "lightning last", 5);
 
         foreach (var t in InLine()) yield return t;
+        foreach (var t in TelePortents()) yield return t;
+        foreach (var t in NeoDebuffs()) yield return t;
 
         // Which of the two bosses this player is meant to be hitting.
         yield return Hero("epic-hero", 0x1060, "Chaos", 3);

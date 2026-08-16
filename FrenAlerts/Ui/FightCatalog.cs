@@ -240,7 +240,8 @@ public static class FightCatalog
             if (s.Territory != territory || !kept.Contains(s.Id)) continue;
             keyOf[s.Id] = s.DedupeKey;
             if (!seen.Add(s.DedupeKey)) continue;
-            list.Add(new CallEntry(s.DedupeKey, s.Text, s.Level, s.Hold, s.Phase,
+            list.Add(new CallEntry(s.DedupeKey, Reworded.For(territory, s.Id, s.Text),
+                s.Level, s.Hold, s.Phase,
                 s.DefaultOn, s.On, s.MatchId));
         }
         return list;
