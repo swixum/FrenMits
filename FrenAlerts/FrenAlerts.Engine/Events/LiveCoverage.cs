@@ -53,13 +53,13 @@ public static class LiveCoverage
     public static readonly IReadOnlyDictionary<EventKind, string> UnprovenLive =
         new Dictionary<EventKind, string>
         {
-            [EventKind.HeadMarker] =
-                "Control category 34, marker id in the first argument, aimed at " +
-                "whoever got it. Watch the marker count climb in a pull with no " +
-                "parser running.",
-            [EventKind.Tether] =
-                "Control category 35, tether id in the second argument and the far " +
-                "end in the third. Replaces a poll that only ever walked the party.",
+            // Head markers and tethers used to be listed here. They came off after
+            // reading the shipped plugin these calls were ported from: it hooks the
+            // same function and splits the same two categories, with the marker id
+            // in the first argument aimed at the actor, and the tether id in the
+            // second with the far end in the third. Identical to this one, field for
+            // field. That is not two decompiles agreeing on paper, it is a build
+            // people raided Dancing Mad with.
             [EventKind.NpcYell] =
                 "The line's row is read out of the client's own yell sheet and the " +
                 "chat log is matched back to it, so no signature and no packet hook " +

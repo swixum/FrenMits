@@ -48,6 +48,11 @@ public static class FightCatalog
     private static IReadOnlyDictionary<string, string> _keyOf =
         new Dictionary<string, string>();
     private static IReadOnlyDictionary<uint, int> _mechanics = new Dictionary<uint, int>();
+
+    // Per fight, the second each timeline mechanic lands, keyed the way a call id
+    // is written. Read once with the timelines and used only to order the rows.
+    private static IReadOnlyDictionary<uint, IReadOnlyDictionary<string, float>> _whenBy =
+        new Dictionary<uint, IReadOnlyDictionary<string, float>>();
     private static bool _asked;
 
     public static IReadOnlyList<CallEntry> CallsIn(uint territory)
@@ -104,6 +109,18 @@ public static class FightCatalog
 
     private static void LoadPack()
     {
+        // Timelines first, because the build puts the rows in the order they say.
+        // Its own try, so a timeline that will not read costs the page its ordering
+        // and a line of detail rather than the whole fight list.
+        try
+        {
+            _mechanics = ReadTimelines();
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Error(ex, "Fren Alerts: the timelines would not read into the fight list");
+        }
+
         try
         {
             _entries = Build(ReadPack().ToList());
@@ -112,17 +129,6 @@ public static class FightCatalog
         {
             PackProblem = "The call pack would not read, so only the built-in fights call.";
             Service.Log.Error(ex, "Fren Alerts: the call pack would not read into the fight list");
-        }
-
-        // Its own try, so a timeline that will not read costs the page a line of
-        // detail rather than the whole fight list.
-        try
-        {
-            _mechanics = ReadTimelines();
-        }
-        catch (Exception ex)
-        {
-            Service.Log.Error(ex, "Fren Alerts: the timelines would not read into the fight list");
         }
     }
 
@@ -139,8 +145,102 @@ public static class FightCatalog
         var path = dir is null ? null : Path.Combine(dir, "timelines.fatime");
         if (path is null || !File.Exists(path)) return new Dictionary<uint, int>();
 
-        return TimelinePack.ReadAll(File.ReadLines(path).Take(MaxTimelineLines))
-            .ToDictionary(t => (uint)t.Key, t => t.Value.Entries.Count);
+        var packs = TimelinePack.ReadAll(File.ReadLines(path).Take(MaxTimelineLines));
+
+        // The same read gives every mechanic its second, which is what puts the
+        // call rows in the order the fight happens in.
+        _whenBy = packs.ToDictionary(t => (uint)t.Key, t => When(t.Value));
+        return packs.ToDictionary(t => (uint)t.Key, t => t.Value.Entries.Count);
+    }
+
+    // The first second each mechanic lands, by its name flattened to the same shape
+    // a call id is written in. First rather than every: a mechanic that repeats is
+    // one row on the page and belongs where it is first heard.
+    private static IReadOnlyDictionary<string, float> When(Timeline timeline)
+    {
+        var when = new Dictionary<string, float>(StringComparer.Ordinal);
+        foreach (var e in timeline.Entries)
+        {
+            var name = Flatten(e.Mechanic);
+            if (name.Length == 0) continue;
+            if (!when.TryGetValue(name, out var at) || e.Time < at) when[name] = e.Time;
+        }
+        return when;
+    }
+
+    // "Revolting Ruin III 2" to "revolting-ruin-iii", so a timeline name and a call
+    // id meet in the middle. The trailing count is dropped: it numbers the
+    // repetition, not the mechanic.
+    private static string Flatten(string name)
+    {
+        var chars = new char[name.Length];
+        var n = 0;
+        foreach (var c in name)
+        {
+            if (char.IsLetterOrDigit(c)) chars[n++] = char.ToLowerInvariant(c);
+            else if (n > 0 && chars[n - 1] != '-') chars[n++] = '-';
+        }
+        var flat = new string(chars, 0, n).Trim('-');
+
+        var cut = flat.LastIndexOf('-');
+        return cut > 0 && flat[(cut + 1)..].All(char.IsDigit) ? flat[..cut] : flat;
+    }
+
+    // The rows in the order the fight puts them, so a reader can follow it down the
+    // page instead of meeting every hand written call and then every packed one.
+    //
+    // Phase first, because a phase is the one ordering the fight itself guarantees
+    // and every row carries it. Then the second the mechanic lands, off the shipped
+    // timeline. A call whose mechanic is not on the timeline keeps its old place at
+    // the end of its own phase: unknown is not zero, and floating it to the top
+    // would read as "this happens first".
+    private static IReadOnlyList<CallEntry> InFightOrder(
+        uint territory, List<CallEntry> all)
+    {
+        if (!_whenBy.TryGetValue(territory, out var when) || when.Count == 0) return all;
+
+        var at = new float[all.Count];
+        for (var i = 0; i < all.Count; i++) at[i] = WhenOf(all[i], when);
+
+        return all
+            .Select((c, i) => (Call: c, At: at[i], Was: i))
+            .OrderBy(r => r.Call.Phase == 0 ? int.MaxValue : r.Call.Phase)
+            .ThenBy(r => r.At)
+            .ThenBy(r => r.Was)
+            .Select(r => r.Call)
+            .ToList();
+    }
+
+    // Which timeline mechanic a call is about, matched on the call's own id.
+    //
+    // Either way round, because neither side is reliably the longer one. A call id
+    // can carry the mechanic and more ("wave-cannon-towers" holds "wave-cannon"),
+    // and it can equally be the shorter of the two: the timeline writes "Revolting
+    // Ruin III" where the call is just "revolting-ruin".
+    //
+    // Longest match wins, so a call that holds both "wave-cannon" and
+    // "wave-cannon-explosion" is dated by the mechanic it is actually about.
+    private static float WhenOf(CallEntry call, IReadOnlyDictionary<string, float> when)
+    {
+        var id = Flatten(call.Key);
+        if (id.Length == 0) return float.MaxValue;
+
+        var best = float.MaxValue;
+        var longest = 0;
+
+        foreach (var (name, seconds) in when)
+        {
+            var hit = name.Length >= id.Length
+                ? name.Contains(id, StringComparison.Ordinal)
+                : id.Contains(name, StringComparison.Ordinal);
+            if (!hit) continue;
+
+            var strength = Math.Min(name.Length, id.Length);
+            if (strength <= longest) continue;
+            longest = strength;
+            best = seconds;
+        }
+        return best;
     }
 
     public static int MechanicsIn(uint territory)
@@ -198,7 +298,7 @@ public static class FightCatalog
             var built = Written(mine, keyOf)
                 .Concat(Ordered(sequences.GetValueOrDefault(territory) ?? [], keyOf))
                 .ToList();
-            var all = built.Concat(loaded).ToList();
+            var all = InFightOrder(territory, built.Concat(loaded).ToList());
             calls[territory] = all;
             foreach (var c in all) shipped[c.Key] = c.Text;
 
@@ -327,7 +427,7 @@ public static class FightCatalog
             if (s.Territory != territory || !kept.Contains(s.Id)) continue;
             keyOf[s.Id] = s.DedupeKey;
             if (!seen.Add(s.DedupeKey)) continue;
-            list.Add(new CallEntry(s.DedupeKey, Reworded.For(territory, s.Id, s.Text),
+            list.Add(new CallEntry(s.DedupeKey, s.Text,
                 s.Level, s.Hold, s.Phase,
                 s.DefaultOn, s.On, s.MatchId));
         }

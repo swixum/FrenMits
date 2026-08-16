@@ -182,7 +182,7 @@ public static partial class DancingMad
                 if (!IsYellow(pull.StatueBase, ctx.Event.SourceId)) return null;
                 return new Call
                 {
-                    Text = "west",
+                    Text = "get left (west)",
                     Time = ctx.Event.Time,
                     Key = "half-room-cleave",
                     Level = CallLevel.Alarm,
@@ -204,7 +204,7 @@ public static partial class DancingMad
                 if (!IsPurple(pull.StatueBase, ctx.Event.SourceId)) return null;
                 return new Call
                 {
-                    Text = "east",
+                    Text = "get right (east)",
                     Time = ctx.Event.Time,
                     Key = "half-room-cleave",
                     Level = CallLevel.Alarm,
@@ -228,7 +228,7 @@ public static partial class DancingMad
                 if (!IsBlue(pull.StatueBase, ctx.Event.SourceId)) return null;
                 return new Call
                 {
-                    Text = "spread east and west",
+                    Text = "east west spread",
                     Time = ctx.Event.Time,
                     Key = "wave-cannon-spread",
                     Level = CallLevel.Alert,
@@ -253,7 +253,9 @@ public static partial class DancingMad
                 if (!IsEye(pull.StatueBase, id) && !IsFakeEye(pull.StatueBase, id)) return null;
                 return new Call
                 {
-                    Text = IsEye(pull.StatueBase, id) ? "look away soon" : "look at it soon",
+                    Text = IsEye(pull.StatueBase, id)
+                        ? "look away from statue later"
+                        : "look at statue later",
                     Time = ctx.Event.Time,
                     Key = "statue-gaze-early",
                     Level = CallLevel.Info,
@@ -331,7 +333,7 @@ public static partial class DancingMad
                 var pull = Pull(ctx);
                 var missed = !pull.WaveCannoned.Contains(ctx.Player.MyId);
                 var text = missed
-                    ? "towers"
+                    ? "get towers"
                     : pull.WaveCannoned.Count > 4 ? "extra tower" : "avoid towers";
                 return new Call
                 {
@@ -376,7 +378,7 @@ public static partial class DancingMad
 
                 return new Call
                 {
-                    Text = $"knockback off {who}{tail}",
+                    Text = $"knockback from {who}{tail}",
                     Time = ctx.Event.Time + Math.Max(0f, seconds - 3.9f),
                     Key = "trap-knockback",
                     Level = CallLevel.Alarm,
@@ -401,10 +403,10 @@ public static partial class DancingMad
                 if (pull.IceReal is not { } ice || pull.ThunderReal is not { } thunder) return null;
                 var text = (ice, thunder) switch
                 {
-                    (true, true) => "dodge both tells",
-                    (false, true) => "in the cone only",
-                    (true, false) => "in the line only",
-                    _ => "in the cone and the line",
+                    (true, true) => "avoid both",
+                    (false, true) => "cone only",
+                    (true, false) => "line only",
+                    _ => "cone + line",
                 };
                 return new Call
                 {
@@ -430,7 +432,7 @@ public static partial class DancingMad
                 if (MyMystery(pull, fire) is not { } mine) return null;
                 return new Call
                 {
-                    Text = $"{mine} and {(ice ? "dodge the cone" : "in the cone")}",
+                    Text = $"{mine} + {(ice ? "avoid tell" : "in cone")}",
                     Time = Lands(ctx),
                     Key = "mystery-magic-pair",
                     Level = CallLevel.Alarm,
@@ -453,13 +455,13 @@ public static partial class DancingMad
                 if (MyMystery(pull, fire) is not { } mine) return null;
                 var look = pull.LookAway switch
                 {
-                    true => " and look away",
-                    false => " and look at it",
+                    true => " + look away from statue",
+                    false => " + look at statue",
                     _ => "",
                 };
                 return new Call
                 {
-                    Text = $"{mine} and {(thunder ? "dodge the line" : "in the line")}{look}",
+                    Text = $"{mine} + {(thunder ? "avoid tell" : "in line")}{look}",
                     Time = Lands(ctx),
                     Key = "mystery-magic-pair",
                     Level = CallLevel.Alarm,
@@ -481,10 +483,10 @@ public static partial class DancingMad
                 var pull = Pull(ctx);
                 if (pull.IceReal is not { } ice) return null;
                 if (pull.FireReal is not null || pull.ThunderReal is not null) return null;
-                var after = pull.MyTether == "vitrophyre" ? "spread" : "middle";
+                var after = pull.MyTether == "vitrophyre" ? "aoe on you" : "get middle";
                 return new Call
                 {
-                    Text = $"{(ice ? "dodge the cone" : "in the cone")} and bait then {after}",
+                    Text = $"{(ice ? "avoid tell" : "in cone")} + bait puddle then {after}",
                     Time = Lands(ctx),
                     Key = "mystery-ice-puddle",
                     Level = CallLevel.Alert,
@@ -503,7 +505,9 @@ public static partial class DancingMad
             Phase = 1,
             Make = ctx => new Call
             {
-                Text = Pull(ctx).MyTether == "vitrophyre" ? "spread" : "away from the tethers",
+                Text = Pull(ctx).MyTether == "vitrophyre"
+                    ? "spread (avoid puddles)"
+                    : "avoid tethered players",
                 Time = ctx.Event.Time,
                 Key = "vitrophyre",
                 Level = CallLevel.Alert,
@@ -517,8 +521,8 @@ public static partial class DancingMad
     // stack marker is the other way round, which comes out as an exclusive or.
     private static string? MyMystery(DancingMadPull pull, bool fireReal) => pull.MyMark switch
     {
-        Dorito => fireReal ? "spread" : "stack",
-        StackMark => fireReal ? "stack" : "spread",
+        Dorito => fireReal ? "aoe on you" : "stack",
+        StackMark => fireReal ? "stack" : "aoe on you",
         _ => null,
     };
 

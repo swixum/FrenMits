@@ -106,18 +106,18 @@ public class AlertOverlay : Window
         // Right-click menu, only while the overlay takes the mouse.
         if (ImGui.BeginPopupContextWindow("##facallctx"))
         {
-            if (ImGui.MenuItem("Lock Position", "", C.OverlayLocked))
+            if (ImGui.MenuItem("Lock position", "", C.OverlayLocked))
             {
                 C.OverlayLocked = !C.OverlayLocked;
                 C.Save();
             }
-            if (ImGui.MenuItem("Center It"))
+            if (ImGui.MenuItem("Center"))
             {
                 C.OverlayPosition = new Vector2(0.5f, 0.35f);
                 C.Save();
                 RequestReposition();
             }
-            if (ImGui.MenuItem("Open Settings")) OpenSettings?.Invoke();
+            if (ImGui.MenuItem("Open settings")) OpenSettings?.Invoke();
             ImGui.EndPopup();
         }
 
@@ -188,10 +188,20 @@ public class AlertOverlay : Window
         }
     }
 
+    // The call you drag and size, on the game screen where it will actually appear.
+    //
+    // It carries an icon whenever icons are on, because this is the only place the
+    // icon can be judged before a pull: Icon Size is a slider whose effect was
+    // invisible until a real mechanic landed, and then it is too late to adjust it.
+    // Sized as a stack of one, so it lands at exactly the size a lone call does.
     private void DrawSample()
     {
         var (remaining, counting, sinceGo) = SampleClock();
-        DrawCall("Raidwide", CallLevel.Alert, CallIcon.None, remaining, counting, sinceGo);
+        var icon = C.ShowCallIcon ? CallIcon.Marker(0) : CallIcon.None;
+        var px = OverlayState.FitFontPxFor(C.CallFontSizePx,
+            ImGui.GetMainViewport().WorkSize.X * 0.92f,
+            [Need("Raidwide", icon, remaining, counting)]);
+        DrawCall("Raidwide", CallLevel.Alert, icon, remaining, counting, sinceGo, px);
     }
 
     public void DrawPreview()

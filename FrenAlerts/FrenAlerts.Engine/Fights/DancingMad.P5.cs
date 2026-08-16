@@ -143,7 +143,7 @@ public static partial class DancingMad
             Phase = 5,
             Make = ctx => new Call
             {
-                Text = "four raidwides",
+                Text = "raidwide x4",
                 Time = Lands(ctx),
                 Key = "ultima-repeater",
                 Level = CallLevel.Alert,
@@ -197,7 +197,7 @@ public static partial class DancingMad
             OnlyMe = true,
             Make = ctx => new Call
             {
-                Text = "flare on you get out",
+                Text = "surprise flare (get out)",
                 Time = ctx.Event.Time,
                 Key = "orchestra-flare",
                 Level = CallLevel.Alarm,
@@ -214,7 +214,7 @@ public static partial class DancingMad
             OnlyMe = true,
             Make = ctx => new Call
             {
-                Text = "holy on you get in",
+                Text = "surprise holy (get in)",
                 Time = ctx.Event.Time,
                 Key = "orchestra-holy",
                 Level = CallLevel.Alarm,

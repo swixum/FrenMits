@@ -64,7 +64,7 @@ public partial class ConfigWindow
         if (!C.AlertsEnabled)
         {
             var on = C.AlertsEnabled;
-            if (Widgets.RowCheckClick("Turn Calls Back On", "", ref on,
+            if (Widgets.RowCheckClick("Turn calls back on", "", ref on,
                 FontAwesomeIcon.Bell, Theme.Warn))
             { C.AlertsEnabled = on; C.Save(); }
         }
@@ -383,17 +383,6 @@ public partial class ConfigWindow
         Widgets.ListBegin();
         foreach (var call in shown) DrawCallRow(call);
         Widgets.ListEnd();
-
-        // Rows that would only have said the mechanic's name. Counted rather than
-        // hidden: a fight that lists fewer calls than the strat sheet has mechanics
-        // reads like something failed to load.
-        var trimmed = Trimmed.Count((ushort)fight.TerritoryId);
-        if (trimmed > 0)
-        {
-            ImGui.Spacing();
-            ImGui.TextColored(Theme.V(Theme.Muted),
-                $"{trimmed} more only name the mechanic, so they wait until they can say where to go.");
-        }
 
         // How long the fight actually is, from the shipped timeline. Two counts side
         // by side and no ratio between them: a call can cover several timeline
@@ -969,7 +958,7 @@ public partial class ConfigWindow
         }
 
         var locked = C.OverlayLocked;
-        if (Widgets.RowCheckClick("Lock Position", "", ref locked,
+        if (Widgets.RowCheckClick("Lock position", "", ref locked,
             changed: Changed(nameof(Configuration.OverlayLocked)))) { C.OverlayLocked = locked; C.Save(); }
         Tip("Locks it in place. A pull locks it anyway, and test mode unlocks it.");
 

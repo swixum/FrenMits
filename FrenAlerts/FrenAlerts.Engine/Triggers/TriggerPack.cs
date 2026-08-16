@@ -19,7 +19,6 @@ public static class TriggerPack
         foreach (var spec in specs)
         {
             if (spec.Territory != territory || spec.NeedsWording) continue;
-            if (Trimmed.Drops(territory, spec.Id)) continue;
             if (taken.Contains((spec.On, spec.MatchId))) continue;
             if (owned.Any(o => Names(spec.Key, o))) continue;
             yield return ToTrigger(spec, territory);
@@ -49,7 +48,7 @@ public static class TriggerPack
         For = spec.For,
         Make = ctx => NeedsATarget(spec.Text) && !ctx.HasRealTarget ? null : new Call
         {
-            Text = Fill(Reworded.For(territory, spec.Id, spec.Text), ctx),
+            Text = Fill(spec.Text, ctx),
             Time = ctx.Event.Time + spec.Delay,
             Key = spec.DedupeKey,
             Level = spec.Level,

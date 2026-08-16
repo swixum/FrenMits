@@ -24,9 +24,9 @@ public static partial class DancingMad
     // What a debuff means once the boss's number is taken into account.
     private static string SpreadOrStack(bool real) => real ? "spread" : "stack";
 
-    private static string BombWord(bool real) => real ? "stop when it drops" : "keep moving";
+    private static string BombWord(bool real) => real ? "stop everything" : "keep moving";
 
-    private static string GazeWord(bool real) => real ? "look away" : "look at it";
+    private static string GazeWord(bool real) => real ? "look away" : "look at";
 
     private static IEnumerable<Trigger> PhaseFour()
     {
@@ -146,7 +146,7 @@ public static partial class DancingMad
                 if (pull.Wound.Length == 0 || pull.DeathOrField.Length == 0) return null;
                 return new Call
                 {
-                    Text = $"{pull.Wound} and {pull.DeathOrField}",
+                    Text = $"{pull.Wound} debuff + {pull.DeathOrField} on you",
                     Time = ctx.Event.Time,
                     Key = "neo-wound-and-field",
                     Level = CallLevel.Alert,
@@ -268,7 +268,7 @@ public static partial class DancingMad
             Make = ctx => Pull(ctx).ThunderReal is { } real
                 ? new Call
                 {
-                    Text = real ? "dodge the line" : "in the line",
+                    Text = real ? "true lightning (lines)" : "fake lightning (lines)",
                     Time = Lands(ctx),
                     Key = "thrumming-thunder-tell",
                     Level = CallLevel.Alert,
@@ -288,7 +288,7 @@ public static partial class DancingMad
                 if (pull.GrandCrosses != 3 || pull.IceReal is not { } ice) return null;
                 return new Call
                 {
-                    Text = ice ? "dodge the cone" : "in the cone",
+                    Text = ice ? "avoid cone" : "in cone",
                     Time = Lands(ctx),
                     Key = "blizzard-blowout-tell",
                     Level = CallLevel.Alert,
@@ -313,12 +313,12 @@ public static partial class DancingMad
                 var coneReal = pull.BlizzardCharged == ice;
                 var tells = (coneReal, lineReal) switch
                 {
-                    (true, true) => "dodge both tells",
-                    (false, true) => "in the cone only",
-                    (true, false) => "in the line only",
-                    _ => "in the cone and the line",
+                    (true, true) => "true ice (cones) / true lightning (lines)",
+                    (false, true) => "fake ice (cones) / true lightning (lines)",
+                    (true, false) => "true ice (cones) / fake lightning (lines)",
+                    _ => "fake ice (cones) / fake lightning (lines)",
                 };
-                var donut = pull.FluidReal == true ? " and in the donut" : "";
+                var donut = pull.FluidReal == true ? " + in donut" : "";
                 return new Call
                 {
                     Text = $"{tells}{donut}",
@@ -347,7 +347,7 @@ public static partial class DancingMad
                 var which = ctx.Event.Duration < 65f ? "first" : "second";
                 return new Call
                 {
-                    Text = $"{which} gaze: everyone {(real ? "looks out" : "looks in")}",
+                    Text = $"gaze{(which == "first" ? 1 : 2)}: look {(real ? "out" : "inside")}",
                     Time = ctx.Event.Time + 1.0,
                     Key = $"shotcall-gaze-{which}",
                     Level = CallLevel.Info,
@@ -358,9 +358,9 @@ public static partial class DancingMad
         };
 
         yield return Shotcall("shotcall-fire", Entropy,
-            real: "fire is the aoe so dodge it", fake: "fire is the donut so stay in");
+            real: "fire is aoe (dodge)", fake: "fire is dynamo (stay)");
         yield return Shotcall("shotcall-water", Fluid,
-            real: "water is the donut so stay in", fake: "water is the aoe so dodge it");
+            real: "water is dynamo (stay)", fake: "water is aoe (dodge)");
 
         // Both tells at once for the caller, which is the same answer the personal
         // line gives but said as one thing the raid does.
@@ -455,7 +455,7 @@ public static partial class DancingMad
 
             var gaze = (first ? pull.ShortShriek : pull.LongShriek).Contains(me);
             if (gaze)
-                return Say($"{GazeWord(truth)} and {BombWord(truth)} {(first ? "first" : "second")}");
+                return Say($"{GazeWord(truth)} + {BombWord(truth)} on you {(first ? "first" : "second")}");
 
             var forked = (first == shortFirst ? pull.ShortForked : pull.LongForked).Contains(me);
             var squashed = (first == shortFirst ? pull.ShortCompressed : pull.LongCompressed)
@@ -466,11 +466,11 @@ public static partial class DancingMad
             if ((forked && !truth) || (squashed && truth)) return Say($"stack {when}");
 
             if ((first ? pull.FirstShortBomb : pull.SecondShortBomb).Contains(me))
-                return Say($"{BombWord(truth)} first");
+                return Say($"{BombWord(truth)} on you first");
             if ((first ? pull.FirstLongBomb : pull.SecondLongBomb).Contains(me))
-                return Say($"{BombWord(truth)} second");
+                return Say($"{BombWord(truth)} on you second");
 
-            return Say($"no debuff stack {when}");
+            return Say($"no debuff, stack {when}");
 
             Call Say(string text) => new()
             {
@@ -511,7 +511,7 @@ public static partial class DancingMad
 
             return new Call
             {
-                Text = $"{colour} {side}{tail}",
+                Text = $"stand in {colour} ({side}){tail}",
                 Time = Lands(ctx),
                 Key = "flood-of-naught",
                 Level = CallLevel.Alarm,
@@ -539,8 +539,8 @@ public static partial class DancingMad
         var stack = (forked && !truth) || (squashed && truth);
         var bombTruth = firstBomb ? one : three;
 
-        if (spread && (firstBomb || secondBomb)) return $"spread and {BombWord(bombTruth)}";
-        if (stack && (firstBomb || secondBomb)) return $"stack and {BombWord(bombTruth)}";
+        if (spread && (firstBomb || secondBomb)) return $"spread + {BombWord(bombTruth)}";
+        if (stack && (firstBomb || secondBomb)) return $"stack + {BombWord(bombTruth)}";
         if (spread) return "spread";
         if (stack) return "stack";
         if (firstBomb || secondBomb) return $"{BombWord(bombTruth)} and stack";

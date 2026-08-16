@@ -64,13 +64,13 @@ public static partial class DancingMad
     // The bait each role takes on the sets it is not on a tower for.
     private static string PathBait(in TriggerContext ctx) => Audience.RoleOf(ctx.MySlot) switch
     {
-        "healer" => "bait the left cone left",
-        "tank" => "bait the clone far",
-        _ => "bait the cone right or the clone far",
+        "healer" => "bait left cone left",
+        "tank" => "bait clone far",
+        _ => "bait cone right or clone far",
     };
 
     // Whether to be close in or well out, which the shape on your head decides.
-    private static string NearOrFar(string shape) => shape == "spread" ? "get far" : "get close";
+    private static string NearOrFar(string shape) => shape == "spread" ? "be far" : "be near";
 
     private static string MyShape(DancingMadPull pull) =>
         pull.MyPaths.Count > 0 ? pull.MyPaths[^1] : "";
@@ -131,7 +131,7 @@ public static partial class DancingMad
         if (side.Length == 0) return "";
 
         if ((side == "a") == FirstHalfTower(set))
-            return $"{KroxySide(ctx, shape)} tower and {shape}";
+            return $"{KroxySide(ctx, shape)} tower + {PathMarker(shape)}";
 
         return Audience.RoleOf(ctx.MySlot) is "tank" or "healer"
             ? $"left {(shape == "cone" ? "cone" : "stack")}"
@@ -155,7 +155,7 @@ public static partial class DancingMad
 
         var mine = group == "tower" ? BuddyTowerSet(set) : !BuddyTowerSet(set);
         if (mine)
-            return shape.Length > 0 ? $"tower and {shape}{swap}" : $"tower{swap}";
+            return shape.Length > 0 ? $"tower + {shape}{swap}" : $"tower{swap}";
 
         return $"help your buddy{swap}";
     }
@@ -252,7 +252,7 @@ public static partial class DancingMad
             Phase = 2,
             Make = ctx => new Call
             {
-                Text = EndingText(ctx, future: true),
+                Text = EndingText(ctx, future: true, early: true),
                 Time = Lands(ctx),
                 Key = "ending-bait",
                 Level = CallLevel.Alert,
@@ -267,7 +267,7 @@ public static partial class DancingMad
             Phase = 2,
             Make = ctx => new Call
             {
-                Text = EndingText(ctx, future: false),
+                Text = EndingText(ctx, future: false, early: true),
                 Time = Lands(ctx),
                 Key = "ending-bait",
                 Level = CallLevel.Alert,
@@ -277,7 +277,7 @@ public static partial class DancingMad
         // The last one of the phase has a second half: the future ending wants you
         // behind it afterwards and the past one wants you to stand still.
         yield return EndingBait("ending-bait-future", 0xBAD2, future: true, "get behind");
-        yield return EndingBait("ending-bait-past", 0xBAD3, future: false, "stay put");
+        yield return EndingBait("ending-bait-past", 0xBAD3, future: false, "stay");
 
         // ---- the trines ----
 
@@ -299,7 +299,7 @@ public static partial class DancingMad
                 var mine = Audience.RoleOf(ctx.MySlot) == "tank" ? spots[2] : spots[0];
                 return new Call
                 {
-                    Text = $"{Way16(mine)} soon (safe {Way16(spots[0])} {Way16(spots[1])} {Way16(spots[2])})",
+                    Text = $"{Way16(mine)} later ({Way16(spots[0])}/{Way16(spots[1])}/{Way16(spots[2])})",
                     Time = ctx.Event.Time,
                     Key = "trine-spots",
                     Level = CallLevel.Info,
@@ -318,10 +318,10 @@ public static partial class DancingMad
             {
                 var pull = Pull(ctx);
                 var wings = Audience.RoleOf(ctx.MySlot) != "tank"
-                    ? "outer two rings"
+                    ? "outer 2 rings"
                     : pull.MiddleTrine.Length > 0
-                        ? $"near or far and trine goes {pull.MiddleTrine}"
-                        : "near or far";
+                        ? $"be near/far + {pull.MiddleTrine}ward trine"
+                        : "be near/far";
 
                 if (pull.TrineDirs.Count != 3)
                     return new Call
@@ -335,7 +335,7 @@ public static partial class DancingMad
                 var spots = pull.TrineDirs.Order().ToList();
                 return new Call
                 {
-                    Text = $"safe {Way16(spots[0])} {Way16(spots[1])} {Way16(spots[2])} and {wings}",
+                    Text = $"{Way16(spots[0])}/{Way16(spots[1])}/{Way16(spots[2])} + {wings}",
                     Time = Lands(ctx),
                     Key = "wings-of-destruction",
                     Level = CallLevel.Alarm,
@@ -346,12 +346,21 @@ public static partial class DancingMad
 
     // Where the ending goes, and under the buddy rotation how far out: their past
     // bait is taken at max melee rather than anywhere between the towers.
-    private static string EndingText(in TriggerContext ctx, bool future)
+    // The source says it two ways: which ending is coming while there is still time
+    // to walk, then where the bait goes once it lands.
+    private static string EndingText(in TriggerContext ctx, bool future, bool early = false)
     {
-        if (future) return "bait away from the towers";
+        if (early)
+            return future
+                ? "future, bait away from towers"
+                : ctx.Running(ForsakenStrat, "buddy")
+                    ? "past, bait between towers (max melee)"
+                    : "past, bait between towers";
+
+        if (future) return "bait ending opposite towers";
         return ctx.Running(ForsakenStrat, "buddy")
-            ? "bait between the towers at max melee"
-            : "bait between the towers";
+            ? "bait ending between towers (max melee)"
+            : "bait ending between towers";
     }
 
     // The last ending of the phase.
@@ -361,7 +370,7 @@ public static partial class DancingMad
     // out of afterwards. Everyone else keeps the two different baits.
     private static string LastEnding(in TriggerContext ctx, bool future, string after)
     {
-        if (!ctx.Running(ForsakenStrat, "kroxy-rinon")) return $"bait then {after}";
+        if (!ctx.Running(ForsakenStrat, "kroxy-rinon")) return $"bait ending then {after}";
         return future
             ? "bait between the last towers then move out"
             : "bait between the last towers";
@@ -456,32 +465,42 @@ public static partial class DancingMad
         };
     }
 
+    // How the source names the marker on your head, as opposed to the shape name
+    // the rotation reasons with.
+    private static string PathMarker(string shape) => shape switch
+    {
+        "stack" => "stack",
+        "cone" => "cone on you",
+        "spread" => "aoe on you",
+        _ => "",
+    };
+
     private static string FirstSet(in TriggerContext ctx, DancingMadPull pull, string shape)
     {
-        if (shape == "stack") return "tower and stack on you";
+        if (shape == "stack") return "stack on you + tower";
         if (shape.Length == 0) return "";
 
-        return $"{shape} and stack on {Names(ctx, pull.PathStacks)}";
+        return $"{PathMarker(shape)} + stack on {Names(ctx, pull.PathStacks)}";
     }
 
     // A set this player is on a tower for, plus how close to stand.
     private static string Tower(string shape) =>
-        shape.Length == 0 ? "" : $"tower and {NearOrFar(shape)}";
+        shape.Length == 0 ? "" : $"tower + {NearOrFar(shape)}";
 
     private static string StackOrTower(
         in TriggerContext ctx, DancingMadPull pull, string shape)
     {
         if (shape == "stack")
-            return $"stack on {Names(ctx, pull.PathStacks)} and tower";
-        return shape.Length == 0 ? "" : $"{shape} and tower";
+            return $"stack on {Names(ctx, pull.PathStacks)} + tower";
+        return shape.Length == 0 ? "" : $"{PathMarker(shape)} + tower";
     }
 
     // The half that is not on towers takes the stacks and stays out of them.
     private static string Stacking(in TriggerContext ctx) =>
         Audience.RoleOf(ctx.MySlot) switch
         {
-            "tank" => "left stack and avoid towers",
-            "healer" => "bait the left cone out",
-            _ => "right stack and avoid towers",
+            "tank" => "left stack + avoid towers",
+            "healer" => "bait left cone out",
+            _ => "right stack + avoid towers",
         };
 }

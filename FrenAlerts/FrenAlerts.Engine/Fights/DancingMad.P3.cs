@@ -222,7 +222,7 @@ public static partial class DancingMad
 
                 return new Call
                 {
-                    Text = $"{first} then {second} then {wind}",
+                    Text = $"{first} then {second} then {wind} (later)",
                     Time = ctx.Event.Time + 2.0,
                     Key = "crystal-spots",
                     Level = CallLevel.Info,
@@ -249,12 +249,12 @@ public static partial class DancingMad
             {
                 var pull = Pull(ctx);
                 var to = pull.WindCrystal == DancingMadPull.Nowhere
-                    ? "the crystal"
+                    ? "crystal"
                     : Way(pull.WindCrystal);
                 var facing = pull.MyWind switch
                 {
-                    "head" => " and look away",
-                    "tail" => " and face it",
+                    "head" => " + look away",
+                    "tail" => " + face it",
                     _ => "",
                 };
                 return new Call
@@ -280,8 +280,8 @@ public static partial class DancingMad
             {
                 if (ctx.Event.Id is not (0x642 or 0x643)) return null;
                 var pull = Pull(ctx);
-                var wind = ctx.Event.Id == 0x642 ? "look away later" : "face it later";
-                var mine = pull.MyElement.Length > 0 ? $"{pull.MyElement} and " : "";
+                var wind = ctx.Event.Id == 0x642 ? "headwind on you" : "tailwind on you";
+                var mine = pull.MyElement.Length > 0 ? $"{pull.MyElement} + " : "";
                 return new Call
                 {
                     Text = $"{mine}{wind}",
@@ -308,7 +308,7 @@ public static partial class DancingMad
                 var way = pull.BlasterTurn < 0 ? "clockwise" : "counterclockwise";
                 return new Call
                 {
-                    Text = $"starts {Way(pull.BlasterDir)} going {way}",
+                    Text = $"{Way(pull.BlasterDir)} {way} (later)",
                     Time = ctx.Event.Time,
                     Key = "blaster-rotation",
                     Level = CallLevel.Info,
@@ -341,7 +341,7 @@ public static partial class DancingMad
                     if (order.Count > 0)
                         return new Call
                         {
-                            Text = $"heal {string.Join(" then ", order.Select(ctx.Describe))}",
+                            Text = $"heal {string.Join(" then ", order.Select(ctx.Describe))} to full",
                             Time = ctx.Event.Time,
                             Key = "in-line-with",
                             Level = CallLevel.Alert,
@@ -357,8 +357,8 @@ public static partial class DancingMad
                 return new Call
                 {
                     Text = with.Count > 0
-                        ? $"{Ordinal(mine)} in line with {Names(ctx, with)}"
-                        : $"{Ordinal(mine)} in line",
+                        ? $"#{mine} (with {Names(ctx, with)})"
+                        : $"#{mine}",
                     Time = ctx.Event.Time,
                     Key = "in-line-with",
                     Level = CallLevel.Alert,
@@ -407,10 +407,10 @@ public static partial class DancingMad
 
                 // The ninth set lands on a raidwide that has to be healed through,
                 // so that one call carries both halves rather than racing itself.
-                var heal = pull.Nothingness == 9 ? "heal to full and " : "";
+                var heal = pull.Nothingness == 9 ? "heal to full + " : "";
                 return new Call
                 {
-                    Text = $"{heal}boss {Way(pull.KefkaDir)}",
+                    Text = $"{heal}{Way(pull.KefkaDir)} kefka",
                     Time = ctx.Event.Time,
                     Key = "kefka-teleport",
                     Level = pull.Nothingness == 9 ? CallLevel.Alarm : CallLevel.Info,
@@ -460,7 +460,7 @@ public static partial class DancingMad
             Phase = 3,
             Make = ctx => new Call
             {
-                Text = "bait the jump",
+                Text = "bait jump",
                 Time = ctx.Event.Time + 10.0,
                 Key = "umbra-smash-bait",
                 Level = CallLevel.Alert,
@@ -476,7 +476,7 @@ public static partial class DancingMad
             Phase = 3,
             Make = ctx => new Call
             {
-                Text = ctx.TargetIsMe ? "buster on you get behind" : "get behind",
+                Text = ctx.TargetIsMe ? "buster on you + get behind" : "get behind",
                 Time = Lands(ctx),
                 Key = "damning-edict",
                 Level = CallLevel.Alarm,
@@ -510,7 +510,9 @@ public static partial class DancingMad
             For = "tank",
             Make = ctx => new Call
             {
-                Text = ctx.TargetIsMe ? "away from Exdeath and swap" : "get close and swap",
+                Text = ctx.TargetIsMe
+                    ? "away from Exdeath (swap)"
+                    : "be near Exdeath (swap)",
                 Time = ctx.Event.Time,
                 Key = "thunder-3-swap",
                 Level = CallLevel.Alarm,
@@ -565,7 +567,7 @@ public static partial class DancingMad
             Phase = 3,
             Make = ctx => new Call
             {
-                Text = "bait two puddles",
+                Text = "bait puddles x2",
                 Time = Lands(ctx),
                 Key = "blizzard-3-puddles",
                 Level = CallLevel.Alert,
@@ -659,7 +661,7 @@ public static partial class DancingMad
             if (!at.Known)
                 return new Call
                 {
-                    Text = $"out of the middle and {(right ? "party stack" : "role stacks")}",
+                    Text = $"out of middle + {(right ? "party stack" : "role stacks")}",
                     Time = Lands(ctx),
                     Key = "slap-happy",
                     Level = CallLevel.Alarm,
@@ -670,7 +672,7 @@ public static partial class DancingMad
             var safe = Compass.Wrap(boss + (right ? 2 : 6), 8);
             return new Call
             {
-                Text = $"{Way(safe)} and {(right ? "party stack" : "role stacks")} then out",
+                Text = $"{Way(safe)} + {(right ? "party stack" : "role stacks")} then out",
                 Time = Lands(ctx),
                 Key = "slap-happy",
                 Level = CallLevel.Alarm,

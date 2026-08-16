@@ -213,7 +213,7 @@ public static partial class DancingMad
                 OnlyMe = true,
                 Make = ctx => new Call
                 {
-                    Text = $"{word} in line",
+                    Text = word switch { "first" => "#1", "second" => "#2", _ => "#3" },
                     Time = ctx.Event.Time,
                     Key = $"in-line-{word}",
                     Level = CallLevel.Alert,
@@ -376,7 +376,7 @@ public static partial class DancingMad
                     Phase = 1,
                     Make = ctx => new Call
                     {
-                        Text = spread ? "spread" : "stack",
+                        Text = spread ? "aoe on you" : "stack",
                         Time = ctx.Event.Time,
                         Key = "mystery-magic",
                         Level = CallLevel.Alarm,
@@ -391,10 +391,10 @@ public static partial class DancingMad
     // a real one is a thing to dodge, a fake one is the safe place to stand.
     private static IEnumerable<Trigger> Tells()
     {
-        yield return Tell("tell-ice-real", TrueIce, "dodge the cone");
-        yield return Tell("tell-ice-fake", FakeIce, "in the cone");
-        yield return Tell("tell-thunder-real", TrueThunder, "dodge the line");
-        yield return Tell("tell-thunder-fake", FakeThunder, "in the line");
+        yield return Tell("tell-ice-real", TrueIce, "avoid tell");
+        yield return Tell("tell-ice-fake", FakeIce, "in cone");
+        yield return Tell("tell-thunder-real", TrueThunder, "avoid tell");
+        yield return Tell("tell-thunder-fake", FakeThunder, "in line");
     }
 
     private static Trigger Tell(string id, uint marker, string text) => new()
@@ -552,7 +552,7 @@ public static partial class DancingMad
         // means differs both times, so it lives with the phases rather than here.
 
         // Explodes if you are moving when it drops, so the seconds are the call.
-        yield return Debuff("acceleration-bomb", 0x15AA, "stop when it drops", 4);
+        yield return Debuff("acceleration-bomb", 0x15AA, "stop everything", 4);
         yield return Debuff("cursed-shriek", 0x15A7, "look away", 4);
         // Measured at 5s, 49s and 68s in one pull, which is three different jobs.
         yield return Debuff("double-trouble-trap", 0x13D6, "trap", 1);
