@@ -36,7 +36,11 @@ public sealed class FightLoader
         engine.AddRange(MarkerCalls.Triggers((ushort)territory, engine.Triggers));
         var built = engine.Triggers.Count;
 
-        engine.State.LearnPhases(_pack
+        // A fight that names its own phase changes gets those and nothing else; the
+        // pack's guesses only fill in for fights with no module.
+        if (territory == DancingMad.Territory)
+            engine.State.LearnPhases(DancingMad.PhaseChanges());
+        else engine.State.LearnPhases(_pack
             .Where(s => s.Territory == territory && s.Phase > 0)
             .Select(s => (s.On, s.MatchId, s.Phase)));
         engine.AddRange(TriggerPack.Build(_pack, (ushort)territory, engine.Triggers));

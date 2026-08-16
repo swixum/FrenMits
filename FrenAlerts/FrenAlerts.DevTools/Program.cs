@@ -97,7 +97,9 @@ public static partial class Program
             var specs = pack.Number(pack.Collapse(pack.Read(File.ReadLines(args[3]), Scope.Keys.ToHashSet()))).ToList();
             foreach (var fam in pack.Numbered.Where(f => f.Contains("Cast") || f.Contains("Ability")).Take(6))
                 Console.WriteLine($"numbered      {fam}");
-            engine.State.LearnPhases(specs
+            if (territory == DancingMad.Territory)
+                engine.State.LearnPhases(DancingMad.PhaseChanges());
+            else engine.State.LearnPhases(specs
                 .Where(s => s.Territory == territory && s.Phase > 0)
                 .Select(s => (s.On, s.MatchId, s.Phase)));
             // The hand-written module is already loaded, so imported rows covering

@@ -39,6 +39,20 @@ public static class DancingMad
         }
     }
 
+    // What actually moves the fight on, one cast each.
+    //
+    // The alternative is inferring it from a "P3" in a call's name, which gives about
+    // a hundred ids any one of which can shove the fight forward early. That has
+    // already gone wrong once here: a Warrior's Bloodbath shares an id with the phase
+    // 3 tether and pinned the fight at phase 3 five minutes before it got there.
+    public static IEnumerable<(EventKind Kind, uint Id, int Phase)> PhaseChanges()
+    {
+        yield return (EventKind.CastStart, 0xC24C, 2);   // Ultimate Embrace
+        yield return (EventKind.CastStart, 0xC3F7, 3);   // Aero III Assault
+        yield return (EventKind.CastStart, 0xC2DC, 4);   // Kefka Says
+        yield return (EventKind.CastStart, 0xBB40, 5);   // Ultima Repeater
+    }
+
     // When the cast lands, which is what the countdown on screen counts down to.
     // The voice is not held back by this; it speaks the moment the call is made.
     private static double Lands(in TriggerContext ctx) => ctx.Event.Time + ctx.Event.CastTime;
