@@ -9,7 +9,7 @@ public sealed class Voice : IDisposable
 
     private const double StaleSeconds = 4.0;
 
-    private readonly BlockingCollection<(string Text, DateTime At)> _jobs = new(Queued);
+    private readonly BlockingCollection<(string Text, DateTime At, bool Test)> _jobs = new(Queued);
     private readonly Thread _worker;
     private readonly CancellationTokenSource _stopping = new();
 
@@ -30,6 +30,14 @@ public sealed class Voice : IDisposable
 
     public float Volume { get; set; } = 0.7f;
 
+    // The system voice has no speed of its own here, so this only reaches the local
+    // one; the page says as much next to the slider.
+    public float Speed { get; set; } = 1f;
+
+    public string LocalVoiceName { get; set; } = Engine.Alerts.VoiceCatalog.Default;
+
+    public bool UseLocal { get; set; } = true;
+
     public int Spoken { get; private set; }
     public int Dropped { get; private set; }
 
@@ -41,12 +49,23 @@ public sealed class Voice : IDisposable
 
     public void Say(string text)
     {
-        if (!Enabled || _stopping.IsCancellationRequested) return;
+        if (!Enabled) return;
+        Send(text);
+    }
+
+    // Ignores the master switch on purpose: this is the button on the config page,
+    // and somebody pressing it has said what they want more clearly than the switch
+    // has. It does not count towards what was read out in the fight either.
+    public void Test(string text) => Send(text, test: true);
+
+    private void Send(string text, bool test = false)
+    {
+        if (_stopping.IsCancellationRequested) return;
         if (string.IsNullOrWhiteSpace(text)) return;
 
         // TryAdd, never Add: Add blocks when the queue is full, and this is called
         // from the frame handler.
-        if (!_jobs.TryAdd((text, DateTime.UtcNow))) Dropped++;
+        if (!_jobs.TryAdd((text, DateTime.UtcNow, test)) && !test) Dropped++;
     }
 
     private void Run()
@@ -57,24 +76,25 @@ public sealed class Voice : IDisposable
 
             if ((DateTime.UtcNow - job.At).TotalSeconds > StaleSeconds)
             {
-                Dropped++;
+                if (!job.Test) Dropped++;
                 continue;
             }
 
-            Speak(job.Text);
+            Speak(job.Text, job.Test);
         }
     }
 
     // Windows' own speech, reached through COM so nothing has to be shipped in the
     // zip and nothing has to be downloaded before the plugin can talk.
-    private void Speak(string text)
+    private void Speak(string text, bool test = false)
     {
-        if (Local is { GivenUp: false } local)
+        if (UseLocal && Local is { GivenUp: false } local)
         {
+            local.Use(LocalVoiceName, Speed, Volume);
             local.Start();
             if (local.Say(text))
             {
-                Spoken++;
+                if (!test) Spoken++;
                 return;
             }
         }
@@ -105,7 +125,7 @@ public sealed class Voice : IDisposable
             _engine.GetType().InvokeMember("Speak",
                 System.Reflection.BindingFlags.InvokeMethod, null, _engine, [text, 0]);
 
-            Spoken++;
+            if (!test) Spoken++;
         }
         catch (COMException ex)
         {

@@ -151,6 +151,9 @@ public class Configuration : IPluginConfiguration
     // ---- voice ----
     public bool VoiceEnabled { get; set; }
     public float VoiceVolume { get; set; } = 0.7f;
+    public float VoiceSpeed { get; set; } = 1f;
+    public bool UseLocalVoice { get; set; } = true;
+    public string LocalVoiceName { get; set; } = Engine.Alerts.VoiceCatalog.Default;
 
     // ---- the config window itself ----
     public uint AccentColor { get; set; } = Ui.Theme.DefaultAccent;

@@ -190,6 +190,17 @@ public sealed class Runner : IDisposable
     // has an answer.
     public bool InReplay => _sources.InReplay;
 
+    // Where the recording says it is, and what the calls are timing against. Shown
+    // side by side because a stuck clock looks exactly like a quiet fight from the
+    // outside: no call counts down, none of them clear, and the board holds whatever
+    // arrived first.
+    public double ClockSeconds => _sources.Now;
+
+    // What the game says it is simulating at: 1 normal, 0 paused, 4 fast forwarding.
+    // Shown because it is the whole input to the replay clock now, so a clock that
+    // is not moving and a speed of zero are the same sentence.
+    public float ReplaySpeed => Replay.Speed;
+
     // The clock everything is timed against: the wall normally, the recording's own
     // position in a replay. Public so the screen counts in the same seconds the
     // engine does, or a call would age out while a paused replay sat still.

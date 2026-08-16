@@ -82,6 +82,16 @@ internal static class SettingsIndex
         New("Volume", ConfigWindow.NavKind.Tts, nameof(Configuration.VoiceVolume),
             c => Off(c.VoiceVolume, Defaults.VoiceVolume), c => c.VoiceVolume = Defaults.VoiceVolume,
             "loud quiet audio"),
+        New("Speed", ConfigWindow.NavKind.Tts, nameof(Configuration.VoiceSpeed),
+            c => Off(c.VoiceSpeed, Defaults.VoiceSpeed), c => c.VoiceSpeed = Defaults.VoiceSpeed,
+            "fast slow rate pace"),
+        New("Use it", ConfigWindow.NavKind.Tts, nameof(Configuration.UseLocalVoice),
+            c => c.UseLocalVoice != Defaults.UseLocalVoice, c => c.UseLocalVoice = Defaults.UseLocalVoice,
+            "local neural system voice"),
+        New("Voice", ConfigWindow.NavKind.Tts, nameof(Configuration.LocalVoiceName),
+            c => c.LocalVoiceName != Defaults.LocalVoiceName,
+            c => c.LocalVoiceName = Defaults.LocalVoiceName,
+            "female male speaker accent american british pick"),
 
         // ---- appearance ----
         New("Accent Color", ConfigWindow.NavKind.Appearance, nameof(Configuration.AccentColor),

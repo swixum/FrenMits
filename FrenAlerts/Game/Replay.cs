@@ -1,4 +1,6 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Dalamud.Game.ClientState.Conditions;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 
 namespace FrenAlerts.Game;
 
@@ -9,14 +11,18 @@ public static unsafe class Replay
 {
     // True while a recording is playing, paused included: paused is still a replay,
     // and treating it as live would let the clock run on while nothing happens.
+    //
+    // Off the duty condition rather than the replay manager's own controls. The
+    // other plugin in this repo has read it this way through several patches and it
+    // works with the recorder; the manager's controls were what this used to read,
+    // and in a real Dancing Mad replay the calls came out frozen.
     public static bool InPlayback
     {
         get
         {
             try
             {
-                var m = ContentsReplayManager.Instance();
-                return m is not null && m->PlaybackControls != ContentsReplayPlaybackControl.None;
+                return Service.Condition[ConditionFlag.DutyRecorderPlayback];
             }
             catch
             {
@@ -58,14 +64,24 @@ public static unsafe class Replay
         }
     }
 
+    // How fast the simulation is running: 1 normal, 0 paused, 2 at double.
+    //
+    // The framework's own multiplier rather than the replay manager's, same as the
+    // other plugin. This is what makes fast forward work: a fight watched at 4x has
+    // to age four seconds per second or every gap between mechanics collapses.
     public static float Speed
     {
         get
         {
             try
             {
-                var m = ContentsReplayManager.Instance();
-                return m is null ? 1f : m->PlaybackSpeed;
+                var fw = Framework.Instance();
+                if (fw is null) return 1f;
+                var s = fw->GameSpeedMultiplier;
+                // Garbage guard, then snap a near-zero to a hard stop so a paused
+                // replay ages nothing at all rather than crawling.
+                if (s is < 0f or > 100f) return 1f;
+                return s < 0.02f ? 0f : s;
             }
             catch
             {

@@ -7,41 +7,49 @@ namespace FrenAlerts.Engine;
 // the same thing as fight time only while a fight runs at one times speed and never
 // goes backwards. A replay does neither.
 //
-// So in a replay the clock comes from the replay's own position instead. Paused, time
-// stops and nothing ages. At four times speed, two mechanics two seconds apart stay
-// two seconds apart rather than collapsing into one burst. And a scrub backwards is
-// visible as time moving backwards, which is the one thing wall-clock can never show.
+// So in a replay the clock is built from real time scaled by how fast the game is
+// simulating. Paused, the multiplier is zero and time stops: nothing ages, nothing
+// counts down, nothing expires off the screen. At four times speed it runs four
+// times as fast, so two mechanics two seconds apart stay two seconds apart.
+//
+// This used to read the replay manager's own position instead, which sounded better
+// because it needed no integration and gave a scrub for free. In a real Dancing Mad
+// replay it did not move, and a clock that does not move is the worst failure this
+// code has: every countdown freezes, nothing ages off the board, and the board then
+// throws away each new call as the one furthest out. Three calls on screen and a
+// silent fight. The other plugin in this repo has integrated a scaled delta through
+// several patches without trouble, so this does the same.
 public sealed class ReplayClock
 {
-    // A jump this far in either direction is somebody moving the slider rather than
-    // the replay running. Forward jumps count too: skipping a minute means every
-    // mechanic in between never happened, and the state built from them is wrong.
-    public const double JumpSeconds = 3.0;
+    // A frame longer than this is the game hitching, a zone load, or the plugin
+    // being paused in a debugger. Counting it would jump the fight forward through
+    // mechanics that never happened.
+    public const double MaxStep = 1.0;
 
-    private double _last = double.NaN;
-
-    // Seconds into the recording, as the replay reports it.
+    // Seconds into the recording, as this clock has counted them.
     public double Now { get; private set; }
 
-    // True on the reading where the position stopped being continuous.
+    // True on the reading where time stopped being continuous. Nothing sets it any
+    // more: a scrub was visible when the position was read straight from the game,
+    // and an integrated clock cannot see one. Kept so the host still compiles and
+    // reads false rather than silently losing the property.
     public bool Jumped { get; private set; }
 
-    // Fed the replay's own position every frame. Returns the time everything
-    // downstream should use.
-    public double Note(double position)
+    // Fed every frame with how much real time passed and how fast the game is
+    // simulating. Returns the time everything downstream should use.
+    public double Tick(double realSeconds, float speed)
     {
-        Jumped = !double.IsNaN(_last) && Math.Abs(position - _last) > JumpSeconds;
-        _last = position;
-        Now = position;
+        Jumped = false;
+        if (realSeconds is > 0 and < MaxStep && speed > 0f)
+            Now += realSeconds * speed;
         return Now;
     }
 
-    // Leaving the replay, so the next one starts without this one's position looking
-    // like a jump.
+    // Leaving the replay, so the next one starts from nothing rather than carrying
+    // this one's total.
     public void Forget()
     {
-        _last = double.NaN;
-        Jumped = false;
         Now = 0;
+        Jumped = false;
     }
 }

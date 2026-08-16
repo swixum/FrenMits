@@ -297,14 +297,23 @@ public partial class ConfigWindow : Window, IDisposable
                           + "blocks has nothing to count from until its first anchor.");
             }
             // Not a fault, but it explains why the calls are keeping their own time.
-            if (Runner is { InReplay: true })
+            if (Runner is { InReplay: true } replaying)
             {
                 ImGui.SameLine(0, Theme.S(18f));
-                Dot(true, "Replay");
+                // The recording's own position beside the dot. A clock that is not
+                // moving is the one fault that stops every call at once: nothing
+                // counts down, nothing ages off the screen, and the board wedges on
+                // whatever got there first. Worth being able to see rather than
+                // deduce from a frozen countdown.
+                Dot(true, $"Replay {replaying.ClockSeconds:0.0}s");
                 if (Widgets.HoveredDelayed())
                     ImGui.SetTooltip(
-                        "Watching a recording. Calls run on the recording's clock, so they\n"
-                        + "pause when you pause, and jumping the slider starts the fight over.");
+                        "Watching a recording. Calls run on the recording's own clock, so\n"
+                        + "they stop when you pause and keep pace when you fast forward.\n\n"
+                        + $"Fight clock {replaying.ClockSeconds:0.0}s, "
+                        + $"running at {replaying.ReplaySpeed:0.##}x.\n"
+                        + "The clock should climb while the speed is above zero. It sitting\n"
+                        + "still at a speed above zero is a fault worth reporting.");
             }
             // These appear only when they need attention.
             if (!C.AlertsEnabled) { ImGui.SameLine(0, Theme.S(18f)); WarnDot("Calls are off"); }

@@ -102,6 +102,9 @@ public sealed class Plugin : IDalamudPlugin
         // the next call rather than the next zone or the next reload.
         _runner.Voice.Enabled = Config.VoiceEnabled;
         _runner.Voice.Volume = Config.VoiceVolume;
+        _runner.Voice.Speed = Config.VoiceSpeed;
+        _runner.Voice.UseLocal = Config.UseLocalVoice;
+        _runner.Voice.LocalVoiceName = Config.LocalVoiceName;
         // The write a drag has been holding, landed the moment it stops.
         Config.Flush();
     }

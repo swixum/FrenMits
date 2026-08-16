@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using FrenAlerts.Engine.Alerts;
 
 namespace FrenAlerts.Game;
@@ -31,22 +32,63 @@ public sealed class NeuralVoice : IDisposable
     private double _packCheckedAt = double.NegativeInfinity;
     private bool _packReady;
 
+    // One object rather than three loose fields, so a setting can never be read half
+    // applied whichever thread ends up asking.
+    private sealed record Settings(string Voice, float Speed, float Volume);
+
+    // What it has been asked to sound like, and what the child running right now was
+    // actually told. They differ from the moment a setting changes until the next
+    // line is spoken, and after a restart, which is the point of keeping both.
+    private volatile Settings _wanted = new(VoiceCatalog.Default, 1f, 0.7f);
+    private Settings? _told;
+
+    private double _voicesCheckedAt = double.NegativeInfinity;
+    private IReadOnlyList<VoiceCatalog.Choice> _voices = [];
+
     // Written on the watch thread and read on the voice thread.
     private volatile bool _ready;
 
     public NeuralVoice(string folder)
     {
         _folder = folder;
-        _pack = new VoiceModel(name =>
-        {
-            var file = new FileInfo(Path.Combine(folder, name));
-            return file.Exists ? file.Length : 0;
-        });
+        _pack = VoiceModel.ForFolder(folder);
     }
 
     public VoiceModel Pack => _pack;
 
+    // Read once and then kept, because the picker asks for this on every frame it
+    // draws and the answer is a directory listing. Re-read on an interval while it
+    // is empty, so a voices folder dropped in mid session fills the picker without
+    // a reload.
+    public IReadOnlyList<VoiceCatalog.Choice> Voices
+    {
+        get
+        {
+            if (_voices.Count > 0) return _voices;
+
+            var now = _clock.Elapsed.TotalSeconds;
+            if (now - _voicesCheckedAt < RecheckSeconds) return _voices;
+
+            _voicesCheckedAt = now;
+            _voices = _pack.Voices;
+            return _voices;
+        }
+    }
+
+    // Set before every line, so it stays a comparison of three fields and only
+    // reaches the child when one of them has actually moved.
+    public void Use(string voice, float speed, float volume)
+    {
+        var want = new Settings(
+            string.IsNullOrWhiteSpace(voice) ? VoiceCatalog.Default : voice, speed, volume);
+        if (want != _wanted) _wanted = want;
+    }
+
     public bool Ready => PackReady() && !_givenUp;
+
+    // The cached answer, for the page: asking the pack itself stats six files and
+    // lists a folder, and the page asks on every frame it draws.
+    public bool Installed => PackReady();
 
     public IEnumerable<VoiceModel.Piece> Missing => _pack.Missing;
 
@@ -96,6 +138,7 @@ public sealed class NeuralVoice : IDisposable
         {
             _starts++;
             _ready = false;
+            Forget();
             _startedAt = _clock.Elapsed.TotalSeconds;
 
             _child = Process.Start(new ProcessStartInfo(Path.Combine(_folder, "FrenAlertsVoice.exe"))
@@ -157,9 +200,20 @@ public sealed class NeuralVoice : IDisposable
 
         try
         {
+            // Sent on the same pipe right before the line it applies to, so a voice
+            // picked mid-fight is heard on the next call rather than the next start.
+            var want = _wanted;
+            if (_told != want)
+            {
+                _child!.StandardInput.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                    $"set\t{want.Voice}\t{want.Speed:F2}\t{want.Volume:F2}"));
+                _told = want;
+            }
+
             // Stamped here so the child can drop what the fight has overtaken.
             var at = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0;
-            _child!.StandardInput.WriteLine($"{at:F3}\t{text.Replace('\t', ' ')}");
+            _child!.StandardInput.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                $"{at:F3}\t{text.Replace('\t', ' ')}"));
             _child.StandardInput.Flush();
             Spoken++;
             return true;
@@ -171,13 +225,17 @@ public sealed class NeuralVoice : IDisposable
         }
     }
 
+    // Everything a fresh child has not been told yet, which is all of it.
+    private void Forget() => _told = null;
+
     public string Describe()
     {
         if (_givenUp) return "Local voice failed to stay running; the system voice is in use.";
         if (Speaking) return $"Local voice is running, {Spoken} said.";
         if (Starting) return "Local voice is starting.";
         if (!PackReady()) return _pack.Describe();
-        return "Local voice is installed and will start when a call fires.";
+        return $"Local voice is installed with {Voices.Count} voices, " +
+               "and starts when a call fires.";
     }
 
     // Cached, because a call that is not installed would otherwise stat six files
@@ -200,6 +258,7 @@ public sealed class NeuralVoice : IDisposable
     private void Stop()
     {
         _ready = false;
+        Forget();
         try
         {
             if (_child is { HasExited: false })

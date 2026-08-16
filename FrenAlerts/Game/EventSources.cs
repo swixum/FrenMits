@@ -50,6 +50,10 @@ public sealed class EventSources : IDisposable
     // aligned, so a read never sees half of one write.
     private double _now;
 
+    // Where the wall was last frame, so a replay can be told how much real time
+    // passed and scale it.
+    private double _lastWall;
+
     public EventSources(Action<GameEvent> onPoll)
     {
         Tick();
@@ -86,15 +90,21 @@ public sealed class EventSources : IDisposable
     {
         InReplay = Replay.InPlayback;
 
+        // The wall keeps running either way, so the step between frames is the same
+        // measurement in both branches and a replay only changes what it is worth.
+        var wall = _wall.Elapsed.TotalSeconds;
+        var step = wall - _lastWall;
+        _lastWall = wall;
+
         if (InReplay)
         {
-            _now = _replay.Note(Replay.Position);
+            _now = _replay.Tick(step, Replay.Speed);
             if (_replay.Jumped) Scrubbed = true;
             return;
         }
 
         _replay.Forget();
-        _now = _wall.Elapsed.TotalSeconds;
+        _now = wall;
     }
 
     public bool TakeScrubbed()
@@ -166,7 +176,12 @@ public sealed class EventSources : IDisposable
 
         // Set on the frame rather than read inside the polls, so one frame's events
         // all come from the same side of the handover.
-        var fromParser = _parser.Reading;
+        // Never in a replay. A parser reads live network traffic, and a recording
+        // produces none, so standing the client's own reads down for it would hand
+        // the fight to a source that is watching something else entirely: the whole
+        // replay goes quiet while the parser reports on the empty room you are
+        // actually standing in.
+        var fromParser = _parser.Reading && !InReplay;
         _live.Muted = fromParser;
 
         // The VFX poll was the only tether route there was, and it walks party

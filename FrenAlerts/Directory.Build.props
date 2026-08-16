@@ -4,9 +4,9 @@
        here can never move FrenMits' version and re-ship it to everyone. Being
        the nearest props file, MSBuild stops here and the root one never applies. -->
   <PropertyGroup>
-    <Version>1.0.0.12</Version>
-    <AssemblyVersion>1.0.0.12</AssemblyVersion>
-    <FileVersion>1.0.0.12</FileVersion>
+    <Version>1.0.0.13</Version>
+    <AssemblyVersion>1.0.0.13</AssemblyVersion>
+    <FileVersion>1.0.0.13</FileVersion>
   </PropertyGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -1052,6 +1052,11 @@ public partial class ConfigWindow
         if (Widgets.RowDrag("Volume", "", ref vol, 0f, 1f, "%.2f",
             changed: Changed(nameof(Configuration.VoiceVolume)))) { C.VoiceVolume = vol; C.Save(); }
         Tip("How loud it reads out.");
+
+        var speed = C.VoiceSpeed;
+        if (Widgets.RowDrag("Speed", "local voice only", ref speed, 0.5f, 2f, "%.2fx",
+            changed: Changed(nameof(Configuration.VoiceSpeed)))) { C.VoiceSpeed = speed; C.Save(); }
+        Tip("How fast it talks. 1.00x is how the voice was recorded.");
         Widgets.ListEnd();
 
         DrawLocalVoice();
@@ -1073,7 +1078,7 @@ public partial class ConfigWindow
         // Which voice will do the talking, not which one happens to be up: the
         // local one starts on the first call, so "system voice" before then would
         // be wrong about the very next line.
-        var which = Runner?.LocalVoice is { GivenUp: false, Pack.Ready: true }
+        var which = Runner?.LocalVoice is { GivenUp: false, Installed: true }
             ? "local voice" : "system voice";
         return v.Spoken > 0 ? $"{v.Spoken} read out, {which}" : $"On, {which}";
     }
@@ -1085,8 +1090,22 @@ public partial class ConfigWindow
         Widgets.GroupLabel("Local Voice");
         Widgets.ListBegin();
 
+        var useLocal = C.UseLocalVoice;
+        if (Widgets.RowCheck("Use it", "off reads out with the system voice", ref useLocal,
+            Changed(nameof(Configuration.UseLocalVoice)))) { C.UseLocalVoice = useLocal; C.Save(); }
+
+        DrawVoicePicker(voice);
+
         Widgets.RowNote(voice.Describe());
         Widgets.ListEnd();
+
+        if (voice.Voices.Count > 0)
+        {
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Play, "Hear it"))
+                Runner?.Voice.Test("Stack on the tank");
+            Tip("Reads out a sample line so you can hear the voice.");
+            ImGui.Spacing();
+        }
 
         // Three failed starts is broken rather than unlucky, and it falls back
         // silently, so the one state worth colouring is that one.
@@ -1097,12 +1116,12 @@ public partial class ConfigWindow
         }
 
         Widgets.ListBegin();
-        if (!voice.Pack.Ready)
+        if (!voice.Installed)
             foreach (var piece in voice.Pack.Missing)
                 Widgets.RowNote($"{piece.Name}, {AsSize(piece.Bytes)}");
         Widgets.ListEnd();
 
-        if (!voice.Pack.Ready)
+        if (!voice.Installed)
         {
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Muted),
@@ -1112,6 +1131,92 @@ public partial class ConfigWindow
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Muted), "Until then it reads out with the system voice.");
         }
+    }
+
+    // Rebuilt only when the folder, the language or the voice moves, because these
+    // two rows are drawn on every frame the page is open.
+    private IReadOnlyList<VoiceCatalog.Choice>? _voiceSource;
+    private string[] _voiceLanguages = [];
+    private string _voiceLang = "";
+    private string _voiceChosen = "";
+    private VoiceCatalog.Choice[] _voiceOptions = [];
+    private string[] _voiceLabels = [];
+
+    // Two rows rather than one list of everything installed: the language narrows it
+    // to a handful, and the second row is then short enough to read.
+    private void DrawVoicePicker(Game.NeuralVoice voice)
+    {
+        var all = voice.Voices;
+        if (all.Count == 0) return;
+
+        if (!ReferenceEquals(_voiceSource, all))
+        {
+            _voiceSource = all;
+            _voiceLanguages = VoiceCatalog.LanguagesIn(all).ToArray();
+            _voiceLang = "";
+        }
+
+        // The language row follows the voice that is set, so a config carrying a
+        // British voice opens on British rather than on the top of the list.
+        if (_voiceLang.Length == 0 || _voiceChosen != C.LocalVoiceName)
+        {
+            _voiceChosen = C.LocalVoiceName;
+            var known = LanguageOf(all, _voiceChosen);
+
+            // The saved voice is not in the folder: deleted, renamed, or carried in
+            // from a config that had the full pack. Falling through to the first
+            // language would leave the row showing a voice nobody chose while the
+            // saved name went to the engine, so the window would name one voice
+            // while another spoke. Snap to one that exists instead.
+            if (known is null)
+            {
+                _voiceChosen = all.Any(v => v.Name == VoiceCatalog.Default)
+                    ? VoiceCatalog.Default
+                    : all[0].Name;
+                C.LocalVoiceName = _voiceChosen;
+                C.Save();
+                known = LanguageOf(all, _voiceChosen);
+            }
+
+            _voiceLang = known ?? _voiceLanguages[0];
+            Regroup();
+        }
+
+        var lang = Math.Max(0, Array.IndexOf(_voiceLanguages, _voiceLang));
+        if (_voiceLanguages.Length > 1 &&
+            Widgets.RowCombo("Language", "", ref lang, _voiceLanguages, sub: true))
+        {
+            _voiceLang = _voiceLanguages[lang];
+            Regroup();
+            // The voice moves with it, since the one that was set is no longer on
+            // the list below.
+            Choose(_voiceOptions[0].Name);
+        }
+
+        var pick = Math.Max(0, Array.FindIndex(_voiceOptions, v => v.Name == C.LocalVoiceName));
+        if (Widgets.RowCombo("Voice", "", ref pick, _voiceLabels, width: 180f,
+            changed: Changed(nameof(Configuration.LocalVoiceName)), sub: true))
+            Choose(_voiceOptions[pick].Name);
+
+        void Regroup()
+        {
+            _voiceOptions = all.Where(v => v.Language == _voiceLang).ToArray();
+            _voiceLabels = _voiceOptions.Select(v => v.Label).ToArray();
+        }
+
+        void Choose(string name)
+        {
+            C.LocalVoiceName = name;
+            _voiceChosen = name;
+            C.Save();
+        }
+    }
+
+    private static string? LanguageOf(IReadOnlyList<VoiceCatalog.Choice> all, string name)
+    {
+        foreach (var choice in all)
+            if (choice.Name == name) return choice.Language;
+        return null;
     }
 
     private static string AsSize(long bytes) =>
