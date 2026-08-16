@@ -43,6 +43,7 @@ public static class TriggerPack
         // arbitrary, so it loads switched off rather than chattering by default.
         Enabled = spec.DefaultOn,
         Occurrence = spec.Occurrence,
+        Phase = spec.Phase,
         For = spec.For,
         Make = ctx => NeedsATarget(spec.Text) && !ctx.HasRealTarget ? null : new Call
         {

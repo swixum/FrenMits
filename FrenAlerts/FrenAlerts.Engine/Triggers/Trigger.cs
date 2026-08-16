@@ -103,6 +103,11 @@ public sealed record Trigger
     // Fire only on this numbered occurrence of the id, or 0 for any.
     public int Occurrence { get; init; }
 
+    // Which phase of the fight this belongs to, for grouping it on the fight page.
+    // Zero means it was never given one, which reads as "everything else" and is
+    // what a hand written call used to fall into whether it belonged there or not.
+    public int Phase { get; init; }
+
     public string For { get; init; } = "";
 
     public bool OncePerBurst { get; init; } = true;

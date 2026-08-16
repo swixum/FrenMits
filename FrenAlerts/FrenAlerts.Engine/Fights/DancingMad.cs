@@ -23,6 +23,7 @@ public static class DancingMad
                 Id = $"limit-cut-{number}",
                 On = EventKind.HeadMarker,
                 MatchId = id,
+                Phase = 2,
                 OnlyMe = true,
                 Make = ctx => new Call
                 {
@@ -44,11 +45,12 @@ public static class DancingMad
 
     // A call says what to do, never what the boss is doing: the mechanic's name is
     // something you already know by the time you are hearing this.
-    private static Trigger Raidwide(string id, uint action) => new()
+    private static Trigger Raidwide(string id, uint action, int phase) => new()
     {
         Id = id,
         On = EventKind.CastStart,
         MatchId = action,
+        Phase = phase,
         Make = ctx => new Call
         {
             // Everyone needs to know it is coming; what they do about it differs,
@@ -65,11 +67,12 @@ public static class DancingMad
         },
     };
 
-    private static Trigger Buster(string id, uint action) => new()
+    private static Trigger Buster(string id, uint action, int phase) => new()
     {
         Id = id,
         On = EventKind.CastStart,
         MatchId = action,
+        Phase = phase,
         Make = ctx => new Call
         {
             Text = ctx.TargetIsMe ? "buster on you" : $"buster on {ctx.NameTarget()}",
@@ -82,11 +85,12 @@ public static class DancingMad
 
     // The seconds come off the status line, never from a literal: these debuffs
     // arrive with several durations and the number is the whole call.
-    private static Trigger Debuff(string id, uint status, string what) => new()
+    private static Trigger Debuff(string id, uint status, string what, int phase) => new()
     {
         Id = id,
         On = EventKind.StatusGain,
         MatchId = status,
+        Phase = phase,
         OnlyMe = true,
         Make = ctx => new Call
         {
@@ -100,11 +104,12 @@ public static class DancingMad
         },
     };
 
-    private static Trigger Cast(string id, uint action, string text) => new()
+    private static Trigger Cast(string id, uint action, string text, int phase) => new()
     {
         Id = id,
         On = EventKind.CastStart,
         MatchId = action,
+        Phase = phase,
         Make = ctx => new Call
         {
             Text = text,
@@ -120,11 +125,12 @@ public static class DancingMad
     // ids at once. Four towers landing together under four keys are four calls
     // racing each other, and the crowding rule throws three of them away; under one
     // key they are the same call said once, which is what it is.
-    private static Trigger Hit(string id, uint action, string text, string key = "") => new()
+    private static Trigger Hit(string id, uint action, string text, int phase, string key = "") => new()
     {
         Id = id,
         On = EventKind.AbilityHit,
         MatchId = action,
+        Phase = phase,
         Make = ctx => new Call
         {
             Text = text,
@@ -145,6 +151,7 @@ public static class DancingMad
                 Id = $"in-line-{word}",
                 On = EventKind.StatusGain,
                 MatchId = status,
+                Phase = 3,
                 OnlyMe = true,
                 Make = ctx => new Call
                 {
@@ -159,11 +166,12 @@ public static class DancingMad
     }
 
     // A status that says which one is yours, with no timer worth reading out.
-    private static Trigger Element(string id, uint status, string text) => new()
+    private static Trigger Element(string id, uint status, string text, int phase) => new()
     {
         Id = id,
         On = EventKind.StatusGain,
         MatchId = status,
+        Phase = phase,
         OnlyMe = true,
         Make = ctx => new Call
         {
@@ -175,11 +183,12 @@ public static class DancingMad
         },
     };
 
-    private static Trigger Hero(string id, uint status, string boss) => new()
+    private static Trigger Hero(string id, uint status, string boss, int phase) => new()
     {
         Id = id,
         On = EventKind.StatusGain,
         MatchId = status,
+        Phase = phase,
         OnlyMe = true,
         Make = ctx => new Call
         {
@@ -194,26 +203,27 @@ public static class DancingMad
     public static IEnumerable<Trigger> Triggers()
     {
         // Measured at 8.0 targets a cast, so these land on everyone.
-        yield return Raidwide("forsaken", 0xBABC);
-        yield return Raidwide("ultima-upsurge", 0xC24A);
-        yield return Raidwide("aero-assault", 0xC3F7);
-        yield return Raidwide("vacuum-wave", 0xBB13);
-        yield return Raidwide("white-hole", 0xBD66);
-        yield return Raidwide("umbra-smash", 0xBB00);
-        yield return Raidwide("bowels-of-agony", 0xBAF2);
-        yield return Raidwide("light-of-judgment", 0xC622);
+        yield return Raidwide("forsaken", 0xBABC, 2);
+        yield return Raidwide("ultima-upsurge", 0xC24A, 4);
+        yield return Raidwide("aero-assault", 0xC3F7, 2);
+        yield return Raidwide("vacuum-wave", 0xBB13, 3);
+        yield return Raidwide("white-hole", 0xBD66, 3);
+        yield return Raidwide("umbra-smash", 0xBB00, 3);
+        yield return Raidwide("bowels-of-agony", 0xBAF2, 3);
+        yield return Raidwide("light-of-judgment", 0xC622, 1);
 
-        yield return Buster("revolting-ruin", 0xC403) with
+        yield return Buster("revolting-ruin", 0xC403, 1) with
         {
             Owns = ["revolting-ruin-iii"],
         };
-        yield return Buster("revolting-ruin-2", 0xC4E1);
+        yield return Buster("revolting-ruin-2", 0xC4E1, 1);
 
         yield return new Trigger
         {
             Id = "ultimate-embrace",
             On = EventKind.CastStart,
             MatchId = 0xC24C,
+            Phase = 2,
             Make = ctx => new Call
             {
                 Text = "share",
@@ -244,14 +254,14 @@ public static class DancingMad
         };
 
         // 8.0 targets a cast, 40.5k each, 16 casts in one session.
-        yield return Raidwide("gravitas", 0xBAAC);
+        yield return Raidwide("gravitas", 0xBAAC, 1);
 
         // 1.0 target at 37.6k.
-        yield return Buster("damning-edict", 0xBB01);
+        yield return Buster("damning-edict", 0xBB01, 3);
 
         // Exactly 4.0 targets a cast, which is what the source calls towers too, so
         // the coverage lines up and the number backs the name.
-        yield return Cast("wave-cannon", 0xBAA8, "towers");
+        yield return Cast("wave-cannon", 0xBAA8, "towers", 1);
 
         yield return new Trigger
         {
@@ -259,6 +269,7 @@ public static class DancingMad
             Owns = ["nothingness"],
             On = EventKind.AbilityHit,
             MatchId = 0xBAFC,
+            Phase = 3,
             Make = ctx => new Call
             {
                 Text = "pairs",
@@ -273,6 +284,7 @@ public static class DancingMad
             Id = "knock-down",
             On = EventKind.HeadMarker,
             MatchId = 0xA1,
+            Phase = 3,
             OnlyMe = true,
             Make = ctx => new Call
             {
@@ -285,31 +297,31 @@ public static class DancingMad
         };
 
         // Explodes if you are moving when it drops, so the seconds are the call.
-        yield return Debuff("acceleration-bomb", 0x15AA, "stop when it drops");
-        yield return Debuff("cursed-shriek", 0x15A7, "look away");
+        yield return Debuff("acceleration-bomb", 0x15AA, "stop when it drops", 4);
+        yield return Debuff("cursed-shriek", 0x15A7, "look away", 4);
         // Measured at 5s, 49s and 68s in one pull, which is three different jobs.
-        yield return Debuff("double-trouble-trap", 0x13D6, "trap");
-        yield return Debuff("entropy", 0x640, "donut");
-        yield return Debuff("dynamic-fluid", 0x641, "donut");
+        yield return Debuff("double-trouble-trap", 0x13D6, "trap", 1);
+        yield return Debuff("entropy", 0x640, "donut", 3);
+        yield return Debuff("dynamic-fluid", 0x641, "donut", 3);
 
-        yield return Raidwide("light-of-judgment-2", 0xBABD);
-        yield return Raidwide("grand-cross", 0xBB14);
-        yield return Raidwide("thrumming-thunder", 0xC5DE);
-        yield return Raidwide("thunder-3-aoe", 0xBB12);
+        yield return Raidwide("light-of-judgment-2", 0xBABD, 2);
+        yield return Raidwide("grand-cross", 0xBB14, 4);
+        yield return Raidwide("thrumming-thunder", 0xC5DE, 4);
+        yield return Raidwide("thunder-3-aoe", 0xBB12, 3);
 
-        yield return Buster("thunder-3-buster", 0xBB09);
+        yield return Buster("thunder-3-buster", 0xBB09, 3);
 
-        yield return Cast("blizzard-3-stack", 0xBB0D, "stack");
-        yield return Cast("blizzard-3-move", 0xBB11, "keep moving");
-        yield return Cast("blizzard-blowout", 0xBA95, "knockback");
-        yield return Cast("knock-down-cast", 0xBB03, "stack middle");
-        yield return Cast("slap-happy", 0xBAE6, "out of the middle");
-        yield return Cast("slap-happy-2", 0xBAE7, "out of the middle");
-        yield return Cast("despair-1", 0xBAEC, "out of the middle");
-        yield return Cast("despair-2", 0xBAED, "out of the middle");
-        yield return Cast("mana-release", 0xBAA5, "in the donut");
-        yield return Cast("stray-flames", 0xBAF3, "bait");
-        yield return Cast("stray-spray", 0xBAF6, "bait");
+        yield return Cast("blizzard-3-stack", 0xBB0D, "stack", 3);
+        yield return Cast("blizzard-3-move", 0xBB11, "keep moving", 3);
+        yield return Cast("blizzard-blowout", 0xBA95, "knockback", 1);
+        yield return Cast("knock-down-cast", 0xBB03, "stack middle", 3);
+        yield return Cast("slap-happy", 0xBAE6, "out of the middle", 3);
+        yield return Cast("slap-happy-2", 0xBAE7, "out of the middle", 3);
+        yield return Cast("despair-1", 0xBAEC, "out of the middle", 3);
+        yield return Cast("despair-2", 0xBAED, "out of the middle", 3);
+        yield return Cast("mana-release", 0xBAA5, "in the donut", 4);
+        yield return Cast("stray-flames", 0xBAF3, "bait", 3);
+        yield return Cast("stray-spray", 0xBAF6, "bait", 3);
 
         // Cone on whoever it names, so it is a bait rather than a spread.
         yield return new Trigger
@@ -317,6 +329,7 @@ public static class DancingMad
             Id = "all-things-ending",
             On = EventKind.CastStart,
             MatchId = 0xBADC,
+            Phase = 2,
             Make = ctx => new Call
             {
                 Text = ctx.TargetIsMe ? "cone on you" : "bait cones",
@@ -328,18 +341,18 @@ public static class DancingMad
         };
 
         // Towers, under whichever name the fight gives them.
-        yield return Cast("path-of-light-towers", 0xBADD, "towers");
-        yield return Cast("celestriad", 0xBB42, "towers");
-        yield return Cast("stray-apocalypse", 0xBB3B, "exaflares");
+        yield return Cast("path-of-light-towers", 0xBADD, "towers", 2);
+        yield return Cast("celestriad", 0xBB42, "towers", 5);
+        yield return Cast("stray-apocalypse", 0xBB3B, "exaflares", 5);
 
-        yield return Hit("towers-8-a", 0xBABF, "towers", "towers-8");
-        yield return Hit("towers-8-b", 0xBAC0, "towers", "towers-8");
-        yield return Hit("towers-8-c", 0xBAC1, "towers", "towers-8");
-        yield return Hit("towers-8-d", 0xBAC2, "towers", "towers-8");
-        yield return Hit("wave-cannon-explosion", 0xBAA8, "avoid towers");
-        yield return Hit("vitrophyre", 0xBAAC, "spread");
-        yield return Hit("all-things-ending-bait-a", 0xBAD2, "bait", "all-things-ending-bait");
-        yield return Hit("all-things-ending-bait-b", 0xBAD3, "bait", "all-things-ending-bait");
+        yield return Hit("towers-8-a", 0xBABF, "towers", 2, "towers-8");
+        yield return Hit("towers-8-b", 0xBAC0, "towers", 2, "towers-8");
+        yield return Hit("towers-8-c", 0xBAC1, "towers", 2, "towers-8");
+        yield return Hit("towers-8-d", 0xBAC2, "towers", 2, "towers-8");
+        yield return Hit("wave-cannon-explosion", 0xBAA8, "avoid towers", 1);
+        yield return Hit("vitrophyre", 0xBAAC, "spread", 1);
+        yield return Hit("all-things-ending-bait-a", 0xBAD2, "bait", 2, "all-things-ending-bait");
+        yield return Hit("all-things-ending-bait-b", 0xBAD3, "bait", 2, "all-things-ending-bait");
 
         // Their own line is "heal the target to full", and the target is the call.
         yield return new Trigger
@@ -347,6 +360,7 @@ public static class DancingMad
             Id = "accretion",
             On = EventKind.StatusGain,
             MatchId = 0xD2C,
+            Phase = 3,
             Make = ctx => new Call
             {
                 Text = ctx.TargetIsMe ? "heal to full, on you" : $"heal {ctx.NameTarget()} to full",
@@ -358,15 +372,15 @@ public static class DancingMad
         };
 
         // Which element you take last, off the resistance the towers leave on you.
-        yield return Element("celestriad-fire", 0xB56, "fire last");
-        yield return Element("celestriad-ice", 0xB57, "ice last");
-        yield return Element("celestriad-lightning", 0xBB6, "lightning last");
+        yield return Element("celestriad-fire", 0xB56, "fire last", 5);
+        yield return Element("celestriad-ice", 0xB57, "ice last", 5);
+        yield return Element("celestriad-lightning", 0xBB6, "lightning last", 5);
 
         foreach (var t in InLine()) yield return t;
 
         // Which of the two bosses this player is meant to be hitting.
-        yield return Hero("epic-hero", 0x1060, "Chaos");
-        yield return Hero("fated-hero", 0x1062, "Exdeath");
+        yield return Hero("epic-hero", 0x1060, "Chaos", 3);
+        yield return Hero("fated-hero", 0x1062, "Exdeath", 3);
 
         yield return new Trigger
         {

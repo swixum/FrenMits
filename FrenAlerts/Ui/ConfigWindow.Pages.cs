@@ -242,7 +242,6 @@ public partial class ConfigWindow
         _nav = NavKind.Fight;
         _openCall = "";
         _callFilter = "";
-        _callView = 0;
     }
 
     private void OpenCall(CallEntry call)
@@ -340,38 +339,7 @@ public partial class ConfigWindow
             ImGui.Spacing();
         }
 
-        var loose = here.Count(c => !c.Exact);
-        if (loose > 0)
-        {
-            Widgets.SegmentBegin();
-            if (Widgets.Segment($"All {here.Count}", _callView == 0)) _callView = 0;
-            if (Widgets.Segment($"Exact {here.Count - loose}", _callView == 1)) _callView = 1;
-            if (Widgets.Segment($"Not exact {loose}", _callView == 2)) _callView = 2;
-            Widgets.SegmentEnd();
-
-            // An unchecked call ships silent, so this is the way to hear the lot of
-            // them in one click rather than ninety, and back again.
-            var quiet = here.Count(c => !c.Exact && C.IsCallOn(c.Key, c.ShipsOn));
-            if (_callView == 2 && quiet > 0)
-            {
-                ImGui.SameLine(0, Theme.S(10f));
-                if (Widgets.DangerButton($"Turn off all {quiet}"))
-                    foreach (var c in here.Where(c => !c.Exact && C.IsCallOn(c.Key, c.ShipsOn)))
-                        C.SetCallOn(c.Key, c.ShipsOn, false);
-                Tip("Leaves the exact ones alone.");
-            }
-            else if (_callView == 2 && loose > 0)
-            {
-                ImGui.SameLine(0, Theme.S(10f));
-                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Undo, "Turn them all on"))
-                    foreach (var c in here.Where(c => !c.Exact))
-                        C.SetCallOn(c.Key, c.ShipsOn, true);
-            }
-            ImGui.Spacing();
-        }
-
         var shown = here
-            .Where(c => _callView switch { 1 => c.Exact, 2 => !c.Exact, _ => true })
             .Where(c => string.IsNullOrWhiteSpace(_callFilter)
                 || Wording(c).Contains(_callFilter, StringComparison.OrdinalIgnoreCase)
                 || c.Text.Contains(_callFilter, StringComparison.OrdinalIgnoreCase))
@@ -461,9 +429,7 @@ public partial class ConfigWindow
 
         var dead = !LiveCoverage.Covered(call.On);
         var quiet = NeedsParser(call);
-        var note = dead ? "Never fires"
-            : quiet ? "Needs a parser"
-            : !call.Exact && _callView == 0 ? "Not exact" : "";
+        var note = dead ? "Never fires" : quiet ? "Needs a parser" : "";
         var room = ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeight() * 2f
                    - ImGui.CalcTextSize(note).X - Theme.S(48f);
 

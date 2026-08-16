@@ -49,7 +49,6 @@ public partial class ConfigWindow : Window, IDisposable
 
     // Which calls the fight page is showing: all, the checked ones, or the ones
     // the import could not check.
-    private int _callView;
 
     private string _callWords = "";
 

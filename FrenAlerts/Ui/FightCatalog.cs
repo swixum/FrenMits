@@ -11,7 +11,7 @@ public sealed record FightEntry(
     string Name, string Full, string Category, uint TerritoryId, int Calls, int BuiltIn);
 
 public sealed record CallEntry(
-    string Key, string Text, CallLevel Level, float Hold, int Phase, bool Exact,
+    string Key, string Text, CallLevel Level, float Hold, int Phase,
     bool ShipsOn, EventKind On, uint MatchId);
 
 public static class FightCatalog
@@ -214,7 +214,7 @@ public static class FightCatalog
             }
 
             // Written by hand, so it says what it means at the moment it means it.
-            list.Add(new CallEntry(t.Id, text, level, hold, 0, true, t.Enabled, t.On, t.MatchId));
+            list.Add(new CallEntry(t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId));
         }
         return list;
     }
@@ -241,7 +241,7 @@ public static class FightCatalog
             keyOf[s.Id] = s.DedupeKey;
             if (!seen.Add(s.DedupeKey)) continue;
             list.Add(new CallEntry(s.DedupeKey, s.Text, s.Level, s.Hold, s.Phase,
-                s.Reproduced, s.DefaultOn, s.On, s.MatchId));
+                s.DefaultOn, s.On, s.MatchId));
         }
         return list;
     }
