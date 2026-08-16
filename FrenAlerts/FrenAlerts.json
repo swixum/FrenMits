@@ -4,7 +4,7 @@
   "InternalName": "FrenAlerts",
   "Punchline": "Boss mechanic callouts",
   "Description": "Boss mechanic callouts",
-  "AssemblyVersion": "1.0.0.0",
+  "AssemblyVersion": "1.0.0.1",
   "ApplicableVersion": "any",
   "Tags": ["callout", "alert", "raid", "ultimate", "savage", "mechanic"],
   "CategoryTags": ["utility"],

@@ -105,6 +105,7 @@ public sealed class EventSources : IDisposable
     {
         // First, so everything drained this frame is stamped with one time.
         Tick();
+        _parser.Tick(_now);
 
         foreach (var e in _control.Drain()) yield return e;
         foreach (var e in _abilities.Drain()) yield return e;

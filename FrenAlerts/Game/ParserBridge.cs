@@ -32,6 +32,15 @@ public sealed class ParserBridge : IDisposable
 
     public int Lines { get; private set; }
 
+    // Still trying to open the channel we send on.
+    public bool Asking { get; private set; } = true;
+
+    private const double AskEverySeconds = 1.0;
+    private const int MaxAsks = 30;
+
+    private double _lastAsk = double.NegativeInfinity;
+    private int _asks;
+
     private void TryConnect()
     {
         try
@@ -42,18 +51,47 @@ public sealed class ParserBridge : IDisposable
             _subscribe = Service.PluginInterface.GetIpcSubscriber<string, bool>(Subscribe);
             _unsubscribe = Service.PluginInterface.GetIpcSubscriber<string, bool>(Unsubscribe);
 
-            // Throws when no parser is loaded, which is the ordinary case and is
-            // caught below rather than logged as a failure.
+            // Throws when no parser is loaded, which is the ordinary case.
             Connected = _subscribe.InvokeFunc(Channel);
 
-            if (Connected) Ask();
-            else Service.Log.Information("Fren Alerts: no parser answered; head marker calls are off.");
+            // A channel of this name already exists, which means an earlier load of
+            // this plugin left one behind. Drop it and take the name again, or every
+            // load from here on is refused and head markers stay off until the parser
+            // itself is restarted.
+            if (!Connected)
+            {
+                _unsubscribe.InvokeFunc(Channel);
+                Connected = _subscribe.InvokeFunc(Channel);
+                if (Connected)
+                    Service.Log.Information("Fren Alerts: took back a parser channel left by an earlier load.");
+            }
+
+            if (!Connected)
+                Service.Log.Information("Fren Alerts: no parser answered; head marker calls are off.");
         }
         catch (Exception ex)
         {
             Connected = false;
             Service.Log.Debug($"Fren Alerts: no parser channel ({ex.GetType().Name}); head marker calls are off.");
         }
+    }
+
+    // The parser registers the gate we send on some time after it accepts the
+    // subscriber, not during it. Asking once from the constructor was always going to
+    // lose that race, so it is asked again on the frame until it takes.
+    public void Tick(double now)
+    {
+        if (!Connected || !Asking) return;
+        if (now - _lastAsk < AskEverySeconds) return;
+
+        _lastAsk = now;
+        if (++_asks > MaxAsks)
+        {
+            Asking = false;
+            Service.Log.Warning("Fren Alerts: the parser never opened its channel; head marker calls are off.");
+            return;
+        }
+        Ask();
     }
 
     private void Ask()
@@ -66,11 +104,13 @@ public sealed class ParserBridge : IDisposable
                 ["call"] = "subscribe",
                 ["events"] = new JArray("LogLine"),
             });
+            Asking = false;
+            Service.Log.Information("Fren Alerts: reading head markers from the parser.");
         }
-        catch (Exception ex)
+        catch
         {
-            Service.Log.Warning(ex, "Fren Alerts: the parser channel opened but would not take a subscription.");
-            Connected = false;
+            // Not up yet. Tick asks again; this is a race rather than a failure, and
+            // saying so every second would be noise.
         }
     }
 
@@ -104,7 +144,10 @@ public sealed class ParserBridge : IDisposable
     {
         try
         {
-            if (Connected) _unsubscribe?.InvokeFunc(Channel);
+            // Always, not only when connected. A subscription left behind is a name
+            // the parser refuses to hand out again, which is how one bad load turned
+            // into head markers being off for every load after it.
+            _unsubscribe?.InvokeFunc(Channel);
         }
         catch
         {

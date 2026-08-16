@@ -47,7 +47,6 @@ public sealed class Plugin : IDalamudPlugin
         _windows.AddWindow(Overlay);
         _windows.AddWindow(ConfigWindow);
 
-        Service.PluginInterface.UiBuilder.Draw += OnDraw;
         Service.PluginInterface.UiBuilder.OpenConfigUi += OpenConfig;
         Service.PluginInterface.UiBuilder.OpenMainUi += OpenConfig;
 
@@ -70,6 +69,13 @@ public sealed class Plugin : IDalamudPlugin
         // a replay a call holds instead of ageing out, and at four times speed the
         // countdown reaches zero when the mechanic does.
         Board.Clock = () => _runner.Now;
+
+        // Last, and only once everything it touches exists. Frames are drawn while
+        // this constructor is still running, so subscribing any earlier hands the
+        // game a draw against half-built fields: on the first install that landed
+        // between here and the runner being assigned, and every frame threw.
+        Service.PluginInterface.UiBuilder.Draw += OnDraw;
+
         Service.Log.Information($"Fren Alerts {PluginVersion} loaded, engine {EngineInfo.Version}.");
     }
 
