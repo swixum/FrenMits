@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Mechanic callouts: events in, calls out. This project references no
+       Dalamud, Lumina, FFXIVClientStructs or ImGui assembly, and that absence is
+       what keeps it testable offline against recorded pulls. Anything the client
+       has to supply comes in through a provider the plugin wires at startup. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x64</Platforms>
+    <AssemblyName>FrenAlerts.Engine</AssemblyName>
+    <RootNamespace>FrenAlerts.Engine</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+</Project>

@@ -50,6 +50,20 @@ jobs:
       - name: Build
         run: dotnet build src/FrenMits.csproj -c Release --nologo
 
+      # Fren Alerts is a second, separate plugin from this repo. It lives outside
+      # src/ on purpose: FrenMits.csproj globs src/**/*.cs, so anything under
+      # there would compile into FrenMits.dll instead of its own plugin.
+      - name: Build Fren Alerts
+        run: dotnet build FrenAlerts/FrenAlerts.csproj -c Release --nologo
+
+      # The neural voice, published on its own because it cannot go in the plugin
+      # zip: 84MB of native runtime, most of it a phoneme dictionary. It is also a
+      # separate PROCESS, which is the point -- native code fails by taking its
+      # process down, and that must not be the game's. Whoever wants it fetches it
+      # once; everyone else uses the system voice and downloads nothing.
+      - name: Publish the voice pack
+        run: dotnet publish FrenAlerts/FrenAlerts.Voice/FrenAlerts.Voice.csproj -c Release -o voicepack --nologo
+
       # Public Pages site: the plugin zip + the custom-repo manifest.
       - name: Assemble Pages site
         shell: pwsh
@@ -75,16 +89,57 @@ jobs:
           Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
           # Publicly host the icon for the listing IconUrl.
           Copy-Item "images\icon.png" "site\icon.png" -Force
-          # Publish the manifest with the version stamped straight from the built
-          # plugin, so the in-game installer always sees the version it just got
-          # (repo.json's committed version can never go stale and block updates).
-          $ver = (Get-Content "$out\FrenMits.json" -Raw | ConvertFrom-Json).AssemblyVersion
-          # Kept in docs, published at the site root: the URL people pasted into
-          # their installer is the published one, and it does not move.
+          # Fren Alerts: its own zip beside FrenMits', from its own project and its
+          # own version. Both have to land in this one site folder, because the
+          # Pages artifact replaces the whole site and a missing zip is a dead
+          # download link for everyone who already installed that plugin.
+          $alertsOut = "FrenAlerts\bin\x64\Release"
+          if (-not (Test-Path "$alertsOut\FrenAlerts.dll")) { $alertsOut = "FrenAlerts\bin\Release" }
+          foreach ($dep in @("FrenAlerts.Engine.dll")) {
+            if (-not (Test-Path "$alertsOut\$dep")) { throw "$dep missing - Fren Alerts would install and then fail to load." }
+          }
+          if (-not (Test-Path "$alertsOut\icon.png")) { throw "Fren Alerts icon missing - the listing would show a blank tile." }
+          # Without the call pack the plugin installs, loads, and then says nothing
+          # in any fight, which looks like a broken install rather than a missing file.
+          if (-not (Test-Path "$alertsOut\calls.facall")) { throw "calls.facall missing - Fren Alerts would have no calls in any fight." }
+          Compress-Archive -Path @("$alertsOut\FrenAlerts.dll", "$alertsOut\FrenAlerts.Engine.dll", "$alertsOut\FrenAlerts.json", "$alertsOut\icon.png", "$alertsOut\calls.facall") -DestinationPath "site\FrenAlerts.zip" -Force
+          # Its own name at the site root, or it would overwrite FrenMits' icon.
+          Copy-Item "FrenAlerts\images\icon.png" "site\frenalerts-icon.png" -Force
+          # The voice pack, beside the plugin zips rather than inside one. Checked by
+          # name and by size: a publish that quietly drops the native runtime leaves
+          # an exe that starts, fails to load and looks like a corrupt download.
+          if (-not (Test-Path "voicepack\FrenAlertsVoice.exe")) { throw "voice pack missing its executable." }
+          foreach ($native in @("onnxruntime.dll", "MisakiSharp.dll", "KokoroSharp.dll")) {
+            if (-not (Test-Path "voicepack\$native")) { throw "voice pack missing $native - it would install and never speak." }
+          }
+          $packSize = (Get-ChildItem "voicepack" -Recurse | Measure-Object -Property Length -Sum).Sum
+          if ($packSize -lt 60MB) { throw "voice pack is only $([math]::Round($packSize/1MB))MB - the native runtime did not publish." }
+          Compress-Archive -Path "voicepack\*" -DestinationPath "site\FrenAlertsVoice.zip" -Force
+          Write-Host "Voice pack published at $([math]::Round($packSize/1MB))MB"
+          # Publish the manifest with each version stamped straight from that
+          # plugin's own built output, so the in-game installer always sees the
+          # version it just got (a committed version can never go stale and block
+          # updates). Kept in docs, published at the site root: the URL people
+          # pasted into their installer is the published one, and it does not move.
           if (-not (Test-Path "docs\repo.json")) { throw "docs\repo.json missing - every installed plugin would stop seeing updates." }
-          (Get-Content "docs\repo.json" -Raw) -replace '("(?:Testing)?AssemblyVersion"\s*:\s*")[\d.]+(")', "`${1}$ver`${2}" |
-            Set-Content "site\repo.json"
-          Write-Host "Published manifest version: $ver"
+          $entries = Get-Content "docs\repo.json" -Raw | ConvertFrom-Json
+          # Stamped per entry by InternalName, never by a blanket regex: a replace
+          # across the file writes one plugin's version into every listing the
+          # moment there is more than one, which silently pins the other plugin.
+          $built = @{ "FrenMits" = "$out\FrenMits.json"; "FrenAlerts" = "$alertsOut\FrenAlerts.json" }
+          foreach ($e in $entries) {
+            $manifest = $built[$e.InternalName]
+            if (-not $manifest) { throw "repo.json lists $($e.InternalName) but nothing here built it - its download link would 404." }
+            $ver = (Get-Content $manifest -Raw | ConvertFrom-Json).AssemblyVersion
+            $e.AssemblyVersion = $ver
+            if ($e.PSObject.Properties.Name -contains "TestingAssemblyVersion") { $e.TestingAssemblyVersion = $ver }
+            Write-Host "Published $($e.InternalName) at $ver"
+          }
+          # ConvertTo-Json unwraps a one-element array into a bare object, and a
+          # manifest that is not an array lists nothing at all.
+          $json = $entries | ConvertTo-Json -Depth 10
+          if (@($entries).Count -eq 1) { $json = "[$json]" }
+          $json | Set-Content "site\repo.json" -Encoding utf8
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

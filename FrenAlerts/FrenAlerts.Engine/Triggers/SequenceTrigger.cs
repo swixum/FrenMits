@@ -1,0 +1,51 @@
+namespace FrenAlerts.Engine;
+
+public sealed class SequenceTrigger
+{
+    public required string Id { get; init; }
+
+    // What opens the sequence.
+    public required EventKind StartOn { get; init; }
+    public uint StartId { get; init; }
+
+    public required EventKind ThenOn { get; init; }
+    public uint ThenId { get; init; }
+    public double Within { get; init; } = 10.0;
+
+    // Only complete when the follow-up landed on this player.
+    public bool ThenOnMe { get; init; }
+
+    public required Func<TriggerContext, Call?> Make { get; init; }
+
+    private bool _armed;
+    private double _armedAt;
+
+    public Call? Step(in TriggerContext ctx)
+    {
+        var e = ctx.Event;
+
+        if (_armed && e.Time - _armedAt > Within) _armed = false;
+
+        if (!_armed)
+        {
+            if (e.Kind == StartOn && (StartId == 0 || e.Id == StartId))
+            {
+                _armed = true;
+                _armedAt = e.Time;
+            }
+            return null;
+        }
+
+        if (e.Kind != ThenOn || (ThenId != 0 && e.Id != ThenId)) return null;
+        if (ThenOnMe && !ctx.TargetIsMe) return null;
+
+        _armed = false;
+        return Make(ctx);
+    }
+
+    public void Reset()
+    {
+        _armed = false;
+        _armedAt = 0;
+    }
+}

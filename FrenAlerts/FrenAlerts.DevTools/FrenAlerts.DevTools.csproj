@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Authoring and test tooling: reads recorded combat logs into the engine's
+       event stream. Never shipped, and the engine never references it, so nothing
+       at runtime can end up depending on an outside log parser. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x64</Platforms>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>FrenAlerts.DevTools</AssemblyName>
+    <RootNamespace>FrenAlerts.DevTools</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FrenAlerts.Engine\FrenAlerts.Engine.csproj" />
+  </ItemGroup>
+
+</Project>

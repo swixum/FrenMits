@@ -1,0 +1,724 @@
+facall 3
+1226	r1s-biscuit-maker-no-target	r1s-biscuit-maker-no-target	1	9495	6	1	0	0	0	4	0	0	tank,healer	buster		3	0	0	1	1
+1226	r1s-biscuit-maker-no-target-others	r1s-biscuit-maker-no-target-others	1	9495	6	0	0	0	0	4	0	0	dps	buster		3	0	0	1	1
+1226	r1s-biscuit-maker-on-target	r1s-biscuit-maker-on-target	1	9495	5	0	0	0	0	4	0	0		buster on {target}		3	0	0	1	1
+1226	r1s-biscuit-maker-on-you	r1s-biscuit-maker-on-you	1	9495	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
+1226	r1s-bloody-scratch	r1s-bloody-scratch	1	9494	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1226	r1s-double-swipe	r1s-double-swipe	1	945F	0	0	0	0	0	4	0	0		healer groups		3	0	0	1	1
+1226	r1s-quadruple-swipe	r1s-quadruple-swipe	1	945D	0	0	0	0	0	4	0	0		partner stacks		3	0	0	1	1
+1226	r1s-elevate-and-eviscerate-launch-other	r1s-elevate-and-eviscerate-launch-other	1	9446	0	0	0	0	0	4	0	0		Elevate and Eviscerate Launch Other		3	0	0	1	0
+1226	r1s-elevate-and-eviscerate-launch-self	r1s-elevate-and-eviscerate-launch-self	1	9446	0	0	0	0	0	4	0	0		Launch Forward (Aim for uncracked tile)		3	0	0	1	0
+1226	r1s-elevate-and-eviscerate-stun-other	r1s-elevate-and-eviscerate-stun-other	1	9448	0	0	0	0	0	4	0	0		Elevate and Eviscerate Stun Other		3	0	0	1	0
+1226	r1s-elevate-and-eviscerate-stun-self	r1s-elevate-and-eviscerate-stun-self	1	9448	0	0	0	0	0	4	0	0		Stand on uncracked tile		3	0	0	1	0
+1226	r1s-leaping-one-two-paw-1	r1s-leaping-one-two-paw	1	944D	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
+1226	r1s-leaping-one-two-paw-2	r1s-leaping-one-two-paw	1	944E	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
+1226	r1s-leaping-one-two-paw-3	r1s-leaping-one-two-paw	1	944F	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
+1226	r1s-leaping-one-two-paw-4	r1s-leaping-one-two-paw	1	9450	0	0	0	0	0	4	0	0		Leaping One-two Paw		3	0	0	1	0
+1226	r1s-leaping-quadruple-crossing-1	r1s-leaping-quadruple-crossing	1	9457	0	0	0	0	0	4	0	0		Proximity baits at target		3	0	0	1	0
+1226	r1s-leaping-quadruple-crossing-2	r1s-leaping-quadruple-crossing	1	982F	0	0	0	0	0	4	0	0		Proximity baits at target		3	0	0	1	0
+1226	r1s-mouser	r1s-mouser	1	996C	0	0	0	0	0.2	11	0	0		Mouser		3	0	0	1	0
+1226	r1s-one-two-paw-left-right	r1s-one-two-paw-left-right	1	9439	0	1	0	0	0	9.5	0	0		right left	Right then Left	3	0	0	1	1
+1226	r1s-one-two-paw-right-left	r1s-one-two-paw-right-left	1	9436	0	1	0	0	0	9.5	0	0		left right	Left then Right	3	0	0	1	1
+1226	r1s-overshadow-no-target	r1s-overshadow-no-target	1	9497	6	1	0	0	0	4	0	0		stack		3	0	0	1	1
+1226	r1s-overshadow-on-target	r1s-overshadow-on-target	1	9497	5	1	0	0	0	4	0	0		stack on {target}		3	0	0	1	1
+1226	r1s-overshadow-on-you	r1s-overshadow-on-you	1	9497	1	1	0	0	0	4	1	1		stack on you		3	0	0	1	1
+1226	r1s-shockwave-knockback-safe-directions-1	r1s-shockwave-knockback-safe-directions	8	0	0	0	0	0	0	4	0	0		Shockwave Knockback Safe Directions		0	0	0	1	0
+1226	r1s-shockwave-knockback-safe-directions-2	r1s-shockwave-knockback-safe-directions	8	3	0	0	0	0	0	4	0	0		Shockwave Knockback Safe Directions		0	0	0	1	0
+1226	r1s-splintering-nails	r1s-splintering-nails	1	9499	0	0	0	0	0	4	0	0		Role positions		3	0	0	1	1
+1228	r2s-beeloved-venom-other-merge	r2s-beeloved-venom-other-merge	4	F5C	0	0	0	0	0	4	0	0		Beeloved Venom Other Merge		0	0	0	1	0
+1228	r2s-beeloved-venom-player-merge-1	r2s-beeloved-venom-player-merge	4	F5C	0	0	0	0	0	4	0	0		Beeloved Venom Player Merge		0	0	0	1	0
+1228	r2s-beeloved-venom-player-merge-2	r2s-beeloved-venom-player-merge	4	F5D	0	0	0	0	0	4	0	0		Beeloved Venom Player Merge		0	0	0	1	0
+1228	r2s-call-me-honey	r2s-call-me-honey	1	9183	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1228	r2s-centerstage-combo	r2s-centerstage-combo	1	91AC	0	0	0	0	0	9	0	0		get under	get under	3	0	0	1	1
+1228	r2s-drop-of-love	r2s-drop-of-love	1	9B09	0	0	0	0	0	4	0	0		stored, partners		3	0	0	1	1
+1228	r2s-drop-of-venom	r2s-drop-of-venom	1	9185	0	0	0	0	0	4	0	0		stored, partners		3	0	0	1	1
+1228	r2s-heart-debuff-1	r2s-heart-debuff	4	F52	0	0	0	0	0	4	0	0		Heart Debuff		0	0	0	1	0
+1228	r2s-heart-debuff-2	r2s-heart-debuff	4	F53	0	0	0	0	0	4	0	0		Heart Debuff		0	0	0	1	0
+1228	r2s-heart-debuff-3	r2s-heart-debuff	4	F54	0	0	0	0	0	4	0	0		Heart Debuff		0	0	0	1	0
+1228	r2s-honey-b-finale	r2s-honey-b-finale	1	918F	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1228	r2s-honey-b-live-1st-beat	r2s-honey-b-live-1st-beat	1	9C24	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1228	r2s-honey-b-live-2nd-beat	r2s-honey-b-live-2nd-beat	1	9C25	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1228	r2s-honey-b-live-3rd-beat	r2s-honey-b-live-3rd-beat	1	9C26	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1228	r2s-honey-beeline-after-reminder-1	r2s-honey-beeline-after-reminder	1	9186	0	0	0	0	1.5	4	0	0		middle after		3	0	0	1	1
+1228	r2s-honey-beeline-after-reminder-2	r2s-honey-beeline-after-reminder	1	9B0C	0	0	0	0	1.5	4	0	0		middle after		3	0	0	1	1
+1228	r2s-honey-beeline-followup-1	r2s-honey-beeline-followup	3	9186	0	0	0	0	0	4	0	0		Honey Beeline		3	0	0	1	0
+1228	r2s-honey-beeline-followup-2	r2s-honey-beeline-followup	3	9B0C	0	0	0	0	0	4	0	0		Honey Beeline		3	0	0	1	0
+1228	r2s-honey-beeline-initial-1	r2s-honey-beeline-initial	1	9186	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	1
+1228	r2s-honey-beeline-initial-2	r2s-honey-beeline-initial	1	9B0C	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	1
+1228	r2s-loveseeker	r2s-loveseeker	1	9B7D	0	1	0	0	0	4	0	0		out		3	0	0	1	1
+1228	r2s-outerstage-combo	r2s-outerstage-combo	1	91AD	0	0	0	0	0	9	0	0		Out Cards Intercards Under	Out Cards then Intercards then Under	3	0	0	1	1
+1228	r2s-poison-first-defamations	r2s-poison-first-defamations	4	F5E	0	0	0	0	20	6	0	0		Poison First Defamations		0	1	0	1	0
+1228	r2s-poison-second-defamations	r2s-poison-second-defamations	4	F5E	0	0	0	0	40	6	0	0		Poison Second Defamations		0	1	0	1	0
+1228	r2s-poison-towers	r2s-poison-towers	4	F5E	0	1	0	0	0	4	0	0		towers		0	0	0	1	0
+1228	r2s-rotten-heart	r2s-rotten-heart	1	91AA	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1228	r2s-splash-of-venom	r2s-splash-of-venom	1	9184	0	0	0	0	0	4	0	0		stored, spread		3	0	0	1	1
+1228	r2s-spread-love	r2s-spread-love	1	9B08	0	0	0	0	0	4	0	0		stored, spread		3	0	0	1	1
+1228	r2s-tempting-twist-after-reminder-1	r2s-tempting-twist-after-reminder	1	9187	0	0	0	0	1.5	4	0	0		out after		3	0	0	1	1
+1228	r2s-tempting-twist-after-reminder-2	r2s-tempting-twist-after-reminder	1	9B0D	0	0	0	0	1.5	4	0	0		out after		3	0	0	1	1
+1228	r2s-tempting-twist-followup-1	r2s-tempting-twist-followup	3	9187	0	0	0	0	0	4	0	0		Tempting Twist		3	0	0	1	0
+1228	r2s-tempting-twist-followup-2	r2s-tempting-twist-followup	3	9B0D	0	0	0	0	0	4	0	0		Tempting Twist		3	0	0	1	0
+1228	r2s-tempting-twist-initial-1	r2s-tempting-twist-initial	1	9187	0	1	0	0	0	4	0	0		get under		3	0	0	1	1
+1228	r2s-tempting-twist-initial-2	r2s-tempting-twist-initial	1	9B0D	0	1	0	0	0	4	0	0		get under		3	0	0	1	1
+1230	r3s-barbarous-barrage-uptime-knockback	r3s-barbarous-barrage-uptime-knockback	1	93FB	0	0	0	0	0	4	0	0		knockback		3	0	0	1	0
+1230	r3s-brutal-impact	r3s-brutal-impact	1	9425	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1230	r3s-fuse-field	r3s-fuse-field	4	FB4	1	0	0	0	0	4	1	1		Fuse Field		0	0	0	1	0
+1230	r3s-kb-towers-2-lariat-combo-1	r3s-kb-towers-2-lariat-combo	1	9AE8	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
+1230	r3s-kb-towers-2-lariat-combo-2	r3s-kb-towers-2-lariat-combo	1	9AE9	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
+1230	r3s-kb-towers-2-lariat-combo-3	r3s-kb-towers-2-lariat-combo	1	9AEA	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
+1230	r3s-kb-towers-2-lariat-combo-4	r3s-kb-towers-2-lariat-combo	1	9AEB	0	0	0	0	0	11	0	0		KB Towers 2 Lariat Combo		3	0	0	1	0
+1230	r3s-knuckle-sandwich-avoid	r3s-knuckle-sandwich-avoid	1	9423	5	0	0	0	0	4	0	0	dps	out of the cleave		3	0	0	1	1
+1230	r3s-knuckle-sandwich-no-target	r3s-knuckle-sandwich-no-target	1	9423	6	1	0	0	0	4	0	0	tank,healer	share the buster		3	0	0	1	1
+1230	r3s-knuckle-sandwich-no-target-others	r3s-knuckle-sandwich-no-target-others	1	9423	6	0	0	0	0	4	0	0	dps	out of the cleave		3	0	0	1	1
+1230	r3s-knuckle-sandwich-on-target	r3s-knuckle-sandwich-on-target	1	9423	5	1	0	0	0	4	0	0	tank,healer	share the buster, {target}		3	0	0	1	1
+1230	r3s-knuckle-sandwich-on-you	r3s-knuckle-sandwich-on-you	1	9423	1	1	0	0	0	4	1	1		share the buster, on you		3	0	0	1	1
+1230	r3s-long-fuse	r3s-long-fuse	4	FB9	1	0	0	0	0	4	1	1		Long Fuse		0	0	0	1	1
+1230	r3s-murderous-mist	r3s-murderous-mist	1	93FE	0	0	0	0	0	4	0	0		get behind		3	0	0	1	1
+1230	r3s-octoboom-bombarian-special	r3s-octoboom-bombarian-special	1	9752	0	0	0	0	0	4	0	0		out in knockback spread	Out then In then Knockback then Spread	3	0	0	1	1
+1230	r3s-octoboom-bombarian-special-reminder	r3s-octoboom-bombarian-special-reminder	1	9752	0	1	0	0	20	7	0	0		spread		3	0	0	1	1
+1230	r3s-octoboom-dive-knockback	r3s-octoboom-dive-knockback	1	93DF	0	0	0	0	0	4	0	0		knockback	knockback	3	0	0	1	1
+1230	r3s-octoboom-dive-proximity	r3s-octoboom-dive-proximity	1	93DE	0	0	0	0	0	4	0	0		away and spread	Away and Spread	3	0	0	1	1
+1230	r3s-octuple-lariat-in	r3s-octuple-lariat-in	1	93D9	0	0	0	0	0	4	0	0		in and spread	in and spread	3	0	0	1	1
+1230	r3s-octuple-lariat-out	r3s-octuple-lariat-out	1	93D8	0	0	0	0	0	4	0	0		out and spread	out and spread	3	0	0	1	1
+1230	r3s-quadroboom-bombarian-special	r3s-quadroboom-bombarian-special	1	940A	0	0	0	0	0	4	0	0		Out In Knockback Partners	Out then In then Knockback then Partners	3	0	0	1	1
+1230	r3s-quadroboom-bombarian-special-reminder	r3s-quadroboom-bombarian-special-reminder	1	940A	0	1	0	0	20	7	0	0		stack with your partner		3	0	0	1	1
+1230	r3s-quadroboom-dive-knockback	r3s-quadroboom-dive-knockback	1	93E1	0	0	0	0	0	4	0	0		knockback	knockback	3	0	0	1	1
+1230	r3s-quadroboom-dive-proximity	r3s-quadroboom-dive-proximity	1	93E0	0	0	0	0	0	4	0	0		away and partners	Away and Partners	3	0	0	1	1
+1230	r3s-quadruple-lariat-in	r3s-quadruple-lariat-in	1	93DB	0	0	0	0	0	4	0	0		in and partners	In and Partners	3	0	0	1	1
+1230	r3s-quadruple-lariat-out	r3s-quadruple-lariat-out	1	93DA	0	0	0	0	0	4	0	0		out and partners	Out and Partners	3	0	0	1	1
+1230	r3s-short-fuse	r3s-short-fuse	4	FB8	1	0	0	0	0	4	1	1		Short Fuse		0	0	0	1	1
+1230	r3s-tag-team-clone-1	r3s-tag-team-clone	1	9B2C	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
+1230	r3s-tag-team-clone-2	r3s-tag-team-clone	1	9B2E	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
+1230	r3s-tag-team-clone-3	r3s-tag-team-clone	1	9BD8	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
+1230	r3s-tag-team-clone-4	r3s-tag-team-clone	1	9BDA	0	0	0	0	0	10.7	0	0		Tag Team Clone		3	0	0	1	0
+1230	r3s-tag-team-tether	r3s-tag-team-tether	7	112	0	0	0	0	0	4	0	0		Tag Team Tether		0	0	0	1	0
+1232	r4s-azure-thunder	r4s-azure-thunder	1	962F	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1232	r4s-bewitching-flight-1	r4s-bewitching-flight	1	9671	0	0	0	0	0	4	0	0		out of the front and side cleaves	out of Front and Side Cleaves	3	0	0	1	1
+1232	r4s-bewitching-flight-2	r4s-bewitching-flight	1	8DEF	0	0	0	0	0	4	0	0		out of the front and side cleaves	out of Front and Side Cleaves	3	0	0	1	1
+1232	r4s-concentrated-scattered-burst-1-1	r4s-concentrated-scattered-burst-1	1	962B	0	0	0	0	0.2	4	0	0		Concentrated/Scattered Burst 1		3	0	0	1	0
+1232	r4s-concentrated-scattered-burst-1-2	r4s-concentrated-scattered-burst-1	1	962C	0	0	0	0	0.2	4	0	0		Concentrated/Scattered Burst 1		3	0	0	1	0
+1232	r4s-concentrated-scattered-burst-2-1	r4s-concentrated-scattered-burst-2	3	962B	0	0	0	0	0	4	0	0		Concentrated/Scattered Burst 2		3	0	0	1	0
+1232	r4s-concentrated-scattered-burst-2-2	r4s-concentrated-scattered-burst-2	3	962C	0	0	0	0	0	4	0	0		Concentrated/Scattered Burst 2		3	0	0	1	0
+1232	r4s-conductor-current-debuffs-1	r4s-conductor-current-debuffs	4	FA2	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
+1232	r4s-conductor-current-debuffs-2	r4s-conductor-current-debuffs	4	FA3	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
+1232	r4s-conductor-current-debuffs-3	r4s-conductor-current-debuffs	4	FA4	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
+1232	r4s-conductor-current-debuffs-4	r4s-conductor-current-debuffs	4	FA5	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
+1232	r4s-conductor-current-debuffs-5	r4s-conductor-current-debuffs	4	FA6	1	0	0	0	0	5	1	1		Conductor/Current Debuffs		0	0	0	1	0
+1232	r4s-cross-tail-switch	r4s-cross-tail-switch	1	95F2	0	0	0	0	0	4	0	0		Cross Tail Switch		3	0	0	1	0
+1232	r4s-electrical-condenser-debuff-expiring	r4s-electrical-condenser-debuff-expiring	4	F9F	0	0	0	0	0	4	0	0		Electrical Condenser Debuff Expiring		0	0	0	1	0
+1232	r4s-electrical-condenser-debuff-initial	r4s-electrical-condenser-debuff-initial	4	F9F	1	0	0	0	0.5	4	1	1		Electrical Condenser Debuff		0	0	0	1	0
+1232	r4s-electrifying-witch-hunt	r4s-electrifying-witch-hunt	1	95E5	0	0	0	0	0	4	0	0		Electrifying Witch Hunt		3	0	0	1	0
+1232	r4s-electron-stream-initial-1	r4s-electron-stream-initial	1	95D6	0	0	0	0	0	4	0	0		Electron Stream		3	0	0	1	0
+1232	r4s-electron-stream-initial-2	r4s-electron-stream-initial	1	95D7	0	0	0	0	0	4	0	0		Electron Stream		3	0	0	1	0
+1232	r4s-electron-stream-subsequent-1	r4s-electron-stream-subsequent	1	95D6	0	0	0	0	0	4	0	0		Electron Stream Subsequent		3	0	0	1	0
+1232	r4s-electron-stream-subsequent-2	r4s-electron-stream-subsequent	1	95D7	0	0	0	0	0	4	0	0		Electron Stream Subsequent		3	0	0	1	0
+1232	r4s-electrope-edge-1-sidewise-spark-1	r4s-electrope-edge-1-sidewise-spark	1	95EC	0	0	1	0	0.2	4	0	0		Electrope Edge 1 Sidewise Spark		3	0	0	1	0
+1232	r4s-electrope-edge-1-sidewise-spark-2	r4s-electrope-edge-1-sidewise-spark	1	95ED	0	0	1	0	0.2	4	0	0		Electrope Edge 1 Sidewise Spark		3	0	0	1	0
+1232	r4s-electrope-edge-2-sidewise-spark-1	r4s-electrope-edge-2-sidewise-spark	1	95EC	0	0	2	0	0.2	4	0	0		Electrope Edge 2 Sidewise Spark		3	0	0	1	0
+1232	r4s-electrope-edge-2-sidewise-spark-2	r4s-electrope-edge-2-sidewise-spark	1	95ED	0	0	2	0	0.2	4	0	0		Electrope Edge 2 Sidewise Spark		3	0	0	1	0
+1232	r4s-flame-slash	r4s-flame-slash	1	9614	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	1
+1232	r4s-forked-fissures	r4s-forked-fissures	3	98CE	0	0	0	0	0.2	4	0	0		Forked Fissures		3	1	0	1	0
+1232	r4s-fulminous-field	r4s-fulminous-field	3	98D3	0	0	0	0	0	4	0	0		dodge with your partner, seven hits	Dodge w, Partner, seven hits	3	0	0	1	1
+1232	r4s-fulminous-field-spread-1	r4s-fulminous-field-spread	3	90FE	0	0	0	0	0	4	0	0		spread		3	1	0	1	1
+1232	r4s-fulminous-field-spread-2	r4s-fulminous-field-spread	3	98CD	0	0	0	0	0	4	0	0		spread		3	1	0	1	1
+1232	r4s-ion-cluster-debuff-initial-1	r4s-ion-cluster-debuff-initial	4	FA0	0	0	0	0	0	4	0	0		Ion Cluster Debuff		0	0	0	1	0
+1232	r4s-ion-cluster-debuff-initial-2	r4s-ion-cluster-debuff-initial	4	FA1	0	0	0	0	0	4	0	0		Ion Cluster Debuff		0	0	0	1	0
+1232	r4s-left-roll	r4s-left-roll	3	95D3	0	1	0	0	0	4	0	0		left, west	get left, west	3	0	0	1	1
+1232	r4s-mustard-bomb-followup	r4s-mustard-bomb-followup	3	961F	0	0	0	0	0.2	4	0	0		Mustard Bomb		3	1	0	1	0
+1232	r4s-mustard-bomb-initial	r4s-mustard-bomb-initial	1	961E	0	0	0	0	0	4	0	0		Mustard Bomb		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-first-1	r4s-narrowing-widening-witch-hunt-first	1	95E0	0	0	0	0	7	7	0	0		Narrowing/Widening Witch Hunt First		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-first-2	r4s-narrowing-widening-witch-hunt-first	1	95E1	0	0	0	0	7	7	0	0		Narrowing/Widening Witch Hunt First		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-fourth-1	r4s-narrowing-widening-witch-hunt-fourth	1	95E0	0	0	0	0	20.8	3.2	0	0		Narrowing/Widening Witch Hunt Fourth		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-fourth-2	r4s-narrowing-widening-witch-hunt-fourth	1	95E1	0	0	0	0	20.8	3.2	0	0		Narrowing/Widening Witch Hunt Fourth		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-general-1	r4s-narrowing-widening-witch-hunt-general	1	95E0	0	0	0	0	0.2	24	0	0		Narrowing/Widening Witch Hunt General		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-general-2	r4s-narrowing-widening-witch-hunt-general	1	95E1	0	0	0	0	0.2	24	0	0		Narrowing/Widening Witch Hunt General		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-second-1	r4s-narrowing-widening-witch-hunt-second	1	95E0	0	0	0	0	14	3.2	0	0		Narrowing/Widening Witch Hunt Second		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-second-2	r4s-narrowing-widening-witch-hunt-second	1	95E1	0	0	0	0	14	3.2	0	0		Narrowing/Widening Witch Hunt Second		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-third-1	r4s-narrowing-widening-witch-hunt-third	1	95E0	0	0	0	0	17.4	3.2	0	0		Narrowing/Widening Witch Hunt Third		3	0	0	1	0
+1232	r4s-narrowing-widening-witch-hunt-third-2	r4s-narrowing-widening-witch-hunt-third	1	95E1	0	0	0	0	17.4	3.2	0	0		Narrowing/Widening Witch Hunt Third		3	0	0	1	0
+1232	r4s-raining-swords-safe-list-1	r4s-raining-swords-safe-list	7	117	0	0	0	0	0	24	0	0		Raining Swords Safe List		0	10	0	1	0
+1232	r4s-raining-swords-safe-list-2	r4s-raining-swords-safe-list	7	118	0	0	0	0	0	24	0	0		Raining Swords Safe List		0	10	0	1	0
+1232	r4s-raining-swords-tower	r4s-raining-swords-tower	3	9614	0	1	0	0	0	4	0	0		Tower Positions		3	0	0	1	1
+1232	r4s-right-roll	r4s-right-roll	3	95D2	0	1	0	0	0	4	0	0		right, east	get right, east	3	0	0	1	1
+1232	r4s-sunrise-sabbath-cannnons-towers	r4s-sunrise-sabbath-cannnons-towers	4	B9A	0	0	0	0	0.2	4	0	0		Sunrise Sabbath Cannnons and, towers		0	1	0	1	0
+1232	r4s-tail-thrust-1	r4s-tail-thrust	1	9606	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
+1232	r4s-tail-thrust-2	r4s-tail-thrust	1	9607	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
+1232	r4s-tail-thrust-3	r4s-tail-thrust	1	9608	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
+1232	r4s-tail-thrust-4	r4s-tail-thrust	1	9609	0	0	0	0	0	4	0	0		Tail Thrust		3	0	0	1	0
+1232	r4s-twilight-sabbath-wicked-special-1	r4s-twilight-sabbath-wicked-special	1	9610	0	0	0	0	0	4	0	0		Twilight Sabbath and Wicked Special		3	0	0	1	0
+1232	r4s-twilight-sabbath-wicked-special-2	r4s-twilight-sabbath-wicked-special	1	9612	0	0	0	0	0	4	0	0		Twilight Sabbath and Wicked Special		3	0	0	1	0
+1232	r4s-twilight-sabbath-sidewise-spark	r4s-twilight-sabbath-sidewise-spark	9	197	0	0	0	0	0.1	9	0	0		Twilight Sabbath Sidewise Spark		0	0	0	1	0
+1232	r4s-wicked-blaze	r4s-wicked-blaze	6	13C	0	0	0	0	0	4	0	0		healer groups		0	1	0	1	0
+1232	r4s-wicked-bolt-on-target	r4s-wicked-bolt-on-target	6	13C	5	1	0	0	0	4	0	0		stack on {target}		0	0	0	1	0
+1232	r4s-wicked-bolt-on-you	r4s-wicked-bolt-on-you	6	13C	1	1	0	0	0	4	1	1		stack on you		0	0	0	1	0
+1232	r4s-wicked-jolt-no-target	r4s-wicked-jolt-no-target	1	95F0	6	1	0	0	0	4	0	0	healer,dps	buster		3	0	0	1	1
+1232	r4s-wicked-jolt-on-target	r4s-wicked-jolt-on-target	1	95F0	5	1	0	0	0	4	0	0	healer,dps	buster on {target}		3	0	0	1	1
+1232	r4s-wicked-jolt-on-you	r4s-wicked-jolt-on-you	1	95F0	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
+1232	r4s-wicked-jolt-swap	r4s-wicked-jolt-swap	1	95F0	2	2	0	0	0	4	0	0	tank	tank swap	tank swap	3	0	0	1	1
+1232	r4s-wicked-special-middle	r4s-wicked-special-middle	1	9612	0	1	0	0	0	4	0	0		get to the middle		3	0	0	1	0
+1232	r4s-wicked-special-sides	r4s-wicked-special-sides	1	9610	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	0
+1232	r4s-wicked-thunder	r4s-wicked-thunder	1	949B	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1232	r4s-witch-hunt	r4s-witch-hunt	1	95DE	0	0	0	0	0.2	4	0	0		Witch Hunt		3	0	0	1	0
+1232	r4s-witchgleam-self-reminder	r4s-witchgleam-self-reminder	1	95CE	0	0	0	0	3	4	0	0		Witchgleam Self		3	0	0	1	0
+1232	r4s-wrath-of-zeus	r4s-wrath-of-zeus	1	95EF	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-conceal-safe	fru-conceal-safe	9	3F	0	0	0	0	0	8	0	0		Conceal Safe		0	0	0	1	0
+1238	fru-intermission-target-veil	fru-intermission-target-veil	5	307	0	0	0	0	0	4	0	0		Target Ice Veil		0	0	0	1	1
+1238	fru-p1-burnished-glory	fru-p1-burnished-glory	1	9CEA	0	0	0	1	0	4	0	0		aoe and bleed	AoE and Bleed	3	0	0	1	1
+1238	fru-p1-burnt-strike-fire	fru-p1-burnt-strike-fire	1	9CC1	0	1	0	1	0	8	0	0		Line Cleave Knockback	Line Cleave then Knockback	3	0	0	1	1
+1238	fru-p1-burnt-strike-lightning	fru-p1-burnt-strike-lightning	1	9CC5	0	1	0	1	0	8	0	0		Line Cleave Out	Line Cleave then Out	3	0	0	1	1
+1238	fru-p1-cyclonic-break-fire-1	fru-p1-cyclonic-break-fire	1	9CD0	0	1	0	1	0	8	0	0		Clock spots Pairs	Clock spots then Pairs	3	0	0	1	1
+1238	fru-p1-cyclonic-break-fire-2	fru-p1-cyclonic-break-fire	1	9D89	0	1	0	1	0	8	0	0		Clock spots Pairs	Clock spots then Pairs	3	0	0	1	1
+1238	fru-p1-cyclonic-break-lightning-1	fru-p1-cyclonic-break-lightning	1	9CD4	0	1	0	1	0	8	0	0		Clock spots Spread	Clock spots then Spread	3	0	0	1	1
+1238	fru-p1-cyclonic-break-lightning-2	fru-p1-cyclonic-break-lightning	1	9D8A	0	1	0	1	0	8	0	0		Clock spots Spread	Clock spots then Spread	3	0	0	1	1
+1238	fru-p1-powder-mark-trail-no-target	fru-p1-powder-mark-trail-no-target	1	9CE8	6	1	0	1	0	4	0	0	healer,dps	buster		3	0	0	1	1
+1238	fru-p1-powder-mark-trail-on-target	fru-p1-powder-mark-trail-on-target	1	9CE8	5	1	0	1	0	4	0	0	healer,dps	buster on {target}		3	0	0	1	1
+1238	fru-p1-powder-mark-trail-on-you	fru-p1-powder-mark-trail-on-you	1	9CE8	1	1	0	1	0	4	1	1		buster on you		3	0	0	1	1
+1238	fru-p1-powder-mark-trail-swap	fru-p1-powder-mark-trail-swap	1	9CE8	2	2	0	1	0	4	0	0	tank	tank swap	tank swap	3	0	0	1	1
+1238	fru-p1-turn-of-the-heavens-fire	fru-p1-turn-of-the-heavens-fire	1	9CD6	0	0	0	1	0	10	0	0		Lightning Safe		3	0	0	1	1
+1238	fru-p1-turn-of-the-heavens-lightning	fru-p1-turn-of-the-heavens-lightning	1	9CD7	0	0	0	1	0	10	0	0		Fire Safe		3	0	0	1	1
+1238	fru-p2-absolute-zero	fru-p2-absolute-zero	1	9D20	0	0	0	2	4	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-p2-diamond-dust	fru-p2-diamond-dust	1	9D05	0	0	0	2	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-p2-heavenly-strike	fru-p2-heavenly-strike	3	9D07	0	0	0	2	0	3.5	0	0		Heavenly Strike		3	1	0	1	0
+1238	fru-p2-house-of-light-frigid-stone	fru-p2-house-of-light-frigid-stone	6	159	0	0	0	2	0	4	0	0		House of Light/Frigid Stone		0	0	0	1	0
+1238	fru-p2-light-rampant-banish-iii-1	fru-p2-light-rampant-banish-iii	1	9D1C	0	0	0	2	0.5	4	0	0		Light Rampant Banish III		3	0	0	1	0
+1238	fru-p2-light-rampant-banish-iii-2	fru-p2-light-rampant-banish-iii	1	9D1D	0	0	0	2	0.5	4	0	0		Light Rampant Banish III		3	0	0	1	0
+1238	fru-p2-light-rampant-tower	fru-p2-light-rampant-tower	3	9D1B	0	0	0	2	0	4	0	0		Light Rampant, tower		3	0	0	1	0
+1238	fru-p2-mirror-mirror-banish-iii-1	fru-p2-mirror-mirror-banish-iii	1	9D1C	0	0	0	2	0	4	0	0		Mirror Mirror Banish III		3	0	0	1	0
+1238	fru-p2-mirror-mirror-banish-iii-2	fru-p2-mirror-mirror-banish-iii	1	9D1D	0	0	0	2	0	4	0	0		Mirror Mirror Banish III		3	0	0	1	0
+1238	fru-p2-mirror-mirror-initial-cleaves	fru-p2-mirror-mirror-initial-cleaves	1	9D0B	0	1	0	2	1	4	0	0		bait the cleave		3	0	0	1	0
+1238	fru-p2-mirror-mirror-reflected-cleaves	fru-p2-mirror-mirror-reflected-cleaves	1	9D0D	0	1	0	2	5	4	0	0		bait the cleave		3	1	0	1	1
+1238	fru-p2-quadruple-slap-first-no-target	fru-p2-quadruple-slap-first-no-target	1	9CFF	6	1	0	2	0	4	0	0	tank,healer	buster		3	0	0	1	1
+1238	fru-p2-quadruple-slap-first-no-target-others	fru-p2-quadruple-slap-first-no-target-others	1	9CFF	6	0	0	2	0	4	0	0	dps	buster		3	0	0	1	1
+1238	fru-p2-quadruple-slap-first-on-target	fru-p2-quadruple-slap-first-on-target	1	9CFF	5	0	0	2	0	4	0	0		buster on {target}		3	0	0	1	1
+1238	fru-p2-quadruple-slap-first-on-you	fru-p2-quadruple-slap-first-on-you	1	9CFF	1	1	0	2	0	4	1	1		buster on you		3	0	0	1	1
+1238	fru-p2-quadruple-slap-second	fru-p2-quadruple-slap-second	1	9D00	0	0	0	2	0	4	0	0		Quadruple Slap Second		3	0	0	1	0
+1238	fru-p2-shining-armor	fru-p2-shining-armor	4	8E1	0	2	0	2	0	4	0	0		look away		0	1	0	1	0
+1238	fru-p2-sinbound-holy-rotation	fru-p2-sinbound-holy-rotation	3	9D0F	1	0	0	2	1	5	1	1		Sinbound Holy Rotation		3	0	0	1	0
+1238	fru-p2-the-house-of-light	fru-p2-the-house-of-light	1	9CFD	0	0	0	2	0	4	0	0		Protean		3	0	0	1	1
+1238	fru-p2-twin-silence-stillness-first-1	fru-p2-twin-silence-stillness-first	1	9D01	0	0	0	2	0	2.8	0	0		Twin Silence/Stillness First		3	0	0	1	0
+1238	fru-p2-twin-silence-stillness-first-2	fru-p2-twin-silence-stillness-first	1	9D02	0	0	0	2	0	2.8	0	0		Twin Silence/Stillness First		3	0	0	1	0
+1238	fru-p2-twin-silence-stillness-second-1	fru-p2-twin-silence-stillness-second	1	9D01	0	0	0	2	2.9	4	0	0		Twin Silence/Stillness Second		3	0	0	1	0
+1238	fru-p2-twin-silence-stillness-second-2	fru-p2-twin-silence-stillness-second	1	9D02	0	0	0	2	2.9	4	0	0		Twin Silence/Stillness Second		3	0	0	1	0
+1238	fru-p3-apoc-dark-water-debuff	fru-p3-apoc-dark-water-debuff	4	99D	0	0	0	3	0	6	0	0		Apoc Dark Water Debuff		0	0	0	1	0
+1238	fru-p3-apoc-darkest-dance-jump-bait	fru-p3-apoc-darkest-dance-jump-bait	1	9CF5	0	0	0	3	3	2	0	0		Apoc Darkest Dance Jump, bait it		3	0	0	1	0
+1238	fru-p3-apoc-second-stacks	fru-p3-apoc-second-stacks	3	9D52	0	0	0	3	1	4	0	0		Apoc Second, stack		3	1	0	1	0
+1238	fru-p3-apoc-spirit-taker	fru-p3-apoc-spirit-taker	4	99D	0	1	0	3	9.8	2	0	0		spread		0	1	0	1	0
+1238	fru-p3-black-halo	fru-p3-black-halo	1	9D62	0	0	0	3	0	4	0	0		Black Halo		3	0	0	1	0
+1238	fru-p3-darkest-dance-kb-third-stacks	fru-p3-darkest-dance-kb-third-stacks	3	9CF5	0	0	0	3	0	7	0	0		Darkest Dance KB and Third, stack		3	0	0	1	0
+1238	fru-p3-memory-s-end	fru-p3-memory-s-end	1	9D6C	0	0	0	3	5	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-p3-shockwave-pulsar	fru-p3-shockwave-pulsar	1	9D5A	0	0	0	3	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-p3-ultimate-rel-1st-bait-rewind	fru-p3-ultimate-rel-1st-bait-rewind	4	9A0	0	0	0	3	11	4	0	0		Ultimate Rel 1st Bait/Rewind		0	0	0	1	0
+1238	fru-p3-ultimate-rel-1st-fire-stack	fru-p3-ultimate-rel-1st-fire-stack	4	9A0	0	0	0	3	4	7	0	0		Ultimate Rel 1st Fire/Stack		0	0	0	1	0
+1238	fru-p3-ultimate-rel-2nd-bait-rewind	fru-p3-ultimate-rel-2nd-bait-rewind	4	9A0	0	0	0	3	21	4	0	0		Ultimate Rel 2nd Bait/Rewind		0	0	0	1	0
+1238	fru-p3-ultimate-rel-2nd-fire-stack-ice	fru-p3-ultimate-rel-2nd-fire-stack-ice	4	9A0	0	0	0	3	16	4	0	0		Ultimate Rel 2nd Fire/Stack and Ice		0	0	0	1	0
+1238	fru-p3-ultimate-rel-3nd-bait	fru-p3-ultimate-rel-3nd-bait	4	9A0	0	0	0	3	31	4	0	0		Ultimate Rel 3nd, bait it		0	0	0	1	0
+1238	fru-p3-ultimate-rel-3rd-fire-stack	fru-p3-ultimate-rel-3rd-fire-stack	4	9A0	0	0	0	3	26	4	0	0		Ultimate Rel 3rd Fire/Stack		0	0	0	1	0
+1238	fru-p3-ultimate-relativity-aoe	fru-p3-ultimate-relativity-aoe	1	9D4A	0	0	0	3	4	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-p3-ultimate-relativity-initial-debuff-1	fru-p3-ultimate-relativity-initial-debuff	4	997	0	0	0	3	0	8	0	0		Ultimate Relativity Initial Debuff		0	0	0	1	0
+1238	fru-p3-ultimate-relativity-initial-debuff-2	fru-p3-ultimate-relativity-initial-debuff	4	99E	0	0	0	3	0	8	0	0		Ultimate Relativity Initial Debuff		0	0	0	1	0
+1238	fru-p4-akh-morn	fru-p4-akh-morn	1	9D6E	0	1	0	4	0	4	0	0		stacks		3	0	0	1	1
+1238	fru-p4-akh-rhai	fru-p4-akh-rhai	4	8E1	0	1	0	4	4.7	4	0	0		move	move	0	1	0	1	0
+1238	fru-p4-crystallize-time	fru-p4-crystallize-time	1	9D6A	0	0	0	4	3	7	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-p4-crystallize-time-blue-cleanse	fru-p4-crystallize-time-blue-cleanse	3	9D55	0	0	0	4	2	8	0	0		Crystallize Time Blue, cleanse it		3	1	0	1	0
+1238	fru-p4-crystallize-time-drop-rewind	fru-p4-crystallize-time-drop-rewind	4	1070	0	0	0	4	0	4	0	0		Crystallize Time Drop Rewind		0	0	0	1	0
+1238	fru-p4-crystallize-time-initial-position	fru-p4-crystallize-time-initial-position	7	85	0	0	0	4	0	9	0	0		Crystallize Time Initial Position		0	0	0	1	0
+1238	fru-p4-crystallize-time-spirit-taker	fru-p4-crystallize-time-spirit-taker	4	994	0	1	0	4	0	4	0	0		Spread, Avoid crystal		0	0	0	1	0
+1238	fru-p4-darklit-cleave-stack	fru-p4-darklit-cleave-stack	7	6E	0	0	0	4	2	7	0	0		Darklit Cleave, stack		0	0	0	1	0
+1238	fru-p4-darklit-dragonsong	fru-p4-darklit-dragonsong	1	9D6D	0	0	0	4	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1238	fru-p4-darklit-spirit-taker	fru-p4-darklit-spirit-taker	1	9D60	0	1	0	4	0.5	2	0	0		spread		3	0	0	1	0
+1238	fru-p4-darklit-tower-bait	fru-p4-darklit-tower-bait	7	6E	0	0	0	4	0	9	0	0		Darklit Tower /, bait it		0	0	0	1	0
+1238	fru-p4-hallowed-wings-1	fru-p4-hallowed-wings	1	9D23	0	0	0	4	1	4	0	0		Hallowed Wings		3	0	0	1	0
+1238	fru-p4-hallowed-wings-2	fru-p4-hallowed-wings	1	9D24	0	0	0	4	1	4	0	0		Hallowed Wings		3	0	0	1	0
+1238	fru-p4-morn-afah	fru-p4-morn-afah	1	9D70	0	1	0	4	0	6	0	0		stack		3	0	0	1	1
+1257	r5s-burn-baby-burn-1-cleanse	r5s-burn-baby-burn-1-cleanse	4	116D	0	1	0	0	0	4	0	0		cleanse in the spotlight		0	0	0	1	0
+1257	r5s-burn-baby-burn-1-early	r5s-burn-baby-burn-1-early	4	116D	0	0	0	0	0	7	0	0		Burn Baby Burn 1		0	0	0	1	0
+1257	r5s-burn-baby-burn-2-first	r5s-burn-baby-burn-2-first	4	116D	0	0	0	0	0	9	0	0		Burn Baby Burn 2 First		0	0	0	1	0
+1257	r5s-burn-baby-burn-2-second	r5s-burn-baby-burn-2-second	4	116D	0	0	0	0	11	8	0	0		Burn Baby Burn 2 Second		0	0	0	1	0
+1257	r5s-celebrate-good-times	r5s-celebrate-good-times	1	A723	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1257	r5s-deep-cut	r5s-deep-cut	6	1D7	0	0	0	0	0	4	0	0		Deep Cut		0	0	0	1	0
+1257	r5s-disco-inferno	r5s-disco-inferno	1	A756	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1257	r5s-eighth-beats	r5s-eighth-beats	1	A75D	0	0	0	0	0	4	0	0		spread		3	0	0	1	1
+1257	r5s-flip-to-ab-side-1	r5s-flip-to-ab-side	1	A780	0	0	0	0	0	4	0	0		Flip to AB Side		3	0	0	1	0
+1257	r5s-flip-to-ab-side-2	r5s-flip-to-ab-side	1	A781	0	0	0	0	0	4	0	0		Flip to AB Side		3	0	0	1	0
+1257	r5s-inside-out	r5s-inside-out	1	A77C	0	1	0	0	0	8.5	0	0		Max Melee Under	Max Melee then Under	3	0	0	1	1
+1257	r5s-let-s-pose	r5s-let-s-pose	1	A770	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1257	r5s-outside-in	r5s-outside-in	1	A77E	0	1	0	0	0	8.5	0	0		get under	get under	3	0	0	1	1
+1257	r5s-quarter-beats	r5s-quarter-beats	1	A75B	0	0	0	0	0	4	0	0		stack with your partner		3	0	0	1	1
+1257	r5s-wavelength-merge-order-1	r5s-wavelength-merge-order	4	116E	0	0	0	0	0	4	0	0		Wavelength Merge Order		0	0	0	1	0
+1257	r5s-wavelength-merge-order-2	r5s-wavelength-merge-order	4	116F	0	0	0	0	0	4	0	0		Wavelength Merge Order		0	0	0	1	0
+1257	r5s-wavelength-merge-reminder-1	r5s-wavelength-merge-reminder	4	116E	0	1	0	0	0	4	0	0		Merge debuff		0	0	0	1	0
+1257	r5s-wavelength-merge-reminder-2	r5s-wavelength-merge-reminder	4	116F	0	1	0	0	0	4	0	0		Merge debuff		0	0	0	1	0
+1259	r6s-color-clash-1	r6s-color-clash	1	A68B	0	0	0	0	0	4	0	0		Color Clash		3	0	0	1	0
+1259	r6s-color-clash-2	r6s-color-clash	1	A68D	0	0	0	0	0	4	0	0		Color Clash		3	0	0	1	0
+1259	r6s-color-riot-1	r6s-color-riot	1	A691	0	0	0	0	0	4	0	0		Color Riot		3	0	0	1	0
+1259	r6s-color-riot-2	r6s-color-riot	1	A692	0	0	0	0	0	4	0	0		Color Riot		3	0	0	1	0
+1259	r6s-double-style-taste-of-fire-thunder-1	r6s-double-style-taste-of-fire-thunder	1	A687	0	0	0	0	0	4	0	0		Double Style Taste of Fire/Thunder		3	1	0	1	0
+1259	r6s-double-style-taste-of-fire-thunder-2	r6s-double-style-taste-of-fire-thunder	1	A689	0	0	0	0	0	4	0	0		Double Style Taste of Fire/Thunder		3	1	0	1	0
+1259	r6s-heating-up	r6s-heating-up	4	1166	0	1	0	0	0	4	0	0		Defamation on you		0	0	0	1	0
+1259	r6s-heating-up-early-warning	r6s-heating-up-early-warning	4	1166	0	0	0	0	0	4	0	0		Defamation on you (for later)		0	0	0	1	0
+1259	r6s-jabberwock-bind-marker	r6s-jabberwock-bind-marker	6	17	1	1	0	0	0	4	1	1		Jabberwock on you		0	0	0	1	1
+1259	r6s-lightning-storm	r6s-lightning-storm	6	25A	1	1	0	0	0	4	1	1		spread		0	0	0	1	1
+1259	r6s-mousse-mural	r6s-mousse-mural	1	A6BC	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1259	r6s-pudding-graf-1	r6s-pudding-graf	7	13F	0	0	0	0	0	4	0	0		Pudding Graf		1	0	0	1	0
+1259	r6s-pudding-graf-2	r6s-pudding-graf	7	140	0	0	0	0	0	4	0	0		Pudding Graf		1	0	0	1	0
+1259	r6s-pudding-party	r6s-pudding-party	6	131	0	0	0	0	0	4	0	0		Pudding Party		0	0	0	1	0
+1259	r6s-ready-ore-not	r6s-ready-ore-not	1	A6AA	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1259	r6s-single-style	r6s-single-style	1	9A3D	0	0	0	0	0	4	0	0		out of arrow lines		3	0	0	1	1
+1259	r6s-sticky-mousse	r6s-sticky-mousse	1	A695	0	0	0	0	0	4	0	0		Sticky Mousse		3	0	0	1	0
+1259	r6s-taste-of-thunder-twister-stepped-leader	r6s-taste-of-thunder-twister-stepped-leader	1	A69D	0	0	0	0	0	4	0	0		move	move	3	1	0	1	1
+1261	r7s-abominable-blink	r7s-abominable-blink	6	147	0	0	0	0	0	4	0	0		Abominable Blink		0	0	0	1	0
+1261	r7s-brutal-impact	r7s-brutal-impact	1	A55B	0	0	0	0	0	4	0	0		Brutal Impact		3	0	0	1	0
+1261	r7s-brutish-swing-1	r7s-brutish-swing	1	A592	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
+1261	r7s-brutish-swing-2	r7s-brutish-swing	1	A593	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
+1261	r7s-brutish-swing-3	r7s-brutish-swing	1	A5A3	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
+1261	r7s-brutish-swing-4	r7s-brutish-swing	1	A5A5	0	0	0	0	0	4	0	0		Brutish Swing		3	0	0	1	0
+1261	r7s-debris-deathmatch	r7s-debris-deathmatch	1	A5B0	0	0	0	0	0	4	0	0		take your tether		3	0	0	1	0
+1261	r7s-demolition-deathmatch	r7s-demolition-deathmatch	1	A596	0	0	0	0	0	4	0	0		take your tether		3	0	0	1	1
+1261	r7s-explosion	r7s-explosion	1	A576	0	1	0	0	0	4	0	0		rotate away from the markers		3	10	0	1	1
+1261	r7s-glower-power	r7s-glower-power	1	A94C	0	1	0	0	0	4	0	0		spread, away from the front		3	0	0	1	1
+1261	r7s-impact	r7s-impact	3	A56E	0	1	0	0	0	4	0	0		healer groups		3	1	0	1	0
+1261	r7s-killer-seeds	r7s-killer-seeds	1	A59B	0	1	0	0	0	4	0	0		stack with your partner		3	1	0	1	1
+1261	r7s-lashing-lariat-1	r7s-lashing-lariat	1	A5A8	0	0	0	0	0	4	0	0		Lashing Lariat		3	0	0	1	0
+1261	r7s-lashing-lariat-2	r7s-lashing-lariat	1	A5AA	0	0	0	0	0	4	0	0		Lashing Lariat		3	0	0	1	0
+1261	r7s-neo-bombarian-special	r7s-neo-bombarian-special	1	A57C	0	1	0	0	0	4	0	0		north, heavy raidwide and launch	Go North, big AoE and Launch	3	0	0	1	1
+1261	r7s-powerslam	r7s-powerslam	1	A59E	0	1	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1261	r7s-pulp-smash	r7s-pulp-smash	6	A1	0	0	0	0	0	4	0	0		Pulp Smash		0	0	0	1	0
+1261	r7s-quarry-swamp	r7s-quarry-swamp	1	A575	0	0	0	0	0	4	0	0		Line of Sight boss with adds		3	0	0	1	1
+1261	r7s-revenge-of-the-vines	r7s-revenge-of-the-vines	1	A587	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1261	r7s-sinister-seeds	r7s-sinister-seeds	1	A56E	0	0	0	0	0	4	0	0		Sinister Seeds		3	0	0	1	0
+1261	r7s-slaminator	r7s-slaminator	1	A5AE	0	0	0	0	0	4	0	0		towers		3	0	0	1	1
+1261	r7s-smash-here-there-1	r7s-smash-here-there	1	A55F	0	0	0	0	0	4	0	0		Smash Here/There		3	0	0	1	0
+1261	r7s-smash-here-there-2	r7s-smash-here-there	1	A560	0	0	0	0	0	4	0	0		Smash Here/There		3	0	0	1	0
+1261	r7s-stoneringer-1	r7s-stoneringer	1	A55D	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
+1261	r7s-stoneringer-2	r7s-stoneringer	1	A55E	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
+1261	r7s-stoneringer-3	r7s-stoneringer	1	A57F	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
+1261	r7s-stoneringer-4	r7s-stoneringer	1	A580	0	0	0	0	0	4	0	0		Stoneringer		3	0	0	1	0
+1261	r7s-strange-seeds	r7s-strange-seeds	1	A598	1	1	0	0	0	4	1	1		drop your seed		3	0	0	1	1
+1261	r7s-tendrils-of-terror-1	r7s-tendrils-of-terror	1	A599	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
+1261	r7s-tendrils-of-terror-2	r7s-tendrils-of-terror	1	A59A	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
+1261	r7s-tendrils-of-terror-3	r7s-tendrils-of-terror	1	A59C	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
+1261	r7s-tendrils-of-terror-4	r7s-tendrils-of-terror	1	A59D	0	0	0	0	0	4	0	0		out of the lines		3	1	0	1	1
+1261	r7s-thorny-deathmatch	r7s-thorny-deathmatch	7	152	0	0	0	0	0	4	0	0		Thorny Deathmatch		0	0	0	1	0
+1263	r8s-aero-iii	r8s-aero-iii	1	A3B7	0	1	0	0	0	4	0	0		knockback		3	16	0	1	1
+1263	r8s-beckon-moonlight-quadrant-two-1	r8s-beckon-moonlight-quadrant-two	1	A3C2	0	0	0	0	0	4	0	0		Beckon Moonlight Quadrant Two		3	0	0	1	0
+1263	r8s-beckon-moonlight-quadrant-two-2	r8s-beckon-moonlight-quadrant-two	1	A3C3	0	0	0	0	0	4	0	0		Beckon Moonlight Quadrant Two		3	0	0	1	0
+1263	r8s-beckon-moonlight-quadrants-1	r8s-beckon-moonlight-quadrants	3	A3E0	0	0	0	0	0.1	10	0	0		Beckon Moonlight Quadrants		3	0	0	1	0
+1263	r8s-beckon-moonlight-quadrants-2	r8s-beckon-moonlight-quadrants	3	A3E1	0	0	0	0	0.1	10	0	0		Beckon Moonlight Quadrants		3	0	0	1	0
+1263	r8s-beckon-moonlight-spread-stack-1	r8s-beckon-moonlight-spread-stack	6	5D	0	0	0	0	0.1	4	0	0		Beckon Moonlight Spread/Stack		0	1	0	1	0
+1263	r8s-beckon-moonlight-spread-stack-2	r8s-beckon-moonlight-spread-stack	6	8B	0	0	0	0	0.1	4	0	0		Beckon Moonlight Spread/Stack		0	1	0	1	0
+1263	r8s-breath-of-decay-rotation	r8s-breath-of-decay-rotation	1	A3B4	0	0	0	0	0	6	0	0		Breath of Decay Rotation		3	0	0	1	0
+1263	r8s-champion-s-circuit-safe-spot	r8s-champion-s-circuit-safe-spot	1	A476	0	0	0	0	0	4	0	0		Champion's Circuit, safe spot		3	0	0	1	0
+1263	r8s-elemental-purge-targets	r8s-elemental-purge-targets	6	17	0	0	0	0	0	4	0	0		Elemental Purge Targets		0	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-1	r8s-eminent-revolutionary-reign	1	A911	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-2	r8s-eminent-revolutionary-reign	1	A912	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-3	r8s-eminent-revolutionary-reign	1	A913	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-4	r8s-eminent-revolutionary-reign	1	A914	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign		3	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-direction-1	r8s-eminent-revolutionary-reign-direction	1	A911	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-direction-2	r8s-eminent-revolutionary-reign-direction	1	A912	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-direction-3	r8s-eminent-revolutionary-reign-direction	1	A913	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
+1263	r8s-eminent-revolutionary-reign-direction-4	r8s-eminent-revolutionary-reign-direction	1	A914	0	0	0	0	0	4	0	0		Eminent/Revolutionary Reign Direction		3	0	0	1	0
+1263	r8s-extraplanar-pursuit	r8s-extraplanar-pursuit	1	A3DA	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1263	r8s-gleaming-beam	r8s-gleaming-beam	9	197	0	0	0	0	0	4	0	0		Gleaming Beam		0	0	0	1	0
+1263	r8s-great-divide-avoid	r8s-great-divide-avoid	6	256	5	0	0	0	0	4	0	0	dps	out of the cleave		0	0	0	1	1
+1263	r8s-great-divide-on-target	r8s-great-divide-on-target	6	256	5	1	0	0	0	4	0	0	tank,healer	share the buster, {target}		0	0	0	1	1
+1263	r8s-great-divide-on-you	r8s-great-divide-on-you	6	256	1	1	0	0	0	4	1	1		share the buster, on you		0	0	0	1	1
+1263	r8s-hero-s-blow-1	r8s-hero-s-blow	1	A45F	0	0	0	0	0.3	4	0	0		Hero's Blow		3	0	0	1	0
+1263	r8s-hero-s-blow-2	r8s-hero-s-blow	1	A461	0	0	0	0	0.3	4	0	0		Hero's Blow		3	0	0	1	0
+1263	r8s-howling-eight-1	r8s-howling-eight	1	AA02	0	0	0	0	0	15	0	0		Howling Eight		3	0	0	1	0
+1263	r8s-howling-eight-2	r8s-howling-eight	1	A494	0	0	0	0	0	15	0	0		Howling Eight		3	0	0	1	0
+1263	r8s-howling-havoc	r8s-howling-havoc	1	A3DD	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	0
+1263	r8s-lone-wolf-s-lament-tethers-1	r8s-lone-wolf-s-lament-tethers	7	13E	0	0	0	0	0	4	0	0		Lone Wolf's Lament Tethers		0	0	0	1	0
+1263	r8s-lone-wolf-s-lament-tethers-2	r8s-lone-wolf-s-lament-tethers	7	13D	0	0	0	0	0	4	0	0		Lone Wolf's Lament Tethers		0	0	0	1	0
+1263	r8s-millenial-decay	r8s-millenial-decay	1	A3B2	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1263	r8s-mooncleaver	r8s-mooncleaver	1	A465	0	0	0	0	0	4	0	0		Change Platform		3	0	0	1	1
+1263	r8s-mooncleaver-enrage-sequence-1	r8s-mooncleaver-enrage-sequence	1	AA0A	0	0	0	0	0	4	0	0		Mooncleaver		3	0	0	1	0
+1263	r8s-mooncleaver-enrage-sequence-2	r8s-mooncleaver-enrage-sequence	1	A49C	0	0	0	0	0	4	0	0		Mooncleaver		3	0	0	1	0
+1263	r8s-pack-predation	r8s-pack-predation	6	17	0	0	0	0	0	4	0	0		Pack Predation		0	0	0	1	0
+1263	r8s-prowling-gale-tower-tether	r8s-prowling-gale-tower-tether	7	39	0	0	0	0	0	4	0	0		Prowling Gale Tower/Tether		0	0	0	1	0
+1263	r8s-quake-iii	r8s-quake-iii	1	A45A	0	1	0	0	0	4	0	0		healer groups		3	0	0	1	1
+1263	r8s-ravenous-saber	r8s-ravenous-saber	1	A749	0	0	0	0	0	7	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1263	r8s-shadowchase-rotate	r8s-shadowchase-rotate	1	A3BD	0	0	0	0	0	4	0	0		Rotate		3	1	0	1	0
+1263	r8s-tactical-pack-debuffs-1	r8s-tactical-pack-debuffs	4	1127	0	0	0	0	0	4	0	0		Tactical Pack Debuffs		0	0	0	1	0
+1263	r8s-tactical-pack-debuffs-2	r8s-tactical-pack-debuffs	4	1128	0	0	0	0	0	4	0	0		Tactical Pack Debuffs		0	0	0	1	0
+1263	r8s-tactical-pack-first-pop	r8s-tactical-pack-first-pop	4	B7D	0	0	0	0	0	4	0	0		Tactical Pack First Pop		0	1	0	1	0
+1263	r8s-tactical-pack-second-pop	r8s-tactical-pack-second-pop	4	B7D	0	0	0	0	0	4	0	0		Tactical Pack Second Pop		0	1	0	1	0
+1263	r8s-tactical-pack-tethers-1	r8s-tactical-pack-tethers	7	14F	0	0	0	0	0	4	0	0		Tactical Pack Tethers		1	0	0	1	0
+1263	r8s-tactical-pack-tethers-2	r8s-tactical-pack-tethers	7	150	0	0	0	0	0	4	0	0		Tactical Pack Tethers		1	0	0	1	0
+1263	r8s-terrestrial-rage-spread-stack-1	r8s-terrestrial-rage-spread-stack	6	5D	0	0	0	0	0.1	4	0	0		Terrestrial Rage Spread/Stack		0	1	0	1	0
+1263	r8s-terrestrial-rage-spread-stack-2	r8s-terrestrial-rage-spread-stack	6	8B	0	0	0	0	0.1	4	0	0		Terrestrial Rage Spread/Stack		0	1	0	1	0
+1263	r8s-terrestrial-titans-safe-spot	r8s-terrestrial-titans-safe-spot	9	197	0	0	0	0	0	4	0	0		Terrestrial Titans, safe spot		0	0	0	1	0
+1263	r8s-titanic-pursuit	r8s-titanic-pursuit	1	A3C7	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1263	r8s-tracking-tremors	r8s-tracking-tremors	1	A3B9	0	0	0	0	0	9	0	0		stack, eight hits		3	0	0	1	1
+1263	r8s-twinbite-no-target	r8s-twinbite-no-target	1	A4CD	6	1	0	0	0	4	0	0	tank,healer	buster		3	0	0	1	1
+1263	r8s-twinbite-no-target-others	r8s-twinbite-no-target-others	1	A4CD	6	0	0	0	0	4	0	0	dps	buster		3	0	0	1	1
+1263	r8s-twinbite-on-target	r8s-twinbite-on-target	1	A4CD	5	0	0	0	0	4	0	0		buster on {target}		3	0	0	1	1
+1263	r8s-twinbite-on-you	r8s-twinbite-on-you	1	A4CD	1	1	0	0	0	4	1	1		buster on you		3	0	0	1	1
+1263	r8s-twofold-tempest-initial-tether-bait	r8s-twofold-tempest-initial-tether-bait	7	54	0	0	0	0	0	4	0	0		Twofold Tempest Initial Tether/Bait		0	50	0	1	0
+1263	r8s-twofold-tempest-tether-pass-bait	r8s-twofold-tempest-tether-pass-bait	3	A472	0	0	0	0	0	4	0	0		Twofold Tempest Tether Pass/Bait		3	1	0	1	0
+1263	r8s-ultraviolent-ray-target	r8s-ultraviolent-ray-target	6	E	1	0	0	0	0	4	1	1		UV Ray on you		0	0	0	1	1
+1263	r8s-weal-of-stone	r8s-weal-of-stone	1	A78E	0	1	0	0	0	4	0	0		out of Lines		3	1	0	1	1
+1263	r8s-weal-of-stone-cardinals-1	r8s-weal-of-stone-cardinals	1	A3C2	0	1	0	0	0	4	0	0		cardinals		3	0	0	1	0
+1263	r8s-weal-of-stone-cardinals-2	r8s-weal-of-stone-cardinals	1	A3C3	0	1	0	0	0	4	0	0		cardinals		3	0	0	1	0
+1263	r8s-windfang-stonefang-1	r8s-windfang-stonefang	1	A39E	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
+1263	r8s-windfang-stonefang-2	r8s-windfang-stonefang	1	A39D	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
+1263	r8s-windfang-stonefang-3	r8s-windfang-stonefang	1	A3A1	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
+1263	r8s-windfang-stonefang-4	r8s-windfang-stonefang	1	A3A2	0	0	0	0	0	4	0	0		Windfang/Stonefang		3	0	0	1	0
+1321	r9s-blast-beat-inner	r9s-blast-beat-inner	9	197	0	0	0	0	4.1	5.5	0	0		Blast Beat Inner		0	1	0	1	0
+1321	r9s-blast-beat-middle	r9s-blast-beat-middle	9	197	0	0	0	0	9.7	3.4	0	0		Blast Beat Middle		0	1	0	1	0
+1321	r9s-blast-beat-outer	r9s-blast-beat-outer	9	197	0	1	0	0	13.2	3.4	0	0		get to the middle		0	1	0	1	1
+1321	r9s-crowd-kill	r9s-crowd-kill	1	B33E	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1321	r9s-finale-fatale-big	r9s-finale-fatale-big	1	B341	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1321	r9s-finale-fatale-small	r9s-finale-fatale-small	1	B340	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1321	r9s-headmarker-aetherletting	r9s-headmarker-aetherletting	6	28C	1	0	0	0	0	4	1	1		Aetherletting on you		0	0	0	1	1
+1321	r9s-headmarker-party-multi-stack-on-target	r9s-headmarker-party-multi-stack-on-target	6	131	5	1	0	0	0	4	0	0		stack on {target}		0	0	0	1	1
+1321	r9s-headmarker-party-multi-stack-on-you	r9s-headmarker-party-multi-stack-on-you	6	131	1	1	0	0	0	4	1	1		stack on you		0	0	0	1	1
+1321	r9s-headmarker-tankbuster	r9s-headmarker-tankbuster	6	1D4	1	0	0	0	0	4	1	1		buster on you		0	0	0	1	0
+1321	r9s-insatiable-thirst	r9s-insatiable-thirst	1	B344	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1321	r9s-killer-voice	r9s-killer-voice	1	B384	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1321	r9s-sadistic-screech	r9s-sadistic-screech	1	B333	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1321	r9s-ultrasonic-amp	r9s-ultrasonic-amp	1	B39D	0	0	0	0	0	4	0	0		Ultrasonic Amp		3	0	0	1	0
+1321	r9s-ultrasonic-spread	r9s-ultrasonic-spread	1	B39C	0	0	0	0	0	4	0	0		Ultrasonic, spread		3	0	0	1	0
+1321	r9s-undead-deathmatch	r9s-undead-deathmatch	1	B3A0	0	1	0	0	0	4	0	0		towers		3	0	0	1	1
+1321	r9s-vamp-stomp	r9s-vamp-stomp	1	B34A	0	1	0	0	0	4	0	0		out		3	0	0	1	1
+1323	r10s-alley-oop-inferno-spread	r10s-alley-oop-inferno-spread	6	294	1	0	0	0	0	4	1	1		Alley-oop Inferno, spread		0	0	0	1	0
+1323	r10s-cutback-blaze	r10s-cutback-blaze	1	B5C9	0	0	0	0	0	4	0	0		bait the cleave toward Fire		3	0	0	1	0
+1323	r10s-deep-aerial-tower	r10s-deep-aerial-tower	1	B5E3	0	0	0	0	0	4	0	0		towers		3	0	0	1	1
+1323	r10s-deep-impact-buster	r10s-deep-impact-buster	1	B5B7	0	0	0	0	0	4	0	0		Deep Impact, buster		3	0	0	1	0
+1323	r10s-deep-varial-1	r10s-deep-varial	8	2	0	0	0	0	0	4	0	0		Deep Varial		0	0	0	1	0
+1323	r10s-deep-varial-2	r10s-deep-varial	8	4	0	0	0	0	0	4	0	0		Deep Varial		0	0	0	1	0
+1323	r10s-divers-dare-1	r10s-divers-dare	1	B5B8	0	0	0	0	0.1	4	0	0		Divers' Dare		3	1	0	1	0
+1323	r10s-divers-dare-2	r10s-divers-dare	1	B5B9	0	0	0	0	0.1	4	0	0		Divers' Dare		3	1	0	1	0
+1323	r10s-firesnaking-watersnaking	r10s-firesnaking-watersnaking	1	B381	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1323	r10s-flame-floater-order-1	r10s-flame-floater-order	4	BBC	1	0	0	0	0	4	1	1		Flame Floater Order		0	0	0	1	0
+1323	r10s-flame-floater-order-2	r10s-flame-floater-order	4	BBD	1	0	0	0	0	4	1	1		Flame Floater Order		0	0	0	1	0
+1323	r10s-flame-floater-order-3	r10s-flame-floater-order	4	BBE	1	0	0	0	0	4	1	1		Flame Floater Order		0	0	0	1	0
+1323	r10s-flame-floater-order-4	r10s-flame-floater-order	4	D7B	1	0	0	0	0	4	1	1		Flame Floater Order		0	0	0	1	0
+1323	r10s-flame-floater-split	r10s-flame-floater-split	1	B5D4	0	1	0	0	0	4	0	0		east west groups, out of the middle	east, west groups, out of middle	3	0	0	1	1
+1323	r10s-flame-floater-and-hot-aerial-move	r10s-flame-floater-and-hot-aerial-move	4	B79	1	0	0	0	0	4	1	1		move	move	0	0	0	1	1
+1323	r10s-hot-aerial	r10s-hot-aerial	1	B5C4	0	0	0	0	0	4	0	0		bait Hot Aerial		3	0	0	1	0
+1323	r10s-hot-impact-buster-avoid	r10s-hot-impact-buster-avoid	6	103	5	0	0	0	0	4	0	0	dps	out of the cleave		0	0	0	1	1
+1323	r10s-hot-impact-buster-on-target	r10s-hot-impact-buster-on-target	6	103	5	1	0	0	0	4	0	0	tank,healer	share the buster, {target}		0	0	0	1	1
+1323	r10s-hot-impact-buster-on-you	r10s-hot-impact-buster-on-you	6	103	1	1	0	0	0	4	1	1		share the buster, on you		0	0	0	1	1
+1323	r10s-pyrotation-stack	r10s-pyrotation-stack	6	29A	0	0	0	0	0	4	0	0		Pyrotation, stack		0	0	0	1	0
+1323	r10s-reverse-alley-oop-alley-oop-double-dip-1	r10s-reverse-alley-oop-alley-oop-double-dip	1	B5E0	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip		3	0	0	1	0
+1323	r10s-reverse-alley-oop-alley-oop-double-dip-2	r10s-reverse-alley-oop-alley-oop-double-dip	1	B5DD	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip		3	0	0	1	0
+1323	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit-1	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit	3	B5E0	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip 2nd Hit		3	0	0	1	0
+1323	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit-2	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit	3	B5DD	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip 2nd Hit		3	0	0	1	0
+1323	r10s-sickest-take-off-debuff	r10s-sickest-take-off-debuff	4	808	0	0	0	0	0	9	0	0		Sickest Take-off Debuff		0	0	0	1	0
+1323	r10s-snaking-debuff-target-1	r10s-snaking-debuff-target	4	136E	1	0	0	0	0	4	1	1		Snaking Debuff Target		0	0	0	1	0
+1323	r10s-snaking-debuff-target-2	r10s-snaking-debuff-target	4	136F	1	0	0	0	0	4	1	1		Snaking Debuff Target		0	0	0	1	0
+1323	r10s-xtreme-firesnaking-watersnaking	r10s-xtreme-firesnaking-watersnaking	1	B5AE	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1323	r10s-xtreme-firesnaking-watersnaking-debuffs-1	r10s-xtreme-firesnaking-watersnaking-debuffs	4	12DB	1	0	0	0	0	4	1	1		Xtreme Firesnaking/WaterSnaking Debuffs		0	0	0	1	0
+1323	r10s-xtreme-firesnaking-watersnaking-debuffs-2	r10s-xtreme-firesnaking-watersnaking-debuffs	4	12DC	1	0	0	0	0	4	1	1		Xtreme Firesnaking/WaterSnaking Debuffs		0	0	0	1	0
+1323	r10s-xtreme-spectacular	r10s-xtreme-spectacular	1	B5D9	0	1	0	0	0	4	0	0		north or south, heavy raidwide	Go north, south and Big AoE	3	0	0	1	0
+1325	r11s-arcadion-avalanche-east-safe-1	r11s-arcadion-avalanche-east-safe	1	B44A	0	0	0	0	0	4	0	0		knockback to the east		3	0	0	1	1
+1325	r11s-arcadion-avalanche-east-safe-2	r11s-arcadion-avalanche-east-safe	1	B44C	0	0	0	0	0	4	0	0		knockback to the east		3	0	0	1	1
+1325	r11s-arcadion-avalanche-follow-up-north-safe-1	r11s-arcadion-avalanche-follow-up-north-safe	1	B44B	0	0	0	0	0	4	0	0		north		3	0	0	1	0
+1325	r11s-arcadion-avalanche-follow-up-north-safe-2	r11s-arcadion-avalanche-follow-up-north-safe	1	B451	0	0	0	0	0	4	0	0		north		3	0	0	1	0
+1325	r11s-arcadion-avalanche-follow-up-south-safe-1	r11s-arcadion-avalanche-follow-up-south-safe	1	B44D	0	0	0	0	0	4	0	0		south		3	0	0	1	0
+1325	r11s-arcadion-avalanche-follow-up-south-safe-2	r11s-arcadion-avalanche-follow-up-south-safe	1	B44F	0	0	0	0	0	4	0	0		south		3	0	0	1	0
+1325	r11s-arcadion-avalanche-west-safe-1	r11s-arcadion-avalanche-west-safe	1	B44E	0	0	0	0	0	4	0	0		knockback to the west		3	0	0	1	1
+1325	r11s-arcadion-avalanche-west-safe-2	r11s-arcadion-avalanche-west-safe	1	B450	0	0	0	0	0	4	0	0		knockback to the west		3	0	0	1	1
+1325	r11s-arena-split-fire-breath-bait-later-1	r11s-arena-split-fire-breath-bait-later	7	39	0	0	0	0	0.1	4	0	0		bait Fire Breath		0	0	0	1	0
+1325	r11s-arena-split-fire-breath-bait-later-2	r11s-arena-split-fire-breath-bait-later	7	F9	0	0	0	0	0.1	4	0	0		bait Fire Breath		0	0	0	1	0
+1325	r11s-arena-split-majestic-meteowrath-tether-bait-puddles	r11s-arena-split-majestic-meteowrath-tether-bait-puddles	6	F4	0	0	0	0	0	6	0	0		Arena Split Majestic Meteowrath Tether Bait Puddles		0	1	0	1	0
+1325	r11s-arena-split-majestic-meteowrath-tether-stretch-later-1	r11s-arena-split-majestic-meteowrath-tether-stretch-later	7	39	0	0	0	0	0.1	4	0	0		Arena Split Majestic Meteowrath Tether Stretch Later		0	0	0	1	0
+1325	r11s-arena-split-majestic-meteowrath-tether-stretch-later-2	r11s-arena-split-majestic-meteowrath-tether-stretch-later	7	F9	0	0	0	0	0.1	4	0	0		Arena Split Majestic Meteowrath Tether Stretch Later		0	0	0	1	0
+1325	r11s-charybdistopia	r11s-charybdistopia	1	B425	0	0	0	0	0	4	0	0		HP to 1		3	0	0	1	1
+1325	r11s-comet-spread	r11s-comet-spread	6	8B	1	0	0	0	0	4	1	1		spread		0	0	0	1	1
+1325	r11s-cosmic-kiss	r11s-cosmic-kiss	1	B456	0	0	0	0	0	4	0	0		towers		3	1	0	1	0
+1325	r11s-crown-of-arcadia	r11s-crown-of-arcadia	1	B406	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1325	r11s-crushing-comet-no-target	r11s-crushing-comet-no-target	1	B415	6	1	0	0	0	4	0	0		stack		3	0	0	1	1
+1325	r11s-crushing-comet-on-target	r11s-crushing-comet-on-target	1	B415	5	1	0	0	0	4	0	0		stack on {target}		3	0	0	1	1
+1325	r11s-crushing-comet-on-you	r11s-crushing-comet-on-you	1	B415	1	1	0	0	0	4	1	1		stack on you		3	0	0	1	1
+1325	r11s-dance-of-domination-trophy	r11s-dance-of-domination-trophy	1	B7BB	0	0	0	0	3.7	5	0	0		six raidwides, then a heavy one	six raidwides, then a heavy one	3	0	0	1	1
+1325	r11s-ecliptic-stampede-majestic-meteowrath-tethers-1	r11s-ecliptic-stampede-majestic-meteowrath-tethers	7	39	0	0	0	0	0	4	0	0		Ecliptic Stampede Majestic Meteowrath Tethers		0	0	1	1	0
+1325	r11s-ecliptic-stampede-majestic-meteowrath-tethers-2	r11s-ecliptic-stampede-majestic-meteowrath-tethers	7	F9	0	0	0	0	0	4	0	0		Ecliptic Stampede Majestic Meteowrath Tethers		0	0	1	1	0
+1325	r11s-explosion-towers	r11s-explosion-towers	1	B444	0	0	0	0	0	4	0	0		Explosion, towers		3	1	0	1	0
+1325	r11s-fearsome-fireball	r11s-fearsome-fireball	6	20D	0	0	0	0	0.1	4	0	0		Fearsome Fireball		0	0	0	1	0
+1325	r11s-fire-breath-and-bait-puddles	r11s-fire-breath-and-bait-puddles	6	F4	0	0	0	0	0	6	0	0		Fire Breath and Bait Puddles		0	0	0	1	0
+1325	r11s-fire-and-fury	r11s-fire-and-fury	1	B42F	0	1	0	0	0	4	0	0		go to the sides		3	0	0	1	1
+1325	r11s-flatliner	r11s-flatliner	1	B43F	0	0	0	0	0	4	0	0		Short knockback to sides		3	0	0	1	1
+1325	r11s-four-way-fireball	r11s-four-way-fireball	1	B45A	0	0	0	0	0	4	0	0		Four-way Fireball		3	0	0	1	0
+1325	r11s-great-wall-of-fire	r11s-great-wall-of-fire	1	B42B	0	0	0	0	0	4	0	0		share the buster		3	0	0	1	1
+1325	r11s-heartbreaker-enrage-sequence	r11s-heartbreaker-enrage-sequence	1	B45D	0	0	0	0	0	4	0	0		Heartbreaker		3	0	0	1	0
+1325	r11s-massive-meteor	r11s-massive-meteor	6	131	0	1	0	0	0	4	0	0		stack, five hits	Stack five	0	1	0	1	1
+1325	r11s-meteor	r11s-meteor	6	F4	0	2	0	0	0	4	0	0		Meteor on you		0	0	0	1	0
+1325	r11s-one-and-only	r11s-one-and-only	1	B429	0	0	0	0	0	6	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1325	r11s-raw-steel-trophy-axe	r11s-raw-steel-trophy-axe	1	B422	0	0	0	0	0	4	0	0		Raw Steel Trophy Axe		3	0	0	1	0
+1325	r11s-raw-steel-trophy-scythe	r11s-raw-steel-trophy-scythe	1	B423	0	0	0	0	0	4	0	0		Raw Steel Trophy Scythe		3	0	0	1	0
+1325	r11s-triple-tyrannhilation	r11s-triple-tyrannhilation	1	B43C	0	1	0	0	0	4	0	0		line of sight behind the three meteor	line of sight behind the three meteor	3	0	0	1	1
+1325	r11s-trophy-weapons	r11s-trophy-weapons	9	197	0	0	0	0	0	4	0	0		Trophy Weapons		0	0	0	1	0
+1325	r11s-trophy-weapons-2-early-calls	r11s-trophy-weapons-2-early-calls	9	197	0	0	0	0	0	4	0	0		Trophy Weapons 2 Early Calls		0	0	1	1	0
+1325	r11s-two-way-fireball	r11s-two-way-fireball	1	B7BD	0	0	0	0	0	4	0	0		Two-way Fireball		3	0	0	1	0
+1325	r11s-ultimate-trophy-weapons	r11s-ultimate-trophy-weapons	9	197	0	0	0	0	0	4	0	0		Ultimate Trophy Weapons		0	0	0	1	0
+1325	r11s-void-stardust	r11s-void-stardust	1	B412	0	0	0	0	0	4	0	0		bait three puddles	bait three puddles	3	0	0	1	1
+1325	r11s-void-stardust-end-1	r11s-void-stardust-end	1	B418	0	0	0	0	0	4	0	0		Void Stardust End		3	1	0	1	0
+1325	r11s-void-stardust-end-2	r11s-void-stardust-end	1	B419	0	0	0	0	0	4	0	0		Void Stardust End		3	1	0	1	0
+1325	r11s-void-stardust-end-3	r11s-void-stardust-end	1	B41A	0	0	0	0	0	4	0	0		Void Stardust End		3	1	0	1	0
+1327	r12s-act-1-blob-safe-spots-early	r12s-act-1-blob-safe-spots-early	3	B49D	0	0	0	0	0.3	4	0	0		Act 1 Blob, safe spots		3	0	1	1	0
+1327	r12s-arcadia-aflame	r12s-arcadia-aflame	1	B528	0	1	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1327	r12s-arcadian-arcanum	r12s-arcadian-arcanum	1	B529	0	0	0	0	0	4	0	0		spread		3	0	0	1	1
+1327	r12s-arcadian-hell-1	r12s-arcadian-hell-1	1	B533	0	0	0	0	0	4.7	0	0		raidwide		3	0	1	1	1
+1327	r12s-arcadian-hell-2	r12s-arcadian-hell-2	1	B535	0	0	0	0	0	4.7	0	0		heavy raidwide	heavy raidwide	3	0	1	1	1
+1327	r12s-avoid-earth-tower-missing-dooms	r12s-avoid-earth-tower-missing-dooms	3	B4F6	0	0	0	0	0.5	4	0	0		stay out of the tower		3	0	1	1	0
+1327	r12s-black-hole-and-shapes	r12s-black-hole-and-shapes	3	B4FD	0	0	0	0	0.2	8.3	0	0		Black Hole and Shapes		3	0	1	1	0
+1327	r12s-blob-tower-followup	r12s-blob-tower-followup	3	B4B7	0	0	0	0	0	4	0	0		get to the middle		3	0	0	1	0
+1327	r12s-blood-wakening-followup-1	r12s-blood-wakening-followup	3	B501	0	0	0	0	0	4	0	0		Blood Wakening		3	0	1	1	0
+1327	r12s-blood-wakening-followup-2	r12s-blood-wakening-followup	3	B502	0	0	0	0	0	4	0	0		Blood Wakening		3	0	1	1	0
+1327	r12s-blood-wakening-followup-3	r12s-blood-wakening-followup	3	B503	0	0	0	0	0	4	0	0		Blood Wakening		3	0	1	1	0
+1327	r12s-blood-wakening-followup-4	r12s-blood-wakening-followup	3	B504	0	0	0	0	0	4	0	0		Blood Wakening		3	0	1	1	0
+1327	r12s-bonds-of-flesh-flesh-α-first-two-towers	r12s-bonds-of-flesh-flesh-α-first-two-towers	4	1290	0	0	0	0	0	4	0	0		Bonds of Flesh Flesh α First Two, towers		0	0	0	1	0
+1327	r12s-bursting-grotesquerie	r12s-bursting-grotesquerie	4	1299	1	0	0	0	0.2	17	1	1		Bursting Grotesquerie		0	0	0	1	0
+1327	r12s-chain-tower-followup	r12s-chain-tower-followup	3	B4B3	0	0	0	0	0	4	0	0		Chain, tower		3	0	0	1	0
+1327	r12s-cursed-coil-bind-draw-in	r12s-cursed-coil-bind-draw-in	3	B4B6	0	0	0	0	3	4	0	0		draw in		3	10	0	1	1
+1327	r12s-curtain-call-safe-spot	r12s-curtain-call-safe-spot	5	1291	0	0	0	0	0	4	0	0		Curtain Call, safe spot		0	0	0	1	0
+1327	r12s-curtain-call-unbreakable-flesh-α-chains	r12s-curtain-call-unbreakable-flesh-α-chains	4	1291	0	0	0	0	0	4	0	0		Curtain Call: Unbreakable Flesh α Chains		0	0	0	1	0
+1327	r12s-doom-cleanse	r12s-doom-cleanse	4	D24	0	0	0	0	0.1	4	0	0		cleanse the doom		0	1	0	1	0
+1327	r12s-double-sobat-2-1	r12s-double-sobat-2	3	B521	0	0	0	0	0	4	0	0		Double Sobat 2		3	1	0	1	0
+1327	r12s-double-sobat-2-2	r12s-double-sobat-2	3	B522	0	0	0	0	0	4	0	0		Double Sobat 2		3	1	0	1	0
+1327	r12s-double-sobat-2-3	r12s-double-sobat-2	3	B523	0	0	0	0	0	4	0	0		Double Sobat 2		3	1	0	1	0
+1327	r12s-double-sobat-2-4	r12s-double-sobat-2	3	B524	0	0	0	0	0	4	0	0		Double Sobat 2		3	1	0	1	0
+1327	r12s-double-sobat-avoid	r12s-double-sobat-avoid	6	256	5	0	0	0	0	4	0	0	dps	out of the cleave		0	0	0	1	1
+1327	r12s-double-sobat-on-target	r12s-double-sobat-on-target	6	256	5	1	0	0	0	4	0	0	tank,healer	share the buster, {target}		0	0	0	1	1
+1327	r12s-double-sobat-on-you	r12s-double-sobat-on-you	6	256	1	1	0	0	0	4	1	1		share the buster, on you		0	0	0	1	1
+1327	r12s-dramatic-lysis-black-hole-1	r12s-dramatic-lysis-black-hole-1	3	B507	0	0	0	0	0	15	0	0		Dramatic Lysis Black Hole 1		3	0	1	1	0
+1327	r12s-esoteric-finisher	r12s-esoteric-finisher	1	B525	0	0	0	0	0	4	0	0		Esoteric Finisher		3	0	0	1	0
+1327	r12s-fake-fire-resistance-down-ii-1	r12s-fake-fire-resistance-down-ii	4	CFB	0	0	0	0	1.3	4	0	0		Fake Fire Resistance Down II		0	0	1	1	0
+1327	r12s-fake-fire-resistance-down-ii-2	r12s-fake-fire-resistance-down-ii	4	B79	0	0	0	0	1.3	4	0	0		Fake Fire Resistance Down II		0	0	1	1	0
+1327	r12s-fire-and-dark-resistance-down-ii-1	r12s-fire-and-dark-resistance-down-ii	4	CFB	0	0	0	0	0	4	0	0		Fire and Dark Resistance Down II		0	0	1	1	0
+1327	r12s-fire-and-dark-resistance-down-ii-2	r12s-fire-and-dark-resistance-down-ii	4	B79	0	0	0	0	0	4	0	0		Fire and Dark Resistance Down II		0	0	1	1	0
+1327	r12s-fourth-wall-fusion-stack	r12s-fourth-wall-fusion-stack	6	A1	0	0	0	0	0	5.1	0	0		Fourth-wall Fusion, stack		0	0	0	1	0
+1327	r12s-grand-entrance-intercards-cardinals-1	r12s-grand-entrance-intercards-cardinals	1	B4A1	0	0	0	0	0	4	0	0		Grand Entrance Intercards/Cardinals		3	5	0	1	0
+1327	r12s-grand-entrance-intercards-cardinals-2	r12s-grand-entrance-intercards-cardinals	1	B4A2	0	0	0	0	0	4	0	0		Grand Entrance Intercards/Cardinals		3	5	0	1	0
+1327	r12s-grotesquerie	r12s-grotesquerie	3	B4EA	0	0	0	0	0	4	0	0		Grotesquerie		3	0	1	1	0
+1327	r12s-grotesquerie-curtain-call-spreads	r12s-grotesquerie-curtain-call-spreads	1	BEC0	0	0	0	0	0	4	0	0		bait five Puddles	bait five Puddles	3	0	0	1	1
+1327	r12s-heavy-slam	r12s-heavy-slam	3	B4E7	0	0	0	0	0	4	0	0		Heavy Slam		3	1	0	1	0
+1327	r12s-hot-blooded	r12s-hot-blooded	4	12A0	1	2	0	0	0	4	1	1		stop moving	stop moving	0	0	0	1	1
+1327	r12s-idyllic-dream	r12s-idyllic-dream	1	B509	0	1	0	0	0	4.7	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1327	r12s-idyllic-dream-lindwurm-s-stone-iii	r12s-idyllic-dream-lindwurm-s-stone-iii	1	B4F7	0	0	0	0	0	4	0	0		Idyllic Dream Lindwurm's Stone III		3	1	0	1	0
+1327	r12s-idyllic-dream-power-gusher-vision	r12s-idyllic-dream-power-gusher-vision	1	B510	0	0	0	0	0	4	0	0		Idyllic Dream Power Gusher Vision		3	0	0	1	0
+1327	r12s-idyllic-dream-staging-2-tethered-clone	r12s-idyllic-dream-staging-2-tethered-clone	7	175	0	0	0	0	0	4	0	0		Idyllic Dream Staging 2 Tethered Clone		0	0	1	1	0
+1327	r12s-in-line-debuff-1	r12s-in-line-debuff	4	BBC	0	0	0	0	0.5	10	0	0		In Line Debuff		0	1	0	1	0
+1327	r12s-in-line-debuff-2	r12s-in-line-debuff	4	BBD	0	0	0	0	0.5	10	0	0		In Line Debuff		0	1	0	1	0
+1327	r12s-in-line-debuff-3	r12s-in-line-debuff	4	BBE	0	0	0	0	0.5	10	0	0		In Line Debuff		0	1	0	1	0
+1327	r12s-in-line-debuff-4	r12s-in-line-debuff	4	D7B	0	0	0	0	0.5	10	0	0		In Line Debuff		0	1	0	1	0
+1327	r12s-light-resistance-down-ii	r12s-light-resistance-down-ii	4	1044	0	0	0	0	0	4	0	0		Soak Fire/Earth Meteor	Soak Fire, Earth Meteor	0	0	0	1	0
+1327	r12s-mutation-α-β-1	r12s-mutation-α-β	4	12A1	1	0	0	0	0	4	1	1		Mutation α/β		0	0	0	1	0
+1327	r12s-mutation-α-β-2	r12s-mutation-α-β	4	12A3	1	0	0	0	0	4	1	1		Mutation α/β		0	0	0	1	0
+1327	r12s-nearby-and-faraway-portent-1	r12s-nearby-and-faraway-portent	4	129E	0	0	0	0	0	4	0	0		Nearby and Faraway Portent		0	0	0	1	0
+1327	r12s-nearby-and-faraway-portent-2	r12s-nearby-and-faraway-portent	4	129F	0	0	0	0	0	4	0	0		Nearby and Faraway Portent		0	0	0	1	0
+1327	r12s-nearby-and-faraway-portent-baits-1	r12s-nearby-and-faraway-portent-baits	4	129E	0	0	0	0	0	4	0	0		Nearby and Faraway Portent Baits		0	1	0	1	0
+1327	r12s-nearby-and-faraway-portent-baits-2	r12s-nearby-and-faraway-portent-baits	4	129F	0	0	0	0	0	4	0	0		Nearby and Faraway Portent Baits		0	1	0	1	0
+1327	r12s-netherworld-near-far-1	r12s-netherworld-near-far	1	B52B	0	0	0	0	0	4	0	0		Netherworld Near/Far		3	0	0	1	0
+1327	r12s-netherworld-near-far-2	r12s-netherworld-near-far	1	B52C	0	0	0	0	0	4	0	0		Netherworld Near/Far		3	0	0	1	0
+1327	r12s-netherwrath-near-far-and-first-clones-1	r12s-netherwrath-near-far-and-first-clones	1	B52E	0	0	0	0	0	4	0	0		Netherwrath Near/Far and First Clones		3	0	0	1	0
+1327	r12s-netherwrath-near-far-and-first-clones-2	r12s-netherwrath-near-far-and-first-clones	1	B52F	0	0	0	0	0	4	0	0		Netherwrath Near/Far and First Clones		3	0	0	1	0
+1327	r12s-no-light-resistance-down-ii	r12s-no-light-resistance-down-ii	4	1044	0	0	0	0	0.1	4	0	0		Soak a White/Star Meteor	Soak a White, Star Meteor	0	0	1	1	0
+1327	r12s-raptor-knuckles-northeast-followup	r12s-raptor-knuckles-northeast-followup	3	B4D0	0	1	0	0	0.8	4	0	0		knockback		3	0	0	1	0
+1327	r12s-raptor-knuckles-northwest-followup	r12s-raptor-knuckles-northwest-followup	3	B4CF	0	1	0	0	0.8	4	0	0		knockback		3	0	0	1	0
+1327	r12s-raptor-knuckles-uptime-knockback-1	r12s-raptor-knuckles-uptime-knockback	3	B4CC	0	1	0	0	11.5	1.8	0	0		knockback		3	0	0	1	0
+1327	r12s-raptor-knuckles-uptime-knockback-2	r12s-raptor-knuckles-uptime-knockback	3	B4CE	0	1	0	0	11.5	1.8	0	0		knockback		3	0	0	1	0
+1327	r12s-ravenous-reach-1-safe-side-1	r12s-ravenous-reach-1-safe-side	3	B49A	0	0	0	0	0	4	0	0		Ravenous Reach 1 Safe Side		3	0	0	1	0
+1327	r12s-ravenous-reach-1-safe-side-2	r12s-ravenous-reach-1-safe-side	3	B49B	0	0	0	0	0	4	0	0		Ravenous Reach 1 Safe Side		3	0	0	1	0
+1327	r12s-ravenous-reach-2-1	r12s-ravenous-reach-2	3	B49A	0	0	0	0	0	4	0	0		Ravenous Reach 2		3	0	0	1	0
+1327	r12s-ravenous-reach-2-2	r12s-ravenous-reach-2	3	B49B	0	0	0	0	0	4	0	0		Ravenous Reach 2		3	0	0	1	0
+1327	r12s-reenactment-1-clone-stack-nw-reminder-fourth-clones-banana-nukemaru	r12s-reenactment-1-clone-stack-nw-reminder-fourth-clones-banana-nukemaru	3	B8E1	0	0	0	0	0	4	0	0		Reenactment 1 Clone Stack NW		3	0	1	1	0
+1327	r12s-reenactment-1-clone-stack-sw-second-clones-banana-nukemaru	r12s-reenactment-1-clone-stack-sw-second-clones-banana-nukemaru	3	B922	0	0	0	0	0	4	0	0		Reenactment 1 Clone Stack SW		3	0	1	1	0
+1327	r12s-reenactment-1-clone-stacks-e-w-third-clones-dn	r12s-reenactment-1-clone-stacks-e-w-third-clones-dn	3	BBE3	0	1	0	0	0	4	0	0		east or west, clone stacks	East, West Clone Stacks	3	0	1	1	0
+1327	r12s-reenactment-1-defamation-se-dodge-reminder-fourth-clones-dn	r12s-reenactment-1-defamation-se-dodge-reminder-fourth-clones-dn	3	BE5D	0	1	0	0	0	4	0	0		north		3	0	1	1	0
+1327	r12s-reenactment-1-proteans-west-third-clones-banana-nukemaru	r12s-reenactment-1-proteans-west-third-clones-banana-nukemaru	3	BE5D	0	0	0	0	0	4	0	0		Reenactment 1 Proteans West		3	0	1	1	0
+1327	r12s-refreshing-overkill	r12s-refreshing-overkill	3	B539	0	1	0	0	0	5	0	0		heavy raidwide	heavy raidwide	3	0	1	1	1
+1327	r12s-replication-2-locked-tether	r12s-replication-2-locked-tether	7	175	0	0	0	0	0.1	4	0	0		Replication 2 Locked Tether		0	0	0	1	0
+1327	r12s-replication-4-locked-tether	r12s-replication-4-locked-tether	7	175	0	0	0	0	0.1	8	0	0		Replication 4 Locked Tether		0	0	0	1	0
+1327	r12s-rotting-flesh	r12s-rotting-flesh	4	129B	1	0	0	0	0	10	1	1		Rotting Flesh on you		0	0	0	1	1
+1327	r12s-serpentine-scourge-left-followup	r12s-serpentine-scourge-left-followup	3	B4D1	0	1	0	0	0	4	0	0		left		3	0	0	1	0
+1327	r12s-serpentine-scourge-right-followup	r12s-serpentine-scourge-right-followup	3	B4D2	0	1	0	0	0	4	0	0		right		3	0	0	1	0
+1327	r12s-serpintine-scourge-and-raptor-knuckles-1	r12s-serpintine-scourge-and-raptor-knuckles	3	B4D4	0	0	0	0	0	5.5	0	0		Serpintine Scourge and Raptor Knuckles		3	1	0	1	0
+1327	r12s-serpintine-scourge-and-raptor-knuckles-2	r12s-serpintine-scourge-and-raptor-knuckles	3	B4D5	0	0	0	0	0	5.5	0	0		Serpintine Scourge and Raptor Knuckles		3	1	0	1	0
+1327	r12s-shared-grotesquerie	r12s-shared-grotesquerie	4	129A	0	0	0	0	0.2	17	0	0		share it		0	0	0	1	0
+1327	r12s-skinsplitter-out-of-coil-reminder	r12s-skinsplitter-out-of-coil-reminder	3	B4BC	0	1	0	0	0	4	0	0		out of the coil		3	1	0	1	0
+1327	r12s-slaughershed-stack-spread-spots-early-1	r12s-slaughershed-stack-spread-spots-early	3	B4C6	0	0	0	0	0	4	0	0		Slaughershed Stack/Spread Spots		3	1	0	1	0
+1327	r12s-slaughershed-stack-spread-spots-early-2	r12s-slaughershed-stack-spread-spots-early	3	B4C3	0	0	0	0	0	4	0	0		Slaughershed Stack/Spread Spots		3	1	0	1	0
+1327	r12s-slaughtershed-1	r12s-slaughtershed	1	B4C6	0	1	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1327	r12s-slaughtershed-2	r12s-slaughtershed	1	B4C3	0	1	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1327	r12s-slaughtershed-spread	r12s-slaughtershed-spread	6	177	1	0	0	0	0.1	6	1	1		Slaughtershed, spread		0	1	0	1	0
+1327	r12s-slaughtershed-stack	r12s-slaughtershed-stack	6	13D	0	0	0	0	0.1	6	0	0		Slaughtershed, stack		0	0	0	1	0
+1327	r12s-snaking-kick	r12s-snaking-kick	1	B527	0	0	0	0	0.1	4	0	0		Snaking Kick		3	0	1	1	0
+1327	r12s-splattershed-1	r12s-splattershed	1	B9C3	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1327	r12s-splattershed-2	r12s-splattershed	1	B9C4	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	1
+1327	r12s-staging-1-tethered-clone	r12s-staging-1-tethered-clone	7	175	1	0	0	0	0	4	1	1		Staging 1 Tethered Clone		0	0	1	1	0
+1327	r12s-tankbuster	r12s-tankbuster	6	158	1	0	0	0	0	5.1	1	1		buster		0	0	0	1	0
+1327	r12s-temporal-curtain-part-1	r12s-temporal-curtain-part-1	3	B51D	0	0	0	0	0	4	0	0		Temporal Curtain Part 1		3	0	0	1	0
+1327	r12s-the-fixer	r12s-the-fixer	1	B4D7	0	1	0	0	0	4.7	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1327	r12s-twisted-vision-4-stack-defamation-1	r12s-twisted-vision-4-stack-defamation-1	1	BBE2	0	0	0	0	0	10	0	0		Twisted Vision 4 Stack/Defamation 1		3	0	0	1	0
+1327	r12s-twisted-vision-4-stack-defamation-2-4-1	r12s-twisted-vision-4-stack-defamation-2-4	3	B519	0	0	0	0	0	4	0	0		Twisted Vision 4 Stack/Defamation 2-4		3	1	0	1	0
+1327	r12s-twisted-vision-4-stack-defamation-2-4-2	r12s-twisted-vision-4-stack-defamation-2-4	3	B517	0	0	0	0	0	4	0	0		Twisted Vision 4 Stack/Defamation 2-4		3	1	0	1	0
+1327	r12s-twisted-vision-5-towers	r12s-twisted-vision-5-towers	1	BBE2	0	0	0	0	0	4	0	0		Twisted Vision 5, towers		3	0	0	1	0
+1327	r12s-twisted-vision-5-towers-early-1	r12s-twisted-vision-5-towers-early	3	B519	0	0	0	0	0	5	0	0		Tower Positions		3	0	1	1	0
+1327	r12s-twisted-vision-5-towers-early-2	r12s-twisted-vision-5-towers-early	3	B517	0	0	0	0	0	5	0	0		Tower Positions		3	0	1	1	0
+1327	r12s-twisted-vision-6-light-party-stacks	r12s-twisted-vision-6-light-party-stacks	3	BBE2	0	0	0	0	0	4	0	0		Twisted Vision 6, light party stacks		3	0	0	1	0
+1327	r12s-twisted-vision-7-safe-platform	r12s-twisted-vision-7-safe-platform	1	BBE2	0	0	0	0	0	4	0	0		Twisted Vision 7 Safe Platform		3	0	0	1	0
+1327	r12s-twisted-vision-8-dodge-cleaves	r12s-twisted-vision-8-dodge-cleaves	3	BE5D	0	0	0	0	0	4	0	0		Twisted Vision 8, dodge the cleaves		3	0	0	1	0
+1327	r12s-twisted-vision-8-light-party-stacks	r12s-twisted-vision-8-light-party-stacks	1	BBE2	0	0	0	0	0	4	0	0		Twisted Vision 8, light party stacks		3	0	0	1	0
+1327	r12s-unbreakable-flesh-α-β-chains-and-last-two-towers-1	r12s-unbreakable-flesh-α-β-chains-and-last-two-towers	4	1291	0	0	0	0	0	4	0	0		Unbreakable Flesh α/β Chains and Last Two, towers		0	0	0	1	0
+1327	r12s-unbreakable-flesh-α-β-chains-and-last-two-towers-2	r12s-unbreakable-flesh-α-β-chains-and-last-two-towers	4	1293	0	0	0	0	0	4	0	0		Unbreakable Flesh α/β Chains and Last Two, towers		0	0	0	1	0
+1327	r12s-venomous-scourge	r12s-venomous-scourge	3	B4AB	0	0	0	0	0	2.4	0	0		Venomous Scourge		3	0	1	1	0
+1327	r12s-winged-scourge-1	r12s-winged-scourge	1	B4DA	0	0	0	0	0	4	0	0		Winged Scourge		3	1	0	1	0
+1327	r12s-winged-scourge-2	r12s-winged-scourge	1	B4DB	0	0	0	0	0	4	0	0		Winged Scourge		3	1	0	1	0
+1363	dmu-p1-ave-maria-early	dmu-p1-ave-maria-early	9	19D	0	0	0	1	0	4.7	0	0		look at the Statue		0	0	0	1	0
+1363	dmu-p1-double-trouble-trap-2-early	dmu-p1-double-trouble-trap-2-early	4	13D6	0	0	0	1	0.3	4	0	0		Double-trouble Trap 2		0	1	0	1	0
+1363	dmu-p1-double-trouble-trap-3-early	dmu-p1-double-trouble-trap-3-early	4	13D6	0	0	0	1	0.3	4	0	0		Double-trouble Trap 3		0	1	0	1	0
+1363	dmu-p1-double-trouble-trap-knockback	dmu-p1-double-trouble-trap-knockback	4	13D6	0	0	0	1	0	3.9	0	0		Double-trouble Trap, knockback		0	1	0	1	0
+1363	dmu-p1-gravitas-and-vitrophyre-tethers-2	dmu-p1-gravitas-and-vitrophyre-tethers-2	7	2D	0	0	0	1	2	6	0	0		Gravitas and Vitrophyre Tethers 2		0	0	0	1	0
+1363	dmu-p1-gravitational-wave	dmu-p1-gravitational-wave	9	19D	0	1	0	1	0	4	0	0		right, east	get right, east	0	0	0	1	0
+1363	dmu-p1-hyperdrive-no-target	dmu-p1-hyperdrive-no-target	1	C622	6	1	0	1	0	4	0	0	tank,healer	buster		3	0	0	1	0
+1363	dmu-p1-hyperdrive-no-target-others	dmu-p1-hyperdrive-no-target-others	1	C622	6	0	0	1	0	4	0	0	dps	buster		3	0	0	1	0
+1363	dmu-p1-hyperdrive-on-target	dmu-p1-hyperdrive-on-target	1	C622	5	0	0	1	0	4	0	0		buster on {target}		3	0	0	1	0
+1363	dmu-p1-hyperdrive-on-you	dmu-p1-hyperdrive-on-you	1	C622	1	1	0	1	0	4	1	1		buster on you		3	0	0	1	0
+1363	dmu-p1-impertinent-will	dmu-p1-impertinent-will	9	19D	0	1	0	1	0	4	0	0		left, west	get left, west	0	0	0	1	0
+1363	dmu-p1-indolent-will-early	dmu-p1-indolent-will-early	9	19D	0	0	0	1	0	4.7	0	0		look away		0	0	0	1	0
+1363	dmu-p1-indulgent-will-and-idyllic-will-tethers-early	dmu-p1-indulgent-will-and-idyllic-will-tethers-early	7	2D	0	0	0	1	0.1	5.5	0	0		Indulgent Will and Idyllic Will Tethers		0	0	0	1	0
+1363	dmu-p1-light-of-judgment	dmu-p1-light-of-judgment	1	C622	0	0	0	1	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1363	dmu-p1-mystery-magic-fire-and-thunder	dmu-p1-mystery-magic-fire-and-thunder	1	BA94	0	0	0	1	0	4	0	0		Mystery Magic Fire and Thunder		3	0	0	1	0
+1363	dmu-p1-mystery-magic-ice-and-fire	dmu-p1-mystery-magic-ice-and-fire	1	BA94	0	0	0	1	0	4	0	0		Mystery Magic Ice and Fire		3	0	0	1	0
+1363	dmu-p1-mystery-magic-ice-and-gravitas-and-vitrophyre-tethers-1	dmu-p1-mystery-magic-ice-and-gravitas-and-vitrophyre-tethers-1	1	BA95	0	0	0	1	0	4	0	0		Mystery Magic Ice, and Gravitas and Vitrophyre Tethers 1		3	0	0	1	0
+1363	dmu-p1-pulse-wave-tethers	dmu-p1-pulse-wave-tethers	7	2D	0	0	0	1	0.1	7	0	0		Pulse Wave Tethers		0	0	0	1	0
+1363	dmu-p1-revolting-ruin-iii	dmu-p1-revolting-ruin-iii	6	DA	0	0	0	1	0	4	0	0		Revolting Ruin III		0	0	0	1	0
+1363	dmu-p1-tele-portent-2-1	dmu-p1-tele-portent-2	5	130C	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portent-2-2	dmu-p1-tele-portent-2	5	130D	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portent-2-3	dmu-p1-tele-portent-2	5	130E	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portent-2-4	dmu-p1-tele-portent-2	5	130F	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portent-2-5	dmu-p1-tele-portent-2	5	13D7	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portent-2-6	dmu-p1-tele-portent-2	5	13D8	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portent-2-7	dmu-p1-tele-portent-2	5	13D9	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portent-2-8	dmu-p1-tele-portent-2	5	13DA	0	1	0	1	0	3	0	0		move	move	0	0	0	1	0
+1363	dmu-p1-tele-portents-1	dmu-p1-tele-portents	4	130C	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-tele-portents-2	dmu-p1-tele-portents	4	130D	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-tele-portents-3	dmu-p1-tele-portents	4	130E	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-tele-portents-4	dmu-p1-tele-portents	4	130F	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-tele-portents-5	dmu-p1-tele-portents	4	13D7	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-tele-portents-6	dmu-p1-tele-portents	4	13D8	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-tele-portents-7	dmu-p1-tele-portents	4	13D9	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-tele-portents-8	dmu-p1-tele-portents	4	13DA	1	0	0	1	0	7	1	1		Tele-Portents		0	0	0	1	0
+1363	dmu-p1-vitrophyre	dmu-p1-vitrophyre	3	BAAC	0	0	0	1	0	4	0	0		Vitrophyre		3	1	0	1	0
+1363	dmu-p1-wave-cannon	dmu-p1-wave-cannon	9	19D	0	1	0	1	0	4	0	0		east west, spread	east, west spread	0	0	1	1	1
+1363	dmu-p1-wave-cannon-explosion-towers	dmu-p1-wave-cannon-explosion-towers	3	BAA8	0	0	0	1	0.1	4	0	0		Wave Cannon Explosion, towers		3	1	0	1	0
+1363	dmu-p1-and-p4-mystery-magic-ice-and-thunder	dmu-p1-and-p4-mystery-magic-ice-and-thunder	1	BA94	0	0	0	0	0	4	0	0		and P4 Mystery Magic Ice and Thunder		3	0	0	1	0
+1363	dmu-p2-aero-iii-assault	dmu-p2-aero-iii-assault	1	C3F7	0	1	0	2	0	4	0	0		get under		3	0	0	1	1
+1363	dmu-p2-all-things-ending-baits-1	dmu-p2-all-things-ending-baits	3	BAD2	0	0	0	2	1.7	4	0	0		All Things Ending Baits		3	0	0	1	0
+1363	dmu-p2-all-things-ending-baits-2	dmu-p2-all-things-ending-baits	3	BAD3	0	0	0	2	1.7	4	0	0		All Things Ending Baits		3	0	0	1	0
+1363	dmu-p2-forsaken	dmu-p2-forsaken	1	BABC	0	1	0	2	0	6.7	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1363	dmu-p2-future-s-end-past-s-end-early-1	dmu-p2-future-s-end-past-s-end-early	1	BAD2	0	0	0	2	0	4	0	0		Future's End/Past's End		3	0	0	1	0
+1363	dmu-p2-future-s-end-past-s-end-early-2	dmu-p2-future-s-end-past-s-end-early	1	BAD3	0	0	0	2	0	4	0	0		Future's End/Past's End		3	0	0	1	0
+1363	dmu-p2-last-all-things-ending-followup	dmu-p2-last-all-things-ending-followup	1	BADC	0	1	0	2	0	4	0	0		get behind		3	1	0	1	0
+1363	dmu-p2-light-of-judgment	dmu-p2-light-of-judgment	1	BABD	0	1	0	2	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1363	dmu-p2-path-of-light-tower-8-aaaabbbb-special-1	dmu-p2-path-of-light-tower-8-aaaabbbb-special	1	BAD2	0	2	0	2	0	4	0	0		tank limit break	tank limit break	3	0	0	1	0
+1363	dmu-p2-path-of-light-tower-8-aaaabbbb-special-2	dmu-p2-path-of-light-tower-8-aaaabbbb-special	1	BAD3	0	2	0	2	0	4	0	0		tank limit break	tank limit break	3	0	0	1	0
+1363	dmu-p2-path-of-light-towers-3-1	dmu-p2-path-of-light-towers-3	1	BADC	0	0	0	2	0	4	0	0		Path of Light Towers 3		3	1	0	1	0
+1363	dmu-p2-path-of-light-towers-3-2	dmu-p2-path-of-light-towers-3	1	BADD	0	0	1	2	0	4	0	0		Path of Light Towers 3		3	1	0	1	0
+1363	dmu-p2-path-of-light-towers-5-1	dmu-p2-path-of-light-towers-5	1	BADC	0	0	0	2	0	4	0	0		Path of Light Towers 5		3	1	0	1	0
+1363	dmu-p2-path-of-light-towers-5-2	dmu-p2-path-of-light-towers-5	1	BADD	0	0	2	2	0	4	0	0		Path of Light Towers 5		3	1	0	1	0
+1363	dmu-p2-path-of-light-towers-7-1	dmu-p2-path-of-light-towers-7	1	BADC	0	0	0	2	0	4	0	0		Path of Light Towers 7		3	1	0	1	0
+1363	dmu-p2-path-of-light-towers-7-2	dmu-p2-path-of-light-towers-7	1	BADD	0	0	3	2	0	4	0	0		Path of Light Towers 7		3	1	0	1	0
+1363	dmu-p2-path-of-light-towers-8-1	dmu-p2-path-of-light-towers-8	3	BABF	0	0	0	2	0.1	9	0	0		Path of Light Towers 8		3	0	1	1	0
+1363	dmu-p2-path-of-light-towers-8-2	dmu-p2-path-of-light-towers-8	3	BAC0	0	0	0	2	0.1	9	0	0		Path of Light Towers 8		3	0	1	1	0
+1363	dmu-p2-path-of-light-towers-8-3	dmu-p2-path-of-light-towers-8	3	BAC1	0	0	0	2	0.1	9	0	0		Path of Light Towers 8		3	0	1	1	0
+1363	dmu-p2-path-of-light-towers-8-4	dmu-p2-path-of-light-towers-8	3	BAC2	0	0	0	2	0.1	9	0	0		Path of Light Towers 8		3	0	1	1	0
+1363	dmu-p2-single-wing-of-destruction-1	dmu-p2-single-wing-of-destruction	1	BACD	0	0	0	2	0	4	0	0		Single Wing of Destruction		3	0	0	1	0
+1363	dmu-p2-single-wing-of-destruction-2	dmu-p2-single-wing-of-destruction	1	BACE	0	0	0	2	0	4	0	0		Single Wing of Destruction		3	0	0	1	0
+1363	dmu-p2-ultimate-embrace-avoid	dmu-p2-ultimate-embrace-avoid	1	C24C	5	0	0	2	0	4	0	0	dps	out of the cleave		3	0	0	1	1
+1363	dmu-p2-ultimate-embrace-no-target	dmu-p2-ultimate-embrace-no-target	1	C24C	6	1	0	2	0	4	0	0	tank,healer	share the buster		3	0	0	1	1
+1363	dmu-p2-ultimate-embrace-no-target-others	dmu-p2-ultimate-embrace-no-target-others	1	C24C	6	0	0	2	0	4	0	0	dps	out of the cleave		3	0	0	1	1
+1363	dmu-p2-ultimate-embrace-on-target	dmu-p2-ultimate-embrace-on-target	1	C24C	5	1	0	2	0	4	0	0	tank,healer	share the buster, {target}		3	0	0	1	1
+1363	dmu-p2-ultimate-embrace-on-you	dmu-p2-ultimate-embrace-on-you	1	C24C	1	1	0	2	0	4	1	1		share the buster, on you		3	0	0	1	1
+1363	dmu-p2-wings-of-destruction	dmu-p2-wings-of-destruction	1	C487	0	0	0	2	0	4	0	0		Wings of Destruction		3	0	0	1	0
+1363	dmu-p3-accretion-2	dmu-p3-accretion-2	4	D2C	0	0	0	3	0	4	0	0		Accretion 2		0	1	0	1	0
+1363	dmu-p3-black-hole-2-nothingness-2	dmu-p3-black-hole-2-nothingness-2	7	54	0	0	0	3	0	4	0	0		Black Hole 2, Nothingness 2		0	0	1	1	0
+1363	dmu-p3-black-hole-3-nothingness-4	dmu-p3-black-hole-3-nothingness-4	3	BAFC	0	0	0	3	0	4	0	0		Black Hole 3, Nothingness 4		3	0	1	1	0
+1363	dmu-p3-black-hole-3-nothingness-5	dmu-p3-black-hole-3-nothingness-5	3	BAFC	0	0	0	3	0	4	0	0		Black Hole 3, Nothingness 5		3	0	1	1	0
+1363	dmu-p3-black-hole-4-nothingness-7	dmu-p3-black-hole-4-nothingness-7	3	BAFC	0	0	0	3	0	4	0	0		Black Hole 4, Nothingness 7		3	0	1	1	0
+1363	dmu-p3-black-hole-4-nothingness-8	dmu-p3-black-hole-4-nothingness-8	3	BAFC	0	0	0	3	0	4	0	0		Black Hole 4, Nothingness 8		3	0	1	1	0
+1363	dmu-p3-black-hole-6-nothingness-10	dmu-p3-black-hole-6-nothingness-10	7	54	0	0	0	3	0.1	4	0	0		Black Hole 6, Nothingness 10		0	0	1	1	0
+1363	dmu-p3-blizzard-iii-keep-moving-stack-role	dmu-p3-blizzard-iii-keep-moving-stack-role	3	BB03	0	0	0	3	0	3.2	0	0		move	move	3	1	0	1	0
+1363	dmu-p3-blizzard-iii-keep-moving-tower-role	dmu-p3-blizzard-iii-keep-moving-tower-role	1	BB11	0	0	0	3	0	4	0	0		move	move	3	0	0	1	0
+1363	dmu-p3-blizzard-iii-puddles	dmu-p3-blizzard-iii-puddles	3	BAFC	0	0	0	3	0	8.6	0	0		Blizzard III Puddles		3	0	1	1	0
+1363	dmu-p3-bowels-of-agony	dmu-p3-bowels-of-agony	1	BAF2	0	0	0	3	0	4	0	0		raidwide		3	0	0	1	1
+1363	dmu-p3-bowels-of-agony-debuffs-and-short-element-1	dmu-p3-bowels-of-agony-debuffs-and-short-element	4	642	1	0	0	3	0.1	14.9	1	1		Bowels of Agony Debuffs and Short Element		0	0	0	1	0
+1363	dmu-p3-bowels-of-agony-debuffs-and-short-element-2	dmu-p3-bowels-of-agony-debuffs-and-short-element	4	643	1	0	0	3	0.1	14.9	1	1		Bowels of Agony Debuffs and Short Element		0	0	0	1	0
+1363	dmu-p3-damning-edict	dmu-p3-damning-edict	1	BB01	0	0	0	3	0	4	0	0		Damning Edict		3	0	0	1	0
+1363	dmu-p3-dynamic-fluid-and-water-crystal	dmu-p3-dynamic-fluid-and-water-crystal	4	641	0	0	0	3	0	4	0	0		Dynamic Fluid and Water Crystal		0	1	0	1	0
+1363	dmu-p3-entropy-and-fire-crystal	dmu-p3-entropy-and-fire-crystal	4	640	0	0	0	3	0	4	0	0		Entropy and Fire Crystal		0	1	0	1	0
+1363	dmu-p3-epic-hero-fated-hero-debuffs-1	dmu-p3-epic-hero-fated-hero-debuffs	4	1060	1	0	0	3	0	4	1	1		Epic Hero/Fated Hero Debuffs		0	0	0	1	0
+1363	dmu-p3-epic-hero-fated-hero-debuffs-2	dmu-p3-epic-hero-fated-hero-debuffs	4	1062	1	0	0	3	0	4	1	1		Epic Hero/Fated Hero Debuffs		0	0	0	1	0
+1363	dmu-p3-in-line-debuff-accretion-1-1	dmu-p3-in-line-debuff-accretion-1	4	BBC	0	0	0	3	0.2	5	0	0		In Line Debuff and Accretion 1		0	1	0	1	0
+1363	dmu-p3-in-line-debuff-accretion-1-2	dmu-p3-in-line-debuff-accretion-1	4	BBD	0	0	0	3	0.2	5	0	0		In Line Debuff and Accretion 1		0	1	0	1	0
+1363	dmu-p3-in-line-debuff-accretion-1-3	dmu-p3-in-line-debuff-accretion-1	4	BBE	0	0	0	3	0.2	5	0	0		In Line Debuff and Accretion 1		0	1	0	1	0
+1363	dmu-p3-knock-down-1	dmu-p3-knock-down-1	1	BB0D	0	0	0	3	0	2.8	0	0		Knock Down 1		3	1	0	1	0
+1363	dmu-p3-knock-down-1-early	dmu-p3-knock-down-1-early	6	A1	0	0	0	3	0	2.6	0	0		Knock Down 1		0	0	1	1	0
+1363	dmu-p3-knock-down-2	dmu-p3-knock-down-2	6	A1	0	0	0	3	0	4	0	0		Knock Down 2		0	0	0	1	0
+1363	dmu-p3-latitudinal-implosion	dmu-p3-latitudinal-implosion	1	BAFE	0	0	0	3	0	4	0	0		front or back, sides	Front, Back then Sides	3	0	0	1	1
+1363	dmu-p3-longitudinal-implosion	dmu-p3-longitudinal-implosion	1	BAFD	0	0	0	3	0	4	0	0		sides, front or back	Sides then Front, Back	3	0	0	1	1
+1363	dmu-p3-look-upon-me-and-despair-1	dmu-p3-look-upon-me-and-despair-1	1	BAEC	0	1	0	3	0	4	0	0		out of the middle		3	0	0	1	1
+1363	dmu-p3-look-upon-me-and-despair-2	dmu-p3-look-upon-me-and-despair-2	1	BAED	0	1	0	3	0	4	0	0		out of the middle		3	0	0	1	1
+1363	dmu-p3-slap-happy-1	dmu-p3-slap-happy	1	BAE6	0	0	0	3	0	4	0	0		Slap Happy		3	0	0	1	0
+1363	dmu-p3-slap-happy-2	dmu-p3-slap-happy	1	BAE7	0	0	0	3	0	4	0	0		Slap Happy		3	0	0	1	0
+1363	dmu-p3-thunder-iii-aoe	dmu-p3-thunder-iii-aoe	1	BB12	0	0	0	3	0	4	0	0		raidwide		3	0	0	1	0
+1363	dmu-p3-thunder-iii-tank-swap	dmu-p3-thunder-iii-tank-swap	3	BB09	0	0	0	3	0	4	0	0	tank	tank swap		3	4	0	1	0
+1363	dmu-p3-thunder-iii-tankbuster	dmu-p3-thunder-iii-tankbuster	1	BB09	0	0	0	3	0	4	0	0		buster		3	0	0	1	0
+1363	dmu-p3-umbra-smash-1	dmu-p3-umbra-smash	3	BAFD	0	0	0	3	10	4	0	0		bait Jump	bait Jump	3	0	1	1	1
+1363	dmu-p3-umbra-smash-2	dmu-p3-umbra-smash	3	BAFE	0	0	0	3	10	4	0	0		bait Jump	bait Jump	3	0	1	1	1
+1363	dmu-p3-vacuum-wave	dmu-p3-vacuum-wave	1	BB13	0	0	0	3	0	4	0	0		Vacuum Wave		3	0	0	1	0
+1363	dmu-p3-vacuum-wave-tank-lb3	dmu-p3-vacuum-wave-tank-lb3	1	BB13	0	2	0	3	0	4	0	0		tank limit break	tank limit break	3	0	0	1	0
+1363	dmu-p4-acceleration-bomb-reminder	dmu-p4-acceleration-bomb-reminder	4	15AA	0	0	0	4	0	3	0	0		stop moving		0	0	0	1	0
+1363	dmu-p4-blizzard-iii-blowout	dmu-p4-blizzard-iii-blowout	1	BA95	0	0	0	4	0	4	0	0		Blizzard III Blowout		3	0	0	1	0
+1363	dmu-p4-cursed-shriek-early	dmu-p4-cursed-shriek-early	4	15A7	0	0	0	4	0	4	0	0		Cursed Shriek		0	1	0	1	0
+1363	dmu-p4-dynamic-fluid	dmu-p4-dynamic-fluid	4	15A7	0	0	0	4	0	6.9	0	0		Dynamic Fluid		0	0	1	1	0
+1363	dmu-p4-entropy	dmu-p4-entropy	4	15A7	0	0	0	4	0	6.9	0	0		Entropy		0	0	1	1	0
+1363	dmu-p4-fake-stray-spray	dmu-p4-fake-stray-spray	4	15AC	0	1	0	4	0	4	0	0		move	move	0	0	1	1	0
+1363	dmu-p4-fifth-debuffs-1	dmu-p4-fifth-debuffs	4	1317	1	0	0	4	0.1	4	1	1		Fifth Debuffs		0	0	1	1	0
+1363	dmu-p4-fifth-debuffs-2	dmu-p4-fifth-debuffs	4	15A5	1	0	0	4	0.1	4	1	1		Fifth Debuffs		0	0	1	1	0
+1363	dmu-p4-fifth-debuffs-3	dmu-p4-fifth-debuffs	4	1318	1	0	0	4	0.1	4	1	1		Fifth Debuffs		0	0	1	1	0
+1363	dmu-p4-fifth-debuffs-4	dmu-p4-fifth-debuffs	4	15A6	1	0	0	4	0.1	4	1	1		Fifth Debuffs		0	0	1	1	0
+1363	dmu-p4-fifth-debuffs-5	dmu-p4-fifth-debuffs	4	566	1	0	0	4	0.1	4	1	1		Fifth Debuffs		0	0	1	1	0
+1363	dmu-p4-fifth-debuffs-6	dmu-p4-fifth-debuffs	4	1558	1	0	0	4	0.1	4	1	1		Fifth Debuffs		0	0	1	1	0
+1363	dmu-p4-fifth-debuffs-7	dmu-p4-fifth-debuffs	4	1C6	1	0	0	4	0.1	4	1	1		Fifth Debuffs		0	0	1	1	0
+1363	dmu-p4-first-cursed-shriek	dmu-p4-first-cursed-shriek	4	15A7	0	0	0	4	0	3	0	0		First Cursed Shriek		0	0	1	1	0
+1363	dmu-p4-flood-of-naught-1	dmu-p4-flood-of-naught	1	C392	0	0	0	4	0	4	0	0		Flood of Naught		3	0	0	1	0
+1363	dmu-p4-flood-of-naught-2	dmu-p4-flood-of-naught	1	C393	0	0	0	4	0	4	0	0		Flood of Naught		3	0	0	1	0
+1363	dmu-p4-flood-of-naught-3	dmu-p4-flood-of-naught	1	C3A1	0	0	0	4	0	4	0	0		Flood of Naught		3	0	0	1	0
+1363	dmu-p4-flood-of-naught-4	dmu-p4-flood-of-naught	1	C3A2	0	0	0	4	0	4	0	0		Flood of Naught		3	0	0	1	0
+1363	dmu-p4-grand-cross	dmu-p4-grand-cross	1	BB14	0	0	0	4	0	4	0	0		raidwide		3	0	0	1	0
+1363	dmu-p4-kefka-says	dmu-p4-kefka-says	1	C2DC	0	1	0	4	0	4	0	0		Kefka Says		3	0	0	1	1
+1363	dmu-p4-mana-release	dmu-p4-mana-release	1	BAA5	0	0	0	4	0	4	0	0		Mana Release		3	0	0	1	0
+1363	dmu-p4-second-cursed-shriek	dmu-p4-second-cursed-shriek	4	15A7	0	0	0	4	0	3	0	0		Second Cursed Shriek		0	0	1	1	0
+1363	dmu-p4-second-and-fourth-debuffs-early-1	dmu-p4-second-and-fourth-debuffs-early	1	BB20	0	0	0	4	1	4	0	0		Second and Fourth Debuffs		3	0	0	1	0
+1363	dmu-p4-second-and-fourth-debuffs-early-2	dmu-p4-second-and-fourth-debuffs-early	1	BB21	0	0	0	4	1	4	0	0		Second and Fourth Debuffs		3	0	0	1	0
+1363	dmu-p4-short-debuffs-1	dmu-p4-short-debuffs	3	C394	0	0	0	4	0	4	0	0		Short Debuffs		3	0	1	1	0
+1363	dmu-p4-short-debuffs-2	dmu-p4-short-debuffs	3	C395	0	0	0	4	0	4	0	0		Short Debuffs		3	0	1	1	0
+1363	dmu-p4-stray-flames-and-long-debuffs	dmu-p4-stray-flames-and-long-debuffs	4	15AB	0	0	0	4	0	4	0	0		Stray Flames and Long Debuffs		0	0	1	1	0
+1363	dmu-p4-thrumming-thunder-iii	dmu-p4-thrumming-thunder-iii	1	C5DE	0	0	0	4	0	4	0	0		Thrumming Thunder III		3	0	0	1	0
+1363	dmu-p4-tsunami-inferno-and-first-debuffs-early-1	dmu-p4-tsunami-inferno-and-first-debuffs-early	4	15A7	1	0	0	4	0.1	4	1	1		Tsunami/Inferno and First Debuffs		0	0	1	1	0
+1363	dmu-p4-tsunami-inferno-and-first-debuffs-early-2	dmu-p4-tsunami-inferno-and-first-debuffs-early	4	15A8	1	0	0	4	0.1	4	1	1		Tsunami/Inferno and First Debuffs		0	0	1	1	0
+1363	dmu-p4-tsunami-inferno-and-first-debuffs-early-3	dmu-p4-tsunami-inferno-and-first-debuffs-early	4	15A9	1	0	0	4	0.1	4	1	1		Tsunami/Inferno and First Debuffs		0	0	1	1	0
+1363	dmu-p4-tsunami-inferno-and-first-debuffs-early-4	dmu-p4-tsunami-inferno-and-first-debuffs-early	4	15AA	1	0	0	4	0.1	4	1	1		Tsunami/Inferno and First Debuffs		0	0	1	1	0
+1363	dmu-p4-tsunami-inferno-and-third-debuffs-early-1	dmu-p4-tsunami-inferno-and-third-debuffs-early	4	15A7	0	0	0	4	0.1	4	0	0		Tsunami/Inferno and Third Debuffs		0	0	1	1	0
+1363	dmu-p4-tsunami-inferno-and-third-debuffs-early-2	dmu-p4-tsunami-inferno-and-third-debuffs-early	4	15A8	0	0	0	4	0.1	4	0	0		Tsunami/Inferno and Third Debuffs		0	0	1	1	0
+1363	dmu-p4-tsunami-inferno-and-third-debuffs-early-3	dmu-p4-tsunami-inferno-and-third-debuffs-early	4	15A9	0	0	0	4	0.1	4	0	0		Tsunami/Inferno and Third Debuffs		0	0	1	1	0
+1363	dmu-p4-tsunami-inferno-and-third-debuffs-early-4	dmu-p4-tsunami-inferno-and-third-debuffs-early	4	15AA	0	0	0	4	0.1	4	0	0		Tsunami/Inferno and Third Debuffs		0	0	1	1	0
+1363	dmu-p4-p5-ultima-upsurge	dmu-p4-p5-ultima-upsurge	1	C24A	0	0	0	0	0	4	0	0		heavy raidwide	heavy raidwide	3	0	0	1	1
+1363	dmu-p5-catastrophic-choice-in	dmu-p5-catastrophic-choice-in	1	C24F	0	2	0	5	0	4	0	0		in		3	0	0	1	1
+1363	dmu-p5-catastrophic-choice-out	dmu-p5-catastrophic-choice-out	1	C24E	0	2	0	5	0	4	0	0		out		3	0	0	1	1
+1363	dmu-p5-celestriad	dmu-p5-celestriad	1	BB42	0	1	0	5	0	4	0	0		Elemental Towers		3	0	0	1	1
+1363	dmu-p5-celestriad-fire-resistance-down	dmu-p5-celestriad-fire-resistance-down	4	B56	1	0	0	5	0	4	1	1		Fire Last		0	0	0	1	1
+1363	dmu-p5-celestriad-ice-resistance-down	dmu-p5-celestriad-ice-resistance-down	4	B57	1	0	0	5	0	4	1	1		Ice Last		0	0	0	1	1
+1363	dmu-p5-celestriad-lightning-resistance-down	dmu-p5-celestriad-lightning-resistance-down	4	BB6	1	0	0	5	0	4	1	1		Lightning Last		0	0	0	1	1
+1363	dmu-p5-enrage	dmu-p5-enrage	1	BB3A	0	2	0	5	0	4	0	0		enrage		3	0	0	1	1
+1363	dmu-p5-flood	dmu-p5-flood	1	C13F	0	1	0	5	0	4	0	0		Flood		3	0	0	1	1
+1363	dmu-p5-forsaken	dmu-p5-forsaken	1	BB35	0	1	0	5	0	4	0	0		stack, raidwide		3	0	0	1	1
+1363	dmu-p5-forsaken-move	dmu-p5-forsaken-move	1	BB38	0	2	0	5	0	4	0	0		move		3	0	0	1	1
+1363	dmu-p5-maddening-orchestra	dmu-p5-maddening-orchestra	1	BB50	0	1	0	5	0	4	0	0		spread		3	0	0	1	1
+1363	dmu-p5-maddening-orchestra-flare	dmu-p5-maddening-orchestra-flare	4	14E6	1	2	0	5	0	4	1	1		Surprise Flare		0	0	0	1	1
+1363	dmu-p5-maddening-orchestra-holy	dmu-p5-maddening-orchestra-holy	4	14E7	1	2	0	5	0	4	1	1		Surprise Holy		0	0	0	1	1
+1363	dmu-p5-stray-apocalypse	dmu-p5-stray-apocalypse	1	BB3B	0	1	0	5	0	4	0	0		Exaflares		3	0	0	1	1
+1363	dmu-p5-stray-entropy	dmu-p5-stray-entropy	1	BB3E	0	1	0	5	0	4	0	0		spread		3	0	0	1	1
+1363	dmu-p5-ultima-repeater	dmu-p5-ultima-repeater	1	BB40	0	1	0	5	0	4	0	0		raidwide, 4 hits		3	0	0	1	1

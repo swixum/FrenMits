@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x64</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>FrenAlerts</AssemblyName>
+    <RootNamespace>FrenAlerts</RootNamespace>
+    <OutputType>Library</OutputType>
+    <!-- Version lives in this folder's Directory.Build.props, shared with the engine. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <!-- Dalamud dev references; override DalamudLibPath if yours differ. -->
+    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Their own projects; the SDK's **/*.cs glob would compile them into the
+         plugin, which is how the test suite would end up shipped to users. -->
+    <Compile Remove="FrenAlerts.Engine\**;FrenAlerts.DevTools\**;FrenAlerts.Voice\**;tests\**" />
+    <EmbeddedResource Remove="FrenAlerts.Engine\**;FrenAlerts.DevTools\**;FrenAlerts.Voice\**;tests\**" />
+    <None Remove="FrenAlerts.Engine\**;FrenAlerts.DevTools\**;FrenAlerts.Voice\**;tests\**" />
+    <Content Remove="FrenAlerts.Engine\**;FrenAlerts.DevTools\**;FrenAlerts.Voice\**;tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="FrenAlerts.Engine\FrenAlerts.Engine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="FrenAlerts.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Plugin icon, copied next to the DLL and shipped in the zip. -->
+    <None Include="images\icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Every fight's calls, built by the authoring tool. Without it the plugin
+         loads and then has nothing to say in any fight. -->
+    <Content Include="Data\calls.facall" Link="calls.facall" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Dalamud">
+      <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Dalamud.Common">
+      <HintPath>$(DalamudLibPath)Dalamud.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Dalamud.Bindings.ImGui">
+      <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="FFXIVClientStructs">
+      <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- The signature holder the event hooks will resolve through in phase 1. -->
+    <Reference Include="InteropGenerator.Runtime">
+      <HintPath>$(DalamudLibPath)InteropGenerator.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Lumina">
+      <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Lumina.Excel">
+      <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
