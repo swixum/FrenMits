@@ -262,13 +262,13 @@ public class AlertOverlay : Window
                 var dl = ImGui.GetWindowDrawList();
                 // Centered against the words, and drawn to the list so it can
                 // never push the text it sits beside.
-                var drawn = Icons.Draw(icon, dl, new Vector2(at.X, at.Y + (lineH - iconH) * 0.5f),
+                // Art that has not resolved leaves its space empty rather than
+                // standing something else in: on the frame a debuff lands its
+                // texture is often still loading, and a warning glyph blinking in
+                // and out at the moment you are reading the call is worse than a
+                // gap. The space is already reserved, so the words never move.
+                Icons.Draw(icon, dl, new Vector2(at.X, at.Y + (lineH - iconH) * 0.5f),
                     iconH, color, C.TextShadow);
-                // Art that will not resolve leaves the words where they are: a
-                // line that jumps sideways on a missed lookup is worse than a
-                // line with no picture.
-                if (!drawn) Icons.DrawGlyph(dl, FontAwesomeIcon.ExclamationCircle,
-                    new Vector2(at.X, at.Y + (lineH - iconH) * 0.5f), iconH, color, C.TextShadow);
             }
 
             ImGui.SetCursorPos(new Vector2(start.X + iconH + gap, start.Y));
