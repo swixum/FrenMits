@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -374,9 +374,10 @@ public partial class ConfigWindow
             {
                 var off = C.IsMuted(f.TerritoryId);
                 var edits = EditedIn(f);
+                var shown = CallsShownIn(f);
                 var note = off ? "Off"
-                    : edits > 0 ? $"{f.Calls} calls, {edits} edited"
-                    : $"{f.Calls} call{(f.Calls == 1 ? "" : "s")}";
+                    : edits > 0 ? $"{shown} calls, {edits} edited"
+                    : $"{shown} call{(shown == 1 ? "" : "s")}";
                 if (Widgets.RowDoor(f.Name, "", CategoryIcon(category),
                     off ? Theme.Muted : Theme.Accent, note: note,
                     noteCol: off ? Theme.Warn : 0u))
@@ -437,8 +438,30 @@ public partial class ConfigWindow
         _callWords = CallText.Sentence(C.EditFor(call.Key)?.Text ?? call.Text);
     }
 
+    // What the fight page will actually list, so the row that opens it agrees with it.
+    //
+    // A covered fight's page shows the imported set plus the handful opted in here,
+    // and the catalog's own total counts the pack as well, which that page has never
+    // drawn. Left alone the list said 157 calls over a page headed 116.
+    //
+    // Both sides of this are cached lookups: their list is built once at load and
+    // held per zone, and the catalog's is rebuilt only when the pack or the player's
+    // seat changes.
+    private bool Covered(FightEntry f) => Runner?.ScriptCovers((ushort)f.TerritoryId) == true;
+
+    private int CallsShownIn(FightEntry f) =>
+        Covered(f)
+            ? (Runner?.ScriptCallsFor((ushort)f.TerritoryId).Count(c => c.Speaks) ?? 0)
+              + FightCatalog.CallsIn(f.TerritoryId).Count(c => c.Listed)
+            : f.Calls;
+
+    // The same rule for the reworded number beside it: a pack row nobody can open is
+    // a row nobody can have reworded.
     private int EditedIn(FightEntry f) =>
-        FightCatalog.CallsIn(f.TerritoryId).Count(c => C.IsEdited(c.Key));
+        Covered(f)
+            ? (Runner?.ScriptCallsFor((ushort)f.TerritoryId).Where(c => c.Speaks).Sum(EditedIn) ?? 0)
+              + FightCatalog.CallsIn(f.TerritoryId).Count(c => c.Listed && C.IsEdited(c.Key))
+            : FightCatalog.CallsIn(f.TerritoryId).Count(c => C.IsEdited(c.Key));
 
     // What the three levels are called on screen. The engine's own enum still reads
     // Info/Alert/Alarm and the pack stores it as a number, so this is the one place
@@ -483,9 +506,16 @@ public partial class ConfigWindow
             ? Runner?.ScriptCallsFor((ushort)fight.TerritoryId).Where(c => c.Speaks).ToList() ?? []
             : [];
 
-        var total = theirs ? their.Count : fight.Calls;
+        // On a covered fight the page now lists theirs and then the ones written here,
+        // so the heading counts both. It counted only theirs for as long as only theirs
+        // were drawn; left alone it would head a list of two hundred rows with a
+        // hundred and sixty, which is the same kind of quiet wrong as the rows that
+        // were missing.
+        var listed = theirs ? calls.Where(c => c.Listed).ToList() : [];
+
+        var total = theirs ? their.Count + listed.Count : fight.Calls;
         var edited = theirs
-            ? their.Sum(EditedIn)
+            ? their.Sum(EditedIn) + listed.Count(c => C.IsEdited(c.Key))
             : calls.Count(c => C.IsEdited(c.Key));
 
         var on = !C.IsMuted(fight.TerritoryId);
@@ -531,12 +561,10 @@ public partial class ConfigWindow
         if (theirs)
         {
             DrawSeat();
-            DrawTheirCalls((ushort)fight.TerritoryId);
-
             // Read as this player before the rows are sampled, the same as below, or
             // ours say the half of a call that lands on somebody else.
             FightCatalog.ReadAs(Runner?.MySlot ?? "", C.StratFor);
-            DrawOurCalls(calls);
+            DrawTheirCalls((ushort)fight.TerritoryId, listed);
             return;
         }
 
@@ -784,27 +812,6 @@ public partial class ConfigWindow
     }
 
     // One call: what it says, whether it is on, and its own editor underneath.
-    // The calls written here, for a fight the imported set also covers.
-    //
-    // Both engines run in a fight like that, so these fire alongside theirs and were
-    // the only ones with no row anywhere: not readable, not switchable, not editable.
-    // Only the hand written ones, never the rows read out of the pack, because those
-    // are theirs said a second time.
-    //
-    // No search box and no phase tabs of its own. There are a few dozen of these
-    // against a few hundred of theirs, and a second set of controls asking the same
-    // questions a few inches below the first is the clutter this page keeps avoiding.
-    private void DrawOurCalls(IReadOnlyList<CallEntry> calls)
-    {
-        var mine = calls.Where(c => c.Written).ToList();
-        if (mine.Count == 0) return;
-
-        Widgets.SectionHeader($"Also from Fren Alerts ({mine.Count})");
-        Widgets.ListBegin();
-        foreach (var call in mine) DrawCallRow(call);
-        Widgets.ListEnd();
-    }
-
     private void DrawCallRow(CallEntry call)
     {
         var open = _openCall == call.Key;

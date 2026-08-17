@@ -19,12 +19,12 @@ public sealed record CallEntry(
     string Key, string Text, CallLevel Level, float Hold, int Phase,
     bool ShipsOn, EventKind On, uint MatchId, bool Sampled = true, string OnYou = "",
     bool FromTimeline = false,
-    // Written here rather than imported. Where a fight is covered by the imported
-    // set the page lists that set, because the rest of these rows are the same
-    // calls read out of it and two lists of one thing is what that page replaced.
-    // Ours are not in it and run alongside it, so they are the rows that still
-    // have to be shown.
-    bool Written = false);
+    // Written here rather than imported.
+    bool Written = false,
+    // Shown on a fight the imported set also covers. Opted into per call, because
+    // nearly every call written here answers an ability theirs already answers and
+    // listing all of them put forty near-duplicate rows on that page.
+    bool Listed = false);
 
 public static class FightCatalog
 {
@@ -393,7 +393,7 @@ public static class FightCatalog
             // Written by hand, so it says what it means at the moment it means it.
             list.Add(new CallEntry(
                 t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId, sampled, onYou,
-                Written: true));
+                Written: true, Listed: t.Listed));
         }
         return list;
     }

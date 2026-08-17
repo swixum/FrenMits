@@ -49,14 +49,19 @@ public partial class ConfigWindow
     // next door.
     private const int LinesShown = 6;
 
-    private void DrawTheirCalls(ushort territory)
+    // Theirs, and the handful written here that they have no answer for.
+    //
+    // Ours go in the same list under the same phase tab rather than in a block of
+    // their own underneath: a section at the bottom read as a second page stapled on,
+    // and what these are is a few more calls for the same fight.
+    private void DrawTheirCalls(ushort territory, IReadOnlyList<CallEntry> mine)
     {
         if (Runner is not { } runner) return;
 
         // Only the ones that say something. The rest keep the fight's own state and
         // are not calls, so a list of calls is not where they belong.
         var calls = runner.ScriptCallsFor(territory).Where(c => c.Speaks).ToList();
-        if (calls.Count == 0)
+        if (calls.Count == 0 && mine.Count == 0)
         {
             Widgets.ListBegin();
             Widgets.RowNote("No calls for this fight yet.");
@@ -64,7 +69,7 @@ public partial class ConfigWindow
             return;
         }
 
-        var phase = DrawTheirPhaseTabs(calls);
+        var phase = DrawTheirPhaseTabs(calls, mine);
 
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
         ImGui.InputTextWithHint("##theirfilter", "Search these calls", ref _theirFilter, 64);
@@ -73,6 +78,12 @@ public partial class ConfigWindow
         var here = phase is { } only
             ? calls.Where(c => c.Phase == only).ToList()
             : calls;
+
+        // Their phases read "P5"; ours are numbered, so the tab is matched rather
+        // than the two lists being grouped apart.
+        var mineHere = phase is { } tab
+            ? mine.Where(c => $"P{c.Phase}" == tab).ToList()
+            : mine;
 
         // Searched on the mechanic and on every line it can say, so both "towers" and
         // the words a call actually puts on screen find it.
@@ -89,7 +100,13 @@ public partial class ConfigWindow
                         || c.Lines.Any(l => l.Text.Contains(find, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
-        if (shown.Count == 0)
+        var mineShown = mineHere
+            .Where(c => find.Length == 0
+                        || Wording(c).Contains(find, StringComparison.OrdinalIgnoreCase)
+                        || c.Text.Contains(find, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (shown.Count == 0 && mineShown.Count == 0)
         {
             Widgets.ListBegin();
             Widgets.RowNote($"No call here has \"{find}\" in it.");
@@ -99,6 +116,7 @@ public partial class ConfigWindow
 
         Widgets.ListBegin();
         foreach (var call in shown) DrawTheirCallRow(call);
+        foreach (var call in mineShown) DrawCallRow(call);
         Widgets.ListEnd();
     }
 
@@ -321,9 +339,16 @@ public partial class ConfigWindow
 
     // Their phases, read off the ids. Null is every phase, an empty string is the
     // triggers that carry no phase at all.
-    private string? DrawTheirPhaseTabs(IReadOnlyList<ScriptShownCall> calls)
+    private string? DrawTheirPhaseTabs(
+        IReadOnlyList<ScriptShownCall> calls, IReadOnlyList<CallEntry> mine)
     {
+        // Ours are numbered and theirs are named "P5", so a phase is counted in the
+        // form the tabs use. A tab counting one side of a list it shows both sides of
+        // is the same quiet wrong as the heading that counted theirs alone.
+        int Ours(string phase) => mine.Count(c => $"P{c.Phase}" == phase);
+
         var phases = calls.Select(c => c.Phase).Where(p => p.Length > 0)
+            .Concat(mine.Select(c => $"P{c.Phase}"))
             .Distinct().OrderBy(p => p, StringComparer.Ordinal).ToList();
 
         // One phase is not phases, same as our own list: a fight whose triggers are
@@ -338,7 +363,7 @@ public partial class ConfigWindow
 
             foreach (var phase in phases)
             {
-                var n = calls.Count(c => c.Phase == phase);
+                var n = calls.Count(c => c.Phase == phase) + Ours(phase);
                 if (ImGui.BeginTabItem($"{phase} ({n})###their{phase}"))
                 {
                     picked = phase;

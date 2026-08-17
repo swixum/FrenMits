@@ -57,6 +57,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "neo-truth-said",
+            Listed = true,
             On = EventKind.StatusGain,
             MatchId = Telling,
             Phase = 4,
@@ -482,6 +483,7 @@ public static partial class DancingMad
         string id, uint status, string element, Func<DancingMadPull, bool?> truth) => new()
     {
         Id = id,
+        Listed = true,
         Says = $"fake {element}",
         On = EventKind.StatusGain,
         MatchId = status,

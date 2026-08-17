@@ -119,6 +119,18 @@ public sealed record Trigger
     // it and the row's own id where the words should be.
     public bool Claims { get; init; }
 
+    // Show this one on a fight the imported set also covers.
+    //
+    // Such a fight lists that set, because nearly every call written here answers an
+    // ability theirs already answers: 62 of our 69 in Dancing Mad, measured. Listing
+    // all of ours underneath put forty near-duplicate rows on the page and swix asked
+    // for them off again.
+    //
+    // So it is opted into, one call at a time, by whoever adds a call the imported set
+    // has no answer for. Off by default, which is how that page read before any of
+    // this and is the state he called perfect.
+    public bool Listed { get; init; }
+
     // What this call sounds like, for the fight page to show before a pull.
     //
     // Most calls can be asked what they say by running them once. These are the ones

@@ -230,6 +230,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "ultima-repeater",
+            Listed = true,
             On = EventKind.CastStart,
             MatchId = 0xBB40,
             Phase = 5,
@@ -256,6 +257,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "fell-forces",
+            Listed = true,
             On = EventKind.AbilityHit,
             MatchId = 0xC653,
             Phase = 5,
@@ -307,6 +309,7 @@ public static partial class DancingMad
         yield return new Trigger
         {
             Id = "flood-rotation",
+            Listed = true,
             On = EventKind.CastStart,
             MatchId = 0xC183,
             Phase = 5,
@@ -343,7 +346,7 @@ public static partial class DancingMad
         // Where to be for it rather than what it is. The four moves that follow are
         // the only other thing said about Forsaken, and theirs is patched out of all
         // of it: the raidwide, the moves and the stack.
-        yield return Cast("p5-forsaken", 0xBB35, "Gather South for raidwide", 5);
+        yield return Cast("p5-forsaken", 0xBB35, "Gather South for raidwide", 5, listed: true);
 
         yield return new Trigger
         {
@@ -378,7 +381,7 @@ public static partial class DancingMad
         // "Spread Positions" rather than "spread": swix's wording, and theirs answers
         // the same cast with a bare "Spread", which is the one taken out in
         // Data/patches/dancingmad_one_call.js so this is said once.
-        yield return Cast("maddening-orchestra", 0xBB50, "Spread Positions", 5);
+        yield return Cast("maddening-orchestra", 0xBB50, "Spread Positions", 5, listed: true);
         yield return Cast("stray-entropy", 0xBB3E, "spread", 5);
 
         // Two people get the opposite of what everyone else is doing, and neither of

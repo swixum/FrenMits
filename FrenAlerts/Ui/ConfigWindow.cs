@@ -726,8 +726,16 @@ public partial class ConfigWindow : Window, IDisposable
 
         foreach (var fight in FightCatalog.All)
         {
+            // A fight the imported set covers lists that set and the calls written
+            // here, and nothing else. The rest of the catalog's rows for it are the
+            // pack, which that page does not draw, so offering one here leads to a
+            // fight page it cannot be found on.
+            var covered = Runner?.ScriptCovers((ushort)fight.TerritoryId) == true;
+
             foreach (var call in FightCatalog.CallsIn(fight.TerritoryId))
             {
+                if (covered && !call.Listed) continue;
+
                 // Either wording finds it. Somebody who renamed a call searches what
                 // they named it; somebody reading a strat searches what it shipped as.
                 if (!Wording(call).Contains(needle, StringComparison.OrdinalIgnoreCase)

@@ -159,9 +159,11 @@ public static partial class DancingMad
         },
     };
 
-    private static Trigger Cast(string id, uint action, string text, int phase) => new()
+    private static Trigger Cast(
+        string id, uint action, string text, int phase, bool listed = false) => new()
     {
         Id = id,
+        Listed = listed,
         On = EventKind.CastStart,
         MatchId = action,
         Phase = phase,
