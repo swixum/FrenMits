@@ -19,6 +19,7 @@ public class AlertOverlay : Window
     private bool _applyPos = true;
 
     private bool _pushedBg;
+    private bool _pushedPad;
 
     public AlertOverlay(Configuration config, FontManager fonts, AlertBoard board)
         : base("Fren Alerts##facall")
@@ -69,6 +70,21 @@ public class AlertOverlay : Window
         if (_pushedBg)
             ImGui.PushStyleColor(ImGuiCol.WindowBg, C.BackgroundColor);
 
+        // Room for the slab, which is drawn past the text rather than laid out.
+        //
+        // The window auto-resizes to its items, and a call's item is the text box
+        // only: the slab behind it reaches PadX and PadY further out on every side,
+        // and a window draw list is clipped to its window. At a 55px call that is
+        // 27px sideways against ImGui's default 8, so the rounded corners and the
+        // border were being cut off.
+        //
+        // Off the configured size rather than the drawn one, because the fit only
+        // ever shrinks a call and this has to be the roomier of the two.
+        _pushedPad = C.ShowBackground;
+        if (_pushedPad)
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(
+                C.CallFontSizePx * CallLook.PadX, C.CallFontSizePx * CallLook.PadY));
+
         var pos = SavedScreenPos();
         if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
@@ -93,6 +109,7 @@ public class AlertOverlay : Window
 
     public override void PostDraw()
     {
+        if (_pushedPad) ImGui.PopStyleVar();
         if (_pushedBg) ImGui.PopStyleColor();
     }
 
@@ -148,7 +165,7 @@ public class AlertOverlay : Window
 
             for (var i = 0; i < live.Count; i++)
             {
-                if (i > 0) ImGui.Spacing();
+                if (i > 0) Gap(px);
                 var s = live[i];
                 DrawCall(s.Call.Text, s.Call.Level, s.Icon, s.Remaining(now), s.Counting(now),
                     (float)(now - s.FireAt), px, s.Call.Tint,
@@ -157,6 +174,24 @@ public class AlertOverlay : Window
         }
 
         if (Placing) DrawPlacementFrame();
+    }
+
+    // The space between one call in the stack and the next, in one place so the
+    // preview and the game cannot drift apart.
+    //
+    // This was ImGui.Spacing(), which is four points, and it left the stack running
+    // together: the slab behind a call is drawn PadY past the item box top and
+    // bottom, so at a 55px call two of them overlap by thirty points before any gap
+    // is counted. The engine carries their own gap as CallLook.StackGap and nothing
+    // was reading it.
+    //
+    // Off the settled stack size rather than each call's own, or the gap would
+    // breathe while a call pops in and push the one below it around.
+    private void Gap(float px)
+    {
+        var gap = CallLook.StackGap * (px / CallLook.BasePx)
+                  + (C.ShowBackground ? 2f * px * CallLook.PadY : 0f);
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + gap);
     }
 
     private void DrawPlacementFrame()
@@ -225,7 +260,7 @@ public class AlertOverlay : Window
              Need("Stack on you", CallIcon.Marker(0), second, counting)]);
 
         DrawCall("Raidwide", CallLevel.Alert, CallIcon.None, remaining, counting, sinceGo, px);
-        ImGui.Spacing();
+        Gap(px);
         // A second call a beat ahead of the first, so the preview shows two at
         // once the way a real burst does, each pulsing at its own moment.
         DrawCall("Stack on you", CallLevel.Alarm, CallIcon.Marker(0),

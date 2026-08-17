@@ -218,7 +218,7 @@ internal static class Widgets
     public static void RowBegin(string name, string hint, float ctlWidth, bool changed = false,
         bool sub = false, float ctlHeight = 0f, bool clickable = false,
         FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0, string id = "",
-        string note = "", uint noteCol = 0)
+        string note = "", uint noteCol = 0, bool check = false)
     {
         if (id.Length == 0) id = name;
         var hasHint = !string.IsNullOrEmpty(hint);
@@ -255,20 +255,28 @@ internal static class Widgets
         textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
         ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
         ImGui.TextUnformatted(name);
+        var nameEnd = ImGui.GetItemRectMax();
+        var nameMid = (ImGui.GetItemRectMin().Y + nameEnd.Y) * 0.5f;
+        var after = nameEnd.X + (changed ? Theme.S(7f) : 0f);
         if (changed)
+            dl.AddCircleFilled(new Vector2(nameEnd.X + Theme.S(7f), nameMid), Theme.S(2.5f), Theme.Accent);
+        // A tick beside the name for a row somebody has answered themselves.
+        if (check)
         {
-            var d = ImGui.GetItemRectMax();
-            var mid = (ImGui.GetItemRectMin().Y + d.Y) * 0.5f;
-            dl.AddCircleFilled(new Vector2(d.X + Theme.S(7f), mid), Theme.S(2.5f), Theme.Accent);
+            using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            {
+                var tick = FontAwesomeIcon.Check.ToIconString();
+                var tsz = ImGui.CalcTextSize(tick);
+                dl.AddText(new Vector2(after + Theme.S(7f), nameMid - tsz.Y * 0.5f), Theme.Good, tick);
+                after += Theme.S(7f) + tsz.X;
+            }
         }
         if (note.Length > 0)
         {
-            var nameEnd = ImGui.GetItemRectMax();
-            var at = nameEnd.X + Theme.S(10f) + (changed ? Theme.S(7f) : 0f);
+            var at = after + Theme.S(10f);
             var ctlAt = scr.X + width - RowPad - ctlWidth;
             if (at + ImGui.CalcTextSize(note).X < ctlAt - Theme.S(6f))
-                dl.AddText(new Vector2(at,
-                    (ImGui.GetItemRectMin().Y + nameEnd.Y) * 0.5f - ImGui.GetTextLineHeight() * 0.5f),
+                dl.AddText(new Vector2(at, nameMid - ImGui.GetTextLineHeight() * 0.5f),
                     noteCol == 0 ? Theme.Muted : noteCol, note);
         }
         if (hasHint)
@@ -372,11 +380,15 @@ internal static class Widgets
         return hit;
     }
 
+    // The placeholder is what the box shows while it is empty, which for a rewording is
+    // the line it would say if nobody typed anything. Room for their longest, which runs
+    // past ninety characters once a direction call has filled itself in.
     public static bool RowText(string name, ref string v, string id,
-        float width = 300f, bool changed = false, bool sub = false)
+        float width = 300f, bool changed = false, bool sub = false,
+        string placeholder = "", int max = 96)
     {
         RowBegin(name, "", Theme.S(width), changed, sub);
-        var hit = ImGui.InputTextWithHint("##rt" + id, "", ref v, 96);
+        var hit = ImGui.InputTextWithHint("##rt" + id, placeholder, ref v, max);
         RowEnd();
         return hit;
     }

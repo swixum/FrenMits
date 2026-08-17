@@ -44,6 +44,18 @@ public sealed class ScriptFights : IDisposable
     // between a fight and the timeline of the same name sitting beside it.
     private readonly Dictionary<int, string> _fileOf = new();
 
+    // Per trigger, the output keys its own body reaches. Read off the file text as the
+    // file is loaded, because the compiled callbacks cannot answer it, and kept instead
+    // of the text so nothing holds a megabyte of script for the life of the plugin.
+    //
+    // Emptied and rebuilt by Load, which is its only writer and the whole of its life.
+    private readonly Dictionary<string, IReadOnlyList<string>> _reaches = new(StringComparer.Ordinal);
+
+    // The output keys one of their triggers can actually say. Empty where the scan could
+    // not place the trigger, which the caller reads as "show all of them".
+    public IReadOnlyList<string> ReachesOutputs(string triggerId) =>
+        _reaches.TryGetValue(triggerId, out var keys) ? keys : [];
+
     public IEnumerable<ushort> Zones => _byZone.Keys;
 
     public string? Problem { get; private set; }
@@ -70,8 +82,20 @@ public sealed class ScriptFights : IDisposable
     // is chosen by zone rather than by which engine it lives in. A single file that
     // fails to parse is reported and skipped rather than taking the rest with it: a
     // fight nobody is standing in should not cost the one they are.
-    public void Load(string folder)
+    // patchFolder defaults to a sibling of the scripts folder, which is where the
+    // build puts it: the csproj links Data/patches to "patches" at the output root,
+    // and the workflow packs "$alertsOut\patches" into the zip beside "scripts".
+    //
+    // It used to be Path.Combine(folder, PatchFolder), which is scripts/patches, and
+    // nothing was ever there. Every patch silently did not load in game while the
+    // tests stayed green, because they loaded patches by their own path rather than
+    // through here. That cost the Kefka North tether mode: swix runs it, it was his
+    // pick, and the dropdown only ever offered their two.
+    public void Load(string folder, string? patchFolder = null)
     {
+        patchFolder ??= Path.Combine(
+            Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(folder)) ?? folder,
+            ScriptLoading.PatchFolder);
         try
         {
             _js?.Dispose();
@@ -79,6 +103,7 @@ public sealed class ScriptFights : IDisposable
                                    .MaxStatements(StatementLimit));
             _byZone.Clear();
             _fileOf.Clear();
+            _reaches.Clear();
             Problem = null;
 
             foreach (var name in Harness)
@@ -93,16 +118,21 @@ public sealed class ScriptFights : IDisposable
                 // more than one fight and nothing in what it registers says which
                 // file it came from.
                 var before = Registered;
-                try { _js.Execute(ScriptLoading.Wrap(File.ReadAllText(file))); }
+                var text = File.ReadAllText(file);
+                try { _js.Execute(ScriptLoading.Wrap(text)); }
                 catch (Exception ex) { broken.Add($"{Path.GetFileName(file)}: {ex.Message}"); continue; }
                 Index(Path.GetFileNameWithoutExtension(file), before);
+
+                // Which lines each of this file's triggers can say, read while the text
+                // is in hand. Nothing keeps the text: the answer is a few words per
+                // trigger and the file is a quarter of a megabyte.
+                foreach (var (trigger, keys) in ScriptOutputUse.Read(text)) _reaches[trigger] = keys;
             }
 
             // Anything sitting in the patches folder, applied on top of their files
             // the way their own host does. Nothing ships in there; it is where a fix
             // for one of their fights goes without editing the file it patches.
-            foreach (var trouble in ScriptLoading.LoadPatches(
-                         _js, Path.Combine(folder, ScriptLoading.PatchFolder)))
+            foreach (var trouble in ScriptLoading.LoadPatches(_js, patchFolder))
                 broken.Add(trouble);
 
             if (broken.Count > 0) Problem = string.Join("; ", broken);

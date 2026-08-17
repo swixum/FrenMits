@@ -327,6 +327,96 @@ public class Configuration : IPluginConfiguration
         Save();
     }
 
+    private List<Engine.Scripts.ScriptCallEdit> _scriptCallEdits = new();
+
+    // Their lines in somebody else's words. One entry per output key, which is what
+    // their override hook is keyed by; the fight page lists several keys as one line
+    // where they ship the same words and writes one of these for each.
+    public List<Engine.Scripts.ScriptCallEdit> ScriptCallEdits
+    {
+        get => _scriptCallEdits;
+        set
+        {
+            _scriptCallEdits = value ?? new List<Engine.Scripts.ScriptCallEdit>();
+            _scriptEditAt = null;
+        }
+    }
+
+    // Looked up per row on every frame the fight page draws, so it is not a walk of the
+    // list. Dropped whenever the list moves, and rebuilt on the next question.
+    private Dictionary<(string Trigger, string Key), Engine.Scripts.ScriptCallEdit>? _scriptEditAt;
+
+    private Dictionary<(string, string), Engine.Scripts.ScriptCallEdit> ScriptEditIndex
+    {
+        get
+        {
+            if (_scriptEditAt is not null) return _scriptEditAt;
+
+            var at = new Dictionary<(string, string), Engine.Scripts.ScriptCallEdit>();
+            foreach (var edit in _scriptCallEdits) at[(edit.Trigger, edit.Key)] = edit;
+            return _scriptEditAt = at;
+        }
+    }
+
+    public Engine.Scripts.ScriptCallEdit? ScriptEditFor(string trigger, string key) =>
+        ScriptEditIndex.TryGetValue((trigger, key), out var edit) ? edit : null;
+
+    public bool IsScriptEdited(string trigger, string key) =>
+        ScriptEditFor(trigger, key) is { IsDefault: false };
+
+    // One line on the page, which is one or more of their keys, given new words.
+    //
+    // Every key that ships the line gets the same words, because the page showed them as
+    // one line and rewording one of several identical lines silently is not what anybody
+    // reading it asked for. Back to default drops the entries rather than storing empty
+    // ones, so an untouched fight leaves nothing in the file.
+    public void SetScriptEdit(string trigger, IEnumerable<string> keys, string text, string tts)
+    {
+        var wanted = text.Trim();
+        var spoken = tts.Trim();
+
+        foreach (var key in keys)
+        {
+            var edit = ScriptEditFor(trigger, key);
+            if (wanted.Length == 0 && spoken.Length == 0)
+            {
+                if (edit is not null) _scriptCallEdits.Remove(edit);
+                continue;
+            }
+
+            if (edit is null)
+            {
+                // The ceiling, so a runaway write cannot grow the config without end.
+                // Silent because it is far past rewording every line of every fight.
+                if (_scriptCallEdits.Count >= Engine.Scripts.ScriptCallEdits.Max) continue;
+                _scriptCallEdits.Add(edit = new Engine.Scripts.ScriptCallEdit
+                {
+                    Trigger = trigger,
+                    Key = key,
+                });
+            }
+
+            edit.Text = wanted;
+            edit.Tts = spoken;
+        }
+
+        _scriptEditAt = null;
+        Save();
+    }
+
+    // Every rewording in a fight undone, for the page's own back-to-default.
+    public int ClearScriptEdits(IEnumerable<string> triggers)
+    {
+        var mine = triggers.ToHashSet(StringComparer.Ordinal);
+        var gone = _scriptCallEdits.RemoveAll(e => mine.Contains(e.Trigger));
+        if (gone > 0)
+        {
+            _scriptEditAt = null;
+            Save();
+        }
+        return gone;
+    }
+
     // ---- the cooldown tracker ----
 
     private List<Engine.UserTriggers.CooldownEntry> _cooldowns = new();

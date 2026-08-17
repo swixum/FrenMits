@@ -103,9 +103,9 @@ internal static class SettingsIndex
 
         // ---- roles ----
 
-        // Looked for by the seat's own name as often as by the page's, because the
-        // seat is what a call says out loud.
-        New("Who's In Each Seat", ConfigWindow.NavKind.Roles, nameof(Configuration.PartySeats),
+        // Looked for by the role's own name as often as by the page's, because the
+        // role is what a call says out loud.
+        New("Party Roles", ConfigWindow.NavKind.Roles, nameof(Configuration.PartySeats),
             c => c.PartySeats.Count > 0, c => c.ClearPartySeats(),
             "party role mt ot h1 h2 m1 m2 r1 r2 seat assign melee ranged"),
     };

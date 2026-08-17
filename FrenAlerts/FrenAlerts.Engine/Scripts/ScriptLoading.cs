@@ -42,7 +42,16 @@ public static class ScriptLoading
     public static IReadOnlyList<string> LoadPatches(Jint.Engine js, string folder)
     {
         var broken = new List<string>();
-        if (!Directory.Exists(folder)) return broken;
+
+        // Said rather than shrugged off. This returned quietly for a missing folder,
+        // which reads exactly like every patch loading fine, and that is how the
+        // folder being looked for in the wrong place went unnoticed: the modes our
+        // patches add were simply never on any dropdown.
+        if (!Directory.Exists(folder))
+        {
+            broken.Add($"no patch folder at {folder}, so none of ours loaded");
+            return broken;
+        }
 
         foreach (var path in Directory.GetFiles(folder, "*.js").OrderBy(f => f, StringComparer.Ordinal))
         {

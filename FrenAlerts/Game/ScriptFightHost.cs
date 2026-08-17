@@ -53,6 +53,31 @@ public sealed class ScriptFightHost : IDisposable
     // attempts, which is the only time anybody ever changes them.
     public Func<string, string>? Chosen { get; set; }
 
+    // Their lines in somebody else's words, asked for rather than held.
+    //
+    // Asked for the same reason the strategies are: these are edited on the fight page
+    // between pulls, and one copy of the answer cannot go stale.
+    public Func<IEnumerable<ScriptCallEdit>>? Reworded { get; set; }
+
+    // Ours written into their override hook.
+    //
+    // Cleared and re-applied whole rather than patched, because the page can put a line
+    // back to default and a patch has no way to say so. Called as a zone loads and again
+    // the moment anything is reworded, so a change lands on the pull being played instead
+    // of at the next reload: somebody rewords a call because the last pull proved the
+    // words were wrong.
+    public void ApplyEdits()
+    {
+        if (_runners.Count == 0) return;
+
+        var edits = Reworded?.Invoke() ?? [];
+        foreach (var runner in _runners)
+        {
+            runner.Overrides.ClearWords();
+            ScriptCallEdits.Apply(edits, runner.Overrides);
+        }
+    }
+
     // What each fight in a zone offers, read once when their files load rather than
     // per pull: it walks every trigger set and their fields do not change.
     private readonly Dictionary<ushort, List<(int Set, string Fight, IReadOnlyList<ScriptStrategy> Strategies)>>
@@ -108,15 +133,7 @@ public sealed class ScriptFightHost : IDisposable
                 var runner = new ScriptTriggerRunner(_fights.Js!);
                 runner.Compile(_fights.SetsFor(zone));
 
-                foreach (var trigger in runner.Triggers)
-                {
-                    var words = runner.Says(trigger.Id);
-                    if (words.Count == 0)
-                        words = [.. runner.Outputs(trigger.Id).Select(o => o.Shipped)
-                            .Where(w => w.Length > 0).Distinct(StringComparer.Ordinal)];
-
-                    listed.Add(new ScriptShownCall(trigger.Id, trigger.Speaks, words));
-                }
+                listed.AddRange(ScriptListing.For(runner, _fights));
             }
             catch (Exception ex)
             {
@@ -263,8 +280,14 @@ public sealed class ScriptFightHost : IDisposable
         // twice, which is the whole point of that guard: the same mechanic is written
         // in both files where the phases overlap.
         var runner = new ScriptTriggerRunner(js) { Say = call => Say?.Invoke(call) };
+        // Their prelude asks the host for the reworded lines every time it builds one, so
+        // the hook has to be in place before a single trigger compiles. Nothing called
+        // this outside the tests, which is why every rewording on the fight page changed
+        // what the page said and nothing about what the fight called.
+        runner.Bind();
         runner.Compile(_fights.SetsFor(zone));
         _runners.Add(runner);
+        ApplyEdits();
 
         // Their own timelines for this zone, all of them: a fight written in two
         // halves has one file each, and the clock is told about both so the second

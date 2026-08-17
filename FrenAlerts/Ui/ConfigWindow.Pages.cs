@@ -164,17 +164,16 @@ public partial class ConfigWindow
             && late.PullSeconds > TimelineGrace)
             problems.Add("The timeline has not anchored");
         if (Runner is { LocalVoice.GivenUp: true }) problems.Add("Local voice gave up");
-        // Having no parser is not a fault any more. Every kind has a client route now,
-        // head markers and tethers included, and LiveCoverage.NeedsAParser is empty to
-        // say so. This used to read "No parser, head markers are quiet", which as of
-        // this build tells somebody their markers are dead while they are working.
+        // The parser is not on this list in any state, because no state of it costs a
+        // call. Every kind has a client route now, head markers and tethers included,
+        // and LiveCoverage.NeedsAParser is empty to say so.
         //
-        // A parser that answered and then never opened its channel is still a fault:
-        // it is there, it is not feeding, and the statuses it would have improved are
-        // silently the poorer ones. Still shaking hands is worth nothing on the list,
-        // because it settles on its own in a second or two.
-        if (Runner is { ParserConnected: true, ParserReading: false, ParserAsking: false })
-            problems.Add("The parser never answered");
+        // "The parser never answered" was here and could not be got rid of. It is the
+        // bridge's give-up state, which is terminal: Tick returns on !Asking, so after
+        // MaxAsks nothing asks again, and the one path that clears it wants a line the
+        // failed subscribe was what would have sent. It sat on the home page for the
+        // rest of the session naming something that was costing nothing, and there is
+        // no parser page to send anybody to about it either.
         if (C.TestMode) problems.Add("Test mode is on");
         // Same reason as test mode: not a fault, but it writes to disk and it is
         // meant to be switched off again once the question it was asked is answered.
@@ -216,10 +215,17 @@ public partial class ConfigWindow
         Tip(problems.Count == 0 ? "Nothing needs attention." : "Go and fix the first one.");
     }
 
+    // Where to go to answer a problem, which has to be the page the switch is
+    // actually on. Sending somebody to a page that does not hold the thing reads as
+    // a dead tile, and that is what it was doing: test mode went to Call Display and
+    // the recorder fell through to Fights, while both are switched on the home page
+    // itself, in the list directly under these tiles.
     private static ConfigWindow.NavKind PageFor(string problem) => problem switch
     {
         "Calls are off" => NavKind.CallDisplay,
-        "Test mode is on" => NavKind.CallDisplay,
+        "Test mode is on" => NavKind.Home,
+        "Recording is on" => NavKind.Home,
+        "The recording is full" => NavKind.Home,
         "Local voice gave up" => NavKind.Tts,
         _ => NavKind.Fights,
     };
@@ -322,6 +328,10 @@ public partial class ConfigWindow
         _nav = NavKind.Fight;
         _openCall = "";
         _callFilter = "";
+        // Theirs too, or the row left open in the last fight is still open, holding the
+        // words that were being typed into a mechanic this fight has never heard of.
+        Close();
+        _theirFilter = "";
     }
 
     private void OpenCall(CallEntry call)
@@ -360,20 +370,43 @@ public partial class ConfigWindow
         }
         ImGui.Spacing();
 
+        // Where the imported set covers this fight, ours is not loaded at all, so
+        // every switch below this line is describing calls that are not running.
+        // Said out loud, because a page full of controls that change nothing is the
+        // worst kind of quiet.
+        // Asked about the zone rather than about where the player is standing: the
+        // answer is the same from a hub, and this page is read between pulls.
+        //
+        // Asked before the heading, because the heading counts the calls the page is
+        // about to list. It counted ours either way, so a covered fight was headed "170
+        // calls" over a list of a hundred and sixteen of theirs.
+        var theirs = Runner?.ScriptCovers((ushort)fight.TerritoryId) == true;
+
         var calls = FightCatalog.CallsIn(fight.TerritoryId);
-        var edited = calls.Count(c => C.IsEdited(c.Key));
+        var their = theirs
+            ? Runner?.ScriptCallsFor((ushort)fight.TerritoryId).Where(c => c.Speaks).ToList() ?? []
+            : [];
+
+        var total = theirs ? their.Count : fight.Calls;
+        var edited = theirs
+            ? their.Sum(EditedIn)
+            : calls.Count(c => C.IsEdited(c.Key));
+
         var on = !C.IsMuted(fight.TerritoryId);
-        if (PageHead(fight.Name, edited > 0 ? $"{fight.Calls} calls, {edited} edited"
-                : $"{fight.Calls} call{(fight.Calls == 1 ? "" : "s")}", on,
+        if (PageHead(fight.Name, edited > 0 ? $"{total} calls, {edited} reworded"
+                : $"{total} call{(total == 1 ? "" : "s")}", on,
                 reset: () =>
                 {
                     C.ClearEdits(calls.Select(c => c.Key));
+                    C.ClearScriptEdits(their.Select(c => c.Id));
+                    Runner?.ScriptWordsChanged();
                     if (C.MutedTerritories.Remove(fight.TerritoryId)) C.Save();
                     // Back to defaults means the strats too, or the button half
                     // undoes the page and leaves the group's answers behind.
                     foreach (var s in Strategies.For((ushort)fight.TerritoryId))
                         C.SetStrat((ushort)fight.TerritoryId, s.Key, s.Default);
                     _openCall = "";
+                    Close();
                 },
                 icon: CategoryIcon(fight.Category)) is { } master)
         {
@@ -381,14 +414,6 @@ public partial class ConfigWindow
             else C.MutedTerritories.Add(fight.TerritoryId);
             C.Save();
         }
-
-        // Where the imported set covers this fight, ours is not loaded at all, so
-        // every switch below this line is describing calls that are not running.
-        // Said out loud, because a page full of controls that change nothing is the
-        // worst kind of quiet.
-        // Asked about the zone rather than about where the player is standing: the
-        // answer is the same from a hub, and this page is read between pulls.
-        var theirs = Runner?.ScriptCovers((ushort)fight.TerritoryId) == true;
 
         DrawScriptStrategies((ushort)fight.TerritoryId);
 
@@ -482,7 +507,7 @@ public partial class ConfigWindow
         // own calls; in a replay, or with nothing read at all, it is the answer.
         if (!replay && C.SeatOverride.Length == 0 && guessed.Length > 0) return;
 
-        Widgets.GroupLabel("Your Seat");
+        Widgets.GroupLabel("Your Role");
         Widgets.ListBegin();
 
         var idx = Math.Max(0, Array.IndexOf(Seats, C.SeatOverride));
@@ -493,7 +518,7 @@ public partial class ConfigWindow
             C.SeatOverride = idx <= 0 ? "" : Seats[idx];
             C.Save();
             // The rows above are sampled as whoever this is, so they are rebuilt
-            // rather than left showing the previous seat's half of every call.
+            // rather than left showing the previous role's half of every call.
             FightCatalog.Invalidate();
         }
 

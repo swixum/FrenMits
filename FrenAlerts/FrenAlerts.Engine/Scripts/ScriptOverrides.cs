@@ -69,6 +69,23 @@ public sealed class ScriptOverrides
 
     public void Remove(string triggerId, string outputKey) => _byKey.Remove(KeyOf(triggerId, outputKey));
 
+    // Every rewording dropped, and nothing else touched.
+    //
+    // What the reworded lines are is settled somewhere else and re-applied whole, so
+    // this is what runs first. Only the words go: a key whose macro is switched on keeps
+    // it, because that was asked for separately and a reworded line is not a reason to
+    // stop typing it into party chat. A key left holding nothing at all is dropped, so
+    // putting a line back to default leaves no trace to trip over later.
+    public void ClearWords()
+    {
+        foreach (var (key, value) in _byKey.ToList())
+        {
+            value.Text = "";
+            value.Tts = "";
+            if (value.IsDefault) _byKey.Remove(key);
+        }
+    }
+
     // A trigger with anything overridden at all, which is what decides whether the
     // spoken line is resolved a second time rather than reusing the shown one.
     public bool Touched(string triggerId)

@@ -75,6 +75,18 @@ public sealed class Runner : IDisposable
     // Which way the group runs each of their fights' choices, asked per pull.
     public Func<string, string>? ScriptStrat { get; set; }
 
+    // Their lines in somebody else's words, asked for as a zone loads and whenever the
+    // fight page changes one.
+    public Func<IEnumerable<FrenAlerts.Engine.Scripts.ScriptCallEdit>>? ScriptWords
+    {
+        get => _scripts.Reworded;
+        set => _scripts.Reworded = value;
+    }
+
+    // A line reworded while a fight is loaded. The pull being played picks it up, because
+    // the reason anybody rewords a call is that the last pull proved the words wrong.
+    public void ScriptWordsChanged() => _scripts.ApplyEdits();
+
     // What this zone's imported fights offer a choice on, for the page that sets them.
     public IReadOnlyList<FrenAlerts.Engine.Scripts.ScriptStrategy> ScriptStrategiesFor(ushort zone) =>
         _scripts.StrategiesFor(zone);

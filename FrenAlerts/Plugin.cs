@@ -76,6 +76,7 @@ public sealed class Plugin : IDalamudPlugin
             Strat = (territory, key) => Config.StratFor(territory, key),
             Seating = () => Config.SeatOverride,
             ScriptStrat = id => Config.ScriptStratFor(id),
+            ScriptWords = () => Config.ScriptCallEdits,
             // The same two the board asks before it takes a call, so a sound cannot
             // come out of a fight that is muted or a plugin that is switched off.
             Audible = () => Config.AlertsEnabled
