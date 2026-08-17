@@ -535,20 +535,27 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Spacing();
         SidebarHeading("Connection");
 
-        var on = Runner is { ParserReading: true };
-        if (ConnectionRow("Parser", on ? "on" : "off", on ? Theme.Good : Theme.Muted,
-                on ? "Events are coming from the parser. Click for the setup."
+        // Under a heading that already says Connection, "Parser: off" names the thing
+        // twice and answers with a word that is not about connecting. One state, in
+        // the words of the heading above it.
+        var connected = Runner is { ParserConnected: true };
+        var reading = Runner is { ParserReading: true };
+
+        if (ConnectionRow(connected ? "Connected" : "Not connected",
+                connected ? Theme.Good : Theme.Muted,
+                reading ? "Events are coming from the parser. Click for the setup."
+                : connected ? "Connected, no events yet. Click for the setup."
                     : "No parser. The client reads every kind on its own. Click for the setup.",
                 selected: _nav == NavKind.Parser))
             _nav = NavKind.Parser;
     }
 
-    // One read-only line: a muted label, then the state in its own color.
+    // One read-only line: the state, in its own color.
     //
     // The line is one hit target and the words are drawn over it, the same way a nav row
-    // is built. Hung on the text instead, only the four letters of the state would
-    // answer a hover, and the label is the part somebody points at.
-    private bool ConnectionRow(string label, string state, uint color, string tip,
+    // is built. Hung on the text instead, only the words themselves would answer a
+    // hover, and the row is the part somebody points at.
+    private bool ConnectionRow(string state, uint color, string tip,
         bool selected = false)
     {
         var pad = Theme.S(8f);
@@ -556,7 +563,7 @@ public partial class ConfigWindow : Window, IDisposable
 
         var at = ImGui.GetCursorScreenPos();
         var back = ImGui.GetCursorPos();
-        ImGui.InvisibleButton("##conn" + label, new Vector2(ImGui.GetContentRegionAvail().X, lineH));
+        ImGui.InvisibleButton("##conn", new Vector2(ImGui.GetContentRegionAvail().X, lineH));
         var clicked = ImGui.IsItemClicked();
         Widgets.Tooltip(tip);
 
@@ -572,16 +579,12 @@ public partial class ConfigWindow : Window, IDisposable
                 new Vector2(min.X + Theme.S(3f), max.Y - 1f), Theme.Accent, 2f);
         }
 
-        var name = $"{label}:";
-        var nameW = ImGui.CalcTextSize(name).X;
         var dl = ImGui.GetWindowDrawList();
-        dl.AddText(at + new Vector2(pad, 0f), Theme.Muted, name);
-        dl.AddText(at + new Vector2(pad + nameW + Theme.S(6f), 0f), color, state);
+        dl.AddText(at + new Vector2(pad, 0f), color, state);
 
         // Measured like every other row, so the sidebar widens for it rather than
         // clipping the state off the end.
-        _navNeed = MathF.Max(_navNeed,
-            pad + nameW + Theme.S(6f) + ImGui.CalcTextSize(state).X + Theme.S(12f));
+        _navNeed = MathF.Max(_navNeed, pad + ImGui.CalcTextSize(state).X + Theme.S(12f));
 
         ImGui.SetCursorPos(new Vector2(back.X, back.Y + lineH));
         return clicked;

@@ -18,7 +18,13 @@ public sealed record FightEntry(
 public sealed record CallEntry(
     string Key, string Text, CallLevel Level, float Hold, int Phase,
     bool ShipsOn, EventKind On, uint MatchId, bool Sampled = true, string OnYou = "",
-    bool FromTimeline = false);
+    bool FromTimeline = false,
+    // Written here rather than imported. Where a fight is covered by the imported
+    // set the page lists that set, because the rest of these rows are the same
+    // calls read out of it and two lists of one thing is what that page replaced.
+    // Ours are not in it and run alongside it, so they are the rows that still
+    // have to be shown.
+    bool Written = false);
 
 public static class FightCatalog
 {
@@ -386,7 +392,8 @@ public static class FightCatalog
 
             // Written by hand, so it says what it means at the moment it means it.
             list.Add(new CallEntry(
-                t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId, sampled, onYou));
+                t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId, sampled, onYou,
+                Written: true));
         }
         return list;
     }
@@ -422,7 +429,8 @@ public static class FightCatalog
             keyOf[q.Id] = key;
             if (!seen.Add(key)) continue;
 
-            list.Add(new CallEntry(key, text, level, 4f, q.Phase, true, q.ThenOn, q.ThenId));
+            list.Add(new CallEntry(key, text, level, 4f, q.Phase, true, q.ThenOn, q.ThenId,
+                Written: true));
         }
         return list;
     }
@@ -451,7 +459,7 @@ public static class FightCatalog
                 // is what the page reads to warn that a call cannot fire, so a
                 // timeline call is marked instead of being given a borrowed one.
                 On: EventKind.ZoneChange, MatchId: 0, Sampled: true, OnYou: "",
-                FromTimeline: true));
+                FromTimeline: true, Written: true));
         }
         return list;
     }

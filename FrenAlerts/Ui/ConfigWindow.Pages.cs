@@ -520,13 +520,23 @@ public partial class ConfigWindow
             ImGui.Spacing();
         }
 
-        // Theirs, per mechanic, in their words. Ours is not drawn at all here: two
-        // lists asking the same questions with different answers, only one of them
-        // connected to anything, is the page this replaced.
+        // Theirs, per mechanic, in their words, and then the ones written here.
+        //
+        // Ours used to stop at the return below. That was right when the rest of this
+        // page was the imported set read back a second time, and wrong the moment a
+        // covered fight started answering with calls of its own: both engines run in
+        // a fight like Dancing Mad, so a page showing one of them is a page hiding
+        // forty calls that fire. Only the hand written ones are added, never the rows
+        // read out of the pack, which is what made two lists of one thing before.
         if (theirs)
         {
             DrawSeat();
             DrawTheirCalls((ushort)fight.TerritoryId);
+
+            // Read as this player before the rows are sampled, the same as below, or
+            // ours say the half of a call that lands on somebody else.
+            FightCatalog.ReadAs(Runner?.MySlot ?? "", C.StratFor);
+            DrawOurCalls(calls);
             return;
         }
 
@@ -774,6 +784,27 @@ public partial class ConfigWindow
     }
 
     // One call: what it says, whether it is on, and its own editor underneath.
+    // The calls written here, for a fight the imported set also covers.
+    //
+    // Both engines run in a fight like that, so these fire alongside theirs and were
+    // the only ones with no row anywhere: not readable, not switchable, not editable.
+    // Only the hand written ones, never the rows read out of the pack, because those
+    // are theirs said a second time.
+    //
+    // No search box and no phase tabs of its own. There are a few dozen of these
+    // against a few hundred of theirs, and a second set of controls asking the same
+    // questions a few inches below the first is the clutter this page keeps avoiding.
+    private void DrawOurCalls(IReadOnlyList<CallEntry> calls)
+    {
+        var mine = calls.Where(c => c.Written).ToList();
+        if (mine.Count == 0) return;
+
+        Widgets.SectionHeader($"Also from Fren Alerts ({mine.Count})");
+        Widgets.ListBegin();
+        foreach (var call in mine) DrawCallRow(call);
+        Widgets.ListEnd();
+    }
+
     private void DrawCallRow(CallEntry call)
     {
         var open = _openCall == call.Key;
