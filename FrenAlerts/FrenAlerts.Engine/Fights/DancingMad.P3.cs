@@ -39,7 +39,8 @@ public static partial class DancingMad
     private static IReadOnlyList<int> HoleOrder(DancingMadPull pull)
     {
         if (pull.KefkaDir == DancingMadPull.Nowhere || pull.HoleDirs.Count == 0) return [];
-        return Compass.ClockwiseFrom(Compass.EightToFour(pull.KefkaDir), pull.HoleDirs, 4);
+        return Compass.ClockwiseFromIncluding(
+            Compass.EightToFour(pull.KefkaDir), pull.HoleDirs, 4);
     }
 
     // How a tether is named: by where it actually is, or by how far round it is

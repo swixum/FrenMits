@@ -104,11 +104,13 @@ public static class Compass
         return gap;
     }
 
-    // The same spots, ordered clockwise starting at the one nearest after `from`.
+    // The same spots, ordered clockwise, with a spot standing exactly on `from`
+    // taken last.
     //
-    // A spot exactly on `from` sorts last rather than first: this is asked for the
-    // order to walk a set of towers starting from where the boss is, and the tower
-    // the boss is standing on is the one taken last, not first.
+    // There are two of these on purpose, because the source has two. The towers in
+    // the last phase are walked with the one you are standing on taken last; the
+    // holes are counted with the one on the boss taken first. Using either rule for
+    // both walks that mechanic's order round by one.
     public static IReadOnlyList<int> ClockwiseFrom(int from, IEnumerable<int> dirs, int of)
     {
         var list = dirs.ToList();
@@ -120,6 +122,18 @@ public static class Compass
             var gap = ClockwiseGap(from, d, of);
             return gap == 0 ? of : gap;
         }
+    }
+
+    // The same, with a spot standing exactly on `from` taken first instead of last.
+    //
+    // This is the one the black holes are counted with. They were being read with
+    // the rule above, which moves the whole order round by one on any set where a
+    // hole sits on the boss's own side.
+    public static IReadOnlyList<int> ClockwiseFromIncluding(int from, IEnumerable<int> dirs, int of)
+    {
+        var list = dirs.ToList();
+        list.Sort((a, b) => ClockwiseGap(from, a, of).CompareTo(ClockwiseGap(from, b, of)));
+        return list;
     }
 
     // Away from zero rather than to even, so a spot sitting exactly on the line

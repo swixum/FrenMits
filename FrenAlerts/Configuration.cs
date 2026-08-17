@@ -166,6 +166,13 @@ public class Configuration : IPluginConfiguration
     // control, because switching it off mid-replay is the thing worth having.
     public bool Diagnostics { get; set; }
 
+    // Whether the recorder should come back on by itself next time.
+    //
+    // Off everywhere it has not been asked for, same as the switch above: this only
+    // becomes true when somebody turns the recorder on by hand, and it is what makes
+    // a night of replays survive a reload without typing the command every time.
+    public bool KeepRecording { get; set; }
+
     // ---- the config window itself ----
     public uint AccentColor { get; set; } = Ui.Theme.DefaultAccent;
     public float UiScale { get; set; } = 1f;

@@ -139,6 +139,15 @@ public static partial class DancingMad
             On = EventKind.StatusGain,
             Phase = 4,
             OnlyMe = true,
+            // The pack carries the same debuffs three more times over, once per set,
+            // and each of those rows can only read the set's name out. This one and
+            // neo-short-debuffs are what actually say which debuff you have.
+            Owns =
+            [
+                "tsunami-inferno-and-first-debuffs",
+                "tsunami-inferno-and-third-debuffs",
+                "second-and-fourth-debuffs",
+            ],
             Make = ctx =>
             {
                 if (ctx.Event.Id is not (0x1317 or 0x15A5 or 0x1318 or 0x15A6

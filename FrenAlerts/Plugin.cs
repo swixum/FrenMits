@@ -94,6 +94,13 @@ public sealed class Plugin : IDalamudPlugin
         {
             _planRead = true;
             Service.Log.Information(_runner.LoadPlan());
+            // Here rather than in the constructor, for the same reason the plan is:
+            // a slow load freezes the game on update, and this opens a file.
+            if (Config.KeepRecording && !_runner.Diary.On)
+            {
+                _runner.OpenDiary();
+                Service.Log.Information("Fren Alerts: recording, as it was left on.");
+            }
         }
         _fonts.Tick();
         _fonts.WarmIfNeeded(Config);
@@ -176,6 +183,10 @@ public sealed class Plugin : IDalamudPlugin
             {
                 var path = _runner.WriteDiary();
                 _runner.CloseDiary();
+                // Turned off by hand means off next time too, or the one thing that
+                // switches it off would be undone by the next reload.
+                Config.KeepRecording = false;
+                Config.Save();
                 Service.ChatGui.Print(path is null
                     ? "Recording off. Nothing happened while it was on."
                     : $"Recording off, written to {path}");
@@ -183,6 +194,9 @@ public sealed class Plugin : IDalamudPlugin
             else
             {
                 _runner.OpenDiary();
+                // Remembered, so a night of replays does not need this typed again
+                // after every reload.
+                Config.KeepRecording = true;
                 // Asking for it once is what puts the control in the window. Until
                 // then the row is not there at all, so an install that never wanted
                 // a recorder never sees one.
