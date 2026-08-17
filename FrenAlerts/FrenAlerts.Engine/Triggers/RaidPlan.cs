@@ -9,7 +9,11 @@ public static partial class RaidPlan
 {
     // The slot standard the sheets use, so a plan written for one party resolves
     // against a different one.
-    public static readonly string[] Slots = ["MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2"];
+    //
+    // Audience's, not a second copy of it. It was written out again here, and a list
+    // that means "the eight seats" in two places is a list that agrees until somebody
+    // changes one of them.
+    public static readonly string[] Slots = Audience.Slots;
 
     public const int MaxEntries = 200;
 

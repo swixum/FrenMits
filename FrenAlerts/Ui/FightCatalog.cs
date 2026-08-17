@@ -8,7 +8,8 @@ using FrenAlerts.Engine;
 namespace FrenAlerts.Ui;
 
 public sealed record FightEntry(
-    string Name, string Full, string Category, uint TerritoryId, int Calls);
+    string Name, string Full, string Category, uint TerritoryId, int Calls,
+    string Expansion = "");
 
 // Text is the one line this call ships with, and is what an edit is measured
 // against. OnYou is the other thing it says when it lands on this player, empty
@@ -38,10 +39,10 @@ public static class FightCatalog
     // fights beside it, and the two disagreed the moment either was edited. A
     // territory it does not name still gets a page rather than being dropped, so a
     // pack carrying a fight nobody listed is visible instead of silently missing.
-    private static (string Name, string Full, string Category) NameOf(uint territory) =>
+    private static (string Name, string Full, string Category, string Expansion) NameOf(uint territory) =>
         Shipped.At((ushort)territory) is { } f
-            ? (f.Name, f.Full, f.Category)
-            : ($"Territory {territory}", "", "Other");
+            ? (f.Name, f.Full, f.Category, f.Expansion)
+            : ($"Territory {territory}", "", "Other", "");
 
     // Swapped whole rather than edited in place, so a draw reading the list never
     // sees it half filled while the pack lands on another thread.
@@ -352,18 +353,23 @@ public static class FightCatalog
             // happens to carry.
             if (all.Count == 0) continue;
 
-            var (name, full, category) = NameOf(territory);
+            var (name, full, category, expansion) = NameOf(territory);
             // Nothing is hidden from the page any more, so nothing is counted as
             // hidden either.
-            list.Add(new FightEntry(name, full, category, territory, all.Count));
+            list.Add(new FightEntry(name, full, category, territory, all.Count, expansion));
         }
         _calls = calls;
         _shipped = shipped;
         _keyOf = keyOf;
 
+        // Category, then newest expansion, then release order inside it. Territory ids
+        // climb with the patch, so ascending inside one expansion is release order and
+        // needs no second list to maintain.
         list.Sort(static (a, b) =>
         {
             var by = Array.IndexOf(Order, a.Category).CompareTo(Array.IndexOf(Order, b.Category));
+            if (by != 0) return by;
+            by = Shipped.ExpansionRank(a.Expansion).CompareTo(Shipped.ExpansionRank(b.Expansion));
             return by != 0 ? by : a.TerritoryId.CompareTo(b.TerritoryId);
         });
         return list;

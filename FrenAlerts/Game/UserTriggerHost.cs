@@ -127,7 +127,16 @@ public sealed class UserTriggerHost
             TargetId = e.TargetId,
             TargetName = Who(e.TargetId),
             TargetSide = Side(e.TargetId),
-            IconId = e.Kind is EventKind.HeadMarker or EventKind.Tether ? e.Id : 0,
+            // Resolved through the game's own sheet, never carried across raw.
+            //
+            // This used to hand the head marker or tether id straight over as an icon
+            // number. Those are small numbers and the icon sheet has rows there, so it
+            // drew a real picture of something unrelated, and it won that fight against
+            // the icon somebody had picked on the row: Fire lands on you, the trigger is
+            // set to show the Fire debuff, and the call comes up wearing whatever art
+            // sits at row 218. Neither markers nor tethers have art in the sheet, so
+            // there is nothing to put here for them.
+            IconId = e.Kind == EventKind.StatusGain ? Ui.Icons.ForStatus(e.Id) : 0,
             Value = e.Kind == EventKind.CastStart ? e.CastTime : e.Duration,
             Count = e.Param,
             Category = e.Kind == EventKind.ActorControl ? e.Id : 0,

@@ -93,28 +93,56 @@ public sealed class PlacedCalls : Window
         var (line, _) = OverlayState.Countdown(
             CallText.Sentence(call.Text), C.ShowCountdown, counting, shown.Remaining(now));
 
-        var px = MathF.Max(10f, C.CallFontSizePx * Math.Clamp(call.Scale, 0.25f, 4f));
+        // Arrives and leaves the way a stacked call does. It used to appear and vanish
+        // outright, which beside a fight's calls fading reads as the overlay having
+        // glitched rather than as a call ending.
+        var age = (float)(now - shown.At);
+        var alpha = CallLook.AlphaAt(age, (float)(shown.EndsAt - now));
+        if (!CallLook.WorthDrawing(alpha)) return;
+
+        var px = MathF.Max(10f, C.CallFontSizePx * Math.Clamp(call.Scale, 0.25f, 4f))
+                 * CallLook.ScaleAt(age);
         var colour = call.Tint != 0 ? call.Tint : ColorFor(call.Level);
         if (C.PulseWhenClose && counting && shown.Remaining(now) < 1.5f)
             colour = OverlayChrome.Pulse(colour);
 
         using (OverlayChrome.PushFont(_fonts, px))
         {
-            var size = ImGui.CalcTextSize(line);
-            var p0 = centre - size * 0.5f;
+            var font = ImGui.GetFont();
+            var drawn = ImGui.GetFontSize();
 
-            if (C.TextShadow)
-                dl.AddText(ImGui.GetFont(), ImGui.GetFontSize(),
-                    p0 + new Vector2(2f, 2f), 0xC0000000, line);
+            // Split into its coloured runs and measured without the tags. Drawn whole,
+            // a call that colours a word showed the <red> markup on screen and centred
+            // itself around characters nobody could see.
+            var pieces = CallText.Pieces(line);
+            var size = ImGui.CalcTextSize(CallText.Plain(line));
+            var pen = centre - size * 0.5f;
 
-            dl.AddText(ImGui.GetFont(), ImGui.GetFontSize(), p0, colour, line);
+            // The same ring the stack draws, off the same switch. This read the old
+            // shadow setting, which the Call Display page retired: nothing sets it any
+            // more and the config migration switches it off, so a placed call quietly
+            // lost its edge with nothing left to bring it back.
+            var ring = CallLook.OutlineWidth(drawn);
+            var shadow = ImGui.ColorConvertFloat4ToU32(new Vector4(0f, 0f, 0f, alpha));
+
+            foreach (var piece in pieces)
+            {
+                if (piece.Text.Length == 0) continue;
+
+                var ink = piece.Color is { } own
+                    ? OverlayChrome.Faded(Widgets.ToColor(own), alpha)
+                    : OverlayChrome.Faded(colour, alpha);
+
+                if (C.TextOutline)
+                    foreach (var (x, y) in CallLook.Ring)
+                        dl.AddText(font, drawn, pen + new Vector2(x * ring, y * ring), shadow, piece.Text);
+
+                dl.AddText(font, drawn, pen, ink, piece.Text);
+                pen.X += ImGui.CalcTextSize(piece.Text).X;
+            }
         }
     }
 
-    private uint ColorFor(CallLevel level) => level switch
-    {
-        CallLevel.Alarm => C.ColorAlarm,
-        CallLevel.Alert => C.ColorAlert,
-        _ => C.ColorInfo,
-    };
+    // The stack's, so a placed call is the same colour as the same level in the stack.
+    private uint ColorFor(CallLevel level) => OverlayChrome.CallColor(C, level);
 }

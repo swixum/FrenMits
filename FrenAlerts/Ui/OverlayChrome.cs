@@ -1,6 +1,8 @@
 using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using FrenAlerts.Engine;
+using FrenAlerts.Engine.Alerts;
 
 namespace FrenAlerts.Ui;
 
@@ -56,6 +58,37 @@ internal static class OverlayChrome
         var center = new Vector2(cur.X + ImGui.GetWindowWidth() * 0.5f, cur.Y + ImGui.GetWindowHeight() * 0.5f);
         var frac = (center - vp.WorkPos) / vp.WorkSize;
         return (frac - saved).LengthSquared() > 0.0000001f ? frac : null;
+    }
+
+    // What colour a call is drawn in, for every surface that draws one.
+    //
+    // Both overlays had their own copy of this switch, and neither knew about
+    // Colorblind Mode: the setting reached the window's status dots and stopped there,
+    // so somebody who turned it on still got amber against red for Alert against
+    // Alarm, which is the pair it exists to separate.
+    //
+    // Shipped colours only, per CallLook.Safely. Anything picked by hand is drawn as
+    // picked, switch or no switch.
+    private static readonly Configuration Shipped = new();
+
+    public static uint CallColor(Configuration c, CallLevel level)
+    {
+        var (chosen, shipped, safe) = level switch
+        {
+            CallLevel.Alarm => (c.ColorAlarm, Shipped.ColorAlarm, CallLook.SafeAlarm),
+            CallLevel.Alert => (c.ColorAlert, Shipped.ColorAlert, CallLook.SafeAlert),
+            _ => (c.ColorInfo, Shipped.ColorInfo, CallLook.SafeInfo),
+        };
+
+        return c.ColorblindMode ? CallLook.Safely(chosen, shipped, safe) : chosen;
+    }
+
+    // The same colour carrying a call's fade, for every surface that draws one.
+    public static uint Faded(uint abgr, float alpha)
+    {
+        var v = Theme.V(abgr);
+        v.W *= alpha;
+        return Widgets.ToColor(v);
     }
 
     // Brightness oscillation for imminent pulses, preserving alpha.

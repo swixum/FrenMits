@@ -45,7 +45,7 @@ public partial class ConfigWindow
         if (calls.Count == 0)
         {
             Widgets.ListBegin();
-            Widgets.RowNote("The imported set covers this fight, but listed no calls.");
+            Widgets.RowNote("No calls for this fight yet.");
             Widgets.ListEnd();
             return;
         }
@@ -62,16 +62,23 @@ public partial class ConfigWindow
 
         // Searched on the mechanic and on every line it can say, so both "towers" and
         // the words a call actually puts on screen find it.
+        //
+        // Trimmed once, then used for the test, the match and the message alike. They
+        // disagreed: the empty test trimmed and the match did not, so a trailing space
+        // searched for "towers " and found nothing while the message trimmed it back
+        // and said no call here has "towers" in it.
+        var find = _theirFilter.Trim();
+
         var shown = here
-            .Where(c => _theirFilter.Trim().Length == 0
-                        || c.Mechanic.Contains(_theirFilter, StringComparison.OrdinalIgnoreCase)
-                        || c.Lines.Any(l => l.Text.Contains(_theirFilter, StringComparison.OrdinalIgnoreCase)))
+            .Where(c => find.Length == 0
+                        || c.Mechanic.Contains(find, StringComparison.OrdinalIgnoreCase)
+                        || c.Lines.Any(l => l.Text.Contains(find, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
         if (shown.Count == 0)
         {
             Widgets.ListBegin();
-            Widgets.RowNote($"No call here has \"{_theirFilter.Trim()}\" in it.");
+            Widgets.RowNote($"No call here has \"{find}\" in it.");
             Widgets.ListEnd();
             return;
         }
@@ -129,7 +136,7 @@ public partial class ConfigWindow
         return mine is { Text.Length: > 0 } ? mine.Text : lead.Text;
     }
 
-    private const string Unreadable = "Words built as it fires";
+    private const string Unreadable = "Built live";
 
     // How many of a mechanic's lines have been given other words.
     private int EditedIn(ScriptShownCall call) =>
@@ -177,7 +184,7 @@ public partial class ConfigWindow
     {
         if (call.Lines.Count == 0)
         {
-            Widgets.RowNote("This one builds its words as it fires, so there is nothing to reword.");
+            Widgets.RowNote("Built live, nothing to reword.");
             return;
         }
 
@@ -209,14 +216,14 @@ public partial class ConfigWindow
                 C.SetScriptEdit(call.Id, line.Keys, words, _theirSpoken[i]);
                 Runner?.ScriptWordsChanged();
             }
-            if (line.FillsIn) Tip("Keep the ${...} bits and the fight fills them in.");
+            if (line.FillsIn) Tip("Keep the ${...} bits, the fight fills them in.");
         }
 
         var tts = _theirTtsShown;
-        if (Widgets.RowCheckClick("Read out different words", "", ref tts,
+        if (Widgets.RowCheckClick("Different TTS words", "", ref tts,
                 id: "theirtts" + call.Id, changed: _theirSpoken.Any(s => s.Length > 0)))
             _theirTtsShown = tts;
-        Tip("Off, the voice reads out whatever is on screen.");
+        Tip("Off = TTS says what is on screen.");
 
         if (_theirTtsShown)
             for (var i = 0; i < lines; i++)

@@ -148,7 +148,11 @@ internal static class Widgets
         var vSz = ImGui.CalcTextSize(value);
         var size = ChipSize(lSz, vSz, label.Length > 0);
         var p = ImGui.GetCursorScreenPos();
-        var clicked = ImGui.InvisibleButton("##chip_" + label, size);
+        // Keyed off both halves. On the label alone, two chips reading "Phase 1" and
+        // "Phase 2" shared an id and clicked as one: the same collision already fixed
+        // on the cooldown rows. Nothing calls this yet, which is exactly why the trap
+        // is worth taking out before somebody reaches for it.
+        var clicked = ImGui.InvisibleButton($"##chip_{label}_{value}", size);
         var hovered = ImGui.IsItemHovered();
         if (hovered) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
         var lit = open || hovered;
@@ -385,9 +389,9 @@ internal static class Widgets
     // past ninety characters once a direction call has filled itself in.
     public static bool RowText(string name, ref string v, string id,
         float width = 300f, bool changed = false, bool sub = false,
-        string placeholder = "", int max = 96)
+        string placeholder = "", int max = 96, string hint = "")
     {
-        RowBegin(name, "", Theme.S(width), changed, sub);
+        RowBegin(name, hint, Theme.S(width), changed, sub);
         var hit = ImGui.InputTextWithHint("##rt" + id, placeholder, ref v, max);
         RowEnd();
         return hit;
@@ -434,6 +438,58 @@ internal static class Widgets
 
         // The figure sits against the chevron rather than the name, so a column
         // of these lines up whatever the fights are called.
+        if (note.Length > 0)
+        {
+            var w = ImGui.CalcTextSize(note).X;
+            var at = chevX - Theme.S(12f) - w;
+            if (at > start.X + RowPad + ImGui.CalcTextSize(name).X + Theme.S(14f))
+            {
+                ImGui.SetCursorPos(new Vector2(at, start.Y + (rowH - lineH) * 0.5f));
+                ImGui.TextColored(Theme.V(noteCol == 0 ? Theme.Muted : noteCol), note);
+            }
+        }
+
+        ImGui.SetCursorPos(new Vector2(start.X, start.Y + rowH));
+        return hit;
+    }
+
+    // A row that folds a run of rows away under it.
+    //
+    // Built like RowDoor so a list reads the same whether a row opens a page or opens
+    // itself, with the chevron turned down while it is open. UWU is why: twenty gaol
+    // order boxes are one setting to a raid group and twenty rows to the page, and
+    // they filled it top to bottom.
+    public static bool RowFold(string name, string hint, ref bool open,
+        FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0,
+        string note = "", uint noteCol = 0)
+    {
+        var hasHint = !string.IsNullOrEmpty(hint);
+        var rowH = RowHeight(hasHint);
+        var textH = RowTextHeight(hasHint);
+        var lineH = ImGui.GetTextLineHeight();
+
+        var start = ImGui.GetCursorPos();
+        var scr = ImGui.GetCursorScreenPos();
+        var width = ImGui.GetContentRegionAvail().X;
+        if (_rowIndex > 0)
+            ImGui.GetWindowDrawList().AddLine(scr, scr + new Vector2(width, 0), RowLine);
+        _rowIndex++;
+
+        var hit = ImGui.Selectable("##fold" + name, false, ImGuiSelectableFlags.None, new Vector2(width, rowH));
+        if (ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        if (hit) open = !open;
+
+        var textX = start.X + RowPad;
+        textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
+        ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
+        ImGui.TextUnformatted(name);
+        if (hasHint) { ImGui.SetCursorPosX(textX); ImGui.TextColored(Theme.V(Theme.Muted), hint); }
+
+        var chev = open ? "v" : ">";
+        var chevX = start.X + width - RowPad - ImGui.CalcTextSize(chev).X;
+        ImGui.SetCursorPos(new Vector2(chevX, start.Y + (rowH - lineH) * 0.5f));
+        ImGui.TextColored(Theme.V(open ? Theme.Accent : Theme.Muted), chev);
+
         if (note.Length > 0)
         {
             var w = ImGui.CalcTextSize(note).X;

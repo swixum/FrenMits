@@ -87,7 +87,7 @@ public static class ScriptStrategies
                 if (declared.Exists(s => s.Id == id)) continue;
 
                 var value = property.Value;
-                found.Add(new ScriptStrategy(id, id, value.IsString() ? value.AsString() : "", []));
+                found.Add(new ScriptStrategy(id, Readable(id), value.IsString() ? value.AsString() : "", []));
             }
         }
         catch
@@ -97,6 +97,64 @@ public static class ScriptStrategies
         }
 
         return found;
+    }
+
+    // A seeded key has no name of its own, and the key is a variable name. UCOB's one
+    // setting read "heavensfallTowerPosition" at the top of its page, which is a line
+    // of somebody's source code where the fight's most important question should be.
+    public static string Readable(string id)
+    {
+        if (id.Length == 0) return id;
+
+        var words = new System.Text.StringBuilder(id.Length + 8);
+        words.Append(char.ToUpperInvariant(id[0]));
+        for (var i = 1; i < id.Length; i++)
+        {
+            // A digit starts a word too, or "gaolOrder20" comes out as "Gaol Order20".
+            var breaks = char.IsUpper(id[i]) || (char.IsDigit(id[i]) && !char.IsDigit(id[i - 1]));
+            if (breaks && id[i - 1] != ' ') words.Append(' ');
+            words.Append(id[i]);
+        }
+        return words.ToString();
+    }
+
+    // ---- the same question, numbered ----
+
+    // The part of a name before its trailing number, or nothing where it has none.
+    // "Titan Gaol Order 1" is "Titan Gaol Order"; "Nael Dive Marker" is nothing.
+    public static string? Prefix(string name)
+    {
+        var cut = name.LastIndexOf(' ');
+        if (cut <= 0 || cut == name.Length - 1) return null;
+        var tail = name[(cut + 1)..];
+        return tail.All(char.IsDigit) ? name[..cut] : null;
+    }
+
+    // Just the trailing number, for a row whose run already carries the rest of it.
+    public static string NumberOf(string name) =>
+        Prefix(name) is null ? name : name[(name.LastIndexOf(' ') + 1)..];
+
+    // Neighbouring settings that are one question numbered, in the file's own order.
+    //
+    // Here rather than in the window because it is an answer about their files, and
+    // because the order is load-bearing: the number IS the answer for a gaol order, so
+    // a run can never be sorted or regrouped, only folded away. Twenty of these opened
+    // UWU's page on a wall of text boxes with the fight's calls below the window.
+    public static IReadOnlyList<IReadOnlyList<ScriptStrategy>> Runs(
+        IReadOnlyList<ScriptStrategy> strategies)
+    {
+        var runs = new List<List<ScriptStrategy>>();
+        foreach (var s in strategies)
+        {
+            var prefix = Prefix(s.Name);
+            if (prefix is not null && runs.Count > 0 && Prefix(runs[^1][0].Name) == prefix)
+            {
+                runs[^1].Add(s);
+                continue;
+            }
+            runs.Add([s]);
+        }
+        return runs;
     }
 
     private static List<ScriptStrategyOption> ReadOptions(ObjectInstance entry)

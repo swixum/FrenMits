@@ -109,7 +109,11 @@ public partial class ConfigWindow
             if (Cooldowns is { } overlay) overlay.Placing = placing;
         }
 
-        foreach (var entry in cooldowns.Entries.ToList()) DrawCooldownRow(cooldowns, entry);
+        // By position as well as by what it is. Two rows for the same thing shared an
+        // id, so their switches moved together and Remove took the first of them. Adding
+        // one twice is refused now, and a config saved before that still draws right.
+        var seat = 0;
+        foreach (var entry in cooldowns.Entries.ToList()) DrawCooldownRow(cooldowns, entry, seat++);
 
         Widgets.RowBegin("Track", _cdStatus ? "a status id" : "an action id", Theme.S(320f));
         ImGui.SetNextItemWidth(Theme.S(110f));
@@ -119,12 +123,45 @@ public partial class ConfigWindow
         ImGui.SameLine();
         if (ImGui.SmallButton("Add##cd")) AddCooldown(cooldowns);
         Widgets.RowEnd();
+
+        if (_cdSaid.Length > 0 && MineNow - _cdSaidAt < 12d) Widgets.RowNote(_cdSaid);
+
         Widgets.ListEnd();
+    }
+
+    // Why nothing happened, for twelve seconds under the row that did nothing.
+    //
+    // Add used to return on a bad id and leave the box exactly as it was, so a typo, a
+    // duplicate and a full list all looked identical to a button that had not been
+    // pressed hard enough.
+    private string _cdSaid = "";
+    private double _cdSaidAt;
+
+    private void CdSay(string what)
+    {
+        _cdSaid = what;
+        _cdSaidAt = MineNow;
     }
 
     private void AddCooldown(Game.Cooldowns cooldowns)
     {
-        if (!uint.TryParse(_cdId.Trim(), out var id) || id == 0) return;
+        if (!uint.TryParse(_cdId.Trim(), out var id) || id == 0)
+        {
+            CdSay("That is not an id. Type the number, like 7533.");
+            return;
+        }
+
+        if (cooldowns.Board.Tracks(id, _cdStatus))
+        {
+            CdSay($"Already tracking that {(_cdStatus ? "status" : "action")}.");
+            return;
+        }
+
+        if (cooldowns.Board.Full)
+        {
+            CdSay($"That is all {CooldownBoard.MaxEntries} the tracker holds. Remove one first.");
+            return;
+        }
 
         cooldowns.Entries.Add(new CooldownEntry
         {
@@ -136,12 +173,13 @@ public partial class ConfigWindow
             IconId = _cdStatus ? Icons.ForStatus(id) : Icons.ForAction(id),
         });
         _cdId = "";
+        _cdSaid = "";
         C.Save();
     }
 
-    private void DrawCooldownRow(Game.Cooldowns cooldowns, CooldownEntry entry)
+    private void DrawCooldownRow(Game.Cooldowns cooldowns, CooldownEntry entry, int seat)
     {
-        ImGui.PushID($"cd{entry.Id}{entry.IsStatus}");
+        ImGui.PushID($"cd{seat}{entry.Id}{entry.IsStatus}");
 
         var on = entry.Enabled;
         if (Widgets.RowCheck(entry.Name.Length > 0 ? entry.Name : $"{entry.Id}",
@@ -361,7 +399,7 @@ public partial class ConfigWindow
             trigger.Pattern = pattern;
             C.Save();
         }
-        Tip("The name of the cast, status or marker. Leave blank to match every one of that kind.");
+        Tip("Cast, status or marker name. Blank = all of them.");
 
         DrawMinePicker(trigger);
 
@@ -378,7 +416,7 @@ public partial class ConfigWindow
             trigger.Text = says;
             C.Save();
         }
-        Tip("What appears on screen. {player} and {target} are filled in when it fires.");
+        Tip("On screen. {player} and {target} fill in as it fires.");
 
         var speaks = trigger.TtsText;
         if (Widgets.RowText("Reads out", ref speaks, $"s{trigger.Id}", sub: true))
@@ -386,7 +424,7 @@ public partial class ConfigWindow
             trigger.TtsText = speaks;
             C.Save();
         }
-        Tip("Left blank, it reads out whatever it says on screen.");
+        Tip("Blank = TTS reads the call text.");
 
         var seconds = trigger.Duration;
         if (Widgets.RowDrag("On screen for", "seconds", ref seconds, 1f, 20f, "%.0fs", sub: true))
@@ -402,7 +440,7 @@ public partial class ConfigWindow
             trigger.ShowIcon = withIcon;
             C.Save();
         }
-        Tip("Picking a debuff from this fight fills the icon in for you.");
+        Tip("Pick a debuff, the icon fills in.");
 
         var sound = Game.Sounds.Number(trigger.SoundPath);
         if (Widgets.RowDragInt("Sound", sound > 0 ? "the game's own" : "none",
@@ -442,8 +480,7 @@ public partial class ConfigWindow
             trigger.OverridePos = ownPlace;
             C.Save();
         }
-        Tip("For a call you need to read while looking somewhere else. It leaves the "
-            + "stack, so it can never push a fight's call around.");
+        Tip("Its own spot, out of the stack. Never pushes a fight's call around.");
 
         if (trigger.OverridePos)
         {
@@ -463,7 +500,7 @@ public partial class ConfigWindow
         }
 
         var colour = trigger.Color;
-        if (Widgets.RowColor("Colour", "", ref colour, sub: true))
+        if (Widgets.RowColor("Color", "", ref colour, sub: true))
         {
             trigger.Color = colour;
             C.Save();
@@ -544,10 +581,25 @@ public partial class ConfigWindow
                 trigger.Pattern = entry.Name;
                 trigger.DataId = entry.Id;
 
-                // A debuff picked here brings its own art with it, which is the
+                // Whatever was picked brings its own art with it, which is the
                 // difference between a line of text and a call you recognise before
                 // you have read it.
-                if (entry.Kind == CatalogKind.Status && Icons.ForStatus(entry.Id) is { } art and > 0)
+                //
+                // Casts were left out because the engine had a picture for a debuff
+                // and nothing else. It has ability art now, and the plugin's own calls
+                // for the very same cast have been drawing it, so a trigger somebody
+                // wrote for that mechanic was the only thing on screen without it.
+                //
+                // Nothing is filled in for a head marker or a tether on purpose: those
+                // are VFX and a line, the game has no sheet row for either, and a
+                // number here would be a real picture of something unrelated.
+                var art = entry.Kind switch
+                {
+                    CatalogKind.Status => Icons.ForStatus(entry.Id),
+                    CatalogKind.Cast => Icons.ForAction(entry.Id),
+                    _ => 0u,
+                };
+                if (art > 0)
                 {
                     trigger.IconId = art;
                     trigger.ShowIcon = true;

@@ -459,10 +459,10 @@ defineDuty({
         }
       }
     }),
-    whenChant("B33E").bigAoe("big AoE!"),
-    whenChant("B344").bigAoe("big AoE!"),
+    whenChant("B33E").bigAoe(),
+    whenChant("B344").bigAoe(),
     whenChant("B340").aoe(),
-    whenChant("B341").bigAoe("big AoE!"),
+    whenChant("B341").bigAoe(),
     whenSign("028C").onYou().info("Aetherletting on YOU"),
     raws({
       id: "M9S Plummet",

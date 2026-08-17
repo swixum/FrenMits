@@ -341,7 +341,7 @@ public sealed class ScriptFightHost : IDisposable
     }
 
     // One event, written out as the line their triggers were written against.
-    public void Feed(in GameEvent e, bool fromEnemy)
+    public void Feed(in GameEvent e, bool fromEnemy, FrenAlerts.Engine.Alerts.CallIcon icon = default)
     {
         if (!Running) return;
 
@@ -349,7 +349,7 @@ public sealed class ScriptFightHost : IDisposable
         Positions(e.Time);
 
         if (ScriptLines.Write(e, NameOf) is { } line)
-            foreach (var runner in _runners) runner.Process(line, e.Time);
+            foreach (var runner in _runners) runner.Process(line, e.Time, icon);
 
         if (_clock is { } clock)
         {

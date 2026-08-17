@@ -36,13 +36,28 @@ public static class OverlayState
     // were reading them. Laying out against the wider form holds them still.
     // A wide number keeps its own room rather than one digit's: reserving less than
     // is being drawn would lay the words out inside a box too small for them.
+    // Two digits at the least, in both branches, so the box is one width for the whole
+    // life of the call.
+    //
+    // It reserved exactly what it was drawing, which held still from nine down but not
+    // across ten. UWU's Eruption Baits counts from ten: at 10 the box was two digits
+    // wide, at 9 it was one, and centred words slid half a digit sideways on the tick
+    // somebody is reading them on. That is the same fault this already handled at go,
+    // one boundary earlier.
+    //
+    // Widened rather than narrowed, and never below what is actually being drawn, so a
+    // longer countdown than anything shipped today still gets its room.
+    public const int CountdownDigits = 2;
+
     public static (string Line, string Reserve) Countdown(
         string words, bool show, bool counting, float remaining)
     {
         if (!show) return (words, words);
-        if (!counting) return (words, words + " (0)");
-        var number = $"{MathF.Ceiling(remaining):0}";
-        return ($"{words} ({number})", $"{words} ({new string('0', number.Length)})");
+
+        var number = counting ? $"{MathF.Ceiling(remaining):0}" : "";
+        var room = new string('0', Math.Max(CountdownDigits, number.Length));
+
+        return (counting ? $"{words} ({number})" : words, $"{words} ({room})");
     }
 
     // One size for a whole stack of calls: the largest that still fits the widest of

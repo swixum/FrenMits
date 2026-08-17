@@ -1,4 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using FrenAlerts.Engine;
 using FrenAlerts.Engine.Scripts;
 
 namespace FrenAlerts.Ui;
@@ -35,14 +39,61 @@ public partial class ConfigWindow
     {
         if (Runner?.ScriptStrategiesFor(territory) is not { Count: > 0 } strategies) return;
 
-        Widgets.GroupLabel("Strategies - choose below");
+        Widgets.GroupLabel("Your Strats");
         Widgets.ListBegin();
 
-        foreach (var strategy in strategies) DrawScriptStrategy(strategy);
+        foreach (var run in ScriptStrategies.Runs(strategies))
+        {
+            if (run.Count < FoldAt) { foreach (var s in run) DrawScriptStrategy(s); continue; }
+            DrawFoldedRun(run);
+        }
 
         Widgets.ListEnd();
         ImGui.Spacing();
     }
+
+    // A run shorter than this reads better as rows than as something to open.
+    private const int FoldAt = 3;
+
+    // One run open at a time, so opening the gaols cannot leave three lists expanded
+    // behind it, and cleared with the fight so it dies with the page that set it.
+    private string _openRun = "";
+
+    public void CloseStrategyRuns() => _openRun = "";
+
+    // Twenty numbered boxes are one setting to a group and twenty rows to the page.
+    //
+    // UWU writes out "Titan Gaol Order 1" through "Titan Gaol Order 20" and every one
+    // of them is a text box, so the fight's page opened on a wall of them and the
+    // calls below were off the bottom of the window.
+    private void DrawFoldedRun(IReadOnlyList<ScriptStrategy> run)
+    {
+        var name = NameOfRun(run);
+        var set = run.Count(s => C.ScriptStratFor(s.Id).Length > 0);
+        var open = _openRun == name;
+
+        if (Widgets.RowFold(name, $"{run.Count} in order, first is called first", ref open,
+            FontAwesomeIcon.ListOl, set > 0 ? Theme.Accent : Theme.Muted,
+            note: set > 0 ? $"{set} of {run.Count} set" : "None set"))
+            _openRun = open ? name : "";
+
+        if (_openRun != name) return;
+
+        foreach (var s in run)
+        {
+            var typed = C.ScriptStratFor(s.Id);
+            if (Widgets.RowText(ScriptStrategies.NumberOf(s.Name), ref typed, $"ss{s.Id}",
+                width: 190f, changed: Set(s), sub: true, placeholder: "job or full name"))
+            {
+                C.SetScriptStrat(s.Id, typed, s.Default);
+            }
+        }
+        Widgets.RowNote("A job (WAR, sge) or a full name. Blanks skipped, anyone left out goes last.");
+    }
+
+    // "Titan Gaol Order 1" and its nineteen neighbours are "Titan Gaol Order".
+    private static string NameOfRun(IReadOnlyList<ScriptStrategy> run) =>
+        ScriptStrategies.Prefix(run[0].Name) ?? run[0].Name;
 
     private void DrawScriptStrategy(ScriptStrategy strategy)
     {
@@ -51,15 +102,21 @@ public partial class ConfigWindow
         // page that drew only the dropdowns would hide nearly all of them.
         if (strategy.Options.Count == 0)
         {
+            var (hint, placeholder, example) = HelpFor(strategy);
             var typed = C.ScriptStratFor(strategy.Id);
             if (Widgets.RowText(strategy.Name, ref typed, $"ss{strategy.Id}",
-                width: 190f, changed: Set(strategy)))
+                width: 190f, changed: Set(strategy), hint: hint,
+                placeholder: placeholder.Length > 0 ? placeholder : strategy.Default))
             {
                 C.SetScriptStrat(strategy.Id, typed, strategy.Default);
             }
             Tip(strategy.Default.Length > 0
-                ? $"Takes effect on the next pull. Theirs is \"{strategy.Default}\" when this is empty."
-                : "Takes effect on the next pull. Left empty, the fight uses its own answer.");
+                ? $"Next pull. Blank = \"{strategy.Default}\"."
+                : "Next pull. Blank = the fight's own answer.");
+
+            // Written out rather than left in the tooltip: a box wanting one number
+            // out of eight is a box nobody can fill in without being told which eight.
+            if (example.Length > 0) Widgets.RowNote(example);
             return;
         }
 
@@ -83,9 +140,33 @@ public partial class ConfigWindow
 
         // Said in their own words: the option list is theirs, and a call that names a
         // spot only makes sense next to the name of the strat it belongs to.
-        Tip($"Takes effect on the next pull. Their default is "
+        Tip($"Next pull. Default is "
             + $"{strategy.Options.FirstOrDefault(o => o.Value == strategy.Default)?.Label ?? strategy.Default}.");
     }
 
     private bool Set(ScriptStrategy strategy) => C.ScriptStratFor(strategy.Id).Length > 0;
+
+    // What a typed setting actually wants, for the ones whose answer is a number.
+    //
+    // Their files carry a comment explaining these and the kit does not read it, so
+    // the box arrived with a name and nothing else. UCOB's is the worst of them: it
+    // takes one digit, the digit means a tower, and nothing on screen said which
+    // towers there were or where the counting starts.
+    //
+    // Read out of their own code rather than off a guide. `xyToTurnAmount` runs
+    // N=0, E=90, S=180, W=270, the eight towers are sorted by it, and the spot is
+    // added to Nael's, so counting up is counting clockwise from Nael.
+    private static (string Hint, string Placeholder, string Example) HelpFor(ScriptStrategy strategy)
+        => strategy.Id switch
+        {
+            // The example pairs each seat with its own number, which is party order
+            // against 0-7, so it is generated rather than typed: a ninth seat would
+            // otherwise leave somebody reading an example that stops at eight.
+            "heavensfallTowerPosition" => (
+                "Your tower, counting clockwise from Nael. 0 is Nael's own.",
+                "0-7, or disabled",
+                "Example, one each: "
+                    + string.Join(", ", Audience.Slots.Select((slot, at) => $"{slot} {at}"))),
+            _ => ("", "", ""),
+        };
 }

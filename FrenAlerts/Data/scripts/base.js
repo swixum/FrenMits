@@ -39,9 +39,10 @@ function makeOutput(staticWords, langs, cueCode) {
 }
 
 var Voices = {
-  aoe: { en: 'AoE' },
-  bigAoe: { en: 'big AoE!' },
-  bleedAoe: { en: 'AoE + Bleed' },
+  // Raidwide rather than their "AoE", swix's wording, and the one place it is said.
+  aoe: { en: 'Raidwide' },
+  bigAoe: { en: 'Big Raidwide' },
+  bleedAoe: { en: 'Raidwide + Bleed' },
   hpTo1Aoe: { en: 'HP to 1' },
   tankBuster: { en: 'Tank Buster' },
   miniBuster: { en: 'Mini Buster' },

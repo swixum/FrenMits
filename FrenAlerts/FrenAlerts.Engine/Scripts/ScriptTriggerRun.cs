@@ -1,4 +1,5 @@
 using Jint;
+using FrenAlerts.Engine.Alerts;
 using System.Text.RegularExpressions;
 using Jint.Native;
 using Jint.Native.Object;
@@ -14,7 +15,12 @@ public enum ScriptCallLevel
 }
 
 public sealed record ScriptCall(
-    string TriggerId, string Text, string Speech, ScriptCallLevel Level, double Seconds);
+    string TriggerId, string Text, string Speech, ScriptCallLevel Level, double Seconds,
+    // The game's own art for whatever the line this trigger matched was about: the
+    // debuff that landed on you, or the ability being cast. Carried from the match
+    // rather than worked out here, because a trigger with a delay says its words
+    // seconds after the event that named the picture.
+    CallIcon Icon = default);
 
 // One of their triggers, compiled once.
 public sealed class CompiledScriptTrigger
@@ -76,7 +82,8 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
     private readonly List<CompiledScriptTrigger> _anyCode = [];
     private readonly Dictionary<string, double> _lastFire = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _lastSaid = new(StringComparer.Ordinal);
-    private readonly List<(double Due, CompiledScriptTrigger Trigger, ObjectInstance Matches)> _waiting = [];
+    private readonly List<(double Due, CompiledScriptTrigger Trigger, ObjectInstance Matches,
+        CallIcon Icon)> _waiting = [];
     private readonly Dictionary<string, double> _spawnSeen = new(StringComparer.Ordinal);
     private double _spawnPruned;
 
@@ -190,17 +197,20 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
     }
 
     // One line, offered to the triggers that could want it.
-    public void Process(string line, double now)
+    // The icon is the caller's, because working out whose debuff this is needs to know
+    // who the player is and this side of the engine does not.
+    public void Process(string line, double now, CallIcon icon = default)
     {
         if (_triggers.Count == 0) return;
         if (!FreshSpawn(line, now)) return;
 
         var code = ScriptLines.CodeOf(line);
-        if (code is not null && _byCode.TryGetValue(code, out var candidates)) Run(candidates, line, now);
-        if (_anyCode.Count > 0) Run(_anyCode, line, now);
+        if (code is not null && _byCode.TryGetValue(code, out var candidates))
+            Run(candidates, line, now, icon);
+        if (_anyCode.Count > 0) Run(_anyCode, line, now, icon);
     }
 
-    private void Run(List<CompiledScriptTrigger> candidates, string line, double now)
+    private void Run(List<CompiledScriptTrigger> candidates, string line, double now, CallIcon icon)
     {
         foreach (var trigger in candidates)
         {
@@ -233,8 +243,8 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
                 if (trigger.PreRun is not null) Invoke(trigger.PreRun, data, matches);
 
                 var delay = Number(trigger.DelaySeconds, data, matches);
-                if (delay > 0.01) _waiting.Add((now + delay, trigger, matches));
-                else Execute(trigger, matches, now);
+                if (delay > 0.01) _waiting.Add((now + delay, trigger, matches, icon));
+                else Execute(trigger, matches, now, icon);
             }
             catch (Exception ex)
             {
@@ -281,9 +291,9 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
         {
             if (_waiting[i].Due > now) continue;
 
-            var (_, trigger, matches) = _waiting[i];
+            var (_, trigger, matches, icon) = _waiting[i];
             _waiting.RemoveAt(i);
-            try { Execute(trigger, matches, now); }
+            try { Execute(trigger, matches, now, icon); }
             catch (Exception ex) { Problem = $"{trigger.Id}: {ex.Message}"; }
         }
     }
@@ -298,7 +308,8 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
         _lastSaid.Clear();
     }
 
-    private void Execute(CompiledScriptTrigger trigger, ObjectInstance matches, double now)
+    private void Execute(CompiledScriptTrigger trigger, ObjectInstance matches, double now,
+        CallIcon icon = default)
     {
         var data = Data();
         if (data is null) return;
@@ -377,7 +388,7 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
 
         Fired++;
         Say?.Invoke(new ScriptCall(
-            trigger.Id, shown ?? "", ScriptSpeech.Spell(spoken ?? shown ?? ""), level, seconds));
+            trigger.Id, shown ?? "", ScriptSpeech.Spell(spoken ?? shown ?? ""), level, seconds, icon));
     }
 
     // The three lines a trigger could say, in their own order. A response builder

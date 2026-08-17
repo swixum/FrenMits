@@ -212,8 +212,33 @@ public partial class ConfigWindow
             Theme.V(problems.Count == 0 ? Theme.Good : Theme.Warn),
             problems.Count > 1 ? string.Join(", ", problems.Skip(1)) : ""))
             _nav = problems.Count == 0 ? NavKind.Home : PageFor(problems[0]);
-        Tip(problems.Count == 0 ? "Nothing needs attention." : "Go and fix the first one.");
+        Tip(problems.Count == 0 ? "Nothing needs attention."
+            : NoPageFixes(problems[0]) is { Length: > 0 } why ? why
+            : "Go and fix the first one.");
     }
+
+    // What a problem means, where there is no page to go and fix it on.
+    //
+    // "Go and fix the first one" is a promise the tile has to keep. It could, until the
+    // sidebar's Connection block stopped reading out anything but the parser: these
+    // three now land on Home with nothing on it about them, and a tooltip telling
+    // somebody to go and fix it is the dead tile all over again, one level down.
+    //
+    // So they say what they are instead. Every one is a hook that did not install,
+    // which happens when a game patch moves something, and the answer is a plugin
+    // update rather than a setting. Saying that costs nothing and beats sending
+    // somebody looking for a switch that was never there.
+    private static string NoPageFixes(string problem) => problem switch
+    {
+        "No direction calls" => "Left, right and compass calls cannot fire. "
+            + "A game patch moved something; it needs a plugin update, not a setting.",
+        "No hit calls" => "Tank busters and hit counts cannot fire. "
+            + "A game patch moved something; it needs a plugin update, not a setting.",
+        _ when problem.StartsWith("The feed dropped ", StringComparison.Ordinal) =>
+            "The parser sent more than the queue could hold. Calls in that burst were "
+            + "missed. Nothing to set; it catches up on its own.",
+        _ => "",
+    };
 
     // Where to go to answer a problem, which has to be the page the switch is
     // actually on. Sending somebody to a page that does not hold the thing reads as
@@ -227,6 +252,22 @@ public partial class ConfigWindow
         "Recording is on" => NavKind.Home,
         "The recording is full" => NavKind.Home,
         "Local voice gave up" => NavKind.Tts,
+        // What is feeding the calls. These fell through to Fights, which is a list of
+        // fights and says nothing about a feed, so they went to Home when the sidebar's
+        // Connection block still read out Hits, Facing and the dropped count.
+        //
+        // It does not any more: swix asked for those three rows gone, and the block now
+        // answers whether the parser is feeding and nothing else. So Home no longer
+        // explains any of these either, and none of them has a page anywhere.
+        //
+        // They stay on Home and stay on the list. Every one of them means a hook that
+        // did not install, which is a game patch having moved something and a whole kind
+        // of call not firing until the plugin is rebuilt. That is worth saying and there
+        // is nothing to click; what changed is the tooltip, which no longer promises a
+        // page to go and fix it on. See NoPageFixes.
+        "No direction calls" => NavKind.Home,
+        "No hit calls" => NavKind.Home,
+        _ when problem.StartsWith("The feed dropped ", StringComparison.Ordinal) => NavKind.Home,
         _ => NavKind.Fights,
     };
 
@@ -292,30 +333,48 @@ public partial class ConfigWindow
 
         Widgets.ListBegin();
         var all = C.AllCallsOn;
-        if (Widgets.RowCheckClick("Every Call On", "", ref all,
+        if (Widgets.RowCheckClick("Call everything", "", ref all,
             FontAwesomeIcon.Bullhorn, Theme.Accent,
             changed: Changed(nameof(Configuration.AllCallsOn)),
             note: all ? "" : "Only the exact ones"))
         { C.AllCallsOn = all; C.Save(); }
         Tip(all
-            ? "Everything calls, exact port or not."
-            : "Only the exact ports call. Turn the rest on per fight.");
+            ? "Everything calls."
+            : "Only the exact ones. Turn the rest on per fight.");
         Widgets.ListEnd();
         ImGui.Spacing();
 
+        // Under its expansion, newest at the top. The list was one long run in
+        // territory order, which reads as one pile the moment a second expansion has
+        // fights in it: UCOB and UWU sat above Dancing Mad because their zone numbers
+        // are lower, so the oldest fights in the game led the page.
+        //
+        // The heading is skipped where every fight on the page is from one expansion,
+        // because a single group under a label is a label saying nothing.
+        var byExpansion = fights
+            .GroupBy(f => f.Expansion)
+            .OrderBy(g => Shipped.ExpansionRank(g.Key))
+            .ToList();
+
         Widgets.ListBegin();
-        foreach (var f in fights)
+        foreach (var group in byExpansion)
         {
-            var off = C.IsMuted(f.TerritoryId);
-            var edits = EditedIn(f);
-            var note = off ? "Off"
-                : edits > 0 ? $"{f.Calls} calls, {edits} edited"
-                : $"{f.Calls} call{(f.Calls == 1 ? "" : "s")}";
-            if (Widgets.RowDoor(f.Name, "", CategoryIcon(category),
-                off ? Theme.Muted : Theme.Accent, note: note,
-                noteCol: off ? Theme.Warn : 0u))
-                OpenFight(f);
-            if (f.Full.Length > 0) Tip(f.Full);
+            if (byExpansion.Count > 1)
+                Widgets.GroupLabel(group.Key.Length > 0 ? group.Key : "Other");
+
+            foreach (var f in group)
+            {
+                var off = C.IsMuted(f.TerritoryId);
+                var edits = EditedIn(f);
+                var note = off ? "Off"
+                    : edits > 0 ? $"{f.Calls} calls, {edits} edited"
+                    : $"{f.Calls} call{(f.Calls == 1 ? "" : "s")}";
+                if (Widgets.RowDoor(f.Name, "", CategoryIcon(category),
+                    off ? Theme.Muted : Theme.Accent, note: note,
+                    noteCol: off ? Theme.Warn : 0u))
+                    OpenFight(f);
+                if (f.Full.Length > 0) Tip(f.Full);
+            }
         }
         Widgets.ListEnd();
     }
@@ -332,6 +391,9 @@ public partial class ConfigWindow
         // words that were being typed into a mechanic this fight has never heard of.
         Close();
         _theirFilter = "";
+        // Same reason: a run left open in the last fight is a wall of boxes at the top
+        // of this one, belonging to a mechanic it has never heard of.
+        CloseStrategyRuns();
     }
 
     private void OpenCall(CallEntry call)
@@ -460,18 +522,27 @@ public partial class ConfigWindow
 
         var here = phase is { } only ? calls.Where(c => c.Phase == only).ToList() : calls;
 
+        // Trimmed once, then used for the test, the match and the message alike.
+        //
+        // They disagreed: the empty test ignored whitespace and the match did not, so a
+        // trailing space searched for "towers " and found nothing, while the message
+        // trimmed it back and said no call here has "towers" in it. A search box that
+        // denies something you can see on the row above it is worse than one that finds
+        // nothing.
+        var find = _callFilter.Trim();
+
         var shown = here
-            .Where(c => string.IsNullOrWhiteSpace(_callFilter)
-                || Wording(c).Contains(_callFilter, StringComparison.OrdinalIgnoreCase)
-                || c.Text.Contains(_callFilter, StringComparison.OrdinalIgnoreCase))
+            .Where(c => find.Length == 0
+                || Wording(c).Contains(find, StringComparison.OrdinalIgnoreCase)
+                || c.Text.Contains(find, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         if (shown.Count == 0)
         {
             Widgets.ListBegin();
-            Widgets.RowNote(string.IsNullOrWhiteSpace(_callFilter)
+            Widgets.RowNote(find.Length == 0
                 ? "Nothing here."
-                : $"No call here has \"{_callFilter.Trim()}\" in it.");
+                : $"No call here has \"{find}\" in it.");
             Widgets.ListEnd();
             return;
         }
@@ -494,8 +565,10 @@ public partial class ConfigWindow
     // always first among them: read as MT, H1, M1 or R1 and never as the second of
     // the role. Every call that splits a pair then names the other person's job,
     // which is most of what looks broken while watching a recording back.
-    private static readonly string[] Seats =
-        ["Work it out", "MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2"];
+    // The engine's eight, with "work it out" in front of them. Spelled out here once,
+    // which meant a ninth seat would have reached every call in the plugin and not this
+    // dropdown.
+    private static readonly string[] Seats = ["Work it out", .. Audience.Slots];
 
     private void DrawSeat()
     {
@@ -526,7 +599,7 @@ public partial class ConfigWindow
             ? $"Reading every call as {C.SeatOverride}."
             : guessed.Length > 0
                 ? $"Worked out as {guessed}." + (replay ? " In a recording that is a guess." : "")
-                : "No party read yet, so calls show their plain half.");
+                : "No party read yet. Calls show their plain half.");
 
         Widgets.ListEnd();
         ImGui.Spacing();
@@ -561,7 +634,7 @@ public partial class ConfigWindow
 
         // Said once under the list rather than on every row that can be switched off.
         if (strats.Any(s => C.StratFor(territory, s.Key) == "none"))
-            Widgets.RowNote("A strat left off stays quiet rather than guessing.");
+            Widgets.RowNote("A strat left off stays quiet.");
 
         Widgets.ListEnd();
         ImGui.Spacing();
@@ -744,7 +817,8 @@ public partial class ConfigWindow
 
         DrawOnePreview(
             CallText.Sentence(string.IsNullOrWhiteSpace(_callWords) ? call.Text : _callWords),
-            edit?.Level ?? call.Level);
+            edit?.Level ?? call.Level,
+            CallIcon.Listed(call.On, call.MatchId));
 
         // The box holds what is being typed; an empty one means no rewording at
         // all, which is what stores as nothing rather than as an empty line.
@@ -762,7 +836,7 @@ public partial class ConfigWindow
             Tip($"Keep {CallEdits.Target} and it fills in the name.");
 
         var level = (int)(edit?.Level ?? call.Level);
-        if (Widgets.RowCombo("Severity", "", ref level, SeverityNames, 120f,
+        if (Widgets.RowCombo("Level", "", ref level, SeverityNames, 120f,
                 changed: edit?.Level is not null, sub: true))
             Change(call.Key, e =>
                 e.Level = (CallLevel)level == call.Level ? null : (CallLevel)level);
@@ -803,12 +877,16 @@ public partial class ConfigWindow
         Widgets.ListEnd();
         ImGui.Spacing();
 
-        Widgets.GroupLabel("How It Reads");
+        Widgets.GroupLabel("Example");
         Widgets.ListBegin();
         Widgets.RowNote("Wave Cannon: MT N, OT S, H1 NW");
         Widgets.RowNote("Towers: M1 west, M2 east");
         Widgets.ListEnd();
-        Tip("A mechanic, then who goes where. Slots are MT OT H1 H2 M1 M2 R1 R2, "
+        // Read off the engine's list rather than typed out. This was the fifth copy of
+        // the eight and the one nobody would have caught: a sweep for the array form
+        // does not find a sentence, and a plan page naming a seat the parser does not
+        // know is a line somebody writes and then cannot get to fire.
+        Tip($"A mechanic, then who goes where. Slots are {string.Join(' ', Audience.Slots)}, "
             + "and who sits in each is on the Roles page.");
         ImGui.Spacing();
 
@@ -873,7 +951,7 @@ public partial class ConfigWindow
         Tip("Sample call on screen. Drag it where you want it.");
         Widgets.ListEnd();
 
-        Widgets.GroupLabel("The Line");
+        Widgets.GroupLabel("Text");
         Widgets.ListBegin();
 
         var size = C.CallFontSizePx;
@@ -888,7 +966,7 @@ public partial class ConfigWindow
         var icon = C.ShowCallIcon;
         if (Widgets.RowCheckClick("Icon", "", ref icon, changed: Changed(nameof(Configuration.ShowCallIcon))))
         { C.ShowCallIcon = icon; C.Save(); }
-        Tip("Only for a debuff on you or a marker over your head.");
+        Tip("The debuff on you, or the cast's own icon.");
 
         if (C.ShowCallIcon)
         {
@@ -911,7 +989,7 @@ public partial class ConfigWindow
         var outline = C.TextOutline;
         if (Widgets.RowCheckClick("Outline", "", ref outline,
             changed: Changed(nameof(Configuration.TextOutline)))) { C.TextOutline = outline; C.Save(); }
-        Tip("Black ring around the letters, so a call reads over a bright floor.");
+        Tip("Keeps a call readable over a bright floor.");
 
         var pulse = C.PulseWhenClose;
         if (Widgets.RowCheckClick("Pulse on Go", "", ref pulse,
@@ -919,7 +997,7 @@ public partial class ConfigWindow
 
         Widgets.ListEnd();
 
-        Widgets.GroupLabel("Severity");
+        Widgets.GroupLabel("Colors");
         Widgets.ListBegin();
 
         var info = Theme.V(C.ColorInfo);
@@ -974,9 +1052,36 @@ public partial class ConfigWindow
         Widgets.ListEnd();
     }
 
-    private void DrawCallPreview()
+    private void DrawCallPreview() =>
+        CallBox("##callpreview", 2, () => _overlay.DrawPreview());
+
+    private void DrawOnePreview(string text, CallLevel level, CallIcon icon = default) =>
+        CallBox("##calledit", 1, () => _overlay.DrawOne(text, level, icon));
+
+    // A box holding calls drawn exactly as the overlay draws them.
+    //
+    // Both boxes guessed their own height, at 2.9 and 1.6 times the font size, and
+    // both cut the slab off. The slab is drawn past the text box rather than laid out,
+    // so no multiple of the font size tracks it: at the default 30px the two-call box
+    // was 105 tall against 134 of content, and the gap between two calls grows with
+    // the size, so it got worse the bigger the calls were set.
+    //
+    // Sideways it was the same story from the other end. A child window clips its own
+    // draw list and pads by ImGui's default 8, while the slab reaches PadX past the
+    // text: fine on centred text, which is the default and is why this went unnoticed,
+    // and clipped on every left or right aligned call.
+    //
+    // Both now come from the overlay, off the same CallLook arithmetic its own window
+    // uses in PreDraw, so the preview and the game cannot drift apart.
+    private void CallBox(string id, int calls, Action draw)
     {
-        var h = C.CallFontSizePx * 2.9f + Theme.S(18f);
+        // The slab's room, or the box's own, whichever is larger. With the background
+        // switched off there is no slab to make room for, and taking the padding
+        // straight from it put the words flat against the border: nothing was being
+        // cut, and it read exactly like something was.
+        var air = Theme.S(8f);
+        var pad = Vector2.Max(_overlay.SlabPad(), new Vector2(air, air));
+        var h = _overlay.StackContentHeight(calls) + pad.Y * 2f;
         var w = ImGui.GetContentRegionAvail().X;
         var p = ImGui.GetCursorScreenPos();
 
@@ -984,33 +1089,17 @@ public partial class ConfigWindow
         dl.AddRectFilled(p, p + new Vector2(w, h), 0xFF10080B, Theme.S(8f));   // #0B0810
         dl.AddRect(p, p + new Vector2(w, h), Widgets.CardBorder, Theme.S(8f));
 
-        if (ImGui.BeginChild("##callpreview", new Vector2(w, h), false,
+        // The slab's overhang lives in the padding, which is why nothing inside adds a
+        // leading spacer any more: that spacer was the old way of buying room at the
+        // top and it bought none at the sides.
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, pad);
+        if (ImGui.BeginChild(id, new Vector2(w, h), false,
                 ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
         {
-            ImGui.Dummy(new Vector2(1f, Theme.S(6f)));
-            _overlay.DrawPreview();
+            draw();
         }
         ImGui.EndChild();
-        ImGui.Spacing();
-    }
-
-    private void DrawOnePreview(string text, CallLevel level)
-    {
-        var h = C.CallFontSizePx * 1.6f + Theme.S(14f);
-        var w = ImGui.GetContentRegionAvail().X;
-        var p = ImGui.GetCursorScreenPos();
-
-        var dl = ImGui.GetWindowDrawList();
-        dl.AddRectFilled(p, p + new Vector2(w, h), 0xFF10080B, Theme.S(8f));
-        dl.AddRect(p, p + new Vector2(w, h), Widgets.CardBorder, Theme.S(8f));
-
-        if (ImGui.BeginChild("##calledit", new Vector2(w, h), false,
-                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-        {
-            ImGui.Dummy(new Vector2(1f, Theme.S(5f)));
-            _overlay.DrawOne(text, level);
-        }
-        ImGui.EndChild();
+        ImGui.PopStyleVar();
         ImGui.Spacing();
     }
 
@@ -1047,9 +1136,26 @@ public partial class ConfigWindow
 
         DrawLocalVoice();
 
-        if (voice is { Dropped: > 0 })
+        // Lines that never got read out.
+        //
+        // This branch was here with nothing but a blank line in it: the count was
+        // worked out, the condition survived, and whatever used to say it did not. So
+        // the one number that means "a call you were meant to hear did not happen" was
+        // in the chat command and nowhere anybody looks during a night.
+        //
+        // Both ways it counts are the voice falling behind, and it does not record
+        // which: the queue is bounded and Send drops rather than blocking the frame,
+        // and a line still waiting after StaleSeconds is thrown away as too late to be
+        // worth saying. Neither is worth alarming about on its own, which is why it
+        // reads as a count and not as a fault.
+        if (voice is { Dropped: > 0 } behind)
         {
             ImGui.Spacing();
+            // Phrased "n of m" so it reads right at one as well as at forty, rather
+            // than agreeing with the plural and then saying "1 line were not read out".
+            ImGui.TextColored(Theme.V(Theme.Warn),
+                $"{behind.Dropped} of {behind.Dropped + behind.Spoken} lines never got "
+                + "read out. The voice could not keep up.");
         }
     }
 
@@ -1075,7 +1181,7 @@ public partial class ConfigWindow
         Widgets.ListBegin();
 
         var useLocal = C.UseLocalVoice;
-        if (Widgets.RowCheck("Use it", "off reads out with the system voice", ref useLocal,
+        if (Widgets.RowCheck("Use it", "off = system voice", ref useLocal,
             Changed(nameof(Configuration.UseLocalVoice)))) { C.UseLocalVoice = useLocal; C.Save(); }
 
         DrawVoicePicker(voice);
@@ -1097,6 +1203,19 @@ public partial class ConfigWindow
         {
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Warn), "It kept stopping, so it is not being started again.");
+
+            // And what to do about it, because nothing else on this page can.
+            //
+            // The give-up is for the session: neither the counter nor the flag is ever
+            // put back, so fixing whatever killed it changes nothing until the plugin
+            // is loaded again. Every other dead end in this window says how to get out
+            // of it, and this one sat there saying only that it had happened.
+            //
+            // Dropping the voice files in IS noticed on its own, because the pack is
+            // rechecked on a timer, so that case is deliberately not mentioned here:
+            // this line is only for the one where the voice ran and would not stay up.
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                "Reload the plugin to try it again. Until then the system voice reads the calls.");
 
             // What the voice itself said on the way down. It is already captured for
             // the log, and the person reading this page is the one who needs it: a

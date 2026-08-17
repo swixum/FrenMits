@@ -37,12 +37,23 @@ public sealed class AlertBoard
 
     public int Count { get { lock (_gate) return _items.Count; } }
 
-    // True when the call was taken. False means Decide threw it out: the master
-    // switch is off, this fight is muted, or the player switched this one call off.
+    // True when the call is on the board. False means it is not, for either reason:
+    // Decide threw it out (the master switch is off, this fight is muted, or the
+    // player switched this one call off), or the board was full and this was the one
+    // that did not fit.
     //
     // Reported rather than swallowed, because the voice is a separate path. It used
     // to speak whatever it was handed, so a fight turned off, or the whole plugin
     // turned off, went quiet on screen and kept talking out loud.
+    //
+    // The full case was the same fault one step further along. It returned true the
+    // moment Decide let the call through, then sorted it into the list and dropped
+    // whatever sat furthest out, which can be the call just added: five things landing
+    // at once put the fifth on the floor and read it out anyway.
+    //
+    // Only ever a call the board did not already hold. Replacing frees the slot it is
+    // about to fill, so a mechanic firing again cannot fail to fit however full the
+    // board is.
     public bool Show(Call call, double engineNow, CallIcon icon = default)
     {
         if (Decide(call) is not { } shown) return false;
@@ -52,21 +63,25 @@ public sealed class AlertBoard
         var lead = Math.Max(0d, call.Time - engineNow);
         var fireAt = now + lead;
         var endsAt = fireAt + Math.Max(0f, call.Hold);
+        var entry = new Shown(call, now, fireAt, endsAt, icon);
 
         lock (_gate)
         {
             // The same key twice is the same call again: it replaces rather than
             // stacks, or a re-fired mechanic reads as two of it on screen.
             _items.RemoveAll(s => s.Call.Key == call.Key);
-            _items.Add(new Shown(call, now, fireAt, endsAt, icon));
+            _items.Add(entry);
             _items.Sort(static (a, b) => a.FireAt.CompareTo(b.FireAt));
             while (_items.Count > Capacity)
             {
                 _items.RemoveAt(_items.Count - 1);   // the one furthest out
                 Dropped++;
             }
+
+            // By value rather than by key: a call with no key of its own would match
+            // every other keyless one, and this has to be about the entry just made.
+            return _items.Contains(entry);
         }
-        return true;
     }
 
     public IReadOnlyList<Shown> Live()

@@ -45,6 +45,21 @@ public static class VoiceCatalog
 
     public const string Default = "af_heart";
 
+    // How far down the picker a language sits, and past the end for one Order does not
+    // name.
+    //
+    // These are two lists that have to agree, and the sort read the second with
+    // Array.IndexOf, which answers -1 for a miss. So a language added to Languages and
+    // forgotten here did not sink, it sorted ahead of American English: a voice nobody
+    // could understand at the top of the list, on a plugin whose calls are in English.
+    // A miss goes to the bottom now, which is what the comment above already promises
+    // for anything unlabelled. The test holds the two lists level so it stays theory.
+    public static int Rank(string language)
+    {
+        var at = Array.IndexOf(Order, language);
+        return at < 0 ? Order.Length : at;
+    }
+
     public static IReadOnlyList<Choice> Read(IEnumerable<string> fileNames)
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -58,7 +73,7 @@ public static class VoiceCatalog
         }
 
         return found
-            .OrderBy(c => Array.IndexOf(Order, c.Language))
+            .OrderBy(c => Rank(c.Language))
             .ThenBy(c => c.Female is null ? 2 : c.Female is true ? 0 : 1)
             .ThenBy(c => c.Person, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -68,7 +83,7 @@ public static class VoiceCatalog
     // list in two rather than showing 156 rows at once.
     public static IReadOnlyList<string> LanguagesIn(IEnumerable<Choice> choices) =>
         choices.Select(c => c.Language).Distinct()
-            .OrderBy(l => Array.IndexOf(Order, l)).ToList();
+            .OrderBy(Rank).ToList();
 
     // A name that does not follow the convention keeps its own spelling and claims
     // no language and no gender, rather than being filed under a guess.

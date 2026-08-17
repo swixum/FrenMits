@@ -121,8 +121,9 @@
     ap.silent  = function ()   { specs.ttsText = ''; return ap; };
 
     function presets(sevs, defs) { return function (t) { specs.sev = sevs; specs.text = (t === undefined ? defs : t); return ap; }; }
-    ap.aoe         = presets('info',  'AoE');
-    ap.bigAoe      = presets('info',  'Big AoE');
+    // Raidwide rather than "AoE", matching Voices in base.js.
+    ap.aoe         = presets('info',  'Raidwide');
+    ap.bigAoe      = presets('info',  'Big Raidwide');
     ap.tankbuster  = presets('alert', 'Tank Buster');
     ap.tankbusterOnYou = function () { specs.conds.push(function (c) { return c.m.target === c.me; }); specs.sev = 'alert'; specs.text = 'Tank Buster on YOU'; return ap; };
     ap.stack       = presets('alert', 'Stack');

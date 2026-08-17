@@ -67,6 +67,38 @@ public static class CallLook
     public const float PadY = 0.28f;
     public const float Round = 0.28f;
 
+    // ---- how much room a stack of them takes ----
+    //
+    // The slab is drawn past the text box rather than laid out, so nothing that sizes a
+    // box around a call can work it out from the layout. Written here, once, because
+    // three places need the same answer and each had its own guess: the overlay window,
+    // the config window's two preview boxes. The previews used 2.9 and 1.6 times the
+    // font size, which were close at the size they were picked at and cut the slab off
+    // at any other.
+
+    // How far the slab reaches past the text box, per side.
+    public static float SlabX(float px) => px * PadX;
+    public static float SlabY(float px) => px * PadY;
+
+    // From one call's text box to the next. StackGap of clear air, plus the two slabs
+    // between them where there is a background to draw.
+    public static float StackStep(float px, bool withBackground) =>
+        StackGap * (px / BasePx) + (withBackground ? 2f * SlabY(px) : 0f);
+
+    // The layout height of a stack: the text boxes and what goes between them, with
+    // the slab's overhang left out. Whatever hosts it pads by SlabY top and bottom,
+    // and then the overhang has somewhere to go.
+    //
+    // itemSpacing is what the layout puts between two items by itself, which is on top
+    // of the gap rather than instead of it.
+    public static float StackHeight(int calls, float px, float lineHeight,
+        float itemSpacing, bool withBackground)
+    {
+        if (calls <= 0) return 0f;
+        return calls * lineHeight
+               + (calls - 1) * (StackStep(px, withBackground) + itemSpacing);
+    }
+
     public static float OutlineWidth(float px) => MathF.Max(2f, px * 0.055f);
 
     // The colours behind a call, alpha carried in from the fade.
@@ -76,6 +108,27 @@ public static class CallLook
     public const float BorderAlpha = 0.7f;
     public const float BorderWidth = 1.5f;
     public const float ShadowDrop = 3f;
+
+    // ---- colours somebody can actually tell apart ----
+    //
+    // The three levels ship light blue, amber and red. Amber against red is the one
+    // pair the common deficiencies collapse, and those two are Alert against Alarm:
+    // "move" against "move now". Colorblind Mode swapped the window's own status dots
+    // and left the calls alone, which is the half nobody looks at during a pull.
+    //
+    // Okabe-Ito, the same palette Theme already switches to, so the window and the
+    // calls agree rather than each having their own idea of safe.
+    public const uint SafeInfo = 0xFFE9B456;    // #56B4E9 sky blue
+    public const uint SafeAlert = 0xFF009FE6;   // #E69F00 orange
+    public const uint SafeAlarm = 0xFFA779CC;   // #CC79A7 reddish purple
+
+    // The safe colour in place of the shipped one, and nothing else.
+    //
+    // A colour somebody picked is a colour somebody picked: turning the setting on
+    // must not quietly throw away a palette they chose on purpose. So this only ever
+    // replaces a default that is still sitting where it shipped.
+    public static uint Safely(uint chosen, uint shipped, uint safe) =>
+        chosen == shipped ? safe : chosen;
 
     // A word in a colour of its own, written into a call as <red>this</red>. Their
     // tags and their colours.

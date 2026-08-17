@@ -21,6 +21,19 @@ public static class SlotResolver
         List<uint> tanks = [], healers = [], melee = [], ranged = [];
         foreach (var (id, job) in members)
         {
+            // A job that has not resolved is not a role.
+            //
+            // Everything unrecognised falls to ranged, and a player whose ClassJob row
+            // has not loaded reads as 0, so somebody the client had not finished
+            // describing was seated R1 and every call that splits the ranged pair named
+            // the wrong person for as long as it took to load.
+            //
+            // Dropped rather than guessed, which is the rule the roster beside this
+            // already follows: it drops a member whose name has not loaded rather than
+            // passing on an empty one. An unseated player is a call that says nothing;
+            // a wrongly seated one is a call that says something false.
+            if (job == 0) continue;
+
             if (TankJobs.Contains(job)) tanks.Add(id);
             else if (HealerJobs.Contains(job)) healers.Add(id);
             else if (MeleeJobs.Contains(job)) melee.Add(id);

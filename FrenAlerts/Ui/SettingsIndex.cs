@@ -12,14 +12,28 @@ internal static class SettingsIndex
         string Prop,
         Func<Configuration, bool> Changed,
         Action<Configuration> Reset,
-        string Keywords = "");
+        string Keywords = "",
+        ConfigWindow.NavKind? Also = null)
+    {
+        // Every page this switch is actually on.
+        //
+        // Nav is its home: where search sends somebody, and the page it is listed under
+        // once. Also is a second page that draws the same switch, which reset and the
+        // changed marker both have to know about and search must not, or the same
+        // setting comes back twice in the results.
+        //
+        // TTS is why. It is on the TTS page and again on Call Display, and it was filed
+        // once: resetting Call Display put every switch on it back except that one,
+        // which is a reset button quietly not doing what it says.
+        public bool On(ConfigWindow.NavKind nav) => Nav == nav || Also == nav;
+    }
 
     private static readonly Configuration Defaults = new();
 
     private static readonly Entry[] Items =
     {
         // ---- fights ----
-        New("Every Call On", ConfigWindow.NavKind.Fights, nameof(Configuration.AllCallsOn),
+        New("Call everything", ConfigWindow.NavKind.Fights, nameof(Configuration.AllCallsOn),
             c => c.AllCallsOn != Defaults.AllCallsOn, c => c.AllCallsOn = Defaults.AllCallsOn,
             "silent checked unchecked speak all"),
 
@@ -74,9 +88,10 @@ internal static class SettingsIndex
             c => c.OverlayPosition = Defaults.OverlayPosition, "place drag move"),
 
         // ---- voice ----
+        // Drawn on Call Display as well, so a reset there covers it.
         New("TTS", ConfigWindow.NavKind.Tts, nameof(Configuration.VoiceEnabled),
             c => c.VoiceEnabled != Defaults.VoiceEnabled, c => c.VoiceEnabled = Defaults.VoiceEnabled,
-            "speak sound audio voice"),
+            "speak sound audio voice", also: ConfigWindow.NavKind.CallDisplay),
         New("Volume", ConfigWindow.NavKind.Tts, nameof(Configuration.VoiceVolume),
             c => Off(c.VoiceVolume, Defaults.VoiceVolume), c => c.VoiceVolume = Defaults.VoiceVolume,
             "loud quiet audio"),
@@ -111,8 +126,9 @@ internal static class SettingsIndex
     };
 
     private static Entry New(string label, ConfigWindow.NavKind nav, string prop,
-        Func<Configuration, bool> changed, Action<Configuration> reset, string keywords = "")
-        => new(label, nav, prop, changed, reset, keywords);
+        Func<Configuration, bool> changed, Action<Configuration> reset, string keywords = "",
+        ConfigWindow.NavKind? also = null)
+        => new(label, nav, prop, changed, reset, keywords, also);
 
     private static bool Off(float value, float dflt) => MathF.Abs(value - dflt) > 0.0001f;
 
@@ -142,13 +158,13 @@ internal static class SettingsIndex
     }
 
     public static List<Entry> ChangedOn(Configuration c, ConfigWindow.NavKind nav)
-        => Items.Where(e => e.Nav == nav && e.Changed(c)).ToList();
+        => Items.Where(e => e.On(nav) && e.Changed(c)).ToList();
 
     public static bool IsChanged(Configuration c, string prop)
         => Items.FirstOrDefault(e => e.Prop == prop)?.Changed(c) ?? false;
 
     public static void ResetPage(Configuration c, ConfigWindow.NavKind nav)
     {
-        foreach (var e in Items.Where(e => e.Nav == nav)) e.Reset(c);
+        foreach (var e in Items.Where(e => e.On(nav))) e.Reset(c);
     }
 }

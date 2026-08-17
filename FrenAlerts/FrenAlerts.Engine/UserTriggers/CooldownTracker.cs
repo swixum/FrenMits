@@ -70,7 +70,30 @@ public sealed class CooldownBoard
 {
     private readonly Dictionary<uint, (double Until, float Total)> _running = [];
 
+    // A ceiling on what one config can carry, and the only thing here that grows on
+    // its own: everything else in this class is keyed by a tracked id and dies with
+    // Reset. Twenty is well past what fits across a screen at the size these draw, and
+    // is here so a stuck Add button cannot grow the config file without end. Their
+    // death is Use(), which replaces the list wholesale on load.
+    public const int MaxEntries = 20;
+
     public List<CooldownEntry> Entries { get; } = [];
+
+    // Whether this exact thing is already tracked.
+    //
+    // The kind is part of it, because an id is a row in two different sheets: action
+    // 7533 and status 7533 are unrelated things and watching both is reasonable.
+    // Watching the same one twice is not, and two identical rows share an id in the
+    // window, so their switches move together and Remove takes the wrong one.
+    public bool Tracks(uint id, bool isStatus)
+    {
+        foreach (var entry in Entries)
+            if (entry.Id == id && entry.IsStatus == isStatus) return true;
+
+        return false;
+    }
+
+    public bool Full => Entries.Count >= MaxEntries;
 
     public CooldownVisibility Visibility { get; set; } = CooldownVisibility.InDuty;
 

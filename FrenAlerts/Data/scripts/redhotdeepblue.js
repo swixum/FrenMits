@@ -502,7 +502,7 @@ defineDuty({
       alertText: (_pull, _hit, voice) => voice.text(),
       outputStrings: {
         text: {
-          en: "Go N/S + Big AoE",
+          en: "Go N/S + Big Raidwide",
           de: "Geh N/S + Gro\xDFe AoE",
           fr: "Allez N/S + Grosse AoE",
           cn: "\u53BB\u4E0A/\u4E0B + \u9AD8\u4F24\u5BB3 AOE",

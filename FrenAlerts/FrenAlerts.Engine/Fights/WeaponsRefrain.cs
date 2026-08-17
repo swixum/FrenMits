@@ -100,7 +100,7 @@ public static class WeaponsRefrain
         yield return Simple("uwu-ifrit-incinerate", 0x2B56, "Tank Cleave", CallLevel.Info, hush: 5f);
 
         // Garuda.
-        yield return Simple("uwu-garuda-mistral-shriek", 0x2B54, "AoE", CallLevel.Info);
+        yield return Simple("uwu-garuda-mistral-shriek", 0x2B54, "Raidwide", CallLevel.Info);
     }
 
     private static Trigger Simple(string id, uint cast, string says, CallLevel level, float hush = 0f) =>

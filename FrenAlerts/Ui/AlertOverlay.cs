@@ -82,8 +82,7 @@ public class AlertOverlay : Window
         // ever shrinks a call and this has to be the roomier of the two.
         _pushedPad = C.ShowBackground;
         if (_pushedPad)
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(
-                C.CallFontSizePx * CallLook.PadX, C.CallFontSizePx * CallLook.PadY));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, SlabPad());
 
         var pos = SavedScreenPos();
         if (EffectiveLocked || !ImGui.IsMouseDown(ImGuiMouseButton.Left))
@@ -187,12 +186,30 @@ public class AlertOverlay : Window
     //
     // Off the settled stack size rather than each call's own, or the gap would
     // breathe while a call pops in and push the one below it around.
-    private void Gap(float px)
-    {
-        var gap = CallLook.StackGap * (px / CallLook.BasePx)
-                  + (C.ShowBackground ? 2f * px * CallLook.PadY : 0f);
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + gap);
-    }
+    private void Gap(float px) =>
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY()
+                            + CallLook.StackStep(px, C.ShowBackground));
+
+    // Room for the slab on every side, for anything drawing a box around a call.
+    //
+    // Off the configured size rather than the drawn one: the pop starts a call at 85%
+    // and the width fit only ever shrinks it, so the configured size is the roomier of
+    // the two and a box sized from it never clips.
+    public Vector2 SlabPad() => C.ShowBackground
+        ? new Vector2(CallLook.SlabX(C.CallFontSizePx), CallLook.SlabY(C.CallFontSizePx))
+        : Vector2.Zero;
+
+    // The laid-out height of this many calls, with no padding on it.
+    //
+    // Padding is the host's to decide, because the two hosts want different floors: the
+    // overlay window wants exactly the slab and nothing when there is no slab, and a
+    // preview box wants its own breathing room either way.
+    //
+    // The line height is the configured size: ImGui measures one line of text as
+    // exactly the font size, and the font is pushed at that size.
+    public float StackContentHeight(int calls) =>
+        CallLook.StackHeight(calls, C.CallFontSizePx, C.CallFontSizePx,
+            ImGui.GetStyle().ItemSpacing.Y, C.ShowBackground);
 
     private void DrawPlacementFrame()
     {
@@ -240,7 +257,7 @@ public class AlertOverlay : Window
     private void DrawSample()
     {
         var (remaining, counting, sinceGo) = SampleClock();
-        var icon = C.ShowCallIcon ? CallIcon.Marker(0) : CallIcon.None;
+        var icon = C.ShowCallIcon ? Icons.Sample() : CallIcon.None;
         var px = OverlayState.FitFontPxFor(C.CallFontSizePx,
             ImGui.GetMainViewport().WorkSize.X * 0.92f,
             [Need("Raidwide", icon, remaining, counting)]);
@@ -257,20 +274,26 @@ public class AlertOverlay : Window
         var px = OverlayState.FitFontPxFor(C.CallFontSizePx,
             ImGui.GetMainViewport().WorkSize.X * 0.92f,
             [Need("Raidwide", CallIcon.None, remaining, counting),
-             Need("Stack on you", CallIcon.Marker(0), second, counting)]);
+             Need("Stack on you", Icons.Sample(), second, counting)]);
 
         DrawCall("Raidwide", CallLevel.Alert, CallIcon.None, remaining, counting, sinceGo, px);
         Gap(px);
         // A second call a beat ahead of the first, so the preview shows two at
         // once the way a real burst does, each pulsing at its own moment.
-        DrawCall("Stack on you", CallLevel.Alarm, CallIcon.Marker(0),
+        DrawCall("Stack on you", CallLevel.Alarm, Icons.Sample(),
             second, counting, sinceGo + 1f, px);
     }
 
-    public void DrawOne(string text, CallLevel level)
+    // One call as the page is about to show it, icon included.
+    //
+    // The icon is the point: this is the preview under a call being reworded, and it
+    // drew every call without one while the same call in game carries the game's own
+    // art for the ability. Somebody shortening a line was judging the width of
+    // something narrower than the real thing.
+    public void DrawOne(string text, CallLevel level, CallIcon icon = default)
     {
         var (remaining, counting, sinceGo) = SampleClock();
-        DrawCall(text, level, CallIcon.None, remaining, counting, sinceGo);
+        DrawCall(text, level, icon, remaining, counting, sinceGo);
     }
 
     // Five seconds counting down, one at go, then round again, with SinceGo riding
@@ -282,12 +305,8 @@ public class AlertOverlay : Window
         return (counting ? 5f - t : 0f, counting, counting ? 0f : t - 5f);
     }
 
-    private uint ColorFor(CallLevel level) => level switch
-    {
-        CallLevel.Alarm => C.ColorAlarm,
-        CallLevel.Alert => C.ColorAlert,
-        _ => C.ColorInfo,
-    };
+    // Shared with the placed calls, and it honours Colorblind Mode.
+    private uint ColorFor(CallLevel level) => OverlayChrome.CallColor(C, level);
 
     // How much width one call wants, per pixel of font size, icon included. The one
     // place that measurement is written, so the stack's shared size and the size a
@@ -300,8 +319,12 @@ public class AlertOverlay : Window
         return perPx + IconFactor(icon);
     }
 
+    // Space for an icon only where there is art to put in it. Measuring and drawing
+    // ask the same question, so a call can never reserve a gap and leave it empty.
+    private bool Shows(CallIcon icon) => C.ShowCallIcon && icon.Any && Icons.Has(icon);
+
     private float IconFactor(CallIcon icon) =>
-        C.ShowCallIcon && icon.Any ? Math.Clamp(C.CallIconScale, 0.4f, 1.6f) + 0.32f : 0f;
+        Shows(icon) ? Math.Clamp(C.CallIconScale, 0.4f, 1.6f) + 0.32f : 0f;
 
     // One call, drawn the way the plugin the fights came from drew them.
     //
@@ -350,7 +373,7 @@ public class AlertOverlay : Window
             var font = ImGui.GetFont();
             var drawn = ImGui.GetFontSize();
 
-            var withIcon = C.ShowCallIcon && icon.Any;
+            var withIcon = Shows(icon);
             var iconPx = withIcon ? drawn * CallLook.IconSize * Math.Clamp(C.CallIconScale, 0.4f, 1.6f) : 0f;
             var lead = withIcon ? iconPx + drawn * CallLook.IconGap : 0f;
 
@@ -414,13 +437,8 @@ public class AlertOverlay : Window
         }
     }
 
-    // The same colour, carrying the fade.
-    private static uint Faded(uint abgr, float alpha)
-    {
-        var v = Theme.V(abgr);
-        v.W *= alpha;
-        return Widgets.ToColor(v);
-    }
+    // Shared with the placed calls, which draw the same words somewhere else.
+    private static uint Faded(uint abgr, float alpha) => OverlayChrome.Faded(abgr, alpha);
 
     // Horizontal offset for the configured alignment.
     private float AlignOffset(float avail, float contentWidth) => C.CallTextAlign switch

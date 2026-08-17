@@ -4,6 +4,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Textures;
+using FrenAlerts.Engine;
 using FrenAlerts.Engine.Alerts;
 
 namespace FrenAlerts.Ui;
@@ -94,6 +95,24 @@ internal static class Icons
         }
     }
 
+    // Whether this icon will actually put something on screen.
+    //
+    // Asked before the space for it is reserved, because the two were decided
+    // separately: the layout reserved a gap for any icon that was not None, and Draw
+    // quietly did nothing when the art would not resolve. That was rare while an icon
+    // meant a debuff, and stopped being rare the moment a cast carried one: a boss
+    // ability's row in the sheet usually has no icon at all, so most calls in a fight
+    // would have opened a hole to the left of their words and drawn nothing in it.
+    //
+    // The same cached lookups Draw uses, so the two can never disagree.
+    public static bool Has(CallIcon icon) => icon.Kind switch
+    {
+        CallIconKind.Status => ForStatus(icon.Id) != 0,
+        CallIconKind.Action => ForAction(icon.Id) != 0,
+        CallIconKind.Sheet => icon.Id != 0,
+        _ => false,
+    };
+
     public static bool Draw(CallIcon icon, ImDrawListPtr dl, Vector2 p0, float size, uint tint, bool shadow)
     {
         switch (icon.Kind)
@@ -101,14 +120,14 @@ internal static class Icons
             case CallIconKind.Status:
                 return DrawTo(dl, ForStatus(icon.Id), p0, new Vector2(size, size), tint);
 
+            // The ability's own art, looked up the same way a status is.
+            case CallIconKind.Action:
+                return DrawTo(dl, ForAction(icon.Id), p0, new Vector2(size, size), tint);
+
             // Drawn as it is: the number already names the art, so nothing has to be
             // looked up and nothing stands in for it.
             case CallIconKind.Sheet:
                 return DrawTo(dl, icon.Id, p0, new Vector2(size, size), tint);
-
-            case CallIconKind.Marker:
-                DrawGlyph(dl, FontAwesomeIcon.Crosshairs, p0, size, tint, shadow);
-                return true;
 
             default:
                 return false;
@@ -131,6 +150,35 @@ internal static class Icons
             if (shadow) dl.AddText(font, px, at + new Vector2(1.5f, 1.5f), 0xE0000000, glyph);
             dl.AddText(font, px, at, color, glyph);
         }
+    }
+
+    private static CallIcon _sample = CallIcon.None;
+    private static int _sampleFrom = -1;
+
+    // A real debuff icon for the sample call, taken from a call this install actually
+    // makes.
+    //
+    // Not a number written in here. Every small number is a real row in the sheet and
+    // draws a real picture of something unrelated, and judging the icon is the whole
+    // reason the sample carries one, so a stand-in would defeat it. A build whose calls
+    // watch no debuff shows the sample with no icon instead of a wrong one.
+    public static CallIcon Sample()
+    {
+        // The pack lands on a background thread, so a miss is retried until the number
+        // of fights stops changing rather than cached from an empty catalog forever.
+        var loaded = FightCatalog.All.Count;
+        if (_sampleFrom == loaded) return _sample;
+        _sampleFrom = loaded;
+
+        foreach (var fight in FightCatalog.All)
+            foreach (var call in FightCatalog.CallsIn(fight.TerritoryId))
+            {
+                if (call.On != EventKind.StatusGain || call.MatchId == 0) continue;
+                if (ForStatus(call.MatchId) == 0) continue;
+                return _sample = CallIcon.Status(call.MatchId);
+            }
+
+        return _sample = CallIcon.None;
     }
 
     private static Dalamud.Interface.Textures.ISharedImmediateTexture? _logo;
@@ -158,6 +206,8 @@ internal static class Icons
     {
         StatusIcons.Clear();
         ActionIcons.Clear();
+        _sample = CallIcon.None;
+        _sampleFrom = -1;
         _logo = null;
         _logoLookedUp = false;
     }

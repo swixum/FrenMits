@@ -480,9 +480,60 @@ public partial class ConfigWindow : Window, IDisposable
         if (Runner is { Voice.Unavailable: true }) SidebarWarning("No voice here");
         if (NavItem(FontAwesomeIcon.Palette, "Appearance", _nav == NavKind.Appearance)) _nav = NavKind.Appearance;
 
+        DrawSidebarConnection();
+
         // Next frame's width, so no label is clipped once a scrollbar appears.
         var bar = ImGui.GetScrollMaxY() > 0f ? ImGui.GetStyle().ScrollbarSize : 0f;
         _sidebarW = MathF.Max(SidebarMinWidth * Theme.Scale, _navNeed + bar);
+    }
+
+    // Whether the parser is feeding, in the corner of every page.
+    //
+    // Read rather than set: it is the same question as "is the meter connected" and it
+    // gets the same answer in the same corner.
+    //
+    // On means feeding, not merely present. A parser that answered and then never opened
+    // its channel is off as far as any call is concerned, and off is muted rather than
+    // amber because it is not a fault: every kind of event has a client route of its own,
+    // so a fight with no parser at all still calls.
+    private void DrawSidebarConnection()
+    {
+        ImGui.Spacing();
+        SidebarHeading("Connection");
+
+        var on = Runner is { ParserReading: true };
+        ConnectionRow("Parser", on ? "on" : "off", on ? Theme.Good : Theme.Muted,
+            on ? "Events are coming from the parser."
+                : "No parser. The client reads every kind on its own.");
+    }
+
+    // One read-only line: a muted label, then the state in its own color.
+    //
+    // The line is one hit target and the words are drawn over it, the same way a nav row
+    // is built. Hung on the text instead, only the four letters of the state would
+    // answer a hover, and the label is the part somebody points at.
+    private void ConnectionRow(string label, string state, uint color, string tip)
+    {
+        var pad = Theme.S(8f);
+        var lineH = ImGui.GetTextLineHeightWithSpacing();
+
+        var at = ImGui.GetCursorScreenPos();
+        var back = ImGui.GetCursorPos();
+        ImGui.InvisibleButton("##conn" + label, new Vector2(ImGui.GetContentRegionAvail().X, lineH));
+        Widgets.Tooltip(tip);
+
+        var name = $"{label}:";
+        var nameW = ImGui.CalcTextSize(name).X;
+        var dl = ImGui.GetWindowDrawList();
+        dl.AddText(at + new Vector2(pad, 0f), Theme.Muted, name);
+        dl.AddText(at + new Vector2(pad + nameW + Theme.S(6f), 0f), color, state);
+
+        // Measured like every other row, so the sidebar widens for it rather than
+        // clipping the state off the end.
+        _navNeed = MathF.Max(_navNeed,
+            pad + nameW + Theme.S(6f) + ImGui.CalcTextSize(state).X + Theme.S(12f));
+
+        ImGui.SetCursorPos(new Vector2(back.X, back.Y + lineH));
     }
 
     private static void SidebarHeading(string text)
@@ -613,13 +664,16 @@ public partial class ConfigWindow : Window, IDisposable
     private List<CallHit> SearchCalls(string text)
     {
         var found = new List<CallHit>();
-        if (text.Trim().Length < 2) return found;
+        // Trimmed once rather than per call. This sat in the inner loop, so every call
+        // in every fight allocated its own copy of the same string, on every frame the
+        // search box had anything in it.
+        var needle = text.Trim();
+        if (needle.Length < 2) return found;
 
         foreach (var fight in FightCatalog.All)
         {
             foreach (var call in FightCatalog.CallsIn(fight.TerritoryId))
             {
-                var needle = text.Trim();
                 // Either wording finds it. Somebody who renamed a call searches what
                 // they named it; somebody reading a strat searches what it shipped as.
                 if (!Wording(call).Contains(needle, StringComparison.OrdinalIgnoreCase)
@@ -638,7 +692,7 @@ public partial class ConfigWindow : Window, IDisposable
         if (hits.Count == 0 && calls.Count == 0)
         {
             ImGui.TextDisabled($"Nothing matches \"{_search.Trim()}\".");
-            ImGui.TextDisabled("Try a word from the setting, a page, or what a call says.");
+            ImGui.TextDisabled("Try a setting, a page, or what a call says.");
             return;
         }
 

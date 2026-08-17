@@ -516,7 +516,9 @@ public sealed class Runner : IDisposable
         // written against. Fed after the engine has noted the actor, so a call that
         // asks where the caster is standing has an answer.
         _engine.Actors.Note(e);
-        _scripts.Feed(e, FromEnemy(e));
+        // The picture goes in with the event, because a trigger of theirs can wait
+        // seconds before it speaks and by then the event is gone.
+        _scripts.Feed(e, FromEnemy(e), CallIcon.For(e, _engine.Player.MyId));
         if (MineEnabled) _mine.Feed(e);
         _cooldowns.Feed(e, _engine.Player.MyId);
 
@@ -606,7 +608,7 @@ public sealed class Runner : IDisposable
             },
         };
 
-        if (_board.Show(shown, Now)) Voice.Say(shown.Spoken);
+        if (_board.Show(shown, Now, call.Icon)) Voice.Say(shown.Spoken);
     }
 
     // Their own keys, kept apart from every other call's so a hand-written trigger
