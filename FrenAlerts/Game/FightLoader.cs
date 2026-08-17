@@ -31,9 +31,23 @@ public sealed class FightLoader
 
     // A fresh engine per fight, rather than clearing one: every bound and every reset
     // lives inside it, and a new one cannot inherit the last fight's state.
-    public TriggerEngine Build(uint territory)
+    public TriggerEngine Build(uint territory, bool theirs = false)
     {
         var engine = new TriggerEngine();
+
+        // Their fight owns this zone, so ours is not built: not the module, not the
+        // marker calls, not the pack and not the plan. An engine with no triggers,
+        // because everything downstream still reads the party, the actors and the
+        // phase off it.
+        //
+        // All of it or none of it. Half of ours left in beside all of theirs is two
+        // calls for one mechanic, which is louder and later than either on its own.
+        if (theirs)
+        {
+            Fight = "theirs";
+            return engine;
+        }
+
         Fight = AddFightModule(engine, territory);
 
         engine.AddRange(MarkerCalls.Triggers((ushort)territory, engine.Triggers));

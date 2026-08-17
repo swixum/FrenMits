@@ -15,5 +15,8 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Jint" Version="4.16.0" />
+  </ItemGroup>
 
 </Project>

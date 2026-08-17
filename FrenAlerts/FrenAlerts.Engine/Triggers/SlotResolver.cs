@@ -6,6 +6,13 @@ public static class SlotResolver
     public static readonly uint[] HealerJobs = [24, 28, 33, 40];            // WHM SCH AST SGE
     public static readonly uint[] MeleeJobs = [20, 22, 30, 34, 39, 41];     // MNK DRG NIN SAM RPR VPR
 
+    // The role a job can be called in, in the same words Audience uses for a seat, so
+    // a seat somebody named can be held against the job they turned up on.
+    public static string RoleOf(uint job) =>
+        TankJobs.Contains(job) ? "tank"
+        : HealerJobs.Contains(job) ? "healer"
+        : "dps";
+
     public static void Fill(PartyContext party, IReadOnlyList<(uint EntityId, uint JobId)> members)
     {
         party.Reset();

@@ -15,6 +15,10 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <!-- Dalamud dev references; override DalamudLibPath if yours differ. -->
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+    <!-- Packages land next to the DLL. Their fights are JavaScript and the
+         interpreter that runs them is a package, so without this the plugin builds
+         clean and then cannot load a single fight in game. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,6 +41,17 @@
     <!-- Every fight's calls, built by the authoring tool. Without it the plugin
          loads and then has nothing to say in any fight. -->
     <Content Include="Data\calls.facall" Link="calls.facall" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Their fights, run as written. Kept in their own folder so the whole set can
+         be replaced by dropping in newer files, which is the point of running them
+         rather than retyping them. -->
+    <Content Include="Data\scripts\*.js" Link="scripts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Data\timelines\*.txt" Link="timelines\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- What a fight's casts are called before the patch that opens it, when the
+         client still hides every name behind a placeholder. -->
+    <Content Include="Data\names\*.txt" Link="names\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Ours, run after their fights have registered: what a fight of theirs does
+         not offer, added by wrapping what it already does. -->
+    <Content Include="Data\patches\*.js" Link="patches\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <!-- What each fight expects and when, so a call can be counted down to rather
          than only announced as it lands. Missing it costs the timeline, not the calls. -->
     <Content Include="Data\timelines.fatime" Link="timelines.fatime" CopyToOutputDirectory="PreserveNewest" />
@@ -76,6 +91,10 @@
       <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
       <Private>false</Private>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jint" Version="4.16.0" />
   </ItemGroup>
 
 </Project>

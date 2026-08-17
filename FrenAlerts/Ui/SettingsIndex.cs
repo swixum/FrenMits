@@ -102,6 +102,14 @@ internal static class SettingsIndex
         New("Colorblind Mode", ConfigWindow.NavKind.Appearance, nameof(Configuration.ColorblindMode),
             c => c.ColorblindMode != Defaults.ColorblindMode, c => c.ColorblindMode = Defaults.ColorblindMode,
             "red green accessibility"),
+
+        // ---- roles ----
+
+        // Looked for by the seat's own name as often as by the page's, because the
+        // seat is what a call says out loud.
+        New("Who's In Each Seat", ConfigWindow.NavKind.Roles, nameof(Configuration.PartySeats),
+            c => c.PartySeats.Count > 0, c => c.ClearPartySeats(),
+            "party role mt ot h1 h2 m1 m2 r1 r2 seat assign melee ranged"),
     };
 
     private static Entry New(string label, ConfigWindow.NavKind nav, string prop,
@@ -115,6 +123,8 @@ internal static class SettingsIndex
         ConfigWindow.NavKind.CallDisplay => "Call Display",
         ConfigWindow.NavKind.Tts => "TTS",
         ConfigWindow.NavKind.Appearance => "Appearance",
+        ConfigWindow.NavKind.Plan => "Raid Plan",
+        ConfigWindow.NavKind.Roles => "Roles",
         _ => e.Nav.ToString(),
     };
 

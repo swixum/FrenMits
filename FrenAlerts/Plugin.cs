@@ -23,6 +23,13 @@ public sealed class Plugin : IDalamudPlugin
     public ConfigWindow ConfigWindow { get; }
     public AlertOverlay Overlay { get; }
 
+    // The calls that named their own place. Empty on every install that has not
+    // written a trigger asking for one, and drawn nowhere until then.
+    public PlacedCalls Placed { get; private set; } = null!;
+
+    // Built after the runner, since it reads the board the runner owns.
+    public CooldownOverlay? CooldownOverlay { get; private set; }
+
     private readonly Game.Runner _runner;
 
     // Nothing heavy here: a slow constructor freezes the game on update.
@@ -44,7 +51,9 @@ public sealed class Plugin : IDalamudPlugin
         Overlay = new AlertOverlay(Config, _fonts, Board);
         ConfigWindow = new ConfigWindow(Config, _fonts, Board, Overlay);
         Overlay.OpenSettings = () => { ConfigWindow.IsOpen = true; ConfigWindow.BringToFront(); };
+        Placed = new PlacedCalls(Config, _fonts, Board);
         _windows.AddWindow(Overlay);
+        _windows.AddWindow(Placed);
         _windows.AddWindow(ConfigWindow);
 
         Service.PluginInterface.UiBuilder.OpenConfigUi += OpenConfig;
@@ -66,10 +75,36 @@ public sealed class Plugin : IDalamudPlugin
             Switched = id => Config.CallSwitch(Ui.FightCatalog.CallOf(id)),
             Strat = (territory, key) => Config.StratFor(territory, key),
             Seating = () => Config.SeatOverride,
+            ScriptStrat = id => Config.ScriptStratFor(id),
         };
+        // The group's seating, read on every party poll. Handed to the party read
+        // rather than to the runner, because that is the one place seats are worked
+        // out, and dropped again on the way out so a reload leaves nothing holding a
+        // config that has gone.
+        Game.PartySlots.Seats = () => Config.PartySeats;
+        Game.PartySlots.Book = () => Config.PartyBook;
+        // The triggers somebody wrote, handed over as the one list both sides hold:
+        // the page edits these objects and the config saves the same ones, so there
+        // is no copy to keep in step.
+        _runner.Mine.Use(Config.TriggerSets, Config.BuiltInRevision, out var revision);
+        Config.TriggerSets = _runner.Mine.Sets;
+        if (Config.BuiltInRevision != revision)
+        {
+            Config.BuiltInRevision = revision;
+            Config.Save();
+        }
+
+        // The cooldowns somebody set up, handed over as one list the same way, and
+        // their own window to draw them in.
+        _runner.Cooldowns.Use(Config.Cooldowns);
+        Config.Cooldowns = _runner.Cooldowns.Entries;
+        CooldownOverlay = new CooldownOverlay(Config, _runner.Cooldowns, () => _runner.Now);
+        _windows.AddWindow(CooldownOverlay);
+
         // So the window can report the fight that is actually loaded rather than
         // the list of fights that exist.
         ConfigWindow.Runner = _runner;
+        ConfigWindow.Cooldowns = CooldownOverlay;
         // The screen counts in the fight's seconds rather than the wall's: paused in
         // a replay a call holds instead of ageing out, and at four times speed the
         // countdown reaches zero when the mechanic does.
@@ -108,6 +143,11 @@ public sealed class Plugin : IDalamudPlugin
         _windows.Draw();
         // Speech follows the config on the frame, so ticking it takes effect on
         // the next call rather than the next zone or the next reload.
+        _runner.MineEnabled = Config.UserTriggersEnabled;
+        // Followed on the frame like the voice is, so changing how often the tracker
+        // shows takes effect while the settings are open rather than on the next zone.
+        _runner.Cooldowns.Board.Visibility =
+            (Engine.UserTriggers.CooldownVisibility)Config.CooldownVisibility;
         _runner.Voice.Enabled = Config.VoiceEnabled;
         _runner.Voice.Volume = Config.VoiceVolume;
         _runner.Voice.Speed = Config.VoiceSpeed;
@@ -127,6 +167,8 @@ public sealed class Plugin : IDalamudPlugin
     {
         // First off, so no event arrives while the rest is being torn down.
         _runner.Dispose();
+        Game.PartySlots.Seats = null;
+        Game.PartySlots.Book = null;
         Service.CommandManager.RemoveHandler(CommandAlias);
         Service.CommandManager.RemoveHandler(Command);
         Service.PluginInterface.UiBuilder.OpenMainUi -= OpenConfig;
@@ -236,6 +278,14 @@ public sealed class Plugin : IDalamudPlugin
                 (_runner.YellsExpected == 0
                     ? ""
                     : $" {_runner.YellsKnown} of {_runner.YellsExpected} boss lines known.") +
+                (_runner.Scripted
+                    ? $"Imported calls: {_runner.ScriptMatched} matched, {_runner.ScriptFired} said. "
+                    : "") +
+                (_runner.ScriptProblem.Length > 0 ? $"Script problem: {_runner.ScriptProblem}. " : "") +
+                (_runner.Mine.Total > 0
+                    ? $"Your triggers: {_runner.Mine.Live} of {_runner.Mine.Total} on, "
+                      + $"{_runner.Mine.Fired} said. "
+                    : "") +
                 // Said out loud, so a recorder left running is never a surprise.
                 (_runner.Diary.On ? $" Recording, {_runner.Diary.Lines} lines." : "") +
                 (_runner.ControlAvailable ? "" : " Direction calls unavailable.") +

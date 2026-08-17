@@ -36,10 +36,13 @@ public partial class ConfigWindow : Window, IDisposable
     public void Dispose() { }
 
     // Left-sidebar navigation.
-    internal enum NavKind { Home, Fights, Fight, Plan, CallDisplay, Tts, Appearance }
+    internal enum NavKind { Home, Fights, Fight, Plan, Roles, CallDisplay, Mine, Tts, Appearance }
 
     private NavKind _nav = NavKind.Home;
     private string _navCategory = FightCatalog.DefaultCategory;
+
+    // Off the sidebar for now, cooldown tracker settings and all; both still run.
+    private static readonly bool ShowMine = false;
 
     // The fight whose calls are open, held as its territory rather than the entry
     // itself: the list is rebuilt when the pack lands, and a page redrawing from
@@ -54,6 +57,9 @@ public partial class ConfigWindow : Window, IDisposable
     private string _callWords = "";
 
     public Game.Runner? Runner { get; set; }
+
+    // The tracker's own window, so the page can hand it into placing mode.
+    public CooldownOverlay? Cooldowns { get; set; }
 
     // Standing in a fight that has been turned off by hand: the one case where an
     // untouched setup goes quiet on purpose, so it is said out loud.
@@ -445,11 +451,27 @@ public partial class ConfigWindow : Window, IDisposable
         // reads as a broken plan rather than as no plan.
         if (NavItem(FontAwesomeIcon.ClipboardList, "Raid Plan", _nav == NavKind.Plan,
             Runner is { PlanCalls: > 0 } rp ? rp.PlanCalls : null)) _nav = NavKind.Plan;
+        // Beside the plan, because the plan is written in these seats. The badge is
+        // how many were named by hand, and null rather than zero so a group that has
+        // never set one reads as no seats rather than as none found.
+        if (NavItem(FontAwesomeIcon.UserFriends, "Roles", _nav == NavKind.Roles,
+            C.PartySeats.Count > 0 ? C.PartySeats.Count : null)) _nav = NavKind.Roles;
 
         ImGui.Spacing();
         SidebarHeading("ON SCREEN");
         if (NavItem(FontAwesomeIcon.Desktop, "Call Display", _nav == NavKind.CallDisplay,
             dot: C.AlertsEnabled ? 0u : Theme.Warn)) _nav = NavKind.CallDisplay;
+
+        // Its own heading rather than a settings row: a hand-written trigger is a
+        // thing that speaks, like a fight, not a preference.
+        if (ShowMine)
+        {
+            ImGui.Spacing();
+            SidebarHeading("MINE");
+            if (NavItem(FontAwesomeIcon.Bolt, "My Triggers", _nav == NavKind.Mine,
+                Runner is { Mine.Live: > 0 } m ? m.Mine.Live : null,
+                dot: C.UserTriggersEnabled ? 0u : Theme.Warn)) _nav = NavKind.Mine;
+        }
 
         ImGui.Spacing();
         SidebarHeading("SETTINGS");
@@ -715,15 +737,20 @@ public partial class ConfigWindow : Window, IDisposable
 
     private void DrawSelectedPage()
     {
+        // Nothing routes to a page that has no way in, so it lands on Home instead.
+        if (_nav == NavKind.Mine && !ShowMine) _nav = NavKind.Home;
+
         Widgets.LabelScope(_nav.ToString());
         switch (_nav)
         {
             case NavKind.Home: DrawHomePage(); break;
             case NavKind.CallDisplay: DrawCallDisplayPage(); break;
+            case NavKind.Mine: DrawMinePage(); break;
             case NavKind.Tts: DrawTtsPage(); break;
             case NavKind.Appearance: DrawAppearancePage(); break;
             case NavKind.Fight: DrawFightPage(); break;
             case NavKind.Plan: DrawPlanPage(); break;
+            case NavKind.Roles: DrawRolesPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }

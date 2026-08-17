@@ -81,6 +81,21 @@ public sealed class AlertBoard
         }
     }
 
+    // The live calls that belong in the stack, which is every one that did not name a
+    // place of its own.
+    //
+    // Asked for by the stack in both the places it needs the answer: what to draw, and
+    // whether to be on screen at all. A window opened for a call it will not draw is an
+    // empty box sitting there with the background switched on, for as long as the call
+    // that is somewhere else lasts.
+    public List<Shown> Stacked()
+    {
+        var stacked = new List<Shown>();
+        foreach (var shown in Live())
+            if (!shown.Call.Placed) stacked.Add(shown);
+        return stacked;
+    }
+
     public void Clear()
     {
         lock (_gate)
@@ -88,6 +103,16 @@ public sealed class AlertBoard
             _items.Clear();
             _live.Clear();
         }
+    }
+
+    // Takes one call back off early, by the key it was shown under.
+    //
+    // A hand-written trigger can say "and clear this when the cast lands", which is
+    // the difference between a warning that goes when the mechanic resolves and one
+    // that sits there for its full time while the fight has moved on.
+    public bool Drop(string key)
+    {
+        lock (_gate) return _items.RemoveAll(s => s.Call.Key == key) > 0;
     }
 
     public void ResetDropped()

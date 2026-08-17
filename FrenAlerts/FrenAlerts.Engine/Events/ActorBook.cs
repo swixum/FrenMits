@@ -63,6 +63,14 @@ public sealed class ActorBook
             if (a.DataId == dataId && a.Where.Known) yield return a;
     }
 
+    // Everything the book has a place for, which is what a live scan of the arena
+    // reads: the calls that ask what is standing where, rather than what just cast.
+    public IEnumerable<Actor> Placed()
+    {
+        foreach (var a in _byId.Values)
+            if (a.Where.Known) yield return a;
+    }
+
     // Applied to every event, because an id seen mid-pull may never have had a
     // spawn line in this recording at all.
     public void Note(in GameEvent e)

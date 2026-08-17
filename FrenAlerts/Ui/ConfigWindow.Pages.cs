@@ -43,6 +43,11 @@ public partial class ConfigWindow
         DrawHomeTiles();
         ImGui.Spacing();
 
+        // The fight being stood in right now, where it is one of theirs. Here as well
+        // as on the fight's own page, because half of their zones have no page of ours
+        // at all and the answer would otherwise be unreachable from inside the duty.
+        DrawScriptStrategiesHere();
+
         if (FightCatalog.All.Count == 0)
         {
             Widgets.ListBegin();
@@ -376,6 +381,23 @@ public partial class ConfigWindow
             else C.MutedTerritories.Add(fight.TerritoryId);
             C.Save();
         }
+
+        // Where the imported set covers this fight, ours is not loaded at all, so
+        // every switch below this line is describing calls that are not running.
+        // Said out loud, because a page full of controls that change nothing is the
+        // worst kind of quiet.
+        if (Runner is { Scripted: true } r
+            && r.Fight.Length > 0 && Service.ClientState.TerritoryType == fight.TerritoryId)
+        {
+            ImGui.TextColored(Theme.V(Theme.Warn),
+                $"Running the imported calls for this fight: {r.TriggerCount} triggers.");
+            ImGui.TextColored(Theme.V(Theme.Muted),
+                "Ours stands down here, so one mechanic gets one call. The switches below "
+                + "take over again if the imported set is removed.");
+            ImGui.Spacing();
+        }
+
+        DrawScriptStrategies((ushort)fight.TerritoryId);
 
         if (!on)
         {
@@ -923,7 +945,8 @@ public partial class ConfigWindow
         Widgets.RowNote("Wave Cannon: MT N, OT S, H1 NW");
         Widgets.RowNote("Towers: M1 west, M2 east");
         Widgets.ListEnd();
-        Tip("A mechanic, then who goes where. Slots are MT OT H1 H2 M1 M2 R1 R2.");
+        Tip("A mechanic, then who goes where. Slots are MT OT H1 H2 M1 M2 R1 R2, "
+            + "and who sits in each is on the Roles page.");
         ImGui.Spacing();
 
         if (Runner is not { } runner)
@@ -1077,6 +1100,12 @@ public partial class ConfigWindow
         if (Widgets.RowCheckClick("Lock position", "", ref locked,
             changed: Changed(nameof(Configuration.OverlayLocked)))) { C.OverlayLocked = locked; C.Save(); }
         Tip("Locks it in place. A pull locks it anyway, and test mode unlocks it.");
+
+        // Only where it is true. A trigger that carries its own spot ignores every row
+        // in this group, and somebody dragging the overlay while a call lands
+        // somewhere else has nothing to read that explains it.
+        if (C.TriggerSets.Any(set => set.Triggers.Any(t => t.OverridePos)))
+            Widgets.RowNote("Triggers of yours that carry their own spot are drawn there, not here");
 
         Widgets.RowBegin("Position", "", Widgets.SmallWidth("Center"),
             ctlHeight: Widgets.SmallHeight, changed: Changed(nameof(Configuration.OverlayPosition)));

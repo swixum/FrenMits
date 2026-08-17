@@ -19,6 +19,23 @@ public sealed class Runner : IDisposable
     private readonly FightLoader _fights = new();
     private readonly TimelineLoader _timelines = new();
 
+    // Their fights, for the zones they cover. Where one does, it covers the whole
+    // zone: our own triggers, our own timeline and our own counted-down calls are
+    // all left out, because two sets of calls for one mechanic talk over each other.
+    private readonly ScriptFightHost _scripts = new();
+
+    // Triggers somebody wrote themselves. Run everywhere rather than per fight: half
+    // of what they are for is the zones no module covers.
+    private readonly UserTriggerHost _mine = new();
+
+    // What the tracked cooldowns are doing. Polled here rather than drawn here: the
+    // overlay reads the board and works nothing out.
+    private readonly Cooldowns _cooldowns = new();
+
+    // Which hand-written calls are on screen, so a trigger set to wait its turn knows
+    // its own is still up. Held here because the board is the only thing that knows.
+    private readonly HashSet<string> _liveMine = new(StringComparer.Ordinal);
+
     // Where this fight is on its own timeline. Null for a fight with none, which is
     // not a fault: a timeline is what lets a call be counted down to rather than
     // announced as it lands, and a fight without one still calls.
@@ -48,9 +65,41 @@ public sealed class Runner : IDisposable
         _ahead = new TimelineCaller((ushort)_territory);
         _sources = new EventSources(OnEvent);
         _sources.WatchYells(FightLoader.YellsFor(_territory));
+        _scripts.Say = OnScriptCall;
+        _scripts.Chosen = id => ScriptStrat?.Invoke(id) ?? "";
+        _mine.Say = OnMyCall;
         Voice.Local = LocalVoice;
         Service.Framework.Update += OnFrame;
     }
+
+    // Which way the group runs each of their fights' choices, asked per pull.
+    public Func<string, string>? ScriptStrat { get; set; }
+
+    // What this zone's imported fights offer a choice on, for the page that sets them.
+    public IReadOnlyList<FrenAlerts.Engine.Scripts.ScriptStrategy> ScriptStrategiesFor(ushort zone) =>
+        _scripts.StrategiesFor(zone);
+
+    // Whether their fight owns this zone, which is what decides whose calls run.
+    public bool Scripted => _scripts.Running;
+
+    // What their side is doing, for the status line: matched is whether the feed is
+    // reaching them at all, fired is whether their conditions let anything through.
+    public int ScriptMatched => _scripts.Matched;
+
+    public int ScriptFired => _scripts.Fired;
+
+    public string ScriptProblem =>
+        _scripts.Problem.Length > 0 ? _scripts.Problem : _scripts.TriggerProblem;
+
+    // The triggers somebody wrote themselves, for the page that edits them.
+    public UserTriggerHost Mine => _mine;
+
+    // The cooldown tracker, for the page that edits it and the overlay that draws it.
+    public Cooldowns Cooldowns => _cooldowns;
+
+    // Whether hand-written triggers run at all. Set from the config on the frame, so
+    // switching it takes effect on the next event rather than the next zone.
+    public bool MineEnabled { get; set; } = true;
 
     public bool Enabled
     {
@@ -58,17 +107,21 @@ public sealed class Runner : IDisposable
         set => _sources.Enabled = value;
     }
 
-    public string Fight => _fights.Fight;
+    public string Fight => Scripted ? _scripts.Fight : _fights.Fight;
 
     // Which seat this player is in, for the fight page to read its calls as. Empty
     // outside a party, which is the page's cue to show the plain half of a call.
     public string MySlot => _engine.Player.MySlot;
 
-    public int TriggerCount => _engine.Triggers.Count;
+    public int TriggerCount => Scripted ? _scripts.TriggerCount : _engine.Triggers.Count;
 
     // How many will actually speak, which is the number that matters: a status line
     // reading only the total would call a fight covered while most of it was off.
-    public int SpeakingCount => _engine.Triggers.Count(t => t.Enabled);
+    //
+    // All of theirs speak: their triggers are not switched one by one, so the two
+    // numbers being the same is the honest answer rather than a missing one.
+    public int SpeakingCount =>
+        Scripted ? _scripts.TriggerCount : _engine.Triggers.Count(t => t.Enabled);
 
     // The seat to read the calls as, when the game cannot say. Empty is the normal
     // answer and means work it out from the party.
@@ -139,13 +192,14 @@ public sealed class Runner : IDisposable
     // ---- the fight's own clock ----
 
     // Whether this fight ships a timeline at all.
-    public bool HasTimeline => _clock is not null;
+    public bool HasTimeline => Scripted ? _scripts.HasTimeline : _clock is not null;
 
     // Whether the clock knows where it is. False until something anchors it, which
     // for a fight written in phase blocks is its first anchor rather than the pull
     // starting: counting down against a clock nobody has placed is worse than saying
     // nothing at all.
-    public bool TimelineRunning => _clock is { Running: true };
+    public bool TimelineRunning =>
+        Scripted ? _scripts.TimelineRunning : _clock is { Running: true };
 
     // How many times the clock has corrected itself, and by how much on average.
     // Positive drift means the clock was running ahead of the fight.
@@ -155,7 +209,7 @@ public sealed class Runner : IDisposable
 
     // Seconds into the fight's own timeline, which is not the same as seconds into
     // the pull: a fight written in phase blocks counts from its block base.
-    public double TimelineAt => _clock?.At(Now) ?? 0d;
+    public double TimelineAt => Scripted ? _scripts.TimelineAt(Now) : _clock?.At(Now) ?? 0d;
 
     // What the fight expects next, soonest first. Empty until the clock is anchored.
     public IEnumerable<Upcoming> Upcoming(int count = 3) =>
@@ -335,7 +389,24 @@ public sealed class Runner : IDisposable
 
     private void OnFrame(Dalamud.Plugin.Services.IFramework framework)
     {
+        // Read on the first frame rather than in the constructor: it opens eleven
+        // files and parses every one of them, and a plugin that does that while the
+        // game waits is a plugin that freezes the moment it updates.
+        if (!_scripts.Loaded)
+        {
+            _scripts.Load();
+            _mine.Load();
+            Reload();
+        }
+
         foreach (var e in _sources.Drain()) OnEvent(e);
+
+        // After the frame's events, so a call whose delay ran out this frame is said
+        // with everything that happened before it already in their state.
+        _scripts.Tick(_sources.Now);
+        if (MineEnabled) _mine.Tick(_sources.Now);
+        NoteMyLiveCalls();
+        _cooldowns.Poll(_sources.Now, (ushort)_territory);
 
         // Written down when it changes, because a fight that ages four seconds per
         // second and a fight whose clock is stuck look identical in a list of call
@@ -394,6 +465,32 @@ public sealed class Runner : IDisposable
 
         RefreshParty(e.Time);
 
+        // A pull of theirs starts and ends with ours, so their counters are rebuilt
+        // from their own initData rather than carrying the last attempt's.
+        if (Scripted && e.Kind == EventKind.CombatStart)
+        {
+            var (me, role, job) = WhoAmI();
+            _scripts.StartPull(me, role, job);
+        }
+        if (Scripted && e.Kind == EventKind.CombatEnd) _scripts.EndPull();
+
+        // Theirs reset on both edges too: a follow-up armed on a pull that wiped is
+        // a line said into the next attempt for no reason.
+        if (e.Kind is EventKind.CombatStart or EventKind.CombatEnd)
+        {
+            _mine.Reset();
+            _liveMine.Clear();
+            _cooldowns.Reset();
+        }
+
+        // Their triggers read the event as a line, which is the shape they were
+        // written against. Fed after the engine has noted the actor, so a call that
+        // asks where the caster is standing has an answer.
+        _engine.Actors.Note(e);
+        _scripts.Feed(e, FromEnemy(e));
+        if (MineEnabled) _mine.Feed(e);
+        _cooldowns.Feed(e, _engine.Player.MyId);
+
         // Before the engine, so anything reading what is coming next on this frame
         // sees the anchor this event just landed rather than the one before it.
         // Handles the pull's own start itself, so nothing here has to.
@@ -421,6 +518,147 @@ public sealed class Runner : IDisposable
         }
     }
 
+    // Whether the event came from something that is not in the party, which is what
+    // their timeline clock is told: a healer's cast must never drag the fight clock
+    // to wherever that ability appears in the file.
+    private static bool FromEnemy(in GameEvent e) =>
+        e.SourceId != 0 && !Watchers.Watching(e.SourceId);
+
+    // Who their fight thinks it is calling for. Their triggers read all three: the
+    // name to compare a target against, the role for the half of a mechanic that is
+    // yours, and the job for the lines that name it.
+    private (string Me, string Role, string Job) WhoAmI()
+    {
+        // Read off the object table like everything else here, because a replay has
+        // no local player and the first slot is this player in both.
+        var me = PartySlots.Me;
+        var name = me?.Name.TextValue ?? "";
+        var job = me?.ClassJob.ValueNullable?.Abbreviation.ExtractText() ?? "";
+
+        // The seat's role first, because that is the one the party was read into and
+        // the one a hand-set seat corrects. The job answers where there is no seat:
+        // solo, or in a replay before the party has been read.
+        var role = Audience.RoleOf(_engine.Player.MySlot);
+        if (role.Length == 0)
+            role = Engine.UserTriggers.Jobs.Get(job).Role switch
+            {
+                Engine.UserTriggers.JobRole.Tank => "tank",
+                Engine.UserTriggers.JobRole.Healer => "healer",
+                Engine.UserTriggers.JobRole.Dps => "dps",
+                _ => "",
+            };
+
+        return (name, role, job);
+    }
+
+    // One of their calls, on the same board and in the same voice as ours.
+    //
+    // Through the board rather than straight to the voice, so everything that already
+    // decides what is said still decides: the master switch, a muted fight, an edited
+    // line, and a call switched off by hand.
+    private void OnScriptCall(FrenAlerts.Engine.Scripts.ScriptCall call)
+    {
+        if (Switched?.Invoke(call.TriggerId) is false) return;
+
+        var shown = new Call
+        {
+            Text = call.Text,
+            Speech = call.Speech,
+            // Now, not later: their triggers do their own waiting, so a call arriving
+            // here is one that means now.
+            Time = Now,
+            Key = call.TriggerId,
+            Hold = (float)call.Seconds,
+            Level = call.Level switch
+            {
+                FrenAlerts.Engine.Scripts.ScriptCallLevel.Alarm => CallLevel.Alarm,
+                FrenAlerts.Engine.Scripts.ScriptCallLevel.Alert => CallLevel.Alert,
+                _ => CallLevel.Info,
+            },
+        };
+
+        if (_board.Show(shown, Now)) Voice.Say(shown.Spoken);
+    }
+
+    // Their own keys, kept apart from every other call's so a hand-written trigger
+    // can never replace a fight's call by picking the same name.
+    private const string MineKey = "mine/";
+
+    // How long a counted-down call stays up after it reaches zero. Long enough to
+    // read at the moment it means go, short enough not to sit over the next one.
+    private const float CountdownHold = 2f;
+
+    // One call from a trigger somebody wrote.
+    private void OnMyCall(Engine.UserTriggers.UserCall call)
+    {
+        var key = MineKey + call.OwnerId;
+
+        // Their clear rule: the mechanic resolved, so the warning about it goes now
+        // rather than sitting out its full time while the fight has moved on.
+        if (call.ClearsOwner)
+        {
+            _board.Drop(key);
+            _liveMine.Remove(key);
+            _mine.NoteLive(call.OwnerId, false);
+            return;
+        }
+
+        // Their own sound, before the words: it is the thing that makes somebody
+        // look, and a beep after the line has been read is a beep for nothing.
+        if (call.SoundPath.Length > 0) Sounds.Play(call.SoundPath);
+
+        // Spoken only, which is a real setting in their editor: the words are for the
+        // ears and the screen is left alone.
+        if (call.Text.Length == 0)
+        {
+            if (call.Speech.Length > 0) Voice.Say(call.Speech);
+            return;
+        }
+
+        // A trigger set to count down means the seconds are the wait, not the time
+        // on screen: the board counts to the moment and holds it briefly after.
+        // Without this their countdown triggers showed a number that never moved.
+        var counting = call.Countdown && call.Seconds > 0.5f;
+
+        var look = _mine.LookOf(call.OwnerId);
+
+        var shown = new Call
+        {
+            Text = call.Text,
+            Speech = call.Speech,
+            Time = counting ? Now + call.Seconds : Now,
+            Key = key,
+            Hold = counting ? CountdownHold : call.Seconds,
+            Tint = look.Tint,
+            Scale = look.Scale,
+            At = look.At,
+        };
+
+        // Their icon is a game icon by number, which is what their editor asks for,
+        // rather than a head marker: drawn as a marker it came out as a crosshair
+        // whatever somebody picked.
+        if (_board.Show(shown, Now, CallIcon.Sheet(call.IconId))) Voice.Say(shown.Spoken);
+    }
+
+    // Which of their calls are still on screen. A trigger set to wait its turn is
+    // asking exactly this, and only the board can answer it.
+    private void NoteMyLiveCalls()
+    {
+        var now = _board.Live()
+            .Select(s => s.Call.Key)
+            .Where(k => k.StartsWith(MineKey, StringComparison.Ordinal))
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var key in _liveMine)
+            if (!now.Contains(key)) _mine.NoteLive(key[MineKey.Length..], false);
+
+        foreach (var key in now)
+            if (!_liveMine.Contains(key)) _mine.NoteLive(key[MineKey.Length..], true);
+
+        _liveMine.Clear();
+        foreach (var key in now) _liveMine.Add(key);
+    }
+
     // The fight changes before the engine sees the event, or the first mechanic of
     // the pull is read by the previous fight's triggers.
     private void LeaveFight(uint territory)
@@ -429,6 +667,11 @@ public sealed class Runner : IDisposable
         WriteDiary();
         _territory = territory;
         ArenaSeen = 0;
+        // Everything a hand-written trigger was waiting on belonged to the zone being
+        // left, down to which of its calls were on screen.
+        _mine.Reset();
+        _liveMine.Clear();
+        _cooldowns.Reset();
         Reload();
         _sources.LeftTheFight();
         _board.Clear();
@@ -451,14 +694,31 @@ public sealed class Runner : IDisposable
 
     private void Reload()
     {
-        _engine = _fights.Build(_territory);
+        // Asked first, because it decides whether any of ours is built at all.
+        var theirs = _scripts.Covers((ushort)_territory);
+
+        _engine = _fights.Build(_territory, theirs);
         // Rebuilt engines are new objects, so the recorder has to be handed over or
         // it stops writing the moment somebody changes a strat mid-session.
         _engine.Diary = Diary;
         // A fresh clock rather than a reset one, for the same reason as the engine:
         // a pull can never inherit the last fight's anchors.
-        _clock = _timelines.Build(_territory);
-        _ahead = new TimelineCaller((ushort)_territory);
+        //
+        // Not built at all where their fight owns the zone: theirs ships its own
+        // timeline, and a second one counting down the same mechanics is the double
+        // calling this port exists to end.
+        _clock = theirs ? null : _timelines.Build(_territory);
+        _ahead = new TimelineCaller(theirs ? (ushort)0 : (ushort)_territory);
+
+        // Their side is pointed at the zone after ours is built, because the actor
+        // book their arena reads come from belongs to the engine just built.
+        if (theirs)
+        {
+            var (me, role, job) = WhoAmI();
+            _scripts.Enter((ushort)_territory, _engine.Actors, me, role, job);
+        }
+        else _scripts.Leave();
+
         // Asked the same question the engine was, in the same breath, so the
         // listener can never be watching a fight the engine is not loaded for.
         _sources.WatchYells(FightLoader.YellsFor(_territory));
@@ -491,6 +751,10 @@ public sealed class Runner : IDisposable
 
             _engine.Player.MySlot = seat;
         }
+
+        // Read on the party poll rather than per event: a hand-written trigger asks
+        // who somebody is on every single one, and this walks the party to answer.
+        _mine.Refresh((ushort)_territory, _engine.Player.MyId, _engine.Party);
 
         // Names come from the client, so a call can say who rather than which id.
         foreach (var (id, _) in members)
@@ -537,6 +801,9 @@ public sealed class Runner : IDisposable
         WriteDiary();
         Service.Framework.Update -= OnFrame;
         _sources.Dispose();
+        _scripts.Dispose();
+        // What the night watched happen, before the handles go.
+        _mine.Remember();
         Voice.Dispose();
         LocalVoice.Dispose();
         _board.Clear();

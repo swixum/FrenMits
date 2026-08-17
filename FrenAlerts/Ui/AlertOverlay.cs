@@ -96,8 +96,11 @@ public class AlertOverlay : Window
         if (_pushedBg) ImGui.PopStyleColor();
     }
 
+    // Counted as the stack rather than as the board: a call that named its own place
+    // is drawn by the window that places them, and opening this one for it puts an
+    // empty background box on screen for as long as that call lasts.
     public override bool DrawConditions()
-        => OverlayState.Visible(C.AlertsEnabled, C.TestMode, _board.Live().Count,
+        => OverlayState.Visible(C.AlertsEnabled, C.TestMode, _board.Stacked().Count,
                                 UiServices.GameUiHidden);
 
     public override void Draw()
@@ -123,7 +126,10 @@ public class AlertOverlay : Window
         }
 
         var now = _board.Now;
-        var live = _board.Live();
+        // Anything that named its own place is drawn by the window that places them,
+        // and must not take a slot here as well: it would be on screen twice, and
+        // the second copy would push a fight's call down.
+        var live = _board.Stacked();
         if (live.Count == 0)
         {
             if (Placing) DrawSample();
@@ -145,7 +151,7 @@ public class AlertOverlay : Window
                 if (i > 0) ImGui.Spacing();
                 var s = live[i];
                 DrawCall(s.Call.Text, s.Call.Level, s.Icon, s.Remaining(now), s.Counting(now),
-                    (float)(now - s.FireAt), px);
+                    (float)(now - s.FireAt), px, s.Call.Tint);
             }
         }
 
@@ -262,12 +268,15 @@ public class AlertOverlay : Window
         C.ShowCallIcon && icon.Any ? Math.Clamp(C.CallIconScale, 0.4f, 1.6f) + 0.32f : 0f;
 
     private void DrawCall(string text, CallLevel level, CallIcon icon, float remaining, bool counting,
-        float sinceGo = 0f, float? sharedPx = null)
+        float sinceGo = 0f, float? sharedPx = null, uint tint = 0)
     {
         // Centred on go rather than stopping at it: the flash is worth most at the
         // moment you act, and the switch is called Pulse on Go.
         const float pulseWindow = 1.5f;
-        var baseColor = ColorFor(level);
+        // A hand-written trigger can pick its own colour, and that beats the level's:
+        // somebody who set their own call green did so to tell it apart from the
+        // fight's.
+        var baseColor = tint != 0 ? tint : ColorFor(level);
         var pulsing = C.PulseWhenClose
             && (counting ? remaining < pulseWindow : sinceGo < pulseWindow);
         var color = pulsing ? OverlayChrome.Pulse(baseColor) : baseColor;

@@ -105,7 +105,14 @@ jobs:
           # Same again for the timelines: without them nothing counts down and the
           # fight page reads zero mechanics everywhere, with no error to explain it.
           if (-not (Test-Path "$alertsOut\timelines.fatime")) { throw "timelines.fatime missing - no fight would count down." }
-          Compress-Archive -Path @("$alertsOut\FrenAlerts.dll", "$alertsOut\FrenAlerts.Engine.dll", "$alertsOut\FrenAlerts.json", "$alertsOut\icon.png", "$alertsOut\calls.facall", "$alertsOut\timelines.fatime") -DestinationPath "site\FrenAlerts.zip" -Force
+          # The fights themselves, and the interpreter that runs them. Either one
+          # missing is a plugin that loads and then knows no fight at all, which is
+          # exactly the failure the two guards above were written for.
+          if (-not (Test-Path "$alertsOut\Jint.dll")) { throw "Jint.dll missing - no fight script could run." }
+          if (-not (Test-Path "$alertsOut\Acornima.dll")) { throw "Acornima.dll missing - the script interpreter would not load." }
+          $fightScripts = Get-ChildItem "$alertsOut\scripts\*.js" -ErrorAction SilentlyContinue
+          if ($fightScripts.Count -lt 10) { throw "only $($fightScripts.Count) fight scripts found - the fights would be missing." }
+          Compress-Archive -Path @("$alertsOut\FrenAlerts.dll", "$alertsOut\FrenAlerts.Engine.dll", "$alertsOut\Jint.dll", "$alertsOut\Acornima.dll", "$alertsOut\FrenAlerts.json", "$alertsOut\icon.png", "$alertsOut\calls.facall", "$alertsOut\timelines.fatime", "$alertsOut\scripts", "$alertsOut\timelines", "$alertsOut\names", "$alertsOut\patches") -DestinationPath "site\FrenAlerts.zip" -Force
           # Its own name at the site root, or it would overwrite FrenMits' icon.
           Copy-Item "FrenAlerts\images\icon.png" "site\frenalerts-icon.png" -Force
           # The voice pack, beside the plugin zips rather than inside one. Checked by

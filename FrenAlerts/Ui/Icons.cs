@@ -38,6 +38,33 @@ internal static class Icons
         return StatusIcons[statusId] = icon;
     }
 
+    private static readonly Dictionary<uint, uint> ActionIcons = new();
+
+    // An action id to its icon, the same way a status resolves to one. Wanted by the
+    // cooldown tracker: somebody types an action id and should not have to go and
+    // find the icon number that goes with it.
+    public static uint ForAction(uint actionId)
+    {
+        if (actionId == 0) return 0;
+        if (ActionIcons.TryGetValue(actionId, out var hit)) return hit;
+
+        UiServices.Ensure();
+        uint icon = 0;
+        if (UiServices.Ready)
+        {
+            try
+            {
+                if (UiServices.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>()
+                        ?.GetRowOrDefault(actionId) is { } row)
+                    icon = row.Icon;
+            }
+            catch (Exception ex) { Service.Log.Warning(ex, $"action {actionId} has no icon"); }
+        }
+
+        if (ActionIcons.Count >= MaxCached) ActionIcons.Clear();
+        return ActionIcons[actionId] = icon;
+    }
+
     public static bool DrawTo(ImDrawListPtr dl, uint iconId, Vector2 p0, Vector2 size)
     {
         if (iconId == 0) return false;
@@ -65,6 +92,11 @@ internal static class Icons
         {
             case CallIconKind.Status:
                 return DrawTo(dl, ForStatus(icon.Id), p0, new Vector2(size, size));
+
+            // Drawn as it is: the number already names the art, so nothing has to be
+            // looked up and nothing stands in for it.
+            case CallIconKind.Sheet:
+                return DrawTo(dl, icon.Id, p0, new Vector2(size, size));
 
             case CallIconKind.Marker:
                 DrawGlyph(dl, FontAwesomeIcon.Crosshairs, p0, size, tint, shadow);
@@ -117,6 +149,7 @@ internal static class Icons
     public static void Forget()
     {
         StatusIcons.Clear();
+        ActionIcons.Clear();
         _logo = null;
         _logoLookedUp = false;
     }
