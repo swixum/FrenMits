@@ -44,15 +44,33 @@ public static class FightCatalog
             ? (f.Name, f.Full, f.Category, f.Expansion)
             : ($"Territory {territory}", "", "Other", "");
 
-    // Swapped whole rather than edited in place, so a draw reading the list never
-    // sees it half filled while the pack lands on another thread.
-    private static IReadOnlyList<FightEntry> _entries = Array.Empty<FightEntry>();
-    private static IReadOnlyDictionary<uint, IReadOnlyList<CallEntry>> _calls =
-        new Dictionary<uint, IReadOnlyList<CallEntry>>();
-    private static IReadOnlyDictionary<string, string> _shipped =
-        new Dictionary<string, string>();
-    private static IReadOnlyDictionary<string, string> _keyOf =
-        new Dictionary<string, string>();
+    // Everything one build produces, published as a single reference.
+    //
+    // These were four fields, assigned one after another, under a comment saying a draw
+    // never sees the list half filled while the pack lands on another thread. That was
+    // true of each field and false across them.
+    //
+    // Two builds really do run at once: the pack lands on its own thread and calls Build,
+    // and the fight page calls ReadAs on the frame thread, which rebuilds the first time
+    // it is asked. Interleaved, the page can take its fight list from one build and its
+    // calls from the other, and a fight then reads "157 calls" with nothing under it.
+    // That is the symptom this file already carries a comment about, arrived at from a
+    // second direction.
+    //
+    // One reference means the four cannot disagree: a reader has the whole of one build
+    // or the whole of the other, and a reference assignment cannot be seen half done.
+    private sealed record Catalog(
+        IReadOnlyList<FightEntry> Entries,
+        IReadOnlyDictionary<uint, IReadOnlyList<CallEntry>> Calls,
+        IReadOnlyDictionary<string, string> Shipped,
+        IReadOnlyDictionary<string, string> KeyOf);
+
+    private static Catalog _catalog = new(
+        Array.Empty<FightEntry>(),
+        new Dictionary<uint, IReadOnlyList<CallEntry>>(),
+        new Dictionary<string, string>(),
+        new Dictionary<string, string>());
+
     private static IReadOnlyDictionary<uint, int> _mechanics = new Dictionary<uint, int>();
 
     // Per fight, the second each timeline mechanic lands, keyed the way a call id
@@ -71,29 +89,29 @@ public static class FightCatalog
     public static IReadOnlyList<CallEntry> CallsIn(uint territory)
     {
         Ensure();
-        return _calls.TryGetValue(territory, out var list) ? list : [];
+        return _catalog.Calls.TryGetValue(territory, out var list) ? list : [];
     }
 
     public static string ShippedText(string key)
     {
         Ensure();
-        return _shipped.TryGetValue(key, out var text) ? text : "";
+        return _catalog.Shipped.TryGetValue(key, out var text) ? text : "";
     }
 
     public static FightEntry? At(uint territory)
     {
         Ensure();
-        foreach (var f in _entries) if (f.TerritoryId == territory) return f;
+        foreach (var f in _catalog.Entries) if (f.TerritoryId == territory) return f;
         return null;
     }
 
     public static string CallOf(string triggerId)
     {
         Ensure();
-        return _keyOf.TryGetValue(triggerId, out var key) ? key : "";
+        return _catalog.KeyOf.TryGetValue(triggerId, out var key) ? key : "";
     }
 
-    public static IReadOnlyList<FightEntry> All { get { Ensure(); return _entries; } }
+    public static IReadOnlyList<FightEntry> All { get { Ensure(); return _catalog.Entries; } }
 
     // Only the groups that have something in them, in the order above.
     public static IEnumerable<string> Categories
@@ -101,7 +119,7 @@ public static class FightCatalog
         get
         {
             Ensure();
-            var have = _entries;
+            var have = _catalog.Entries;
             return Order.Where(c => have.Any(f => f.Category == c));
         }
     }
@@ -116,7 +134,7 @@ public static class FightCatalog
     {
         if (_asked) return;
         _asked = true;
-        _entries = Build([]);
+        _catalog = Build([]);
         _ = Task.Run(LoadPack);
     }
 
@@ -143,7 +161,7 @@ public static class FightCatalog
         if (!_asked) return;
         try
         {
-            _entries = Build(_pack);
+            _catalog = Build(_pack);
         }
         catch (Exception ex)
         {
@@ -168,7 +186,7 @@ public static class FightCatalog
         try
         {
             _pack = ReadPack().ToList();
-            _entries = Build(_pack);
+            _catalog = Build(_pack);
         }
         catch (Exception ex)
         {
@@ -306,7 +324,7 @@ public static class FightCatalog
         return CallPack.ReadAll(File.ReadLines(path).Take(MaxPackLines)).ToList();
     }
 
-    private static IReadOnlyList<FightEntry> Build(IReadOnlyList<CallSpec> pack)
+    private static Catalog Build(IReadOnlyList<CallSpec> pack)
     {
         var modules = new Dictionary<uint, List<Trigger>>();
         Module(modules, DancingMad.Territory, DancingMad.Triggers);
@@ -358,10 +376,6 @@ public static class FightCatalog
             // hidden either.
             list.Add(new FightEntry(name, full, category, territory, all.Count, expansion));
         }
-        _calls = calls;
-        _shipped = shipped;
-        _keyOf = keyOf;
-
         // Category, then newest expansion, then release order inside it. Territory ids
         // climb with the patch, so ascending inside one expansion is release order and
         // needs no second list to maintain.
@@ -372,7 +386,10 @@ public static class FightCatalog
             by = Shipped.ExpansionRank(a.Expansion).CompareTo(Shipped.ExpansionRank(b.Expansion));
             return by != 0 ? by : a.TerritoryId.CompareTo(b.TerritoryId);
         });
-        return list;
+
+        // Handed back rather than written into the fields, so the only place a build is
+        // published is the one line that assigns it.
+        return new Catalog(list, calls, shipped, keyOf);
     }
 
     // The hand written calls for one fight, as list rows.
