@@ -102,7 +102,7 @@ public partial class ConfigWindow
         // page that drew only the dropdowns would hide nearly all of them.
         if (strategy.Options.Count == 0)
         {
-            var (hint, placeholder, example) = HelpFor(strategy);
+            var (hint, placeholder, notes) = HelpFor(strategy);
             var typed = C.ScriptStratFor(strategy.Id);
             if (Widgets.RowText(strategy.Name, ref typed, $"ss{strategy.Id}",
                 width: 190f, changed: Set(strategy), hint: hint,
@@ -116,7 +116,11 @@ public partial class ConfigWindow
 
             // Written out rather than left in the tooltip: a box wanting one number
             // out of eight is a box nobody can fill in without being told which eight.
-            if (example.Length > 0) Widgets.RowNote(example);
+            //
+            // A line each, because a row draws its text with no wrapping and no
+            // clipping: one sentence long enough to hold the answer and all eight
+            // seats runs off the side of the panel instead of being cut off there.
+            foreach (var note in notes) Widgets.RowNote(note);
             return;
         }
 
@@ -170,17 +174,30 @@ public partial class ConfigWindow
     // Read out of their own code rather than off a guide. `xyToTurnAmount` runs
     // N=0, E=90, S=180, W=270, the eight towers are sorted by it, and the spot is
     // added to Nael's, so counting up is counting clockwise from Nael.
-    private static (string Hint, string Placeholder, string Example) HelpFor(ScriptStrategy strategy)
+    private static (string Hint, string Placeholder, IReadOnlyList<string> Notes) HelpFor(
+        ScriptStrategy strategy)
         => strategy.Id switch
         {
             // The example pairs each seat with its own number, which is party order
             // against 0-7, so it is generated rather than typed: a ninth seat would
             // otherwise leave somebody reading an example that stops at eight.
+            //
+            // It led with "Example, one each", which reads as a list to fill in. The
+            // box takes one number and it is the reader's own, so that is its own line
+            // and it comes first.
+            // The hint is the short one of the two. It shares its row with the box,
+            // which takes 190 of the page's roughly 540, where a note has the row to
+            // itself: every other hint in this window is 43 characters or fewer and
+            // the middle of them is 18, so what does not fit in that goes below.
             "heavensfallTowerPosition" => (
-                "Your tower, counting clockwise from Nael. 0 is Nael's own.",
+                "Clockwise from Nael, 0 is Nael's.",
                 "0-7, or disabled",
-                "Example, one each: "
-                    + string.Join(", ", Audience.Slots.Select((slot, at) => $"{slot} {at}"))),
-            _ => ("", "", ""),
+                (IReadOnlyList<string>)
+                [
+                    "One number, yours. Not the whole list.",
+                    "Example: "
+                        + string.Join(", ", Audience.Slots.Select((slot, at) => $"{slot} {at}")),
+                ]),
+            _ => ("", "", []),
         };
 }
