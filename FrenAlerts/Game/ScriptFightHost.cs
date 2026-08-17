@@ -68,6 +68,54 @@ public sealed class ScriptFightHost : IDisposable
         return all;
     }
 
+    // Every call the imported set can make in a zone, with the words it can say.
+    //
+    // Read without standing in the fight, because the page that lists them is read
+    // between pulls: a runner is compiled for that zone's sets and thrown away. It is
+    // the same compile the pull does, so what this lists is what would speak.
+    //
+    // Cached per zone. The list is a few hundred entries and building it walks every
+    // trigger through the script engine, which is not a thing to do per frame.
+    private readonly Dictionary<ushort, List<ScriptShownCall>> _listed = new();
+
+    public IReadOnlyList<ScriptShownCall> CallsFor(ushort zone)
+    {
+        if (_listed.TryGetValue(zone, out var already)) return already;
+
+        var listed = new List<ScriptShownCall>();
+        if (!Covers(zone)) return listed;
+
+        try
+        {
+            var runner = new ScriptTriggerRunner(_fights.Js!);
+            runner.Compile(_fights.SetsFor(zone));
+
+            foreach (var trigger in runner.Triggers)
+                listed.Add(new ScriptShownCall(
+                    trigger.Id,
+                    trigger.Speaks,
+                    runner.Says(trigger.Id)));
+        }
+        catch (Exception ex)
+        {
+            Service.Log.Warning(ex, $"Fren Alerts: could not list the imported calls for {zone}");
+        }
+
+        _listed[zone] = listed;
+        return listed;
+    }
+
+    // How many mechanics their timeline lists for a zone, for the page to say so the
+    // same way ours does. Read off the files rather than off the running clock, so it
+    // answers from anywhere rather than only in the fight.
+    public int TimelineMechanicsFor(ushort zone)
+    {
+        var total = 0;
+        foreach (var key in _fights.TimelineKeysFor(zone))
+            if (_timelines.TryGetValue(key, out var timeline)) total += timeline.Entries.Count;
+        return total;
+    }
+
     // Whether their files have been read yet. Read once, on a frame rather than in a
     // constructor: it opens eleven files and parses every one of them, and a plugin
     // that does that while the game waits is a plugin that freezes on update.

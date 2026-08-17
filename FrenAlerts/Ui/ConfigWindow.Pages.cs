@@ -386,14 +386,18 @@ public partial class ConfigWindow
         // every switch below this line is describing calls that are not running.
         // Said out loud, because a page full of controls that change nothing is the
         // worst kind of quiet.
-        if (Runner is { Scripted: true } r
-            && r.Fight.Length > 0 && Service.ClientState.TerritoryType == fight.TerritoryId)
+        // Asked about the zone rather than about where the player is standing: the
+        // answer is the same from a hub, and this page is read between pulls.
+        var theirs = Runner?.ScriptCovers((ushort)fight.TerritoryId) == true;
+
+        if (theirs)
         {
+            var count = Runner!.ScriptCallsFor((ushort)fight.TerritoryId).Count;
             ImGui.TextColored(Theme.V(Theme.Warn),
-                $"Running the imported calls for this fight: {r.TriggerCount} triggers.");
+                $"The imported set calls this fight: {count} calls.");
             ImGui.TextColored(Theme.V(Theme.Muted),
-                "Ours stands down here, so one mechanic gets one call. The switches below "
-                + "take over again if the imported set is removed.");
+                "Ours is not loaded here, so this page lists theirs. Our own calls and "
+                + "strats come back if the imported set is removed.");
             ImGui.Spacing();
         }
 
@@ -404,6 +408,16 @@ public partial class ConfigWindow
             ImGui.TextColored(Theme.V(Theme.Warn),
                 "This fight is off. None of these will call.");
             ImGui.Spacing();
+        }
+
+        // Theirs, per mechanic, in their words. Ours is not drawn at all here: two
+        // lists asking the same questions with different answers, only one of them
+        // connected to anything, is the page this replaced.
+        if (theirs)
+        {
+            DrawSeat();
+            DrawTheirCalls((ushort)fight.TerritoryId);
+            return;
         }
 
         if (calls.Count == 0)

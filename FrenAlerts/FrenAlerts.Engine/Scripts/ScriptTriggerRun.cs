@@ -445,6 +445,32 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
         return found;
     }
 
+    // What a call can say, read straight off the trigger's own output strings.
+    //
+    // Not the same question as Outputs above, which runs a response builder to see
+    // what keys it leaves behind and therefore needs a pull's worth of state. This one
+    // is for listing a fight between pulls: what the file declares it can say, in
+    // their words, without touching anything the fight is holding.
+    //
+    // A line built from a function rather than written down comes back empty and is
+    // dropped, because there is nothing to show until it runs.
+    public IReadOnlyList<string> Says(string triggerId)
+    {
+        var trigger = _triggers.Find(t => t.Id == triggerId);
+        if (trigger is null || !trigger.OutputStrings.IsObject()) return [];
+
+        var said = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var (_, property) in trigger.OutputStrings.AsObject().GetOwnProperties())
+        {
+            var line = English(property.Value);
+            if (line.Length > 0 && seen.Add(line)) said.Add(line);
+        }
+
+        return said;
+    }
+
     // The shipped English of one output string, or nothing for the ones that are
     // built from a function rather than written down.
     private static string English(JsValue? value)

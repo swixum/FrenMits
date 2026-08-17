@@ -82,6 +82,23 @@ public sealed class Runner : IDisposable
     // Whether their fight owns this zone, which is what decides whose calls run.
     public bool Scripted => _scripts.Running;
 
+    // Whether the imported set covers a fight, asked about a zone rather than about
+    // where the player is standing: the fight page is read between pulls, from a
+    // hub, and the answer is the same either way.
+    public bool ScriptCovers(ushort zone) => _scripts.Covers(zone);
+
+    // Whether a noise is allowed out at all, asked the same way the board asks whether
+    // a call is: the master switch and this zone's mute. Without it a trigger's sound
+    // played through both, because it is played before the call is ever offered to the
+    // board and the board is where those two questions live.
+    public Func<bool>? Audible { get; set; }
+
+    // Every call the imported set can make there, with the words it says.
+    public IReadOnlyList<FrenAlerts.Engine.Scripts.ScriptShownCall> ScriptCallsFor(ushort zone) =>
+        _scripts.CallsFor(zone);
+
+    public int ScriptTimelineMechanics(ushort zone) => _scripts.TimelineMechanicsFor(zone);
+
     // What their side is doing, for the status line: matched is whether the feed is
     // reaching them at all, fired is whether their conditions let anything through.
     public int ScriptMatched => _scripts.Matched;
@@ -604,8 +621,10 @@ public sealed class Runner : IDisposable
         }
 
         // Their own sound, before the words: it is the thing that makes somebody
-        // look, and a beep after the line has been read is a beep for nothing.
-        if (call.SoundPath.Length > 0) Sounds.Play(call.SoundPath);
+        // look, and a beep after the line has been read is a beep for nothing. Held to
+        // the same two questions the board asks, so alerts switched off or a muted
+        // fight is silent rather than quietly still beeping.
+        if (call.SoundPath.Length > 0 && Audible?.Invoke() != false) Sounds.Play(call.SoundPath);
 
         // Spoken only, which is a real setting in their editor: the words are for the
         // ears and the screen is left alone.
