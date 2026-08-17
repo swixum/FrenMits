@@ -36,7 +36,7 @@ public partial class ConfigWindow : Window, IDisposable
     public void Dispose() { }
 
     // Left-sidebar navigation.
-    internal enum NavKind { Home, Fights, Fight, Plan, Roles, CallDisplay, Mine, Tts, Appearance }
+    internal enum NavKind { Home, Fights, Fight, Plan, Roles, CallDisplay, Mine, Tts, Appearance, Parser }
 
     private NavKind _nav = NavKind.Home;
     private string _navCategory = FightCatalog.DefaultCategory;
@@ -519,10 +519,8 @@ public partial class ConfigWindow : Window, IDisposable
         _sidebarW = MathF.Max(SidebarMinWidth * Theme.Scale, _navNeed + bar);
     }
 
-    // Whether the parser is feeding, in the corner of every page.
-    //
-    // Read rather than set: it is the same question as "is the meter connected" and it
-    // gets the same answer in the same corner.
+    // Whether the parser is feeding, in the corner of every page, and the way in to
+    // the page about it.
     //
     // On means feeding, not merely present. A parser that answered and then never opened
     // its channel is off as far as any call is concerned, and off is muted rather than
@@ -534,9 +532,11 @@ public partial class ConfigWindow : Window, IDisposable
         SidebarHeading("Connection");
 
         var on = Runner is { ParserReading: true };
-        ConnectionRow("Parser", on ? "on" : "off", on ? Theme.Good : Theme.Muted,
-            on ? "Events are coming from the parser."
-                : "No parser. The client reads every kind on its own.");
+        if (ConnectionRow("Parser", on ? "on" : "off", on ? Theme.Good : Theme.Muted,
+                on ? "Events are coming from the parser. Click for the setup."
+                    : "No parser. The client reads every kind on its own. Click for the setup.",
+                selected: _nav == NavKind.Parser))
+            _nav = NavKind.Parser;
     }
 
     // One read-only line: a muted label, then the state in its own color.
@@ -544,7 +544,8 @@ public partial class ConfigWindow : Window, IDisposable
     // The line is one hit target and the words are drawn over it, the same way a nav row
     // is built. Hung on the text instead, only the four letters of the state would
     // answer a hover, and the label is the part somebody points at.
-    private void ConnectionRow(string label, string state, uint color, string tip)
+    private bool ConnectionRow(string label, string state, uint color, string tip,
+        bool selected = false)
     {
         var pad = Theme.S(8f);
         var lineH = ImGui.GetTextLineHeightWithSpacing();
@@ -552,7 +553,20 @@ public partial class ConfigWindow : Window, IDisposable
         var at = ImGui.GetCursorScreenPos();
         var back = ImGui.GetCursorPos();
         ImGui.InvisibleButton("##conn" + label, new Vector2(ImGui.GetContentRegionAvail().X, lineH));
+        var clicked = ImGui.IsItemClicked();
         Widgets.Tooltip(tip);
+
+        // The same wash and edge bar a selected nav row gets, drawn under the words
+        // rather than over them, so the row reads as the one that is open.
+        if (selected)
+        {
+            var dlSel = ImGui.GetWindowDrawList();
+            var min = ImGui.GetItemRectMin();
+            var max = ImGui.GetItemRectMax();
+            dlSel.AddRectFilled(min, max, (Theme.Accent & 0x00FFFFFFu) | 0x2A000000u);
+            dlSel.AddRectFilled(new Vector2(min.X, min.Y + 1f),
+                new Vector2(min.X + Theme.S(3f), max.Y - 1f), Theme.Accent, 2f);
+        }
 
         var name = $"{label}:";
         var nameW = ImGui.CalcTextSize(name).X;
@@ -566,6 +580,7 @@ public partial class ConfigWindow : Window, IDisposable
             pad + nameW + Theme.S(6f) + ImGui.CalcTextSize(state).X + Theme.S(12f));
 
         ImGui.SetCursorPos(new Vector2(back.X, back.Y + lineH));
+        return clicked;
     }
 
     private static void SidebarHeading(string text)
@@ -855,6 +870,7 @@ public partial class ConfigWindow : Window, IDisposable
             case NavKind.Fight: DrawFightPage(); break;
             case NavKind.Plan: DrawPlanPage(); break;
             case NavKind.Roles: DrawRolesPage(); break;
+            case NavKind.Parser: DrawParserPage(); break;
             default: DrawFightCategoryPage(_navCategory); break;
         }
     }

@@ -30,11 +30,18 @@ public partial class ConfigWindow
     private readonly Dictionary<string, string> _seatGuess = new(8);
     private int _seatRuns;
 
-    // What is in each box while it is being typed in, and which box that is. A seat is
-    // written down when the box is left, not per keystroke: every letter of a name would
-    // otherwise be a seat change and a config save.
+    // What is in each list's find box, and which list is being opened this frame so its
+    // box can be given the keyboard once. Nothing here is written to the config: a seat
+    // is set when a name is taken, not per keystroke, or every letter typed would be a
+    // seat change and a config save.
     private readonly Dictionary<string, string> _seatTyped = new(8);
-    private string _seatEditing = "";
+    private string _seatOpening = "";
+
+    // The field, at rest and lit. Not FrameBg from the theme: this is drawn on the draw
+    // list rather than by a widget, so it cannot read the pushed style the way an
+    // InputText does.
+    private const uint FieldBg = 0xFF2B1B22;   // #221B2B, the theme's frame
+    private const uint FieldHot = 0xFF39242E;  // #2E2439, the theme's hovered frame
 
     // Which group the rows are about. Empty is the party stood in, which is what it
     // reads as every time the page is opened.
@@ -231,35 +238,7 @@ public partial class ConfigWindow
         Widgets.RowBegin(slot, hint, boxW, id: $"seat{slot}", check: picked.Length > 0,
             hintCol: hintCol);
 
-        // The box holds what is being typed while it is being typed in, and whoever has
-        // the role the rest of the time.
-        if (_seatEditing != slot) _seatTyped[slot] = picked;
-        var typed = _seatTyped.GetValueOrDefault(slot, picked);
-
-        // Room kept for the delete button whether it is drawn or not: typing a name
-        // would otherwise shrink the box you are typing in, under the cursor.
-        ImGui.SetNextItemWidth(boxW - btnW * 2f - gap * 2f);
-        ImGui.InputTextWithHint($"##seat{slot}",
-            guessed.Length > 0 ? guessed : "work it out", ref typed, PartyBook.MaxName);
-        _seatTyped[slot] = typed;
-
-        if (ImGui.IsItemActivated()) _seatEditing = slot;
-        if (ImGui.IsItemDeactivatedAfterEdit())
-        {
-            Seat(slot, typed.Trim());
-            _seatEditing = "";
-        }
-        else if (_seatEditing == slot && ImGui.IsItemDeactivated())
-        {
-            _seatEditing = "";
-        }
-
-        Tip(picked.Length > 0
-            ? $"{slot} is {picked} whenever they are in the party. Kicks in on the next party read."
-            : "Type a name, or pick one from the party.");
-
-        ImGui.SameLine(0, gap);
-        DrawSeatPick(slot, picked, names, btnW);
+        DrawSeatField(slot, picked, guessed, names, boxW - btnW - gap);
 
         ImGui.SameLine(0, gap);
         DrawSeatDrop(slot, picked, btnW);
@@ -267,42 +246,171 @@ public partial class ConfigWindow
         Widgets.RowEnd();
     }
 
-    // The list of who is here.
+    // The whole control is the list.
     //
-    // A button and a popup rather than a combo with its preview switched off: that combo
-    // draws an arrow with no frame around it, so there is nothing to aim at, and it
-    // opens where the mouse is instead of under the row. This one is a square button the
-    // size of the box beside it, and the list opens against its bottom-left corner.
-    private void DrawSeatPick(string slot, string picked, List<string> names, float btnW)
+    // It was a text box with a caret beside it the size of a checkbox, and that caret was
+    // the only way in: the smallest thing on the page, holding the thing the page is for.
+    // Now the field itself opens the party, at its own width, flush under itself. The box
+    // at the top of it filters as it is typed and takes a name that is not in the party,
+    // so the typing did not go anywhere, it moved inside the list where the eight names
+    // it is being matched against are on screen beside it.
+    private void DrawSeatField(string slot, string picked, string guessed, List<string> names, float w)
     {
         var pop = $"seatpick{slot}";
+        var open = ImGui.IsPopupOpen(pop);
 
-        if (Widgets.IconSquare($"pick{slot}", FontAwesomeIcon.CaretDown, btnW))
+        var h = ImGui.GetFrameHeight();
+        var at = ImGui.GetCursorScreenPos();
+        var pad = Theme.S(7f);
+
+        if (ImGui.InvisibleButton($"##seatfield{slot}", new Vector2(w, h)))
+        {
+            _seatOpening = slot;
+            _seatTyped[slot] = "";
             ImGui.OpenPopup(pop);
-        Tip("Pick somebody in the party.");
+        }
 
-        var below = new Vector2(ImGui.GetItemRectMin().X, ImGui.GetItemRectMax().Y + Theme.S(3f));
-        ImGui.SetNextWindowPos(below);
+        var hot = ImGui.IsItemHovered();
+        if (hot) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+
+        // Framed and lit like every other control here, so it reads as something to
+        // press rather than as a label that happens to sit on the right.
+        var dl = ImGui.GetWindowDrawList();
+        var box = new Vector2(w, h);
+        dl.AddRectFilled(at, at + box, open || hot ? FieldHot : FieldBg, Theme.S(3f));
+        dl.AddRect(at, at + box, open ? Theme.Accent : hot ? Theme.AccentHover : Widgets.CardBorder,
+            Theme.S(3f));
+
+        var caret = FontAwesomeIcon.CaretDown.ToIconString();
+        float caretW;
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+        {
+            var csz = ImGui.CalcTextSize(caret);
+            caretW = csz.X;
+            dl.AddText(new Vector2(at.X + w - pad - csz.X, at.Y + (h - csz.Y) * 0.5f),
+                open ? Theme.Accent : Theme.Muted, caret);
+        }
+
+        // Whoever has it, or the worked-out name in the muted tone a placeholder uses,
+        // so the two never read the same at a glance.
+        var shown = picked.Length > 0 ? picked : guessed.Length > 0 ? guessed : "work it out";
+        var lineH = ImGui.GetTextLineHeight();
+        dl.AddText(new Vector2(at.X + pad, at.Y + (h - lineH) * 0.5f),
+            picked.Length > 0 ? Theme.TextBright : Theme.Muted,
+            Widgets.Elide(shown, w - pad * 2f - caretW - Theme.S(4f)));
+
+        Tip(picked.Length > 0
+            ? $"{slot} is {picked} whenever they are in the party."
+            : "Pick somebody, or type a name.");
+
+        ImGui.SetNextWindowPos(new Vector2(at.X, at.Y + h + Theme.S(3f)));
+        ImGui.SetNextWindowSize(new Vector2(w, 0f));
         if (!ImGui.BeginPopup(pop)) return;
 
-        if (names.Count == 0) ImGui.TextDisabled("nobody in the party");
+        DrawSeatList(slot, picked, names);
+        ImGui.EndPopup();
+    }
 
-        foreach (var who in names)
+    private void DrawSeatList(string slot, string picked, List<string> names)
+    {
+        var find = _seatTyped.GetValueOrDefault(slot, "");
+
+        // Focused on the frame the list opens, so the keyboard route is click and type
+        // rather than click, aim at the box, click again.
+        if (_seatOpening == slot)
         {
-            var on = string.Equals(who, picked, StringComparison.OrdinalIgnoreCase);
-            if (!ImGui.Selectable($"{who}##{slot}{who}", on)) continue;
-            Seat(slot, who);
-            _seatTyped[slot] = who;
-            _seatEditing = "";
+            ImGui.SetKeyboardFocusHere();
+            _seatOpening = "";
         }
 
-        if (picked.Length > 0)
+        ImGui.SetNextItemWidth(-1f);
+        var entered = ImGui.InputTextWithHint($"##find{slot}", "type a name", ref find,
+            PartyBook.MaxName, ImGuiInputTextFlags.EnterReturnsTrue);
+        _seatTyped[slot] = find;
+
+        var typed = find.Trim();
+        var matching = SeatFind.Matching(names, typed);
+
+        if (entered && typed.Length > 0)
+        {
+            Take(slot, SeatFind.Taken(names, typed));
+            return;
+        }
+
+        ImGui.Separator();
+
+        if (names.Count == 0) ImGui.TextDisabled("nobody in the party");
+        else if (matching.Count == 0) ImGui.TextDisabled("nobody by that name");
+
+        foreach (var who in matching) DrawSeatName(slot, who, picked);
+
+        // What was typed, offered as itself, so a name the party does not have is one
+        // click rather than a leap of faith about what Enter will do.
+        if (typed.Length > 0 && !SeatFind.Known(names, typed))
         {
             ImGui.Separator();
-            if (ImGui.Selectable($"Work it out##clear{slot}")) Drop(slot);
+            if (ImGui.Selectable($"Use \"{Widgets.Elide(typed, ImGui.GetContentRegionAvail().X - Theme.S(40f))}\"##use{slot}"))
+                Take(slot, typed);
         }
 
-        ImGui.EndPopup();
+        if (picked.Length == 0) return;
+
+        ImGui.Separator();
+        if (ImGui.Selectable($"Work it out##clear{slot}"))
+        {
+            Drop(slot);
+            ImGui.CloseCurrentPopup();
+        }
+    }
+
+    // One name in the list: who they are on the left, and on the right the job they are
+    // on and the role the game worked out for them. That pair is the whole reason
+    // anybody opens this list: the two melee are in the wrong order and which is which
+    // cannot be told from two names.
+    private void DrawSeatName(string slot, string who, string picked)
+    {
+        var on = string.Equals(who, picked, StringComparison.OrdinalIgnoreCase);
+        var room = ImGui.GetContentRegionAvail().X;
+        var top = ImGui.GetCursorScreenPos();
+
+        if (ImGui.Selectable($"##who{slot}{who}", on)) { Take(slot, who); return; }
+
+        var dl = ImGui.GetWindowDrawList();
+        var detail = Detail(who);
+        var detailW = detail.Length > 0 ? ImGui.CalcTextSize(detail).X : 0f;
+
+        dl.AddText(top, on ? Theme.Accent : Theme.TextBright,
+            Widgets.Elide(who, room - detailW - Theme.S(10f)));
+
+        if (detail.Length > 0)
+            dl.AddText(new Vector2(top.X + room - detailW, top.Y), Theme.Muted, detail);
+    }
+
+    // The job and the worked-out role, for somebody who is actually here. A saved group
+    // set up on a night nobody is online has neither, and gets nothing rather than a
+    // guess: last week's job is not this week's job.
+    private string Detail(string who)
+    {
+        if (!Here()) return "";
+
+        var job = _seatRoster
+            .FirstOrDefault(r => string.Equals(r.Name, who, StringComparison.OrdinalIgnoreCase)).Job;
+        var abbrev = job == 0 ? "" : JobNames.Abbrev(job);
+
+        var worked = "";
+        foreach (var (seat, name) in _seatGuess)
+            if (string.Equals(name, who, StringComparison.OrdinalIgnoreCase)) { worked = seat; break; }
+
+        return abbrev.Length > 0 && worked.Length > 0 ? $"{abbrev}  {worked}"
+            : abbrev.Length > 0 ? abbrev
+            : worked;
+    }
+
+    private void Take(string slot, string who)
+    {
+        Seat(slot, who);
+        _seatTyped[slot] = "";
+        ImGui.CloseCurrentPopup();
     }
 
     // Taking one name off one role, without opening the list or clearing the box by hand.
@@ -327,7 +435,6 @@ public partial class ConfigWindow
     {
         Seat(slot, "");
         _seatTyped[slot] = "";
-        _seatEditing = "";
     }
 
     // The group the rows are about: the one picked from the list, or the party stood

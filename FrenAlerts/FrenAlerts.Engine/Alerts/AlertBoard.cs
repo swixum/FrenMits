@@ -30,7 +30,6 @@ public sealed class AlertBoard
     }
 
     private readonly List<Shown> _items = new(Capacity);
-    private readonly List<Shown> _live = new(Capacity);
     private readonly object _gate = new();
 
     public int Dropped { get; private set; }
@@ -84,15 +83,23 @@ public sealed class AlertBoard
         }
     }
 
+    // What is on screen now, as a list of its own.
+    //
+    // It used to hand back a buffer the board kept and refilled, which made every
+    // caller's answer the same object. The lock ends when this returns, so the next
+    // caller emptied a list somebody else was still reading: the overlay walks these
+    // on the render thread while the runner walks them on the framework thread, and
+    // a Clear under a running foreach is an exception thrown out of a draw.
+    //
+    // A copy, because there are at most Capacity of them. Four entries a frame is not
+    // worth a buffer that has to be reasoned about, and it was reasoned about wrongly.
     public IReadOnlyList<Shown> Live()
     {
         var now = Clock();
         lock (_gate)
         {
             _items.RemoveAll(s => now >= s.EndsAt);
-            _live.Clear();
-            _live.AddRange(_items);
-            return _live;
+            return _items.ToArray();
         }
     }
 
@@ -113,11 +120,7 @@ public sealed class AlertBoard
 
     public void Clear()
     {
-        lock (_gate)
-        {
-            _items.Clear();
-            _live.Clear();
-        }
+        lock (_gate) _items.Clear();
     }
 
     // Takes one call back off early, by the key it was shown under.

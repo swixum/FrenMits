@@ -202,6 +202,8 @@ public sealed class Runner : IDisposable
 
     public bool ParserAsking => _sources.ParserAsking;
 
+    public void ParserRetry() => _sources.ParserRetry();
+
     public int MarkersSeen => _sources.MarkersSeen;
 
     // How many events have actually arrived from the arena poll: a prop spawning,

@@ -45,9 +45,17 @@ public sealed class PlacedCalls : Window
     // second window at all.
     public override bool DrawConditions() => C.AlertsEnabled && Any();
 
+    // One reading of the board a frame, shared by the question of whether to be on
+    // screen and by what to put there. Each ask reads the clock and drops whatever has
+    // run out since, so asking twice lets a call end between the two answers.
+    private readonly FrameSnapshot<IReadOnlyList<AlertBoard.Shown>> _snap = new([]);
+
+    private IReadOnlyList<AlertBoard.Shown> LiveThisFrame() =>
+        _snap.Of(ImGui.GetFrameCount(), _board.Live);
+
     private bool Any()
     {
-        foreach (var shown in _board.Live())
+        foreach (var shown in LiveThisFrame())
             if (shown.Call.Placed) return true;
 
         return false;
@@ -69,7 +77,7 @@ public sealed class PlacedCalls : Window
         var vp = ImGui.GetMainViewport();
         var dl = ImGui.GetWindowDrawList();
 
-        foreach (var shown in _board.Live())
+        foreach (var shown in LiveThisFrame())
         {
             if (!shown.Call.Placed) continue;
             DrawOne(dl, vp.WorkPos, vp.WorkSize, shown, now);

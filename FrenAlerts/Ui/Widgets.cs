@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using FrenAlerts.Engine;
 
 namespace FrenAlerts.Ui;
 
@@ -257,8 +258,15 @@ internal static class Widgets
 
         var textX = start.X + RowPad + (sub ? Theme.S(17f) : 0f);
         textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
+
+        // What the name and the hint have to share, which is the row less its padding
+        // and less whatever the control on the right takes. Cut to it rather than
+        // trusted to fit: a line built out of a fight name, a file path or something
+        // somebody typed has no length anybody chose.
+        var room = start.X + width - RowPad - ctlWidth - textX;
+
         ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
-        ImGui.TextUnformatted(name);
+        ImGui.TextUnformatted(Fit(name, room));
         var nameEnd = ImGui.GetItemRectMax();
         var nameMid = (ImGui.GetItemRectMin().Y + nameEnd.Y) * 0.5f;
         var after = nameEnd.X + (changed ? Theme.S(7f) : 0f);
@@ -286,7 +294,7 @@ internal static class Widgets
         if (hasHint)
         {
             ImGui.SetCursorPosX(textX);
-            ImGui.TextColored(Theme.V(hintCol == 0 ? Theme.Muted : hintCol), hint);
+            ImGui.TextColored(Theme.V(hintCol == 0 ? Theme.Muted : hintCol), Fit(hint, room));
         }
 
         ImGui.SetCursorPos(new Vector2(start.X + width - RowPad - ctlWidth, start.Y + (rowH - frameH) * 0.5f));
@@ -295,6 +303,19 @@ internal static class Widgets
     }
 
     public static void RowEnd() => ImGui.SetCursorPos(_rowNext);
+
+    // A line cut to the room it has, measured on the font actually being drawn with.
+    //
+    // Nothing is cut that already fits, so every line the window shows today comes
+    // through this unchanged: it is a floor under the ones built at draw time, not a
+    // new look. Uncut text is the common case and costs one CalcTextSize.
+    //
+    // Private: the rows in here are the only callers, and a public one with nothing
+    // outside calling it is another entry on the list of widgets nobody uses. A page
+    // that needs to cut its own text can call TextFit.Fit, which is where the
+    // arithmetic lives and is the part worth sharing.
+    private static string Fit(string text, float room) =>
+        TextFit.Fit(text, room, s => ImGui.CalcTextSize(s).X);
 
     // A leading icon in a fixed slot, so names beside it still line up.
     private static float DrawRowIcon(FontAwesomeIcon icon, uint iconCol, float textX, float startY, float rowH)
@@ -433,14 +454,22 @@ internal static class Widgets
         var hit = ImGui.Selectable("##door" + name, false, ImGuiSelectableFlags.None, new Vector2(width, rowH));
         if (ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
-        var textX = start.X + RowPad;
-        textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
-        ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
-        ImGui.TextUnformatted(name);
-        if (hasHint) { ImGui.SetCursorPosX(textX); ImGui.TextColored(Theme.V(Theme.Muted), hint); }
-
         var chev = ">";
         var chevX = start.X + width - RowPad - ImGui.CalcTextSize(chev).X;
+
+        var textX = start.X + RowPad;
+        textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
+
+        // Up to the chevron, which is what this row has instead of a control. These
+        // are the fight rows, so the name is a fight's name and not a line anybody
+        // measured.
+        var room = chevX - Theme.S(12f) - textX;
+        var shown = Fit(name, room);
+
+        ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
+        ImGui.TextUnformatted(shown);
+        if (hasHint) { ImGui.SetCursorPosX(textX); ImGui.TextColored(Theme.V(Theme.Muted), Fit(hint, room)); }
+
         ImGui.SetCursorPos(new Vector2(chevX, start.Y + (rowH - lineH) * 0.5f));
         ImGui.TextColored(Theme.V(Theme.Muted), chev);
 
@@ -450,7 +479,7 @@ internal static class Widgets
         {
             var w = ImGui.CalcTextSize(note).X;
             var at = chevX - Theme.S(12f) - w;
-            if (at > start.X + RowPad + ImGui.CalcTextSize(name).X + Theme.S(14f))
+            if (at > start.X + RowPad + ImGui.CalcTextSize(shown).X + Theme.S(14f))
             {
                 ImGui.SetCursorPos(new Vector2(at, start.Y + (rowH - lineH) * 0.5f));
                 ImGui.TextColored(Theme.V(noteCol == 0 ? Theme.Muted : noteCol), note);
@@ -487,14 +516,19 @@ internal static class Widgets
         if (ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
         if (hit) open = !open;
 
-        var textX = start.X + RowPad;
-        textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
-        ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
-        ImGui.TextUnformatted(name);
-        if (hasHint) { ImGui.SetCursorPosX(textX); ImGui.TextColored(Theme.V(Theme.Muted), hint); }
-
         var chev = open ? "v" : ">";
         var chevX = start.X + width - RowPad - ImGui.CalcTextSize(chev).X;
+
+        var textX = start.X + RowPad;
+        textX += DrawRowIcon(icon, iconCol, textX, start.Y, rowH);
+
+        var room = chevX - Theme.S(12f) - textX;
+        var shown = Fit(name, room);
+
+        ImGui.SetCursorPos(new Vector2(textX, start.Y + (rowH - textH) * 0.5f));
+        ImGui.TextUnformatted(shown);
+        if (hasHint) { ImGui.SetCursorPosX(textX); ImGui.TextColored(Theme.V(Theme.Muted), Fit(hint, room)); }
+
         ImGui.SetCursorPos(new Vector2(chevX, start.Y + (rowH - lineH) * 0.5f));
         ImGui.TextColored(Theme.V(open ? Theme.Accent : Theme.Muted), chev);
 
@@ -502,7 +536,7 @@ internal static class Widgets
         {
             var w = ImGui.CalcTextSize(note).X;
             var at = chevX - Theme.S(12f) - w;
-            if (at > start.X + RowPad + ImGui.CalcTextSize(name).X + Theme.S(14f))
+            if (at > start.X + RowPad + ImGui.CalcTextSize(shown).X + Theme.S(14f))
             {
                 ImGui.SetCursorPos(new Vector2(at, start.Y + (rowH - lineH) * 0.5f));
                 ImGui.TextColored(Theme.V(noteCol == 0 ? Theme.Muted : noteCol), note);

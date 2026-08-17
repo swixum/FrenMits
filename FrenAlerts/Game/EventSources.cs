@@ -144,6 +144,8 @@ public sealed class EventSources : IDisposable
     // Still working on it, so the screen can wait rather than call it broken.
     public bool ParserAsking => _parser.Asking;
 
+    public void ParserRetry() => _parser.RetryNow();
+
     public int MarkersSeen => _parser.MarkersReported;
 
     // Everything the parser handed over, head markers included, which is the number

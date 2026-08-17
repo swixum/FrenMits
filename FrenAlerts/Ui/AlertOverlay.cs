@@ -112,11 +112,24 @@ public class AlertOverlay : Window
         if (_pushedBg) ImGui.PopStyleColor();
     }
 
+    // One reading of the board a frame, shared by the question of whether to be on
+    // screen and by what to put there.
+    //
+    // They used to ask separately. Each ask reads the clock and drops whatever has run
+    // out since, so a call ending between the two answered yes to the first and was
+    // gone by the second: the window opened, found nothing to draw, and showed its
+    // background with nothing in it for a frame. That is the same empty box the note
+    // below is about, one frame long instead of one call long.
+    private readonly FrameSnapshot<IReadOnlyList<AlertBoard.Shown>> _snap = new([]);
+
+    private IReadOnlyList<AlertBoard.Shown> StackedThisFrame() =>
+        _snap.Of(ImGui.GetFrameCount(), _board.Stacked);
+
     // Counted as the stack rather than as the board: a call that named its own place
     // is drawn by the window that places them, and opening this one for it puts an
     // empty background box on screen for as long as that call lasts.
     public override bool DrawConditions()
-        => OverlayState.Visible(C.AlertsEnabled, C.TestMode, _board.Stacked().Count,
+        => OverlayState.Visible(C.AlertsEnabled, C.TestMode, StackedThisFrame().Count,
                                 UiServices.GameUiHidden);
 
     public override void Draw()
@@ -145,7 +158,7 @@ public class AlertOverlay : Window
         // Anything that named its own place is drawn by the window that places them,
         // and must not take a slot here as well: it would be on screen twice, and
         // the second copy would push a fight's call down.
-        var live = _board.Stacked();
+        var live = StackedThisFrame();
         if (live.Count == 0)
         {
             if (Placing) DrawSample();

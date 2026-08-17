@@ -349,19 +349,27 @@ public partial class ConfigWindow
         // fights in it: UCOB and UWU sat above Dancing Mad because their zone numbers
         // are lower, so the oldest fights in the game led the page.
         //
-        // The heading is skipped where every fight on the page is from one expansion,
-        // because a single group under a label is a label saying nothing.
+        // The heading stands over every group, including a page whose fights are all
+        // from one expansion. Savage is four Dawntrail fights and used to draw as one
+        // unlabeled card, so the two pages read as different windows.
         var byExpansion = fights
             .GroupBy(f => f.Expansion)
             .OrderBy(g => Shipped.ExpansionRank(g.Key))
             .ToList();
 
-        Widgets.ListBegin();
-        foreach (var group in byExpansion)
+        // A card per expansion, with the heading above it rather than inside it.
+        //
+        // One card holding every group read as a list interrupted twice. The heading sat
+        // hard against the card's left edge while every row under it was indented past
+        // that, and the divider a row draws above itself landed between the heading and
+        // the first fight it names. Every other heading on this page stands over its own
+        // card, so the fights read like the rest of the window now.
+        for (var g = 0; g < byExpansion.Count; g++)
         {
-            if (byExpansion.Count > 1)
-                Widgets.GroupLabel(group.Key.Length > 0 ? group.Key : "Other");
+            var group = byExpansion[g];
+            ExpansionLabel(group.Key.Length > 0 ? group.Key : "Other");
 
+            Widgets.ListBegin();
             foreach (var f in group)
             {
                 var off = C.IsMuted(f.TerritoryId);
@@ -375,8 +383,34 @@ public partial class ConfigWindow
                     OpenFight(f);
                 if (f.Full.Length > 0) Tip(f.Full);
             }
+            Widgets.ListEnd();
+
+            // Between the cards only. A gap under the last one is the page's own bottom
+            // edge moving, not spacing anybody asked for.
+            if (g < byExpansion.Count - 1) ImGui.Spacing();
         }
-        Widgets.ListEnd();
+    }
+
+    // The expansion over its own card, in the accent and in bold, at the spacing every
+    // other heading uses.
+    //
+    // The accent rather than a color of its own, so the headings follow whatever is set
+    // in Preset Accents and the page never carries a hue nobody chose. It is the same
+    // color the fight icons under it are drawn in.
+    //
+    // The weight is painted rather than pushed. The plugin builds the default font at
+    // the sizes it needs and there is no bold cut of it to push, so it is the same
+    // glyphs drawn twice a fraction apart. Half a pixel reads as bold at this size; a
+    // whole one smears.
+    private static void ExpansionLabel(string text)
+    {
+        var words = text.ToUpperInvariant();
+
+        ImGui.Dummy(new Vector2(0, Theme.S(6f)));
+        var at = ImGui.GetCursorScreenPos();
+        ImGui.TextColored(Theme.V(Theme.Accent), words);
+        ImGui.GetWindowDrawList().AddText(at + new Vector2(Theme.S(0.6f), 0f), Theme.Accent, words);
+        ImGui.Dummy(new Vector2(0, Theme.S(1f)));
     }
 
     // ---- one fight's calls ----
@@ -1425,6 +1459,148 @@ public partial class ConfigWindow
             C.Save();
         }
     }
+
+    // ---- parser ----
+
+    // What the parser is doing, and how to give it something to do.
+    //
+    // There is no source to pick and no address to type, unlike the meter's page in the
+    // other plugin: the link here is the parser plugin's own IPC channel and nothing
+    // else, so a box for a socket address would be a box that does nothing. What is
+    // worth showing is the state, a way back from a link that gave up, and the parser
+    // settings that make it send usable lines.
+    //
+    // Led with the fact that none of it is required. Every kind of event the pack uses
+    // reaches the engine off the client on a bare install, and a page of setup steps
+    // with no such line reads as a page of things somebody has to do first.
+    private void DrawParserPage()
+    {
+        PageHead("Parser", "", false, hasMaster: false, icon: FontAwesomeIcon.NetworkWired);
+
+        var reading = Runner is { ParserReading: true };
+        var connected = Runner is { ParserConnected: true };
+        var asking = Runner is { ParserAsking: true };
+
+        // Four states and they are not degrees of the same thing, so each gets its own
+        // words and its own color. Off is muted rather than red: no parser is the
+        // ordinary way to run this, and a red light over a working install is a bug
+        // report waiting to be filed.
+        //
+        // No counts beside them. A number that climbs is the one thing on a page that
+        // pulls the eye every frame, and it answers a question nobody opened this page
+        // to ask.
+        var (state, color) =
+            reading ? ("Connected to the parser", Theme.Good)
+            : asking ? ("Looking for a parser", Theme.Warn)
+            : connected ? ("Connected, but quiet", Theme.Warn)
+            : ("Off", Theme.Muted);
+
+        StatusStrip(color, state);
+
+        if (Runner is { ParserDropped: > 0 } fed)
+        {
+            ImGui.Spacing();
+            ImGui.TextColored(Theme.V(Theme.Warn), $"The feed dropped {fed.ParserDropped}.");
+        }
+
+        ImGui.Spacing();
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Sync, "Reconnect"))
+            Runner?.ParserRetry();
+        Tip("Drops nothing that is working. Picks up a link that gave up.");
+
+        ImGui.Spacing();
+        ImGui.PushTextWrapPos(0f);
+        ImGui.TextDisabled(
+            "Calls work without a parser. Every kind of event the fights use is read "
+            + "from the game itself, so this is only ever a second opinion.");
+        ImGui.PopTextWrapPos();
+
+        Widgets.SectionHeader("In IINACT");
+        ImGui.TextDisabled("Nothing to connect: this links straight to it. On its Parser tab:");
+        SetupToggle(1, "Disable Damage Shield Estimates", false, "or shields read zero.");
+        SetupToggle(2, "End encounter automatically after leaving combat", true);
+        SetupStep(3, "Player name: leave it as YOU.");
+        Tip("The parser says YOU and the call fills your name in.");
+        ImGui.TextDisabled("Writing out the network log file is for uploading logs, not for this.");
+
+        Widgets.SectionHeader("In ACT");
+        for (var i = 0; i < ActSteps.Length; i++) SetupStep(i + 1, ActSteps[i]);
+        ImGui.TextDisabled("Lower than that splits a fight at its own downtime.");
+    }
+
+    // The link's state, in a strip that takes the state's own color: a bar down the
+    // edge, a wash behind it, a dot, and the words.
+    //
+    // Carried by color rather than by wording, so it reads before it is read. The same
+    // three alphas the selected nav row uses, off the one color, which is what keeps a
+    // green strip and an amber one looking like the same control.
+    //
+    // A dot and a few words rather than a label and a value. "Parser: off" is the
+    // sidebar's job, where it sits beside nine other rows and has to be short; on a page
+    // that is only about the parser, naming it again says nothing.
+    private static void StatusStrip(uint color, string text)
+    {
+        var lineH = ImGui.GetTextLineHeight();
+        var pad = Theme.S(10f);
+        var rgb = color & 0x00FFFFFFu;
+
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, rgb | 0x1E000000u);
+        ImGui.PushStyleColor(ImGuiCol.Border, rgb | 0x66000000u);
+        ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, Theme.S(6f));
+        ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 1f);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(pad, pad * 0.7f));
+
+        var h = lineH + pad * 1.4f;
+        var at = ImGui.GetCursorScreenPos();
+
+        if (ImGui.BeginChild("##parserstate", new Vector2(0f, h), true))
+        {
+            var dot = ImGui.GetCursorScreenPos();
+            ImGui.Dummy(new Vector2(lineH * 0.7f, lineH));
+            ImGui.GetWindowDrawList().AddCircleFilled(
+                new Vector2(dot.X + lineH * 0.35f, dot.Y + lineH * 0.5f), lineH * 0.27f, color);
+
+            ImGui.SameLine(0, Theme.S(6f));
+            ImGui.TextColored(Theme.V(color), text);
+        }
+        ImGui.EndChild();
+
+        // Drawn after the child so it sits over the border rather than under it.
+        ImGui.GetWindowDrawList().AddRectFilled(
+            new Vector2(at.X, at.Y + 2f), new Vector2(at.X + Theme.S(3f), at.Y + h - 2f),
+            color, Theme.S(2f));
+
+        ImGui.PopStyleVar(3);
+        ImGui.PopStyleColor(2);
+    }
+
+    // A setting to find and what to leave it on, the state in its own color.
+    private static void SetupToggle(int n, string setting, bool on, string why = "")
+    {
+        ImGui.TextColored(Theme.V(Theme.Accent), $"{n}");
+        ImGui.SameLine(0, Theme.S(10f));
+        ImGui.TextUnformatted(setting + ":");
+        ImGui.SameLine(0, Theme.S(5f));
+        ImGui.TextColored(Theme.V(on ? Theme.Good : Theme.Danger), on ? "ON" : "OFF");
+        if (why.Length == 0) return;
+        ImGui.SameLine(0, Theme.S(5f));
+        ImGui.TextDisabled(why);
+    }
+
+    // A numbered line, the number in the accent color.
+    private static void SetupStep(int n, string text)
+    {
+        ImGui.TextColored(Theme.V(Theme.Accent), $"{n}");
+        ImGui.SameLine(0, Theme.S(10f));
+        ImGui.TextUnformatted(text);
+    }
+
+    private static readonly string[] ActSteps =
+    [
+        "Run ACT, with its FFXIV plugin.",
+        "Plugins > OverlayPlugin.dll > WSServer > Start.",
+        "Options > Main Table/Encounters > Idle Limit: 180.",
+    ];
 
     // Whether a setting has been moved off what it ships as.
     private bool Changed(string prop) => SettingsIndex.IsChanged(C, prop);

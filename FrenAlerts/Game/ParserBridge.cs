@@ -67,8 +67,13 @@ public sealed class ParserBridge : IDisposable
     {
         try
         {
-            _mine = Service.PluginInterface.GetIpcProvider<JObject, bool>(Channel);
-            _mine.RegisterFunc(OnMessage);
+            // Taken once. This runs again on a retry, and registering the same func on
+            // the channel a second time is not something to find out the hard way.
+            if (_mine is null)
+            {
+                _mine = Service.PluginInterface.GetIpcProvider<JObject, bool>(Channel);
+                _mine.RegisterFunc(OnMessage);
+            }
 
             _subscribe = Service.PluginInterface.GetIpcSubscriber<string, bool>(Subscribe);
             _unsubscribe = Service.PluginInterface.GetIpcSubscriber<string, bool>(Unsubscribe);
@@ -121,6 +126,26 @@ public sealed class ParserBridge : IDisposable
             return;
         }
         Ask();
+    }
+
+    // Pick the link up again, from wherever it stopped.
+    //
+    // Two ways to be stopped and they need different things. Never connected is a
+    // subscriber that was refused, which is what a parser that was not running yet
+    // looks like, so the whole connect runs again. Connected and not reading is a
+    // channel that was accepted and a gate that never appeared: the ask loop gives up
+    // after MaxAsks and nothing ever sets it going again, so a parser started a minute
+    // late left head marker calls off for the rest of the session.
+    //
+    // Already reading is left alone. Dropping a working link to prove a button does
+    // something is the one outcome nobody pressing it wants.
+    public void RetryNow()
+    {
+        _asks = 0;
+        _lastAsk = double.NegativeInfinity;
+
+        if (!Connected) TryConnect();
+        if (Connected && !Reading) Asking = true;
     }
 
     private void Ask()
