@@ -86,6 +86,10 @@ public sealed class EventSources : IDisposable
     // In a replay the clock is the recording's own position rather than the wall.
     // Paused, it stops and nothing ages out. At four times speed, two mechanics two
     // seconds apart stay two seconds apart instead of collapsing into one burst.
+    // Whether the last frame was watching a recording, so starting and stopping one
+    // can be noticed rather than only its state read.
+    private bool _wasReplay;
+
     private void Tick()
     {
         InReplay = Replay.InPlayback;
@@ -246,7 +250,25 @@ public sealed class EventSources : IDisposable
         // Last, so a pull that ends this frame does so after the events that ended it.
         // Polled even when off, or the pull it is counting ends while nobody looked
         // and the next one starts mid-fight.
-        if (_combat.Poll(Now) is { } edge && on) yield return edge;
+        //
+        // A recording is its own pull. The combat flag is read off the client and a
+        // replay never sets it: measured across seventeen minutes of a recorded
+        // Dancing Mad, it fired exactly zero times. Everything a pull resets was
+        // therefore never reset, so occurrence counts, once-a-pull calls and the
+        // fight's own clock all carried in from whatever happened before the
+        // recording was opened. Opening one is the start, closing it is the end.
+        if (InReplay != _wasReplay)
+        {
+            _wasReplay = InReplay;
+            _combat.Forget();
+            if (on)
+                yield return new GameEvent
+                {
+                    Kind = InReplay ? EventKind.CombatStart : EventKind.CombatEnd,
+                    Time = Now,
+                };
+        }
+        else if (_combat.Poll(Now) is { } edge && on) yield return edge;
     }
 
     // What the arena poll is tracking and how much it has said, so the window can

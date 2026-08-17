@@ -158,7 +158,11 @@ public sealed class LiveEvents : IDisposable
         {
             if (obj is not IBattleChara actor) continue;
             var id = actor.EntityId;
-            if (!Watchers.Watching(id)) continue;
+
+            // The party, and the boss with its adds. The second half is what a
+            // parser used to cover and what a replay can never have one for.
+            var onAPlayer = Watchers.Watching(id);
+            if (!onAPlayer && !Watchers.WatchingEnemy(id)) continue;
             _seen.Add(id);
 
             if (!_statuses.TryGetValue(id, out var had))
@@ -171,6 +175,15 @@ public sealed class LiveEvents : IDisposable
             foreach (var status in actor.StatusList)
             {
                 if (status.StatusId == 0) continue;
+
+                // Every damage-over-time and debuff the party applies is a status on
+                // an enemy, and eight players reapplying for twenty minutes is
+                // thousands of them. None has ever been a mechanic, and letting them
+                // through would be the whole feed.
+                var from = status.SourceObject?.EntityId ?? 0;
+                if (!StatusWatch.Wanted(onAPlayer, from != 0 && Watchers.Watching(from)))
+                    continue;
+
                 now_.Add(status.StatusId);
                 if (had.Contains(status.StatusId)) continue;
                 // Already worn when this source took over, so it is state rather
@@ -182,9 +195,12 @@ public sealed class LiveEvents : IDisposable
                     Kind = EventKind.StatusGain,
                     Time = now,
                     Id = status.StatusId,
-                    SourceId = status.SourceObject?.EntityId ?? 0,
+                    SourceId = from,
                     TargetId = id,
-                    Duration = status.RemainingTime,
+                    // Corrected for how late the poll is. Everything downstream
+                    // compares this against whole seconds, and some of it says the
+                    // number out loud.
+                    Duration = StatusWatch.WholeSeconds(status.RemainingTime),
                     // Stacks, and where a fight hides an answer. Neo Exdeath says
                     // which half of its debuffs are lying entirely through this.
                     Param = status.Param,

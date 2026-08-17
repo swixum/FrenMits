@@ -70,6 +70,16 @@ public sealed class Runner : IDisposable
     // reading only the total would call a fight covered while most of it was off.
     public int SpeakingCount => _engine.Triggers.Count(t => t.Enabled);
 
+    // The seat to read the calls as, when the game cannot say. Empty is the normal
+    // answer and means work it out from the party.
+    //
+    // Read on every party poll rather than held, so setting it takes effect within
+    // two seconds instead of at the next zone: it is set mid-replay, by somebody who
+    // has just heard a call name the wrong person.
+    public Func<string>? Seating { get; set; }
+
+    private string Seat => Seating?.Invoke() ?? "";
+
     // Rebuilds on assignment, because the host sets this in an object initializer,
     // which runs after the constructor has already built the engine for the zone the
     // player is standing in. Without the rebuild, every call somebody had switched
@@ -466,7 +476,20 @@ public sealed class Runner : IDisposable
         if (PartySlots.Me is { } me)
         {
             _engine.Player.MyId = me.EntityId;
-            _engine.Player.MySlot = _engine.Party.SlotOf(me.EntityId);
+            var seat = _engine.Party.SlotOf(me.EntityId);
+
+            // Said by hand, when the game cannot say. A replay has no party list, so
+            // the object table stands in for it and this player is always first
+            // among the eight: read as MT, H1, M1 or R1 and never as the second of
+            // the role. Told which seat, the party is re-labelled around it so the
+            // other half of every pair lands on the right person too.
+            if (Seat is { Length: > 0 } mine && mine != seat)
+            {
+                _engine.Party.Swap(mine, me.EntityId);
+                seat = mine;
+            }
+
+            _engine.Player.MySlot = seat;
         }
 
         // Names come from the client, so a call can say who rather than which id.

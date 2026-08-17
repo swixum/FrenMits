@@ -96,6 +96,28 @@ public sealed class Diary
         Write($"{at,8:F2}\tno-call\t{named}{(rest > 0 ? $" and {rest} more" : "")}");
     }
 
+    // Whether this is the first time an id of this kind has been seen this pull.
+    //
+    // A status is worth a line once. The party wears and loses thousands of them in
+    // a pull, drawn from a couple of dozen ids: measured on one recording of Dancing
+    // Mad, 8,662 status lines out of 20,003, which with their declines was the whole
+    // file. It stopped at its bound seventeen minutes in and never reached the end
+    // of the fight, which is the one thing a recording must not do.
+    //
+    // Once each is enough to answer the question they are kept for, which is "did
+    // this id arrive at all". Every one a trigger actually wants is written anyway.
+    public bool FirstOfItsKind(in GameEvent e)
+    {
+        if (_ids.Count >= MaxIds) return false;
+        return _ids.Add((e.Kind, e.Id));
+    }
+
+    // A pull's worth of distinct ids across every kind. Far above what a fight uses,
+    // and a hard stop rather than a set that grows with a misbehaving feed.
+    public const int MaxIds = 4096;
+
+    private readonly HashSet<(EventKind Kind, uint Id)> _ids = [];
+
     private static string Detail(in GameEvent e) =>
         $"id={e.Id:X}\tsrc={e.SourceId:X}\ttgt={e.TargetId:X}"
         + (e.Param != 0 ? $"\tparam={e.Param}" : "")
@@ -123,6 +145,7 @@ public sealed class Diary
     public void Forget()
     {
         _lines.Clear();
+        _ids.Clear();
         Full = false;
         Events = 0;
     }

@@ -3,8 +3,19 @@ namespace FrenAlerts.Engine.Alerts;
 public static class OverlayState
 {
     // On screen when there is something to say, or while placing it.
-    public static bool Visible(bool alertsEnabled, bool testMode, int liveCalls)
+    //
+    // Never while the game's own interface is hidden. Somebody who pressed that key
+    // wants a clean screen, and this was the one thing left on it: every screenshot
+    // taken during a pull had a call sitting in the middle of it, and there was no
+    // setting anywhere that would take it off.
+    //
+    // Ahead of everything else, because it is not a preference. Test mode holds a
+    // sample on screen on purpose and even that goes, or placing the call means
+    // never being able to take a picture without it.
+    public static bool Visible(bool alertsEnabled, bool testMode, int liveCalls,
+        bool gameUiHidden = false)
     {
+        if (gameUiHidden) return false;
         if (!alertsEnabled) return false;
         return testMode || liveCalls > 0;
     }

@@ -87,17 +87,21 @@ public sealed class TriggerEngine
         {
             if (!t.Matches(ctx)) continue;
 
-            if (Diary is { On: true } && !written)
-            {
-                Diary.Saw(e, "wanted");
-                written = true;
-            }
-
             var call = t.Make(ctx);
             if (call is null)
             {
                 if (Diary is { On: true }) _quiet.Add(t.Id);
                 continue;
+            }
+
+            // After the call exists, not before. Matching and declining is what a
+            // collector does on every status in the fight, and writing the event
+            // down for it made the once-per-id rule above buy nothing: the same
+            // status still earned a line every time it landed.
+            if (Diary is { On: true } && !written)
+            {
+                Diary.Saw(e, "wanted");
+                written = true;
             }
 
             var passed = Scheduler.Offer(call, out var why);
@@ -117,6 +121,8 @@ public sealed class TriggerEngine
             var call = s.Step(ctx);
             if (call is null) continue;
 
+            // Same as above: the event earns its line once something has actually
+            // been said about it.
             if (Diary is { On: true } && !written)
             {
                 Diary.Saw(e, "wanted");
@@ -134,10 +140,12 @@ public sealed class TriggerEngine
             (calls ??= []).Add(passed);
         }
 
-        // Only where the event produced nothing. A collector staying quiet beside a
-        // call that fired is the design working; a mechanic where every trigger
-        // that matched declined is the thing being looked for.
-        if (calls is null) Diary?.Quiet(e.Time, _quiet);
+        // Only where the event produced nothing, and only where the event itself
+        // earned a line. A collector staying quiet beside a call that fired is the
+        // design working; a mechanic where every trigger that matched declined is
+        // the thing being looked for. Declines under an event nobody wrote down
+        // describe nothing, and were 9,742 lines of one recording.
+        if (calls is null && written) Diary?.Quiet(e.Time, _quiet);
 
         return calls ?? Enumerable.Empty<Call>();
     }
@@ -147,7 +155,12 @@ public sealed class TriggerEngine
     // else in the loud set is rare enough to keep whole.
     private bool WorthALine(in GameEvent e) =>
         Diary.Loud.Contains(e.Kind)
-        && (e.Kind != EventKind.CastStart || Party.SlotOf(e.SourceId).Length == 0);
+        && (e.Kind != EventKind.CastStart || Party.SlotOf(e.SourceId).Length == 0)
+        // Statuses once per id. The party wears thousands of them in a pull from a
+        // couple of dozen ids, and once each answers the only question they are kept
+        // for. Every one something wants is written by the loop below regardless.
+        && (e.Kind is not (EventKind.StatusGain or EventKind.StatusLose)
+            || Diary!.FirstOfItsKind(e));
 
     public IEnumerable<Call> Replay(IEnumerable<GameEvent> events)
     {

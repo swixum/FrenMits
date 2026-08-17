@@ -166,6 +166,18 @@ public class Configuration : IPluginConfiguration
     // control, because switching it off mid-replay is the thing worth having.
     public bool Diagnostics { get; set; }
 
+    // Which seat to read the calls as, when the game cannot say.
+    //
+    // Empty means work it out, which is right everywhere there is a party list. A
+    // replay has none, so the eight players in the object table stand in for it and
+    // the local player is always first among them: you are read as MT, H1, M1 or R1
+    // and never as the second of your role. Every call that splits a pair then names
+    // the other person's job.
+    //
+    // Cleared rather than remembered across a session by anything automatic: a seat
+    // set by hand and forgotten would be worse in a real pull than the guess is.
+    public string SeatOverride { get; set; } = "";
+
     // Whether the recorder should come back on by itself next time.
     //
     // Off everywhere it has not been asked for, same as the switch above: this only

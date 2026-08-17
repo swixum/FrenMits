@@ -50,12 +50,26 @@ public sealed class CallScheduler
             return null;
         }
 
-        if (_last is { } prev && call.Time - prev.Time < MinGap && !Beats(call, prev))
+        // How far apart the two will actually land, either way round.
+        //
+        // This used to be prev-then-now subtraction, which reads as "behind" and is
+        // only true when calls arrive in the order they fire. A few do not: a call
+        // that counts itself back from a mechanic is offered now and lands a minute
+        // from now, and it then sat here as the one to measure against. Everything
+        // real for the next minute was a large negative number, which is less than
+        // the gap, so it was dropped as crowding.
+        //
+        // Measured in one recording of Dancing Mad: a raidwide and a direction call
+        // among twelve, all thrown away for landing before something that had not
+        // happened yet.
+        var apart = _last is { } prev ? Math.Abs(call.Time - prev.Time) : double.MaxValue;
+
+        if (_last is { } standing && apart < MinGap && !Beats(call, standing))
         {
-            dropped = $"{call.Time - prev.Time:F1}s behind {prev.Key}, gap {MinGap:F1}s";
+            dropped = $"{apart:F1}s from {standing.Key}, gap {MinGap:F1}s";
             Suppressed++;
             Tally(DroppedForCrowding, call.Key);
-            LostTo.TryAdd(call.Key, prev.Key);
+            LostTo.TryAdd(call.Key, standing.Key);
             return null;
         }
 

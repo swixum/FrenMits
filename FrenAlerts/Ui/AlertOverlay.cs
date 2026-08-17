@@ -97,7 +97,8 @@ public class AlertOverlay : Window
     }
 
     public override bool DrawConditions()
-        => OverlayState.Visible(C.AlertsEnabled, C.TestMode, _board.Live().Count);
+        => OverlayState.Visible(C.AlertsEnabled, C.TestMode, _board.Live().Count,
+                                UiServices.GameUiHidden);
 
     public override void Draw()
     {
@@ -230,9 +231,8 @@ public class AlertOverlay : Window
         DrawCall(text, level, CallIcon.None, remaining, counting, sinceGo);
     }
 
-    // Five seconds counting down, one at go, then round again.
-    // Five seconds counting down, one at go, then round again. SinceGo rides along
-    // so a preview pulses exactly when a real call does.
+    // Five seconds counting down, one at go, then round again, with SinceGo riding
+    // along so a preview pulses exactly when a real call does.
     private static (float Remaining, bool Counting, float SinceGo) SampleClock()
     {
         var t = (float)(ImGui.GetTime() % 6d);

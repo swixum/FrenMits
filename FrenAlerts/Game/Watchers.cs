@@ -1,5 +1,7 @@
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
+using FrenAlerts.Engine;
 
 namespace FrenAlerts.Game;
 
@@ -52,6 +54,30 @@ public static class Watchers
             if (++n > Max) yield break;
             yield return pc;
         }
+    }
+
+    // The boss and its adds, for the status poll only.
+    //
+    // A debuff on the boss is a mechanic and was invisible: this walked the party and
+    // only the party, and a parser is what covered the difference. A replay has no
+    // parser and never can have one, so in a recording every call that reads what the
+    // boss is wearing fired never.
+    //
+    // Bounded and counted separately from the players, so an arena full of adds
+    // cannot turn a ten-times-a-second poll into a walk of the whole zone.
+    public static bool WatchingEnemy(uint entityId)
+    {
+        if (entityId == 0) return false;
+
+        var n = 0;
+        foreach (var obj in Service.ObjectTable)
+        {
+            if (obj is not IBattleChara bc) continue;
+            if (obj is IPlayerCharacter) continue;
+            if (++n > StatusWatch.MaxEnemies) return false;
+            if (bc.EntityId == entityId) return true;
+        }
+        return false;
     }
 
     private static bool IsPlayerHere(uint entityId)

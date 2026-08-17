@@ -65,6 +65,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             Switched = id => Config.CallSwitch(Ui.FightCatalog.CallOf(id)),
             Strat = (territory, key) => Config.StratFor(territory, key),
+            Seating = () => Config.SeatOverride,
         };
         // So the window can report the fight that is actually loaded rather than
         // the list of fights that exist.

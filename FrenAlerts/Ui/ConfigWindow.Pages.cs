@@ -103,9 +103,18 @@ public partial class ConfigWindow
         {
             if (on) run.OpenDiary();
             else { run.WriteDiary(); run.CloseDiary(); }
+
+            // The same thing the chat command does, for the same reason. Without it
+            // this switch is the one control a reload undoes: switched off here it
+            // came back on by itself, and switched on here it stopped by itself
+            // mid-replay. The window is the path used during a replay, so it is the
+            // one that has to survive one.
+            C.KeepRecording = on;
+            C.Save();
         }
         Tip("Writes what every call actually did to pulls.log, one section per pull.\n"
-            + "Off by default, and it changes nothing about what gets called.");
+            + "Off by default, and it changes nothing about what gets called.\n"
+            + "Left on, it comes back on after a reload.");
 
         // Read off the runner rather than held here, because a pull writes itself
         // out as it ends. Kept locally, this row only ever appeared after somebody
@@ -389,6 +398,7 @@ public partial class ConfigWindow
         // hear: their role's half of a call and their group's answer to a strat.
         FightCatalog.ReadAs(Runner?.MySlot ?? "", C.StratFor);
 
+        DrawSeat();
         DrawStrats((ushort)fight.TerritoryId);
 
         var phase = DrawPhaseTabs(calls);
@@ -448,6 +458,51 @@ public partial class ConfigWindow
     // A mechanic with several accepted answers has no single right call: which tower
     // you take, which way the rotation reads, where the healers plant. Picking one in
     // code is choosing a group's strat for them and being wrong for everybody else.
+    // Which seat the calls are read as, and a way to say when the game is wrong.
+    //
+    // It is right on its own everywhere there is a party list. A replay has none, so
+    // the eight players in the object table stand in for it and this player is
+    // always first among them: read as MT, H1, M1 or R1 and never as the second of
+    // the role. Every call that splits a pair then names the other person's job,
+    // which is most of what looks broken while watching a recording back.
+    private static readonly string[] Seats =
+        ["Work it out", "MT", "OT", "H1", "H2", "M1", "M2", "R1", "R2"];
+
+    private void DrawSeat()
+    {
+        var guessed = Runner?.MySlot ?? "";
+        var replay = Runner is { InReplay: true };
+
+        // Out of the way until it is needed. A party list answers this correctly, so
+        // a row asking about it there is a setting inviting somebody to break their
+        // own calls; in a replay, or with nothing read at all, it is the answer.
+        if (!replay && C.SeatOverride.Length == 0 && guessed.Length > 0) return;
+
+        Widgets.GroupLabel("Your Seat");
+        Widgets.ListBegin();
+
+        var idx = Math.Max(0, Array.IndexOf(Seats, C.SeatOverride));
+        if (Widgets.RowCombo("Read the calls as",
+                replay ? "A recording has no party list, so this is a guess" : "",
+                ref idx, Seats, 190f, changed: C.SeatOverride.Length > 0, id: "seat"))
+        {
+            C.SeatOverride = idx <= 0 ? "" : Seats[idx];
+            C.Save();
+            // The rows above are sampled as whoever this is, so they are rebuilt
+            // rather than left showing the previous seat's half of every call.
+            FightCatalog.Invalidate();
+        }
+
+        Widgets.RowNote(C.SeatOverride.Length > 0
+            ? $"Reading every call as {C.SeatOverride}."
+            : guessed.Length > 0
+                ? $"Worked out as {guessed}." + (replay ? " In a recording that is a guess." : "")
+                : "No party read yet, so calls show their plain half.");
+
+        Widgets.ListEnd();
+        ImGui.Spacing();
+    }
+
     private void DrawStrats(ushort territory)
     {
         var strats = Strategies.For(territory);

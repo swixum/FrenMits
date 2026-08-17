@@ -35,5 +35,30 @@ public sealed class PartyContext
         return 0;
     }
 
+    // Puts one actor in a named seat and gives their old one to whoever was in it.
+    //
+    // For the case where the seats were guessed and the player knows better: a
+    // replay has no party list, so they are handed out in whatever order the object
+    // table holds, and the player is always first among them. Told the real seat,
+    // the pair it belongs to has to swap rather than the seat being handed out
+    // twice, or two people are both H1 and the other half of the mechanic is
+    // addressed to nobody.
+    //
+    // A seat nobody currently holds is simply taken, and an actor who is not in the
+    // party is ignored: neither is a swap.
+    public void Swap(string slot, uint actorId)
+    {
+        if (actorId == 0 || !Audience.IsSlot(slot)) return;
+        if (!_slotById.ContainsKey(actorId)) return;
+
+        var want = slot.ToUpperInvariant();
+        var had = _slotById[actorId];
+        if (had == want) return;
+
+        var other = IdOf(want);
+        _slotById[actorId] = want;
+        if (other != 0) _slotById[other] = had;
+    }
+
     public void Reset() => _slotById.Clear();
 }
