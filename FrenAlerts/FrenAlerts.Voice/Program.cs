@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using KokoroSharp;
 using KokoroSharp.Core;
 using KokoroSharp.Processing;
@@ -61,8 +62,33 @@ internal static class Program
                  ?? throw new InvalidOperationException($"no voices in {voices}");
     }
 
+    // One line finishes before the next one starts.
+    //
+    // Every line used to StopPlayback first, so two calls landing together meant the
+    // first was cut off part way through a word and only the second was ever heard.
+    // Two mechanics at once is exactly when both lines matter.
+    //
+    // Reading and speaking are split, because reading has to keep up with the fight
+    // whatever the speaking is doing: the parent writes to a pipe and a pipe that
+    // nobody drains blocks the parent.
+    private static readonly BlockingCollection<(double At, string Text)> Waiting = new(Queued);
+
+    // What the queue holds before it starts throwing lines away. Eight is the parent's
+    // own bound, and a queue past that is a fight nobody could listen to anyway.
+    private const int Queued = 8;
+
+    // Signalled when the library says a line is done, so this waits on the speaking
+    // rather than on a guess at how long the words take.
+    private static readonly SemaphoreSlim Finished = new(0, 1);
+
     private static void Speak()
     {
+        _tts!.OnSpeechCompleted += _ => Done();
+        _tts.OnSpeechCanceled += _ => Done();
+
+        var speaking = new Thread(Speaking) { IsBackground = true, Name = "speaking" };
+        speaking.Start();
+
         while (Console.ReadLine() is { } line)
         {
             if (line.Length == 0) continue;
@@ -80,10 +106,47 @@ internal static class Program
 
             if (at > 0 && Now() - at > StaleSeconds) continue;
 
+            // Never Add, which blocks: the parent is on the other end of this pipe.
+            if (!Waiting.TryAdd((at, text))) Console.Error.WriteLine("queue full, line dropped");
+        }
+
+        Waiting.CompleteAdding();
+        speaking.Join(TimeSpan.FromSeconds(5));
+    }
+
+    // Released at most once per line, so a library that raises both completed and
+    // canceled for the same one cannot leave a spare release behind to skip the next.
+    private static void Done()
+    {
+        try
+        {
+            if (Finished.CurrentCount == 0) Finished.Release();
+        }
+        catch (SemaphoreFullException)
+        {
+        }
+    }
+
+    private static void Speaking()
+    {
+        foreach (var (at, text) in Waiting.GetConsumingEnumerable())
+        {
+            // Checked again here, not only on the way in: a line can sit behind a long
+            // one and be about a mechanic that has already happened.
+            if (at > 0 && Now() - at > StaleSeconds) continue;
+
             try
             {
-                _tts!.StopPlayback();
-                _tts.SpeakFast(text, _voice!, _how);
+                // Drain anything left over from the line before, so a stale release
+                // cannot make this one look finished the moment it starts.
+                Finished.Wait(0);
+                _tts!.SpeakFast(text, _voice!, _how);
+
+                // Bounded, because a completion that never arrives would otherwise
+                // stop this thread saying anything ever again. Long enough for a line
+                // nobody would write, and the fight moves on regardless.
+                if (!Finished.Wait(TimeSpan.FromSeconds(15)))
+                    Console.Error.WriteLine("gave up waiting for a line to finish");
             }
             catch (Exception ex)
             {

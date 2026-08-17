@@ -43,6 +43,35 @@ public static partial class DancingMad
             else if (pull.Debuffs4 is null) pull.Debuffs4 = real;
         });
 
+        // Said out loud, which nothing did before. Both sides read this number and
+        // both only wrote it down: ours to answer with later, theirs to pick puddles
+        // or donuts with. The number lands on the boss about nine seconds before the
+        // debuffs land on the party, so it is knowable well before it is needed and
+        // was simply never spoken.
+        //
+        // "next" rather than a bare "debuffs fake", because the named call further
+        // down says the same thing about your own element when it arrives. This one
+        // is the warning that a lying set is coming and it is the only one that gets
+        // there first; that one names which. Worded apart so they do not read as the
+        // same sentence twice.
+        yield return new Trigger
+        {
+            Id = "neo-truth-said",
+            On = EventKind.StatusGain,
+            MatchId = Telling,
+            Phase = 4,
+            Says = "next debuffs real",
+            Make = ctx => TruthIn(ctx.Event.Param) is not { } real
+                ? null
+                : new Call
+                {
+                    Text = real ? "next debuffs real" : "next debuffs fake",
+                    Time = ctx.Event.Time,
+                    Key = "neo-truth",
+                    Level = CallLevel.Alert,
+                },
+        };
+
         yield return Collect("neo-debuff-collect", EventKind.StatusGain, 0, 4, ctx =>
         {
             var pull = Pull(ctx);
@@ -275,6 +304,13 @@ public static partial class DancingMad
             },
         };
 
+        // The fake one by name, which is what swix asked for: "fake fire" rather than
+        // a debuff lying somewhere. These are the two elements a player wears, and
+        // the fight already says "fake lightning" for the tells it carries over, so
+        // the words are its own.
+        yield return FakeElement("fake-fire", Entropy, "fire", p => p.EntropyReal);
+        yield return FakeElement("fake-water", Fluid, "water", p => p.FluidReal);
+
         // ---- the tells that carry over ----
 
         yield return new Trigger
@@ -433,6 +469,34 @@ public static partial class DancingMad
             },
         };
     }
+
+    // Your own element, named, when it is the lying one.
+    //
+    // Only the fake one is said. A debuff that means what it says needs no warning
+    // and the call after it already says what to do; a call on every one of them
+    // would be four more lines in a phase that is already the loudest in the fight.
+    //
+    // The truth for this element is worked out by the collector above on this same
+    // status, so it is there by the time this reads it.
+    private static Trigger FakeElement(
+        string id, uint status, string element, Func<DancingMadPull, bool?> truth) => new()
+    {
+        Id = id,
+        Says = $"fake {element}",
+        On = EventKind.StatusGain,
+        MatchId = status,
+        OnlyMe = true,
+        Phase = 4,
+        Make = ctx => truth(Pull(ctx)) is false
+            ? new Call
+            {
+                Text = $"fake {element}",
+                Time = ctx.Event.Time,
+                Key = id,
+                Level = CallLevel.Alert,
+            }
+            : null,
+    };
 
     // What Chaos is actually doing this time, for whoever calls it out. Which of the
     // two elements lies is on the boss rather than on the debuff, so a group with

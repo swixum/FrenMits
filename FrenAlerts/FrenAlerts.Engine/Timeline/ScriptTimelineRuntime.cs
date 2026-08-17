@@ -48,6 +48,21 @@ public sealed class ScriptTimelineRuntime
     // Spoken lines, handed out rather than said here.
     public Action<string>? Speak;
 
+    // A line about each correction, for the pull diary. The diary writes casts and
+    // statuses but not ability hits, and this clock syncs on both, so a pull read
+    // back afterwards could not say whether the clock had corrected or coasted.
+    // Nothing here decides anything: it is what the file was missing.
+    public Action<string>? Note;
+
+    // How many times the clock has moved itself, and how far out it was when it
+    // did, smoothed the way FrenMits smooths the same number. Positive means the
+    // clock was behind and the fight was further along than it thought.
+    public int Resyncs { get; private set; }
+
+    public double Drift { get; private set; }
+
+    private int _driftSamples;
+
     public ScriptTimeline? Active => _synced ?? _zone;
 
     public bool Running => _running;
@@ -81,6 +96,12 @@ public sealed class ScriptTimelineRuntime
     {
         _synced = _zone;
         _syncMiss = 0;
+
+        // Counting starts again here, so a long night does not read as one pull
+        // that corrected itself four hundred times.
+        Resyncs = 0;
+        Drift = 0d;
+        _driftSamples = 0;
     }
 
     public void OnEvent(GameEvent e, bool fromEnemy)
@@ -126,7 +147,7 @@ public sealed class ScriptTimelineRuntime
 
         if (!due.HasJump)
         {
-            SyncTo(due.Time, e.Time);
+            SyncTo(due.Time, e.Time, on: due);
             return;
         }
 
@@ -134,7 +155,7 @@ public sealed class ScriptTimelineRuntime
         // when it already agrees with itself. A jump to zero is the file saying the
         // timeline is finished.
         if (due.Jump <= 0f) Stop();
-        else SyncTo(due.Jump, e.Time, force: true);
+        else SyncTo(due.Jump, e.Time, force: true, on: due);
     }
 
     // Nothing was due: either the clock is a little off, or this is a different
@@ -154,7 +175,7 @@ public sealed class ScriptTimelineRuntime
         if (++_syncMiss < MissResync) return;
 
         _syncMiss = 0;
-        SyncTo(near.HasJump ? near.Jump : near.Time, e.Time);
+        SyncTo(near.HasJump ? near.Jump : near.Time, e.Time, on: near);
     }
 
     // A cast places the clock at where its resolve is written, minus the cast time,
@@ -175,7 +196,7 @@ public sealed class ScriptTimelineRuntime
 
         _synced = timeline;
         _syncMiss = 0;
-        SyncTo(entry.Time - cast, e.Time);
+        SyncTo(entry.Time - cast, e.Time, on: entry);
         _lastAbility = e.Time;
     }
 
@@ -183,16 +204,35 @@ public sealed class ScriptTimelineRuntime
     {
         _synced = timeline;
         _syncMiss = 0;
-        SyncTo(entry.HasJump ? entry.Jump : entry.Time, now);
+        SyncTo(entry.HasJump ? entry.Jump : entry.Time, now, on: entry);
     }
 
-    private void SyncTo(float fightNow, double now, bool force = false)
+    private void SyncTo(float fightNow, double now, bool force = false, ScriptTimelineEntry? on = null)
     {
         var timebase = now - fightNow;
         if (!force && _running && Math.Abs(timebase - _timebase) <= SyncChurnGuard) return;
 
+        // Read before the move, since that is the number worth writing down.
+        var was = _running ? Fight(now) : float.NaN;
+
         _timebase = timebase;
         _running = true;
+
+        if (!float.IsNaN(was))
+        {
+            Resyncs++;
+
+            // Signed the way TimelineSyncing.Drift signs it, clock minus anchor, because
+            // the config window reads both clocks through one line and says "ahead of the
+            // fight" for a positive number. The note prints the move instead, which is the
+            // same number the other way round and the one worth reading in a diary.
+            var drift = was - fightNow;
+            Drift = _driftSamples == 0 ? drift : Drift * 0.7d + drift * 0.3d;
+            _driftSamples++;
+            Note?.Invoke($"{was:F1}s -> {fightNow:F1}s ({-drift:+0.0;-0.0}s) on "
+                + $"{(string.IsNullOrEmpty(on?.Name) ? "?" : on!.Name)}"
+                + (on?.IsWide == true ? " [gate]" : ""));
+        }
 
         // A clock that moved back has calls to make again, so the guard against
         // saying the same one twice moves back with it.

@@ -176,6 +176,17 @@ public sealed class ScriptFightHost : IDisposable
 
     public int TriggerCount => _runners.Sum(r => r.Triggers.Count);
 
+    // How many of theirs would speak if the fight ran now. Their triggers go through
+    // the same per-call switch ours do, so a fight with half of them turned off says
+    // so rather than reporting the total twice.
+    //
+    // No switch at all means nothing has been turned off, which is the state a fresh
+    // install is in.
+    public int SpeakingCount(Func<string, bool?>? switched) =>
+        switched is null
+            ? TriggerCount
+            : _runners.Sum(r => r.Triggers.Count(t => switched(t.Id) is not false));
+
     // How many of their triggers matched a line and how many of those said
     // something. Both, because they answer different questions: nothing matched is a
     // feed that is not reaching them, matched but nothing said is their own
@@ -193,12 +204,35 @@ public sealed class ScriptFightHost : IDisposable
 
     public double TimelineAt(double now) => _clock?.Fight(now) ?? 0d;
 
-    public string TimelineNext =>
-        _clock?.Next(NowForNext) is { } entry ? entry.Name : "";
+    // Where a resync line goes. Held here rather than on the clock, which is built
+    // again on every zone.
+    public Action<string>? TimelineNote;
 
-    // Only used to ask the clock what is next, and the clock answers from where it
-    // already is, so the moment asked about does not have to be this frame's.
-    private double NowForNext => _lastPositions;
+    public int TimelineResyncs => _clock?.Resyncs ?? 0;
+
+    public double TimelineDrift => _clock?.Drift ?? 0d;
+
+    // What the fight expects next, soonest first.
+    //
+    // This replaces a TimelineNext nobody called, which asked the clock what was
+    // coming as of the last position poll rather than as of now: before the first
+    // poll that stood at -99, and the answer was whatever the file starts with.
+    public IEnumerable<Upcoming> Upcoming(double now, int count)
+    {
+        if (_clock is not { Running: true } clock) yield break;
+
+        var fightNow = clock.Fight(now);
+        var given = 0;
+
+        foreach (var entry in clock.Upcoming(now, float.MaxValue))
+        {
+            if (given >= count) yield break;
+            if (string.IsNullOrWhiteSpace(entry.Name)) continue;
+
+            given++;
+            yield return new Upcoming(entry.Name, entry.Time, entry.Time - fightNow);
+        }
+    }
 
     // Reads their files. Everything after this is indexing what they registered.
     public void Load()
@@ -299,7 +333,11 @@ public sealed class ScriptFightHost : IDisposable
 
         if (mine.Count > 0)
         {
-            _clock = new ScriptTimelineRuntime(mine) { Speak = SayFromTimeline };
+            _clock = new ScriptTimelineRuntime(mine)
+            {
+                Speak = SayFromTimeline,
+                Note = line => TimelineNote?.Invoke(line),
+            };
             _clock.SetZone(mine[0]);
         }
 

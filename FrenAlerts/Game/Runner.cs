@@ -66,6 +66,7 @@ public sealed class Runner : IDisposable
         _sources = new EventSources(OnEvent);
         _sources.WatchYells(FightLoader.YellsFor(_territory));
         _scripts.Say = OnScriptCall;
+        _scripts.TimelineNote = line => Diary.Note("resync", line);
         _scripts.Chosen = id => ScriptStrat?.Invoke(id) ?? "";
         _mine.Say = OnMyCall;
         Voice.Local = LocalVoice;
@@ -142,15 +143,26 @@ public sealed class Runner : IDisposable
     // outside a party, which is the page's cue to show the plain half of a call.
     public string MySlot => _engine.Player.MySlot;
 
-    public int TriggerCount => Scripted ? _scripts.TriggerCount : _engine.Triggers.Count;
+    // Both sides, because both run.
+    //
+    // This read "theirs if a fight is scripted, ours otherwise", which is not what the
+    // plugin does: a scripted fight still has our own triggers loaded and firing beside
+    // their file. Dancing Mad went from "230 of 230" to "162 of 162" in the diary the
+    // day it became scripted, and nothing had been lost; 68 of them had simply stopped
+    // being counted. It is the same reason phase 4 raidwides were heard twice.
+    public int TriggerCount => (Scripted ? _scripts.TriggerCount : 0) + _engine.Triggers.Count;
 
     // How many will actually speak, which is the number that matters: a status line
     // reading only the total would call a fight covered while most of it was off.
     //
-    // All of theirs speak: their triggers are not switched one by one, so the two
-    // numbers being the same is the honest answer rather than a missing one.
+    // Theirs are switched one by one too. The note here used to say they were not, and
+    // returned the total for them, so a scripted fight could never show a single call
+    // switched off: the two numbers were equal whatever anybody had turned off. Their
+    // calls go through the same `Switched` as ours does, three lines further down this
+    // file, which is what decides it.
     public int SpeakingCount =>
-        Scripted ? _scripts.TriggerCount : _engine.Triggers.Count(t => t.Enabled);
+        (Scripted ? _scripts.SpeakingCount(Switched) : 0)
+        + _engine.Triggers.Count(t => t.Enabled && Switched?.Invoke(t.Id) is not false);
 
     // The seat to read the calls as, when the game cannot say. Empty is the normal
     // answer and means work it out from the party.
@@ -234,17 +246,24 @@ public sealed class Runner : IDisposable
 
     // How many times the clock has corrected itself, and by how much on average.
     // Positive drift means the clock was running ahead of the fight.
-    public int TimelineResyncs => _clock?.Resyncs ?? 0;
+    // Branched on Scripted like the two above it. Read off the hand-written clock
+    // alone, this reported no corrections at all for every scripted fight, which
+    // read as a clock that had given up and was the reason one was diagnosed.
+    public int TimelineResyncs => Scripted ? _scripts.TimelineResyncs : _clock?.Resyncs ?? 0;
 
-    public double TimelineDrift => _clock?.Drift ?? 0d;
+    public double TimelineDrift => Scripted ? _scripts.TimelineDrift : _clock?.Drift ?? 0d;
 
     // Seconds into the fight's own timeline, which is not the same as seconds into
     // the pull: a fight written in phase blocks counts from its block base.
     public double TimelineAt => Scripted ? _scripts.TimelineAt(Now) : _clock?.At(Now) ?? 0d;
 
     // What the fight expects next, soonest first. Empty until the clock is anchored.
+    //
+    // The last of these to ask the hand-written clock without checking which one was
+    // running. Every fight in the plugin is scripted, so the window's "Next" line had
+    // nothing to show in any of them and said only that a timeline was running.
     public IEnumerable<Upcoming> Upcoming(int count = 3) =>
-        _clock?.Next(Now, count) ?? [];
+        Scripted ? _scripts.Upcoming(Now, count) : _clock?.Next(Now, count) ?? [];
 
     public int TimelineMechanics => _timelines.Mechanics(_territory);
 
@@ -597,9 +616,16 @@ public sealed class Runner : IDisposable
         {
             Text = call.Text,
             Speech = call.Speech,
-            // Now, not later: their triggers do their own waiting, so a call arriving
-            // here is one that means now.
-            Time = Now,
+            // When the cast lands, where the line that fired this was a cast starting,
+            // and now for everything else.
+            //
+            // This was always Now, on the grounds that their triggers do their own
+            // waiting. They do, but the board reads this as "when the mechanic is",
+            // and a call that means now has no lead to count down: the seconds in
+            // brackets never appeared on a single ported call. It stays silent either
+            // way, because the number is put on at draw time and never reaches the
+            // voice.
+            Time = call.Lands > Now ? call.Lands : Now,
             Key = call.TriggerId,
             Hold = (float)call.Seconds,
             Level = call.Level switch

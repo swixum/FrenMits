@@ -477,12 +477,17 @@ public static partial class DancingMad
         _ => "",
     };
 
+    // Only the move.
+    //
+    // These used to name whoever the stack was on, so the line read "cone on you +
+    // stack on Bob, Alice". swix asked for the move on its own: who is stacking is the
+    // group's business and knowing their names does not change where you go. What you
+    // are carrying stays, because that is the part you act on.
     private static string FirstSet(in TriggerContext ctx, DancingMadPull pull, string shape)
     {
         if (shape == "stack") return "stack on you + tower";
-        if (shape.Length == 0) return "";
 
-        return $"{PathMarker(shape)} + stack on {Names(ctx, pull.PathStacks)}";
+        return PathMarker(shape);
     }
 
     // A set this player is on a tower for, plus how close to stand.
@@ -492,8 +497,8 @@ public static partial class DancingMad
     private static string StackOrTower(
         in TriggerContext ctx, DancingMadPull pull, string shape)
     {
-        if (shape == "stack")
-            return $"stack on {Names(ctx, pull.PathStacks)} + tower";
+        // "tower" on its own where it used to name the stack: the tower is the move.
+        if (shape == "stack") return "tower";
         return shape.Length == 0 ? "" : $"{PathMarker(shape)} + tower";
     }
 

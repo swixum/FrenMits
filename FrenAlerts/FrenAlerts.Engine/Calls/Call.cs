@@ -50,7 +50,11 @@ public sealed record Call
 
     public bool Placed => At is not null;
 
-    public string Spoken => string.IsNullOrEmpty(Speech) ? Text : Speech;
+    // What the voice says. The arrow a sequence is written with becomes the word it
+    // means, here rather than at the five places that reach for this, because a sixth
+    // would otherwise be a call that reads its punctuation out loud.
+    public string Spoken =>
+        Alerts.CallText.Speak(string.IsNullOrEmpty(Speech) ? Text : Speech);
 
     public override string ToString() =>
         $"{Time,8:F2} [{Level}]{(Personal ? " (me)" : "")} {Text}";

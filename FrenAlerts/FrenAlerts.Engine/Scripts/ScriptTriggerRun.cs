@@ -1,3 +1,4 @@
+using System.Globalization;
 using Jint;
 using FrenAlerts.Engine.Alerts;
 using System.Text.RegularExpressions;
@@ -20,7 +21,16 @@ public sealed record ScriptCall(
     // debuff that landed on you, or the ability being cast. Carried from the match
     // rather than worked out here, because a trigger with a delay says its words
     // seconds after the event that named the picture.
-    CallIcon Icon = default);
+    CallIcon Icon = default,
+    // When the cast this call is about actually lands, on the same clock the engine
+    // uses, or zero where nothing was being cast.
+    //
+    // Taken at the moment the line arrived rather than at the moment the words are
+    // said, because a trigger that waits before speaking has not moved the mechanic:
+    // the cast still lands when it was always going to. Without this every ported call
+    // was handed to the board as "now", so the board had no lead to count down and the
+    // countdown in brackets never appeared on one of them.
+    double Lands = 0d);
 
 // One of their triggers, compiled once.
 public sealed class CompiledScriptTrigger
@@ -83,7 +93,7 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
     private readonly Dictionary<string, double> _lastFire = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _lastSaid = new(StringComparer.Ordinal);
     private readonly List<(double Due, CompiledScriptTrigger Trigger, ObjectInstance Matches,
-        CallIcon Icon)> _waiting = [];
+        CallIcon Icon, double Lands)> _waiting = [];
     private readonly Dictionary<string, double> _spawnSeen = new(StringComparer.Ordinal);
     private double _spawnPruned;
 
@@ -242,9 +252,14 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
                 // arrived, not the moment the call is due.
                 if (trigger.PreRun is not null) Invoke(trigger.PreRun, data, matches);
 
+                // Read here, before the delay, for the same reason the collector is:
+                // it is a fact about the line that arrived, not about when the words
+                // come out.
+                var lands = CastLanding(matches, now);
+
                 var delay = Number(trigger.DelaySeconds, data, matches);
-                if (delay > 0.01) _waiting.Add((now + delay, trigger, matches, icon));
-                else Execute(trigger, matches, now, icon);
+                if (delay > 0.01) _waiting.Add((now + delay, trigger, matches, icon, lands));
+                else Execute(trigger, matches, now, icon, lands);
             }
             catch (Exception ex)
             {
@@ -291,9 +306,9 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
         {
             if (_waiting[i].Due > now) continue;
 
-            var (_, trigger, matches, icon) = _waiting[i];
+            var (_, trigger, matches, icon, lands) = _waiting[i];
             _waiting.RemoveAt(i);
-            try { Execute(trigger, matches, now, icon); }
+            try { Execute(trigger, matches, now, icon, lands); }
             catch (Exception ex) { Problem = $"{trigger.Id}: {ex.Message}"; }
         }
     }
@@ -308,8 +323,30 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
         _lastSaid.Clear();
     }
 
+    // When the cast named by a matched line lands, or zero where the line was not a
+    // cast starting.
+    //
+    // Their own field, read the way their triggers read it: a StartsUsing line carries
+    // the cast time in seconds, and Grand Cross already uses it to work out its delay.
+    // Numbers arrive as numbers from the engine's own fields and as text from a regex
+    // capture, so both are accepted.
+    private static double CastLanding(ObjectInstance matches, double now)
+    {
+        var value = matches.Get("castTime");
+        if (value is null || value.IsUndefined() || value.IsNull()) return 0d;
+
+        double seconds;
+        if (value.IsNumber()) seconds = value.AsNumber();
+        else if (!double.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture,
+                     out seconds)) return 0d;
+
+        // A cast of nothing is not a countdown, and a cast longer than any in the game
+        // is a field that did not mean what this thinks it did.
+        return seconds is > 0.05d and < 120d ? now + seconds : 0d;
+    }
+
     private void Execute(CompiledScriptTrigger trigger, ObjectInstance matches, double now,
-        CallIcon icon = default)
+        CallIcon icon = default, double lands = 0d)
     {
         var data = Data();
         if (data is null) return;
@@ -388,7 +425,8 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
 
         Fired++;
         Say?.Invoke(new ScriptCall(
-            trigger.Id, shown ?? "", ScriptSpeech.Spell(spoken ?? shown ?? ""), level, seconds, icon));
+            trigger.Id, shown ?? "", ScriptSpeech.Spell(spoken ?? shown ?? ""), level, seconds,
+            icon, lands));
     }
 
     // The three lines a trigger could say, in their own order. A response builder

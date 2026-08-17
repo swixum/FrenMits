@@ -429,8 +429,14 @@ public static partial class DancingMad
     public static IEnumerable<Trigger> Triggers()
     {
         // Measured at 8.0 targets a cast, so these land on everyone.
+        //
+        // Phase 4's three are not here. Their own file already calls all three, so both
+        // fired and swix heard every phase 4 raidwide twice: Ultima Upsurge is their
+        // "DMU P4/P5 Ultima Upsurge" answering with bigAoe, Grand Cross is their
+        // "DMU P4 Grand Cross" answering with aoe, and Thrumming Thunder III is their
+        // own infoText. Theirs say more than "raidwide" does and one of them counts
+        // down off the cast, so theirs is the one that stays.
         yield return Raidwide("forsaken", 0xBABC, 2);
-        yield return Raidwide("ultima-upsurge", 0xC24A, 4);
         yield return Raidwide("aero-assault", 0xC3F7, 2);
 
         yield return Raidwide("white-hole", 0xBD66, 3);
@@ -572,8 +578,6 @@ public static partial class DancingMad
         yield return Debuff("dynamic-fluid", 0x641, "donut", 3);
 
         yield return Raidwide("light-of-judgment-2", 0xBABD, 2);
-        yield return Raidwide("grand-cross", 0xBB14, 4);
-        yield return Raidwide("thrumming-thunder", 0xC5DE, 4);
         yield return Buster("thunder-3-buster", 0xBB09, 3);
 
         yield return Cast("blizzard-3-stack", 0xBB0D, "stack", 3);

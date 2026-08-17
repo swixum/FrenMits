@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Windowing;
+using FrenAlerts.Engine;
 using FrenAlerts.Engine.Alerts;
 using FrenAlerts.Engine.UserTriggers;
 
@@ -49,17 +52,34 @@ public sealed class CooldownOverlay : Window
 
     public void RequestReposition() => _applyPos = true;
 
+    // What this frame has to draw, asked once and used by both the question of whether
+    // to be on screen and the drawing itself.
+    //
+    // Showing() walks the entries and skips the ones that are ready, so an empty answer
+    // is an ordinary state rather than an edge: HideWhenReady exists to produce it. The
+    // window has no background flag of its own, so it takes ImGui's, and a window with
+    // nothing in it is a small empty panel sitting on screen.
+    private readonly FrameSnapshot<IReadOnlyList<CooldownEntry>> _snap = new([]);
+
+    private IReadOnlyList<CooldownEntry> ShowingThisFrame() =>
+        _snap.Of(ImGui.GetFrameCount(),
+            () => _cooldowns.Board.Showing(_cooldowns.Job, _clock()).ToList());
+
     public override bool DrawConditions()
     {
         if (!C.CooldownsEnabled) return false;
         if (Placing) return true;
 
-        return _cooldowns.Board.Visibility switch
+        var wanted = _cooldowns.Board.Visibility switch
         {
             CooldownVisibility.Always => true,
             CooldownVisibility.InCombat => Service.Condition[ConditionFlag.InCombat],
             _ => Service.Condition[ConditionFlag.BoundByDuty],
         };
+
+        // Nothing to show is off screen, not an empty box. The call overlay already
+        // works this way; this one opened whenever the visibility rule passed.
+        return wanted && ShowingThisFrame().Count > 0;
     }
 
     public override void PreDraw()
@@ -118,7 +138,7 @@ public sealed class CooldownOverlay : Window
         var drawn = 0;
         var row = 0f;
 
-        foreach (var entry in _cooldowns.Board.Showing(_cooldowns.Job, now))
+        foreach (var entry in ShowingThisFrame())
         {
             var wide = WidthOf(entry, scale);
 

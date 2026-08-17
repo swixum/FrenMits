@@ -289,8 +289,12 @@ public partial class ConfigWindow : Window, IDisposable
                     : "Timeline running",
                 $"{tl.TimelineAt:0}s into this fight's timeline, "
                 + $"{tl.TimelineResyncs} resync{(tl.TimelineResyncs == 1 ? "" : "s")}.\n"
-                + $"Running {(tl.TimelineDrift >= 0 ? "ahead of" : "behind")} the fight "
-                + $"by {Math.Abs(tl.TimelineDrift):0.0}s on average.");
+                // Drift is an average of corrections, so with none made there is no
+                // average to report and the old line said "ahead by 0.0s" instead.
+                + (tl.TimelineResyncs == 0
+                    ? "Placed once and holding, so nothing has needed correcting yet."
+                    : $"Running {(tl.TimelineDrift >= 0 ? "ahead of" : "behind")} the fight "
+                      + $"by {Math.Abs(tl.TimelineDrift):0.0}s on average."));
         }
         // A timeline that has not placed itself yet. Muted while it is still reasonable,
         // amber once it is not: the countdowns are simply absent either way, and silently

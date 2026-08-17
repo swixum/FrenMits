@@ -179,6 +179,49 @@ public sealed class DancingMadPull
     public bool CeleCalled;
     public bool? CeleNoDebuff;
 
+    // Chaotic Flood: four sets of paired line AoEs, thrown out about a second apart.
+    // One line of each pair runs along a wall and the other through the middle, and
+    // only the middle one is worth watching. The set rotates one way or the other
+    // and it is a different way each time, so it is read off the casters rather than
+    // written down anywhere.
+    //
+    // Eight casts is the whole mechanic. Past that the extra is dropped: a ninth
+    // means something else is casting it and the answer is already given.
+    public const int FloodCasts = 8;
+
+    public readonly List<(double At, Position Where)> FloodLines = [];
+
+    public bool FloodCalled;
+
+    // When the flood itself resolves, taken off its own cast bar. The rotation is
+    // read from the lines a second or so after that bar goes up, so the call knows
+    // where to stand well before the thing it is about lands and can count down to
+    // it. Not a number until the bar has been seen.
+    public double FloodLandsAt;
+
+    // Two casts of one set land together; the sets themselves are a second apart.
+    public const double FloodSetGap = 0.4d;
+
+    // Which mechanic led into the Fell Forces set now coming.
+    //
+    // The two alternate, in the file and in all three cached kills: Ultima Repeater,
+    // a set, Maddening Orchestra, a set, and round again. Ultima Repeater already
+    // says where to stand and runs straight into its set, so saying it again there
+    // is saying it twice. Only a set led by Maddening Orchestra needs the call.
+    //
+    // Null until one of the two has been seen, which is not the same as either.
+    public bool? FellForcesAfterOrchestra;
+
+    // When the last Fell Forces of a set landed. It comes in sets of two and three
+    // about three seconds apart, and the call is where to stand for the set rather
+    // than for each hit in it, so the later ones are held against this.
+    public double FellForcesAt = double.NegativeInfinity;
+
+    // Longer than the gap inside a set and far shorter than the gap between them,
+    // measured across three kills: within a set the hits are 3.2s apart, and the
+    // sets themselves are 30s or more apart.
+    public const double FellForcesSet = 10d;
+
     // No direction at all, which is not the same as north.
     public const int Nowhere = -1;
 

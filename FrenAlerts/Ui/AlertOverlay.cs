@@ -324,11 +324,18 @@ public class AlertOverlay : Window
     // How much width one call wants, per pixel of font size, icon included. The one
     // place that measurement is written, so the stack's shared size and the size a
     // lone call picks for itself can never drift apart.
+    // Measured on the words as they are drawn, which is what CallText.Plain gives:
+    // colour tags taken out and the arrow turned into the one glyph it draws as.
+    //
+    // It measured the raw line, so anything the screen never shows was still counted.
+    // "<yellow>Lightning</yellow>" is nine characters of word behind seventeen of tag,
+    // and every "=>" counted two where one is drawn. This is the width the whole stack
+    // is sized from, so one tagged call in it made every call on screen smaller.
     private float Need(string text, CallIcon icon, float remaining, bool counting)
     {
         var (_, reserve) = OverlayState.Countdown(
             CallText.Sentence(text), C.ShowCountdown, counting, remaining);
-        var perPx = ImGui.CalcTextSize(reserve).X / MathF.Max(1f, ImGui.GetFontSize());
+        var perPx = ImGui.CalcTextSize(CallText.Plain(reserve)).X / MathF.Max(1f, ImGui.GetFontSize());
         return perPx + IconFactor(icon);
     }
 

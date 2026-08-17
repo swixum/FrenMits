@@ -24,13 +24,51 @@ public static partial class CallText
     // tomorrow arrives with it already done. It catches the handful written `->` too,
     // which are the same thing spelled a second way.
     //
-    // The screen only, and deliberately. The voice is handed `Call.Spoken`, which never
-    // comes through here, so what is read out during a pull is byte for byte what it was
-    // before this existed.
+    // The screen gets the arrow. The voice gets a word, because a voice handed any of
+    // these reads out the punctuation: "Bait Puddle equals greater than Spread".
     public const string Arrow = "→";
 
+    // The symbol only, with the spacing left as written, so a line reads on screen the
+    // way whoever wrote it spaced it.
+    //
+    // Matched rather than replaced twice: Replace("=>") on Dancing Mad's "==>" left the
+    // spare character behind and drew "= →".
+    [GeneratedRegex(@"=+>|-+>")]
+    private static partial Regex Drawn();
+
     private static string Arrows(string text) =>
-        text.Contains('>') ? text.Replace("=>", Arrow).Replace("->", Arrow) : text;
+        text.Contains('>') ? Drawn().Replace(text, Arrow) : text;
+
+    // What the voice says where the screen shows a symbol.
+    //
+    // The words the symbols already mean, which is what somebody reading the line aloud
+    // would say. An arrow is one thing after another: "Bait Puddle then Spread". A plus
+    // is two things at once: "Spread East and Avoid Cleave".
+    //
+    // All three spellings of the arrow, because the screen's own substitution is not the
+    // only way one arrives: a fight pulled in tomorrow can carry it already written.
+    public const string Said = "then";
+    public const string Also = "and";
+
+    // One or more dashes, because Dancing Mad writes one of them "==>" and matching
+    // only the two characters left the spare one behind: "Counterclockwise = then".
+    [GeneratedRegex(@"\s*(?:=+>|-+>|→)\s*")]
+    private static partial Regex Pointing();
+
+    // Spaces both sides, which is how all 124 of them are written across the fights.
+    // A plus with a word hard against it is somebody's shorthand rather than a join,
+    // and "HP+" read as "HP and" would be worse than leaving it be.
+    [GeneratedRegex(@"\s+\+\s+")]
+    private static partial Regex Joining();
+
+    public static string Speak(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+
+        text = Pointing().Replace(text, $" {Said} ");
+        text = Joining().Replace(text, $" {Also} ");
+        return text.Trim();
+    }
 
     // A call split into its coloured runs.
     //

@@ -45,5 +45,8 @@ public sealed record CallSpec
 
     public bool NeedsWording { get; init; }
 
-    public string Spoken => string.IsNullOrEmpty(Speech) ? Text : Speech;
+    // The same as Call.Spoken, and for the same reason: the arrow is drawn on screen
+    // and said as a word.
+    public string Spoken =>
+        Alerts.CallText.Speak(string.IsNullOrEmpty(Speech) ? Text : Speech);
 }
