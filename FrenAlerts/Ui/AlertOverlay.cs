@@ -151,7 +151,8 @@ public class AlertOverlay : Window
                 if (i > 0) ImGui.Spacing();
                 var s = live[i];
                 DrawCall(s.Call.Text, s.Call.Level, s.Icon, s.Remaining(now), s.Counting(now),
-                    (float)(now - s.FireAt), px, s.Call.Tint);
+                    (float)(now - s.FireAt), px, s.Call.Tint,
+                    age: (float)(now - s.At), holds: (float)(s.EndsAt - now));
             }
         }
 
@@ -267,15 +268,28 @@ public class AlertOverlay : Window
     private float IconFactor(CallIcon icon) =>
         C.ShowCallIcon && icon.Any ? Math.Clamp(C.CallIconScale, 0.4f, 1.6f) + 0.32f : 0f;
 
+    // One call, drawn the way the plugin the fights came from drew them.
+    //
+    // Their geometry throughout, in CallLook: the size it lands at and grows from, the
+    // ring of sixteen offsets that makes the outline a ring rather than four corners,
+    // the rounded slab behind it with its shadow and its own colour on the edge, the
+    // icon at 95% of the line with a quarter of a line beside it, and the bar
+    // underneath while it counts.
+    //
+    // The seconds stay in brackets after the words, and there is no bar: theirs runs
+    // one under the call with the number beside it, and swix wants the brackets and
+    // nothing else moving.
     private void DrawCall(string text, CallLevel level, CallIcon icon, float remaining, bool counting,
-        float sinceGo = 0f, float? sharedPx = null, uint tint = 0)
+        float sinceGo = 0f, float? sharedPx = null, uint tint = 0, float age = 99f,
+        float holds = 99f)
     {
-        // Centred on go rather than stopping at it: the flash is worth most at the
-        // moment you act, and the switch is called Pulse on Go.
         const float pulseWindow = 1.5f;
-        // A hand-written trigger can pick its own colour, and that beats the level's:
-        // somebody who set their own call green did so to tell it apart from the
-        // fight's.
+
+        // Faded on what is left of its time on screen, not on what is left of the
+        // countdown: a counted call is at its most useful as it reaches zero.
+        var alpha = CallLook.AlphaAt(age, holds);
+        if (!CallLook.WorthDrawing(alpha)) return;
+
         var baseColor = tint != 0 ? tint : ColorFor(level);
         var pulsing = C.PulseWhenClose
             && (counting ? remaining < pulseWindow : sinceGo < pulseWindow);
@@ -284,57 +298,93 @@ public class AlertOverlay : Window
         var words = CallText.Sentence(text);
         var (line, reserve) = OverlayState.Countdown(words, C.ShowCountdown, counting, remaining);
 
-        // Measured at the window's own font, then scaled: text width is close
-        // enough to linear in size for the same face, and this is what lets the
-        // size be chosen before the font is pushed rather than after.
-        //
-        // Against the reserved form, so the fitted size does not step up on the
-        // frame the countdown drops off either.
-        // The stack's own size when there is one, so four calls read as four calls
-        // rather than as four sizes. A lone call still fits itself.
-        var px = sharedPx ?? OverlayState.FitFontPxFor(C.CallFontSizePx,
+        var pieces = CallText.Pieces(line);
+        var plain = CallText.Plain(line);
+
+        var wanted = sharedPx ?? OverlayState.FitFontPxFor(C.CallFontSizePx,
             ImGui.GetMainViewport().WorkSize.X * 0.92f,
-            [ImGui.CalcTextSize(reserve).X / MathF.Max(1f, ImGui.GetFontSize()) + IconFactor(icon)]);
+            [ImGui.CalcTextSize(CallText.Plain(reserve)).X / MathF.Max(1f, ImGui.GetFontSize())
+             + IconFactor(icon)]);
+
+        // It arrives at 85% and grows into place over a fifth of a second.
+        var px = wanted * CallLook.ScaleAt(age);
 
         using (OverlayChrome.PushFont(_fonts, px))
         {
-            var withIcon = C.ShowCallIcon && icon.Any;
-            var lineH = ImGui.GetTextLineHeight();
-            var iconH = withIcon ? MathF.Round(lineH * Math.Clamp(C.CallIconScale, 0.4f, 1.6f)) : 0f;
-            var gap = withIcon ? MathF.Round(lineH * 0.32f) : 0f;
-            var textW = ImGui.CalcTextSize(line).X;
-            var holdW = MathF.Max(textW, ImGui.CalcTextSize(reserve).X);
+            var dl = ImGui.GetWindowDrawList();
+            var font = ImGui.GetFont();
+            var drawn = ImGui.GetFontSize();
 
-            var offset = AlignOffset(ImGui.GetContentRegionAvail().X, iconH + gap + holdW);
+            var withIcon = C.ShowCallIcon && icon.Any;
+            var iconPx = withIcon ? drawn * CallLook.IconSize * Math.Clamp(C.CallIconScale, 0.4f, 1.6f) : 0f;
+            var lead = withIcon ? iconPx + drawn * CallLook.IconGap : 0f;
+
+            var size = ImGui.CalcTextSize(plain);
+            var holdW = MathF.Max(size.X, ImGui.CalcTextSize(CallText.Plain(reserve)).X);
+
+            var offset = AlignOffset(ImGui.GetContentRegionAvail().X, lead + holdW);
             if (offset > 0) ImGui.SetCursorPosX(MathF.Round(ImGui.GetCursorPosX() + offset));
 
-            var start = ImGui.GetCursorPos();
+            var at = ImGui.GetCursorScreenPos();
+            ImGui.Dummy(new Vector2(lead + holdW, size.Y));
+
+            var textAt = new Vector2(at.X + lead, at.Y);
+
+            if (C.ShowBackground)
+            {
+                var pad = new Vector2(drawn * CallLook.PadX, drawn * CallLook.PadY);
+                var p0 = textAt - pad - new Vector2(lead, 0f);
+                var p1 = textAt + new Vector2(size.X, size.Y) + pad;
+                var round = drawn * CallLook.Round;
+
+                var drop = new Vector2(0f, CallLook.ShadowDrop);
+                dl.AddRectFilled(p0 + drop, p1 + drop,
+                    ImGui.ColorConvertFloat4ToU32(CallLook.ShadowColor(alpha)), round);
+                dl.AddRectFilledMultiColor(p0, p1,
+                    ImGui.ColorConvertFloat4ToU32(CallLook.BackTop(alpha)),
+                    ImGui.ColorConvertFloat4ToU32(CallLook.BackTop(alpha)),
+                    ImGui.ColorConvertFloat4ToU32(CallLook.BackBottom(alpha)),
+                    ImGui.ColorConvertFloat4ToU32(CallLook.BackBottom(alpha)));
+
+                var edge = Theme.V(color);
+                edge.W = CallLook.BorderAlpha * alpha;
+                dl.AddRect(p0, p1, ImGui.ColorConvertFloat4ToU32(edge), round, ImDrawFlags.None,
+                    CallLook.BorderWidth);
+            }
+
             if (withIcon)
+                Icons.Draw(icon, dl, new Vector2(at.X, at.Y + (size.Y - iconPx) * 0.5f),
+                    iconPx, Faded(0xFFFFFFFF, alpha), false);
+
+            var ring = CallLook.OutlineWidth(drawn);
+            var shadow = ImGui.ColorConvertFloat4ToU32(new Vector4(0f, 0f, 0f, alpha));
+            var pen = textAt;
+
+            foreach (var piece in pieces)
             {
-                var at = ImGui.GetCursorScreenPos();
-                var dl = ImGui.GetWindowDrawList();
-                // Centered against the words, and drawn to the list so it can
-                // never push the text it sits beside.
-                // Art that has not resolved leaves its space empty rather than
-                // standing something else in: on the frame a debuff lands its
-                // texture is often still loading, and a warning glyph blinking in
-                // and out at the moment you are reading the call is worse than a
-                // gap. The space is already reserved, so the words never move.
-                Icons.Draw(icon, dl, new Vector2(at.X, at.Y + (lineH - iconH) * 0.5f),
-                    iconH, color, C.TextShadow);
+                if (piece.Text.Length == 0) continue;
+
+                var ink = piece.Color is { } own
+                    ? Faded(Widgets.ToColor(own), alpha)
+                    : Faded(color, alpha);
+
+                if (C.TextOutline)
+                    foreach (var (x, y) in CallLook.Ring)
+                        dl.AddText(font, drawn, pen + new Vector2(x * ring, y * ring), shadow, piece.Text);
+
+                dl.AddText(font, drawn, pen, ink, piece.Text);
+                pen.X += ImGui.CalcTextSize(piece.Text).X;
             }
 
-            ImGui.SetCursorPos(new Vector2(start.X + iconH + gap, start.Y));
-            Text(line, color);
-
-            // The room the countdown gave up, held open: the window sizes to what it
-            // holds, so letting it shrink would drag the words along with the edge.
-            if (holdW > textW)
-            {
-                ImGui.SameLine(0f, 0f);
-                ImGui.Dummy(new Vector2(holdW - textW, 1f));
-            }
         }
+    }
+
+    // The same colour, carrying the fade.
+    private static uint Faded(uint abgr, float alpha)
+    {
+        var v = Theme.V(abgr);
+        v.W *= alpha;
+        return Widgets.ToColor(v);
     }
 
     // Horizontal offset for the configured alignment.
@@ -344,19 +394,6 @@ public class AlertOverlay : Window
         2 => MathF.Max(0f, avail - contentWidth),
         _ => MathF.Max(0f, (avail - contentWidth) * 0.5f),
     };
-
-    private void Text(string text, uint color)
-    {
-        var p = ImGui.GetCursorScreenPos();
-        var dl = ImGui.GetWindowDrawList();
-        var size = ImGui.CalcTextSize(text);
-        if (C.TextOutline) OverlayChrome.Outline(dl, p, text, size.Y);
-        else if (C.TextShadow) dl.AddText(p + new Vector2(1.5f, 1.5f), 0xE0000000, text);
-
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-        ImGui.TextUnformatted(text);
-        ImGui.PopStyleColor();
-    }
 
     private void SavePositionIfDragged()
     {

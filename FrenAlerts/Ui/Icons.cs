@@ -65,7 +65,14 @@ internal static class Icons
         return ActionIcons[actionId] = icon;
     }
 
-    public static bool DrawTo(ImDrawListPtr dl, uint iconId, Vector2 p0, Vector2 size)
+    // Tinted, because a call fades and its icon has to fade with it: drawn at full
+    // opacity it hangs there for the last fraction of a second on its own, which is
+    // the sort of thing that reads as a stuck call.
+    //
+    // High resolution art, as theirs asks for: the icon is drawn a line high and the
+    // low resolution sheet is visibly soft at that size.
+    public static bool DrawTo(ImDrawListPtr dl, uint iconId, Vector2 p0, Vector2 size,
+        uint tint = 0xFFFFFFFF)
     {
         if (iconId == 0) return false;
         UiServices.Ensure();
@@ -74,9 +81,10 @@ internal static class Icons
         {
             // Default, not Empty: an empty wrap draws nothing and would report
             // success, leaving a hole where the icon goes while art loads.
-            var tex = UiServices.Textures.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrDefault();
+            var tex = UiServices.Textures
+                .GetFromGameIcon(new GameIconLookup(iconId, false, true)).GetWrapOrDefault();
             if (tex == null) return false;
-            dl.AddImage(tex.Handle, p0, p0 + size);
+            dl.AddImage(tex.Handle, p0, p0 + size, Vector2.Zero, Vector2.One, tint);
             return true;
         }
         catch (Exception ex)
@@ -91,12 +99,12 @@ internal static class Icons
         switch (icon.Kind)
         {
             case CallIconKind.Status:
-                return DrawTo(dl, ForStatus(icon.Id), p0, new Vector2(size, size));
+                return DrawTo(dl, ForStatus(icon.Id), p0, new Vector2(size, size), tint);
 
             // Drawn as it is: the number already names the art, so nothing has to be
             // looked up and nothing stands in for it.
             case CallIconKind.Sheet:
-                return DrawTo(dl, icon.Id, p0, new Vector2(size, size));
+                return DrawTo(dl, icon.Id, p0, new Vector2(size, size), tint);
 
             case CallIconKind.Marker:
                 DrawGlyph(dl, FontAwesomeIcon.Crosshairs, p0, size, tint, shadow);

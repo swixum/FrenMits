@@ -16,6 +16,7 @@ public static partial class Program
         if (args[0] == "rename") return Renamer.Run(args);
         if (args[0] == "compare") return Compare.Run(args);
         if (args[0] == "fire") return Fire.Run(args);
+        if (args[0] == "listing") return Listing.Run(args);
         if (args[0] == "verify") return Renamer.Verify(args);
         if (args[0] == "import") return Import(args);
         if (args[0] == "roundtrip") return RoundTrip(args);

@@ -131,7 +131,9 @@ public class Configuration : IPluginConfiguration
     // One line, read left to right: icon, what to do, and how long you have.
     public Vector2 OverlayPosition { get; set; } = new(0.5f, 0.35f);
     public bool OverlayLocked { get; set; }
-    public float CallFontSizePx { get; set; } = 40f;
+    // Theirs, so a fresh install reads the size the fights were written against.
+    // Anybody who has already set their own keeps it: this is only the default.
+    public float CallFontSizePx { get; set; } = Engine.Alerts.CallLook.BasePx;
     public int CallTextAlign { get; set; } = 1;              // 0 left, 1 center, 2 right
     public bool ShowCallIcon { get; set; } = true;
     public float CallIconScale { get; set; } = 1f;           // against the text height
@@ -142,10 +144,22 @@ public class Configuration : IPluginConfiguration
     public uint ColorAlert { get; set; } = 0xFF3BC5FF;       // #FFC53B amber
     public uint ColorAlarm { get; set; } = 0xFF5C5CFF;       // #FF5C5C red
 
+    // The ring around the letters, which is the whole of how a call is read against a
+    // bright floor. On by default, because theirs is.
+    //
+    // There used to be a second switch for a drop shadow. Carrying their look left the
+    // two doing the same thing, so the shadow is gone and anybody who had it on keeps
+    // the ring: Load turns this on once for them.
+    public bool TextOutline { get; set; } = true;
+
+    // Read by nothing now. Kept so a config written by an older build still loads, and
+    // so the one-time turn-on below has something to read.
     public bool TextShadow { get; set; } = true;
-    public bool TextOutline { get; set; }
+
     public bool PulseWhenClose { get; set; } = true;
-    public bool ShowBackground { get; set; }
+
+    // The slab behind the words, theirs, on by default.
+    public bool ShowBackground { get; set; } = true;
     public uint BackgroundColor { get; set; } = 0xB0000000;
 
     // ---- voice ----
@@ -377,7 +391,19 @@ public class Configuration : IPluginConfiguration
     {
         try
         {
-            return Service.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            var config = Service.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+            // Anybody who had the drop shadow on and the outline off had letters that
+            // stood off the floor, and the shadow is gone. They get the ring instead
+            // rather than a call that suddenly reads flat.
+            if (config.TextShadow && !config.TextOutline)
+            {
+                config.TextOutline = true;
+                config.TextShadow = false;
+                config.Save();
+            }
+
+            return config;
         }
         catch (Exception ex)
         {

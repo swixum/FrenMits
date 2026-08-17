@@ -22,7 +22,9 @@ public partial class ConfigWindow
     {
         if (Runner is not { } runner) return;
 
-        var calls = runner.ScriptCallsFor(territory);
+        // Only the ones that say something. The rest keep the fight's own state and
+        // are not calls, so a list of calls is not where they belong.
+        var calls = runner.ScriptCallsFor(territory).Where(c => c.Speaks).ToList();
         if (calls.Count == 0)
         {
             Widgets.ListBegin();
@@ -41,14 +43,6 @@ public partial class ConfigWindow
             ? calls.Where(c => c.Phase == only).ToList()
             : calls;
 
-        var quiet = here.Count(c => !c.Speaks);
-        if (quiet > 0)
-        {
-            ImGui.TextColored(Theme.V(Theme.Muted),
-                $"{here.Count - quiet} speak, {quiet} keep track without saying anything.");
-            ImGui.Spacing();
-        }
-
         var shown = here
             .Where(c => _theirFilter.Trim().Length == 0
                         || c.Id.Contains(_theirFilter, StringComparison.OrdinalIgnoreCase)
@@ -66,17 +60,6 @@ public partial class ConfigWindow
         Widgets.ListBegin();
         foreach (var call in shown) DrawTheirCallRow(call);
         Widgets.ListEnd();
-
-        // The same line our own fights carry, off their timeline: two counts side by
-        // side and no ratio between them, because a call can cover several entries and
-        // a timeline lists things nobody would call.
-        var mechanics = runner.ScriptTimelineMechanics(territory);
-        if (mechanics > 0)
-        {
-            ImGui.Spacing();
-            ImGui.TextColored(Theme.V(Theme.Muted),
-                $"Their timeline lists {mechanics} mechanics for this fight.");
-        }
     }
 
     // Their id is the mechanic's name, so it is the row's name. What it says sits
@@ -90,7 +73,7 @@ public partial class ConfigWindow
         var parts = name.Split(' ', 3);
         if (parts.Length == 3 && call.Phase.Length > 0) name = parts[2];
 
-        Widgets.RowBegin(name, call.Speaks ? call.Line : "keeps track, says nothing", 0f);
+        Widgets.RowBegin(name, call.Line, 0f);
         Widgets.RowEnd();
     }
 

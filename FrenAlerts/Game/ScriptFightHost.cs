@@ -78,31 +78,53 @@ public sealed class ScriptFightHost : IDisposable
     // trigger through the script engine, which is not a thing to do per frame.
     private readonly Dictionary<ushort, List<ScriptShownCall>> _listed = new();
 
-    public IReadOnlyList<ScriptShownCall> CallsFor(ushort zone)
+    public IReadOnlyList<ScriptShownCall> CallsFor(ushort zone) =>
+        _listed.TryGetValue(zone, out var listed) ? listed : [];
+
+    // Built once, at load, for every zone their set covers.
+    //
+    // Two ways of asking what a call says, because their files use both. Most write
+    // their lines down as output strings; a third of them hand a response builder a
+    // set of lines and let it pick, and those only exist once the builder has run. So
+    // the builder is run, which needs a pull's worth of state to run against.
+    //
+    // Done here rather than when a page is opened, because seeding that state is what
+    // starting a pull does: at load there is no pull to disturb, and later there
+    // might be.
+    private void ReadTheCalls()
     {
-        if (_listed.TryGetValue(zone, out var already)) return already;
+        _listed.Clear();
 
-        var listed = new List<ScriptShownCall>();
-        if (!Covers(zone)) return listed;
-
-        try
+        foreach (var zone in _fights.Zones.ToList())
         {
-            var runner = new ScriptTriggerRunner(_fights.Js!);
-            runner.Compile(_fights.SetsFor(zone));
+            var listed = new List<ScriptShownCall>();
 
-            foreach (var trigger in runner.Triggers)
-                listed.Add(new ScriptShownCall(
-                    trigger.Id,
-                    trigger.Speaks,
-                    runner.Says(trigger.Id)));
-        }
-        catch (Exception ex)
-        {
-            Service.Log.Warning(ex, $"Fren Alerts: could not list the imported calls for {zone}");
-        }
+            try
+            {
+                // Their own per-pull state, so a builder that reads the role or the
+                // party does not throw on the way to its words.
+                _fights.StartPull(zone, "Fren Mit", "dps", "SAM");
 
-        _listed[zone] = listed;
-        return listed;
+                var runner = new ScriptTriggerRunner(_fights.Js!);
+                runner.Compile(_fights.SetsFor(zone));
+
+                foreach (var trigger in runner.Triggers)
+                {
+                    var words = runner.Says(trigger.Id);
+                    if (words.Count == 0)
+                        words = [.. runner.Outputs(trigger.Id).Select(o => o.Shipped)
+                            .Where(w => w.Length > 0).Distinct(StringComparer.Ordinal)];
+
+                    listed.Add(new ScriptShownCall(trigger.Id, trigger.Speaks, words));
+                }
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Warning(ex, $"Fren Alerts: could not list the imported calls for {zone}");
+            }
+
+            _listed[zone] = listed;
+        }
     }
 
     // How many mechanics their timeline lists for a zone, for the page to say so the
@@ -173,6 +195,7 @@ public sealed class ScriptFightHost : IDisposable
         _timelines = ScriptTimelines.Load(Path.Combine(dir, "timelines"));
 
         ReadStrategies();
+        ReadTheCalls();
 
         Service.Log.Information(
             $"Fren Alerts: {_fights.FightsLoaded} scripted fights and {_timelines.Count} timelines read, "

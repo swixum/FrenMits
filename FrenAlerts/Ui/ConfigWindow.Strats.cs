@@ -35,7 +35,7 @@ public partial class ConfigWindow
     {
         if (Runner?.ScriptStrategiesFor(territory) is not { Count: > 0 } strategies) return;
 
-        Widgets.GroupLabel("How this fight is called");
+        Widgets.GroupLabel("Strategies - choose below");
         Widgets.ListBegin();
 
         foreach (var strategy in strategies) DrawScriptStrategy(strategy);
