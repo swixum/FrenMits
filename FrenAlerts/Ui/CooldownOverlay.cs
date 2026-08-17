@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Windowing;
+using FrenAlerts.Engine.Alerts;
 using FrenAlerts.Engine.UserTriggers;
 
 namespace FrenAlerts.Ui;
@@ -112,12 +113,22 @@ public sealed class CooldownOverlay : Window
         var now = _clock();
         var dl = ImGui.GetWindowDrawList();
         var scale = Theme.Scale;
+        var gap = Gap * scale;
+        var room = ImGui.GetMainViewport().WorkSize.X;
         var drawn = 0;
+        var row = 0f;
 
         foreach (var entry in _cooldowns.Board.Showing(_cooldowns.Job, now))
         {
-            if (drawn > 0) ImGui.SameLine(0f, Gap * scale);
+            var wide = WidthOf(entry, scale);
+
+            // Nothing is said and no line is broken until the row is actually full, so
+            // the usual handful of cooldowns draws exactly as it did.
+            if (OverlayState.Wraps(row, wide, gap, room)) row = 0f;
+            else if (drawn > 0) { ImGui.SameLine(0f, gap); row += gap; }
+
             DrawOne(dl, entry, now, scale);
+            row += wide;
             drawn++;
         }
 
@@ -126,29 +137,39 @@ public sealed class CooldownOverlay : Window
         if (drawn == 0 && Placing) DrawPlaceholder(dl, scale);
     }
 
+    // How big one tracker is, in one place. The row asks before it is drawn and the
+    // layout asks as it is drawn, and two answers that drift apart wrap on a width
+    // nothing takes up.
+    private static float SizeOf(CooldownEntry entry, float scale) =>
+        Slot * scale * Math.Clamp(entry.Scale, 0.5f, 3f);
+
+    private static Vector2 BoxOf(CooldownEntry entry, float size) =>
+        entry.Style == CooldownStyle.Bar
+            ? new Vector2(size * 3f, size * 0.5f)
+            : new Vector2(size, size);
+
+    private static float WidthOf(CooldownEntry entry, float scale) =>
+        BoxOf(entry, SizeOf(entry, scale)).X;
+
     private void DrawOne(ImDrawListPtr dl, CooldownEntry entry, double now, float scale)
     {
         var left = _cooldowns.Board.Left(entry.Id, now);
         var done = _cooldowns.Board.Progress(entry.Id, now);
-        var size = Slot * scale * Math.Clamp(entry.Scale, 0.5f, 3f);
+        var box = BoxOf(entry, SizeOf(entry, scale));
         var at = ImGui.GetCursorScreenPos();
         var tint = entry.UseColor
             ? Widgets.ToColor(new Vector4(entry.ColorR, entry.ColorG, entry.ColorB, 1f))
             : 0xFFFFFFFF;
 
-        if (entry.Style == CooldownStyle.Bar) DrawBar(dl, entry, at, size, left, done, tint);
-        else DrawIcon(dl, entry, at, size, left, done, tint);
+        if (entry.Style == CooldownStyle.Bar) DrawBar(dl, entry, at, box, left, done, tint);
+        else DrawIcon(dl, entry, at, box, left, done, tint);
 
-        ImGui.Dummy(entry.Style == CooldownStyle.Bar
-            ? new Vector2(size * 3f, size * 0.5f)
-            : new Vector2(size, size));
+        ImGui.Dummy(box);
     }
 
-    private void DrawIcon(ImDrawListPtr dl, CooldownEntry entry, Vector2 at, float size,
+    private void DrawIcon(ImDrawListPtr dl, CooldownEntry entry, Vector2 at, Vector2 box,
         float left, float done, uint tint)
     {
-        var box = new Vector2(size, size);
-
         if (entry.IconId == 0 || !Icons.DrawTo(dl, entry.IconId, at, box))
         {
             dl.AddRectFilled(at, at + box, 0xB0202020, 5f * Theme.Scale);
@@ -169,10 +190,9 @@ public sealed class CooldownOverlay : Window
         }
     }
 
-    private void DrawBar(ImDrawListPtr dl, CooldownEntry entry, Vector2 at, float size,
+    private void DrawBar(ImDrawListPtr dl, CooldownEntry entry, Vector2 at, Vector2 box,
         float left, float done, uint tint)
     {
-        var box = new Vector2(size * 3f, size * 0.5f);
         var round = 3f * Theme.Scale;
 
         dl.AddRectFilled(at, at + box, 0xB0202020, round);

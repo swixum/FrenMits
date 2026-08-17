@@ -121,17 +121,22 @@ public partial class ConfigWindow
         }
 
         var chosen = C.ScriptStratFor(strategy.Id);
-        var current = chosen.Length > 0 ? chosen : strategy.Default;
 
-        var at = 0;
-        for (var i = 0; i < strategy.Options.Count; i++)
-            if (strategy.Options[i].Value == current) at = i;
+        // -1 where the saved answer is none of the options they offer now. Handed to the
+        // box as it is, so it draws empty rather than drawing the first option as though
+        // somebody had picked it.
+        var at = ScriptStrategies.OptionAt(strategy, chosen);
+        var lost = at < 0;
 
         var labels = strategy.Options.Select(o => o.Label).ToArray();
 
+        // No second line: the row said "your answer" or "their default" under every
+        // name, which is five lines of bookkeeping on a page whose rows already carry
+        // a dot when they have been changed and a tooltip saying what the default is.
+        //
         // Its own id, because two fights can offer a choice with the same name and
         // rows sharing an ImGui id move together.
-        if (Widgets.RowCombo(strategy.Name, Set(strategy) ? "your answer" : "their default",
+        if (Widgets.RowCombo(strategy.Name, "",
             ref at, labels, width: 190f, changed: Set(strategy), id: $"ss{strategy.Id}"))
         {
             C.SetScriptStrat(strategy.Id, strategy.Options[Math.Clamp(at, 0, labels.Length - 1)].Value,
@@ -142,6 +147,15 @@ public partial class ConfigWindow
         // spot only makes sense next to the name of the strat it belongs to.
         Tip($"Next pull. Default is "
             + $"{strategy.Options.FirstOrDefault(o => o.Value == strategy.Default)?.Label ?? strategy.Default}.");
+
+        // An empty box is the honest drawing, and on its own it is not an explanation.
+        // Said out loud with the answer that went, because the words are the only thing
+        // anybody would recognise it by, and left as a row rather than a tooltip: nobody
+        // hovers a box that looks like one nothing has been chosen in yet.
+        if (lost)
+            Widgets.RowNote(chosen.Length > 0
+                ? $"Your answer \"{chosen}\" is not one this fight offers any more. Pick one."
+                : "This fight's own default is not one of its options. Pick one.");
     }
 
     private bool Set(ScriptStrategy strategy) => C.ScriptStratFor(strategy.Id).Length > 0;

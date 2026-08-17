@@ -89,7 +89,7 @@ public sealed class ScriptFightHost : IDisposable
         if (!_strategies.TryGetValue(zone, out var fights)) return [];
 
         var all = new List<ScriptStrategy>();
-        foreach (var fight in fights) all.AddRange(fight.Strategies);
+        foreach (var fight in fights) all.AddRange(ScriptPicks.Shown(fight.Fight, fight.Strategies));
         return all;
     }
 

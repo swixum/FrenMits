@@ -660,7 +660,7 @@ defineDuty({
         }
       }
     }),
-    whenChant("B381").bigAoe(),
+    whenChant("B381").label("Big Raidwide (B381)").bigAoe(),
     raws({
       id: "M10S Snaking Debuff Collect",
       type: "GainsEffect",
@@ -826,7 +826,7 @@ defineDuty({
         }
       }
     }),
-    whenChant("B5AE").bigAoe(),
+    whenChant("B5AE").label("Big Raidwide (B5AE)").bigAoe(),
     raws({
       id: "M10S Xtreme Firesnaking/WaterSnaking Debuffs",
       type: "GainsEffect",

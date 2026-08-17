@@ -200,6 +200,32 @@ public static class ScriptStrategies
         }
     }
 
+    // Which of a choice's options an answer is, or -1 for an answer that is none of them.
+    //
+    // The page used to walk the options looking for a match and leave the index at 0 when
+    // it found none, so a saved answer their file no longer offers drew as the first
+    // option, selected, with the dot beside it that means somebody chose this. What the
+    // fight got was the saved value, which their triggers compare against and none of
+    // them match, so the mechanic takes whatever branch their else covers. Confident, on
+    // time, and a different strat than the one on screen: the exact failure this whole
+    // page exists to prevent, arrived at from the other side.
+    //
+    // Reachable because their fight files are replaced wholesale with newer copies, which
+    // is what the patches folder exists to survive. An option value renamed upstream
+    // turns every config that had picked it into this.
+    //
+    // Their own default answers the same way, so a fight that ships a default outside its
+    // own option list is caught here too rather than drawing as option zero.
+    public static int OptionAt(ScriptStrategy strategy, string chosen)
+    {
+        var want = chosen.Length > 0 ? chosen : strategy.Default;
+
+        for (var i = 0; i < strategy.Options.Count; i++)
+            if (strategy.Options[i].Value == want) return i;
+
+        return -1;
+    }
+
     // What a fight is set to right now, read back out of their own state.
     public static string Current(Jint.Engine js, string id)
     {

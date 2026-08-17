@@ -122,24 +122,7 @@ public sealed class PlacedCalls : Window
             // shadow setting, which the Call Display page retired: nothing sets it any
             // more and the config migration switches it off, so a placed call quietly
             // lost its edge with nothing left to bring it back.
-            var ring = CallLook.OutlineWidth(drawn);
-            var shadow = ImGui.ColorConvertFloat4ToU32(new Vector4(0f, 0f, 0f, alpha));
-
-            foreach (var piece in pieces)
-            {
-                if (piece.Text.Length == 0) continue;
-
-                var ink = piece.Color is { } own
-                    ? OverlayChrome.Faded(Widgets.ToColor(own), alpha)
-                    : OverlayChrome.Faded(colour, alpha);
-
-                if (C.TextOutline)
-                    foreach (var (x, y) in CallLook.Ring)
-                        dl.AddText(font, drawn, pen + new Vector2(x * ring, y * ring), shadow, piece.Text);
-
-                dl.AddText(font, drawn, pen, ink, piece.Text);
-                pen.X += ImGui.CalcTextSize(piece.Text).X;
-            }
+            OverlayChrome.DrawPieces(dl, font, drawn, pen, pieces, colour, alpha, C.TextOutline);
         }
     }
 

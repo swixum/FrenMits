@@ -176,18 +176,69 @@ public partial class ConfigWindow : Window, IDisposable
     // Tooltip with a hover delay, so sweeping a page stays quiet.
     private static void Tip(string text) => Widgets.Tooltip(text);
 
-    private static void Dot(bool on, string label)
+    // One reading on the status line: the dot's colour, the words, what it says on
+    // hover, and whether the words are loud.
+    private readonly record struct Pip(uint Dot, string Label, string Tip = "", bool Loud = false);
+
+    // Gathered before any of them is drawn, because the row has to be measured to be
+    // wrapped and sized. Cleared and refilled each frame; sixteen at the very most, and
+    // that is a count of the branches below rather than a bound anything enforces.
+    private readonly List<Pip> _pips = [];
+
+    private void Pip1(bool on, string label, string tip = "") =>
+        _pips.Add(new Pip(on ? Theme.Good : Theme.Muted, label, tip));
+
+    private void PipWarn(string label, string tip = "") =>
+        _pips.Add(new Pip(Theme.Warn, label, tip, Loud: true));
+
+    private static float PipWidth(string label) =>
+        ImGui.GetTextLineHeight() + Theme.S(4f) + ImGui.CalcTextSize(label).X;
+
+    // How many lines this many readings need at this width.
+    //
+    // They were laid on one line with a SameLine each and no end to it, inside a child
+    // that is a fixed two lines tall and does not scroll. So the row ran off the right
+    // edge and was clipped, and what fell off was whatever was drawn last: "No hit
+    // calls", "This fight is off", "Feed dropped 40". The three that say a whole kind of
+    // call cannot fire, and they were behind "Next: Longitudinal Implosion/Latitudinal
+    // Implosion (castbar)", which is a real Dancing Mad line and 54 characters of it.
+    private int PipRows(float room)
     {
-        StatusDot(Theme.V(on ? Theme.Good : Theme.Muted));
-        ImGui.SameLine(0, Theme.S(4f));
-        ImGui.TextUnformatted(label);
+        var rows = 1;
+        var x = 0f;
+
+        foreach (var pip in _pips)
+        {
+            var w = PipWidth(pip.Label);
+            if (x > 0f && x + Theme.S(18f) + w > room) { rows++; x = w; }
+            else x += (x > 0f ? Theme.S(18f) : 0f) + w;
+        }
+
+        return rows;
     }
 
-    private static void WarnDot(string label)
+    private void DrawPips(float room)
     {
-        StatusDot(Theme.V(Theme.Warn));
-        ImGui.SameLine(0, Theme.S(4f));
-        ImGui.TextColored(Theme.V(Theme.Warn), label);
+        var x = 0f;
+
+        foreach (var pip in _pips)
+        {
+            // No single reading is ever wider than the row it is on, whatever a fight
+            // calls its mechanics.
+            var label = Widgets.Elide(pip.Label, room - ImGui.GetTextLineHeight() - Theme.S(4f));
+            var w = PipWidth(label);
+
+            if (x > 0f && x + Theme.S(18f) + w > room) x = 0f;
+            else if (x > 0f) { ImGui.SameLine(0, Theme.S(18f)); x += Theme.S(18f); }
+
+            StatusDot(Theme.V(pip.Dot));
+            ImGui.SameLine(0, Theme.S(4f));
+            if (pip.Loud) ImGui.TextColored(Theme.V(Theme.Warn), label);
+            else ImGui.TextUnformatted(label);
+
+            if (pip.Tip.Length > 0 && Widgets.HoveredDelayed()) ImGui.SetTooltip(pip.Tip);
+            x += w;
+        }
     }
 
     private static void StatusDot(Vector4 color, bool frameAligned = false)
@@ -201,10 +252,146 @@ public partial class ConfigWindow : Window, IDisposable
         ImGui.Dummy(new Vector2(size, h));
     }
 
+    // Everything the status line can say, in the order it says it.
+    //
+    // Order matters more than it did: what does not fit now wraps rather than falling off
+    // the edge, but the first row is still the one read at a glance, so the two that are
+    // always there lead and the faults follow the readings that explain them.
+    private void GatherPips()
+    {
+        _pips.Clear();
+
+        Pip1(C.AlertsEnabled, C.AlertsEnabled ? "Calls: on" : "Calls: off");
+
+        var live = _board.Live().Count;
+        Pip1(live > 0, live > 0 ? $"On screen: {live}" : "On screen: nothing");
+
+        // In a pull or not, which the zone alone cannot say: an ultimate is thirty wipes
+        // in one instance.
+        if (Runner is { } run && (run.InPull || run.Pulls > 0))
+            Pip1(run.InPull, run.InPull
+                ? $"Pull {run.Pulls}"
+                : $"{run.Pulls} pull{(run.Pulls == 1 ? "" : "s")}");
+
+        // Only for a fight that names what moves it on. Everywhere else the number would
+        // sit at 1 for the whole pull and read as a stuck phase.
+        if (Runner is { InPull: true, PhasesKnown: true } phased)
+            Pip1(true, $"Phase {phased.Phase}");
+
+        // Where the fight thinks it is, and what it expects next. Only once the clock has
+        // been anchored: a countdown against a clock nobody has placed would be a
+        // confident number pointing at the wrong mechanic.
+        if (Runner is { InPull: true, TimelineRunning: true } tl)
+        {
+            var next = tl.Upcoming(1).FirstOrDefault();
+            Pip1(true, next.Mechanic is { Length: > 0 } m
+                    ? $"Next: {m} in {Math.Max(0d, next.In):0}"
+                    : "Timeline running",
+                $"{tl.TimelineAt:0}s into this fight's timeline, "
+                + $"{tl.TimelineResyncs} resync{(tl.TimelineResyncs == 1 ? "" : "s")}.\n"
+                + $"Running {(tl.TimelineDrift >= 0 ? "ahead of" : "behind")} the fight "
+                + $"by {Math.Abs(tl.TimelineDrift):0.0}s on average.");
+        }
+        // A timeline that has not placed itself yet. Muted while it is still reasonable,
+        // amber once it is not: the countdowns are simply absent either way, and silently
+        // absent is how that would otherwise be found.
+        else if (Runner is { InPull: true, HasTimeline: true } waiting)
+        {
+            var late = waiting.PullSeconds > TimelineGrace;
+            var why = late
+                ? "Nothing has matched an anchor cast this pull, so there are no\n"
+                  + "countdowns. The calls that do not need one still fire."
+                : "Waiting for a cast it recognises. A fight written in phase\n"
+                  + "blocks has nothing to count from until its first anchor.";
+
+            if (late) PipWarn("Timeline not anchored", why);
+            else Pip1(false, "Timeline waiting", why);
+        }
+
+        // Not a fault, but it explains why the calls are keeping their own time.
+        //
+        // Whole seconds as mm:ss rather than a decimal. A tenth redrawn every frame
+        // changes the label's width sixty times a second, and every dot after it on the
+        // row shuffles sideways to match.
+        if (Runner is { InReplay: true } replaying)
+        {
+            var at = TimeSpan.FromSeconds(Math.Max(0, replaying.ClockSeconds));
+            Pip1(true, $"Replay {at:mm\\:ss}",
+                "Watching a recording. Calls run on the recording's own clock, so\n"
+                + "they stop when you pause and keep pace when you fast forward.\n\n"
+                + $"Fight clock {at:mm\\:ss}, running at {replaying.ReplaySpeed:0.##}x.\n"
+                + "The clock should climb while the speed is above zero. It sitting\n"
+                + "still at a speed above zero is a fault worth reporting.");
+        }
+
+        // Not a second "Calls are off": the reading above already says so, and saying it
+        // twice on one row cost the width of a fault that had nowhere else to appear.
+        if (C.TestMode) PipWarn("Test mode is on");
+
+        // A recorder writing to disk is never invisible. It is also the one that carries
+        // a number, because a recording that stopped at its bound and a recording that is
+        // still going look identical otherwise.
+        if (Runner is { Diary.On: true } rec)
+            PipWarn(rec.Diary.Full ? "Recording full" : $"Recording {rec.Diary.Lines}",
+                rec.Diary.Full
+                    ? $"This pull hit {Engine.Diary.MaxLines} lines and stopped writing.\n"
+                      + "What is already down is kept. The next pull starts fresh."
+                    : "Writing what every call did to pulls.log. Each pull is written\n"
+                      + "as it ends, so it is safe to leave on. Turn it off on Home.");
+
+        if (Runner is { ControlAvailable: false })
+            PipWarn("No direction calls",
+                "This patch moved where the left and right calls are read from,\n"
+                + "so they stay quiet. The rest still calls.");
+
+        // The other maintained address, and the bigger one: sixty-six calls ride on what
+        // an ability actually hit.
+        //
+        // Read from the runner rather than off the address, because a reading parser
+        // answers hits instead and the hook stands down on purpose while it does.
+        // Warning on the address alone called the hits dead at exactly the moment
+        // something else was supplying them.
+        if (Runner is { HitsCovered: false })
+            PipWarn("No hit calls",
+                "This patch moved where damage is read from, so calls that wait\n"
+                + "on a hit stay quiet. Casts, debuffs and tethers still call.\n"
+                + "A running parser would cover these.");
+
+        // Not a fault: the parser answers these better, so the client's own reads stand
+        // down while it is up. Worth saying, because it is the answer to the fight
+        // behaving differently with a parser open.
+        if (Runner is { ClientReadsStoodDown: true })
+            Pip1(true, "Parser feed",
+                "Casts, hits, debuffs and tethers are coming from the parser,\n"
+                + "which reads them better than the client can. The plugin's\n"
+                + "own reads take over again the moment it stops.");
+
+        // These are gone rather than late: the frame stopped draining the feed.
+        if (Runner is { ParserDropped: > 0 } fed)
+            PipWarn($"Feed dropped {fed.ParserDropped}",
+                "The parser handed over more than the frame could take, so some\n"
+                + "events were dropped. Calls riding on those never happened.");
+
+        if (MutedHere) PipWarn("This fight is off");
+
+        if (_board.Dropped > 0)
+            PipWarn($"Dropped {_board.Dropped}",
+                $"More calls at once than the screen holds ({AlertBoard.Capacity}).\n"
+                + "The furthest out got dropped. Counted for this pull only.");
+    }
+
     private void DrawStatusHeader()
     {
+        // Gathered and measured before the panel is opened, because the panel has to be
+        // tall enough for the rows they need. Everything read here comes off the runner
+        // and the config, so none of it depends on being inside the child.
+        GatherPips();
+        var room = MathF.Max(Theme.S(120f),
+            ImGui.GetContentRegionAvail().X - ImGui.GetStyle().WindowPadding.X * 2f - Theme.S(6f));
+        var rows = PipRows(room);
+
         ImGui.PushStyleColor(ImGuiCol.ChildBg, Theme.PanelBg);
-        var height = ImGui.GetTextLineHeightWithSpacing() * 2 + 16;
+        var height = ImGui.GetTextLineHeightWithSpacing() * (1 + rows) + 16;
         if (ImGui.BeginChild("##status", new Vector2(0, height), true, ImGuiWindowFlags.NoScrollbar))
         {
             // Accent bar down the left edge of the panel.
@@ -248,162 +435,7 @@ public partial class ConfigWindow : Window, IDisposable
             if (Widgets.HoveredDelayed())
                 ImGui.SetTooltip("Sample call on screen. Drag it where you want it.");
 
-            // Status dots on the second line.
-            Dot(C.AlertsEnabled, C.AlertsEnabled ? "Calls: on" : "Calls: off");
-            ImGui.SameLine(0, Theme.S(18f));
-            var live = _board.Live().Count;
-            Dot(live > 0, live > 0 ? $"On screen: {live}" : "On screen: nothing");
-            // In a pull or not, which the zone alone cannot say: an ultimate is
-            // thirty wipes in one instance.
-            if (Runner is { } run && (run.InPull || run.Pulls > 0))
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                Dot(run.InPull, run.InPull
-                    ? $"Pull {run.Pulls}"
-                    : $"{run.Pulls} pull{(run.Pulls == 1 ? "" : "s")}");
-            }
-            // Only for a fight that names what moves it on. Everywhere else the
-            // number would sit at 1 for the whole pull and read as a stuck phase.
-            if (Runner is { InPull: true, PhasesKnown: true } phased)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                Dot(true, $"Phase {phased.Phase}");
-            }
-            // Where the fight thinks it is, and what it expects next. Only once the
-            // clock has been anchored: a countdown against a clock nobody has placed
-            // would be a confident number pointing at the wrong mechanic.
-            if (Runner is { InPull: true, TimelineRunning: true } tl)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                var next = tl.Upcoming(1).FirstOrDefault();
-                Dot(true, next.Mechanic is { Length: > 0 } m
-                    ? $"Next: {m} in {Math.Max(0d, next.In):0}"
-                    : "Timeline running");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(
-                        $"{tl.TimelineAt:0}s into this fight's timeline, "
-                        + $"{tl.TimelineResyncs} resync{(tl.TimelineResyncs == 1 ? "" : "s")}.\n"
-                        + $"Running {(tl.TimelineDrift >= 0 ? "ahead of" : "behind")} the fight "
-                        + $"by {Math.Abs(tl.TimelineDrift):0.0}s on average.");
-            }
-            // A timeline that has not placed itself yet. Muted while it is still
-            // reasonable, amber once it is not: the countdowns are simply absent
-            // either way, and silently absent is how that would otherwise be found.
-            else if (Runner is { InPull: true, HasTimeline: true } waiting)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                var late = waiting.PullSeconds > TimelineGrace;
-                if (late) WarnDot("Timeline not anchored");
-                else Dot(false, "Timeline waiting");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(late
-                        ? "Nothing has matched an anchor cast this pull, so there are no\n"
-                          + "countdowns. The calls that do not need one still fire."
-                        : "Waiting for a cast it recognises. A fight written in phase\n"
-                          + "blocks has nothing to count from until its first anchor.");
-            }
-            // Not a fault, but it explains why the calls are keeping their own time.
-            if (Runner is { InReplay: true } replaying)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                // The recording's own position beside the dot. A clock that is not
-                // moving is the one fault that stops every call at once: nothing
-                // counts down, nothing ages off the screen, and the board wedges on
-                // whatever got there first. Worth being able to see rather than
-                // deduce from a frozen countdown.
-                // Whole seconds as mm:ss rather than a decimal. A tenth redrawn every
-                // frame changes the label's width sixty times a second, and every dot
-                // after it on the row shuffles sideways to match.
-                var at = TimeSpan.FromSeconds(Math.Max(0, replaying.ClockSeconds));
-                Dot(true, $"Replay {at:mm\\:ss}");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(
-                        "Watching a recording. Calls run on the recording's own clock, so\n"
-                        + "they stop when you pause and keep pace when you fast forward.\n\n"
-                        + $"Fight clock {at:mm\\:ss}, running at {replaying.ReplaySpeed:0.##}x.\n"
-                        + "The clock should climb while the speed is above zero. It sitting\n"
-                        + "still at a speed above zero is a fault worth reporting.");
-            }
-            // These appear only when they need attention.
-            if (!C.AlertsEnabled) { ImGui.SameLine(0, Theme.S(18f)); WarnDot("Calls are off"); }
-            if (C.TestMode) { ImGui.SameLine(0, Theme.S(18f)); WarnDot("Test mode is on"); }
-            // A recorder writing to disk is never invisible. It is also the one dot
-            // that carries a number, because a recording that stopped at its bound
-            // and a recording that is still going look identical otherwise.
-            if (Runner is { Diary.On: true } rec)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                WarnDot(rec.Diary.Full ? "Recording full" : $"Recording {rec.Diary.Lines}");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(rec.Diary.Full
-                        ? $"This pull hit {Engine.Diary.MaxLines} lines and stopped writing.\n"
-                          + "What is already down is kept. The next pull starts fresh."
-                        : "Writing what every call did to pulls.log. Each pull is written\n"
-                          + "as it ends, so it is safe to leave on. Turn it off on Home.");
-            }
-            if (Runner is { ControlAvailable: false })
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                WarnDot("No direction calls");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(
-                        "This patch moved where the left and right calls are read from,\n"
-                        + "so they stay quiet. The rest still calls.");
-            }
-            // The other maintained address, and the bigger one: sixty-six calls ride
-            // on what an ability actually hit.
-            //
-            // Read from the runner rather than off the address, because a reading
-            // parser answers hits instead and the hook stands down on purpose while
-            // it does. Warning on the address alone called the hits dead at exactly
-            // the moment something else was supplying them.
-            if (Runner is { HitsCovered: false })
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                WarnDot("No hit calls");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(
-                        "This patch moved where damage is read from, so calls that wait\n"
-                        + "on a hit stay quiet. Casts, debuffs and tethers still call.\n"
-                        + "A running parser would cover these.");
-            }
-            // Not a fault: the parser answers these better, so the client's own
-            // reads stand down while it is up. Worth saying, because it is the
-            // answer to the fight behaving differently with a parser open.
-            if (Runner is { ClientReadsStoodDown: true })
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                Dot(true, "Parser feed");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(
-                        "Casts, hits, debuffs and tethers are coming from the parser,\n"
-                        + "which reads them better than the client can. The plugin's\n"
-                        + "own reads take over again the moment it stops.");
-            }
-            // These are gone rather than late: the frame stopped draining the feed.
-            if (Runner is { ParserDropped: > 0 } fed)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                WarnDot($"Feed dropped {fed.ParserDropped}");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(
-                        "The parser handed over more than the frame could take, so some\n"
-                        + "events were dropped. Calls riding on those never happened.");
-            }
-            if (MutedHere)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                WarnDot("This fight is off");
-            }
-            if (_board.Dropped > 0)
-            {
-                ImGui.SameLine(0, Theme.S(18f));
-                WarnDot($"Dropped {_board.Dropped}");
-                if (Widgets.HoveredDelayed())
-                    ImGui.SetTooltip(
-                        $"More calls at once than the screen holds ({AlertBoard.Capacity}).\n"
-                        + "The furthest out got dropped. Counted for this pull only.");
-            }
+            DrawPips(room);
         }
         ImGui.EndChild();
         ImGui.PopStyleColor();
@@ -689,6 +721,15 @@ public partial class ConfigWindow : Window, IDisposable
     {
         var hits = SettingsIndex.Search(_search);
         var calls = SearchCalls(_search);
+
+        // Ahead of everything else, the nothing-matched line included.
+        //
+        // It sat below that early return, so the one state somebody most wants out of was
+        // the one state escape did not answer: a query matching nothing left them deleting
+        // it by hand, unless the box happened to still hold focus and ImGui's own revert
+        // caught it.
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape, false)) { _search = ""; _searchSel = 0; return; }
+
         if (hits.Count == 0 && calls.Count == 0)
         {
             ImGui.TextDisabled($"Nothing matches \"{_search.Trim()}\".");
@@ -696,20 +737,21 @@ public partial class ConfigWindow : Window, IDisposable
             return;
         }
 
-        var moved = false;
-        if (hits.Count > 0)
-        {
-            if (ImGui.IsKeyPressed(ImGuiKey.DownArrow, true)) { _searchSel++; moved = true; }
-            if (ImGui.IsKeyPressed(ImGuiKey.UpArrow, true)) { _searchSel--; moved = true; }
-            _searchSel = Math.Clamp(_searchSel, 0, hits.Count - 1);
-        }
-        else
-        {
-            _searchSel = 0;
-        }
-        if (ImGui.IsKeyPressed(ImGuiKey.Escape, false)) { _search = ""; _searchSel = 0; return; }
+        // The keys drive the settings while there are any and the calls otherwise.
+        //
+        // They only ever drove the settings. A query matching nothing but what a call says
+        // still listed the calls, said "up / down to move, enter to open" nowhere, and ate
+        // the enter that followed: the list was there, the keys were dead, and nothing on
+        // screen said which.
+        var onCalls = hits.Count == 0;
+        var count = onCalls ? calls.Count : hits.Count;
 
-        var go = hits.Count > 0 && _searchEntered ? _searchSel : -1;
+        var moved = false;
+        if (ImGui.IsKeyPressed(ImGuiKey.DownArrow, true)) { _searchSel++; moved = true; }
+        if (ImGui.IsKeyPressed(ImGuiKey.UpArrow, true)) { _searchSel--; moved = true; }
+        _searchSel = Math.Clamp(_searchSel, 0, Math.Max(0, count - 1));
+
+        var go = !onCalls && _searchEntered ? _searchSel : -1;
 
         if (hits.Count > 0)
         {
@@ -748,24 +790,31 @@ public partial class ConfigWindow : Window, IDisposable
             return;
         }
 
-        DrawCallHits(calls);
+        DrawCallHits(calls, onCalls ? _searchSel : -1, onCalls && _searchEntered, moved);
     }
 
-    private void DrawCallHits(List<CallHit> calls)
+    // The calls a query found. `selected` is -1 when the keys are driving the settings
+    // above instead, which is what keeps one highlight on screen rather than two.
+    private void DrawCallHits(List<CallHit> calls, int selected, bool enter, bool moved)
     {
         if (calls.Count == 0) return;
 
         ImGui.Spacing();
-        ImGui.TextDisabled(calls.Count >= MaxCallHits
+        var many = calls.Count >= MaxCallHits
             ? $"first {calls.Count} calls"
-            : $"{calls.Count} call{(calls.Count == 1 ? "" : "s")}");
+            : $"{calls.Count} call{(calls.Count == 1 ? "" : "s")}";
+        ImGui.TextDisabled(selected >= 0
+            ? $"{many}   ·   up / down to move, enter to open"
+            : many);
         ImGui.Spacing();
 
-        foreach (var hit in calls)
+        for (var i = 0; i < calls.Count; i++)
         {
+            var hit = calls[i];
             ImGui.PushID(hit.Fight.TerritoryId + hit.Call.Key);
-            if (ImGui.Selectable("##callhit", false, ImGuiSelectableFlags.None,
-                    new Vector2(0, ImGui.GetTextLineHeightWithSpacing() * 1.6f)))
+            if (ImGui.Selectable("##callhit", i == selected, ImGuiSelectableFlags.None,
+                    new Vector2(0, ImGui.GetTextLineHeightWithSpacing() * 1.6f))
+                || (enter && i == selected))
             {
                 OpenFight(hit.Fight);
                 OpenCall(hit.Call);
@@ -774,6 +823,7 @@ public partial class ConfigWindow : Window, IDisposable
                 ImGui.PopID();
                 return;
             }
+            if (moved && i == selected) ImGui.SetScrollHereY(0.5f);
             var min = ImGui.GetItemRectMin();
             var max = ImGui.GetItemRectMax();
             var dl = ImGui.GetWindowDrawList();

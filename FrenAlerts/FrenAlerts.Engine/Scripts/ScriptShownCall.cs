@@ -21,20 +21,27 @@ public sealed record ScriptShownLine(IReadOnlyList<string> Keys, string Text)
 // written: "DMU P3 Black Hole Order", "UWU Diffractive Laser". So the mechanic's name
 // is read back out of the id, and so is the phase, rather than either being stored
 // twice.
-public sealed record ScriptShownCall(string Id, bool Speaks, IReadOnlyList<ScriptShownLine> Lines)
+public sealed record ScriptShownCall(
+    string Id, bool Speaks, IReadOnlyList<ScriptShownLine> Lines, string Name = "")
 {
     // The fight's own short name, where their id starts with one: "DMU P3 Something"
     // is the third phase of Dancing Mad. Empty where a file names its triggers some
     // other way, which is most of the savage ones.
     public string Phase { get; } = PhaseOf(Id);
 
-    // The mechanic, which is the id with the fight and the phase taken off the front.
+    // The mechanic: the name the fight gave the call, or the id with the fight and the
+    // phase taken off the front where it named none.
+    //
+    // A name wins because the ids are not all written by hand. A fight built through
+    // the authoring kit generates one from the fight, the event and the ability code,
+    // so an unnamed call reached the page as "AacHeavyweightM1Savage StartsUsing B33E
+    // [17]" and every savage fight was a column of those.
     //
     // Taken off as a run rather than as two words, because a mechanic that happens in
     // two phases is named for both: "DMU P1 and P4 Mystery Magic Ice and Thunder" read
     // as "and P4 Mystery Magic Ice and Thunder" on the page, which is how a fight page
     // ends up looking like a parser error.
-    public string Mechanic { get; } = MechanicOf(Id);
+    public string Mechanic { get; } = Name.Length > 0 ? Name : MechanicOf(Id);
 
     // The one line to show beside the name when the rest are folded away.
     //

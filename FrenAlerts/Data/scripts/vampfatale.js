@@ -174,7 +174,7 @@ defineDuty({
         heading: parseFloat(hit.heading)
       }
     }),
-    whenChant("B384").aoe(),
+    whenChant("B384").label("Raidwide (B384)").aoe(),
     raws({
       id: "M9S Satisfied Counter",
       type: "GainsEffect",
@@ -203,7 +203,7 @@ defineDuty({
         }
       }
     }),
-    whenChant("B34A").out(),
+    whenChant("B34A").label("Out").out(),
     raws({
       id: "M9S Headmarker Party Multi Stack",
       type: "HeadMarker",
@@ -459,11 +459,11 @@ defineDuty({
         }
       }
     }),
-    whenChant("B33E").bigAoe(),
-    whenChant("B344").bigAoe(),
-    whenChant("B340").aoe(),
-    whenChant("B341").bigAoe(),
-    whenSign("028C").onYou().info("Aetherletting on YOU"),
+    whenChant("B33E").label("Big Raidwide (B33E)").bigAoe(),
+    whenChant("B344").label("Big Raidwide (B344)").bigAoe(),
+    whenChant("B340").label("Raidwide (B340)").aoe(),
+    whenChant("B341").label("Big Raidwide (B341)").bigAoe(),
+    whenSign("028C").label("Aetherletting").onYou().info("Aetherletting on YOU"),
     raws({
       id: "M9S Plummet",
       type: "StartsUsingExtra",

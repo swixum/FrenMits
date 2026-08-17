@@ -390,9 +390,15 @@ public class AlertOverlay : Window
 
             if (C.ShowBackground)
             {
+                // Out to the room the words reserved, not to the words. The layout box
+                // already holds the wider form so the text cannot slide sideways as the
+                // countdown ticks, and the slab was drawn to the current width instead:
+                // so the words held still and the box behind them snapped forty points
+                // narrower at go, and again crossing ten. That is the fault the reserve
+                // exists to stop, one layer further out.
                 var pad = new Vector2(drawn * CallLook.PadX, drawn * CallLook.PadY);
                 var p0 = textAt - pad - new Vector2(lead, 0f);
-                var p1 = textAt + new Vector2(size.X, size.Y) + pad;
+                var p1 = textAt + new Vector2(holdW, size.Y) + pad;
                 var round = drawn * CallLook.Round;
 
                 var drop = new Vector2(0f, CallLook.ShadowDrop);
@@ -414,26 +420,7 @@ public class AlertOverlay : Window
                 Icons.Draw(icon, dl, new Vector2(at.X, at.Y + (size.Y - iconPx) * 0.5f),
                     iconPx, Faded(0xFFFFFFFF, alpha), false);
 
-            var ring = CallLook.OutlineWidth(drawn);
-            var shadow = ImGui.ColorConvertFloat4ToU32(new Vector4(0f, 0f, 0f, alpha));
-            var pen = textAt;
-
-            foreach (var piece in pieces)
-            {
-                if (piece.Text.Length == 0) continue;
-
-                var ink = piece.Color is { } own
-                    ? Faded(Widgets.ToColor(own), alpha)
-                    : Faded(color, alpha);
-
-                if (C.TextOutline)
-                    foreach (var (x, y) in CallLook.Ring)
-                        dl.AddText(font, drawn, pen + new Vector2(x * ring, y * ring), shadow, piece.Text);
-
-                dl.AddText(font, drawn, pen, ink, piece.Text);
-                pen.X += ImGui.CalcTextSize(piece.Text).X;
-            }
-
+            OverlayChrome.DrawPieces(dl, font, drawn, textAt, pieces, color, alpha, C.TextOutline);
         }
     }
 

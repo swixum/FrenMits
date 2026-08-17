@@ -103,6 +103,49 @@ internal static class OverlayChrome
         return a | (b << 16) | (g << 8) | r;
     }
 
+    // A call's coloured runs, outlined and then inked, for every surface that draws one.
+    //
+    // Two passes rather than one per run. Written a run at a time, the black ring of the
+    // second run goes down on top of the last glyph of the first: the ring reaches
+    // OutlineWidth in every direction, three points at a 55px call, so every colour
+    // boundary in a call had a dark bite taken out of the letter before it. "Stack on
+    // <red>you</red> now" wears it twice. Laying every outline first means nothing is
+    // drawn over a letter once the letter is there.
+    //
+    // Both windows had this loop written out, and they are already held to drawing a call
+    // the same way. One of them was going to get fixed and the other was not.
+    public static void DrawPieces(ImDrawListPtr dl, ImFontPtr font, float px, Vector2 pen,
+        IReadOnlyList<CallPiece> pieces, uint fallback, float alpha, bool outline)
+    {
+        if (outline)
+        {
+            var ring = CallLook.OutlineWidth(px);
+            var shadow = ImGui.ColorConvertFloat4ToU32(new Vector4(0f, 0f, 0f, alpha));
+            var at = pen;
+
+            foreach (var piece in pieces)
+            {
+                if (piece.Text.Length == 0) continue;
+
+                foreach (var (x, y) in CallLook.Ring)
+                    dl.AddText(font, px, at + new Vector2(x * ring, y * ring), shadow, piece.Text);
+
+                at.X += ImGui.CalcTextSize(piece.Text).X;
+            }
+        }
+
+        foreach (var piece in pieces)
+        {
+            if (piece.Text.Length == 0) continue;
+
+            dl.AddText(font, px, pen, piece.Color is { } own
+                ? Faded(Widgets.ToColor(own), alpha)
+                : Faded(fallback, alpha), piece.Text);
+
+            pen.X += ImGui.CalcTextSize(piece.Text).X;
+        }
+    }
+
     public static void Outline(ImDrawListPtr dl, Vector2 pos, string text, float lineHeight)
     {
         var d = Math.Clamp(lineHeight * 0.055f, 1f, 3f);

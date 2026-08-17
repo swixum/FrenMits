@@ -110,7 +110,7 @@ defineDuty({
         heading: parseFloat(hit.heading)
       }
     }),
-    whenChant("B406").bigAoe(),
+    whenChant("B406").label("Big Raidwide (B406)").bigAoe(),
     raws({
       id: "M11S Raw Steel Trophy Axe",
       type: "StartsUsing",
@@ -368,7 +368,7 @@ defineDuty({
         protean: Voices.protean
       }
     }),
-    whenChant("B412").info("Bait 3x puddles"),
+    whenChant("B412").label("Bait 3x puddles").info("Bait 3x puddles"),
     raws({
       id: "M11S Comet Spread Collect",
       type: "HeadMarker",
@@ -379,7 +379,7 @@ defineDuty({
           pull.voidStardust = "spread";
       }
     }),
-    whenSign(headSignState["cometSpread"]).onYou().spread(),
+    whenSign(headSignState["cometSpread"]).label("Comet spread").onYou().spread(),
     raws({
       id: "M11S Crushing Comet Collect",
       type: "StartsUsing",
@@ -430,7 +430,7 @@ defineDuty({
         }
       }
     }),
-    whenChant("B7BB").after(3.7).hold(5).info("AoE x6 => Big AoE"),
+    whenChant("B7BB").label("AoE x6 => Big AoE").after(3.7).hold(5).info("AoE x6 => Big AoE"),
     raws({
       id: "M11S Dance Of Domination Trophy Safe Spots",
       type: "StartsUsingExtra",
@@ -490,7 +490,7 @@ defineDuty({
         ...Facings.outputStringsCardinalDir
       }
     }),
-    whenChant("B425").info("HP to 1"),
+    whenChant("B425").label("HP to 1").info("HP to 1"),
     raws({
       id: "M11S Maelstrom Count",
       type: "AddedCombatant",
@@ -512,9 +512,9 @@ defineDuty({
         }
       }
     }),
-    whenChant("B429").hold(6).bigAoe(),
-    whenChant("B42B").info("Shared Tank Buster"),
-    whenChant("B42F").goSides(),
+    whenChant("B429").label("Big Raidwide (B429)").hold(6).bigAoe(),
+    whenChant("B42B").label("Shared Tank Buster").info("Shared Tank Buster"),
+    whenChant("B42F").label("Sides").goSides(),
     raws({
       id: "M11S Meteor",
       type: "HeadMarker",
@@ -576,8 +576,8 @@ defineDuty({
       condition: Condition.targetIsYou(),
       run: (pull) => pull.hasMeteor = false
     }),
-    whenChant("B43C").alert("LoS behind 3x meteor"),
-    whenChant("B43F").info("Short knockback to sides"),
+    whenChant("B43C").label("LoS behind 3x meteor").alert("LoS behind 3x meteor"),
+    whenChant("B43F").label("Short knockback to sides").info("Short knockback to sides"),
     raws({
       id: "M11S Arena Split Majestic Meteorain Collect",
       type: "MapEffect",
@@ -1021,7 +1021,7 @@ defineDuty({
         pull.arenaSplitCalledBait = false;
       }
     }),
-    whenSign(headSignState["fiveHitStack"]).cooldown(1).alert("Stack 5x"),
+    whenSign(headSignState["fiveHitStack"]).label("Stack 5x").cooldown(1).alert("Stack 5x"),
     raws({
       id: "M11S Tower Knockback Direction West",
       type: "StartsUsing",
@@ -1115,7 +1115,7 @@ defineDuty({
         }
       }
     }),
-    whenChant("B456").when((c) => !c.data.hasAtomic).cooldown(1).towers(),
+    whenChant("B456").label("Get Towers").when((c) => !c.data.hasAtomic).cooldown(1).towers(),
     raws({
       id: "M11S Ecliptic Stampede Majestic Meteowrath Tether Collect",
       type: "Tether",

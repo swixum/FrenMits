@@ -467,19 +467,39 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
     // dropped, because there is nothing to show until it runs.
     public IReadOnlyList<string> Says(string triggerId)
     {
-        var trigger = _triggers.Find(t => t.Id == triggerId);
-        if (trigger is null || !trigger.OutputStrings.IsObject()) return [];
-
         var said = new List<string>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var (_, property) in trigger.OutputStrings.AsObject().GetOwnProperties())
-        {
-            var line = English(property.Value);
-            if (line.Length > 0 && seen.Add(line)) said.Add(line);
-        }
+        foreach (var (_, line) in Declared(triggerId))
+            if (seen.Add(line)) said.Add(line);
 
         return said;
+    }
+
+    // The same lines, each still carrying the key it is written under.
+    //
+    // Says above drops the keys, which made every line it found unrewordable: an
+    // override is stored against a key and spliced in when the output object is asked
+    // for one, so a line listed without its key is a line the page can show and nobody
+    // can change. The keys are right here in the table, so keeping them costs nothing.
+    //
+    // Not deduplicated, because two keys shipping the same words are two keys and the
+    // caller is the one that knows whether they are one line to read.
+    public IReadOnlyList<(string Key, string Shipped)> Declared(string triggerId)
+    {
+        var trigger = _triggers.Find(t => t.Id == triggerId);
+        if (trigger is null || !trigger.OutputStrings.IsObject()) return [];
+
+        var found = new List<(string, string)>();
+
+        foreach (var (key, property) in trigger.OutputStrings.AsObject().GetOwnProperties())
+        {
+            var name = key.ToString();
+            var line = English(property.Value);
+            if (name.Length > 0 && line.Length > 0) found.Add((name, line));
+        }
+
+        return found;
     }
 
     // The shipped English of one output string, or nothing for the ones that are

@@ -11,7 +11,8 @@ public static class ScriptListing
 {
     // Every trigger in the compiled zone, in their own order.
     public static IReadOnlyList<ScriptShownCall> For(ScriptTriggerRunner runner, ScriptFights fights) =>
-        [.. runner.Triggers.Select(t => new ScriptShownCall(t.Id, t.Speaks, LinesOf(runner, fights, t.Id)))];
+        [.. runner.Triggers.Select(t =>
+            new ScriptShownCall(t.Id, t.Speaks, LinesOf(runner, fights, t.Id), t.Name))];
 
     // What one trigger can say, as lines a page can list and reword.
     //
@@ -26,11 +27,14 @@ public static class ScriptListing
     {
         var declared = runner.Outputs(id).Where(o => o.Shipped.Length > 0).ToList();
 
-        // Nothing keyed came back, so whatever it says can be shown and not reworded. A
-        // mechanic with its words and no edit box beats a mechanic with a name and
-        // nothing under it.
-        if (declared.Count == 0)
-            return [.. runner.Says(id).Select(w => new ScriptShownLine([], w))];
+        // No response builder to run, so the words come off the trigger's own table
+        // instead. Keyed the same way, because the keys are written down there too and
+        // a line without one can be shown and not reworded.
+        //
+        // Same lines this used to return, only rewordable now. It listed them without
+        // keys, which is why every call the fight kit builds arrived at the page as
+        // words nobody could change.
+        if (declared.Count == 0) return Grouped(runner.Declared(id));
 
         var reaches = fights.ReachesOutputs(id).ToHashSet(StringComparer.Ordinal);
         var kept = reaches.Count == 0
@@ -42,9 +46,17 @@ public static class ScriptListing
         // right lines beats a short list of the wrong ones.
         if (kept.Count == 0) kept = declared;
 
+        return Grouped(kept);
+    }
+
+    // Keyed lines as a page reads them: two keys shipping the same words are one line
+    // to read and one thing to reword, so a rewording goes to both.
+    private static IReadOnlyList<ScriptShownLine> Grouped(
+        IReadOnlyList<(string Key, string Shipped)> lines)
+    {
         var order = new List<string>();
         var keysOf = new Dictionary<string, List<string>>(StringComparer.Ordinal);
-        foreach (var (key, text) in kept)
+        foreach (var (key, text) in lines)
         {
             if (!keysOf.TryGetValue(text, out var keys))
             {

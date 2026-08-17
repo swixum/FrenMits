@@ -269,7 +269,7 @@ defineDuty({
         heading: parseFloat(hit.heading)
       }
     }),
-    whenChant("B528").alert("big AoE!"),
+    whenChant("B528").label("Big Raidwide (B528)").alert("Big Raidwide"),
     raws({
       id: "M12S Winged Scourge",
       type: "StartsUsing",
@@ -3252,7 +3252,7 @@ defineDuty({
         }
       }
     }),
-    whenChant("B529").spread(),
+    whenChant("B529").label("Spread").spread(),
     raws({
       id: "M12S Light Resistance Down II Collect",
       type: "GainsEffect",
@@ -4302,7 +4302,7 @@ defineDuty({
         }
       }
     }),
-    whenChant("B533").aoe().hold(4.7).cooldown(9999),
-    whenChant("B535").by("Lindschrat").info("big AoE!").hold(4.7).cooldown(9999),
+    whenChant("B533").label("Raidwide").aoe().hold(4.7).cooldown(9999),
+    whenChant("B535").label("Big Raidwide (B535)").by("Lindschrat").info("Big Raidwide").hold(4.7).cooldown(9999),
   ],
 });

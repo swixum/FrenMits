@@ -203,7 +203,19 @@
     if (isAct(s.preFn)) trigs.preRun = function (pull, hit) { s.preFn(buildCtx(pull, hit, cfgs)); };
     if (isAct(s.runFn)) trigs.run    = function (pull, hit) { s.runFn(buildCtx(pull, hit, cfgs)); };
 
-    if (s.text !== null) {
+    // Words written down rather than worked out at call time are declared as an output
+    // string and said through the output object. Declared so the fight's page can read
+    // what the call says instead of listing it as built live; said through the object
+    // because that is where a rewording is spliced in, and a line returned straight
+    // from here is one nobody can reword.
+    //
+    // Only the written-down ones. A text function reads the pull as it fires and has
+    // nothing to declare until it runs.
+    if (s.text !== null && !isAct(s.text)) {
+      trigs.outputStrings = { text: { en: String(s.text) } };
+      trigs[sevFields(s.sev)] = function (_pull, _hit, voice) { return voice.text(); };
+    }
+    else if (s.text !== null) {
       trigs[sevFields(s.sev)] = function (pull, hit) {
         var c = buildCtx(pull, hit, cfgs);
         var t = isAct(s.text) ? s.text(c) : s.text;

@@ -222,7 +222,7 @@ internal static class Widgets
     public static void RowBegin(string name, string hint, float ctlWidth, bool changed = false,
         bool sub = false, float ctlHeight = 0f, bool clickable = false,
         FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0, string id = "",
-        string note = "", uint noteCol = 0, bool check = false)
+        string note = "", uint noteCol = 0, bool check = false, uint hintCol = 0)
     {
         if (id.Length == 0) id = name;
         var hasHint = !string.IsNullOrEmpty(hint);
@@ -286,7 +286,7 @@ internal static class Widgets
         if (hasHint)
         {
             ImGui.SetCursorPosX(textX);
-            ImGui.TextColored(Theme.V(Theme.Muted), hint);
+            ImGui.TextColored(Theme.V(hintCol == 0 ? Theme.Muted : hintCol), hint);
         }
 
         ImGui.SetCursorPos(new Vector2(start.X + width - RowPad - ctlWidth, start.Y + (rowH - frameH) * 0.5f));
@@ -309,6 +309,14 @@ internal static class Widgets
             ImGui.TextColored(Theme.V(iconCol == 0 ? Theme.Muted : iconCol), ic);
         }
         return slot + Theme.S(7f);
+    }
+
+    // A square icon button, given its size rather than measured from the glyph, so a
+    // run of controls on one row lines up whatever the icon font hands back.
+    public static bool IconSquare(string id, FontAwesomeIcon icon, float size)
+    {
+        using (Service.PluginInterface.UiBuilder.IconFontHandle.Push())
+            return ImGui.Button($"{icon.ToIconString()}##{id}", new Vector2(size, size));
     }
 
     // A small button carries no vertical padding, so a row of them centers on this.

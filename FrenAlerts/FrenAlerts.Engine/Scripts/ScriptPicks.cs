@@ -16,7 +16,7 @@ public static class ScriptPicks
     public static readonly IReadOnlyDictionary<string, string> DancingMad =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            // Bigbox / Freaky
+            // Bigbox
             ["teleportent"] = "clockwise",
             ["forsaken"] = "kroxy-rinon",
             // Tank LB3
@@ -51,6 +51,37 @@ public static class ScriptPicks
                 if (!string.IsNullOrEmpty(value)) picks[id] = value;
 
         return picks;
+    }
+
+    // The same choices with our pick standing in as the default, for the page that
+    // lists them.
+    //
+    // A row read straight off their file showed their answer for anything nobody had
+    // touched, while the pull went out calling ours: the black hole order sat on
+    // "their default" and the arrows row named a strat the group does not run. The
+    // default a page shows has to be the default the pull runs.
+    //
+    // A pick the fight no longer offers is dropped rather than shown, the same rule
+    // Apply follows, or the row would fall back to its first option and read as an
+    // answer nobody chose.
+    public static IReadOnlyList<ScriptStrategy> Shown(
+        string fightId, IReadOnlyList<ScriptStrategy> strategies)
+    {
+        var ours = For(fightId);
+        var shown = new List<ScriptStrategy>(strategies.Count);
+
+        foreach (var strategy in strategies)
+        {
+            var offered = ours.TryGetValue(strategy.Id, out var pick)
+                && !string.IsNullOrEmpty(pick)
+                && (strategy.Options.Count == 0 || strategy.Options.Any(o => o.Value == pick));
+
+            if (!offered) { shown.Add(strategy); continue; }
+
+            shown.Add(strategy with { Default = pick! });
+        }
+
+        return shown;
     }
 
     // Applies them to a loaded fight. The strategies are read from the fight itself,

@@ -44,12 +44,35 @@
     return Math.round(facingTwo / 2) % 4;
   }
 
+  function turned(n, open) {
+    return (n === undefined || n === null) ? n : ((n - open) % 4 + 4) % 4;
+  }
+
+  // Their map from a black hole to the cardinal it sits on.
   function rotateds(facingNums, open) {
     var awayTwo = {};
-    for (var tagTwo in facingNums) {
-      var n = facingNums[tagTwo];
-      awayTwo[tagTwo] = (n === undefined || n === null) ? n : ((n - open) % 4 + 4) % 4;
-    }
+    for (var tagTwo in facingNums) awayTwo[tagTwo] = turned(facingNums[tagTwo], open);
+    return awayTwo;
+  }
+
+  // Their list of tether cardinals, in the order they were collected, kept a list.
+  //
+  // The fight carries the directions twice and the two are not interchangeable:
+  // blackHoleIdDirNums maps a black hole to its cardinal, blackHoleTetherDirNums is a
+  // plain array of the cardinals collected this set. Two of the ten tether calls read
+  // the map and the other eight read the array, so turning the map alone left eight
+  // calls reading true north while the mode claimed to be relative, and worse: their
+  // own ordering sorts the array by clockwise distance from Kefka, and that sort is
+  // what hands one tether to the dps and the other to the support. Told Kefka was north
+  // while the array still held true north, it sorted from the wrong corner and swapped
+  // the two. With Kefka east and tethers north and south, the dps was sent to the north
+  // tether when their own true-north call sends them to the south one.
+  //
+  // A list, not an object: their code slices it and reads its length, and the map
+  // version above would come back as neither.
+  function rotatedList(facingNums, open) {
+    var awayTwo = [];
+    for (var i = 0; i < facingNums.length; i++) awayTwo.push(turned(facingNums[i], open));
     return awayTwo;
   }
 
@@ -75,15 +98,26 @@
         }
 
         var heldFacings = pull.blackHoleIdDirNums;
+        var heldList = pull.blackHoleTetherDirNums;
         var heldKefk = pull.kefkaTeleportDirNum;
 
+        // Both direction stores turned by the same quarter, and Kefka then told he is at
+        // north. Everything their code reads is now in one frame: sorting the turned list
+        // clockwise from north is the same order as sorting the true one clockwise from
+        // Kefka, and the words come out turned. Turn one and not the other and the two
+        // halves disagree, which is the bug this line pair fixes.
         pull.blackHoleIdDirNums = rotateds(heldFacings || {}, open);
+        pull.blackHoleTetherDirNums = rotatedList(heldList || [], open);
         pull.kefkaTeleportDirNum = 0;
         pull.triggerSetConfig[STYLEBit] = 'true';
 
+        // Put back whatever was there, including the arrays: their collectors keep
+        // pushing true-north cardinals into these between calls, and a turned value left
+        // behind would be turned again on the next one.
         try { return originals(pull, hit, voice); }
         finally {
           pull.blackHoleIdDirNums = heldFacings;
+          pull.blackHoleTetherDirNums = heldList;
           pull.kefkaTeleportDirNum = heldKefk;
           pull.triggerSetConfig[STYLEBit] = MODEBit;
         }

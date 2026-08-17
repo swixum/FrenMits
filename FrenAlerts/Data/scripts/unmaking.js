@@ -115,55 +115,55 @@ defineDuty({
   center: { x: 100, y: 100 },
   state: { ng: [], rtn: 'unknown', pon: [], ponCount: 0, gazeDir: 'CW', flare: [] },
   mechanics: [
-    whenChant("C381").aoe("Meteorain"),
-    whenChant("C334").aoe("Almagest"),
-    whenChant("C382").aoe("Almagest enrage"),
-    whenChant("C36D").bigAoe("Lightless World"),
+    whenChant("C381").label("Meteorain").aoe("Meteorain"),
+    whenChant("C334").label("Almagest").aoe("Almagest"),
+    whenChant("C382").label("Almagest enrage").aoe("Almagest enrage"),
+    whenChant("C36D").label("Lightless World").bigAoe("Lightless World"),
 
     whenSign("02BD").track(function (ctxs) { ctxs.data.rtn = 'healerStacks'; }),
     whenSign("02BE").track(function (ctxs) { ctxs.data.rtn = 'stack'; }),
-    whenChantExtra(["C339", "C33A", "C33B", "C33C"])
+    whenChantExtra(["C339", "C33A", "C33B", "C33C"]).label("Safe spot + stacks")
       .collect(enuoCollectNaughtGrow)
       .after(0.5).hold(6)
       .alert().resolve(enuoResolveNaughtGrow),
 
-    whenChant("C378").alert("Bait puddles \u2192 stop \u2192 spread"),
+    whenChant("C378").label("Bait puddles").alert("Bait puddles \u2192 stop \u2192 spread"),
 
-    whenChant("C370").stack("Partner stacks"),
-    whenChant("C371").stack("Healer groups"),
-    whenChant("C37D").stack("Healer groups"),
-    whenChant("C37F").stack("Line stack"),
+    whenChant("C370").label("Partner stacks").stack("Partner stacks"),
+    whenChant("C371").label("Healer groups (C371)").stack("Healer groups"),
+    whenChant("C37D").label("Healer groups (C37D)").stack("Healer groups"),
+    whenChant("C37F").label("Line stack").stack("Line stack"),
 
     whenChant("C353").track(function (ctxs) { ctxs.data.gazeDir = 'CW'; }),
     whenChant("C354").track(function (ctxs) { ctxs.data.gazeDir = 'CCW'; }),
-    whenChantExtra("C355").after(0.2).hold(9).cooldown(20)
+    whenChantExtra("C355").label("Rotating cones").after(0.2).hold(9).cooldown(20)
       .alert().resolve(enuoResolveGaz),
 
-    whenChantExtra("C34B").after(0.2).hold(6).cooldown(2)
+    whenChantExtra("C34B").label("Closest side").after(0.2).hold(6).cooldown(2)
       .info().resolve(function (ctxs) {
         var dangers = Facings.xyTo16DirNum(ctxs.x, ctxs.y, ctxs.cx, ctxs.cy);
         return enuoDir16s((dangers + 9) % 16) + ' close';
       }),
 
-    whenChantExtra(["C341", "C342", "C343"])
+    whenChantExtra(["C341", "C342", "C343"]).label("Where to stand")
       .collect(enuoCollectPassag)
       .after(0.3).hold(8)
       .alert().resolve(enuoResolvePassag),
 
-    whenChant("C37C")
+    whenChant("C37C").label("Tank flares (C37C)")
       .collect(enuoCollectFlar)
       .after(0.1).hold(6)
       .alert().resolve(enuoResolveFlar),
-    whenChant("C37B").info("Tank flares \u2192 keep moving").cooldown(1),
+    whenChant("C37B").label("Tank flares (C37B)").info("Tank flares \u2192 keep moving").cooldown(1),
 
-    whenChant("C365").by("Protective Shadow").onYou().tankbuster("Tank cleave on YOU"),
-    whenChant("C362").by("Protective Shadow").onTank().alert("Interrupt Drain Touch").cooldown(1),
-    whenSkill("C369").by("Soothing Shadow").onYou().info("Cleanse debuff"),
-    whenChant("C366").by("Aggressive Shadow").alert("Look toward middle").cooldown(1),
+    whenChant("C365").label("Tank cleave").by("Protective Shadow").onYou().tankbuster("Tank cleave on YOU"),
+    whenChant("C362").label("Interrupt Drain Touch").by("Protective Shadow").onTank().alert("Interrupt Drain Touch").cooldown(1),
+    whenSkill("C369").label("Cleanse debuff").by("Soothing Shadow").onYou().info("Cleanse debuff"),
+    whenChant("C366").label("Look toward middle").by("Aggressive Shadow").alert("Look toward middle").cooldown(1),
 
-    whenChant("C33E").by("Looming Shadow").knockback("Knockback"),
+    whenChant("C33E").label("Knockback").by("Looming Shadow").knockback("Knockback"),
 
-    whenSign("02D1").onYou().alert("Cone on YOU"),
-    whenLeash(["0194", "0195"]).onYou().alert("Chasing puddle on YOU \u2192 run it out")
+    whenSign("02D1").label("Cone on YOU").onYou().alert("Cone on YOU"),
+    whenLeash(["0194", "0195"]).label("Chasing puddle").onYou().alert("Chasing puddle on YOU \u2192 run it out")
   ]
 });

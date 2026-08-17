@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -40,17 +41,24 @@ public partial class ConfigWindow
     private string _seatGroup = "";
     private string _seatCalled = "";
 
+    // Clearing every role takes the answers away, and what is left on screen is eight
+    // boxes showing the worked-out name as a placeholder, which reads exactly like
+    // eight roles still set. So the clear says so out loud for a moment, on top of the
+    // ticks, the green names and the button itself all going.
+    private const double ClearedFor = 4d;
+    private double _seatClearedAt = -99d;
+
     private void DrawRolesPage()
     {
         ReadParty();
 
         var group = Selected();
-        var named = group?.Seats.Count ?? C.PartySeats.Count;
+        var named = Named(group);
 
         PageHead("Roles", named > 0
             ? $"{named} role{(named == 1 ? "" : "s")} set"
             : "worked out from jobs", false, hasMaster: false,
-            reset: named > 0 ? ClearSeats : null,
+            reset: named > 0 ? ClearRoles : null,
             icon: FontAwesomeIcon.UserFriends);
 
         Widgets.ListBegin();
@@ -131,7 +139,7 @@ public partial class ConfigWindow
 
         if (_seatNames.Count == 0 && group is null && C.PartySeats.Count == 0)
         {
-            Widgets.RowNote("No party read yet, so every role is worked out from jobs.");
+            Widgets.RowNote("No party read yet, so roles come from jobs");
             Widgets.ListEnd();
             ImGui.Spacing();
             return;
@@ -147,17 +155,33 @@ public partial class ConfigWindow
         Widgets.ListEnd();
         ImGui.Spacing();
 
+        var drew = false;
+
         if (_seatRoster.Count > 0)
         {
             if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Users, "Current Party"))
                 WriteGuessDown();
-            Tip("Fills every role with who the game worked out, so you can fix the one it got wrong.");
-            ImGui.SameLine(0, Theme.S(8f));
+            Tip("Fills every role from jobs, so you fix the one it got wrong.");
+            drew = true;
         }
 
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Eraser, "Clear"))
-            ClearSeats();
-        Tip("Back to working every role out from jobs, for this group too.");
+        // Only offered while there is something to clear, so the button going is itself
+        // the answer to whether it worked.
+        if (Named(group) > 0)
+        {
+            if (drew) ImGui.SameLine(0, Theme.S(8f));
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Eraser, "Clear"))
+                ClearRoles();
+            Tip("Every role back to job order, this group too.");
+            drew = true;
+        }
+
+        if (ImGui.GetTime() - _seatClearedAt < ClearedFor)
+        {
+            if (drew) ImGui.SameLine(0, Theme.S(10f));
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextColored(Theme.V(Theme.Good), "Cleared, back to job order");
+        }
 
         ImGui.Spacing();
     }
@@ -180,25 +204,41 @@ public partial class ConfigWindow
     {
         var picked = SeatFor(group, slot);
         var guessed = Here() ? _seatGuess.GetValueOrDefault(slot, "") : "";
-        var away = picked.Length > 0
+        // Measured against the party stood in, so it is only asked about that party.
+        //
+        // A saved group is set up on a night nobody is online, which is most of the
+        // point of saving one, and every filled row of it read "not here right now".
+        // Eight rows of a warning about a thing that is not wrong.
+        //
+        // An empty read is the same mistake one step further on: nobody has been read
+        // yet is not the same as nobody is here, and the worked-out name beside it is
+        // already held back for exactly that reason.
+        var away = Here() && _seatNames.Count > 0 && picked.Length > 0
                    && !_seatNames.Contains(picked, StringComparer.OrdinalIgnoreCase);
 
-        var hint = picked.Length > 0 ? (away ? "not here right now" : "your call")
+        // Their name, in green, beside the tick. The box shows the worked-out name as a
+        // placeholder whether a role is set or not, so a hint reading yours-or-ours said
+        // nothing about which of the two was on screen.
+        var hint = picked.Length > 0 ? (away ? $"{picked}, not here right now" : picked)
             : guessed.Length > 0 ? $"{guessed}, from their job"
             : "";
+        var hintCol = picked.Length == 0 ? 0u : away ? Theme.Warn : Theme.Good;
 
-        var boxW = Theme.S(190f);
-        var arrowW = ImGui.GetFrameHeight();
+        var btnW = ImGui.GetFrameHeight();
         var gap = Theme.S(4f);
+        var boxW = Theme.S(230f);
 
-        Widgets.RowBegin(slot, hint, boxW, id: $"seat{slot}", check: picked.Length > 0);
+        Widgets.RowBegin(slot, hint, boxW, id: $"seat{slot}", check: picked.Length > 0,
+            hintCol: hintCol);
 
         // The box holds what is being typed while it is being typed in, and whoever has
         // the role the rest of the time.
         if (_seatEditing != slot) _seatTyped[slot] = picked;
         var typed = _seatTyped.GetValueOrDefault(slot, picked);
 
-        ImGui.SetNextItemWidth(boxW - arrowW - gap);
+        // Room kept for the delete button whether it is drawn or not: typing a name
+        // would otherwise shrink the box you are typing in, under the cursor.
+        ImGui.SetNextItemWidth(boxW - btnW * 2f - gap * 2f);
         ImGui.InputTextWithHint($"##seat{slot}",
             guessed.Length > 0 ? guessed : "work it out", ref typed, PartyBook.MaxName);
         _seatTyped[slot] = typed;
@@ -219,18 +259,31 @@ public partial class ConfigWindow
             : "Type a name, or pick one from the party.");
 
         ImGui.SameLine(0, gap);
-        DrawSeatPick(slot, picked, names);
+        DrawSeatPick(slot, picked, names, btnW);
+
+        ImGui.SameLine(0, gap);
+        DrawSeatDrop(slot, picked, btnW);
 
         Widgets.RowEnd();
     }
 
-    private void DrawSeatPick(string slot, string picked, List<string> names)
+    // The list of who is here.
+    //
+    // A button and a popup rather than a combo with its preview switched off: that combo
+    // draws an arrow with no frame around it, so there is nothing to aim at, and it
+    // opens where the mouse is instead of under the row. This one is a square button the
+    // size of the box beside it, and the list opens against its bottom-left corner.
+    private void DrawSeatPick(string slot, string picked, List<string> names, float btnW)
     {
-        if (!ImGui.BeginCombo($"##pick{slot}", "", ImGuiComboFlags.NoPreview))
-        {
-            Tip("Pick somebody from the party.");
-            return;
-        }
+        var pop = $"seatpick{slot}";
+
+        if (Widgets.IconSquare($"pick{slot}", FontAwesomeIcon.CaretDown, btnW))
+            ImGui.OpenPopup(pop);
+        Tip("Pick somebody in the party.");
+
+        var below = new Vector2(ImGui.GetItemRectMin().X, ImGui.GetItemRectMax().Y + Theme.S(3f));
+        ImGui.SetNextWindowPos(below);
+        if (!ImGui.BeginPopup(pop)) return;
 
         if (names.Count == 0) ImGui.TextDisabled("nobody in the party");
 
@@ -246,15 +299,35 @@ public partial class ConfigWindow
         if (picked.Length > 0)
         {
             ImGui.Separator();
-            if (ImGui.Selectable($"Work it out##clear{slot}"))
-            {
-                Seat(slot, "");
-                _seatTyped[slot] = "";
-                _seatEditing = "";
-            }
+            if (ImGui.Selectable($"Work it out##clear{slot}")) Drop(slot);
         }
 
-        ImGui.EndCombo();
+        ImGui.EndPopup();
+    }
+
+    // Taking one name off one role, without opening the list or clearing the box by hand.
+    // Its room is held either way, so the row does not shift when a name lands.
+    private void DrawSeatDrop(string slot, string picked, float btnW)
+    {
+        if (picked.Length == 0)
+        {
+            ImGui.Dummy(new Vector2(btnW, btnW));
+            return;
+        }
+
+        Widgets.PushDangerOutline();
+        var hit = Widgets.IconSquare($"drop{slot}", FontAwesomeIcon.Times, btnW);
+        Widgets.PopDanger();
+
+        if (hit) Drop(slot);
+        Tip($"Takes {picked} off {slot}.");
+    }
+
+    private void Drop(string slot)
+    {
+        Seat(slot, "");
+        _seatTyped[slot] = "";
+        _seatEditing = "";
     }
 
     // The group the rows are about: the one picked from the list, or the party stood
@@ -295,11 +368,23 @@ public partial class ConfigWindow
         C.Save();
     }
 
+    // How many roles are set on the group being looked at, which is what the head
+    // counts and what decides whether there is anything left to clear.
+    private int Named(KnownGroup? group) => group?.Seats.Count ?? C.PartySeats.Count;
+
     private void ClearSeats()
     {
         if (Selected() is { } group) C.PartyBook.ForgetIn(group.Key);
         if (Here()) C.ClearPartySeats();
         C.Save();
+    }
+
+    // Cleared by hand, so it is said out loud. Current Party clears on the way to
+    // filling every row in, and that answers itself.
+    private void ClearRoles()
+    {
+        ClearSeats();
+        _seatClearedAt = ImGui.GetTime();
     }
 
     private void SaveGroup()

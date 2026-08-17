@@ -76,6 +76,24 @@ public static class OverlayState
         return FitFontPx(wantedPx, capPx, widest, 0f, minPx);
     }
 
+    // Where a row of tracked cooldowns has to break.
+    //
+    // They were laid out on one line with no end to it. Twenty is what the board holds,
+    // and twenty bars at the size they draw is wider than any screen, so the far end of
+    // the row was off the edge. The tracker is locked and takes no input, so there is no
+    // dragging it back: the only way to see the ones that fell off was to stop tracking
+    // them.
+    //
+    // Against the whole screen rather than the room left at the anchor. A row wider than
+    // the screen cannot be read wherever it sits, and that is this. A row that fits but
+    // hangs off one edge is where somebody put it, and re-wrapping it under them while
+    // they drag would be the layout arguing with the mouse.
+    //
+    // The first thing on a row never wraps, or one item too wide for the screen leaves
+    // an empty row above it and is still too wide.
+    public static bool Wraps(float rowSoFar, float next, float gap, float room) =>
+        rowSoFar > 0f && room > 0f && rowSoFar + gap + next > room;
+
     public static bool Locked(bool userLock, bool inCombat, bool testMode)
     {
         if (testMode) return false;

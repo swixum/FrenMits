@@ -197,7 +197,7 @@ defineDuty({
         heading: parseFloat(hit.heading)
       }
     }),
-    whenChant("B4D7").alert("big AoE!").hold(4.7),
+    whenChant("B4D7").label("Big Raidwide (B4D7)").alert("Big Raidwide").hold(4.7),
     raws({
       id: "M12S Mortal Slayer Collect",
       type: "AddedCombatant",
@@ -1480,7 +1480,7 @@ defineDuty({
         }
       }
     }),
-    whenChant(["B9C3", "B9C4"]).aoe(),
+    whenChant(["B9C3", "B9C4"]).label("Raidwide").aoe(),
     raws({
       id: "M12S Mitotic Phase Direction Collect",
       type: "GainsEffect",
@@ -1820,7 +1820,7 @@ defineDuty({
         }
       }
     }),
-    whenChant(["B4C6", "B4C3"]).alert("big AoE!"),
+    whenChant(["B4C6", "B4C3"]).label("Big Raidwide (B4C6)").alert("Big Raidwide"),
     raws({
       id: "M12S Slaughtershed Actor Probe 0",
       type: "StartsUsing",
@@ -2163,6 +2163,6 @@ defineDuty({
       },
       run: (pull) => delete pull.slaughtershed
     }),
-    whenSkill("B539").alert("big AoE!").hold(5).cooldown(9999),
+    whenSkill("B539").label("Big Raidwide (B539)").alert("Big Raidwide").hold(5).cooldown(9999),
   ],
 });

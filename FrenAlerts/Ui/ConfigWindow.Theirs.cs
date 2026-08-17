@@ -34,6 +34,20 @@ public partial class ConfigWindow
     private readonly List<string> _theirWords = [];
     private readonly List<string> _theirSpoken = [];
     private bool _theirTtsShown;
+    private bool _theirAllLines;
+
+    // How many of a mechanic's lines an open row shows before the rest are folded away.
+    //
+    // Every line was drawn as its own box. Tele-Portents in Dancing Mad declares 46 of
+    // them, Replication 2 in M12S declares 34, and Path of Light Towers 32; 56 of their
+    // calls across the eight fights carry more than ten. With the second box switched on
+    // that is 92 boxes under one mechanic.
+    //
+    // swix reported this exact shape once already, on the gaol order list: "Gaolorder
+    // 1-20 should be collapsed, its taking up entire page". The strategies list was
+    // folded for it and this was not, which is the same fault left standing on the page
+    // next door.
+    private const int LinesShown = 6;
 
     private void DrawTheirCalls(ushort territory)
     {
@@ -126,10 +140,15 @@ public partial class ConfigWindow
     private string Said(ScriptShownCall call)
     {
         var lead = call.Lines.FirstOrDefault(l => !l.FillsIn) ?? call.Lines.FirstOrDefault();
-        // The savage fights and Enuo are written through the authoring layer rather than
-        // with an output table, so their words are built inside a function as the call
-        // fires and there is nothing to read here. Said out loud, because a name with an
-        // empty line under it reads as a call whose words went missing.
+
+        // A call whose words are built inside a function as it fires, so there is nothing
+        // to read before it runs. Said out loud, because a name with an empty line under
+        // it reads as a call whose words went missing.
+        //
+        // Eleven of their 413 speaking calls, measured: M9S Coffinfiller and its ability,
+        // the four M12S Mortal Slayer tank sides, and five in Enuo. It used to be most of
+        // the authored fights, until the kit started declaring written-down text as an
+        // output string, which left only the ones that genuinely read the pull.
         if (lead is null) return Unreadable;
 
         var mine = TheirEdit(call.Id, lead);
@@ -154,15 +173,20 @@ public partial class ConfigWindow
         _theirWords.Clear();
         _theirSpoken.Clear();
         _theirTtsShown = false;
+        _theirAllLines = false;
 
-        foreach (var line in call.Lines)
+        for (var i = 0; i < call.Lines.Count; i++)
         {
-            var mine = TheirEdit(call.Id, line);
+            var mine = TheirEdit(call.Id, call.Lines[i]);
             _theirWords.Add(mine?.Text ?? "");
             _theirSpoken.Add(mine?.Tts ?? "");
             // Opened showing the second box where there is already something in it,
             // rather than hiding a line somebody set and then cannot find.
             if (mine is { Tts.Length: > 0 }) _theirTtsShown = true;
+            // And opened unfolded where one of the folded lines is somebody's own. The
+            // row counts every reworded line in "3 yours", so folding one away leaves a
+            // count nothing on screen accounts for.
+            if (i >= LinesShown && mine is { IsDefault: false }) _theirAllLines = true;
         }
     }
 
@@ -172,6 +196,7 @@ public partial class ConfigWindow
         _theirWords.Clear();
         _theirSpoken.Clear();
         _theirTtsShown = false;
+        _theirAllLines = false;
     }
 
     // Every line the mechanic can say, each one a box to say it differently.
@@ -192,8 +217,9 @@ public partial class ConfigWindow
         // list is cached per zone and cannot change while a row is open, and a guard that
         // trusted that is a guard that throws on the frame it stops being true.
         var lines = Math.Min(call.Lines.Count, Math.Min(_theirWords.Count, _theirSpoken.Count));
+        var upTo = _theirAllLines ? lines : Math.Min(lines, LinesShown);
 
-        for (var i = 0; i < lines; i++)
+        for (var i = 0; i < upTo; i++)
         {
             var line = call.Lines[i];
             var mine = TheirEdit(call.Id, line);
@@ -201,6 +227,11 @@ public partial class ConfigWindow
             if (line.Keys.Count == 0)
             {
                 // Read without keys, so their hook has nothing to hang a rewording on.
+                //
+                // No shipped fight reaches this any more: all 1988 lines across the eight
+                // arrive keyed since the listing started reading the trigger's own table
+                // instead of dropping the keys off it. Kept because a line with no key is
+                // still a line, and showing it beats showing nothing.
                 Widgets.RowBegin(line.Text, "", 0f, sub: true);
                 ImGui.Dummy(System.Numerics.Vector2.Zero);
                 Widgets.RowEnd();
@@ -219,14 +250,18 @@ public partial class ConfigWindow
             if (line.FillsIn) Tip("Keep the ${...} bits, the fight fills them in.");
         }
 
+        DrawTheirLineFold(call, lines);
+
         var tts = _theirTtsShown;
         if (Widgets.RowCheckClick("Different TTS words", "", ref tts,
                 id: "theirtts" + call.Id, changed: _theirSpoken.Any(s => s.Length > 0)))
             _theirTtsShown = tts;
         Tip("Off = TTS says what is on screen.");
 
+        // The same bound, or switching the second box on rebuilds the wall the fold just
+        // took down: these are a box per line as well.
         if (_theirTtsShown)
-            for (var i = 0; i < lines; i++)
+            for (var i = 0; i < upTo; i++)
             {
                 var line = call.Lines[i];
                 if (line.Keys.Count == 0) continue;
@@ -253,6 +288,29 @@ public partial class ConfigWindow
             OpenTheirCall(call);
         }
         Widgets.RowEnd();
+    }
+
+    // The fold under a mechanic that has more lines than a row should open with.
+    //
+    // Drawn like the mechanic row above it rather than with the strategy list's fold
+    // widget: that one has no indented form, and a flush row in the middle of a run of
+    // sub rows reads as the start of a new section rather than as part of this one.
+    private void DrawTheirLineFold(ScriptShownCall call, int lines)
+    {
+        var hidden = lines - LinesShown;
+        if (hidden <= 0) return;
+
+        var open = _theirAllLines;
+
+        Widgets.RowBegin(open ? "Fewer lines" : $"{hidden} more line{(hidden == 1 ? "" : "s")}",
+            "", 0f, sub: true, clickable: true,
+            icon: open ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight,
+            iconCol: Theme.Accent, id: "theirmore" + call.Id);
+        ImGui.Dummy(System.Numerics.Vector2.Zero);
+        var clicked = Widgets.RowClicked;
+        Widgets.RowEnd();
+
+        if (clicked) _theirAllLines = !_theirAllLines;
     }
 
     // Their line, as the label on the box that replaces it. Elided against the room the
