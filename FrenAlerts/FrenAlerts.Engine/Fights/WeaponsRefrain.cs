@@ -79,9 +79,53 @@ public static class WeaponsRefrain
     private static WeaponsRefrainPull Pull(in TriggerContext ctx) =>
         ctx.State.Remember<WeaponsRefrainPull>();
 
+    // The calls that are only a cast and a line, carried over word for word.
+    //
+    // They are here rather than in the pack because the pack was baked from a
+    // trigger set that never had them: Titan's whole tank and knockback set, Ifrit's
+    // cleave and Garuda's raidwide were missing from this fight entirely. Each id is
+    // unique to its boss, so none of them needs to know which phase it is in.
+    private static IEnumerable<Trigger> Plain()
+    {
+        // Titan.
+        yield return Simple("uwu-titan-rock-buster", 0x2B62, "Tank Buster", CallLevel.Alert);
+        yield return Simple("uwu-titan-mountain-buster", 0x2B63, "Tank Cleave", CallLevel.Info);
+        // Three casts land together and upstream says it once.
+        yield return Simple("uwu-titan-weight-of-the-land", 0x2B65,
+            "Weight (dodge puddles)", CallLevel.Info, hush: 3f);
+        yield return Simple("uwu-titan-geocrush", 0x2B66, "Out", CallLevel.Alert);
+        yield return Simple("uwu-titan-upheaval", 0x2B67, "Knockback", CallLevel.Info);
+
+        // Ifrit.
+        yield return Simple("uwu-ifrit-incinerate", 0x2B56, "Tank Cleave", CallLevel.Info, hush: 5f);
+
+        // Garuda.
+        yield return Simple("uwu-garuda-mistral-shriek", 0x2B54, "AoE", CallLevel.Info);
+    }
+
+    private static Trigger Simple(string id, uint cast, string says, CallLevel level, float hush = 0f) =>
+        new()
+        {
+            Id = id,
+            Says = says,
+            On = EventKind.CastStart,
+            MatchId = cast,
+            Phase = 1,
+            Hush = hush,
+            Make = ctx => new Call
+            {
+                Text = says,
+                Time = ctx.Event.Time,
+                Key = id,
+                Level = level,
+            },
+        };
+
     public static IEnumerable<Trigger> Triggers()
     {
         foreach (var t in WeaponsRefrainIfrit.Triggers()) yield return t;
+
+        foreach (var t in Plain()) yield return t;
 
         // Phase, learned from the opener each boss casts. Says nothing itself: it
         // exists so everything below knows which boss it is looking at.

@@ -75,7 +75,45 @@ public partial class ConfigWindow
         if (Widgets.RowDoor("Appearance", "", FontAwesomeIcon.Palette, Theme.Accent))
             _nav = NavKind.Appearance;
 
+        DrawRecordRow();
+
         Widgets.ListEnd();
+    }
+
+    // Switching the recorder on from the window rather than the chat command.
+    //
+    // The command came first because the recorder was built to answer one question
+    // in one replay. It is meant to be used mid-replay by somebody who is watching
+    // the fight, and typing an exact subcommand is the wrong thing to ask for at
+    // that moment.
+    private void DrawRecordRow()
+    {
+        // Never on a machine that has not asked for it. The recorder writes a file
+        // to disk, and a debug surface belongs to whoever went looking for it, not
+        // on the front page of everybody's install.
+        if (!C.Diagnostics) return;
+        if (Runner is not { } run) return;
+
+        var on = run.Diary.On;
+        if (Widgets.RowCheckClick("Record this pull", "", ref on,
+            FontAwesomeIcon.FileAlt, Theme.Warn,
+            note: run.Diary.On
+                ? run.Diary.Full ? "full" : $"{run.Diary.Lines} lines"
+                : ""))
+        {
+            if (on) run.OpenDiary();
+            else { run.WriteDiary(); run.CloseDiary(); }
+        }
+        Tip("Writes what every call actually did to pulls.log, one section per pull.\n"
+            + "Off by default, and it changes nothing about what gets called.");
+
+        // Read off the runner rather than held here, because a pull writes itself
+        // out as it ends. Kept locally, this row only ever appeared after somebody
+        // switched the recorder off by hand, which through a whole replay is never.
+        if (run.LastRecording.Length > 0
+            && Widgets.RowDoor("Open the folder", "", FontAwesomeIcon.FolderOpen,
+                Theme.Accent, note: Game.DiaryFile.Name))
+            OpenConfigFolder();
     }
 
     private void DrawHomeTiles()
@@ -124,6 +162,10 @@ public partial class ConfigWindow
         if (Runner is { ParserConnected: true, ParserReading: false, ParserAsking: false })
             problems.Add("The parser never answered");
         if (C.TestMode) problems.Add("Test mode is on");
+        // Same reason as test mode: not a fault, but it writes to disk and it is
+        // meant to be switched off again once the question it was asked is answered.
+        if (Runner is { Diary.On: true } rec)
+            problems.Add(rec.Diary.Full ? "The recording is full" : "Recording is on");
 
         if (HomeTile("##t1", w, h, FontAwesomeIcon.Bell,
             Theme.V(C.AlertsEnabled ? Theme.Good : Theme.Muted),
@@ -551,13 +593,20 @@ public partial class ConfigWindow
         var on = C.IsCallOn(call.Key, call.ShipsOn);
         var words = CallText.Sentence(Wording(call));
 
-        var dead = !LiveCoverage.Covered(call.On);
-        var quiet = NeedsParser(call) || QuietNow(call) || NoArenaYet(call);
+        // A timeline call answers no event at all, so every question below about
+        // where its event comes from has no answer and would read as a fault.
+        var dead = !call.FromTimeline && !LiveCoverage.Covered(call.On);
+        var quiet = !call.FromTimeline
+                    && (NeedsParser(call) || QuietNow(call) || NoArenaYet(call));
         // Unproven is last and is not a warning: the others say a call cannot speak,
         // this one says nobody has watched it speak yet.
         // Last of all, and the only one that is not about a call being in trouble:
         // it reads off the pull, so there is no one line to show before a pull.
-        var note = dead ? "Never fires" : NeedsParser(call) ? "Needs a parser"
+        var note = dead ? "Never fires"
+            // Said plainly rather than left blank: it is the answer to why this one
+            // lands early when nothing on screen has happened yet.
+            : call.FromTimeline ? "Counted down"
+            : NeedsParser(call) ? "Needs a parser"
             : QuietNow(call) ? "Quiet this patch"
             : NoArenaYet(call) ? "No arena reads"
             : Unproven(call) ? "Unproven"
@@ -1113,6 +1162,17 @@ public partial class ConfigWindow
         {
             ImGui.Spacing();
             ImGui.TextColored(Theme.V(Theme.Warn), "It kept stopping, so it is not being started again.");
+
+            // What the voice itself said on the way down. It is already captured for
+            // the log, and the person reading this page is the one who needs it: a
+            // missing runtime and a bad voice file both read as "it kept stopping"
+            // otherwise, and neither is fixable without the reason.
+            if (voice.WhyItStopped is { Length: > 0 } why)
+            {
+                ImGui.Spacing();
+                ImGui.TextColored(Theme.V(Theme.Muted), "It said:");
+                ImGui.TextWrapped(why);
+            }
         }
 
         Widgets.ListBegin();

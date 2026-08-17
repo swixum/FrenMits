@@ -321,6 +321,20 @@ public partial class ConfigWindow : Window, IDisposable
             // These appear only when they need attention.
             if (!C.AlertsEnabled) { ImGui.SameLine(0, Theme.S(18f)); WarnDot("Calls are off"); }
             if (C.TestMode) { ImGui.SameLine(0, Theme.S(18f)); WarnDot("Test mode is on"); }
+            // A recorder writing to disk is never invisible. It is also the one dot
+            // that carries a number, because a recording that stopped at its bound
+            // and a recording that is still going look identical otherwise.
+            if (Runner is { Diary.On: true } rec)
+            {
+                ImGui.SameLine(0, Theme.S(18f));
+                WarnDot(rec.Diary.Full ? "Recording full" : $"Recording {rec.Diary.Lines}");
+                if (Widgets.HoveredDelayed())
+                    ImGui.SetTooltip(rec.Diary.Full
+                        ? $"This pull hit {Engine.Diary.MaxLines} lines and stopped writing.\n"
+                          + "What is already down is kept. The next pull starts fresh."
+                        : "Writing what every call did to pulls.log. Each pull is written\n"
+                          + "as it ends, so it is safe to leave on. Turn it off on Home.");
+            }
             if (Runner is { ControlAvailable: false })
             {
                 ImGui.SameLine(0, Theme.S(18f));
@@ -565,8 +579,14 @@ public partial class ConfigWindow : Window, IDisposable
 
     // What this call says on screen: the player's own wording once they have changed
     // it, the shipped line until then.
+    //
+    // Both halves where it has two. A buster's row read "Tank Buster on someone",
+    // which is true and is not what anybody is scanning the list for; the half that
+    // matters is the one that fires when it is on you. An edited call shows the
+    // edit alone, because those are the player's own words for every case.
     private string Wording(CallEntry call) =>
-        C.EditFor(call.Key)?.Text is { Length: > 0 } mine ? mine : call.Text;
+        C.EditFor(call.Key)?.Text is { Length: > 0 } mine ? mine
+        : TriggerSample.Join(call.OnYou, call.Text);
 
     private List<CallHit> SearchCalls(string text)
     {

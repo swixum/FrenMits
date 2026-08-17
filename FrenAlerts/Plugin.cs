@@ -170,6 +170,32 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
 
+        if (args.Trim().Equals("record", StringComparison.OrdinalIgnoreCase))
+        {
+            if (_runner.Diary.On)
+            {
+                var path = _runner.WriteDiary();
+                _runner.CloseDiary();
+                Service.ChatGui.Print(path is null
+                    ? "Recording off. Nothing happened while it was on."
+                    : $"Recording off, written to {path}");
+            }
+            else
+            {
+                _runner.OpenDiary();
+                // Asking for it once is what puts the control in the window. Until
+                // then the row is not there at all, so an install that never wanted
+                // a recorder never sees one.
+                Config.Diagnostics = true;
+                Config.Save();
+                Service.ChatGui.Print(
+                    "Recording on. Do the pull, then run this again to write the file. "
+                    + "Each pull is written as it ends, so it is safe to leave on. "
+                    + "There is now a switch for it on the plugin's home page.");
+            }
+            return;
+        }
+
         if (args.Trim().Equals("status", StringComparison.OrdinalIgnoreCase))
         {
             Service.ChatGui.Print(
@@ -195,6 +221,8 @@ public sealed class Plugin : IDalamudPlugin
                 (_runner.YellsExpected == 0
                     ? ""
                     : $" {_runner.YellsKnown} of {_runner.YellsExpected} boss lines known.") +
+                // Said out loud, so a recorder left running is never a surprise.
+                (_runner.Diary.On ? $" Recording, {_runner.Diary.Lines} lines." : "") +
                 (_runner.ControlAvailable ? "" : " Direction calls unavailable.") +
                 (_runner.AbilitiesAvailable ? "" : " Calls that fire on a hit unavailable.") +
                 (_runner.ParserConnected ? "" : " No parser: head marker calls are off."));

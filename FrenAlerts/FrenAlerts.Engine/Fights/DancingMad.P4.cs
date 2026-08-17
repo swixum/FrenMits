@@ -175,6 +175,10 @@ public static partial class DancingMad
             On = EventKind.AbilityHit,
             MatchId = 0xC394,
             Phase = 4,
+            // The pack carries this on both halves of the cast and can only say the
+            // mechanic's name, so it was reading "Short Debuffs" over the top of the
+            // line that says what to actually do.
+            Owns = ["short-debuffs"],
             Make = ctx => ShortWork(ctx) is { Length: > 0 } text
                 ? new Call
                 {

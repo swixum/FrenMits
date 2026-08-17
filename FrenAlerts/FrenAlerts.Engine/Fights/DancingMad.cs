@@ -487,6 +487,21 @@ public static partial class DancingMad
         };
         yield return Buster("revolting-ruin-2", 0xC4E1, 1);
 
+        // The cast that opens phase four. Upstream has no call on it at all, and the
+        // pack's row could only read the mechanic's name out, so this claims the
+        // event and says nothing. The phase change itself is handled in
+        // PhaseChanges, which is not a trigger and so cannot claim it.
+        yield return new Trigger
+        {
+            Id = "kefka-says-claim",
+            On = EventKind.CastStart,
+            MatchId = 0xC2DC,
+            Phase = 4,
+            Claims = true,
+            Owns = ["kefka-says"],
+            Make = _ => null,
+        };
+
         yield return new Trigger
         {
             Id = "ultimate-embrace",

@@ -155,6 +155,17 @@ public class Configuration : IPluginConfiguration
     public bool UseLocalVoice { get; set; } = true;
     public string LocalVoiceName { get; set; } = Engine.Alerts.VoiceCatalog.Default;
 
+    // ---- diagnostics ----
+
+    // Whether this machine has ever asked for the pull recorder. False everywhere
+    // it has not been asked for, which is everywhere it was not wanted: the
+    // recorder writes a file to disk, and a debug surface is not something to hand
+    // to somebody who installed this to be told where to stand.
+    //
+    // The chat command is the only way to set it. Once set, the window carries the
+    // control, because switching it off mid-replay is the thing worth having.
+    public bool Diagnostics { get; set; }
+
     // ---- the config window itself ----
     public uint AccentColor { get; set; } = Ui.Theme.DefaultAccent;
     public float UiScale { get; set; } = 1f;

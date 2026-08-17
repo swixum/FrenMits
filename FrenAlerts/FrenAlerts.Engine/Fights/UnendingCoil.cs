@@ -72,11 +72,54 @@ public static class UnendingCoil
         },
     };
 
+    // The three tank calls this fight was missing.
+    //
+    // The pack was baked from a trigger set that carried these on the timeline rather
+    // than on the cast, and only the cast ones were imported, so all three were
+    // silent. Words, levels and the split between them are upstream's: a buster
+    // names whoever it landed on, a cleave only tells the tanks to turn it away.
+    private static Trigger Buster(string id, uint cast) => new()
+    {
+        Id = id,
+        Says = "Tank Buster on YOU / Tank Buster on someone",
+        On = EventKind.CastStart,
+        MatchId = cast,
+        Phase = 1,
+        Make = ctx => new Call
+        {
+            Text = ctx.TargetIsMe ? "Tank Buster on YOU" : $"Tank Buster on {ctx.NameTarget()}",
+            Time = ctx.Event.Time,
+            Key = id,
+            Level = ctx.TargetIsMe ? CallLevel.Alert : CallLevel.Info,
+        },
+    };
+
+    private static Trigger Cleave(string id, uint cast, float hush = 0f) => new()
+    {
+        Id = id,
+        Says = "Tank Cleave on YOU / Tank Cleave",
+        On = EventKind.CastStart,
+        MatchId = cast,
+        Phase = 1,
+        Hush = hush,
+        Make = ctx => new Call
+        {
+            Text = ctx.TargetIsMe ? "Tank Cleave on YOU" : "Tank Cleave",
+            Time = ctx.Event.Time,
+            Key = id,
+            Level = CallLevel.Info,
+        },
+    };
+
     public static IEnumerable<Trigger> Triggers()
     {
         foreach (var t in UnendingCoilTrio.Triggers()) yield return t;
 
         yield return Exaflares();
+
+        yield return Buster("ucob-bahamuts-claw", 0x26B5);
+        yield return Cleave("ucob-plummet", 0x26A8);
+        yield return Cleave("ucob-flare-breath", 0x26D4);
 
         yield return Quote(1, 0x1961, "Spread then In");
         yield return Quote(2, 0x1960, "Spread then Out");

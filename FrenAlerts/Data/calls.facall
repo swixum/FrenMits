@@ -44,7 +44,7 @@ facall 3
 777	uwu-aetherochemical-laser-right	uwu-aetherochemical-laser-right	1	2B85	0	0	0	0	0	4	0	0		North Laser		3	0	0	1	1
 777	uwu-caster-lb	uwu-caster-lb	10	859	0	1	0	0	0	4	0	0		Caster LB NOW	Caster LB NOW	0	5	0	1	0
 777	uwu-garuda-aerial-blast	uwu-garuda-aerial-blast	1	2B55	0	0	0	0	0	4	0	0		raidwide		3	0	0	1	0
-777	uwu-garuda-downburst	uwu-garuda-downburst	3	2B53	0	0	0	0	0	4	0	0		Garuda Downburst		3	3	0	1	0
+777	uwu-garuda-downburst	uwu-garuda-downburst	3	2B53	0	0	0	0	0	4	0	0		Tank Cleave (PARTY OUT)		3	3	0	1	0
 777	uwu-garuda-finale	uwu-garuda-finale	3	2CD3	0	0	0	0	0	4	0	0		Garuda		3	0	0	1	0
 777	uwu-garuda-mistral-song-marker	uwu-garuda-mistral-song-marker	6	10	1	1	0	0	0	4	1	1		Mistral on you		0	0	0	1	1
 777	uwu-garuda-mistral-song-tank	uwu-garuda-mistral-song-tank	6	10	0	0	0	0	0	4	0	0	tank	Block Mistral Song		0	5	0	1	1
@@ -111,8 +111,8 @@ facall 3
 1323	r10s-pyrotation-stack	r10s-pyrotation-stack	6	29A	0	0	0	0	0	4	0	0		Pyrotation, stack		0	0	0	1	0
 1323	r10s-reverse-alley-oop-alley-oop-double-dip-1	r10s-reverse-alley-oop-alley-oop-double-dip	1	B5E0	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip		3	0	0	1	0
 1323	r10s-reverse-alley-oop-alley-oop-double-dip-2	r10s-reverse-alley-oop-alley-oop-double-dip	1	B5DD	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip		3	0	0	1	0
-1323	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit-1	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit	3	B5E0	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip 2nd Hit		3	0	0	1	0
-1323	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit-2	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit	3	B5DD	0	0	0	0	0	4	0	0		Reverse Alley-oop/Alley-oop Double-dip 2nd Hit		3	0	0	1	0
+1323	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit-1	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit	3	B5E0	0	0	0	0	0	4	0	0		Stay		3	0	0	1	0
+1323	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit-2	r10s-reverse-alley-oop-alley-oop-double-dip-2nd-hit	3	B5DD	0	0	0	0	0	4	0	0		Stay		3	0	0	1	0
 1323	r10s-sickest-take-off-debuff	r10s-sickest-take-off-debuff	4	808	0	0	0	0	0	9	0	0		Sickest Take-off Debuff		0	0	0	1	0
 1323	r10s-snaking-debuff-target-1	r10s-snaking-debuff-target	4	136E	1	0	0	0	0	4	1	1		Snaking Debuff Target		0	0	0	1	0
 1323	r10s-snaking-debuff-target-2	r10s-snaking-debuff-target	4	136F	1	0	0	0	0	4	1	1		Snaking Debuff Target		0	0	0	1	0

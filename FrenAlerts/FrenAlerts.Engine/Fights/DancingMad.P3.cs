@@ -278,6 +278,9 @@ public static partial class DancingMad
             On = EventKind.StatusGain,
             Phase = 3,
             OnlyMe = true,
+            // Same two debuffs the pack carries, where all it can say is the
+            // mechanic's own name. This one says which element and which wind.
+            Owns = ["bowels-of-agony-debuffs-and-short-element"],
             Make = ctx =>
             {
                 if (ctx.Event.Id is not (0x642 or 0x643)) return null;

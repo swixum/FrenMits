@@ -24,10 +24,18 @@ public sealed class CallScheduler
 
     public Dictionary<string, string> LostTo { get; } = [];
 
-    public Call? Offer(Call call)
+    public Call? Offer(Call call) => Offer(call, out _);
+
+    // The same decision, saying why when it says no. The counters answer "how much
+    // was dropped"; this answers "why was that one call missing", which is the
+    // question somebody asks after a pull rather than during it.
+    public Call? Offer(Call call, out string dropped)
     {
+        dropped = "";
+
         if (call.Once && _saidOnce.Contains(call.Key))
         {
+            dropped = "said once already this pull";
             Suppressed++;
             Tally(DroppedAsRepeat, call.Key);
             return null;
@@ -36,6 +44,7 @@ public sealed class CallScheduler
         var window = call.Hush > 0 ? call.Hush : DuplicateWindow;
         if (_lastByKey.TryGetValue(call.Key, out var seen) && call.Time - seen < window)
         {
+            dropped = $"same call {call.Time - seen:F1}s ago, window {window:F1}s";
             Suppressed++;
             Tally(DroppedAsRepeat, call.Key);
             return null;
@@ -43,6 +52,7 @@ public sealed class CallScheduler
 
         if (_last is { } prev && call.Time - prev.Time < MinGap && !Beats(call, prev))
         {
+            dropped = $"{call.Time - prev.Time:F1}s behind {prev.Key}, gap {MinGap:F1}s";
             Suppressed++;
             Tally(DroppedForCrowding, call.Key);
             LostTo.TryAdd(call.Key, prev.Key);

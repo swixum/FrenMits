@@ -24,16 +24,28 @@ public sealed class Runner : IDisposable
     // announced as it lands, and a fight without one still calls.
     private TimelineClock? _clock;
 
+    // The calls that come off the timeline rather than off an event, for the
+    // mechanics whose own cast bar is shorter than the warning is worth.
+    private TimelineCaller _ahead;
+
     private TriggerEngine _engine;
     private uint _territory;
     private double _lastPartyPoll = -99;
+
+    // The last seat table and the last replay speed written down, so both are
+    // recorded when they change rather than on every frame that agrees with the one
+    // before it.
+    private string _seats = "";
+    private float _speedNoted = -1;
 
     public Runner(AlertBoard board)
     {
         _board = board;
         _territory = Service.ClientState.TerritoryType;
         _engine = _fights.Build(_territory);
+        _engine.Diary = Diary;
         _clock = _timelines.Build(_territory);
+        _ahead = new TimelineCaller((ushort)_territory);
         _sources = new EventSources(OnEvent);
         _sources.WatchYells(FightLoader.YellsFor(_territory));
         Voice.Local = LocalVoice;
@@ -209,6 +221,10 @@ public sealed class Runner : IDisposable
     // Off, and stays off, on this machine only, and never produces a call.
     public MarkerProbe Markers { get; } = new();
 
+    // What the engine saw and what it did about it, when somebody switches it on.
+    // Off in every shipped build, and it changes nothing about what is called.
+    public Diary Diary { get; } = new();
+
     // Its own process, so a failure in there falls back to the system voice rather
     // than crashing the game.
     public NeuralVoice LocalVoice { get; } = new(
@@ -224,9 +240,101 @@ public sealed class Runner : IDisposable
         return said;
     }
 
+    // ---- the recording ----
+
+    // Starts a fresh one and writes down where it is starting from. Everything in
+    // the header is the sort of thing that is obvious while you are sitting there
+    // and impossible to recover from the file afterwards.
+    public void OpenDiary()
+    {
+        Diary.On = true;
+        Diary.Forget();
+        _seats = "";
+        _speedNoted = -1;
+        _lastPartyPoll = -99;
+        NoteTheRun();
+    }
+
+    // Called at both ends of a pull, because half of these change during one: a
+    // parser can start reading, a timeline can anchor, a replay can be sped up.
+    private void NoteTheRun()
+    {
+        Diary.Note("fight",
+            $"{Fight}, territory {_territory}, {SpeakingCount} of {TriggerCount} speaking");
+        Diary.Note("replay", InReplay ? $"yes, at {ReplaySpeed:0.##}x" : "no");
+        Diary.Note("clock", $"{Now:F1}s");
+        Diary.Note("parser",
+            ParserReading ? $"reading, {ParserEventsSeen} events, {ParserDropped} dropped"
+            : ParserConnected ? "connected, not reading yet"
+            : "not there, so statuses come off the party poll only");
+        Diary.Note("hooks",
+            $"control {(ControlAvailable ? "on" : "off")}, "
+            + $"hits {(AbilitiesAvailable ? "on" : "off")}, "
+            + $"{MarkersSeen} head markers and {TethersSeen} tethers seen");
+        Diary.Note("timeline",
+            HasTimeline
+                ? $"{TimelineMechanics} mechanics, "
+                  + (TimelineRunning
+                      ? $"anchored at {TimelineAt:0}s, {TimelineResyncs} resyncs"
+                      : "not anchored")
+                : "none for this fight");
+        Diary.Note("pull", InPull ? $"running, pull {Pulls}" : $"not in one, {Pulls} so far");
+    }
+
+    // Where the last section went, so the window can offer the folder without
+    // holding its own copy. Kept when the recorder is switched off: the file is
+    // still there, and that is the moment somebody wants to open it.
+    public string LastRecording { get; private set; } = "";
+
+    // Writes what is held and starts the next section, so there is one per pull.
+    public string? WriteDiary()
+    {
+        if (!Diary.On) return null;
+
+        // A section with a header and no events describes a pull that never
+        // happened. Zone changes and reloads reach here too, and writing one of
+        // these each time fills the file with blocks holding nothing.
+        if (Diary.Events == 0)
+        {
+            Diary.Forget();
+            NoteTheRun();
+            return null;
+        }
+
+        NoteTheRun();
+        var path = DiaryFile.Write(Diary.Render());
+        Diary.Forget();
+        _seats = "";
+        _speedNoted = -1;
+
+        // The next section gets its header now rather than waiting on a pull
+        // starting. In a replay the combat flag may never fire, and a section with
+        // no header is one with no seats line and no replay line, which are the two
+        // facts the whole recording exists to carry.
+        NoteTheRun();
+
+        if (path is { Length: > 0 }) LastRecording = path;
+        return path;
+    }
+
+    public void CloseDiary()
+    {
+        Diary.On = false;
+        Diary.Forget();
+    }
+
     private void OnFrame(Dalamud.Plugin.Services.IFramework framework)
     {
         foreach (var e in _sources.Drain()) OnEvent(e);
+
+        // Written down when it changes, because a fight that ages four seconds per
+        // second and a fight whose clock is stuck look identical in a list of call
+        // times. This is the line that tells them apart.
+        if (Diary.On && InReplay && Math.Abs(ReplaySpeed - _speedNoted) > 0.01f)
+        {
+            _speedNoted = ReplaySpeed;
+            Diary.Note("speed", $"{_speedNoted:0.##}x at clock {Now:F1}s");
+        }
 
         // Somebody moved the replay slider. Every count, every once-a-pull and every
         // armed sequence describes a stretch of the fight that no longer leads to
@@ -247,11 +355,21 @@ public sealed class Runner : IDisposable
         if (e.Kind == EventKind.ZoneChange && e.Id != _territory) LeaveFight(e.Id);
         if (e.Kind == EventKind.CombatEnd) EndPull();
 
+        // A pull that starts closes the last one's section, so a night of attempts
+        // reads as one block each rather than as a single unbroken file. The next
+        // section's header is written by WriteDiary itself.
+        if (e.Kind == EventKind.CombatStart && Diary.On) WriteDiary();
+
         // The dropped count belongs to one pull. Nothing cleared it, so a single
         // crowded moment left "Dropped 3" on the status line for the rest of the
         // night, across every pull after it and every zone, describing something
         // that happened hours ago.
         if (e.Kind == EventKind.CombatStart) _board.ResetDropped();
+
+        // Same reason: what the timeline already said belongs to the pull that said
+        // it. Without this the second attempt of the night is silent for every
+        // mechanic the first one got through.
+        if (e.Kind == EventKind.CombatStart) _ahead.Forget();
 
         // Counted for the zone, so leaving a fight forgets it: the question is
         // whether the arena is being read here, not whether it ever was.
@@ -271,14 +389,25 @@ public sealed class Runner : IDisposable
         // Handles the pull's own start itself, so nothing here has to.
         _clock?.Feed(e);
 
+        // What the timeline says is nearly here, before the event's own calls: a
+        // warning counted back from a mechanic is always the earlier of the two.
+        foreach (var call in _ahead.Due(_clock, e.Time))
+        {
+            // These are not triggers, so switching one off on the fight page cannot
+            // reach them the way it reaches the rest: the page turns a trigger off
+            // by not building it, and there is no trigger here to leave out.
+            if (Switched?.Invoke(call.Key) is false) continue;
+            if (_board.Show(call, e.Time, CallIcon.None)) Voice.Say(call.Spoken);
+        }
+
         foreach (var call in _engine.Feed(e))
         {
             // The debuff or head marker that caused the call, drawn beside it, so a
             // glance says which of the two you got without reading the line.
-            _board.Show(call, e.Time, CallIcon.For(e, _engine.Player.MyId));
-            // Only what reached the board is spoken, or the ones the scheduler
-            // dropped for crowding would be read out anyway.
-            Voice.Say(call.Spoken);
+            // Only what reached the board is spoken, or a fight turned off, or the
+            // whole plugin turned off, would go quiet on screen and keep talking.
+            if (_board.Show(call, e.Time, CallIcon.For(e, _engine.Player.MyId)))
+                Voice.Say(call.Spoken);
         }
     }
 
@@ -287,6 +416,7 @@ public sealed class Runner : IDisposable
     private void LeaveFight(uint territory)
     {
         WriteProbe();
+        WriteDiary();
         _territory = territory;
         ArenaSeen = 0;
         Reload();
@@ -299,6 +429,7 @@ public sealed class Runner : IDisposable
     private void EndPull()
     {
         WriteProbe();
+        WriteDiary();
         _board.Clear();
     }
 
@@ -311,9 +442,13 @@ public sealed class Runner : IDisposable
     private void Reload()
     {
         _engine = _fights.Build(_territory);
+        // Rebuilt engines are new objects, so the recorder has to be handed over or
+        // it stops writing the moment somebody changes a strat mid-session.
+        _engine.Diary = Diary;
         // A fresh clock rather than a reset one, for the same reason as the engine:
         // a pull can never inherit the last fight's anchors.
         _clock = _timelines.Build(_territory);
+        _ahead = new TimelineCaller((ushort)_territory);
         // Asked the same question the engine was, in the same breath, so the
         // listener can never be watching a fight the engine is not loaded for.
         _sources.WatchYells(FightLoader.YellsFor(_territory));
@@ -340,10 +475,43 @@ public sealed class Runner : IDisposable
             var obj = Service.ObjectTable.SearchByEntityId(id);
             if (obj is not null) _engine.Actors.Remember(id, obj.Name.TextValue);
         }
+
+        if (Diary.On) NoteSeats(members);
+    }
+
+    // Who the engine thinks is sitting where, and where that came from.
+    //
+    // The second half is the point. A party list is in party order, which is the
+    // order the seat names mean. The object table is in the order the game happens
+    // to hold actors, and the local player is always first in it, so off a stand-in
+    // this player is always the first of their role and never the second. A call
+    // that says the wrong half of a pair looks like a broken trigger and is not one.
+    private void NoteSeats(IReadOnlyList<(uint EntityId, uint JobId)> members)
+    {
+        var seats = string.Join(" ", members
+            .Select(m => (Slot: _engine.Party.SlotOf(m.EntityId), m.EntityId, m.JobId))
+            .Where(s => s.Slot.Length > 0)
+            .OrderBy(s => s.Slot, StringComparer.Ordinal)
+            .Select(s => $"{s.Slot}={s.EntityId:X}/job{s.JobId}"));
+
+        var line =
+            $"you are {(_engine.Player.MySlot.Length > 0 ? _engine.Player.MySlot : "unseated")}"
+            + $", {members.Count} read from "
+            + (Watchers.StandIn()
+                ? "the object table, which has no seat order"
+                : "the party list")
+            + $" | {seats}";
+
+        if (line == _seats) return;
+        _seats = line;
+        Diary.Note("seats", line);
     }
 
     public void Dispose()
     {
+        // Before the sources go, or a pull that was still running when the plugin
+        // was reloaded takes its recording with it.
+        WriteDiary();
         Service.Framework.Update -= OnFrame;
         _sources.Dispose();
         Voice.Dispose();

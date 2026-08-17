@@ -37,9 +37,15 @@ public sealed class AlertBoard
 
     public int Count { get { lock (_gate) return _items.Count; } }
 
-    public void Show(Call call, double engineNow, CallIcon icon = default)
+    // True when the call was taken. False means Decide threw it out: the master
+    // switch is off, this fight is muted, or the player switched this one call off.
+    //
+    // Reported rather than swallowed, because the voice is a separate path. It used
+    // to speak whatever it was handed, so a fight turned off, or the whole plugin
+    // turned off, went quiet on screen and kept talking out loud.
+    public bool Show(Call call, double engineNow, CallIcon icon = default)
     {
-        if (Decide(call) is not { } shown) return;
+        if (Decide(call) is not { } shown) return false;
         call = shown;
 
         var now = Clock();
@@ -60,6 +66,7 @@ public sealed class AlertBoard
                 Dropped++;
             }
         }
+        return true;
     }
 
     public IReadOnlyList<Shown> Live()

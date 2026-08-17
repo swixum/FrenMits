@@ -10,9 +10,14 @@ namespace FrenAlerts.Ui;
 public sealed record FightEntry(
     string Name, string Full, string Category, uint TerritoryId, int Calls);
 
+// Text is the one line this call ships with, and is what an edit is measured
+// against. OnYou is the other thing it says when it lands on this player, empty
+// where the call says the same either way, and is for the row label only: putting
+// it in Text would hand the editor two lines to save as one.
 public sealed record CallEntry(
     string Key, string Text, CallLevel Level, float Hold, int Phase,
-    bool ShipsOn, EventKind On, uint MatchId, bool Sampled = true);
+    bool ShipsOn, EventKind On, uint MatchId, bool Sampled = true, string OnYou = "",
+    bool FromTimeline = false);
 
 public static class FightCatalog
 {
@@ -336,6 +341,7 @@ public static class FightCatalog
             // Dancing Mad went from 157 rows to 33 and read as an empty fight.
             var built = Written(mine, keyOf, (ushort)territory)
                 .Concat(Ordered(sequences.GetValueOrDefault(territory) ?? [], keyOf))
+                .Concat(Ahead((ushort)territory, keyOf))
                 .ToList();
             var all = InFightOrder(territory, built.Concat(loaded).ToList());
             calls[territory] = all;
@@ -386,10 +392,21 @@ public static class FightCatalog
             float hold;
             CallLevel level;
             bool sampled;
+            var onYou = "";
             try
             {
                 var sample = t.Make(Blank(t, territory));
                 sampled = !string.IsNullOrWhiteSpace(sample?.Text);
+                // The same trigger asked as the call landing on this player. A
+                // buster names whoever it hit, so one run only ever hears the half
+                // about somebody else: "Tank Cleave" for a call whose other half is
+                // "Tank Cleave on YOU". Skipped where the blank already aimed at
+                // this player, because there is no second answer to find.
+                if (sampled && !t.OnlyMe && t.Aim != Aim.Me)
+                {
+                    var yours = t.Make(AtMe(t, territory))?.Text;
+                    if (!string.IsNullOrWhiteSpace(yours) && yours != sample!.Text) onYou = yours!;
+                }
                 // Asked, then told, then the id as a last resort. A call that reads
                 // the pull cannot answer here, but its author knows what it sounds
                 // like, and a player choosing what to switch off needs the words
@@ -403,6 +420,7 @@ public static class FightCatalog
             catch
             {
                 sampled = false;
+                onYou = "";
                 text = Readable(t.Id);
                 hold = 4f;
                 level = CallLevel.Info;
@@ -410,7 +428,7 @@ public static class FightCatalog
 
             // Written by hand, so it says what it means at the moment it means it.
             list.Add(new CallEntry(
-                t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId, sampled));
+                t.Id, text, level, hold, t.Phase, t.Enabled, t.On, t.MatchId, sampled, onYou));
         }
         return list;
     }
@@ -451,6 +469,35 @@ public static class FightCatalog
         return list;
     }
 
+    // The calls that come off the timeline rather than off an event.
+    //
+    // A fourth source of rows, and the page knew nothing about it: UWU's three
+    // timeline calls fired in the fight and appeared nowhere on the page, so they
+    // could not be found, switched off, or reworded. A call you cannot switch off
+    // is the one thing this page must never have.
+    //
+    // Their words are fixed, so there is nothing to sample: what a timeline call
+    // says is written down beside how long before the mechanic it says it.
+    private static IReadOnlyList<CallEntry> Ahead(ushort territory, Dictionary<string, string> keyOf)
+    {
+        var list = new List<CallEntry>();
+        var seen = new HashSet<string>();
+        foreach (var c in TimelineCaller.Shipped)
+        {
+            if (c.Territory != territory) continue;
+            if (!seen.Add(c.Key)) continue;
+            keyOf[c.Key] = c.Key;
+            list.Add(new CallEntry(
+                c.Key, c.Text, c.Level, 4f, Phase: 0, ShipsOn: true,
+                // No event brings one of these, which is the point of them. The kind
+                // is what the page reads to warn that a call cannot fire, so a
+                // timeline call is marked instead of being given a borrowed one.
+                On: EventKind.ZoneChange, MatchId: 0, Sampled: true, OnYou: "",
+                FromTimeline: true));
+        }
+        return list;
+    }
+
     private static TriggerContext BlankFor(EventKind kind, uint id) => new(
         new GameEvent { Kind = kind, Time = 0, Id = id },
         Asking(0), new ActorBook(), new PartyContext(), new FightState());
@@ -485,6 +532,12 @@ public static class FightCatalog
             Id = t.MatchId,
             TargetId = t.OnlyMe || t.Aim == Aim.Me ? Me : 0,
         },
+        Asking(territory), new ActorBook(), new PartyContext(), new FightState());
+
+    // The same event aimed at this player, for the second half of a call that names
+    // who it landed on.
+    private static TriggerContext AtMe(Trigger t, ushort territory) => new(
+        new GameEvent { Kind = t.On, Time = 0, Id = t.MatchId, TargetId = Me },
         Asking(territory), new ActorBook(), new PartyContext(), new FightState());
 
     private static string Readable(string id) => id.Replace('-', ' ');

@@ -239,6 +239,17 @@ public sealed class NeuralVoice : IDisposable
         lock (_errors) return _errors.Count == 0 ? "It said nothing." : string.Join(" ", _errors);
     }
 
+    // The same words, for the page that has to explain the failure to somebody who
+    // is not going to open the log. Empty while nothing has gone wrong, so the page
+    // can ask for it without deciding first whether there is anything to say.
+    public string WhyItStopped
+    {
+        get
+        {
+            lock (_errors) return _errors.Count == 0 ? "" : string.Join(" ", _errors);
+        }
+    }
+
     // Never blocks and never throws, because a closed pipe means the child died
     // between the check and the write, which is a lost call rather than a problem.
     public bool Say(string text)
