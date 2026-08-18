@@ -226,6 +226,26 @@ public static class ScriptStrategies
         return -1;
     }
 
+    // What an imported fight answers for one of its own questions, for the calls of
+    // ours that ask the same thing.
+    //
+    // Their default counts. A row left alone writes nothing to disk and still means
+    // the thing it is showing, so reading only what was saved would say "no answer"
+    // about the row swix is looking at. Empty means they do not ask this at all, which
+    // is the one case where our own answer is the only one there is.
+    public static string Answer(
+        IReadOnlyList<ScriptStrategy> asked, string key, string chosen)
+    {
+        if (asked is null || string.IsNullOrWhiteSpace(key)) return "";
+
+        foreach (var one in asked)
+        {
+            if (one.Id != key) continue;
+            return chosen.Length > 0 ? chosen : one.Default;
+        }
+        return "";
+    }
+
     // What a fight is set to right now, read back out of their own state.
     public static string Current(Jint.Engine js, string id)
     {

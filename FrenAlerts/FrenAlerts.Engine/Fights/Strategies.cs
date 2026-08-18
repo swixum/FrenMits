@@ -30,6 +30,45 @@ public static class Strategies
     // has not told us about. Silence beats confidently naming the wrong tower.
     private static StrategyOption Off => new("none", "Off");
 
+    // The same answer written two ways.
+    //
+    // An imported fight asks several of these questions on its own page, and where it
+    // does, that page is the one with the row on it. The answers line up by value for
+    // all but one: their Kefka-north mode is a patch beside their file and calls
+    // itself "kefka", ours calls it "kefkaNorth", and one row cannot drive both
+    // unless something knows they are the same thing.
+    private static readonly Dictionary<string, string> Aliases = new()
+    {
+        ["kefka"] = "kefkaNorth",
+    };
+
+    // Which of a setting's own answers an imported one means, or empty when it means
+    // none of them. Empty is a real answer here: a fight that adds an option we have
+    // never heard of must fall back to what was picked here rather than be forced
+    // onto whichever of ours happens to sort first.
+    public static string Matching(Strategy setting, string theirs)
+    {
+        if (setting is null || string.IsNullOrWhiteSpace(theirs)) return "";
+        var want = Aliases.GetValueOrDefault(theirs, theirs);
+        return setting.Options.Any(o => o.Value == want) ? want : "";
+    }
+
+    // Which answer a setting takes, given what an imported fight says on its own page
+    // and what was left here.
+    //
+    // One row per question. Both engines run in a fight like Dancing Mad and both ask
+    // which Forsaken order the group runs; two rows for that is two ways to be half
+    // set, and only one of the two is on screen. Theirs is the one with the row on it,
+    // so theirs is the one that answers, and an answer of theirs this setting has
+    // never heard of falls back to what was picked here rather than to a guess.
+    public static string Answer(Strategy setting, string theirs, string ours)
+    {
+        if (setting is null) return "";
+        if (Matching(setting, theirs) is { Length: > 0 } same) return same;
+
+        return setting.Options.Any(o => o.Value == ours) ? ours : setting.Default;
+    }
+
     public static readonly IReadOnlyList<Strategy> All =
     [
         // Dancing Mad
@@ -43,7 +82,9 @@ public static class Strategies
             [new("line", "By line"), new("role", "By role")]),
         new(1363, "blackHole", "Black Holes", "Which order they are taken in",
             [Off, new("dsa", "DSA"), new("sda", "SDA"), new("modified", "Modified")]),
-        new(1363, "blackHoleTether", "Black Hole tethers", "How the tether is called",
+        // Kefka is relative north for the whole of that phase, so this names the hand
+        // attack's safe side as well as the tethers.
+        new(1363, "blackHoleTether", "Black Hole tethers", "How directions are called",
             [new("true", "True north"), new("clock", "Clock spots"),
              new("kefkaNorth", "Kefka is north")]),
 

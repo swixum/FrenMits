@@ -12,16 +12,22 @@ namespace FrenAlerts.Engine;
 // phase three boss actor is at 100,100 for every set, heading one of the eight.
 public static partial class DancingMad
 {
-    // The tethered hole's direction, counted round from wherever Kefka is.
+    // One hole out of the clockwise order, counted round from wherever Kefka is.
+    //
+    // The order is the whole of the plan: the first clockwise hole is the dps one on
+    // every set, and which packet happened to fire the call says nothing about that.
+    // This used to read the hole off the event, so the same assignment was named a
+    // different direction on each of the three moments it applies to.
     //
     // Unknown when either end is missing, which is what makes the call fall back to
     // naming the mechanic rather than sending somebody to a real place on a guess.
-    internal static string HoleNameFromKefka(in TriggerContext ctx)
+    internal static string HoleNameFromKefka(
+        in TriggerContext ctx, IReadOnlyList<int> order, int nth)
     {
         var north = Pull(ctx).KefkaDir;
         if (north == DancingMadPull.Nowhere) return Compass.Unknown;
+        if (nth < 0 || nth >= order.Count) return Compass.Unknown;
 
-        var id = HoleEnd(ctx);
-        return id == 0 ? Compass.Unknown : RelativeNorth.Name4(ctx.Actors.Where(id), north);
+        return RelativeNorth.Name4(order[nth], north);
     }
 }

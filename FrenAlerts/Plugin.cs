@@ -82,6 +82,18 @@ public sealed class Plugin : IDalamudPlugin
             Audible = () => Config.AlertsEnabled
                             && !Config.IsMuted(Service.ClientState.TerritoryType),
         };
+        // One row per question.
+        //
+        // Their fight asks which Forsaken order and which black hole order the group
+        // runs on its own page, and that page is the one with the rows on it. Ours
+        // reads its answer rather than keeping a second copy behind a block that
+        // never draws. Their default counts too: a row left alone writes nothing to
+        // disk and still means the thing it is showing.
+        Config.ScriptAnswer = (territory, key) =>
+            _runner is { } runner && runner.ScriptCovers(territory)
+                ? FrenAlerts.Engine.Scripts.ScriptStrategies.Answer(
+                    runner.ScriptStrategiesFor(territory), key, Config.ScriptStratFor(key))
+                : "";
         // The group's seating, read on every party poll. Handed to the party read
         // rather than to the runner, because that is the one place seats are worked
         // out, and dropped again on the way out so a reload leaves nothing holding a
@@ -272,8 +284,17 @@ public sealed class Plugin : IDalamudPlugin
                 // guess: zero here means nothing is reading the arena in this zone.
                 $"Arena: {_runner.ArenaSeen} read, {_runner.ArenaTracking} tracked" +
                 (_runner.ArenaDropped > 0 ? $", {_runner.ArenaDropped} dropped" : "") + ". " +
+                // From whichever timeline is actually running, the way HasTimeline and
+                // TimelineRunning either side of it already ask. Ours is not built at
+                // all where their fight owns the zone, so this printed a count off a
+                // file that was never loaded: 312 mechanics for every Dancing Mad pull,
+                // beside their clock's own position. The diary line in Runner had the
+                // same fault and was fixed there first; these two are the only readers,
+                // and the branch belongs on TimelineMechanics itself once Runner is free.
                 (_runner.HasTimeline
-                    ? $"Timeline: {_runner.TimelineMechanics} mechanics, "
+                    ? $"Timeline: {(_runner.Scripted
+                        ? _runner.ScriptTimelineMechanics((ushort)Service.ClientState.TerritoryType)
+                        : _runner.TimelineMechanics)} mechanics, "
                       + (_runner.TimelineRunning
                           ? $"at {_runner.TimelineAt:0}s, {_runner.TimelineResyncs} resyncs, "
                             + $"drift {_runner.TimelineDrift:+0.0;-0.0;0}s."

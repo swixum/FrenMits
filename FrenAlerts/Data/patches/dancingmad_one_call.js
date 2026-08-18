@@ -40,6 +40,36 @@
 
     // And theirs says "move away" on the same hits ours already says "move" on.
     'DMU P5 Flood Move': 'ours says the same thing',
+
+    // Phase two's towers, all eight sets. Both engines called this one and the two
+    // disagreed, which is worse than either of them alone: theirs puts group A back
+    // on tower seven where the plan gives four to seven to group B, and picks the
+    // side on an even set by role where the plan picks it by seat and crosses the
+    // tank and the melee when their partner matches. Checked against the raidplan
+    // (UATE__aDcw1-bgVv) and wtfdig's per-seat table, 2026-08-17.
+    'DMU P2 Path of Light Towers 1': 'ours follows the plan',
+    'DMU P2 Path of Light Towers 2': 'ours follows the plan',
+    'DMU P2 Path of Light Towers 3': 'ours follows the plan',
+    'DMU P2 Path of Light Towers 4': 'ours follows the plan',
+    'DMU P2 Path of Light Towers 5': 'ours follows the plan',
+    'DMU P2 Path of Light Towers 6': 'ours follows the plan',
+    'DMU P2 Path of Light Towers 7': 'ours follows the plan',
+    'DMU P2 Path of Light Towers 8': 'ours follows the plan',
+
+    // The black holes, all ten moments. Same again: both said them, so a phase with
+    // four moments in it for any one player arrived as twenty calls. Ours says
+    // nothing at the moments that are not yours rather than reading the holes out
+    // with a number on the front.
+    'DMU P3 Black Hole 1, Nothingness 1': 'ours says only your own moments',
+    'DMU P3 Black Hole 2, Nothingness 2': 'ours says only your own moments',
+    'DMU P3 Black Hole 3, Nothingness 3': 'ours says only your own moments',
+    'DMU P3 Black Hole 3, Nothingness 4': 'ours says only your own moments',
+    'DMU P3 Black Hole 3, Nothingness 5': 'ours says only your own moments',
+    'DMU P3 Black Hole 4, Nothingness 6': 'ours says only your own moments',
+    'DMU P3 Black Hole 4, Nothingness 7': 'ours says only your own moments',
+    'DMU P3 Black Hole 4, Nothingness 8': 'ours says only your own moments',
+    'DMU P3 Black Hole 5, Nothingness 9': 'ours says only your own moments',
+    'DMU P3 Black Hole 6, Nothingness 10': 'ours says only your own moments',
   };
 
   function duty() {

@@ -26,17 +26,74 @@ public static partial class DancingMad
     // M2 are the melee, and a fight should not need its own job table to say so.
     private static bool IsMelee(string slot) => slot is "M1" or "M2";
 
-    // Which side of the pair this player's shape belongs on.
+    // Whether a set puts a cone and a spread in each of the two towers rather than
+    // two stacks, a cone and a spread across the pair. It is the whole of what
+    // decides whether the shape on your head can pick your side at all.
+    private static bool ConePerTower(int set) => set % 2 == 0;
+
+    // Whether your half of the pair is carrying the same shape you are.
     //
-    // Straight off the plan: cones and the support stack go left, spreads and the
-    // dps stack go right. The shape decides it for two of the three, and only the
-    // stack needs the role, because there is one of those per role bucket.
-    private static string KroxySide(in TriggerContext ctx, string shape) => shape switch
+    // A pair is a tank with a healer or a melee with a ranged, so when the two
+    // match, one of them has to cross to the other tower or that tower ends up with
+    // two of a shape and none of the other.
+    //
+    // Null while their shape for this set has not landed. Eight markers arrive in
+    // one burst in whatever order the game reads them, and answering off the shape
+    // they were carrying a set ago crosses a pair that does not match and leaves one
+    // standing that does.
+    private static bool? PartnerMatchesMe(in TriggerContext ctx, DancingMadPull pull)
     {
-        "cone" => "left",
-        "spread" => "right",
-        _ => Audience.RoleOf(ctx.MySlot) is "tank" or "healer" ? "left" : "right",
-    };
+        var partner = ctx.Party.IdOf(BuddyOf(ctx.MySlot));
+        // Nobody to compare against, so this seat's own side is the whole answer
+        // rather than a silence that never resolves.
+        if (partner == 0 || partner == ctx.Player.MyId) return false;
+
+        var mine = pull.PathMark.GetValueOrDefault(ctx.Player.MyId, "");
+        var theirs = pull.PathMark.GetValueOrDefault(partner, "");
+        if (mine.Length == 0 || theirs.Length == 0) return null;
+
+        return mine == theirs;
+    }
+
+    // Which tower this seat takes when the shape cannot say.
+    //
+    // The plan's own H > T > M > R: the support half of a group takes the left
+    // tower and the dps half the right. The healer and the ranged never move off
+    // that, and the tank and the melee are the two who cross when their partner is
+    // carrying what they are. Empty while a crossing seat is still waiting on their
+    // partner's shape, which the next marker of the burst answers.
+    private static string SeatSide(in TriggerContext ctx, DancingMadPull pull)
+    {
+        var slot = ctx.MySlot;
+        var role = Audience.RoleOf(slot);
+        if (role == "healer") return "left";
+        if (role == "dps" && !IsMelee(slot)) return "right";
+
+        var crossed = PartnerMatchesMe(ctx, pull);
+        if (crossed is null) return "";
+
+        if (role == "tank") return crossed.Value ? "right" : "left";
+        return crossed.Value ? "left" : "right";
+    }
+
+    // Which side of the pair this player's tower is.
+    //
+    // The odd sets put two stacks, a cone and a spread across the pair, so the
+    // shape says it for the cone and the spread and the seat says it for the two
+    // stacks. The even sets put a cone and a spread in each tower, where the shape
+    // says nothing at all and the seat says the whole of it.
+    private static string KroxySide(
+        in TriggerContext ctx, DancingMadPull pull, string shape, int set)
+    {
+        if (ConePerTower(set)) return SeatSide(ctx, pull);
+
+        return shape switch
+        {
+            "cone" => "left",
+            "spread" => "right",
+            _ => SeatSide(ctx, pull),
+        };
+    }
 
     // Whether this player is on the half that takes the first three towers and the
     // last one, which is what the 3/4/1 in the plan's own name counts.
@@ -116,10 +173,6 @@ public static partial class DancingMad
     };
 
     // One set of the 3/4/1 rotation, as the plan writes it.
-    //
-    // The half that is not on a tower has a fixed home rather than a bait: the plan
-    // says supports always take theirs on the left and dps always stand in the stack
-    // on the right, and it says so on every one of the eight slides.
     private static string KroxySet(in TriggerContext ctx, DancingMadPull pull, int set)
     {
         var shape = MyShape(pull);
@@ -131,11 +184,40 @@ public static partial class DancingMad
         if (side.Length == 0) return "";
 
         if ((side == "a") == FirstHalfTower(set))
-            return $"{KroxySide(ctx, shape)} tower + {PathMarker(shape)}";
+        {
+            var mine = KroxySide(ctx, pull, shape, set);
+            return mine.Length == 0 ? "" : $"{mine} tower + {PathMarker(shape)}";
+        }
 
-        return Audience.RoleOf(ctx.MySlot) is "tank" or "healer"
-            ? $"left {(shape == "cone" ? "cone" : "stack")}"
-            : "right stack";
+        return KroxyBait(ctx, set);
+    }
+
+    // Where the half that is not on a tower goes.
+    //
+    // The odd sets send all four to the stack in one of the two towers, out of it,
+    // with the healer baiting the left cone off the back edge. The even sets have
+    // no stack in them: the tank and the melee go north on the outer ring to bait
+    // their clone and the healer and the ranged bait a cone onto their own marker.
+    private static string KroxyBait(in TriggerContext ctx, int set)
+    {
+        var slot = ctx.MySlot;
+        var role = Audience.RoleOf(slot);
+
+        if (!ConePerTower(set))
+            return role switch
+            {
+                "healer" => "bait left cone out",
+                "tank" => "left stack",
+                _ => "right stack",
+            };
+
+        return role switch
+        {
+            "healer" => "bait left cone",
+            "tank" => "bait left clone far",
+            _ when IsMelee(slot) => "bait right clone far",
+            _ => "bait right cone",
+        };
     }
 
     private static string BuddySet(in TriggerContext ctx, DancingMadPull pull, int set)
@@ -200,8 +282,16 @@ public static partial class DancingMad
             DancingMadPull.Note(into, who);
         });
 
-        yield return Collect("path-set", EventKind.AbilityHit, 0xBABE, 2,
-            ctx => Pull(ctx).PathSet++);
+        yield return Collect("path-set", EventKind.AbilityHit, 0xBABE, 2, ctx =>
+        {
+            var pull = Pull(ctx);
+            pull.PathSet++;
+
+            // The shapes are handed out fresh every set, so last set's are not an
+            // answer about this one. Left standing they read as a partner who has
+            // already been marked, which is the pairing decided off a stale shape.
+            pull.PathMark.Clear();
+        });
 
         yield return Collect("trine-at", EventKind.ActorSpawn, 0, 2, ctx =>
         {
@@ -351,17 +441,20 @@ public static partial class DancingMad
     // to walk, then where the bait goes once it lands.
     private static string EndingText(in TriggerContext ctx, bool future, bool early = false)
     {
+        // The 3/4/1 plan asks for both of them at max melee and puts that on its own
+        // slide in capitals. Buddy asks for it on the past bait only, which is where
+        // its own wording puts it.
+        var buddy = ctx.Running(ForsakenStrat, "buddy");
+        var close = ctx.Running(ForsakenStrat, "kroxy-rinon") ? " (max melee)" : "";
+
         if (early)
             return future
-                ? "future, bait away from towers"
-                : ctx.Running(ForsakenStrat, "buddy")
-                    ? "past, bait between towers (max melee)"
-                    : "past, bait between towers";
+                ? $"future, bait away from towers{close}"
+                : buddy ? "past, bait between towers (max melee)" : $"past, bait between towers{close}";
 
-        if (future) return "bait ending opposite towers";
-        return ctx.Running(ForsakenStrat, "buddy")
-            ? "bait ending between towers (max melee)"
-            : "bait ending between towers";
+        return future
+            ? $"bait ending opposite towers{close}"
+            : buddy ? "bait ending between towers (max melee)" : $"bait ending between towers{close}";
     }
 
     // The last ending of the phase.

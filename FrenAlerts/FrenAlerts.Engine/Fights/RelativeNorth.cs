@@ -61,6 +61,20 @@ public static class RelativeNorth
         return turned % 2 == 0 ? Compass.Name4(Compass.EightToFour(turned)) : Compass.Name8(turned);
     }
 
+    // The same, for a spot already reduced to one of the four rather than left as a
+    // place on the floor.
+    //
+    // A mechanic that has already been sorted into an order holds directions, not
+    // positions, and naming the nth of those means turning a direction rather than
+    // looking one up. Going back to a position to do it names whichever prop the
+    // packet happened to carry instead of the one the order picked.
+    public static string Name4(int dir4, int north8)
+    {
+        if (dir4 < 0 || dir4 >= 4 || north8 < 0 || north8 >= 8) return Compass.Unknown;
+        var turned = Compass.ClockwiseGap(north8, Compass.FourToEight(dir4), 8);
+        return turned % 2 == 0 ? Compass.Name4(Compass.EightToFour(turned)) : Compass.Name8(turned);
+    }
+
     // The same spot in the arena's own words, for the groups that call true north.
     public static string True(Position spot,
         float centerX = Compass.Middle, float centerY = Compass.Middle)

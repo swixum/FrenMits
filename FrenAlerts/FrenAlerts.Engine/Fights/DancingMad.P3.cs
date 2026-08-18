@@ -45,28 +45,53 @@ public static partial class DancingMad
 
     // How a tether is named: by where it actually is, or by how far round it is
     // from the boss, which is what a group counting them off prefers.
+    // How far round the order a tether is, which is an answer whichever words the
+    // group uses and is the one that survives a hole not being out yet.
+    private static string HoleCount(int nth) => nth switch
+    {
+        0 => "first clockwise",
+        1 => "second clockwise",
+        _ => "third clockwise",
+    };
+
     private static string HoleName(in TriggerContext ctx, IReadOnlyList<int> order, int nth)
     {
+        // The set hands its holes out one at a time, and the first moment of a set
+        // sends somebody to a later one that has not appeared. There is no direction
+        // to give for a hole that is not there, but the count still says which it is,
+        // and "middle then second clockwise" beats "middle then unknown".
+        if (nth < 0 || nth >= order.Count) return HoleCount(nth);
+
         // Named against Kefka rather than against the arena. Checked by name, not as
         // the fallthrough, or every option added later would silently be clock spots.
-        if (ctx.Running(HoleTetherStrat, "kefkaNorth")) return HoleNameFromKefka(ctx);
+        if (ctx.Running(HoleTetherStrat, "kefkaNorth"))
+        {
+            var named = HoleNameFromKefka(ctx, order, nth);
+            return RelativeNorth.Known(named) ? named : HoleCount(nth);
+        }
 
-        if (!ctx.Running(HoleTetherStrat, "true"))
-            return nth switch
-            {
-                0 => "first clockwise",
-                1 => "second clockwise",
-                _ => "third clockwise",
-            };
+        if (!ctx.Running(HoleTetherStrat, "true")) return HoleCount(nth);
 
-        return nth >= 0 && nth < order.Count ? Way4(order[nth]) : Compass.Unknown;
+        return Way4(order[nth]);
     }
 
-    private static string HoleList(IReadOnlyList<int> order)
+    // Where all of them are, in the same words the group's own tether calls use. A
+    // list in true north under a plan that calls Kefka north is the one call in the
+    // phase facing the other way.
+    private static string HoleList(in TriggerContext ctx, IReadOnlyList<int> order)
     {
         if (order.Count == 0) return Compass.Unknown;
-        return string.Join(' ', order.Select(Way4));
+
+        var north = Pull(ctx).KefkaDir;
+        if (!ctx.Running(HoleTetherStrat, "kefkaNorth") || north == DancingMadPull.Nowhere)
+            return string.Join(' ', order.Select(Way4));
+
+        return string.Join(' ', order.Select(d => RelativeNorth.Name4(d, north)));
     }
+
+    // Whether the group has told the fight which order they take the holes in.
+    private static bool HolePlanned(in TriggerContext ctx) =>
+        ctx.Strat(HoleStrat) is not ("" or "none");
 
     private static IEnumerable<Trigger> PhaseThree()
     {
@@ -658,6 +683,23 @@ public static partial class DancingMad
         },
     };
 
+    // Where a role spread puts this seat, counted from Kefka: tanks in front of him,
+    // healers in the middle, dps at the back. Straight off the plan, which writes it
+    // as the second half of the hand attack rather than as a mechanic of its own.
+    private static string SpreadSpot(in TriggerContext ctx) =>
+        Audience.RoleOf(ctx.MySlot) switch
+        {
+            "tank" => "front",
+            "healer" => "mid",
+            _ => "back",
+        };
+
+    // The half of the call that says what waits at the end of the run. The side the
+    // slap is not coming from decides it: left unsafe is a party stack, right unsafe
+    // is a role spread.
+    private static string SlapGather(in TriggerContext ctx, bool right) =>
+        right ? "party stack" : $"role spread {SpreadSpot(ctx)}";
+
     // Which way round the boss to run, and what waits at the end of it.
     private static Trigger SlapHappy(string id, uint action, bool right) => new()
     {
@@ -671,7 +713,7 @@ public static partial class DancingMad
             if (!at.Known)
                 return new Call
                 {
-                    Text = $"out of middle + {(right ? "party stack" : "role stacks")}",
+                    Text = $"out of middle + {SlapGather(ctx, right)}",
                     Time = Lands(ctx),
                     Key = "slap-happy",
                     Level = CallLevel.Alarm,
@@ -680,9 +722,17 @@ public static partial class DancingMad
             var boss = Compass.Dir8(at);
             // Two eighths round from the boss, the way the slap is not coming from.
             var safe = Compass.Wrap(boss + (right ? 2 : 6), 8);
+
+            // A group calling Kefka north wants this side named from him too, and he
+            // is the reference standing on the event itself, so it needs nothing the
+            // teleport may not have written down yet.
+            var way = ctx.Running(HoleTetherStrat, "kefkaNorth")
+                ? Way(Compass.ClockwiseGap(boss, safe, 8))
+                : Way(safe);
+
             return new Call
             {
-                Text = $"{Way(safe)} + {(right ? "party stack" : "role stacks")} then out",
+                Text = $"{way} + {SlapGather(ctx, right)} then out",
                 Time = Lands(ctx),
                 Key = "slap-happy",
                 Level = CallLevel.Alarm,
@@ -733,13 +783,17 @@ public static partial class DancingMad
             var said = HoleWork(ctx, pull, order, nth);
             var mine = said.Length > 0;
 
-            // Nothing to do and nowhere known to say it about is nothing to say. The
-            // alternative was a call reading "4: 4", which is the set's number twice
-            // and no information at all.
+            // Nothing to do is nothing to say.
+            //
+            // A group that has picked an order gets told the four moments that are
+            // theirs, and naming the holes at the other six buries those four under
+            // a list nobody acts on: swix heard ten calls a phase, six of them a
+            // number and three directions. With nothing picked the list is all the
+            // fight can honestly offer, so that is the one case it survives for.
             if (!mine)
             {
-                if (order.Count == 0) return null;
-                said = HoleList(order);
+                if (HolePlanned(ctx) || order.Count == 0) return null;
+                said = HoleList(ctx, order);
             }
 
             return new Call

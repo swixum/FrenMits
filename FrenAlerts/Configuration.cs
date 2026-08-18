@@ -82,15 +82,25 @@ public class Configuration : IPluginConfiguration
 
     private static string StratKey(ushort territory, string key) => $"{territory}/{key}";
 
+    // What an imported fight answers for a question it also asks, including its own
+    // default when nobody has touched the row. Set once at startup and null when
+    // nothing imported is loaded.
+    public Func<ushort, string, string>? ScriptAnswer;
+
     // The group's answer, or the setting's own default when they have not said.
     // An answer that is no longer offered reads as the default rather than being
     // passed through, so a renamed option cannot leave a fight matching nothing.
+
     public string StratFor(ushort territory, string key)
     {
         var setting = Strategies.Find(territory, key);
         if (setting is null) return "";
-        if (!_strats.TryGetValue(StratKey(territory, key), out var chosen)) return setting.Default;
-        return setting.Options.Any(o => o.Value == chosen) ? chosen : setting.Default;
+
+        // One row per question, settled in the engine so it is the same answer here,
+        // on the page and in a test.
+        _strats.TryGetValue(StratKey(territory, key), out var chosen);
+        return Strategies.Answer(setting, ScriptAnswer?.Invoke(territory, key) ?? "",
+            chosen ?? "");
     }
 
     public void SetStrat(ushort territory, string key, string value)
@@ -103,8 +113,20 @@ public class Configuration : IPluginConfiguration
         Save();
     }
 
+    // Whether the row is showing something other than what it ships with, which is the
+    // question the changed dot beside it is asking.
+    //
+    // Asked of StratFor rather than of the dictionary, so the dot cannot say one thing
+    // while the box beside it shows another. It read "there is a key on disk", which was
+    // already wrong for an option that had since been renamed: StratFor hands back the
+    // default in that case, so the box drew the default and the dot said edited.
+    //
+    // Three sources feed that answer now, the imported fight's included, and only one of
+    // them is a key on disk. Reading the answer itself is the one form that cannot fall
+    // behind the next source somebody adds.
     public bool StratIsSet(ushort territory, string key) =>
-        _strats.ContainsKey(StratKey(territory, key));
+        Strategies.Find(territory, key) is { } setting
+        && StratFor(territory, key) != setting.Default;
 
     // The one place an edit is written, so the "back to default drops it" rule
     // cannot be forgotten at a call site.
