@@ -50,18 +50,6 @@ jobs:
       - name: Build
         run: dotnet build src/FrenMits.csproj -c Release --nologo
 
-      # Fren Alerts is a second, separate plugin from this repo. It lives outside
-      # src/ on purpose: FrenMits.csproj globs src/**/*.cs, so anything under
-      # there would compile into FrenMits.dll instead of its own plugin.
-      - name: Build Fren Alerts
-        run: dotnet build FrenAlerts/FrenAlerts.csproj -c Release --nologo
-
-      # The neural voice. Built as a check and not published: nothing of Fren Alerts
-      # reaches the site any more, and this is the only step that compiles this
-      # project, so dropping it would let a break in it go unnoticed.
-      - name: Publish the voice pack
-        run: dotnet publish FrenAlerts/FrenAlerts.Voice/FrenAlerts.Voice.csproj -c Release -o voicepack --nologo
-
       # Public Pages site: the plugin zip + the custom-repo manifest.
       - name: Assemble Pages site
         shell: pwsh
@@ -87,13 +75,6 @@ jobs:
           Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
           # Publicly host the icon for the listing IconUrl.
           Copy-Item "images\icon.png" "site\icon.png" -Force
-          # Fren Alerts is not published. It is still built above, so a change that
-          # breaks it still fails this workflow, but nothing of it reaches the site:
-          # no zip, no icon, no voice pack, and no entry in the manifest below.
-          # Unlisting alone would not have been enough, because the download link
-          # stays fetchable by anybody who reads the manifest.
-          #
-          # Whoever wants it runs it from their own build as a Dalamud dev plugin.
           # Publish the manifest with each version stamped straight from that
           # plugin's own built output, so the in-game installer always sees the
           # version it just got (a committed version can never go stale and block
