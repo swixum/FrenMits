@@ -8,6 +8,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using FrenAlerts.Engine;
 using FrenAlerts.Engine.Alerts;
+using FrenAlerts.Engine.Scripts;
 
 namespace FrenAlerts.Ui;
 
@@ -700,9 +701,26 @@ public partial class ConfigWindow : Window, IDisposable
     private bool Searching => _search.Trim().Length >= 2;
 
     // A call found by its words, and the fight it belongs to.
-    private readonly record struct CallHit(FightEntry Fight, CallEntry Call);
+    //
+    // Either engine's, because a fight is called by one or the other and never both:
+    // where the imported set owns the zone theirs are the only calls there are, and
+    // ours are the only ones anywhere else. One of the two is always null.
+    private readonly record struct CallHit(FightEntry Fight, CallEntry? Mine, ScriptShownCall? Theirs);
 
     private const int MaxCallHits = 30;
+
+    // How many one fight gets before any of them gets a second helping.
+    //
+    // A common word is on far more calls than this list can hold: "in" answers 117 of
+    // their calls alone, "stack" 59. Filling the list in catalog order hands all thirty
+    // rows to whichever fight sorts first, and Ultimate sorts first, so searching
+    // "stack" would have come back as thirty rows of Dancing Mad with every savage
+    // behind it invisible. It did exactly that for the length of one pass.
+    private const int HitsPerFightFirst = 3;
+
+    // How far the scan looks before it gives up. Everything past this is unreachable
+    // even in the best case, and the loop runs on every frame the box has words in it.
+    private const int MaxCallsScanned = 240;
 
     // What this call says on screen: the player's own wording once they have changed
     // it, the shipped line until then.
@@ -715,37 +733,91 @@ public partial class ConfigWindow : Window, IDisposable
         C.EditFor(call.Key)?.Text is { Length: > 0 } mine ? mine
         : TriggerSample.Join(call.OnYou, call.Text);
 
+    // Whether one of our calls says the thing being looked for.
+    //
+    // Both wordings, because somebody who renamed a call searches for what they named it
+    // and somebody reading a strat searches for what it shipped as.
+    //
+    // One rule, because there are three boxes asking it: the window's search, the fight
+    // page's own, and the covered page's. Their half of the same question was written
+    // twice and the two copies disagreed about reworded calls, which is what a hit found
+    // in one box and denied in the other looks like.
+    private bool MineSays(CallEntry call, string needle) =>
+        Wording(call).Contains(needle, StringComparison.OrdinalIgnoreCase)
+        || call.Text.Contains(needle, StringComparison.OrdinalIgnoreCase);
+
     private List<CallHit> SearchCalls(string text)
     {
-        var found = new List<CallHit>();
         // Trimmed once rather than per call. This sat in the inner loop, so every call
         // in every fight allocated its own copy of the same string, on every frame the
         // search box had anything in it.
         var needle = text.Trim();
-        if (needle.Length < 2) return found;
+        if (needle.Length < 2) return [];
+
+        // Kept apart by fight rather than poured into one list, so no fight can take
+        // the whole of it before the next one is looked at.
+        var byFight = new List<List<CallHit>>();
+        var scanned = 0;
 
         foreach (var fight in FightCatalog.All)
         {
-            // A fight the imported set covers lists that set and the calls written
-            // here, and nothing else. The rest of the catalog's rows for it are the
-            // pack, which that page does not draw, so offering one here leads to a
-            // fight page it cannot be found on.
-            var covered = Runner?.ScriptCovers((ushort)fight.TerritoryId) == true;
+            if (scanned >= MaxCallsScanned) break;
+            var hits = new List<CallHit>();
 
-            foreach (var call in FightCatalog.CallsIn(fight.TerritoryId))
+            // A fight the imported set covers is searched through that set, because
+            // nothing else can fire there: a covered zone builds no module of ours, so
+            // every catalog row for it leads to a page it is not on.
+            //
+            // Ours were offered here until the page stopped drawing them, and then
+            // neither was: skipping the fight was right about our rows and left the six
+            // zones their set owns unsearchable, every ultimate among them. Half a sweep
+            // in one direction points at rows that are not there; half a sweep in the
+            // other finds nothing in the only fights that speak.
+            if (Runner?.ScriptCovers((ushort)fight.TerritoryId) == true)
             {
-                if (covered && !call.Listed) continue;
-
-                // Either wording finds it. Somebody who renamed a call searches what
-                // they named it; somebody reading a strat searches what it shipped as.
-                if (!Wording(call).Contains(needle, StringComparison.OrdinalIgnoreCase)
-                    && !call.Text.Contains(needle, StringComparison.OrdinalIgnoreCase)) continue;
-                found.Add(new CallHit(fight, call));
-                if (found.Count >= MaxCallHits) return found;
+                // The ones the page lists, which is the ones that say something. A hit
+                // on a call that only keeps count opens a row nobody can read.
+                foreach (var call in Runner.ScriptCallsFor((ushort)fight.TerritoryId))
+                {
+                    if (!call.Speaks || !TheirsSay(call, needle)) continue;
+                    hits.Add(new CallHit(fight, null, call));
+                    if (++scanned >= MaxCallsScanned) break;
+                }
             }
+            else
+            {
+                foreach (var call in FightCatalog.CallsIn(fight.TerritoryId))
+                {
+                    if (!MineSays(call, needle)) continue;
+                    hits.Add(new CallHit(fight, call, null));
+                    if (++scanned >= MaxCallsScanned) break;
+                }
+            }
+
+            if (hits.Count > 0) byFight.Add(hits);
         }
-        return found;
+
+        // A few from every fight that answered, then the rest of them in order, so a
+        // common word shows which fights have it and a narrow one still comes back
+        // whole.
+        return Spread.Fill(byFight, HitsPerFightFirst, MaxCallHits);
     }
+
+    // Whether a call of theirs says the thing being looked for.
+    //
+    // The matching itself is on the call, so it can be measured against the real pack:
+    // this window does not load without Dalamud, and a rule kept in here can only ever
+    // be checked by reading it. What is left here is the rewording lookup, which is the
+    // only part that needs the config.
+    private bool TheirsSay(ScriptShownCall call, string needle) =>
+        call.Says(needle, line => TheirEdit(call.Id, line)?.Text);
+
+    // What a hit reads as in the results: the words that will actually be said, either
+    // engine's, with a rewording in place of the shipped line where there is one.
+    private string HitWords(CallHit hit) =>
+        hit.Mine is { } mine ? Wording(mine)
+        : hit.Theirs is { } theirs ? Said(theirs)
+        : "";
 
     private void DrawSearchResults()
     {
@@ -830,8 +902,10 @@ public partial class ConfigWindow : Window, IDisposable
         if (calls.Count == 0) return;
 
         ImGui.Spacing();
+        // "First 30" is no longer what a full list is: it is a few from every fight that
+        // answered, so saying "first" would promise an order the list does not have.
         var many = calls.Count >= MaxCallHits
-            ? $"first {calls.Count} calls"
+            ? $"{calls.Count} calls, narrow it down"
             : $"{calls.Count} call{(calls.Count == 1 ? "" : "s")}";
         ImGui.TextDisabled(selected >= 0
             ? $"{many}   ·   up / down to move, enter to open"
@@ -841,13 +915,19 @@ public partial class ConfigWindow : Window, IDisposable
         for (var i = 0; i < calls.Count; i++)
         {
             var hit = calls[i];
-            ImGui.PushID(hit.Fight.TerritoryId + hit.Call.Key);
+            ImGui.PushID(hit.Fight.TerritoryId + (hit.Mine?.Key ?? hit.Theirs?.Id ?? ""));
             if (ImGui.Selectable("##callhit", i == selected, ImGuiSelectableFlags.None,
                     new Vector2(0, ImGui.GetTextLineHeightWithSpacing() * 1.6f))
                 || (enter && i == selected))
             {
-                OpenFight(hit.Fight);
-                OpenCall(hit.Call);
+                // Opened filtered to what was typed, so the fight arrives showing the
+                // row that was picked rather than the top of a hundred-odd others.
+                //
+                // OpenFight closes whatever the last fight left open, so the call is
+                // opened after it rather than before.
+                OpenFight(hit.Fight, _search.Trim());
+                if (hit.Mine is { } mine) OpenCall(mine);
+                else if (hit.Theirs is { } theirs) OpenTheirCall(theirs);
                 _search = "";
                 _searchSel = 0;
                 ImGui.PopID();
@@ -862,7 +942,7 @@ public partial class ConfigWindow : Window, IDisposable
             var lineH = ImGui.GetTextLineHeight();
             var top = min.Y + (max.Y - min.Y - lineH * 2f) * 0.5f;
             dl.AddText(new Vector2(min.X + textX, top), Theme.TextBright,
-                Widgets.Elide(CallText.Sentence(Wording(hit.Call)), room));
+                Widgets.Elide(CallText.Sentence(HitWords(hit)), room));
             dl.AddText(new Vector2(min.X + textX, top + lineH), Theme.Muted,
                 Widgets.Elide(hit.Fight.Name, room));
             ImGui.PopID();

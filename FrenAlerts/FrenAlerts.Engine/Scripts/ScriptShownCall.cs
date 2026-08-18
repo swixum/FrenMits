@@ -52,6 +52,38 @@ public sealed record ScriptShownCall(
     public string Lead { get; } =
         Lines.FirstOrDefault(l => !l.FillsIn)?.Text ?? Lines.FirstOrDefault()?.Text ?? "";
 
+    // Whether somebody typing these words is looking for this call.
+    //
+    // The mechanic's name as well as the lines, because a line says what to do and not
+    // what the thing is called. Measured on Dancing Mad: "black hole" is on ten calls
+    // and in none of their lines, and the same goes for Forsaken, Path of Light and
+    // Mystery Magic. Their lines say "north", "stack", "out" and the name is only ever
+    // in the id. A search reading the lines alone finds none of the four.
+    //
+    // Some of them fill themselves in on top of that, "${dir1} => ${dir2}", which no
+    // plain word matches either. That is the smaller half of it: 42% of Dancing Mad's
+    // lines, and under a fifth everywhere else.
+    //
+    // Every line rather than the one a row leads with, because a mechanic carries up to
+    // nine and a query matching the fourth is a query about that call.
+    //
+    // `reworded` gives back the words somebody put in a line's place, or null where they
+    // left it alone. A call is found by what it will actually say as well as by what it
+    // shipped as: somebody who renamed a call searches for what they named it.
+    public bool Says(string needle, Func<ScriptShownLine, string?>? reworded = null)
+    {
+        if (needle.Length == 0) return false;
+        if (Mechanic.Contains(needle, StringComparison.OrdinalIgnoreCase)) return true;
+
+        foreach (var line in Lines)
+        {
+            if (line.Text.Contains(needle, StringComparison.OrdinalIgnoreCase)) return true;
+            if (reworded?.Invoke(line) is { Length: > 0 } mine
+                && mine.Contains(needle, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+        return false;
+    }
+
     private static string PhaseOf(string id)
     {
         var parts = id.Split(' ');

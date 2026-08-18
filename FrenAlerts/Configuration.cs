@@ -349,6 +349,16 @@ public class Configuration : IPluginConfiguration
         Save();
     }
 
+    // Every answer a fight asked for, back to that fight's own default, for the page's
+    // back-to-default. One save rather than one per row, which is what setting them
+    // back one at a time would cost.
+    public int ClearScriptStrats(IEnumerable<string> ids)
+    {
+        var gone = ids.Count(id => _scriptStrats.Remove(id));
+        if (gone > 0) Save();
+        return gone;
+    }
+
     private List<Engine.Scripts.ScriptCallEdit> _scriptCallEdits = new();
 
     // Their lines in somebody else's words. One entry per output key, which is what

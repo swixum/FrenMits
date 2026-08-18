@@ -94,16 +94,20 @@ public partial class ConfigWindow
         // and said no call here has "towers" in it.
         var find = _theirFilter.Trim();
 
+        // The call's own rule, which is the one the window's search up top uses.
+        //
+        // This box had a second copy of it that read the shipped lines and not the words
+        // somebody put in their place, so renaming a call made it vanish from the box
+        // directly above the row still showing the new name: findable by its old words
+        // here and by its new ones in the search, with the row reading the new ones. Our
+        // half of this list has always matched on the rewording, which is what made the
+        // two halves disagree on the same page.
         var shown = here
-            .Where(c => find.Length == 0
-                        || c.Mechanic.Contains(find, StringComparison.OrdinalIgnoreCase)
-                        || c.Lines.Any(l => l.Text.Contains(find, StringComparison.OrdinalIgnoreCase)))
+            .Where(c => find.Length == 0 || TheirsSay(c, find))
             .ToList();
 
         var mineShown = mineHere
-            .Where(c => find.Length == 0
-                        || Wording(c).Contains(find, StringComparison.OrdinalIgnoreCase)
-                        || c.Text.Contains(find, StringComparison.OrdinalIgnoreCase))
+            .Where(c => find.Length == 0 || MineSays(c, find))
             .ToList();
 
         if (shown.Count == 0 && mineShown.Count == 0)
@@ -359,7 +363,7 @@ public partial class ConfigWindow
 
         if (ImGui.BeginTabBar("##theirphases", ImGuiTabBarFlags.FittingPolicyScroll))
         {
-            if (ImGui.BeginTabItem("All")) ImGui.EndTabItem();
+            if (ImGui.BeginTabItem("All", AllTabFlag())) ImGui.EndTabItem();
 
             foreach (var phase in phases)
             {

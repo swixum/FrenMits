@@ -35,18 +35,36 @@ public partial class ConfigWindow
         ImGui.Spacing();
     }
 
+    // Every strat question this fight has, from both engines, in one list.
+    //
+    // They were two lists and only one of them drew. A fight the imported set covers
+    // returned before ours were reached, so on Dancing Mad the Accretion row could not
+    // be set at all and on M12S and Tyrant Comet, which the set covers without asking
+    // anything, the whole block was missing: eight rows with no way to answer them and
+    // calls running on whatever the default was.
+    //
+    // Theirs first, then any of ours they do not already ask. Where both ask the same
+    // question their row answers ours too, so it appears once.
     private void DrawScriptStrategies(ushort territory)
     {
-        if (Runner?.ScriptStrategiesFor(territory) is not { Count: > 0 } strategies) return;
+        var theirs = Runner?.ScriptStrategiesFor(territory) ?? [];
+        var ours = Strategies.For(territory).Where(s => theirs.All(t => t.Id != s.Key)).ToList();
+        if (theirs.Count == 0 && ours.Count == 0) return;
 
         Widgets.GroupLabel("Your Strats");
         Widgets.ListBegin();
 
-        foreach (var run in ScriptStrategies.Runs(strategies))
+        foreach (var run in ScriptStrategies.Runs(theirs))
         {
             if (run.Count < FoldAt) { foreach (var s in run) DrawScriptStrategy(s); continue; }
             DrawFoldedRun(run);
         }
+
+        foreach (var s in ours) DrawStratRow(territory, s);
+
+        // Said once under the list rather than on every row that can be switched off.
+        if (ours.Any(s => C.StratFor(territory, s.Key) == "none"))
+            Widgets.RowNote("A strat left off stays quiet.");
 
         Widgets.ListEnd();
         ImGui.Spacing();

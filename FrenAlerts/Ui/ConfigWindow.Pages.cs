@@ -416,19 +416,45 @@ public partial class ConfigWindow
 
     // ---- one fight's calls ----
 
-    private void OpenFight(FightEntry f)
+    // Opened with what was being looked for, where something was.
+    //
+    // A fight opened from a search hit arrives filtered to the words that found it. Its
+    // list can run to a hundred and sixteen rows, so landing at the top of one with the
+    // call opened somewhere below the fold is a page that looks like nothing happened.
+    //
+    // Safe to filter by because the page's box and the window's search now ask the call
+    // the same question, so the row that was picked is always one of the ones left.
+    private void OpenFight(FightEntry f, string filter = "")
     {
         _navFightId = f.TerritoryId;
         _nav = NavKind.Fight;
         _openCall = "";
-        _callFilter = "";
+        _callFilter = filter;
         // Theirs too, or the row left open in the last fight is still open, holding the
         // words that were being typed into a mechanic this fight has never heard of.
         Close();
-        _theirFilter = "";
+        _theirFilter = filter;
         // Same reason: a run left open in the last fight is a wall of boxes at the top
         // of this one, belonging to a mechanic it has never heard of.
         CloseStrategyRuns();
+
+        // And back to All, or the filter is read through whichever phase tab was left
+        // selected on the last fight. The tabs are keyed by the phase's own name, so P5
+        // stays picked from one fight to the next, and a hit in P1 would arrive already
+        // hidden by a tab nobody touched.
+        _backToAllPhases = filter.Length > 0;
+    }
+
+    // Set on arriving from a search, read once by whichever tab row draws next.
+    private bool _backToAllPhases;
+
+    // The flag for the All tab, taken as it is read so it cannot re-select the tab on
+    // every frame and pin somebody out of the rest of them.
+    private ImGuiTabItemFlags AllTabFlag()
+    {
+        if (!_backToAllPhases) return ImGuiTabItemFlags.None;
+        _backToAllPhases = false;
+        return ImGuiTabItemFlags.SetSelected;
     }
 
     private void OpenCall(CallEntry call)
@@ -449,18 +475,20 @@ public partial class ConfigWindow
     // seat changes.
     private bool Covered(FightEntry f) => Runner?.ScriptCovers((ushort)f.TerritoryId) == true;
 
+    // Theirs alone where their fight owns the zone, because ours is not built there:
+    // FightLoader.Build hands back an empty engine before it reaches the module. Ours
+    // were added to this number when the page started listing them, and both were
+    // wrong the same way, so both come out together.
     private int CallsShownIn(FightEntry f) =>
         Covered(f)
-            ? (Runner?.ScriptCallsFor((ushort)f.TerritoryId).Count(c => c.Speaks) ?? 0)
-              + FightCatalog.CallsIn(f.TerritoryId).Count(c => c.Listed)
+            ? Runner?.ScriptCallsFor((ushort)f.TerritoryId).Count(c => c.Speaks) ?? 0
             : f.Calls;
 
-    // The same rule for the reworded number beside it: a pack row nobody can open is
-    // a row nobody can have reworded.
+    // The same rule for the reworded number beside it: a row nobody can open, or one
+    // that cannot fire, is a row nobody can have reworded.
     private int EditedIn(FightEntry f) =>
         Covered(f)
-            ? (Runner?.ScriptCallsFor((ushort)f.TerritoryId).Where(c => c.Speaks).Sum(EditedIn) ?? 0)
-              + FightCatalog.CallsIn(f.TerritoryId).Count(c => c.Listed && C.IsEdited(c.Key))
+            ? Runner?.ScriptCallsFor((ushort)f.TerritoryId).Where(c => c.Speaks).Sum(EditedIn) ?? 0
             : FightCatalog.CallsIn(f.TerritoryId).Count(c => C.IsEdited(c.Key));
 
     // What the three levels are called on screen. The engine's own enum still reads
@@ -506,16 +534,21 @@ public partial class ConfigWindow
             ? Runner?.ScriptCallsFor((ushort)fight.TerritoryId).Where(c => c.Speaks).ToList() ?? []
             : [];
 
-        // On a covered fight the page now lists theirs and then the ones written here,
-        // so the heading counts both. It counted only theirs for as long as only theirs
-        // were drawn; left alone it would head a list of two hundred rows with a
-        // hundred and sixty, which is the same kind of quiet wrong as the rows that
-        // were missing.
-        var listed = theirs ? calls.Where(c => c.Listed).ToList() : [];
+        // Only theirs on a fight of theirs, because only theirs can speak there.
+        //
+        // FightLoader.Build returns an empty engine for a covered zone: not the module,
+        // not the pack, not the plan. So the forty hand-written Dancing Mad calls this
+        // page used to list beside theirs were forty rows that cannot fire, switchable
+        // and rewordable and silent, and the heading counted them.
+        //
+        // They were added here in the belief that both engines run. Nothing on any
+        // screen said otherwise, which is how an evening went into fixing calls that
+        // were never going to be heard and then deleting the ones that were.
+        var listed = new List<CallEntry>();
 
-        var total = theirs ? their.Count + listed.Count : fight.Calls;
+        var total = theirs ? their.Count : fight.Calls;
         var edited = theirs
-            ? their.Sum(EditedIn) + listed.Count(c => C.IsEdited(c.Key))
+            ? their.Sum(EditedIn)
             : calls.Count(c => C.IsEdited(c.Key));
 
         var on = !C.IsMuted(fight.TerritoryId);
@@ -529,8 +562,18 @@ public partial class ConfigWindow
                     if (C.MutedTerritories.Remove(fight.TerritoryId)) C.Save();
                     // Back to defaults means the strats too, or the button half
                     // undoes the page and leaves the group's answers behind.
+                    //
+                    // Both stores, and asked the same way the block above draws them.
+                    // Only ours were put back, and on a fight the imported set covers
+                    // every row on that block belongs to the other one: the button
+                    // cleared keys that have no row and left every answer on screen
+                    // sitting there. Dancing Mad's whole strat list survived its own
+                    // reset.
                     foreach (var s in Strategies.For((ushort)fight.TerritoryId))
                         C.SetStrat((ushort)fight.TerritoryId, s.Key, s.Default);
+                    C.ClearScriptStrats(
+                        (Runner?.ScriptStrategiesFor((ushort)fight.TerritoryId) ?? [])
+                        .Select(s => s.Id));
                     _openCall = "";
                     Close();
                 },
@@ -583,7 +626,6 @@ public partial class ConfigWindow
         FightCatalog.ReadAs(Runner?.MySlot ?? "", C.StratFor);
 
         DrawSeat();
-        DrawStrats((ushort)fight.TerritoryId);
 
         var phase = DrawPhaseTabs(calls);
 
@@ -604,9 +646,7 @@ public partial class ConfigWindow
         var find = _callFilter.Trim();
 
         var shown = here
-            .Where(c => find.Length == 0
-                || Wording(c).Contains(find, StringComparison.OrdinalIgnoreCase)
-                || c.Text.Contains(find, StringComparison.OrdinalIgnoreCase))
+            .Where(c => find.Length == 0 || MineSays(c, find))
             .ToList();
 
         if (shown.Count == 0)
@@ -677,39 +717,26 @@ public partial class ConfigWindow
         ImGui.Spacing();
     }
 
-    private void DrawStrats(ushort territory)
+    // One of our own strat rows. Drawn from the block in ConfigWindow.Strats.cs, which
+    // is where their questions and ours are put in one list.
+    private void DrawStratRow(ushort territory, Strategy s)
     {
-        var strats = Strategies.For(territory);
-        if (strats.Count == 0) return;
-
-        Widgets.GroupLabel("Your Strats");
-        Widgets.ListBegin();
-        foreach (var s in strats)
+        var labels = s.Options.Select(o => o.Label).ToArray();
+        var chosen = C.StratFor(territory, s.Key);
+        // Falls back to the first option rather than to nothing, so an answer
+        // that has since been dropped cannot leave the row blank.
+        var idx = Math.Max(0, IndexOf(s.Options, chosen));
+        // Keyed on the strat's key, not its label. Labels are fight data and two
+        // could read the same; keys are unique per fight and tested to be.
+        if (Widgets.RowCombo(s.Name, s.Hint, ref idx, labels, 190f,
+                changed: C.StratIsSet(territory, s.Key), id: $"strat-{territory}-{s.Key}")
+            && idx >= 0 && idx < s.Options.Count)
         {
-            var labels = s.Options.Select(o => o.Label).ToArray();
-            var chosen = C.StratFor(territory, s.Key);
-            // Falls back to the first option rather than to nothing, so an answer
-            // that has since been dropped cannot leave the row blank.
-            var idx = Math.Max(0, IndexOf(s.Options, chosen));
-            // Keyed on the strat's key, not its label. Labels are fight data and two
-            // could read the same; keys are unique per fight and tested to be.
-            if (Widgets.RowCombo(s.Name, s.Hint, ref idx, labels, 190f,
-                    changed: C.StratIsSet(territory, s.Key), id: $"strat-{territory}-{s.Key}")
-                && idx >= 0 && idx < s.Options.Count)
-            {
-                C.SetStrat(territory, s.Key, s.Options[idx].Value);
-                // The calls below this list are what the answer changes, so they are
-                // re-read now rather than at the next reload.
-                FightCatalog.Invalidate();
-            }
+            C.SetStrat(territory, s.Key, s.Options[idx].Value);
+            // The calls below this list are what the answer changes, so they are
+            // re-read now rather than at the next reload.
+            FightCatalog.Invalidate();
         }
-
-        // Said once under the list rather than on every row that can be switched off.
-        if (strats.Any(s => C.StratFor(territory, s.Key) == "none"))
-            Widgets.RowNote("A strat left off stays quiet.");
-
-        Widgets.ListEnd();
-        ImGui.Spacing();
     }
 
     private static int IndexOf(IReadOnlyList<StrategyOption> options, string value)
@@ -766,7 +793,7 @@ public partial class ConfigWindow
         int? picked = null;
         if (ImGui.BeginTabBar("##phases", ImGuiTabBarFlags.FittingPolicyScroll))
         {
-            if (ImGui.BeginTabItem("All")) ImGui.EndTabItem();
+            if (ImGui.BeginTabItem("All", AllTabFlag())) ImGui.EndTabItem();
 
             foreach (var p in phases.Where(p => p > 0))
             {
