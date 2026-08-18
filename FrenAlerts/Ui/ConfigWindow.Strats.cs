@@ -48,26 +48,8 @@ public partial class ConfigWindow
             DrawFoldedRun(run);
         }
 
-        // Said out loud because it was not obvious and it cost a night.
-        //
-        // Both engines run in a fight like Dancing Mad and both ask which Forsaken
-        // order the group takes. Ours reads the answer from these rows now, so there
-        // is one row per question rather than a second set behind a page that never
-        // draws. Somebody looking at this block had every reason to think it only
-        // reached half of what calls at them, and until today it did.
-        if (Shared(territory, strategies))
-            Widgets.RowNote("These answer both this fight's calls and ours.");
-
         Widgets.ListEnd();
         ImGui.Spacing();
-    }
-
-    // Whether any of these questions is one our own fights ask as well, which is the
-    // only case the line above is true of.
-    private static bool Shared(ushort territory, IReadOnlyList<ScriptStrategy> strategies)
-    {
-        var ours = Strategies.For(territory);
-        return ours.Count > 0 && strategies.Any(s => ours.Any(o => o.Key == s.Id));
     }
 
     // A run shorter than this reads better as rows than as something to open.
