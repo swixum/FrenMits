@@ -106,6 +106,16 @@ public sealed class Runner : IDisposable
     // board and the board is where those two questions live.
     public Func<bool>? Audible { get; set; }
 
+    // Whether one call is muted, asked per call by its own key so the answer follows a
+    // change on the page rather than the next zone.
+    //
+    // Muted is the whole call: no voice, no sound, and nothing on screen. Half of it
+    // would be worse than neither, because a silent box still takes a slot in the stack
+    // and pushes the call you do want down the screen.
+    public Func<string, bool>? Silenced { get; set; }
+
+    private bool Quiet(string key) => key.Length > 0 && Silenced?.Invoke(key) == true;
+
     // Every call the imported set can make there, with the words it says.
     public IReadOnlyList<FrenAlerts.Engine.Scripts.ScriptShownCall> ScriptCallsFor(ushort zone) =>
         _scripts.CallsFor(zone);
@@ -565,6 +575,7 @@ public sealed class Runner : IDisposable
             // reach them the way it reaches the rest: the page turns a trigger off
             // by not building it, and there is no trigger here to leave out.
             if (Switched?.Invoke(call.Key) is false) continue;
+            if (Quiet(call.Key)) continue;
             if (_board.Show(call, e.Time, CallIcon.None)) Voice.Say(call.Spoken);
         }
 
@@ -574,6 +585,7 @@ public sealed class Runner : IDisposable
             // glance says which of the two you got without reading the line.
             // Only what reached the board is spoken, or a fight turned off, or the
             // whole plugin turned off, would go quiet on screen and keep talking.
+            if (Quiet(call.Key)) continue;
             if (_board.Show(call, e.Time, CallIcon.For(e, _engine.Player.MyId)))
                 Voice.Say(call.Spoken);
         }
@@ -623,6 +635,15 @@ public sealed class Runner : IDisposable
         {
             Diary.Dropped(Now, call.TriggerId,
                 new Call { Text = call.Text, Key = call.TriggerId, Time = Now }, "switched off");
+            return;
+        }
+
+        // Muted takes the call off the screen as well as out of the voice, and is
+        // written down like any other reason a call did not arrive.
+        if (Quiet(call.TriggerId))
+        {
+            Diary.Dropped(Now, call.TriggerId,
+                new Call { Text = call.Text, Key = call.TriggerId, Time = Now }, "muted");
             return;
         }
 

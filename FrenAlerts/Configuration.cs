@@ -70,6 +70,17 @@ public class Configuration : IPluginConfiguration
 
     public bool IsEdited(string key) => EditFor(key) is { IsDefault: false };
 
+    // Shown but not said, per call. Asked on every call that reaches the board, so it
+    // reads the edit already in hand rather than a second store.
+    public bool IsSilent(string key) => key.Length > 0 && EditFor(key) is { Silent: true };
+
+    public void SetSilent(string key, bool silent)
+    {
+        var edit = EditFor(key)?.Copy() ?? new CallEdit();
+        edit.Silent = silent;
+        SetEdit(key, edit);
+    }
+
     private Dictionary<string, string> _strats = new();
 
     // Which answer the group uses for a mechanic that has several, keyed by fight
@@ -85,7 +96,10 @@ public class Configuration : IPluginConfiguration
     // What an imported fight answers for a question it also asks, including its own
     // default when nobody has touched the row. Set once at startup and null when
     // nothing imported is loaded.
-    public Func<ushort, string, string>? ScriptAnswer;
+    // Never written to the file. It is a delegate, and the thing it closes over is this
+    // config, so serialising it walks Target back to here and the whole save throws on a
+    // circular reference. Every setting silently stopped saving the day this went in.
+    [JsonIgnore] public Func<ushort, string, string>? ScriptAnswer;
 
     // The group's answer, or the setting's own default when they have not said.
     // An answer that is no longer offered reads as the default rather than being
@@ -390,6 +404,43 @@ public class Configuration : IPluginConfiguration
         }
     }
 
+    private List<string> _silentScriptCalls = new();
+
+    // Their mechanics that are shown and not said, by trigger id.
+    //
+    // Kept as its own list rather than as a flag on a rewording: a rewording is per
+    // line and is dropped the moment its box is emptied, and this is per mechanic and
+    // has to outlive somebody clearing the words above it.
+    public List<string> SilentScriptCalls
+    {
+        get => _silentScriptCalls;
+        set
+        {
+            _silentScriptCalls = value ?? new List<string>();
+            _silentScriptAt = null;
+        }
+    }
+
+    private HashSet<string>? _silentScriptAt;
+
+    private HashSet<string> SilentScriptIndex =>
+        _silentScriptAt ??= new HashSet<string>(_silentScriptCalls, StringComparer.Ordinal);
+
+    public bool IsScriptSilent(string trigger) =>
+        trigger.Length > 0 && SilentScriptIndex.Contains(trigger);
+
+    public void SetScriptSilent(string trigger, bool silent)
+    {
+        if (trigger.Length == 0) return;
+        if (silent == IsScriptSilent(trigger)) return;
+
+        if (silent) _silentScriptCalls.Add(trigger);
+        else _silentScriptCalls.RemoveAll(t => string.Equals(t, trigger, StringComparison.Ordinal));
+
+        _silentScriptAt = null;
+        Save();
+    }
+
     public Engine.Scripts.ScriptCallEdit? ScriptEditFor(string trigger, string key) =>
         ScriptEditIndex.TryGetValue((trigger, key), out var edit) ? edit : null;
 
@@ -441,9 +492,16 @@ public class Configuration : IPluginConfiguration
     {
         var mine = triggers.ToHashSet(StringComparer.Ordinal);
         var gone = _scriptCallEdits.RemoveAll(e => mine.Contains(e.Trigger));
-        if (gone > 0)
+
+        // The silenced ones go with the words. Left behind, a fight put back to
+        // defaults keeps calls that are still mute with nothing on the page saying so,
+        // which is what the strat list did before its own reset was fixed.
+        var quiet = _silentScriptCalls.RemoveAll(mine.Contains);
+        if (quiet > 0) _silentScriptAt = null;
+
+        if (gone > 0 || quiet > 0)
         {
-            _scriptEditAt = null;
+            if (gone > 0) _scriptEditAt = null;
             Save();
         }
         return gone;
@@ -502,12 +560,30 @@ public class Configuration : IPluginConfiguration
         {
             Service.PluginInterface.SavePluginConfig(this);
             LastSavedAt = DateTime.Now;
+            SaveProblem = "";
         }
         catch (Exception ex)
         {
-            Service.Log.Error(ex, "could not save the config");
+            // Still dirty, so the next change tries again rather than the write being
+            // dropped on the floor: a save that failed once used to be forgotten, and
+            // what somebody typed was gone with it.
+            _dirty = true;
+            _dirtyAt = Environment.TickCount64;
+
+            // Said once. This fired on every change for a whole evening and filled the
+            // log with the same line, which is noise rather than a warning.
+            if (SaveProblem.Length == 0)
+            {
+                SaveProblem = ex.Message;
+                Service.Log.Error(ex, "could not save the config");
+            }
         }
     }
+
+    // Why the last save did not land, empty while it is landing. Read by the home page,
+    // because a setting that will not stick is invisible until somebody notices one has
+    // gone back on its own.
+    [JsonIgnore] public string SaveProblem { get; private set; } = "";
 
     public static Configuration Load()
     {

@@ -274,6 +274,14 @@ public partial class ConfigWindow
 
         DrawTheirLineFold(call, lines);
 
+        // The whole call, off: no voice, no sound, nothing drawn. Above the wording
+        // boxes because it decides whether any of them are ever used.
+        var muted = C.IsScriptSilent(call.Id);
+        if (Widgets.RowCheckClick("Toggle to mute", "", ref muted,
+                id: "theirsay" + call.Id, changed: muted))
+            C.SetScriptSilent(call.Id, muted);
+        Tip("No sound and nothing on screen.");
+
         var tts = _theirTtsShown;
         if (Widgets.RowCheckClick("Different TTS words", "", ref tts,
                 id: "theirtts" + call.Id, changed: _theirSpoken.Any(s => s.Length > 0)))

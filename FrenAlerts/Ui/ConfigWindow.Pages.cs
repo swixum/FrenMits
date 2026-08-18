@@ -164,6 +164,9 @@ public partial class ConfigWindow
             && late.PullSeconds > TimelineGrace)
             problems.Add("The timeline has not anchored");
         if (Runner is { LocalVoice.GivenUp: true }) problems.Add("Local voice gave up");
+        // Top of the list on purpose: nothing else on this page is worth reading if
+        // what you change here is not being kept.
+        if (C.SaveProblem.Length > 0) problems.Insert(0, "Settings are not saving");
         // Their fight is loaded and no line has reached a single one of its triggers.
         // Held back to the same grace the timeline gets, because the opening seconds of
         // a pull legitimately match nothing, and it clears on the first line that does.
@@ -980,6 +983,14 @@ public partial class ConfigWindow
         }
         if (call.Text.Contains(CallEdits.Target, StringComparison.Ordinal))
             Tip($"Keep {CallEdits.Target} and it fills in the name.");
+
+        // The same switch their mechanics carry, so a call is muted the same way on
+        // either side of the fight list.
+        var muted = C.IsSilent(call.Key);
+        if (Widgets.RowCheckClick("Toggle to mute", "", ref muted,
+                id: "say" + call.Key, changed: muted))
+            C.SetSilent(call.Key, muted);
+        Tip("No sound and nothing on screen.");
 
         var level = (int)(edit?.Level ?? call.Level);
         if (Widgets.RowCombo("Level", "", ref level, SeverityNames, 120f,

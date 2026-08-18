@@ -81,6 +81,9 @@ public sealed class Plugin : IDalamudPlugin
             // come out of a fight that is muted or a plugin that is switched off.
             Audible = () => Config.AlertsEnabled
                             && !Config.IsMuted(Service.ClientState.TerritoryType),
+            // Asked by a call's own key, which is a trigger id for one of theirs and a
+            // pack key for one of ours, so both stores answer the same question.
+            Silenced = key => Config.IsScriptSilent(key) || Config.IsSilent(key),
         };
         // One row per question.
         //

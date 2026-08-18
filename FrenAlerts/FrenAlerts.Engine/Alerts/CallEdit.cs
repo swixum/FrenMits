@@ -10,14 +10,18 @@ public sealed class CallEdit
 
     public CallLevel? Level { get; set; }
 
+    // Shown but not said. Separate from Off, which stops the call happening at all:
+    // this is for the ones worth a glance and not worth a sentence.
+    public bool Silent { get; set; }
+
     public bool IsDefault =>
-        !Off && On is null && Text is null && Level is null;
+        !Off && On is null && Text is null && Level is null && !Silent;
 
     public bool Speaks(bool shipped) => On ?? (Off ? false : shipped);
 
     public CallEdit Copy() => new()
     {
-        Off = Off, On = On, Text = Text, Level = Level,
+        Off = Off, On = On, Text = Text, Level = Level, Silent = Silent,
     };
 }
 
