@@ -367,10 +367,10 @@ internal static class Widgets
     // The same row, but clicking anywhere on it flips the box.
     public static bool RowCheckClick(string name, string hint, ref bool v,
         FontAwesomeIcon icon = FontAwesomeIcon.None, uint iconCol = 0, string id = "",
-        bool changed = false, string note = "")
+        bool changed = false, string note = "", bool sub = false)
     {
         if (id.Length == 0) id = name;
-        RowBegin(name, hint, ImGui.GetFrameHeight(), changed: changed, clickable: true,
+        RowBegin(name, hint, ImGui.GetFrameHeight(), changed: changed, sub: sub, clickable: true,
             icon: icon, iconCol: iconCol, id: id, note: note);
         var hit = GreenCheckbox("##rc" + id, ref v);
         if (_rowClicked) { v = !v; hit = true; }

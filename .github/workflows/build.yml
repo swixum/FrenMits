@@ -56,11 +56,9 @@ jobs:
       - name: Build Fren Alerts
         run: dotnet build FrenAlerts/FrenAlerts.csproj -c Release --nologo
 
-      # The neural voice, published on its own because it cannot go in the plugin
-      # zip: 84MB of native runtime, most of it a phoneme dictionary. It is also a
-      # separate PROCESS, which is the point -- native code fails by taking its
-      # process down, and that must not be the game's. Whoever wants it fetches it
-      # once; everyone else uses the system voice and downloads nothing.
+      # The neural voice. Built as a check and not published: nothing of Fren Alerts
+      # reaches the site any more, and this is the only step that compiles this
+      # project, so dropping it would let a break in it go unnoticed.
       - name: Publish the voice pack
         run: dotnet publish FrenAlerts/FrenAlerts.Voice/FrenAlerts.Voice.csproj -c Release -o voicepack --nologo
 
@@ -89,43 +87,13 @@ jobs:
           Compress-Archive -Path $files -DestinationPath "site\FrenMits.zip" -Force
           # Publicly host the icon for the listing IconUrl.
           Copy-Item "images\icon.png" "site\icon.png" -Force
-          # Fren Alerts: its own zip beside FrenMits', from its own project and its
-          # own version. Both have to land in this one site folder, because the
-          # Pages artifact replaces the whole site and a missing zip is a dead
-          # download link for everyone who already installed that plugin.
-          $alertsOut = "FrenAlerts\bin\x64\Release"
-          if (-not (Test-Path "$alertsOut\FrenAlerts.dll")) { $alertsOut = "FrenAlerts\bin\Release" }
-          foreach ($dep in @("FrenAlerts.Engine.dll")) {
-            if (-not (Test-Path "$alertsOut\$dep")) { throw "$dep missing - Fren Alerts would install and then fail to load." }
-          }
-          if (-not (Test-Path "$alertsOut\icon.png")) { throw "Fren Alerts icon missing - the listing would show a blank tile." }
-          # Without the call pack the plugin installs, loads, and then says nothing
-          # in any fight, which looks like a broken install rather than a missing file.
-          if (-not (Test-Path "$alertsOut\calls.facall")) { throw "calls.facall missing - Fren Alerts would have no calls in any fight." }
-          # Same again for the timelines: without them nothing counts down and the
-          # fight page reads zero mechanics everywhere, with no error to explain it.
-          if (-not (Test-Path "$alertsOut\timelines.fatime")) { throw "timelines.fatime missing - no fight would count down." }
-          # The fights themselves, and the interpreter that runs them. Either one
-          # missing is a plugin that loads and then knows no fight at all, which is
-          # exactly the failure the two guards above were written for.
-          if (-not (Test-Path "$alertsOut\Jint.dll")) { throw "Jint.dll missing - no fight script could run." }
-          if (-not (Test-Path "$alertsOut\Acornima.dll")) { throw "Acornima.dll missing - the script interpreter would not load." }
-          $fightScripts = Get-ChildItem "$alertsOut\scripts\*.js" -ErrorAction SilentlyContinue
-          if ($fightScripts.Count -lt 10) { throw "only $($fightScripts.Count) fight scripts found - the fights would be missing." }
-          Compress-Archive -Path @("$alertsOut\FrenAlerts.dll", "$alertsOut\FrenAlerts.Engine.dll", "$alertsOut\Jint.dll", "$alertsOut\Acornima.dll", "$alertsOut\FrenAlerts.json", "$alertsOut\icon.png", "$alertsOut\calls.facall", "$alertsOut\timelines.fatime", "$alertsOut\scripts", "$alertsOut\timelines", "$alertsOut\names", "$alertsOut\patches") -DestinationPath "site\FrenAlerts.zip" -Force
-          # Its own name at the site root, or it would overwrite FrenMits' icon.
-          Copy-Item "FrenAlerts\images\icon.png" "site\frenalerts-icon.png" -Force
-          # The voice pack, beside the plugin zips rather than inside one. Checked by
-          # name and by size: a publish that quietly drops the native runtime leaves
-          # an exe that starts, fails to load and looks like a corrupt download.
-          if (-not (Test-Path "voicepack\FrenAlertsVoice.exe")) { throw "voice pack missing its executable." }
-          foreach ($native in @("onnxruntime.dll", "MisakiSharp.dll", "KokoroSharp.dll")) {
-            if (-not (Test-Path "voicepack\$native")) { throw "voice pack missing $native - it would install and never speak." }
-          }
-          $packSize = (Get-ChildItem "voicepack" -Recurse | Measure-Object -Property Length -Sum).Sum
-          if ($packSize -lt 60MB) { throw "voice pack is only $([math]::Round($packSize/1MB))MB - the native runtime did not publish." }
-          Compress-Archive -Path "voicepack\*" -DestinationPath "site\FrenAlertsVoice.zip" -Force
-          Write-Host "Voice pack published at $([math]::Round($packSize/1MB))MB"
+          # Fren Alerts is not published. It is still built above, so a change that
+          # breaks it still fails this workflow, but nothing of it reaches the site:
+          # no zip, no icon, no voice pack, and no entry in the manifest below.
+          # Unlisting alone would not have been enough, because the download link
+          # stays fetchable by anybody who reads the manifest.
+          #
+          # Whoever wants it runs it from their own build as a Dalamud dev plugin.
           # Publish the manifest with each version stamped straight from that
           # plugin's own built output, so the in-game installer always sees the
           # version it just got (a committed version can never go stale and block
@@ -136,7 +104,7 @@ jobs:
           # Stamped per entry by InternalName, never by a blanket regex: a replace
           # across the file writes one plugin's version into every listing the
           # moment there is more than one, which silently pins the other plugin.
-          $built = @{ "FrenMits" = "$out\FrenMits.json"; "FrenAlerts" = "$alertsOut\FrenAlerts.json" }
+          $built = @{ "FrenMits" = "$out\FrenMits.json" }
           foreach ($e in $entries) {
             $manifest = $built[$e.InternalName]
             if (-not $manifest) { throw "repo.json lists $($e.InternalName) but nothing here built it - its download link would 404." }

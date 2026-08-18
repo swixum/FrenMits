@@ -16,23 +16,5 @@
     "DownloadLinkUpdate": "https://swixum.github.io/FrenMits/FrenMits.zip",
     "DownloadLinkTesting": "https://swixum.github.io/FrenMits/FrenMits.zip",
     "DownloadCount": 0
-  },
-  {
-    "Author": "swix",
-    "Name": "Fren Alerts",
-    "InternalName": "FrenAlerts",
-    "Punchline": "Boss mechanic callouts",
-    "Description": "Boss mechanic callouts",
-    "Tags": ["callout", "alert", "raid", "ultimate", "savage", "mechanic"],
-    "DalamudApiLevel": 15,
-    "AssemblyVersion": "1.0.0.0",
-    "TestingAssemblyVersion": "1.0.0.0",
-    "RepoUrl": "https://github.com/swixum/FrenMits",
-    "ApplicableVersion": "any",
-    "IconUrl": "https://swixum.github.io/FrenMits/frenalerts-icon.png",
-    "DownloadLinkInstall": "https://swixum.github.io/FrenMits/FrenAlerts.zip",
-    "DownloadLinkUpdate": "https://swixum.github.io/FrenMits/FrenAlerts.zip",
-    "DownloadLinkTesting": "https://swixum.github.io/FrenMits/FrenAlerts.zip",
-    "DownloadCount": 0
   }
 ]

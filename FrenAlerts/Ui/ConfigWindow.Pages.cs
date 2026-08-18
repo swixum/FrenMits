@@ -986,9 +986,11 @@ public partial class ConfigWindow
 
         // The same switch their mechanics carry, so a call is muted the same way on
         // either side of the fight list.
+        // Indented with the boxes above and below it, which are this call's own rows
+        // rather than the page's.
         var muted = C.IsSilent(call.Key);
         if (Widgets.RowCheckClick("Toggle to mute", "", ref muted,
-                id: "say" + call.Key, changed: muted))
+                id: "say" + call.Key, changed: muted, sub: true))
             C.SetSilent(call.Key, muted);
         Tip("No sound and nothing on screen.");
 
