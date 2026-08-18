@@ -52,6 +52,6 @@
   var wanted = 0;
   for (var k in drop) wanted++;
   if (taken !== wanted)
-    console.log('dancingmad_one_call: took out ' + taken + ' of ' + wanted
-                + ', their trigger ids have changed');
+    consol.log('dancingmad_one_call: took out ' + taken + ' of ' + wanted
+               + ', their trigger ids have changed');
 })();

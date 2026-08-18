@@ -61,5 +61,5 @@
   }
 
   if (changed === 0)
-    console.log('dancingmad_avoid_words: nothing matched, their wording has changed');
+    consol.log('dancingmad_avoid_words: nothing matched, their wording has changed');
 })();

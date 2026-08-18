@@ -153,7 +153,12 @@ public static class ScriptNetRegex
         var pattern = new StringBuilder();
         pattern.Append("^261\\|[^|]*\\|");
         pattern.Append("(?<change>").Append(Filter(net, "change") ?? "[^|]*").Append(")\\|");
-        pattern.Append("(?<id>").Append(Filter(net, "id") ?? "[^|]*").Append(")\\|");
+        // The separator is left for the lookaheads rather than eaten here, because they
+        // each look for `|key|value|` and the first pair sits immediately after the id.
+        // Consuming that bar put the cursor on the key itself, so a filter on the first
+        // pair could never match, and the parser writes them alphabetically: BNpcID is
+        // first on every line, which is the pair every memory trigger asks for.
+        pattern.Append("(?<id>").Append(Filter(net, "id") ?? "[^|]*").Append(")");
 
         var pairs = net.Get("pair");
         if (pairs.IsArray())

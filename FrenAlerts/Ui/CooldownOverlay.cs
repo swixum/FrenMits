@@ -67,6 +67,11 @@ public sealed class CooldownOverlay : Window
 
     public override bool DrawConditions()
     {
+        // Off with the game's own interface, ahead of everything else including the
+        // placing frame, which is how the call overlay reads it. That key is the one
+        // people press to take a screenshot: it took the fight's calls off and left the
+        // tracker in the picture.
+        if (UiServices.GameUiHidden) return false;
         if (!C.CooldownsEnabled) return false;
         if (Placing) return true;
 

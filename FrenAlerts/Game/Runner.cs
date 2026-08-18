@@ -118,6 +118,10 @@ public sealed class Runner : IDisposable
 
     public int ScriptFired => _scripts.Fired;
 
+    // How many people their calls can name, which decides whether a line says a name
+    // or says "someone".
+    public int ScriptPartyKnown => _scripts.PartyKnown;
+
     public string ScriptProblem =>
         _scripts.Problem.Length > 0 ? _scripts.Problem : _scripts.TriggerProblem;
 
@@ -812,6 +816,10 @@ public sealed class Runner : IDisposable
 
         var members = PartySlots.Read();
         PartySlots.Fill(_engine.Party, members);
+
+        // Their calls ask who is in which seat and on what job, so the answer is kept
+        // as current as the seats it is read off.
+        _scripts.LearnParty(PartySlots.ScriptSeats(members, _engine.Party));
 
         if (PartySlots.Me is { } me)
         {

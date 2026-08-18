@@ -164,6 +164,18 @@ public partial class ConfigWindow
             && late.PullSeconds > TimelineGrace)
             problems.Add("The timeline has not anchored");
         if (Runner is { LocalVoice.GivenUp: true }) problems.Add("Local voice gave up");
+        // Their fight is loaded and no line has reached a single one of its triggers.
+        // Held back to the same grace the timeline gets, because the opening seconds of
+        // a pull legitimately match nothing, and it clears on the first line that does.
+        if (Runner is { Scripted: true, InPull: true, ScriptMatched: 0 } quiet
+            && quiet.PullSeconds > TimelineGrace)
+            problems.Add("Their fight is not being fed");
+        // Every line that names somebody says "someone" without this, and every call
+        // that splits by role takes the branch for nobody.
+        if (Runner is { Scripted: true, InPull: true, ScriptPartyKnown: 0 })
+            problems.Add("The party has not reached their calls");
+        if (Runner is { ScriptProblem: { Length: > 0 } script })
+            problems.Add($"Their fight said: {script}");
         // The parser is not on this list in any state, because no state of it costs a
         // call. Every kind has a client route now, head markers and tethers included,
         // and LiveCoverage.NeedsAParser is empty to say so.
@@ -217,6 +229,28 @@ public partial class ConfigWindow
             : "Go and fix the first one.");
     }
 
+    // Whether the fight on this page is actually hearing anything, drawn only while
+    // standing in it.
+    //
+    // Every call in a covered zone is theirs, so "is the feed reaching them" is the
+    // whole question and the page never asked it: the numbers were on the runner and
+    // drawn nowhere. A fight whose lines never arrive looks exactly like a fight with
+    // nothing to say.
+    private void DrawFeedLine(ushort territory)
+    {
+        if (Runner is not { Scripted: true } runner) return;
+        if (Service.ClientState.TerritoryType != territory) return;
+
+        var matched = runner.ScriptMatched;
+        var quiet = matched == 0 && runner.InPull;
+
+        ImGui.TextColored(Theme.V(quiet ? Theme.Warn : Theme.Muted),
+            quiet ? "Nothing is reaching these calls."
+                : $"{matched} lines matched, {runner.ScriptFired} said, "
+                  + $"{runner.ScriptPartyKnown} in the party.");
+        ImGui.Spacing();
+    }
+
     // What a problem means, where there is no page to go and fix it on.
     //
     // "Go and fix the first one" is a promise the tile has to keep. It could, until the
@@ -237,6 +271,12 @@ public partial class ConfigWindow
         _ when problem.StartsWith("The feed dropped ", StringComparison.Ordinal) =>
             "The parser sent more than the queue could hold. Calls in that burst were "
             + "missed. Nothing to set; it catches up on its own.",
+        "Their fight is not being fed" =>
+            "The imported fight is loaded and nothing has reached it. Every call in this "
+            + "zone is theirs, so none of them can fire. Nothing to set.",
+        _ when problem.StartsWith("Their fight said: ", StringComparison.Ordinal) =>
+            "One of their triggers stopped on an error. The calls around it still fire. "
+            + "Nothing to set; it needs a plugin update.",
         _ => "",
     };
 
@@ -268,6 +308,12 @@ public partial class ConfigWindow
         "No direction calls" => NavKind.Home,
         "No hit calls" => NavKind.Home,
         _ when problem.StartsWith("The feed dropped ", StringComparison.Ordinal) => NavKind.Home,
+        // Nothing on any page feeds their fight or answers its errors, so these stay
+        // put and say what they are, the same as the three above.
+        "Their fight is not being fed" => NavKind.Home,
+        _ when problem.StartsWith("Their fight said: ", StringComparison.Ordinal) => NavKind.Home,
+        // This one does have a page: the seats it is missing are read there.
+        "The party has not reached their calls" => NavKind.Roles,
         _ => NavKind.Fights,
     };
 
@@ -603,6 +649,7 @@ public partial class ConfigWindow
         // read out of the pack, which is what made two lists of one thing before.
         if (theirs)
         {
+            DrawFeedLine((ushort)fight.TerritoryId);
             DrawSeat();
             // Read as this player before the rows are sampled, the same as below, or
             // ours say the half of a call that lands on somebody else.

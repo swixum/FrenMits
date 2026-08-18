@@ -196,6 +196,13 @@ public static class ScriptStrategies
                 ? picked
                 : strategy.Default;
 
+            // An answer their file does not offer falls back to the default rather
+            // than being written in: the page drops an unoffered pick from what it
+            // draws, so writing one would run a strat nobody can see, and a patch that
+            // failed to load is exactly how a pick stops being offered.
+            if (strategy.Options.Count > 0 && OptionAt(strategy, value) < 0)
+                value = strategy.Default;
+
             js.Execute($"__data.{Field}[{Quote(strategy.Id)}] = {Quote(value)};");
         }
     }

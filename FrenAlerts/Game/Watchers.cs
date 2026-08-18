@@ -74,6 +74,13 @@ public static class Watchers
         {
             if (obj is not IBattleChara bc) continue;
             if (obj is IPlayerCharacter) continue;
+
+            // Counted only where a mechanic could be worn. An ultimate arena is mostly
+            // furniture: 326 combatants stood in one recorded Dancing Mad pull and 48
+            // of them arrived in its first second, so counting all of them spent the
+            // budget long before the boss and every status it wore was dropped.
+            if (!bc.IsTargetable) continue;
+
             if (++n > StatusWatch.MaxEnemies) return false;
             if (bc.EntityId == entityId) return true;
         }

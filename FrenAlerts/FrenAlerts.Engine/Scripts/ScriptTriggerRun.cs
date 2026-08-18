@@ -298,6 +298,15 @@ public sealed class ScriptTriggerRunner(Jint.Engine js)
 
     // Anything whose delay has run out. Walked backwards so a call can be taken off
     // the list while it is being read.
+    // Whether a delayed trigger is about to run, so the caller can put the arena
+    // reads it makes back in date first.
+    public bool AnyDue(double now)
+    {
+        foreach (var waiting in _waiting)
+            if (waiting.Due <= now) return true;
+        return false;
+    }
+
     public void Tick(double now)
     {
         Macros.Tick(now);

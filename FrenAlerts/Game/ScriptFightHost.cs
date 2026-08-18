@@ -166,6 +166,13 @@ public sealed class ScriptFightHost : IDisposable
 
     public int FightsLoaded => _fights.FightsLoaded;
 
+    // Who is standing here, for the party reads their calls make.
+    public void LearnParty(IEnumerable<ScriptParty.Seat> seats) => _fights.Party.Learn(seats);
+
+    // How many of them their calls can name. Zero is not a quiet fault: every line that
+    // names somebody says "someone" and every role branch takes its else.
+    public int PartyKnown => _fights.Party.Count;
+
     // Whether their set covers a zone at all, which is what decides who owns it.
     public bool Covers(ushort zone) => Loaded && _fights.Knows(zone);
 
@@ -386,7 +393,10 @@ public sealed class ScriptFightHost : IDisposable
         Remember(e);
         Positions(e.Time);
 
-        if (ScriptLines.Write(e, NameOf) is { } line)
+        // Every line the event writes, because two of their types are a second form
+        // of one we already have and their fights read whichever form they were
+        // written against.
+        foreach (var line in ScriptLines.All(e, NameOf))
             foreach (var runner in _runners) runner.Process(line, e.Time, icon);
 
         if (_clock is { } clock)
@@ -401,16 +411,21 @@ public sealed class ScriptFightHost : IDisposable
     {
         if (!Running) return;
 
+        // A delayed call is the one that reads where things are standing, a tenth of a
+        // second after a tether or a teleport, so the snapshot is rebuilt off the pace
+        // when one is due rather than being served whatever the last event left.
+        if (_runners.Any(r => r.AnyDue(now))) Positions(now, force: true);
+
         foreach (var runner in _runners) runner.Tick(now);
         _clock?.Tick(now);
     }
 
     // Where everything is standing, rebuilt on a pace and only while their fight is
     // the one running.
-    private void Positions(double now)
+    private void Positions(double now, bool force = false)
     {
         if (_world is null || _fights.Js is not { } js) return;
-        if (!Paced.Due(now, _lastPositions, PositionPace)) return;
+        if (!force && !Paced.Due(now, _lastPositions, PositionPace)) return;
 
         _lastPositions = now;
         try { _world.Remember(js); }
@@ -435,15 +450,15 @@ public sealed class ScriptFightHost : IDisposable
         Learn(e.TargetId);
     }
 
+    // A miss is not written down, because 208 of their triggers name the caster and a
+    // packet that beats the object table by one frame would otherwise mute that actor
+    // for the rest of the pull.
     private void Learn(uint id)
     {
         if (id == 0 || _names.ContainsKey(id) || _names.Count >= MaxNames) return;
 
-        var obj = Service.ObjectTable.SearchByEntityId(id);
-        // Written down either way. A miss is worth remembering too: an id that is not
-        // in the table now will not be next event either, and looking it up again on
-        // every one of its lines is the walk this exists to avoid.
-        _names[id] = obj?.Name.TextValue ?? "";
+        if (Service.ObjectTable.SearchByEntityId(id)?.Name.TextValue is { Length: > 0 } found)
+            _names[id] = found;
     }
 
     private string NameOf(uint id) => _names.GetValueOrDefault(id, "");

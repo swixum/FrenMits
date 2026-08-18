@@ -51,6 +51,11 @@ public sealed class ScriptFights : IDisposable
     // Emptied and rebuilt by Load, which is its only writer and the whole of its life.
     private readonly Dictionary<string, IReadOnlyList<string>> _reaches = new(StringComparer.Ordinal);
 
+    // Who is standing here, for the reads their party object makes. Bound as the
+    // harness loads and filled by the party poll, so it is never missing: their
+    // prelude calls these by name and an unbound one is a ReferenceError mid-call.
+    public ScriptParty Party { get; } = new();
+
     // The output keys one of their triggers can actually say. Empty where the scan could
     // not place the trigger, which the caller reads as "show all of them".
     public IReadOnlyList<string> ReachesOutputs(string triggerId) =>
@@ -108,6 +113,8 @@ public sealed class ScriptFights : IDisposable
 
             foreach (var name in Harness)
                 _js.Execute(File.ReadAllText(Path.Combine(folder, name)));
+
+            Party.Bind(_js);
 
             var broken = new List<string>();
             foreach (var file in Directory.EnumerateFiles(folder, "*.js").OrderBy(f => f))
@@ -218,8 +225,10 @@ public sealed class ScriptFights : IDisposable
             _js.Execute("__data.me = " + Quote(me) + ";");
             _js.Execute("__data.role = " + Quote(role) + ";");
             _js.Execute("__data.job = " + Quote(job) + ";");
-            // Their party helper, which several of their lines call to name somebody.
-            _js.Execute("__data.party = { member: function (n) { return n || 'someone'; } };");
+            // Their own party object, built by their own prelude off the reads bound
+            // below it: a stub with `member` alone leaves `isDPS` and `buddy` missing,
+            // and a trigger that calls one of those throws instead of speaking.
+            _js.Execute("__data.party = __makeParty();");
             _js.Execute("__data.triggerSetConfig = __data.triggerSetConfig || {};");
         }
         catch (Exception ex)

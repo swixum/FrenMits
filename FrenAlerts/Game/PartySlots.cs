@@ -59,6 +59,19 @@ public static class PartySlots
         return roster;
     }
 
+    // The same eight in the shape their party reads want: job code, role and the seat
+    // they were resolved into.
+    public static List<Engine.Scripts.ScriptParty.Seat> ScriptSeats(
+        IReadOnlyList<(uint EntityId, uint JobId)> members, PartyContext party)
+    {
+        var seats = new List<Engine.Scripts.ScriptParty.Seat>(members.Count);
+        foreach (var (id, name, job) in Roster(members))
+            seats.Add(new Engine.Scripts.ScriptParty.Seat(
+                name, Engine.UserTriggers.Jobs.CodeOf(job), SlotResolver.RoleOf(job),
+                party.SlotOf(id)));
+        return seats;
+    }
+
     public static List<(uint EntityId, uint JobId)> Read()
     {
         var members = new List<(uint, uint)>(8);

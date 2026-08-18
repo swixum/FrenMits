@@ -72,7 +72,11 @@ public sealed class ScriptWorld(ActorBook book)
         {
             if (!first) json.Append(',');
             first = false;
+            // The entity id as well as the base, because two towers of one element
+            // share a base and their P5 soak order keys on `e`: without it every live
+            // pillar lands on one key and only the last of them survives.
             json.Append("{\"base\":").Append(Num(actor.DataId))
+                .Append(",\"e\":").Append(Num(actor.Id))
                 .Append(",\"x\":").Append(Num(actor.Where.X))
                 .Append(",\"y\":").Append(Num(actor.Where.Y))
                 .Append(",\"h\":").Append(Num(actor.Where.Heading))

@@ -56,6 +56,14 @@ public static class Jobs
 
     public static IReadOnlyCollection<string> Known => Table.Keys;
 
+    // The short code for a class job id, which is how their fights name a job.
+    public static string CodeOf(uint classJob)
+    {
+        foreach (var (code, facts) in Table)
+            if (facts.ClassJob == classJob) return code;
+        return "";
+    }
+
     private static Vector4 Rgb(uint rgb) => new(
         ((rgb >> 16) & 0xFF) / 255f,
         ((rgb >> 8) & 0xFF) / 255f,
@@ -68,6 +76,8 @@ public static class Jobs
 public readonly struct JobFacts(JobRole role, int classJobId, Vector4 color, string fullName)
 {
     public readonly JobRole Role = role;
+
+    public readonly uint ClassJob = classJobId > 0 ? (uint)classJobId : 0;
 
     public readonly uint IconId = classJobId > 0 ? (uint)(62000 + classJobId) : 0;
 

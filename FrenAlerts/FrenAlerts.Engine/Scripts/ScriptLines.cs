@@ -3,22 +3,13 @@ using System.Text;
 
 namespace FrenAlerts.Engine.Scripts;
 
-// An event written out in the shape their triggers read.
+// An event written out in the shape their triggers read, field for field.
 //
-// Their fights match a parser's line, field by field by position, and this plugin
-// has no parser: casts, statuses, markers and tethers come off the object table and
-// the client's own hooks. So the line is written here from what was already seen.
-// Nothing is read from a file or a socket; this is the same event the rest of the
-// engine gets, spelled the way their regexes expect it.
-//
-// The field positions are not ours to choose. They are the ones in ScriptNetRegex,
-// which are theirs, and the two files have to be read together: a field written one
-// place to the left is a trigger that quietly never fires.
+// The widths are not ours to choose: every one below is what a real parser writes,
+// checked against a recorded raid night, because a field a digit narrow matches
+// nothing and a fight then loads, runs and never speaks.
 public static class ScriptLines
 {
-    // A line their layouts can match, or null for an event none of their types
-    // covers. The timestamp field is left empty, since no trigger reads it and every
-    // layout skips over it.
     public static string? Write(GameEvent e, Func<uint, string>? nameOf = null,
         Func<uint, string>? abilityOf = null)
     {
@@ -43,13 +34,13 @@ public static class ScriptLines
             EventKind.StatusGain => Join("26", "",
                 Hex(e.Id), "", Number(e.Duration),
                 Id(e.SourceId), name(e.SourceId), Id(e.TargetId), name(e.TargetId),
-                e.Param.ToString(CultureInfo.InvariantCulture)),
+                Count(e.Param)),
 
             // 30|ts|effectId|effect|_|sourceId|source|targetId|target|count
             EventKind.StatusLose => Join("30", "",
                 Hex(e.Id), "", "0.00",
                 Id(e.SourceId), name(e.SourceId), Id(e.TargetId), name(e.TargetId),
-                e.Param.ToString(CultureInfo.InvariantCulture)),
+                Count(e.Param)),
 
             // 27|ts|targetId|target|_|_|id
             EventKind.HeadMarker => Join("27", "",
@@ -62,12 +53,12 @@ public static class ScriptLines
 
             // 273|ts|id|category|param1|param2|param3|param4
             EventKind.ActorControl => Join("273", "",
-                Id(e.SourceId), Hex(e.Id), Hex(e.Arg1), Hex(e.Arg2), "0", "0"),
+                Id(e.SourceId), Marker(e.Id), Hex(e.Arg1), Hex(e.Arg2), "0", "0"),
 
             // 03|ts|id|name|_|_|_|_|_|_|npcBaseId|_|_|_|_|_|_|x|y
             EventKind.ActorSpawn => Join("03", "",
                 Id(e.SourceId), name(e.SourceId), "", "", "", "", "", "",
-                Hex(e.DataId), "", "", "", "", "", "",
+                Decimal(e.DataId), "", "", "", "", "", "",
                 Coord(e.Source.X), Coord(e.Source.Y)),
 
             // 34|ts|id|name|targetId|targetName|toggle
@@ -75,13 +66,13 @@ public static class ScriptLines
                 Id(e.SourceId), name(e.SourceId), Id(e.TargetId), name(e.TargetId),
                 e.Arg1.ToString(CultureInfo.InvariantCulture)),
 
-            // 257|ts|instance|flags|location|data0. The engine reads the same three
-            // the packet carries, in the same places: event id, state, index.
+            // 257|ts|instance|flags|location|data0
             EventKind.MapEffect => Join("257", "",
                 Hex(e.SourceId), Hex(e.Id), Hex(e.TargetId), Hex(e.Arg1)),
 
-            // 270|ts|id|heading|_|moveType|x|y|z
-            EventKind.ActorMoved => Join("270", "",
+            // 271|ts|id|heading|_|_|x|y|z, which is the one their position triggers
+            // read: nothing anywhere asks for a 270.
+            EventKind.ActorMoved => Join("271", "",
                 Id(e.SourceId), Coord(e.Source.Heading), "0", "0",
                 Coord(e.Source.X), Coord(e.Source.Y), Coord(e.Source.Elevation)),
 
@@ -90,6 +81,37 @@ public static class ScriptLines
 
             _ => null,
         };
+    }
+
+    // A second line the same event answers to, or null where it answers to one.
+    //
+    // Two of their types are written by the game as a second form of an event we
+    // already have, and their fights read whichever form the trigger was written
+    // against: Dancing Mad takes four of its six black hole sets off the spawn form
+    // and two off the tether, and its trine and crystal directions off the memory
+    // form of a spawn.
+    public static string? Extra(GameEvent e, Func<uint, string>? nameOf = null) => e.Kind switch
+    {
+        // 272|ts|id|parentId|tetherId|animationState, the far end first the way both
+        // lines write it.
+        EventKind.Tether => Join("272", "",
+            Id(e.SourceId), Id(e.TargetId), Marker(e.Id), "00"),
+
+        // 261|ts|Add|id|BNpcID|base|PosX|x|PosY|y, which is read by lookahead rather
+        // than by position, so every pair carries its own trailing bar.
+        EventKind.ActorSpawn => Join("261", "", "Add", Id(e.SourceId),
+            "BNpcID", Hex(e.DataId),
+            "PosX", Coord(e.Source.X), "PosY", Coord(e.Source.Y), ""),
+
+        _ => null,
+    };
+
+    // Every line one event writes, the plain one first.
+    public static IEnumerable<string> All(GameEvent e, Func<uint, string>? nameOf = null,
+        Func<uint, string>? abilityOf = null)
+    {
+        if (Write(e, nameOf, abilityOf) is { } line) yield return line;
+        if (Extra(e, nameOf) is { } extra) yield return extra;
     }
 
     // The code a line starts with, which is how a line finds the handful of triggers
@@ -110,13 +132,20 @@ public static class ScriptLines
     // An entity id, eight hex digits, the way every line writes one.
     private static string Id(uint id) => id.ToString("X8", CultureInfo.InvariantCulture);
 
-    // An ability, status or yell id: as many hex digits as it takes, which is what
-    // their triggers were written against.
+    // An ability, status or yell id: as many hex digits as it takes.
     private static string Hex(uint value) => value.ToString("X", CultureInfo.InvariantCulture);
 
-    // Markers and tethers are the exception: their tables write these four wide,
-    // zeroes and all, and a trigger asking for `01B5` never sees `1B5`.
+    // Markers, tethers and a control category are written four wide, and a trigger
+    // asking for `019D` never sees `19D`.
     private static string Marker(uint value) => value.ToString("X4", CultureInfo.InvariantCulture);
+
+    // A status stack count is hex and never narrower than two, which is what the
+    // parser writes and what their own `parseInt(count, 16)` expects.
+    private static string Count(uint value) => value.ToString("X2", CultureInfo.InvariantCulture);
+
+    // A spawn line is the one place a base id is written in decimal, and their P5
+    // towers are matched by the decimal of it.
+    private static string Decimal(uint value) => value.ToString(CultureInfo.InvariantCulture);
 
     private static string Number(float value) =>
         float.IsNaN(value) ? "" : value.ToString("0.00", CultureInfo.InvariantCulture);

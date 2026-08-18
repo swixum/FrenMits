@@ -43,7 +43,13 @@ public sealed class PlacedCalls : Window
 
     // Only drawn when something asked to be placed, so the usual install never has a
     // second window at all.
-    public override bool DrawConditions() => C.AlertsEnabled && Any();
+    //
+    // Off with the game's own interface, the same as the stack. That key is the one
+    // people press to take a screenshot, and this window ignored it: hiding the UI took
+    // the fight's calls off and left a placed one sitting in the picture. A call that
+    // was dragged out of the stack is still one of the plugin's calls.
+    public override bool DrawConditions() =>
+        !UiServices.GameUiHidden && C.AlertsEnabled && Any();
 
     // One reading of the board a frame, shared by the question of whether to be on
     // screen and by what to put there. Each ask reads the clock and drops whatever has

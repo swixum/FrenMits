@@ -7,9 +7,9 @@ namespace FrenAlerts.Game;
 //
 // Two of the categories are whole event kinds rather than a direction. A head marker
 // is category 34 with the marker id in the first argument and the packet aimed at
-// whoever got it; a tether is category 35 with its id in the second and the far end
-// in the third. That is the only route to a head marker inside the client, and it
-// runs off a hook that was already installed here for the direction calls.
+// whoever got it; a tether is category 35 with its id in the second, the packet on
+// the far end of it and whoever wears it in the third, which is the direction a real
+// 35 line writes. That is the only route to a head marker inside the client.
 public sealed class ControlEvents : HookedSource<ControlEvents.Packet>
 {
     // Marker and tether, which arrive as control packets rather than as anything the

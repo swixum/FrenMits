@@ -167,20 +167,29 @@ public partial class ConfigWindow
 
         // Said in their own words: the option list is theirs, and a call that names a
         // spot only makes sense next to the name of the strat it belongs to.
-        Tip($"Next pull. Default is "
-            + $"{strategy.Options.FirstOrDefault(o => o.Value == strategy.Default)?.Label ?? strategy.Default}.");
+        Tip($"Next pull. Default is {DefaultLabel(strategy)}.");
 
         // An empty box is the honest drawing, and on its own it is not an explanation.
         // Said out loud with the answer that went, because the words are the only thing
         // anybody would recognise it by, and left as a row rather than a tooltip: nobody
         // hovers a box that looks like one nothing has been chosen in yet.
+        // What runs meanwhile, because the fight does not go quiet waiting to be
+        // answered: an answer they no longer offer falls back to their default rather
+        // than being written in, so saying only "pick one" leaves somebody thinking the
+        // mechanic is silent when it is calling the other strat.
         if (lost)
             Widgets.RowNote(chosen.Length > 0
-                ? $"Your answer \"{chosen}\" is not one this fight offers any more. Pick one."
+                ? $"Your answer \"{chosen}\" is not one this fight offers any more. "
+                  + $"Running {DefaultLabel(strategy)} until you pick."
                 : "This fight's own default is not one of its options. Pick one.");
     }
 
     private bool Set(ScriptStrategy strategy) => C.ScriptStratFor(strategy.Id).Length > 0;
+
+    // Their word for the fight's own answer, falling back to the raw value where the
+    // default is not one of the options.
+    private static string DefaultLabel(ScriptStrategy strategy) =>
+        strategy.Options.FirstOrDefault(o => o.Value == strategy.Default)?.Label ?? strategy.Default;
 
     // What a typed setting actually wants, for the ones whose answer is a number.
     //
