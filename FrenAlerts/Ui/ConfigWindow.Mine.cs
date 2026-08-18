@@ -581,22 +581,16 @@ public partial class ConfigWindow
                 trigger.Pattern = entry.Name;
                 trigger.DataId = entry.Id;
 
-                // Whatever was picked brings its own art with it, which is the
-                // difference between a line of text and a call you recognise before
-                // you have read it.
+                // A debuff brings its own art with it, which is what the tick underneath
+                // has always promised: pick one and the icon fills in.
                 //
-                // Casts were left out because the engine had a picture for a debuff
-                // and nothing else. It has ability art now, and the plugin's own calls
-                // for the very same cast have been drawing it, so a trigger somebody
-                // wrote for that mechanic was the only thing on screen without it.
-                //
-                // Nothing is filled in for a head marker or a tether on purpose: those
-                // are VFX and a line, the game has no sheet row for either, and a
-                // number here would be a real picture of something unrelated.
+                // A cast fills in nothing, and neither does a head marker or a tether.
+                // The plugin's own calls stopped drawing ability art for the same
+                // reason: an icon on every raidwide and every cone is decoration, and it
+                // costs the one on the debuff its meaning.
                 var art = entry.Kind switch
                 {
                     CatalogKind.Status => Icons.ForStatus(entry.Id),
-                    CatalogKind.Cast => Icons.ForAction(entry.Id),
                     _ => 0u,
                 };
                 if (art > 0)

@@ -1038,7 +1038,7 @@ public partial class ConfigWindow
         var icon = C.ShowCallIcon;
         if (Widgets.RowCheckClick("Icon", "", ref icon, changed: Changed(nameof(Configuration.ShowCallIcon))))
         { C.ShowCallIcon = icon; C.Save(); }
-        Tip("The debuff on you, or the cast's own icon.");
+        Tip("The debuff on you. Other calls show none.");
 
         if (C.ShowCallIcon)
         {

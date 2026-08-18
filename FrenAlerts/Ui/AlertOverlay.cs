@@ -267,14 +267,20 @@ public class AlertOverlay : Window
     // icon can be judged before a pull: Icon Size is a slider whose effect was
     // invisible until a real mechanic landed, and then it is too late to adjust it.
     // Sized as a stack of one, so it lands at exactly the size a lone call does.
+    //
+    // A debuff line rather than a raidwide, because only a debuff carries a picture
+    // now: the sample said "Raidwide" and wore one, which is a call the game will
+    // never draw, and the widest thing to drag was a shape nothing in a pull makes.
+    private const string SampleCall = "Stack on you";
+
     private void DrawSample()
     {
         var (remaining, counting, sinceGo) = SampleClock();
         var icon = C.ShowCallIcon ? Icons.Sample() : CallIcon.None;
         var px = OverlayState.FitFontPxFor(C.CallFontSizePx,
             ImGui.GetMainViewport().WorkSize.X * 0.92f,
-            [Need("Raidwide", icon, remaining, counting)]);
-        DrawCall("Raidwide", CallLevel.Alert, icon, remaining, counting, sinceGo, px);
+            [Need(SampleCall, icon, remaining, counting)]);
+        DrawCall(SampleCall, CallLevel.Alarm, icon, remaining, counting, sinceGo, px);
     }
 
     public void DrawPreview()
@@ -299,10 +305,9 @@ public class AlertOverlay : Window
 
     // One call as the page is about to show it, icon included.
     //
-    // The icon is the point: this is the preview under a call being reworded, and it
-    // drew every call without one while the same call in game carries the game's own
-    // art for the ability. Somebody shortening a line was judging the width of
-    // something narrower than the real thing.
+    // The icon is the point: this is the preview under a call being reworded, and a
+    // debuff call is wider on screen than on the page unless the preview carries the
+    // picture too. Somebody shortening a line was judging the wrong width.
     public void DrawOne(string text, CallLevel level, CallIcon icon = default)
     {
         var (remaining, counting, sinceGo) = SampleClock();

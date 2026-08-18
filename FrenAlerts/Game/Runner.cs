@@ -385,9 +385,14 @@ public sealed class Runner : IDisposable
             $"control {(ControlAvailable ? "on" : "off")}, "
             + $"hits {(AbilitiesAvailable ? "on" : "off")}, "
             + $"{MarkersSeen} head markers and {TethersSeen} tethers seen");
+        // The count comes from whichever timeline is actually running. Ours is not
+        // built at all where their fight owns the zone, and printing its mechanic
+        // count beside their clock's anchor read a whole day of Dancing Mad diaries
+        // as "312 mechanics" off a file that was never loaded.
         Diary.Note("timeline",
             HasTimeline
-                ? $"{TimelineMechanics} mechanics, "
+                ? $"{(Scripted ? ScriptTimelineMechanics((ushort)_territory) : TimelineMechanics)} "
+                  + "mechanics, "
                   + (TimelineRunning
                       ? $"anchored at {TimelineAt:0}s, {TimelineResyncs} resyncs"
                       : "not anchored")
@@ -610,7 +615,12 @@ public sealed class Runner : IDisposable
     // line, and a call switched off by hand.
     private void OnScriptCall(FrenAlerts.Engine.Scripts.ScriptCall call)
     {
-        if (Switched?.Invoke(call.TriggerId) is false) return;
+        if (Switched?.Invoke(call.TriggerId) is false)
+        {
+            Diary.Dropped(Now, call.TriggerId,
+                new Call { Text = call.Text, Key = call.TriggerId, Time = Now }, "switched off");
+            return;
+        }
 
         var shown = new Call
         {
@@ -636,7 +646,16 @@ public sealed class Runner : IDisposable
             },
         };
 
-        if (_board.Show(shown, Now, call.Icon)) Voice.Say(shown.Spoken);
+        // Written down either way, because a wrong call and a call that never came
+        // look identical afterwards otherwise. Every fight the port owns went through
+        // here and left the diary empty: a whole day of Dancing Mad replays recorded
+        // the events and not one of the calls made off them.
+        if (_board.Show(shown, Now, call.Icon))
+        {
+            Diary.Fired(Now, call.TriggerId, shown);
+            Voice.Say(shown.Spoken);
+        }
+        else Diary.Dropped(Now, call.TriggerId, shown, "the board took the other one");
     }
 
     // Their own keys, kept apart from every other call's so a hand-written trigger

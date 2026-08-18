@@ -50,12 +50,16 @@ internal static class SettingsIndex
         New("Alignment", ConfigWindow.NavKind.CallDisplay, nameof(Configuration.CallTextAlign),
             c => c.CallTextAlign != Defaults.CallTextAlign, c => c.CallTextAlign = Defaults.CallTextAlign,
             "left center right"),
+        // "debuff" and "status" are the words for it now that it is the only thing this
+        // draws. "glyph" was left over from the crosshair that used to stand in for a
+        // head marker, so the one word nobody can type any more was in the index and
+        // the two they would type were not.
         New("Icon", ConfigWindow.NavKind.CallDisplay, nameof(Configuration.ShowCallIcon),
             c => c.ShowCallIcon != Defaults.ShowCallIcon, c => c.ShowCallIcon = Defaults.ShowCallIcon,
-            "glyph symbol picture"),
+            "debuff status symbol picture art"),
         New("Icon Size", ConfigWindow.NavKind.CallDisplay, nameof(Configuration.CallIconScale),
             c => Off(c.CallIconScale, Defaults.CallIconScale), c => c.CallIconScale = Defaults.CallIconScale,
-            "glyph bigger smaller"),
+            "debuff status bigger smaller"),
         New("Countdown", ConfigWindow.NavKind.CallDisplay, nameof(Configuration.ShowCountdown),
             c => c.ShowCountdown != Defaults.ShowCountdown, c => c.ShowCountdown = Defaults.ShowCountdown,
             "seconds number parentheses timer"),

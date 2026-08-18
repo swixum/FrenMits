@@ -124,13 +124,31 @@ public sealed class PlacedCalls : Window
             // itself around characters nobody could see.
             var pieces = CallText.Pieces(line);
             var size = ImGui.CalcTextSize(CallText.Plain(line));
-            var pen = centre - size * 0.5f;
+
+            // The stack's geometry, asked the same way, because a call that moved to its
+            // own spot is the same call. These drew no icon at all: a trigger somebody
+            // wrote could tick "Show an icon", pick the art, drag the call out of the
+            // stack, and the picture stayed behind with the stack it had left.
+            var withIcon = C.ShowCallIcon && shown.Icon.Any && Icons.Has(shown.Icon);
+            var iconPx = withIcon
+                ? drawn * CallLook.IconSize * Math.Clamp(C.CallIconScale, 0.4f, 1.6f)
+                : 0f;
+            var lead = withIcon ? iconPx + drawn * CallLook.IconGap : 0f;
+
+            // Centred on the whole of it, icon included, or a call grows sideways out of
+            // the spot it was dragged to the moment its debuff lands.
+            var pen = centre - new Vector2(lead + size.X, size.Y) * 0.5f;
+
+            if (withIcon)
+                Icons.Draw(shown.Icon, dl, new Vector2(pen.X, pen.Y + (size.Y - iconPx) * 0.5f),
+                    iconPx, OverlayChrome.Faded(0xFFFFFFFF, alpha), false);
 
             // The same ring the stack draws, off the same switch. This read the old
             // shadow setting, which the Call Display page retired: nothing sets it any
             // more and the config migration switches it off, so a placed call quietly
             // lost its edge with nothing left to bring it back.
-            OverlayChrome.DrawPieces(dl, font, drawn, pen, pieces, colour, alpha, C.TextOutline);
+            OverlayChrome.DrawPieces(dl, font, drawn, new Vector2(pen.X + lead, pen.Y),
+                pieces, colour, alpha, C.TextOutline);
         }
     }
 

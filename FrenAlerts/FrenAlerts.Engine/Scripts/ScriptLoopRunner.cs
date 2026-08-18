@@ -81,9 +81,19 @@ public sealed class ScriptLoopRunner(Jint.Engine js)
         if (ScriptFields.TypeOf(e.Kind) is not { } type) return;
         if (e.Kind == EventKind.ActorSpawn && !FreshSpawn(e.SourceId, e.Time)) return;
 
+        Offer(e, type, ScriptFields.For(e, sourceName, targetName));
+
+        // The same event under the other name the game writes it as, for the fights
+        // that read that one. Second rather than first, so a set answered by both
+        // keeps their order: the tether call is the one their file leads with.
+        if (ScriptFields.AlsoTypeOf(e.Kind) is { } also)
+            Offer(e, also, ScriptFields.AlsoFor(e));
+    }
+
+    private void Offer(in GameEvent e, string type, Dictionary<string, object?> fields)
+    {
         try
         {
-            var fields = ScriptFields.For(e, sourceName, targetName);
             var wanted = js.Invoke("__match", type, fields, e.Time);
             if (!wanted.IsArray()) return;
 

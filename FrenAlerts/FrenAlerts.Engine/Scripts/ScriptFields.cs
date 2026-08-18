@@ -33,12 +33,53 @@ public static class ScriptFields
 
     public static bool Covered(EventKind kind) => TypeOf(kind) is not null;
 
+    // A second name the same event answers to.
+    //
+    // A tether that is already on an actor when it spawns is written twice by the
+    // game: once as a tether line, and once on the spawn itself as `272|..|<npc>|
+    // <player>|0054|00`. Their fights read whichever the set happens to use, and
+    // Dancing Mad's black holes use both: sets 2 and 6 come off the tether, sets 1,
+    // 3, 4 and 5 off the spawn. Only the tether reaches here, so those four sets
+    // said nothing at all and the array their role split is sorted from was filled
+    // by the tether collector alone.
+    //
+    // The spawn form is made from the tether rather than from the spawn, because the
+    // spawn event carries no tether id: the game sends them as two packets and only
+    // one of them names the line. It arrives about a second later than theirs does,
+    // which the calls do not read.
+    public static string? AlsoTypeOf(EventKind kind) => kind switch
+    {
+        EventKind.Tether => "SpawnNpcExtra",
+        _ => null,
+    };
+
+    // The far end is the actor that spawned and the player is its parent, which is
+    // the direction both lines write: `35|..|<npc>|<name>|<player>|<name>|..|0054`
+    // beside `272|..|<npc>|<player>|0054|00`.
+    public static Dictionary<string, object?> AlsoFor(in GameEvent e) =>
+        new(StringComparer.Ordinal)
+        {
+            ["id"] = Id(e.SourceId),
+            ["parentId"] = Id(e.TargetId),
+            ["tetherId"] = Marker(e.Id),
+            ["animationState"] = "00",
+            ["sourceId"] = Id(e.SourceId),
+            ["targetId"] = Id(e.TargetId),
+        };
+
     // How a line writes a number: hex, upper case, no prefix, no padding.
     public static string Hex(uint value) => value.ToString("X");
 
     // Markers and tethers are the exception their tables write four wide, so a
     // trigger asking for `01B5` never sees `1B5`.
     public static string Marker(uint value) => value.ToString("X4");
+
+    // A map effect writes its flags eight wide and the place it happened two, which
+    // is how their files spell both. Measured off the guide's own examples:
+    // `257|..|800375A9|00020001|09|F3|0000`.
+    public static string Flags(uint value) => value.ToString("X8");
+
+    public static string Slot(uint value) => value.ToString("X2");
 
     // The fields one event carries, named the way their code reads them back.
     //
@@ -89,14 +130,20 @@ public static class ScriptFields
                 break;
 
             case EventKind.NpcYell:
-                m["npcYellId"] = Hex(e.Id);
+                m["npcYellId"] = Marker(e.Id);
                 break;
 
             // The raw packet: their handlers read the category and the first argument,
             // so both go across whole rather than rounded.
+            //
+            // The category is four wide and the arguments are not, which is not a
+            // choice: `273|..|400058CA|0834|0|848|FA0|0` is how the line writes them,
+            // and Dancing Mad asks for `category: '0197'`. Unpadded it read `197`,
+            // matched nothing, and took Kefka's teleport direction with it, which is
+            // the whole of the relative-north convention for the black holes.
             case EventKind.ActorControl:
                 m["id"] = Id(e.SourceId);
-                m["category"] = Hex(e.Id);
+                m["category"] = Marker(e.Id);
                 m["param1"] = Hex(e.Arg1);
                 m["param2"] = Hex(e.Arg2);
                 break;
@@ -118,9 +165,9 @@ public static class ScriptFields
                 break;
 
             case EventKind.MapEffect:
-                m["instance"] = Hex(e.SourceId);
-                m["flags"] = Hex(e.Id);
-                m["location"] = Hex(e.TargetId);
+                m["instance"] = Id(e.SourceId);
+                m["flags"] = Flags(e.Id);
+                m["location"] = Slot(e.TargetId);
                 break;
         }
 

@@ -99,16 +99,13 @@ internal static class Icons
     //
     // Asked before the space for it is reserved, because the two were decided
     // separately: the layout reserved a gap for any icon that was not None, and Draw
-    // quietly did nothing when the art would not resolve. That was rare while an icon
-    // meant a debuff, and stopped being rare the moment a cast carried one: a boss
-    // ability's row in the sheet usually has no icon at all, so most calls in a fight
-    // would have opened a hole to the left of their words and drawn nothing in it.
+    // quietly did nothing when the art would not resolve, so a call could open a hole
+    // to the left of its words and draw nothing in it.
     //
     // The same cached lookups Draw uses, so the two can never disagree.
     public static bool Has(CallIcon icon) => icon.Kind switch
     {
         CallIconKind.Status => ForStatus(icon.Id) != 0,
-        CallIconKind.Action => ForAction(icon.Id) != 0,
         CallIconKind.Sheet => icon.Id != 0,
         _ => false,
     };
@@ -119,10 +116,6 @@ internal static class Icons
         {
             case CallIconKind.Status:
                 return DrawTo(dl, ForStatus(icon.Id), p0, new Vector2(size, size), tint);
-
-            // The ability's own art, looked up the same way a status is.
-            case CallIconKind.Action:
-                return DrawTo(dl, ForAction(icon.Id), p0, new Vector2(size, size), tint);
 
             // Drawn as it is: the number already names the art, so nothing has to be
             // looked up and nothing stands in for it.

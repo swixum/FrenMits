@@ -81,6 +81,9 @@ public sealed class ScriptTimelineRuntime
         _synced = null;
         _lastFired = NothingFiredYet;
         _syncMiss = 0;
+        // A pull's anchors die with the pull: the next one starts at the top of the
+        // file and has to be allowed to take every one of them again.
+        _fired.Clear();
     }
 
     public void Reset()
@@ -96,6 +99,7 @@ public sealed class ScriptTimelineRuntime
     {
         _synced = _zone;
         _syncMiss = 0;
+        _fired.Clear();
 
         // Counting starts again here, so a long night does not read as one pull
         // that corrected itself four hundred times.
@@ -209,6 +213,13 @@ public sealed class ScriptTimelineRuntime
 
     private void SyncTo(float fightNow, double now, bool force = false, ScriptTimelineEntry? on = null)
     {
+        // Written down before anything can turn back, because an anchor is used up
+        // by being chosen rather than by moving the clock. The usual case is an
+        // anchor that agrees with the clock to within the churn guard and moves it
+        // nowhere: not recording that one leaves every healthy anchor free to drag
+        // the clock back the next time the boss casts it.
+        if (on is not null && !on.IsWide) _fired.Add(Key(on));
+
         var timebase = now - fightNow;
         if (!force && _running && Math.Abs(timebase - _timebase) <= SyncChurnGuard) return;
 
@@ -318,12 +329,44 @@ public sealed class ScriptTimelineRuntime
     private static ScriptTimelineEntry? ActiveSync(ScriptTimeline timeline, uint id, float fightNow) =>
         PickSync(timeline, id, fightNow, requireWindow: true, float.MaxValue);
 
-    private static ScriptTimelineEntry? ClosestMatch(
+    // The unwindowed picker, which is the one that can reach backwards, so it is the
+    // one the guards sit on.
+    private ScriptTimelineEntry? ClosestMatch(
         ScriptTimeline timeline, uint id, float fightNow, float maxDistance) =>
-        PickSync(timeline, id, fightNow, requireWindow: false, maxDistance);
+        PickSync(timeline, id, fightNow, requireWindow: false, maxDistance, Allowed);
+
+    // Whether an entry behind the clock may still take it.
+    //
+    // A gate may: re-basing a phase is what gates are for, and a phase can recast its
+    // own opener. An ordinary entry may not take the clock a second time, which is
+    // FrenMits' rule in SyncCore.Choose and the one thing their nearest-match reach
+    // is missing.
+    //
+    // What leaving it out costs, measured on a Dancing Mad replay: an ability cast
+    // more times than the file lists it hands the clock an entry it went past, and
+    // the clock loops. The towers ran 332s to 321s and back three times over, and
+    // phase 3 lost 3.3s on Cyclone, which puts every countdown in the phase out by
+    // that much.
+    //
+    // The distance stays at their 15s. Capping it to FrenMits' 8 as well was tried
+    // and made the pull worse, not better: worst drift on the recorded pull went
+    // from 8.4s to 12.7s, because this fight has corrections it genuinely needs that
+    // sit further back than that.
+    private bool Allowed(ScriptTimelineEntry entry, float fightNow)
+    {
+        if (entry.IsWide || entry.Time >= fightNow) return true;
+        return !_fired.Contains(Key(entry));
+    }
+
+    private static (uint Ability, float Time) Key(ScriptTimelineEntry entry) =>
+        (entry.ActionId, entry.Time);
+
+    // Every anchor the clock has taken this pull, so one cannot take it twice.
+    private readonly HashSet<(uint Ability, float Time)> _fired = [];
 
     private static ScriptTimelineEntry? PickSync(
-        ScriptTimeline timeline, uint id, float fightNow, bool requireWindow, float maxDistance)
+        ScriptTimeline timeline, uint id, float fightNow, bool requireWindow, float maxDistance,
+        Func<ScriptTimelineEntry, float, bool>? allowed = null)
     {
         ScriptTimelineEntry? nearest = null;
         ScriptTimelineEntry? gate = null;
@@ -334,6 +377,7 @@ public sealed class ScriptTimelineRuntime
         {
             if (!entry.Matches(id)) continue;
             if (requireWindow && !entry.InWindow(fightNow)) continue;
+            if (allowed is not null && !allowed(entry, fightNow)) continue;
 
             var distance = MathF.Abs(entry.Time - fightNow);
             if (distance > maxDistance) continue;

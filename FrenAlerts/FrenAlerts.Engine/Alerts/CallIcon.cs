@@ -18,11 +18,6 @@ public enum CallIconKind
     // A status that landed on you: the debuff's own game icon.
     Status,
 
-    // The ability being cast: its own game icon. This is what a raidwide, a tank buster
-    // or a cone shows, because the game has a picture for that exact ability and does
-    // not have one for the shape it makes.
-    Action,
-
     // A game icon by its own number, which is what somebody picks in a hand-written
     // trigger: their editor asks for the icon rather than for the thing that has it.
     Sheet,
@@ -35,9 +30,6 @@ public readonly record struct CallIcon(CallIconKind Kind, uint Id)
     public static CallIcon Status(uint statusId) =>
         statusId == 0 ? None : new(CallIconKind.Status, statusId);
 
-    public static CallIcon Action(uint actionId) =>
-        actionId == 0 ? None : new(CallIconKind.Action, actionId);
-
     public bool Any => Kind != CallIconKind.None;
 
     // Zero is no icon rather than icon zero. A trigger that picked none would
@@ -48,15 +40,15 @@ public readonly record struct CallIcon(CallIconKind Kind, uint Id)
 
     // The picture for the event a call came out of.
     //
-    // A debuff has to be on you, because a debuff icon means "this is on you" and one
-    // that shows for somebody else's is worse than none. A cast is nobody's in
-    // particular, so it is not asked about: a raidwide is aimed at the room.
-    public static CallIcon For(in GameEvent e, uint me) => e.Kind switch
-    {
-        EventKind.StatusGain when e.TargetId == me && me != 0 => Status(e.Id),
-        EventKind.CastStart or EventKind.AbilityHit => Action(e.Id),
-        _ => None,
-    };
+    // A debuff and nothing else, which is what swix asked for: an icon is there to say
+    // "this one is on you", and a picture beside every raidwide and every cone says
+    // nothing at all while making the whole stack wider and busier.
+    //
+    // Casts used to carry the ability's own art here. It read as decoration rather than
+    // information, because it fired on the ordinary calls too, so the icon stopped
+    // meaning the one thing it was for.
+    public static CallIcon For(in GameEvent e, uint me) =>
+        e.Kind == EventKind.StatusGain && e.TargetId == me && me != 0 ? Status(e.Id) : None;
 
     // The picture for a call sitting on a page, where nothing has fired and there is
     // nobody it landed on.
@@ -65,10 +57,6 @@ public readonly record struct CallIcon(CallIconKind Kind, uint Id)
     // from the live answer above: a list is describing the mechanic rather than
     // reporting a hit, and a row that hides its icon until the night it happens to be
     // yours is a row that looks like a different call every pull.
-    public static CallIcon Listed(EventKind kind, uint matchId) => kind switch
-    {
-        EventKind.StatusGain => Status(matchId),
-        EventKind.CastStart or EventKind.AbilityHit => Action(matchId),
-        _ => None,
-    };
+    public static CallIcon Listed(EventKind kind, uint matchId) =>
+        kind == EventKind.StatusGain ? Status(matchId) : None;
 }
