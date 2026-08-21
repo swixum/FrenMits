@@ -148,6 +148,10 @@ public partial class SheetViewWindow
                 {
                     if (_gridToSlot[c] == i)
                     {
+                        // Standalone: a pairing-only line never reaches ShowsInColumn.
+                        if (!TankPair.Matches(line.TankPairs))
+                            continue;
+
                         if (!_isCustom && line.Jobs.Count > 0)
                         {
                             var show = ShowsInColumn(line.Jobs, _gridCols[c], IsActiveSlot(i),
@@ -196,6 +200,11 @@ public partial class SheetViewWindow
                     if (_gridToSlot[c] == i)
                     {
                         if (!_showJobExtra && (line.IsJobExtra || JobExtras.IsAutoExtra(line)))
+                            continue;
+
+                        // Same pairing rule as the live grid, or edited/ghost
+                        // detection disagrees with what's on screen.
+                        if (!TankPair.Matches(line.TankPairs))
                             continue;
 
                         if (!_isCustom && line.Jobs.Count > 0)
@@ -326,7 +335,7 @@ public partial class SheetViewWindow
         for (var c = 0; c < _gridCols.Length; c++)
         {
             var slotIdx = _gridToSlot[c];
-            var lines = _slotLines[slotIdx].Where(l => l.Enabled && (l.Jobs.Count == 0 || l.Jobs.Contains(_gridCols[c], StringComparer.OrdinalIgnoreCase))).OrderBy(l => l.Time).ToList();
+            var lines = _slotLines[slotIdx].Where(l => l.Enabled && TankPair.Matches(l.TankPairs) && (l.Jobs.Count == 0 || l.Jobs.Contains(_gridCols[c], StringComparer.OrdinalIgnoreCase))).OrderBy(l => l.Time).ToList();
             if (lines.Count == 0) continue;
             var start = 0;
             foreach (var row in _rows)
@@ -402,6 +411,12 @@ public partial class SheetViewWindow
                         tag = string.Join("/", l.Jobs
                             .Select(j2 => j2.ToUpperInvariant())
                             .OrderBy(j2 => j2, StringComparer.Ordinal));
+                    // Pairing variants are different lockouts' presses; they
+                    // never share one timer, so they never clash.
+                    if (l.TankPairs.Count > 0)
+                        tag = (tag.Length > 0 ? tag + "|" : "") + string.Join("/", l.TankPairs
+                            .Select(p => p.ToUpperInvariant())
+                            .OrderBy(p => p, StringComparer.Ordinal));
                     entry.Uses.Add((l.CueTime, l, pm.Name, tag));
                 }
             }

@@ -78,6 +78,7 @@ public static class DmuRebake
             to.Color = from.Color;
             to.IconId = from.IconId;
             if (from.Jobs.Count > 0 && to.Jobs.Count == 0) to.Jobs = new List<string>(from.Jobs);
+            if (from.TankPairs.Count > 0 && to.TankPairs.Count == 0) to.TankPairs = new List<string>(from.TankPairs);
         }
 
         foreach (var b in newBaked) // pass 1: identical calls keep their tweaks

@@ -602,7 +602,11 @@ public partial class SheetViewWindow
         var action = Fmt.Numerals(l.Action);
         if (l.Jobs.Count > 0 && Jobs.ByAbbreviation(_gridCols[i]) == null)
         {
-            return $"{action} ({string.Join("/", l.Jobs)})";
+            action = $"{action} ({string.Join("/", l.Jobs)})";
+        }
+        if (l.TankPairs.Count > 0)
+        {
+            action = $"{action} ({string.Join(", ", l.TankPairs)})";
         }
         return action;
     }
@@ -1165,6 +1169,7 @@ public partial class SheetViewWindow
                 Action = b.Action,
                 Enabled = true,
                 Jobs = new List<string>(b.Jobs),
+                TankPairs = new List<string>(b.TankPairs),
             });
             changed++;
         }

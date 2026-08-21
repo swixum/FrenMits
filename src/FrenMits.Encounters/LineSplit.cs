@@ -33,6 +33,7 @@ public static class LineSplit
                     Mechanic = line.Mechanic,
                     Action = seg,
                     Jobs = jobs.Count > 0 ? jobs : new List<string>(line.Jobs),
+                    TankPairs = new List<string>(line.TankPairs),
                     Enabled = line.Enabled,
                     Custom = line.Custom,
                     OffsetSeconds = line.OffsetSeconds,

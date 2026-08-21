@@ -38,4 +38,21 @@ public static class PartyRoster
         var local = LocalJob();
         return (local, CoTankJob(local));
     }
+
+    // The party's tank duo as a TankPair key, counting every tank in the party
+    // (not local + other) so a healer's grid view resolves too. Null unless
+    // exactly two distinct tank jobs are present.
+    public static string? TankPairKey()
+    {
+        string? first = null, second = null;
+        var tanks = 0;
+        foreach (var m in Service.PartyList)
+        {
+            if (Jobs.ByRowId(m.ClassJob.RowId) is not { Role: JobRole.Tank } job) continue;
+            if (tanks == 0) first = job.Abbreviation;
+            else if (tanks == 1) second = job.Abbreviation;
+            tanks++;
+        }
+        return tanks == 2 ? TankPair.KeyFor(first, second) : null;
+    }
 }

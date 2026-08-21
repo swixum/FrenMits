@@ -123,6 +123,13 @@ internal static class MitLineEditor
         ImGui.SameLine(_fieldX);
         DrawJobs(line, Begin, Save);
 
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled("Tanks");
+        if (Widgets.HoveredDelayed())
+            ImGui.SetTooltip("Only called under the checked tank pairs.\nWhen the duo can't be read, every variant shows.");
+        ImGui.SameLine(_fieldX);
+        DrawTankPairs(line, Begin, Save);
+
         if (ImGui.TreeNode("Advanced"))
         {
             // Back to the shared left edge: the tree's indent would shift only
@@ -345,6 +352,33 @@ internal static class MitLineEditor
             {
                 foreach (var abbr in Jobs.AbbreviationsForRole(role))
                     if (!line.Jobs.Contains(abbr)) line.Jobs.Add(abbr);
+                save();
+            }
+        }
+        ImGui.EndPopup();
+    }
+
+    // Tank-pair filter: same shape as the job filter, over the six duos.
+    private static void DrawTankPairs(MitLine line, Func<bool, bool> begin, Action save)
+    {
+        var label = line.TankPairs.Count == 0 ? "Any Tanks" : string.Join(", ", line.TankPairs);
+        if (label.Length > 24) label = label[..22] + "...";
+        if (ImGui.Button(label + "##tankpairs", new Vector2(_fieldW, 0)))
+            ImGui.OpenPopup("tankpairspopup");
+
+        if (!ImGui.BeginPopup("tankpairspopup")) return;
+
+        if (ImGui.Button("Any Tanks") && begin(false)) { line.TankPairs.Clear(); save(); }
+
+        for (var i = 0; i < TankPair.AllPairs.Length; i++)
+        {
+            var pair = TankPair.AllPairs[i];
+            if (i % 3 != 0) ImGui.SameLine();
+            var has = line.TankPairs.Contains(pair, StringComparer.OrdinalIgnoreCase);
+            if (Widgets.GreenCheckbox(pair, ref has) && begin(false))
+            {
+                if (has && !line.TankPairs.Contains(pair)) line.TankPairs.Add(pair);
+                else line.TankPairs.RemoveAll(p => string.Equals(p, pair, StringComparison.OrdinalIgnoreCase));
                 save();
             }
         }

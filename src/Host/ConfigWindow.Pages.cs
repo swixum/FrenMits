@@ -1302,7 +1302,7 @@ public partial class ConfigWindow
     private static MitLine CloneLine(MitLine l) => new()
     {
         Time = l.Time, Mechanic = l.Mechanic, Action = l.Action,
-        Jobs = new List<string>(l.Jobs), Enabled = l.Enabled,
+        Jobs = new List<string>(l.Jobs), TankPairs = new List<string>(l.TankPairs), Enabled = l.Enabled,
         Custom = l.Custom, Personal = l.Personal, IsJobExtra = l.IsJobExtra,
         LeadOverride = l.LeadOverride, OffsetSeconds = l.OffsetSeconds,
         OffsetManual = l.OffsetManual, CoverUntil = l.CoverUntil,

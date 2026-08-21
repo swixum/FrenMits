@@ -47,6 +47,8 @@ public class MechanicAction
     public string Slot { get; set; } = "";
     public string Action { get; set; } = "";
     public List<string> Jobs { get; set; } = new();
+    // Tank-duo keys this press applies under (e.g. "GNB+PLD"); empty = any duo.
+    public List<string> TankPairs { get; set; } = new();
     // The Mechanic names a personal timer (a summoner's Ifrit/Titan/Garuda
     // cycle), not a boss cast, so it has no Timeline entry and must stay out
     // of the sheet's official mechanic list. The line itself still bakes -

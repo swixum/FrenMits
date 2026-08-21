@@ -338,13 +338,14 @@ public partial class ConfigWindow
                 
                 if (line.OffsetSeconds != 0) pillLabel += $" ({line.OffsetSeconds:+0.#;-0.#}s)";
                 if (line.Jobs.Count > 0) pillLabel += $" [{string.Join(",", line.Jobs)}]";
+                if (line.TankPairs.Count > 0) pillLabel += $" [{string.Join(", ", line.TankPairs)}]";
                 if (!line.Enabled) pillLabel += " (Off)";
                 
                 var chip = MitColors.Color(MitTypes.Classify(line.Action, line.Mechanic), C);
                 var btnColor = chip != 0 ? (chip & 0x00FFFFFFu) | 0x66000000u : ImGui.GetColorU32(ImGuiCol.Button);
                 
                 var isAutoExtra = JobExtras.IsAutoExtra(line);
-                var actionOverride = (line.Custom && !isAutoExtra) || (DefaultLineFor(fight, line, bakedForSlotAll) is { } d && (!string.Equals(line.Action.Trim(), d.Action.Trim(), StringComparison.OrdinalIgnoreCase) || line.OffsetSeconds != d.OffsetSeconds || !line.Jobs.OrderBy(x=>x).SequenceEqual(d.Jobs.OrderBy(x=>x))));
+                var actionOverride = (line.Custom && !isAutoExtra) || (DefaultLineFor(fight, line, bakedForSlotAll) is { } d && (!string.Equals(line.Action.Trim(), d.Action.Trim(), StringComparison.OrdinalIgnoreCase) || line.OffsetSeconds != d.OffsetSeconds || !line.Jobs.OrderBy(x=>x).SequenceEqual(d.Jobs.OrderBy(x=>x)) || !line.TankPairs.OrderBy(x=>x).SequenceEqual(d.TankPairs.OrderBy(x=>x))));
                 var hasConflict = _plugin.SheetViewWindow.HasConflict(fight, line, out var conflictReason);
                 
                 if (hasConflict) btnColor = Theme.Danger;
@@ -489,7 +490,7 @@ public partial class ConfigWindow
                     foreach (var l in validActions)
                     {
                         var d = bakedForGroup.FirstOrDefault(x => string.Equals(x.Action.Trim(), l.Action.Trim(), StringComparison.OrdinalIgnoreCase));
-                        if (d == null || l.Custom || l.OffsetSeconds != d.OffsetSeconds || !l.Jobs.OrderBy(j => j).SequenceEqual(d.Jobs.OrderBy(j => j)) || l.IconId != d.IconId || l.LeadOverride != d.LeadOverride)
+                        if (d == null || l.Custom || l.OffsetSeconds != d.OffsetSeconds || !l.Jobs.OrderBy(j => j).SequenceEqual(d.Jobs.OrderBy(j => j)) || !l.TankPairs.OrderBy(p => p).SequenceEqual(d.TankPairs.OrderBy(p => p)) || l.IconId != d.IconId || l.LeadOverride != d.LeadOverride)
                         {
                             hasOverride = true;
                             break;
@@ -669,6 +670,7 @@ public partial class ConfigWindow
         target.Mechanic = src.Mechanic;
         target.Action = src.Action;
         target.Jobs = new List<string>(src.Jobs);
+        target.TankPairs = new List<string>(src.TankPairs);
         target.Enabled = src.Enabled;
         target.LeadOverride = src.LeadOverride;
         target.OffsetSeconds = src.OffsetSeconds;

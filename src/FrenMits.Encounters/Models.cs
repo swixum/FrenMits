@@ -205,6 +205,9 @@ public class MitLine
 
     // Job abbreviations this line applies to (e.g. "WAR", "SCH").
     public List<string> Jobs { get; set; } = new();
+
+    // Tank-duo keys this line applies under (e.g. "GNB+PLD"); empty = any duo.
+    public List<string> TankPairs { get; set; } = new();
     public bool Enabled { get; set; } = true;
 
     // True for a line the user added themselves.
@@ -247,6 +250,7 @@ public class MitLine
 
     // A line at its defaults writes nothing for these, which is most of them.
     public bool ShouldSerializeJobs() => Jobs is { Count: > 0 };
+    public bool ShouldSerializeTankPairs() => TankPairs is { Count: > 0 };
     public bool ShouldSerializeEnabled() => !Enabled;
     public bool ShouldSerializeSound() => !Sound;
     public bool ShouldSerializeCustom() => Custom;
@@ -262,7 +266,7 @@ public class MitLine
     public bool ShouldSerializeAction() => !string.IsNullOrEmpty(Action);
 
     public bool AppliesTo(string? jobAbbr)
-        => Jobs.Count == 0 || (jobAbbr != null && JobListHas(jobAbbr));
+        => (Jobs.Count == 0 || (jobAbbr != null && JobListHas(jobAbbr))) && TankPair.Matches(TankPairs);
 
     // A plain loop, since this runs per line per frame.
     private bool JobListHas(string jobAbbr)
@@ -277,6 +281,7 @@ public class MitLine
     {
         var c = (MitLine)MemberwiseClone();
         c.Jobs = new List<string>(Jobs);
+        c.TankPairs = new List<string>(TankPairs);
         return c;
     }
 

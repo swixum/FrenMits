@@ -838,6 +838,9 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         {
             if (!_firstTickDone) { _firstTickDone = true; RunFirstTickInit(); }
 
+            // Cached here so the per-line gates never walk the party list.
+            TankPair.CurrentKey = PartyRoster.TankPairKey();
+
             UpdateCutsceneStuck();
 
             // A wipe resets every cooldown, so the press log restarts with the pull.
@@ -1218,9 +1221,13 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
                 stamp = stamp * 31 + BitConverter.SingleToInt32Bits(l.CoverUntil);
                 foreach (var j in l.Jobs)
                     stamp = stamp * 31 + StringComparer.OrdinalIgnoreCase.GetHashCode(j);
+                foreach (var p in l.TankPairs)
+                    stamp = stamp * 31 + StringComparer.OrdinalIgnoreCase.GetHashCode(p);
             }
             // Generic terms resolve per job, so the solve is job-specific too.
             stamp = stamp * 31 + (job != null ? StringComparer.OrdinalIgnoreCase.GetHashCode(job) : 0);
+            // A co-tank job change flips which pairing variants exist.
+            stamp = stamp * 31 + (TankPair.CurrentKey is { } pk ? StringComparer.OrdinalIgnoreCase.GetHashCode(pk) : 0);
         }
         
         if (_pressesFight != fight || _pressesStamp != stamp)

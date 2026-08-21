@@ -98,7 +98,7 @@ foreach ($file in $files) {
             $errors.Add("$where -> '$mech' @$time is not a Timeline mechanic$hint")
         }
 
-        $key = "$time|$mech|$slot|$($act.Trim())|$(@($a.Jobs) -join ',')"
+        $key = "$time|$mech|$slot|$($act.Trim())|$(@($a.Jobs) -join ',')|$(@($a.TankPairs) -join ',')"
         if (-not $seen.Add($key)) { $errors.Add("$where duplicates an identical action") }
     }
 

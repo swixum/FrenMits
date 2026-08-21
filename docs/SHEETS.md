@@ -46,13 +46,20 @@ that shifts the cue without splitting the row.
 }
 ```
 
-Key order is `Time`, `Mechanic`, `Slot`, `Action`, `Jobs`, `Hidden`.
+Key order is `Time`, `Mechanic`, `Slot`, `Action`, `Jobs`, `TankPairs`, `Hidden`.
 
 - **`Slot`** is omitted for a job-only line (a job extra). `Builtin.Bake` reads
   a blank slot as "applies to whoever plays that job", so it is not filtered by
   column; `AppliesTo(jobAbbr)` gates it at render time.
 - **`Jobs`** restricts the line to those job abbreviations. Omit for a line
   every job in the column takes.
+- **`TankPairs`** restricts the line to lockouts where the party's two tanks
+  are one of the listed duos. Keys are canonical: both abbreviations uppercase,
+  alphabetical, joined with `+` (`"GNB+PLD"`). Omit for a line any duo takes.
+  When the duo can't be read (out of the duty, solo, not exactly two tanks,
+  twin tank jobs) the gate passes and every variant shows. Plugin versions
+  before 2.0.0.46 drop the field from shared plan codes and show the press
+  unconditionally.
 
 ## `Hidden`
 

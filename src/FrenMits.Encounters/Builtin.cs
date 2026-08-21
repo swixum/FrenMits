@@ -401,6 +401,7 @@ public static class Builtin
                 {
                     Time = a.Time, Mechanic = a.Mechanic, Action = a.Action,
                     Jobs = a.Jobs.Count > 0 ? new List<string>(a.Jobs) : new(),
+                    TankPairs = a.TankPairs.Count > 0 ? new List<string>(a.TankPairs) : new(),
                     IsJobExtra = a.Slot.Length == 0 && a.Jobs.Count > 0,
                 });
             }
@@ -524,6 +525,13 @@ public static class Builtin
         if (MathF.Abs(a.Time - b.Time) >= 0.1f) return false;
         if (!string.Equals(a.Mechanic.Trim(), b.Mechanic.Trim(), StringComparison.OrdinalIgnoreCase))
             return false;
+
+        // Pairing variants of one moment are authored siblings, not the same
+        // press; one side ungated still matches, like a plain re-gate edit.
+        if (a.TankPairs.Count > 0 && b.TankPairs.Count > 0
+            && !a.TankPairs.Any(p => b.TankPairs.Contains(p, StringComparer.OrdinalIgnoreCase)))
+            return false;
+
         if (string.Equals(a.Action.Trim(), b.Action.Trim(), StringComparison.OrdinalIgnoreCase))
             return true;
 
