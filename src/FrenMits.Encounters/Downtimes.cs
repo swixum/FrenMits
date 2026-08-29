@@ -210,11 +210,12 @@ public static class Downtimes
 
     private static readonly List<DowntimeWindow> Dmu = new()
     {
-        new() { Start = 199, Duration = 10, TargetHp = 0.15f }, // P1 -> P2 (targetable 209)
+        // Off the last Mystery Magic (the 187 anchor) over 573 pushes: boss goes at +11.56, comes back at +21.90.
+        new() { Start = 198.56f, Duration = 10.34f, TargetHp = 0.15f }, // P1 -> P2 (targetable 208.90)
         // Off the second Ultimate Embrace (the 378 anchor) over 292 pushes: boss goes at +4.55, Chaos and Exdeath land at +50.43.
         new() { Start = 382.55f, Duration = 45.88f, TargetHp = 0.00f, Cutscene = true }, // P2 -> P3 cutscene (targetable 428.43)
-        // The lull opens on the second Upsurge, at 872 on this clock.
-        new() { Start = 871.7f, Duration = 31.2f, TargetHp = 0.25f }, // P4 -> P5 (targetable 903)
+        // The lull opens on the second Upsurge: 39.21 past the first one, which is the 833 anchor, over 46 pushes.
+        new() { Start = 872.21f, Duration = 31.00f, TargetHp = 0.25f }, // P4 -> P5 (targetable 903.21)
     };
 
     // Futures Rewritten: sheet clock, not real time.
