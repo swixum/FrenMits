@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -45,7 +46,9 @@ public static class Fmt
         new(@"(?<![\p{L}\p{N}'])(?=[IVX])X{0,3}(?:IX|IV|V?I{0,3})(?![\p{L}\p{N}'])", RegexOptions.Compiled);
 
     private const int NumeralCacheMax = 4096;
-    private static readonly Dictionary<string, string> _numerals = new(StringComparer.Ordinal);
+    // Every window reads this, and the meter reads it off its own thread, so a
+    // plain dictionary corrupts itself the first time two of them miss at once.
+    private static readonly ConcurrentDictionary<string, string> _numerals = new(StringComparer.Ordinal);
 
     private static string Swap(string text, Match m)
     {

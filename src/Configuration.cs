@@ -522,7 +522,9 @@ public class Configuration : IPluginConfiguration
     private DateTime _firstAsk;
     private DateTime _lastAsk;
 
-    // True while a change is still waiting on disk.
+    // True while a change is still waiting on disk. Derived, so the loader has
+    // nowhere to put it and the writer must not spend a line on it.
+    [Newtonsoft.Json.JsonIgnore]
     public bool SavePending => _dirty;
 
     // Settings only, for paths that cannot have touched a plan.
