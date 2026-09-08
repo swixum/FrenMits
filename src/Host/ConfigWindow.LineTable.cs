@@ -259,9 +259,12 @@ public partial class ConfigWindow
                     if (ImGui.InputText("##time", ref timeBuf, 12)) _editTimeBuf = timeBuf;
                     ImGui.PopStyleColor();
                     if (ImGui.IsItemActivated()) { _editTimeLine = repLine; _editTimeBuf = repLine.TimeText; }
+                    // The tag is only worth typing if it reads back the second it means.
+                    if (ImGui.IsItemActive() && SheetImport.PhaseTimeHint(_editTimeBuf, fight.TerritoryId) is { Length: > 0 } hint)
+                        ImGui.SetTooltip(hint);
                     if (ImGui.IsItemDeactivatedAfterEdit())
                     {
-                        if (_editTimeLine == repLine && SheetImport.TryParseTime(_editTimeBuf, out var sec) && MathF.Abs(sec - repLine.Time) > 0.001f)
+                        if (_editTimeLine == repLine && SheetImport.TryParseTime(_editTimeBuf, fight.TerritoryId, out var sec) && MathF.Abs(sec - repLine.Time) > 0.001f)
                         {
                             Undoable($"re-time \"{Fmt.Numerals(group.Mechanic)}\"");
                             foreach (var l in group.Actions)
@@ -273,7 +276,12 @@ public partial class ConfigWindow
                         }
                         if (_editTimeLine == repLine) _editTimeLine = null;
                     }
-                    if (Widgets.HoveredDelayed()) ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds");
+                    if (Widgets.HoveredDelayed())
+                    {
+                        var tag = SheetImport.PhaseTagTip(fight.TerritoryId);
+                        ImGui.SetTooltip("Type m:ss (e.g. 2:30) or seconds"
+                            + (tag.Length > 0 ? $"\n{tag}" : ""));
+                    }
                 }
             }
 

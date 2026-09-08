@@ -83,6 +83,83 @@ public static class SheetImport
         return false;
     }
 
+    // A time typed against the phase it sits in: "P2 1:30" on a multi-phase
+    // fight, "B3 1:00" on a field op. A late phase starts hundreds of seconds
+    // into the pull, and a field op's bosses run on 1000s blocks, so without
+    // this every call past phase one needs its number worked out by hand.
+    public static bool TryParseTime(string text, uint territory, out float seconds)
+    {
+        seconds = 0f;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        // Text that opens with a letter resolves as a tag or not at all: the
+        // plain parser strips letters, so "P2" alone would read as 2 seconds
+        // and put the call at the top of the fight.
+        if (!char.IsLetter(text.Trim()[0])) return TryParseTime(text, out seconds);
+        if (!SplitPhaseTag(text, out var tag, out var rest)) return false;
+        if (!TryPhaseBase(tag, territory, out var start, out _)) return false;
+        if (!TryParseTime(rest, out var offset)) return false;
+        seconds = start + offset;
+        return true;
+    }
+
+    // What the time box reads back under a tagged time, empty for a plain one.
+    public static string PhaseTimeHint(string text, uint territory)
+    {
+        if (!SplitPhaseTag(text, out var tag, out var rest)) return "";
+        if (!TryPhaseBase(tag, territory, out var start, out var name))
+            return $"{tag} is not a phase on this fight";
+        if (!TryParseTime(rest, out var offset)) return $"{tag} needs a time after it";
+        var at = (int)MathF.Round(Builtin.DisplayTime(territory, start + offset));
+        var sign = at < 0 ? "-" : "";
+        at = Math.Abs(at);
+        return $"{Builtin.PhaseTitle(territory, name)}  ·  lands at {sign}{at / 60}:{at % 60:00}";
+    }
+
+    // The line a time box shows about tags, naming a tag this fight has. Empty
+    // on a fight with one phase, which has nothing to tag.
+    public static string PhaseTagTip(uint territory)
+    {
+        var phases = Builtin.PhaseStarts(territory);
+        if (phases.Count < 2) return "";
+        return Builtin.FieldOp(territory)
+            ? $"Type B{Math.Min(3, phases.Count)} 1:00 to place it inside a boss."
+            : $"Type {phases[1].Name} 1:30 to place it inside a phase.";
+    }
+
+    // "P2 1:30" and "P2+1:30" both split; a plain time carries no tag.
+    private static bool SplitPhaseTag(string text, out string tag, out string rest)
+    {
+        tag = rest = "";
+        text = text.Trim();
+        if (text.Length == 0 || !char.IsLetter(text[0])) return false;
+        var end = 0;
+        while (end < text.Length && char.IsLetterOrDigit(text[end])) end++;
+        tag = text[..end];
+        rest = text[end..].TrimStart('+', ' ', '\t');
+        return rest.Length > 0;
+    }
+
+    // Where a tag's clock starts. A field op shows each boss its own clock off
+    // its 1000s block, so the tag adds the block rather than the boss's first
+    // cast; everywhere else the phase start is what the sheet counts from.
+    private static bool TryPhaseBase(string tag, uint territory, out float start, out string name)
+    {
+        start = 0f;
+        name = "";
+        var phases = Builtin.PhaseStarts(territory);
+        var fieldOp = Builtin.FieldOp(territory);
+        for (var i = 0; i < phases.Count; i++)
+        {
+            if (!string.Equals(phases[i].Name, tag, StringComparison.OrdinalIgnoreCase)
+                && !(fieldOp && string.Equals($"B{i + 1}", tag, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            start = fieldOp ? MathF.Floor(phases[i].Time / 1000f) * 1000f : phases[i].Time;
+            name = phases[i].Name;
+            return true;
+        }
+        return false;
+    }
+
     public class Options
     {
         public int TimeColumn;

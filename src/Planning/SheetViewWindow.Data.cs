@@ -742,7 +742,8 @@ public partial class SheetViewWindow
     private void CommitTime(Row row)
     {
         if (_fight == null || row.Ghost || AbortIfStale()) return;
-        if (!SheetImport.TryParseTime(_timeBuf, out var newTime) || MathF.Abs(newTime - row.Time) < 0.05f)
+        if (!SheetImport.TryParseTime(_timeBuf, _fight.TerritoryId, out var newTime)
+            || MathF.Abs(newTime - row.Time) < 0.05f)
             return;
 
         PushUndo($"re-time \"{Fmt.Numerals(row.Mechanic)}\"");

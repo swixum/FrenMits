@@ -399,6 +399,9 @@ public partial class SheetViewWindow
             ImGui.SetNextItemWidth(-1);
             if (_focusPending) { ImGui.SetKeyboardFocusHere(); _focusPending = false; }
             ImGui.InputText("##t", ref _timeBuf, 16);
+            // The tag is only worth typing if it reads back the second it means.
+            if (ImGui.IsItemActive() && SheetImport.PhaseTimeHint(_timeBuf, _fight?.TerritoryId ?? 0) is { Length: > 0 } hint)
+                ImGui.SetTooltip(hint);
             // Enter or click-away commits; Escape just closes.
             if (ImGui.IsItemDeactivated())
             {
@@ -419,7 +422,11 @@ public partial class SheetViewWindow
             {
                 _hoverRow = row; _hoverLive = row;
                 if (DelayedHover())
-                    ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time every slot.");
+                {
+                    var tag = SheetImport.PhaseTagTip(_fight?.TerritoryId ?? 0);
+                    ImGui.SetTooltip($"{row.Time:0.#}s. Click to re-time every slot."
+                        + (tag.Length > 0 ? $"\n{tag}" : ""));
+                }
             }
         }
     }
