@@ -13,7 +13,9 @@ public enum JobRole
     Caster
 }
 
-public readonly record struct JobInfo(uint RowId, string Abbreviation, string Name, JobRole Role);
+// Limited jobs sit in the table so the game's ids resolve, but they cannot enter
+// the content the raid tables cover.
+public readonly record struct JobInfo(uint RowId, string Abbreviation, string Name, JobRole Role, bool Limited = false);
 
 // Static job table keyed by row id, not by Lumina shape.
 public static class Jobs
@@ -37,6 +39,7 @@ public static class Jobs
         new(34, "SAM", "Samurai", JobRole.Melee),
         new(39, "RPR", "Reaper", JobRole.Melee),
         new(41, "VPR", "Viper", JobRole.Melee),
+        new(43, "BST", "Beastmaster", JobRole.Melee, Limited: true),
 
         new(23, "BRD", "Bard", JobRole.PhysicalRanged),
         new(31, "MCH", "Machinist", JobRole.PhysicalRanged),
@@ -46,12 +49,15 @@ public static class Jobs
         new(27, "SMN", "Summoner", JobRole.Caster),
         new(35, "RDM", "Red Mage", JobRole.Caster),
         new(42, "PCT", "Pictomancer", JobRole.Caster),
-        new(36, "BLU", "Blue Mage", JobRole.Caster),
+        new(36, "BLU", "Blue Mage", JobRole.Caster, Limited: true),
     };
 
     public static readonly IReadOnlyList<JobInfo> All = Table;
 
     public static readonly string[] Abbreviations = Table.Select(j => j.Abbreviation).ToArray();
+
+    public static readonly string[] LimitedAbbreviations =
+        Table.Where(j => j.Limited).Select(j => j.Abbreviation).ToArray();
 
     public static JobInfo? ByRowId(uint rowId)
     {
