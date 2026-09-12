@@ -208,7 +208,7 @@ public partial class ConfigWindow
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, Theme.S(70f));
+        ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, Theme.S(96f));
         ImGui.TableSetupColumn("Mechanic", ImGuiTableColumnFlags.WidthFixed, Theme.S(230f));
         ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthStretch, 1);
         ImGui.TableSetupColumn("##del", ImGuiTableColumnFlags.WidthFixed, Theme.S(28f));
@@ -253,12 +253,13 @@ public partial class ConfigWindow
                 var repLine = group.Actions.FirstOrDefault();
                 if (repLine != null)
                 {
-                    var timeBuf = _editTimeLine == repLine ? _editTimeBuf : repLine.TimeText;
+                    var shown = Fmt.MmssPhase(fight.TerritoryId, repLine.Time);
+                    var timeBuf = _editTimeLine == repLine ? _editTimeBuf : shown;
                     ImGui.SetNextItemWidth(-1);
                     ImGui.PushStyleColor(ImGuiCol.Text, 0xFF5C9EF5); // Orange for custom
-                    if (ImGui.InputText("##time", ref timeBuf, 12)) _editTimeBuf = timeBuf;
+                    if (ImGui.InputText("##time", ref timeBuf, 16)) _editTimeBuf = timeBuf;
                     ImGui.PopStyleColor();
-                    if (ImGui.IsItemActivated()) { _editTimeLine = repLine; _editTimeBuf = repLine.TimeText; }
+                    if (ImGui.IsItemActivated()) { _editTimeLine = repLine; _editTimeBuf = shown; }
                     // The tag is only worth typing if it reads back the second it means.
                     if (ImGui.IsItemActive() && SheetImport.PhaseTimeHint(_editTimeBuf, fight.TerritoryId) is { Length: > 0 } hint)
                         ImGui.SetTooltip(hint);

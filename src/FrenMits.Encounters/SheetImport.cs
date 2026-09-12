@@ -91,6 +91,8 @@ public static class SheetImport
     {
         seconds = 0f;
         if (string.IsNullOrWhiteSpace(text)) return false;
+        if (SplitBracketTag(text, out var bracket, out var shown))
+            return TryParseShownTime(shown, bracket, territory, out seconds);
         // Text that opens with a letter resolves as a tag or not at all: the
         // plain parser strips letters, so "P2" alone would read as 2 seconds
         // and put the call at the top of the fight.
@@ -137,6 +139,32 @@ public static class SheetImport
         tag = text[..end];
         rest = text[end..].TrimStart('+', ' ', '\t');
         return rest.Length > 0;
+    }
+
+    // "4:18 (B1)" is what a time cell shows, so it reads back as the cell's own
+    // second: a field op's bracket adds its block, since the cell shows the
+    // boss's clock; a phased fight's cell shows pull time, so its bracket is a
+    // label and adds nothing.
+    private static bool TryParseShownTime(string shown, string bracket, uint territory, out float seconds)
+    {
+        seconds = 0f;
+        if (!TryPhaseBase(bracket, territory, out var start, out _)) return false;
+        if (!TryParseTime(shown, out var offset)) return false;
+        seconds = Builtin.FieldOp(territory) ? start + offset : offset;
+        return true;
+    }
+
+    // "4:18 (B1)" splits into the bracket and what stands before it.
+    private static bool SplitBracketTag(string text, out string tag, out string shown)
+    {
+        tag = shown = "";
+        text = text.Trim();
+        if (!text.EndsWith(')')) return false;
+        var open = text.LastIndexOf('(');
+        if (open <= 0) return false;
+        tag = text[(open + 1)..^1].Trim();
+        shown = text[..open].Trim();
+        return tag.Length > 0 && shown.Length > 0;
     }
 
     // Where a tag's clock starts. A field op shows each boss its own clock off

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using FrenMits.Encounters;
 
 namespace FrenMits.Ui;
 
@@ -109,5 +110,13 @@ public static class Fmt
         var sign = s < 0 ? "-" : "";
         s = Math.Abs(s);
         return $"{sign}{s / 60}:{s % 60:00}";
+    }
+
+    // A row's time cell: the clock it shows plus the phase it sits in, "4:18 (B1)".
+    public static string MmssPhase(uint territory, float seconds)
+    {
+        var clock = MmssSigned(Builtin.DisplayTime(territory, seconds));
+        var tag = Builtin.PhaseTag(territory, seconds);
+        return tag.Length > 0 ? $"{clock} ({tag})" : clock;
     }
 }

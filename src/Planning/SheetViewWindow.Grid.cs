@@ -412,7 +412,10 @@ public partial class SheetViewWindow
         else
         {
             if (row.Edited) { ImGui.TextColored(EditedColor, "*"); ImGui.SameLine(0, Theme.S(3f)); }
-            if (ImGui.Selectable(TimeText(row.Time) + "##time", false) && !CommitPending())
+            // A row the sheet does not carry is one the user added, and its
+            // time cell names the phase it was put in.
+            var shown = row.Bake == null && !row.JobExtra ? TimeCell(row.Time) : TimeText(row.Time);
+            if (ImGui.Selectable(shown + "##time", false) && !CommitPending())
             {
                 _editTimeRow = row;
                 _timeBuf = _timeSeed = row.Time.ToString("0.##", CultureInfo.InvariantCulture);
@@ -1193,6 +1196,9 @@ public partial class SheetViewWindow
     // Field-op rows sit on 1000s blocks; on screen they read as pull time.
     private string TimeText(float t)
         => Fmt.MmssSigned(Builtin.DisplayTime(_fight?.TerritoryId ?? 0, t));
+
+    // An added row's time cell carries the phase too; sheet rows, prose and exports keep the bare clock.
+    private string TimeCell(float t) => Fmt.MmssPhase(_fight?.TerritoryId ?? 0, t);
 
     private static string SlotTip(string slot)
         => TankSlots.Contains(slot, StringComparer.OrdinalIgnoreCase) ? "Tank slot"

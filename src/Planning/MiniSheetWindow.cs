@@ -115,7 +115,7 @@ public class MiniSheetWindow : Window
                 if (running)
                     ImGui.TextColored(past ? Dim : Bright, rem <= 0f ? $"{rem:0}s" : $"+{rem:0}s");
                 else
-                    ImGui.TextColored(Dim, line.TimeText);
+                    ImGui.TextColored(Dim, Fmt.MmssSigned(Builtin.DisplayTime(fight.TerritoryId, line.Time)));
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();

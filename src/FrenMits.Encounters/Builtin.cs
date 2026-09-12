@@ -188,6 +188,26 @@ public static class Builtin
     public static float DisplayTime(uint territory, float seconds)
         => FieldOp(territory) && seconds >= 1000f ? seconds % 1000f : seconds;
 
+    // Which phase a row's time sits in, as the tag a time box takes: the boss
+    // number on a field op, the sheet's own phase name elsewhere. Empty on a
+    // fight with one phase, and on a field op row that has no block.
+    public static string PhaseTag(uint territory, float seconds)
+    {
+        var phases = PhaseStarts(territory);
+        if (phases.Count == 0) return "";
+        if (FieldOp(territory))
+        {
+            var block = MathF.Floor(seconds / 1000f);
+            for (var i = 0; i < phases.Count; i++)
+                if (MathF.Floor(phases[i].Time / 1000f) == block) return $"B{i + 1}";
+            return "";
+        }
+        var tag = phases[0].Name;
+        foreach (var (name, time) in phases)
+            if (time <= seconds) tag = name;
+        return tag;
+    }
+
     // Long display title for a phase key ("P1" -> "Phase 1: Kefka").
     public static string PhaseTitle(uint territory, string phase) => territory switch
     {
