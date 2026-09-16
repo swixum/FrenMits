@@ -607,6 +607,16 @@ public static class ConfigMigrations
             config.Version = 52;
             config.Save();
         }
+
+        // v53: UWU and DSR re-base on every push, and their late rows sit on
+        // the cast.
+        if (config.Version < 53)
+        {
+            RefreshBuiltins(config, Builtin.UwuTerritory, UwuRetimed);
+            RefreshBuiltins(config, Builtin.DsrTerritory, DsrRetimed);
+            config.Version = 53;
+            config.Save();
+        }
     }
 
     // A saved line whose action IS an ungated row on the sheet must not carry a
@@ -861,6 +871,23 @@ public static class ConfigMigrations
         (882f, "Akh Morn III", 918f),
         (906f, "Akh Morn IV", 968f),
         (1040f, "Morn Afah V", 1006f),
+    };
+
+    // UWU rows re-timed in 2.0.0.54.
+    private static readonly (float Old, string Mechanic, float New)[] UwuRetimed =
+    {
+        (562f, "Mistral Shriek", 559f),
+    };
+
+    // DSR rows re-timed in 2.0.0.54.
+    private static readonly (float Old, string Mechanic, float New)[] DsrRetimed =
+    {
+        (318f, "Resentment", 324f),
+        (622f, "Heavenly Heel & Ascalon's Might", 619f),
+        (774f, "Wyrmsbreath II", 777f),
+        (885f, "Akh Morn I", 871f),
+        (959f, "Akh Morn II", 950f),
+        (1039f, "Akh Morn III", 1030f),
     };
 
     // Dancing Mad rows re-timed in 1.0.0.373.
