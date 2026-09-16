@@ -143,7 +143,7 @@
       "Mechanic": "Divine Judgment"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight"
     },
     {
@@ -1388,31 +1388,31 @@
       ]
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "MT",
       "Action": "Short Mit"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "OT",
       "Action": "Party Mit"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "H1",
       "Action": "Everything",
@@ -1421,19 +1421,19 @@
       ]
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "R1",
       "Action": "Party Mit"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Mechanic": "Optical Sight",
       "Slot": "R2",
       "Action": "Addle"
@@ -1732,22 +1732,10 @@
   ],
   "SyncPoints": [
     {
-      "Ability": 18864,
-      "Time": 11,
-      "IsPhase": true,
-      "Label": "P1 Fluid Swing"
-    },
-    {
       "Ability": 18470,
       "Time": 19.1,
-      "IsPhase": false,
+      "IsPhase": true,
       "Label": "P1 Cascade"
-    },
-    {
-      "Ability": 18864,
-      "Time": 37.4,
-      "IsPhase": false,
-      "Label": "P1 Fluid Swing/Strike"
     },
     {
       "Ability": 18477,
@@ -1756,16 +1744,10 @@
       "Label": "P1 Hand of Pain"
     },
     {
-      "Ability": 18864,
-      "Time": 56.5,
+      "Ability": 18477,
+      "Time": 88.9,
       "IsPhase": false,
-      "Label": "P1 Fluid Swing/Strike"
-    },
-    {
-      "Ability": 18471,
-      "Time": 86.5,
-      "IsPhase": false,
-      "Label": "P1 Splash (x6) + Drainage"
+      "Label": "P1 Hand of Pain"
     },
     {
       "Ability": 18470,
@@ -1774,27 +1756,15 @@
       "Label": "P1 Cascade"
     },
     {
-      "Ability": 18472,
-      "Time": 95.8,
-      "IsPhase": false,
-      "Label": "P1 Throttles"
-    },
-    {
       "Ability": 18466,
       "Time": 106.8,
       "IsPhase": false,
       "Label": "P1 Protean Wave"
     },
     {
-      "Ability": 18516,
-      "Time": 143.7,
-      "IsPhase": true,
-      "Label": "P2 J Kick"
-    },
-    {
       "Ability": 18882,
       "Time": 155.8,
-      "IsPhase": false,
+      "IsPhase": true,
       "Label": "P2 Whirlwind"
     },
     {
@@ -1804,10 +1774,10 @@
       "Label": "P2 Photon"
     },
     {
-      "Ability": 18497,
-      "Time": 194.9,
+      "Ability": 18509,
+      "Time": 202.2,
       "IsPhase": false,
-      "Label": "P2 Water/Thunder I"
+      "Label": "P2 Missile Command"
     },
     {
       "Ability": 18513,
@@ -1816,10 +1786,10 @@
       "Label": "P2 Hidden Minefield"
     },
     {
-      "Ability": 18497,
-      "Time": 224.6,
+      "Ability": 18501,
+      "Time": 233.4,
       "IsPhase": false,
-      "Label": "P2 Water/Thunder II"
+      "Label": "P2 Flarethrower"
     },
     {
       "Ability": 18882,
@@ -1828,10 +1798,10 @@
       "Label": "P2 Whirlwind"
     },
     {
-      "Ability": 18497,
-      "Time": 254.3,
+      "Ability": 18492,
+      "Time": 274.8,
       "IsPhase": false,
-      "Label": "P2 Water/Thunder III"
+      "Label": "P2 Gavel"
     },
     {
       "Ability": 18486,
@@ -1844,6 +1814,12 @@
       "Time": 292.8,
       "IsPhase": false,
       "Label": "P2 Double Rocket Punch"
+    },
+    {
+      "Ability": 18522,
+      "Time": 310.8,
+      "IsPhase": true,
+      "Label": "P3 Temporal Stasis"
     },
     {
       "Ability": 18882,
@@ -1864,8 +1840,8 @@
       "Label": "P3 Judgment Crystal + True Heart"
     },
     {
-      "Ability": 18506,
-      "Time": 410.4,
+      "Ability": 18505,
+      "Time": 410.1,
       "IsPhase": false,
       "Label": "P3 Super Jump"
     },
@@ -1894,10 +1870,10 @@
       "Label": "P3 Mega Holy II"
     },
     {
-      "Ability": 18550,
-      "Time": 517.8,
-      "IsPhase": false,
-      "Label": "P3 J Storm"
+      "Ability": 18557,
+      "Time": 675.9,
+      "IsPhase": true,
+      "Label": "P4 The Final Word"
     },
     {
       "Ability": 18578,
@@ -1906,8 +1882,8 @@
       "Label": "P4 Ordained Capital Punishment"
     },
     {
-      "Ability": 18579,
-      "Time": 776.9,
+      "Ability": 18577,
+      "Time": 783,
       "IsPhase": false,
       "Label": "P4 Ordained Punishment"
     },
@@ -1924,8 +1900,8 @@
       "Label": "P4 Ordained Capital Punishment"
     },
     {
-      "Ability": 18579,
-      "Time": 876.9,
+      "Ability": 18577,
+      "Time": 882.9,
       "IsPhase": false,
       "Label": "P4 Ordained Punishment"
     },
@@ -1942,8 +1918,8 @@
       "Label": "P4 Ordained Capital Punishment"
     },
     {
-      "Ability": 18579,
-      "Time": 922.5,
+      "Ability": 18577,
+      "Time": 928.6,
       "IsPhase": false,
       "Label": "P4 Ordained Punishment"
     },
@@ -1968,7 +1944,7 @@
       "Name": "P3"
     },
     {
-      "Time": 694,
+      "Time": 707,
       "Name": "P4"
     }
   ],

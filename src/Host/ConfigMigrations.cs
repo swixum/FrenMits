@@ -587,6 +587,14 @@ public static class ConfigMigrations
             config.Version = 50;
             config.Save();
         }
+
+        // v51: TEA re-bases on every push, and its P4 opener sits on the hit.
+        if (config.Version < 51)
+        {
+            RefreshBuiltins(config, Builtin.TeaTerritory, TeaRetimed);
+            config.Version = 51;
+            config.Save();
+        }
     }
 
     // A saved line whose action IS an ungated row on the sheet must not carry a
@@ -822,6 +830,12 @@ public static class ConfigMigrations
         (150f, "Love Me Tender", 158f),
         (187f, "Honey B. Finale", 195f),
         (201f, "Killer Sting", 209f),
+    };
+
+    // TEA rows re-timed in 2.0.0.52.
+    private static readonly (float Old, string Mechanic, float New)[] TeaRetimed =
+    {
+        (694f, "Optical Sight", 707f),
     };
 
     // Dancing Mad rows re-timed in 1.0.0.373.
