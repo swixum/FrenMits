@@ -1064,7 +1064,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         _dtrLine = next;
         _dtrSecs = secs;
         _dtrJob = job;
-        var label = string.IsNullOrWhiteSpace(next.Action) ? next.Mechanic : next.ActionFor(job);
+        var label = string.IsNullOrWhiteSpace(next.Action) ? next.Mechanic : Icons.ResolveAction(next.ActionFor(job), job);
         _dtr.Text = $" {label} {secs}s";
         _dtr.Shown = true;
     }

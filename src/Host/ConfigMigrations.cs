@@ -617,6 +617,15 @@ public static class ConfigMigrations
             config.Version = 53;
             config.Save();
         }
+
+        // v54: TEA re-bases at the Alexander Prime kill, and the J Waves and
+        // Divine Judgment rows sit where the waves and the countdown land.
+        if (config.Version < 54)
+        {
+            RefreshBuiltins(config, Builtin.TeaTerritory, TeaRetimedAgain);
+            config.Version = 54;
+            config.Save();
+        }
     }
 
     // A saved line whose action IS an ungated row on the sheet must not carry a
@@ -871,6 +880,16 @@ public static class ConfigMigrations
         (882f, "Akh Morn III", 918f),
         (906f, "Akh Morn IV", 968f),
         (1040f, "Morn Afah V", 1006f),
+    };
+
+    // TEA rows re-timed in 2.0.0.55.
+    private static readonly (float Old, string Mechanic, float New)[] TeaRetimedAgain =
+    {
+        (591f, "J Waves (0-10s)", 523f),
+        (628f, "J Waves (10-20s)", 533f),
+        (647f, "J Waves (20-30s)", 543f),
+        (656f, "Divine Judgment", 592f),
+        (707f, "Optical Sight", 704f),
     };
 
     // UWU rows re-timed in 2.0.0.54.

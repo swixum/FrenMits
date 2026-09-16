@@ -471,7 +471,7 @@ public class MitRecap
             foreach (var (_, line) in PlannedLines(fight, myJob))
             {
                 if (line.Time > p.CaptureElapsed - 1f) continue; // pull ended first
-                foreach (var pm in CooldownTracker.PlanMits(line.Action))
+                foreach (var pm in CooldownTracker.PlanMits(Icons.ResolveAction(line.Action, myJob)))
                 {
                     if (DeltaBlind.Contains(pm.Name)) continue;
                     if (!MitStatusBook.IsTrackedAction(pm.Name)) continue; // recap can't see it

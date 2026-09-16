@@ -238,6 +238,16 @@ public static class Icons
                 ["WAR"] = "Thrill of Battle", ["PLD"] = "Bulwark",
                 ["DRK"] = "Dark Mind", ["GNB"] = "Camouflage",
             },
+            // A caster seated in a melee column presses its own version, and back.
+            ["Feint"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["BLM"] = "Addle", ["SMN"] = "Addle", ["RDM"] = "Addle", ["PCT"] = "Addle",
+            },
+            ["Addle"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["MNK"] = "Feint", ["DRG"] = "Feint", ["NIN"] = "Feint",
+                ["SAM"] = "Feint", ["RPR"] = "Feint", ["VPR"] = "Feint",
+            },
         };
 
         // Whether a term's trailing "(...)" is a job-restriction list (e.g.

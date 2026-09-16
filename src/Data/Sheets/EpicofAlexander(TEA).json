@@ -127,23 +127,23 @@
       "Mechanic": "J Storm"
     },
     {
-      "Time": 591,
+      "Time": 523,
       "Mechanic": "J Waves (0-10s)"
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)"
     },
     {
-      "Time": 647,
+      "Time": 543,
       "Mechanic": "J Waves (20-30s)"
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight"
     },
     {
@@ -1205,7 +1205,7 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 591,
+      "Time": 523,
       "Mechanic": "J Waves (0-10s)",
       "Slot": "H2",
       "Action": "Panhaima",
@@ -1214,13 +1214,13 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "OT",
       "Action": "Reprisal"
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "H1",
       "Action": "Temperance",
@@ -1229,7 +1229,7 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "H1",
       "Action": "Neutral Sect",
@@ -1238,7 +1238,7 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "H2",
       "Action": "Seraph",
@@ -1247,7 +1247,7 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "H2",
       "Action": "Fey Illumination",
@@ -1256,7 +1256,7 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -1265,7 +1265,7 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "H2",
       "Action": "Holos",
@@ -1274,7 +1274,7 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -1283,19 +1283,19 @@
       ]
     },
     {
-      "Time": 628,
+      "Time": 533,
       "Mechanic": "J Waves (10-20s)",
       "Slot": "M2",
       "Action": "Feint (Brute Justice)"
     },
     {
-      "Time": 647,
+      "Time": 543,
       "Mechanic": "J Waves (20-30s)",
       "Slot": "OT",
       "Action": "Party Mit"
     },
     {
-      "Time": 647,
+      "Time": 543,
       "Mechanic": "J Waves (20-30s)",
       "Slot": "H1",
       "Action": "Cure III",
@@ -1304,7 +1304,7 @@
       ]
     },
     {
-      "Time": 647,
+      "Time": 543,
       "Mechanic": "J Waves (20-30s)",
       "Slot": "H1",
       "Action": "Aspected Helios",
@@ -1313,7 +1313,7 @@
       ]
     },
     {
-      "Time": 647,
+      "Time": 543,
       "Mechanic": "J Waves (20-30s)",
       "Slot": "H2",
       "Action": "Succor",
@@ -1322,7 +1322,7 @@
       ]
     },
     {
-      "Time": 647,
+      "Time": 543,
       "Mechanic": "J Waves (20-30s)",
       "Slot": "H2",
       "Action": "Eukrasian Prognosis",
@@ -1331,19 +1331,19 @@
       ]
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment",
       "Slot": "OT",
       "Action": "LB3"
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment",
       "Slot": "H1",
       "Action": "Medica II (When Z Appears)",
@@ -1352,7 +1352,7 @@
       ]
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
@@ -1361,7 +1361,7 @@
       ]
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment",
       "Slot": "H1",
       "Action": "Aspected Helios (When Z Appears)",
@@ -1370,7 +1370,7 @@
       ]
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -1379,7 +1379,7 @@
       ]
     },
     {
-      "Time": 656,
+      "Time": 592,
       "Mechanic": "Divine Judgment",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -1388,31 +1388,31 @@
       ]
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "MT",
       "Action": "Short Mit"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "OT",
       "Action": "Party Mit"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "H1",
       "Action": "Everything",
@@ -1421,19 +1421,19 @@
       ]
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "R1",
       "Action": "Party Mit"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Mechanic": "Optical Sight",
       "Slot": "R2",
       "Action": "Addle"
@@ -1870,8 +1870,20 @@
       "Label": "P3 Mega Holy II"
     },
     {
+      "Ability": 18549,
+      "Time": 544.0,
+      "IsPhase": false,
+      "Label": "P3 Eternal Darkness (Cruise Chaser)"
+    },
+    {
+      "Ability": 19034,
+      "Time": 591.7,
+      "IsPhase": true,
+      "Label": "P3 Divine Judgment"
+    },
+    {
       "Ability": 18557,
-      "Time": 675.9,
+      "Time": 673.6,
       "IsPhase": true,
       "Label": "P4 The Final Word"
     },
@@ -1944,7 +1956,7 @@
       "Name": "P3"
     },
     {
-      "Time": 707,
+      "Time": 704,
       "Name": "P4"
     }
   ],
