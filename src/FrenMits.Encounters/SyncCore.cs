@@ -33,6 +33,8 @@ public static class SyncCore
     {
         SyncPoint? best = null;
         var bestScore = float.MaxValue;
+        SyncPoint? opener = null;
+        var openerScore = float.MaxValue;
         for (var i = 0; i < points.Count; i++)
         {
             var sp = points[i];
@@ -42,11 +44,27 @@ public static class SyncCore
             if (ahead < 0 && fired.Contains(Key(sp))) continue;
             // Nearest anchor wins, ties going to a phase anchor.
             var score = MathF.Abs(ahead) - (sp.IsPhase ? 0.01f : 0f);
+            // A phase nobody has entered still owns its ability: a party late
+            // to the push casts it once, and that cast is the phase's opener
+            // however close it lands to the phase's own later anchor.
+            if (sp.IsPhase && !fired.Contains(Key(sp)) && !Entered(sp, fired) && score < openerScore)
+            {
+                openerScore = score;
+                opener = sp;
+            }
             if (score >= bestScore) continue;
             bestScore = score;
             best = sp;
         }
-        return best;
+        return opener ?? best;
+    }
+
+    // Whether the board has already been past this anchor.
+    private static bool Entered(SyncPoint phase, IReadOnlySet<(uint Ability, float Time)> fired)
+    {
+        foreach (var (_, time) in fired)
+            if (time > phase.Time) return true;
+        return false;
     }
 
     // Where the raw clock goes so the anchor lands on its time.

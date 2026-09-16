@@ -51,16 +51,12 @@
       "Mechanic": "Bahamut's Claw III"
     },
     {
-      "Time": 260,
-      "Mechanic": "Calamitous Flame + Blaze"
-    },
-    {
       "Time": 271,
       "Mechanic": "Ravensbeak"
     },
     {
-      "Time": 285,
-      "Mechanic": "Dalamud Dive II + Bahamut's Claw IV"
+      "Time": 282,
+      "Mechanic": "Calamitous Flame + Blaze"
     },
     {
       "Time": 300,
@@ -119,35 +115,35 @@
       "Mechanic": "Megaflare I"
     },
     {
+      "Time": 691,
+      "Mechanic": "Death Sentence & Ravensbeak"
+    },
+    {
       "Time": 693,
       "Mechanic": "Thermionic Beam (1st Quote)"
-    },
-    {
-      "Time": 709,
-      "Mechanic": "Death Sentence & Ravensbeak"
-    },
-    {
-      "Time": 712,
-      "Mechanic": "Death Sentence & Ravensbeak"
     },
     {
       "Time": 730,
       "Mechanic": "Thermionic Beam (2nd Quote)"
     },
     {
-      "Time": 785,
-      "Mechanic": "Megaflare II"
+      "Time": 746,
+      "Mechanic": "Death Sentence & Ravensbeak"
     },
     {
-      "Time": 794,
-      "Mechanic": "Akh Morn I"
+      "Time": 785,
+      "Mechanic": "Megaflare II"
     },
     {
       "Time": 817,
       "Mechanic": "Morn Afah I"
     },
     {
-      "Time": 825,
+      "Time": 824,
+      "Mechanic": "Akh Morn I"
+    },
+    {
+      "Time": 856,
       "Mechanic": "Akh Morn II"
     },
     {
@@ -155,23 +151,23 @@
       "Mechanic": "Morn Afah II"
     },
     {
-      "Time": 882,
-      "Mechanic": "Akh Morn III"
-    },
-    {
       "Time": 906,
       "Mechanic": "Morn Afah III"
     },
     {
-      "Time": 906,
-      "Mechanic": "Akh Morn IV"
+      "Time": 918,
+      "Mechanic": "Akh Morn III"
     },
     {
       "Time": 956,
       "Mechanic": "Morn Afah IV"
     },
     {
-      "Time": 1040,
+      "Time": 968,
+      "Mechanic": "Akh Morn IV"
+    },
+    {
+      "Time": 1006,
       "Mechanic": "Morn Afah V"
     }
   ],
@@ -546,7 +542,7 @@
       "Action": "Short Mit"
     },
     {
-      "Time": 260,
+      "Time": 282,
       "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
@@ -555,7 +551,7 @@
       ]
     },
     {
-      "Time": 260,
+      "Time": 282,
       "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H1",
       "Action": "Collective Unconscious",
@@ -564,7 +560,7 @@
       ]
     },
     {
-      "Time": 260,
+      "Time": 282,
       "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -573,7 +569,7 @@
       ]
     },
     {
-      "Time": 260,
+      "Time": 282,
       "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -582,7 +578,7 @@
       ]
     },
     {
-      "Time": 260,
+      "Time": 282,
       "Mechanic": "Calamitous Flame + Blaze",
       "Slot": "R1",
       "Action": "Party Mit (LB2)"
@@ -604,12 +600,6 @@
       "Mechanic": "Ravensbeak",
       "Slot": "OT",
       "Action": "Provoke"
-    },
-    {
-      "Time": 285,
-      "Mechanic": "Dalamud Dive II + Bahamut's Claw IV",
-      "Slot": "OT",
-      "Action": "Kitchen Sink"
     },
     {
       "Time": 300,
@@ -1182,61 +1172,61 @@
       "Action": "Feint"
     },
     {
-      "Time": 709,
+      "Time": 691,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "MT",
       "Action": "Provoke (Nael) 30%"
     },
     {
-      "Time": 709,
+      "Time": 691,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "MT",
       "Action": "Short Mit"
     },
     {
-      "Time": 709,
+      "Time": 691,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "OT",
       "Action": "Provoke (Twintania) 30%"
     },
     {
-      "Time": 709,
+      "Time": 691,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "OT",
       "Action": "Short Mit"
     },
     {
-      "Time": 712,
+      "Time": 746,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "MT",
       "Action": "90s"
     },
     {
-      "Time": 712,
+      "Time": 746,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "MT",
       "Action": "Provoke (Twintania)"
     },
     {
-      "Time": 712,
+      "Time": 746,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "MT",
       "Action": "Short Mit"
     },
     {
-      "Time": 712,
+      "Time": 746,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "OT",
       "Action": "90s"
     },
     {
-      "Time": 712,
+      "Time": 746,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "OT",
       "Action": "Provoke (Nael)"
     },
     {
-      "Time": 712,
+      "Time": 746,
       "Mechanic": "Death Sentence & Ravensbeak",
       "Slot": "OT",
       "Action": "Short Mit"
@@ -1320,13 +1310,13 @@
       "Action": "Feint"
     },
     {
-      "Time": 794,
+      "Time": 824,
       "Mechanic": "Akh Morn I",
       "Slot": "MT",
       "Action": "Kitchen Sink"
     },
     {
-      "Time": 794,
+      "Time": 824,
       "Mechanic": "Akh Morn I",
       "Slot": "OT",
       "Action": "Kitchen Sink"
@@ -1407,13 +1397,13 @@
       "Action": "Addle"
     },
     {
-      "Time": 825,
+      "Time": 856,
       "Mechanic": "Akh Morn II",
       "Slot": "MT",
       "Action": "Invulnerability"
     },
     {
-      "Time": 825,
+      "Time": 856,
       "Mechanic": "Akh Morn II",
       "Slot": "OT",
       "Action": "Provoke (After Akh Morn Concludes)"
@@ -1473,13 +1463,13 @@
       "Action": "Feint"
     },
     {
-      "Time": 882,
+      "Time": 918,
       "Mechanic": "Akh Morn III",
       "Slot": "MT",
       "Action": "Provoke (After Akh Morn Concludes)"
     },
     {
-      "Time": 882,
+      "Time": 918,
       "Mechanic": "Akh Morn III",
       "Slot": "OT",
       "Action": "Invulnerability"
@@ -1545,13 +1535,13 @@
       "Action": "Addle"
     },
     {
-      "Time": 906,
+      "Time": 968,
       "Mechanic": "Akh Morn IV",
       "Slot": "MT",
       "Action": "Kitchen Sink"
     },
     {
-      "Time": 906,
+      "Time": 968,
       "Mechanic": "Akh Morn IV",
       "Slot": "OT",
       "Action": "Kitchen Sink"
@@ -1608,19 +1598,19 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "OT",
       "Action": "Reprisal"
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
@@ -1629,7 +1619,7 @@
       ]
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "H1",
       "Action": "Collective Unconscious",
@@ -1638,7 +1628,7 @@
       ]
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "H2",
       "Action": "Spreadlo",
@@ -1647,7 +1637,7 @@
       ]
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -1656,7 +1646,7 @@
       ]
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "H2",
       "Action": "Zoe Shields",
@@ -1665,7 +1655,7 @@
       ]
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -1674,13 +1664,13 @@
       ]
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
-      "Time": 1040,
+      "Time": 1006,
       "Mechanic": "Morn Afah V",
       "Slot": "R2",
       "Action": "Addle"
@@ -1688,34 +1678,52 @@
   ],
   "SyncPoints": [
     {
-      "Ability": 9900,
-      "Time": 16.3,
+      "Ability": 9898,
+      "Time": 12.7,
       "IsPhase": true,
-      "Label": "P1 Fireball I"
+      "Label": "P1 Twister"
     },
     {
-      "Ability": 9900,
-      "Time": 96.6,
+      "Ability": 9897,
+      "Time": 24.2,
       "IsPhase": false,
-      "Label": "P1 Fireball II"
+      "Label": "P1 Death Sentence I"
     },
     {
-      "Ability": 9912,
-      "Time": 144.6,
+      "Ability": 9897,
+      "Time": 59.7,
+      "IsPhase": false,
+      "Label": "P1 Death Sentence II"
+    },
+    {
+      "Ability": 9897,
+      "Time": 105.7,
+      "IsPhase": false,
+      "Label": "P1 Death Sentence III"
+    },
+    {
+      "Ability": 9913,
+      "Time": 151.6,
       "IsPhase": true,
-      "Label": "P2 Heavensfall + Meteor Stream"
+      "Label": "P2 Thermionic Burst"
     },
     {
-      "Ability": 9917,
-      "Time": 184.3,
+      "Ability": 9922,
+      "Time": 167.4,
       "IsPhase": false,
-      "Label": "P2 Thermionic Beam (1st Quote)"
+      "Label": "P2 Bahamut's Favor"
     },
     {
-      "Ability": 9917,
-      "Time": 209,
+      "Ability": 9910,
+      "Time": 270.5,
       "IsPhase": false,
-      "Label": "P2 Thermionic Beam (2nd Quote)"
+      "Label": "P2 Ravensbeak"
+    },
+    {
+      "Ability": 9941,
+      "Time": 303.6,
+      "IsPhase": true,
+      "Label": "P3 Flatten"
     },
     {
       "Ability": 9954,
@@ -1754,10 +1762,10 @@
       "Label": "P3 Grand Octet"
     },
     {
-      "Ability": 9917,
-      "Time": 692.8,
+      "Ability": 9898,
+      "Time": 654.2,
       "IsPhase": false,
-      "Label": "P4 Thermionic Beam (1st Quote)"
+      "Label": "P4 Twister"
     },
     {
       "Ability": 9914,
@@ -1766,10 +1774,28 @@
       "Label": "P4 Megaflare I"
     },
     {
-      "Ability": 9917,
-      "Time": 730.3,
+      "Ability": 9897,
+      "Time": 690.6,
       "IsPhase": false,
-      "Label": "P4 Thermionic Beam (2nd Quote)"
+      "Label": "P4 Death Sentence I"
+    },
+    {
+      "Ability": 9910,
+      "Time": 690.6,
+      "IsPhase": false,
+      "Label": "P4 Ravensbeak I"
+    },
+    {
+      "Ability": 9897,
+      "Time": 746.2,
+      "IsPhase": false,
+      "Label": "P4 Death Sentence II"
+    },
+    {
+      "Ability": 9910,
+      "Time": 747.0,
+      "IsPhase": false,
+      "Label": "P4 Ravensbeak II"
     },
     {
       "Ability": 9914,
@@ -1784,6 +1810,18 @@
       "Label": "P5 Morn Afah I"
     },
     {
+      "Ability": 9962,
+      "Time": 824.0,
+      "IsPhase": false,
+      "Label": "P5 Akh Morn I"
+    },
+    {
+      "Ability": 9962,
+      "Time": 855.5,
+      "IsPhase": false,
+      "Label": "P5 Akh Morn II"
+    },
+    {
       "Ability": 9964,
       "Time": 872.5,
       "IsPhase": false,
@@ -1796,14 +1834,26 @@
       "Label": "P5 Morn Afah III"
     },
     {
+      "Ability": 9962,
+      "Time": 918.2,
+      "IsPhase": false,
+      "Label": "P5 Akh Morn III"
+    },
+    {
       "Ability": 9964,
       "Time": 955.5,
       "IsPhase": false,
       "Label": "P5 Morn Afah IV"
     },
     {
+      "Ability": 9962,
+      "Time": 967.9,
+      "IsPhase": false,
+      "Label": "P5 Akh Morn IV"
+    },
+    {
       "Ability": 9964,
-      "Time": 1040,
+      "Time": 1006.4,
       "IsPhase": false,
       "Label": "P5 Morn Afah V"
     }
@@ -1818,7 +1868,7 @@
       "Name": "P2"
     },
     {
-      "Time": 260,
+      "Time": 282,
       "Name": "P3"
     },
     {

@@ -595,6 +595,18 @@ public static class ConfigMigrations
             config.Version = 51;
             config.Save();
         }
+
+        // v52: UCOB re-bases on every push, its busters sit on their casts,
+        // and the P2 dive that never happens is gone from the sheet.
+        if (config.Version < 52)
+        {
+            RefreshBuiltins(config, Builtin.UcobTerritory, UcobRetimed);
+            foreach (var f in config.Fights)
+                if (f.TerritoryId == Builtin.UcobTerritory && f.CustomSlots.Count == 0)
+                    PruneStaleBaked(f);
+            config.Version = 52;
+            config.Save();
+        }
     }
 
     // A saved line whose action IS an ungated row on the sheet must not carry a
@@ -836,6 +848,19 @@ public static class ConfigMigrations
     private static readonly (float Old, string Mechanic, float New)[] TeaRetimed =
     {
         (694f, "Optical Sight", 707f),
+    };
+
+    // UCOB rows re-timed in 2.0.0.53.
+    private static readonly (float Old, string Mechanic, float New)[] UcobRetimed =
+    {
+        (260f, "Calamitous Flame + Blaze", 282f),
+        (709f, "Death Sentence & Ravensbeak", 691f),
+        (712f, "Death Sentence & Ravensbeak", 746f),
+        (794f, "Akh Morn I", 824f),
+        (825f, "Akh Morn II", 856f),
+        (882f, "Akh Morn III", 918f),
+        (906f, "Akh Morn IV", 968f),
+        (1040f, "Morn Afah V", 1006f),
     };
 
     // Dancing Mad rows re-timed in 1.0.0.373.
