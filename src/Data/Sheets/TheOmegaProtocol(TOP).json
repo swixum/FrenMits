@@ -11,27 +11,27 @@
       "Mechanic": "Pantokrator"
     },
     {
-      "Time": 75,
-      "Mechanic": "Diffuse Wave Cannon"
-    },
-    {
-      "Time": 104,
+      "Time": 82,
       "Mechanic": "Stack I"
     },
     {
-      "Time": 121,
+      "Time": 88,
       "Mechanic": "Stack II"
     },
     {
-      "Time": 129,
+      "Time": 94,
       "Mechanic": "Stack III"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Diffuse Wave Cannon Kyrios"
     },
     {
       "Time": 138,
       "Mechanic": "Solar Ray"
     },
     {
-      "Time": 214,
+      "Time": 234,
       "Mechanic": "Optimized Meteor (6-1-1)"
     },
     {
@@ -68,43 +68,43 @@
     },
     {
       "Time": 389,
-      "Mechanic": "4th Patch Set"
+      "Mechanic": "4th Patch"
     },
     {
       "Time": 389,
-      "Mechanic": "4rd Patch"
+      "Mechanic": "4th Patch Set"
     },
     {
       "Time": 411,
       "Mechanic": "Critical Error"
     },
     {
-      "Time": 449,
+      "Time": 459,
       "Mechanic": "Protean I"
     },
     {
-      "Time": 495,
+      "Time": 464,
       "Mechanic": "Light Party Stacks I"
     },
     {
-      "Time": 518,
+      "Time": 469,
       "Mechanic": "Protean II"
+    },
+    {
+      "Time": 474,
+      "Mechanic": "Light Party Stacks II"
+    },
+    {
+      "Time": 479,
+      "Mechanic": "Protean III"
+    },
+    {
+      "Time": 499,
+      "Mechanic": "Blue Screen"
     },
     {
       "Time": 524,
       "Mechanic": "Pre-Delta Solar Ray"
-    },
-    {
-      "Time": 529,
-      "Mechanic": "Light Party Stacks II"
-    },
-    {
-      "Time": 535,
-      "Mechanic": "Protean III"
-    },
-    {
-      "Time": 538,
-      "Mechanic": "Critical Error"
     },
     {
       "Time": 541,
@@ -155,27 +155,19 @@
       "Mechanic": "Cosmo Dive I"
     },
     {
-      "Time": 908,
+      "Time": 939,
       "Mechanic": "Protean I"
     },
     {
-      "Time": 917,
+      "Time": 946,
       "Mechanic": "Wave Cannon I"
-    },
-    {
-      "Time": 921,
-      "Mechanic": "Proteans II"
-    },
-    {
-      "Time": 924,
-      "Mechanic": "Wave Cannon I"
-    },
-    {
-      "Time": 925,
-      "Mechanic": "Wave Cannon II"
     },
     {
       "Time": 972,
+      "Mechanic": "Proteans II"
+    },
+    {
+      "Time": 980,
       "Mechanic": "Wave Cannon II"
     },
     {
@@ -187,12 +179,16 @@
       "Mechanic": "Cosmo Meteor"
     },
     {
-      "Time": 1052,
+      "Time": 1058,
       "Mechanic": "Flares"
     },
     {
       "Time": 1070,
-      "Mechanic": "Magic Number"
+      "Mechanic": "Magic Number I"
+    },
+    {
+      "Time": 1086,
+      "Mechanic": "Magic Number II"
     }
   ],
   "DefaultActions": [
@@ -213,10 +209,13 @@
       "Time": 69,
       "Mechanic": "Pantokrator",
       "Slot": "H1",
-      "Action": "Everything",
-      "Jobs": [
-        "WHM"
-      ]
+      "Action": "Everything"
+    },
+    {
+      "Time": 69,
+      "Mechanic": "Pantokrator",
+      "Slot": "H2",
+      "Action": "Everything"
     },
     {
       "Time": 69,
@@ -225,39 +224,39 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 75,
-      "Mechanic": "Diffuse Wave Cannon",
-      "Slot": "MT",
-      "Action": "Invulnerability",
-      "Jobs": []
-    },
-    {
-      "Time": 75,
-      "Mechanic": "Diffuse Wave Cannon",
+      "Time": 69,
+      "Mechanic": "Pantokrator",
       "Slot": "OT",
-      "Action": "Invulnerability",
-      "Jobs": []
+      "Action": "Party Mit"
     },
     {
-      "Time": 104,
+      "Time": 82,
+      "Mechanic": "Stack I",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 82,
       "Mechanic": "Stack I",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
-      "Time": 104,
+      "Time": 82,
       "Mechanic": "Stack I",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 104,
+      "Time": 82,
       "Mechanic": "Stack I",
       "Slot": "R1",
       "Action": "Party Mit"
     },
     {
-      "Time": 121,
+      "Time": 88,
       "Mechanic": "Stack II",
       "Slot": "H2",
       "Action": "Seraph",
@@ -266,7 +265,15 @@
       ]
     },
     {
-      "Time": 129,
+      "Time": 94,
+      "Mechanic": "Stack III",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 94,
       "Mechanic": "Stack III",
       "Slot": "H2",
       "Action": "Seraph",
@@ -275,22 +282,36 @@
       ]
     },
     {
-      "Time": 129,
+      "Time": 94,
       "Mechanic": "Stack III",
       "Slot": "M2",
       "Action": "Feint"
     },
     {
-      "Time": 129,
+      "Time": 94,
       "Mechanic": "Stack III",
       "Slot": "OT",
       "Action": "Reprisal"
     },
     {
-      "Time": 129,
+      "Time": 94,
       "Mechanic": "Stack III",
       "Slot": "R2",
       "Action": "Addle"
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Diffuse Wave Cannon Kyrios",
+      "Slot": "MT",
+      "Action": "Invulnerability",
+      "Jobs": []
+    },
+    {
+      "Time": 108,
+      "Mechanic": "Diffuse Wave Cannon Kyrios",
+      "Slot": "OT",
+      "Action": "Invulnerability",
+      "Jobs": []
     },
     {
       "Time": 138,
@@ -343,22 +364,39 @@
       "Action": "Rampart"
     },
     {
-      "Time": 214,
+      "Time": 234,
       "Mechanic": "Optimized Meteor (6-1-1)",
-      "Slot": "H1",
-      "Action": "Everything",
+      "Action": "Magick Barrier",
       "Jobs": [
-        "WHM"
+        "RDM"
       ]
     },
     {
-      "Time": 214,
+      "Time": 234,
+      "Mechanic": "Optimized Meteor (6-1-1)",
+      "Slot": "H1",
+      "Action": "Everything"
+    },
+    {
+      "Time": 234,
+      "Mechanic": "Optimized Meteor (6-1-1)",
+      "Slot": "H2",
+      "Action": "Everything"
+    },
+    {
+      "Time": 234,
       "Mechanic": "Optimized Meteor (6-1-1)",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 214,
+      "Time": 234,
+      "Mechanic": "Optimized Meteor (6-1-1)",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 234,
       "Mechanic": "Optimized Meteor (6-1-1)",
       "Slot": "R1",
       "Action": "Party Mit"
@@ -546,6 +584,14 @@
     {
       "Time": 371,
       "Mechanic": "3rd Patch Set",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 371,
+      "Mechanic": "3rd Patch Set",
       "Slot": "H1",
       "Action": "Liturgy of the Bell",
       "Jobs": [
@@ -612,6 +658,14 @@
     {
       "Time": 389,
       "Mechanic": "4th Patch Set",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 389,
+      "Mechanic": "4th Patch Set",
       "Slot": "H2",
       "Action": "Holos",
       "Jobs": [
@@ -620,7 +674,7 @@
     },
     {
       "Time": 389,
-      "Mechanic": "4rd Patch",
+      "Mechanic": "4th Patch",
       "Slot": "MT",
       "Action": "90s + Short Mit",
       "Jobs": []
@@ -705,7 +759,7 @@
       "Action": "Addle"
     },
     {
-      "Time": 449,
+      "Time": 459,
       "Mechanic": "Protean I",
       "Slot": "H2",
       "Action": "Spreadlo",
@@ -714,7 +768,7 @@
       ]
     },
     {
-      "Time": 449,
+      "Time": 459,
       "Mechanic": "Protean I",
       "Slot": "H2",
       "Action": "Zoe Shields",
@@ -723,13 +777,13 @@
       ]
     },
     {
-      "Time": 449,
+      "Time": 459,
       "Mechanic": "Protean I",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 495,
+      "Time": 464,
       "Mechanic": "Light Party Stacks I",
       "Slot": "H1",
       "Action": "Collective Unconscious",
@@ -738,7 +792,7 @@
       ]
     },
     {
-      "Time": 495,
+      "Time": 464,
       "Mechanic": "Light Party Stacks I",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
@@ -747,7 +801,7 @@
       ]
     },
     {
-      "Time": 495,
+      "Time": 464,
       "Mechanic": "Light Party Stacks I",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -756,7 +810,7 @@
       ]
     },
     {
-      "Time": 495,
+      "Time": 464,
       "Mechanic": "Light Party Stacks I",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -765,7 +819,7 @@
       ]
     },
     {
-      "Time": 495,
+      "Time": 464,
       "Mechanic": "Light Party Stacks I",
       "Slot": "H2",
       "Action": "Seraph",
@@ -774,7 +828,7 @@
       ]
     },
     {
-      "Time": 518,
+      "Time": 469,
       "Mechanic": "Protean II",
       "Slot": "H1",
       "Action": "Neutral Sect",
@@ -783,7 +837,7 @@
       ]
     },
     {
-      "Time": 518,
+      "Time": 469,
       "Mechanic": "Protean II",
       "Slot": "H1",
       "Action": "Temperance",
@@ -792,7 +846,7 @@
       ]
     },
     {
-      "Time": 518,
+      "Time": 469,
       "Mechanic": "Protean II",
       "Slot": "H2",
       "Action": "Expedient",
@@ -801,10 +855,64 @@
       ]
     },
     {
-      "Time": 518,
+      "Time": 469,
       "Mechanic": "Protean II",
       "Slot": "MT",
       "Action": "Party Mit"
+    },
+    {
+      "Time": 474,
+      "Mechanic": "Light Party Stacks II",
+      "Slot": "H2",
+      "Action": "Panhaima",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 474,
+      "Mechanic": "Light Party Stacks II",
+      "Slot": "H2",
+      "Action": "Seraph",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 474,
+      "Mechanic": "Light Party Stacks II",
+      "Slot": "OT",
+      "Action": "Party Mit"
+    },
+    {
+      "Time": 479,
+      "Mechanic": "Protean III",
+      "Slot": "OT",
+      "Action": "Reprisal"
+    },
+    {
+      "Time": 499,
+      "Mechanic": "Blue Screen",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 499,
+      "Mechanic": "Blue Screen",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 499,
+      "Mechanic": "Blue Screen",
+      "Slot": "M1",
+      "Action": "Feint"
     },
     {
       "Time": 524,
@@ -827,58 +935,28 @@
       "Jobs": []
     },
     {
-      "Time": 529,
-      "Mechanic": "Light Party Stacks II",
-      "Slot": "H2",
-      "Action": "Panhaima",
+      "Time": 541,
+      "Mechanic": "Delta",
+      "Action": "Dismantle",
       "Jobs": [
-        "SGE"
+        "MCH"
       ]
     },
     {
-      "Time": 529,
-      "Mechanic": "Light Party Stacks II",
-      "Slot": "H2",
-      "Action": "Seraph",
+      "Time": 541,
+      "Mechanic": "Delta",
+      "Action": "Magick Barrier",
       "Jobs": [
-        "SCH"
+        "RDM"
       ]
     },
     {
-      "Time": 529,
-      "Mechanic": "Light Party Stacks II",
-      "Slot": "OT",
-      "Action": "Party Mit"
-    },
-    {
-      "Time": 535,
-      "Mechanic": "Protean III",
-      "Slot": "OT",
-      "Action": "Reprisal"
-    },
-    {
-      "Time": 538,
-      "Mechanic": "Critical Error",
-      "Slot": "H2",
-      "Action": "Kerachole",
+      "Time": 541,
+      "Mechanic": "Delta",
+      "Action": "Tempera Grassa",
       "Jobs": [
-        "SGE"
+        "PCT"
       ]
-    },
-    {
-      "Time": 538,
-      "Mechanic": "Critical Error",
-      "Slot": "H2",
-      "Action": "Sacred Soil",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 538,
-      "Mechanic": "Critical Error",
-      "Slot": "M1",
-      "Action": "Feint"
     },
     {
       "Time": 541,
@@ -905,6 +983,24 @@
       "Action": "Holos",
       "Jobs": [
         "SGE"
+      ]
+    },
+    {
+      "Time": 541,
+      "Mechanic": "Delta",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 541,
+      "Mechanic": "Delta",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
       ]
     },
     {
@@ -1150,6 +1246,30 @@
       "Slot": "OT",
       "Action": "Kitchen Sink + 40% + 90s + Rampart + Buddy Mit",
       "Jobs": []
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Omega",
+      "Action": "Dismantle",
+      "Jobs": [
+        "MCH"
+      ]
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Omega",
+      "Action": "Magick Barrier",
+      "Jobs": [
+        "RDM"
+      ]
+    },
+    {
+      "Time": 712,
+      "Mechanic": "Omega",
+      "Action": "Tempera Grassa",
+      "Jobs": [
+        "PCT"
+      ]
     },
     {
       "Time": 712,
@@ -1522,7 +1642,16 @@
       "Action": "Addle"
     },
     {
-      "Time": 908,
+      "Time": 939,
+      "Mechanic": "Protean I",
+      "Slot": "H2",
+      "Action": "Kerachole",
+      "Jobs": [
+        "SGE"
+      ]
+    },
+    {
+      "Time": 939,
       "Mechanic": "Protean I",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -1531,7 +1660,7 @@
       ]
     },
     {
-      "Time": 908,
+      "Time": 939,
       "Mechanic": "Protean I",
       "Slot": "H2",
       "Action": "Zoe Shields (Wave Cannon)",
@@ -1540,19 +1669,19 @@
       ]
     },
     {
-      "Time": 908,
+      "Time": 939,
       "Mechanic": "Protean I",
       "Slot": "OT",
       "Action": "Party Mit (GNB/DRK)"
     },
     {
-      "Time": 908,
+      "Time": 939,
       "Mechanic": "Protean I",
       "Slot": "R1",
       "Action": "Party Mit"
     },
     {
-      "Time": 917,
+      "Time": 946,
       "Mechanic": "Wave Cannon I",
       "Slot": "H1",
       "Action": "Collective Unconscious",
@@ -1561,7 +1690,7 @@
       ]
     },
     {
-      "Time": 917,
+      "Time": 946,
       "Mechanic": "Wave Cannon I",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
@@ -1570,19 +1699,33 @@
       ]
     },
     {
-      "Time": 917,
+      "Time": 946,
+      "Mechanic": "Wave Cannon I",
+      "Slot": "MT",
+      "Action": "40% + Short Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 946,
+      "Mechanic": "Wave Cannon I",
+      "Slot": "OT",
+      "Action": "Invulnerability + Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 946,
       "Mechanic": "Wave Cannon I",
       "Slot": "OT",
       "Action": "Party Mit (WAR/PLD)"
     },
     {
-      "Time": 917,
+      "Time": 946,
       "Mechanic": "Wave Cannon I",
       "Slot": "OT",
       "Action": "Reprisal"
     },
     {
-      "Time": 921,
+      "Time": 972,
       "Mechanic": "Proteans II",
       "Slot": "H2",
       "Action": "Holos",
@@ -1591,7 +1734,7 @@
       ]
     },
     {
-      "Time": 921,
+      "Time": 972,
       "Mechanic": "Proteans II",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -1600,7 +1743,16 @@
       ]
     },
     {
-      "Time": 921,
+      "Time": 972,
+      "Mechanic": "Proteans II",
+      "Slot": "H2",
+      "Action": "Sacred Soil",
+      "Jobs": [
+        "SCH"
+      ]
+    },
+    {
+      "Time": 972,
       "Mechanic": "Proteans II",
       "Slot": "H2",
       "Action": "Spreadlo (Proteans)",
@@ -1609,27 +1761,13 @@
       ]
     },
     {
-      "Time": 921,
+      "Time": 972,
       "Mechanic": "Proteans II",
       "Slot": "MT",
       "Action": "Party Mit (GNB/DRK)"
     },
     {
-      "Time": 924,
-      "Mechanic": "Wave Cannon I",
-      "Slot": "MT",
-      "Action": "40% + Short Mit",
-      "Jobs": []
-    },
-    {
-      "Time": 924,
-      "Mechanic": "Wave Cannon I",
-      "Slot": "OT",
-      "Action": "Invulnerability + Buddy Mit / Buddy Mit",
-      "Jobs": []
-    },
-    {
-      "Time": 925,
+      "Time": 980,
       "Mechanic": "Wave Cannon II",
       "Slot": "H1",
       "Action": "Macrocosmos",
@@ -1638,32 +1776,32 @@
       ]
     },
     {
-      "Time": 925,
+      "Time": 980,
       "Mechanic": "Wave Cannon II",
       "Slot": "M2",
       "Action": "Feint"
     },
     {
-      "Time": 925,
+      "Time": 980,
+      "Mechanic": "Wave Cannon II",
+      "Slot": "MT",
+      "Action": "Invulnerability + Buddy Mit",
+      "Jobs": []
+    },
+    {
+      "Time": 980,
       "Mechanic": "Wave Cannon II",
       "Slot": "MT",
       "Action": "Party Mit (WAR/PLD)"
     },
     {
-      "Time": 925,
+      "Time": 980,
       "Mechanic": "Wave Cannon II",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 972,
-      "Mechanic": "Wave Cannon II",
-      "Slot": "MT",
-      "Action": "Invulnerability + Buddy Mit / Buddy Mit",
-      "Jobs": []
-    },
-    {
-      "Time": 972,
+      "Time": 980,
       "Mechanic": "Wave Cannon II",
       "Slot": "OT",
       "Action": "40% + Short Mit + Party Mit",
@@ -1715,7 +1853,13 @@
       "Time": 1013,
       "Mechanic": "Cosmo Dive II",
       "Slot": "M1",
-      "Action": "Feint (D1)"
+      "Action": "Feint"
+    },
+    {
+      "Time": 1013,
+      "Mechanic": "Cosmo Dive II",
+      "Slot": "M2",
+      "Action": "Check That Limit Break III Is Available"
     },
     {
       "Time": 1013,
@@ -1858,7 +2002,7 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 1052,
+      "Time": 1058,
       "Mechanic": "Flares",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -1867,7 +2011,7 @@
       ]
     },
     {
-      "Time": 1052,
+      "Time": 1058,
       "Mechanic": "Flares",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -1876,7 +2020,7 @@
       ]
     },
     {
-      "Time": 1052,
+      "Time": 1058,
       "Mechanic": "Flares",
       "Slot": "H2",
       "Action": "Spreadlo",
@@ -1886,31 +2030,25 @@
     },
     {
       "Time": 1070,
-      "Mechanic": "Magic Number",
-      "Slot": "H1",
-      "Action": "Second LB3",
-      "Jobs": [
-        "WHM"
-      ]
-    },
-    {
-      "Time": 1070,
-      "Mechanic": "Magic Number",
+      "Mechanic": "Magic Number I",
       "Slot": "H2",
-      "Action": "First LB3",
-      "Jobs": [
-        "SCH"
-      ]
-    },
-    {
-      "Time": 1070,
-      "Mechanic": "Magic Number",
-      "Slot": "MT",
       "Action": "First LB3"
     },
     {
       "Time": 1070,
-      "Mechanic": "Magic Number",
+      "Mechanic": "Magic Number I",
+      "Slot": "MT",
+      "Action": "First LB3"
+    },
+    {
+      "Time": 1086,
+      "Mechanic": "Magic Number II",
+      "Slot": "H1",
+      "Action": "Second LB3"
+    },
+    {
+      "Time": 1086,
+      "Mechanic": "Magic Number II",
       "Slot": "OT",
       "Action": "Second LB3"
     }
@@ -2016,7 +2154,7 @@
       "Ability": 31663,
       "Time": 925.4,
       "IsPhase": false,
-      "Label": "P6 Wave Cannon II"
+      "Label": "P6 Wave Cannon I puddles"
     },
     {
       "Ability": 31654,
@@ -2064,6 +2202,20 @@
     }
   ],
   "CustomRows": [
+    {
+      "Time": 82,
+      "Mechanic": "Condensed Wave Cannon Kyrios",
+      "Hurt": 2,
+      "Buster": false,
+      "Enrage": false
+    },
+    {
+      "Time": 82,
+      "Mechanic": "Guided Missile Kyrios",
+      "Hurt": 1,
+      "Buster": false,
+      "Enrage": false
+    },
     {
       "Time": 88,
       "Mechanic": "Condensed Wave Cannon Kyrios",
@@ -2317,13 +2469,6 @@
       "Enrage": false
     },
     {
-      "Time": 658,
-      "Mechanic": "Storage Violation",
-      "Hurt": 1,
-      "Buster": false,
-      "Enrage": false
-    },
-    {
       "Time": 682,
       "Mechanic": "Hello, Distant World",
       "Hurt": 1,
@@ -2492,8 +2637,8 @@
       "Enrage": false
     },
     {
-      "Time": 908,
-      "Mechanic": "Protean I",
+      "Time": 909,
+      "Mechanic": "Flash Gale",
       "Hurt": 1,
       "Buster": true,
       "Enrage": false
@@ -2516,13 +2661,6 @@
       "Time": 1034,
       "Mechanic": "Cosmo Meteor",
       "Hurt": 3,
-      "Buster": false,
-      "Enrage": false
-    },
-    {
-      "Time": 1058,
-      "Mechanic": "Cosmo Meteor",
-      "Hurt": 2,
       "Buster": false,
       "Enrage": false
     },

@@ -626,6 +626,28 @@ public static class ConfigMigrations
             config.Version = 54;
             config.Save();
         }
+
+        // v55: the TOP rows sit where the casts land, the P4 finisher is
+        // named Blue Screen, each P6 wave cannon is one row, and the second
+        // Magic Number has its own row.
+        if (config.Version < 55)
+        {
+            RefreshBuiltins(config, Builtin.TopTerritory, TopMoved);
+            // The healer pair rows the sheet now gives to both jobs.
+            foreach (var f in config.Fights)
+            {
+                if (f.TerritoryId != Builtin.TopTerritory || f.CustomSlots.Count > 0) continue;
+                if (!string.IsNullOrEmpty(f.Slot)) DropGatesTheSheetDoesNotGive(f, f.Slot, f.Lines);
+                foreach (var (slot, saved) in f.SavedSlots)
+                    DropGatesTheSheetDoesNotGive(f, slot, saved);
+                // The two calls the sheet reworded, so the top-up can hand back the clean ones.
+                foreach (var lines in AllLineSets(f))
+                    lines.RemoveAll(l => !l.Custom && !l.Personal
+                        && (l.Action == "Buddy Mit / Buddy Mit" || l.Action == "Feint (D1)"));
+            }
+            config.Version = 55;
+            config.Save();
+        }
     }
 
     // A saved line whose action IS an ungated row on the sheet must not carry a
@@ -853,6 +875,61 @@ public static class ConfigMigrations
                 lines.Sort((a, b) => a.Time.CompareTo(b.Time));
         }
     }
+
+    // The same, for a sheet whose rows were renamed as well as moved. An
+    // action names one call off a moment, blank takes them all; a blank new
+    // name keeps the old one.
+    private static void RefreshBuiltins(Configuration config, ushort retimed,
+                                        (float Old, string Mechanic, string Action, float New, string NewMechanic)[] moves)
+    {
+        foreach (var f in config.Fights)
+        {
+            if (!Builtin.Has(f.TerritoryId) || f.CustomSlots.Count > 0) continue;
+            f.SyncPoints = Builtin.SyncPoints(f.TerritoryId);
+            var graded = Builtin.CustomRows(f.TerritoryId);
+            if (graded.Count > 0) f.CustomRows = graded;
+            if (f.TerritoryId != retimed) continue;
+
+            foreach (var lines in AllLineSets(f))
+                foreach (var l in lines)
+                    foreach (var (old, mech, act, now, name) in moves)
+                        if (MathF.Abs(l.Time - old) < 0.6f && l.Mechanic == mech
+                            && (act.Length == 0 || string.Equals(l.Action.Trim(), act, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            l.Time = now;
+                            if (name.Length > 0) l.Mechanic = name;
+                            break;
+                        }
+            foreach (var lines in AllLineSets(f))
+                lines.Sort((a, b) => a.Time.CompareTo(b.Time));
+        }
+    }
+
+    // TOP rows re-timed and renamed in 2.0.0.56.
+    private static readonly (float Old, string Mechanic, string Action, float New, string NewMechanic)[] TopMoved =
+    {
+        (75f, "Diffuse Wave Cannon", "", 108f, "Diffuse Wave Cannon Kyrios"),
+        (104f, "Stack I", "", 82f, ""),
+        (121f, "Stack II", "", 88f, ""),
+        (129f, "Stack III", "", 94f, ""),
+        (214f, "Optimized Meteor (6-1-1)", "", 234f, ""),
+        (389f, "4rd Patch", "", 389f, "4th Patch"),
+        (449f, "Protean I", "", 459f, ""),
+        (495f, "Light Party Stacks I", "", 464f, ""),
+        (518f, "Protean II", "", 469f, ""),
+        (529f, "Light Party Stacks II", "", 474f, ""),
+        (535f, "Protean III", "", 479f, ""),
+        (538f, "Critical Error", "", 499f, "Blue Screen"),
+        (908f, "Protean I", "", 939f, ""),
+        (917f, "Wave Cannon I", "", 946f, ""),
+        (921f, "Proteans II", "", 972f, ""),
+        (924f, "Wave Cannon I", "", 946f, ""),
+        (925f, "Wave Cannon II", "", 980f, ""),
+        (972f, "Wave Cannon II", "", 980f, ""),
+        (1052f, "Flares", "", 1058f, ""),
+        (1070f, "Magic Number", "Second LB3", 1086f, "Magic Number II"),
+        (1070f, "Magic Number", "", 1070f, "Magic Number I"),
+    };
 
     // M2S rows re-timed in 1.0.0.374.
     private static readonly (float Old, string Mechanic, float New)[] M2sRetimed =
