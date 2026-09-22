@@ -678,9 +678,16 @@ public static class Builtin
         var added = 0;
         if (topUp)
         {
-            // Deleted or not, so a tombstone on a borrowed priority line still
-            // sees the call it's suppressing and doesn't prune itself away.
-            var baked = TankPriority.Apply(fight, slot, BuildLines(fight.TerritoryId, slot), includeDeleted: true);
+            // Every call a tombstone in this column can be suppressing: the
+            // column's own bake, plus the other tank column's, since a
+            // priority phase borrows calls across MT/OT and a swap moves which
+            // side is borrowed. Resolving here instead would drop a deleted
+            // call's tombstone the moment the swap hides it, and bring the
+            // call back on the swap home.
+            var reachable = BuildLines(fight.TerritoryId, slot);
+            var coTank = string.Equals(slot, "MT", StringComparison.OrdinalIgnoreCase) ? "OT"
+                : string.Equals(slot, "OT", StringComparison.OrdinalIgnoreCase) ? "MT" : null;
+            if (coTank != null) reachable = reachable.Concat(BuildLines(fight.TerritoryId, coTank)).ToList();
             // The bake minus deletions, so what the slot is entitled to.
             var live = Bake(slot);
             foreach (var b in live)
@@ -701,7 +708,7 @@ public static class Builtin
             // Drop tombstones for calls the sheet no longer bakes.
             fight.DeletedCalls.RemoveAll(d =>
                 string.Equals(d.Slot, slot, StringComparison.OrdinalIgnoreCase)
-                && !baked.Any(b => MatchesTombstone(d, slot, b)));
+                && !reachable.Any(b => MatchesTombstone(d, slot, b)));
         }
 
         fight.Lines = fight.Lines.OrderBy(l => l.Time).ToList();
