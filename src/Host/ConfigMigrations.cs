@@ -648,6 +648,15 @@ public static class ConfigMigrations
             config.Version = 55;
             config.Save();
         }
+
+        // v56: the DSR stacks sit on Eye of the Tyrant, before Soul Tether,
+        // and each Akh Morn row sits on its hit rather than on Exaflare.
+        if (config.Version < 56)
+        {
+            RefreshBuiltins(config, Builtin.DsrTerritory, DsrRetimedAgain);
+            config.Version = 56;
+            config.Save();
+        }
     }
 
     // A saved line whose action IS an ungated row on the sheet must not carry a
@@ -984,6 +993,16 @@ public static class ConfigMigrations
         (885f, "Akh Morn I", 871f),
         (959f, "Akh Morn II", 950f),
         (1039f, "Akh Morn III", 1030f),
+    };
+
+    // DSR rows re-timed in 2.0.0.59.
+    private static readonly (float Old, string Mechanic, float New)[] DsrRetimedAgain =
+    {
+        (252f, "First Stack", 216f),
+        (285f, "Second Stack", 237f),
+        (871f, "Akh Morn I", 892f),
+        (950f, "Akh Morn II", 971f),
+        (1030f, "Akh Morn III", 1051f),
     };
 
     // Dancing Mad rows re-timed in 1.0.0.373.

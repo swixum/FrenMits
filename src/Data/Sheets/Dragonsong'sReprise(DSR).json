@@ -39,16 +39,16 @@
       "Mechanic": "Final Chorus"
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack"
+    },
+    {
+      "Time": 237,
+      "Mechanic": "Second Stack"
     },
     {
       "Time": 268,
       "Mechanic": "Soul Tether"
-    },
-    {
-      "Time": 285,
-      "Mechanic": "Second Stack"
     },
     {
       "Time": 324,
@@ -151,7 +151,7 @@
       "Mechanic": "Alternative End"
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I"
     },
     {
@@ -159,7 +159,7 @@
       "Mechanic": "Gigaflare I"
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II"
     },
     {
@@ -167,7 +167,7 @@
       "Mechanic": "Gigaflare II"
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III"
     }
   ],
@@ -564,7 +564,7 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack",
       "Slot": "H1",
       "Action": "Carry Over (Neutral Sect)",
@@ -573,7 +573,7 @@
       ]
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack",
       "Slot": "H1",
       "Action": "Temperance",
@@ -582,7 +582,7 @@
       ]
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack",
       "Slot": "H2",
       "Action": "Fey Illumination",
@@ -591,7 +591,7 @@
       ]
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack",
       "Slot": "H2",
       "Action": "Kerachole",
@@ -600,7 +600,7 @@
       ]
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack",
       "Slot": "H2",
       "Action": "Sacred Soil",
@@ -609,33 +609,19 @@
       ]
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack",
       "Slot": "M2",
       "Action": "Feint"
     },
     {
-      "Time": 252,
+      "Time": 216,
       "Mechanic": "First Stack",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "MT",
-      "Action": "Invulnerability",
-      "Jobs": []
-    },
-    {
-      "Time": 268,
-      "Mechanic": "Soul Tether",
-      "Slot": "OT",
-      "Action": "Invulnerability",
-      "Jobs": []
-    },
-    {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "H1",
       "Action": "Collective Unconscious",
@@ -644,7 +630,7 @@
       ]
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "H1",
       "Action": "Plenary Indulgence",
@@ -653,7 +639,7 @@
       ]
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "H2",
       "Action": "Expedient",
@@ -662,7 +648,7 @@
       ]
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "H2",
       "Action": "Kerachole (If Available)",
@@ -671,7 +657,7 @@
       ]
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "H2",
       "Action": "Panhaima",
@@ -680,7 +666,7 @@
       ]
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "H2",
       "Action": "Sacred Soil (If Available)",
@@ -689,7 +675,7 @@
       ]
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "H2",
       "Action": "Seraph",
@@ -698,28 +684,42 @@
       ]
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "M1",
       "Action": "Feint (If Available)"
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "MT",
       "Action": "Party Mit (If Available)"
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "OT",
       "Action": "Reprisal"
     },
     {
-      "Time": 285,
+      "Time": 237,
       "Mechanic": "Second Stack",
       "Slot": "R2",
       "Action": "Addle (If Available)"
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Soul Tether",
+      "Slot": "MT",
+      "Action": "Invulnerability",
+      "Jobs": []
+    },
+    {
+      "Time": 268,
+      "Mechanic": "Soul Tether",
+      "Slot": "OT",
+      "Action": "Invulnerability",
+      "Jobs": []
     },
     {
       "Time": 324,
@@ -1732,7 +1732,7 @@
       "Action": "Party Mit"
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "H1",
       "Action": "Neutral Sect",
@@ -1741,7 +1741,7 @@
       ]
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "H1",
       "Action": "Temperance",
@@ -1750,7 +1750,7 @@
       ]
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "H2",
       "Action": "Fey Illumination",
@@ -1759,7 +1759,7 @@
       ]
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "H2",
       "Action": "Panhaima",
@@ -1768,33 +1768,33 @@
       ]
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "M1",
       "Action": "Feint"
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "MT",
       "Action": "40% + Short Mit",
       "Jobs": []
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "OT",
       "Action": "40% + 90s + Short Mit",
       "Jobs": []
     },
     {
-      "Time": 871,
+      "Time": 892,
       "Mechanic": "Akh Morn I",
       "Slot": "R2",
       "Action": "Addle"
@@ -1848,7 +1848,7 @@
       "Action": "Reprisal"
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "H1",
       "Action": "Liturgy of the Bell",
@@ -1857,7 +1857,7 @@
       ]
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "H2",
       "Action": "Zoe Shields",
@@ -1866,51 +1866,51 @@
       ]
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "MT",
       "Action": "90s + Short Mit",
       "Jobs": []
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "MT",
       "Action": "Rampart"
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "OT",
       "Action": "90s + Short Mit",
       "Jobs": []
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "OT",
       "Action": "Party Mit"
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "OT",
       "Action": "Rampart"
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Slot": "R1",
       "Action": "Party Mit"
@@ -1970,7 +1970,7 @@
       "Action": "Addle"
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "H1",
       "Action": "Everything",
@@ -1979,44 +1979,44 @@
       ]
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "M2",
       "Action": "Feint"
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "MT",
       "Action": "Invulnerability + Kitchen Sink / Kitchen Sink",
       "Jobs": []
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "MT",
       "Action": "Party Mit"
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "MT",
       "Action": "Reprisal"
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "OT",
       "Action": "Kitchen Sink"
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "OT",
       "Action": "Party Mit"
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Slot": "R1",
       "Action": "Party Mit"
@@ -2201,13 +2201,13 @@
       "Ability": 28059,
       "Time": 871.2,
       "IsPhase": true,
-      "Label": "P7 Akh Morn's Edge I"
+      "Label": "P7 Exaflare's Edge I"
     },
     {
       "Ability": 28051,
       "Time": 892.4,
       "IsPhase": false,
-      "Label": "P7 Trinity I"
+      "Label": "P7 Akh Morn's Edge I"
     },
     {
       "Ability": 28057,
@@ -2219,13 +2219,13 @@
       "Ability": 28059,
       "Time": 950.0,
       "IsPhase": false,
-      "Label": "P7 Akh Morn's Edge II"
+      "Label": "P7 Exaflare's Edge II"
     },
     {
       "Ability": 28051,
       "Time": 971.2,
       "IsPhase": false,
-      "Label": "P7 Trinity II"
+      "Label": "P7 Akh Morn's Edge II"
     },
     {
       "Ability": 28057,
@@ -2237,13 +2237,13 @@
       "Ability": 28059,
       "Time": 1030.0,
       "IsPhase": false,
-      "Label": "P7 Akh Morn's Edge III"
+      "Label": "P7 Exaflare's Edge III"
     },
     {
       "Ability": 28051,
       "Time": 1051.2,
       "IsPhase": false,
-      "Label": "P7 Trinity III"
+      "Label": "P7 Akh Morn's Edge III"
     },
     {
       "Ability": 28206,
@@ -2763,7 +2763,7 @@
       "Enrage": false
     },
     {
-      "Time": 950,
+      "Time": 971,
       "Mechanic": "Akh Morn II",
       "Hurt": 1,
       "Buster": true,
@@ -2868,7 +2868,7 @@
       "Enrage": false
     },
     {
-      "Time": 1030,
+      "Time": 1051,
       "Mechanic": "Akh Morn III",
       "Hurt": 1,
       "Buster": true,
