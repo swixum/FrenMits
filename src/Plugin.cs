@@ -539,6 +539,36 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
         _pressesFight = null;
     }
 
+    // The zone-in bake can run before the party is readable, so re-read the tank priority pick once both tanks are known.
+    private uint _priorityTerritory = uint.MaxValue;
+    private bool _priorityPhasesHere;
+    private (string? Local, string? CoTank) _priorityPair;
+
+    private void UpdatePriorityPair()
+    {
+        var territory = Service.ClientState.TerritoryType;
+        if (territory != _priorityTerritory)
+        {
+            _priorityTerritory = territory;
+            _priorityPhasesHere = Builtin.PriorityPhases(territory).Count > 0;
+            _priorityPair = default;
+        }
+        if (!_priorityPhasesHere || InCombat) return;
+
+        var pair = PartyRoster.TankJobs();
+        if (pair.Local == null || pair.CoTank == null || pair == _priorityPair) return;
+        _priorityPair = pair;
+
+        var fight = Config.Fights.FirstOrDefault(f => f.Enabled && f.TerritoryId == territory && f.Category != "Custom");
+        if (fight == null || string.IsNullOrEmpty(fight.Slot)) return;
+        var before = fight.Lines.ToList();
+        Builtin.ApplySlot(fight, fight.Slot);
+        if (before.SequenceEqual(fight.Lines)) return;
+        InvalidateSolverCache();
+        Config.Save();
+        Service.Log.Information($"FrenMits priority: tanks {pair.Local}+{pair.CoTank}, slot {fight.Slot}, re-read the priority phases.");
+    }
+
     // Custom sheets follow the sidebar pick unless you chose one.
     private void AutoSlotCustomSheet(uint territory)
     {
@@ -840,6 +870,7 @@ public sealed class Plugin : IDalamudPlugin, IMigrationHost
 
             // Cached here so the per-line gates never walk the party list.
             TankPair.CurrentKey = PartyRoster.TankPairKey();
+            UpdatePriorityPair();
 
             UpdateCutsceneStuck();
 

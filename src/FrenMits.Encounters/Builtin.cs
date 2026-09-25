@@ -690,6 +690,17 @@ public static class Builtin
             if (coTank != null) reachable = reachable.Concat(BuildLines(fight.TerritoryId, coTank)).ToList();
             // The bake minus deletions, so what the slot is entitled to.
             var live = Bake(slot);
+
+            // Drop the old pairing's priority calls, since the top-up only adds; edited and switched-off ones stay.
+            if (coTank != null)
+            {
+                var phases = PriorityPhases(fight.TerritoryId);
+                fight.Lines.RemoveAll(l => !l.Custom && l.Enabled
+                    && phases.Any(p => l.Time >= p.Start && l.Time < p.End)
+                    && MitTypes.Classify(l.Action, l.Mechanic) != MitTypes.Kind.Party
+                    && !live.Any(b => SamePress(l, b)));
+            }
+
             foreach (var b in live)
                 if (!fight.Lines.Any(l => SamePress(l, b)))
                 {

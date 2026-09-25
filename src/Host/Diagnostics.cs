@@ -62,8 +62,10 @@ public class Diagnostics
         _active = true;
         var f = _plugin.ActiveFight();
         var job = _plugin.ActiveJobAbbreviation() ?? "?";
+        // The pairing the priority phases read their tank column from.
+        var (tankLocal, tankCo) = FrenMits.Game.PartyRoster.TankJobs();
         _header = $"FrenMits pull diagnostics  v{typeof(Plugin).Assembly.GetName().Version}\n" +
-                  $"fight={f?.Name ?? "?"}  slot={f?.Slot ?? "?"}  job={job}  " +
+                  $"fight={f?.Name ?? "?"}  slot={f?.Slot ?? "?"}  job={job}  tanks={tankLocal ?? "?"}+{tankCo ?? "?"}  " +
                   $"callShift={(f?.TimerOffset ?? 0f):+0.0;-0.0}s  start={_start:yyyy-MM-dd HH:mm:ss}";
         Log("PULL START");
     }
